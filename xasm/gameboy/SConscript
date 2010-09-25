@@ -1,0 +1,12 @@
+Import('motorgb_env')
+Import('motorgb_xasm_files')
+
+files = [
+	motorgb_env.File("locerror.c"),
+	motorgb_env.File("loclexer.c"),
+	motorgb_env.File("locopt.c"),
+	motorgb_env.File("locparse.c"),
+	motorgb_env.File("locsym.c")
+] + motorgb_xasm_files
+
+motorgb_env.Program('motorgb', files)

@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="common\amigaobj.c" />
+    <ClCompile Include="common\binobj.c" />
+    <ClCompile Include="common\fstack.c" />
+    <ClCompile Include="common\globlex.c" />
+    <ClCompile Include="common\lexer.c" />
+    <ClCompile Include="common\main.c" />
+    <ClCompile Include="common\object.c" />
+    <ClCompile Include="common\options.c" />
+    <ClCompile Include="common\parse.c" />
+    <ClCompile Include="common\patch.c" />
+    <ClCompile Include="common\project.c" />
+    <ClCompile Include="common\section.c" />
+    <ClCompile Include="common\symbol.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common\amigaobj.h" />
+    <ClInclude Include="common\binobj.h" />
+    <ClInclude Include="common\expr.h" />
+    <ClInclude Include="common\fstack.h" />
+    <ClInclude Include="common\globlex.h" />
+    <ClInclude Include="common\lexer.h" />
+    <ClInclude Include="common\lists.h" />
+    <ClInclude Include="common\object.h" />
+    <ClInclude Include="common\options.h" />
+    <ClInclude Include="common\parse.h" />
+    <ClInclude Include="common\patch.h" />
+    <ClInclude Include="common\project.h" />
+    <ClInclude Include="common\section.h" />
+    <ClInclude Include="common\symbol.h" />
+    <ClInclude Include="common\tokens.h" />
+    <ClInclude Include="common\xasm.h" />
+  </ItemGroup>
+</Project>

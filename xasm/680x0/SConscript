@@ -1,0 +1,12 @@
+Import('motor68k_env')
+Import('motor68k_xasm_files')
+
+files = [
+	motor68k_env.File("locerror.c"),
+	motor68k_env.File("loclexer.c"),
+	motor68k_env.File("locopt.c"),
+	motor68k_env.File("locparse.c"),
+	motor68k_env.File("locsym.c")
+] + motor68k_xasm_files
+
+motor68k_env.Program('motor68k', files)

@@ -1,0 +1,12 @@
+Import('motormips_env')
+Import('motormips_xasm_files')
+
+files = [
+	motormips_env.File("locerror.c"),
+	motormips_env.File("loclexer.c"),
+	motormips_env.File("locopt.c"),
+	motormips_env.File("locparse.c"),
+	motormips_env.File("locsym.c")
+] + motormips_xasm_files
+
+motormips_env.Program('motormips', files)
