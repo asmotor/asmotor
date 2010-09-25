@@ -1,0 +1,186 @@
+	SECTION "Hejsa",CODE
+
+Start:
+	bra.b	12$
+	move.l	#John-10,d0
+	lea	John+54(PC),a0
+12$
+	moves	d5,(a0)
+	movec	vbr,a2
+	cpusha	bc
+	cinvp	bc,(a4)
+	stop	#$2700
+	rte
+	reset
+	or.w	#~$2700,sr
+	and.w	#~$2700,sr
+	move.w	John(PC),d0
+	move.l	a3,usp
+	move.l	usp,a5
+	move	sr,d5
+	move	d0,sr
+
+John:
+	nop
+	if	0
+	move	sr,d5
+	tst.b	#$12
+
+	or.b	#23,ccr
+	ori.w	#5,d0
+	or.b	#87,d0
+	or.w	d0,(a1)
+
+	not	123(a0)
+	nop
+	negx	d3
+	neg.l	(a2,d4.w*4)
+	nbcd	Symbol
+	mulu	#10,d0
+	muls	#20,d0
+	mulu.l	Symbol,d0:d1
+	muls.l	Symbol,d1
+	;muls.l	Symbol,d1:d1
+	move.l	#1,d3
+	moveq	#-63,d5
+	movep	(a2),d5
+	movep.l	d3,10(a3)
+	;move16	(a0)+,(a2)+
+	;move16	(a0),Symbol
+	;move16	Symbol,(a2)+
+	move	(a5),ccr
+	move	ccr,d0
+	move.l	Symbol(PC),a3
+	move.w	a4,d5
+	move.w	Symbol(PC),Symbol
+	link	a1,#87
+	link.l	a1,#87
+	lea		(a0,d0.w),a2
+	jmp		(a0)
+	jsr		Symbol(PC)
+	illegal
+	ext.w	d5
+	ext.l	d6
+	extb.l	d2
+	exg		d0,d1
+	exg		a0,d1
+	exg		d1,a0
+	exg		a0,a1
+	eor.b	#23,ccr
+	eor.w	#5,d0
+	eor.l	d5,Symbol
+	divu	d2,d6
+	divu.l	d2,d6:d7
+	divs.l	d2,d7
+	divsl.l	d2,d7:d5
+	dbra	d6,Symbol
+	cmp2.l	Symbol(PC),a3
+	cmp.b	#7,(a5)+
+	cmp.w	#100,d5
+	cmp.l	#Symbol,a5
+	cmp.w	a3,d2
+	chk2	(Symbol,PC,d0.w*2),d5
+	chk		Symbol(PC),d6
+	cas2	d0:d1,d2:d3,(a0):(a1)
+	cas		d1,d2,Symbol
+	;callm	#87,Symbol
+	bkpt	#3
+	bfins	d5,(a1,d2.w){d3:4}
+	bfffo	(a1,d2.w){d3:4},d5
+	bfexts	(a1,d2.w){d3:4},d5
+	bfextu	(a1,d2.w){d3:4},d5
+	bfclr	(a1,d2.w){d3:4}
+	bfset	(a1,d2.w){d3:4}
+	bfchg	(a1,d2.w){d3:4}
+	bftst	(a1,d2.w){d3:4}
+
+	bsr.b	Symbol
+	bftst	(a0,d0.w){d1:5}
+	bchg	d5,(Symbol,d0.w)
+	bchg	#1,d3
+	roxr	Symbol
+	roxl.w	#3,d5
+	roxr.w	#3,d5
+	asl.w	Symbol
+	addx.w	d3,d4
+	add.w	#4,a0
+	add.w	#5,d5
+	add.l	#Symbol,Symbol+100
+
+	add.w	(Symbol.w,a0,d5.w*4),d1
+	add.w	d1,(a0)
+	tst.l	([Symbol,pc],d5.w,87)
+
+	tst.l	(a3.l)
+
+	clr.l	$402		;works
+
+	tst.w	(Symbol,PC)
+	tst.b	Symbol(PC)
+
+Symbol:
+	abcd	d0,d7
+	abcd.b	-(a2),-(a2)
+	sbcd	d0,d7
+	sbcd	-(a2),-(a2)
+
+	clr.l	($402).w	;works
+	clr.b	$400.w		;works
+	clr.b	(87,a6)		;works
+
+	clr.b	87(a6,d2.w*8)	;works
+
+
+	clr.b	(-87,a6,d2.w);works
+
+	clr.b	-87(a6)		;works
+	clr.b	(87)(a6)	;works
+	clr.b	((87),a6)	;works
+
+	clr.b	d5
+	clr		(a3)
+	clr.l	(a2)+
+	clr		-(a2)
+
+	pea		Symbol(PC)
+	rtd		#64
+	rtm		a5
+	rtr
+	rts
+
+	movem.l	#$1234,-(sp)
+	movem.l	(sp)+,#$1234
+
+	movem.w	(sp)+,d0/d2-d4/d7-a6
+	movem.l	d0/d2-d4/d7-a6,-(sp)
+
+	unlk	a4
+
+	seq		d5
+	st		Symbol
+
+	subx.w	d3,d4
+	sub.w	#4,a0
+	sub.w	#5,d5
+	subi.l	#Symbol,Symbol+100
+
+	sub.w	(Symbol.w,a0,d5.w*4),d1
+	sub.w	d1,(a0)
+	swap	d5
+
+	if	0
+	tas		d5
+
+	trap	#7
+
+	trapne
+	trapt.w	#$100
+	traphi.l #87
+
+	trapv
+
+	pack	-(a2),-(a3),#$2020
+	unpack	-(a2),-(a3),#$2020
+	endc
+
+	endc

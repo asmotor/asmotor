@@ -1,0 +1,21 @@
+	SECTION	"MyCode",CODE
+
+	XDEF	_MyFunc
+	XREF	ExternFunc
+	XREF	ExternFunc2
+	
+_MyFunc:
+	movem.l	d0-a6,-(sp)
+	move.l	(16+0)*4(sp),a0
+	bsr.b	MyFunc
+	movem.l	(sp)+,d0-a6
+	rts
+	
+MyFunc:
+	moveq	#-1,d1
+	eor.l	d1,d0
+	jsr		ExternFunc+16
+	jsr		ExternFunc2
+	jsr		ExternFunc
+	rts
+	

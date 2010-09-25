@@ -1,0 +1,53 @@
+*Comment		
+
+Macro1:	MACRO
+		IFND	Undefined
+			WARN	"Macro Line 2 \1 (Arg0 = \0)"
+			IFND	Undefined2
+				WARN	"Macro Line 4 \2"
+				PRINTT	{__FILE}
+				PRINTT	"{__FILE} {__LINE} {__DATE} {__TIME}\n"
+			ENDC
+		ELSE
+			WARN	"Line 8"
+		ENDC
+		ENDM
+		
+		Macro1.w	<Arg1 2>,3	;Comment
+
+		REPT	2
+		WARN	"Outer"	* 2
+		REPT	2
+		WARN	"Inner"
+		IFD		Macro1
+			WARN	"Line 19"
+		ELSE
+			IFND	Undefined2
+				WARN	"Line 22"
+			ENDC
+			WARN	"Line 24"
+		ENDC
+		ENDR
+		REXIT
+		ENDR
+
+		IFD		Macro1
+			WARN	"Line 32"
+		ELSE
+			IFND	Undefined2
+				WARN	"Line 35"
+			ENDC
+			WARN	"Line 37"
+		ENDC
+
+		WARN	"Line 40"
+		
+SetTest		SET	1
+		PRINTV	SetTest
+SetTest = SetTest+1
+		PRINTV	SetTest*2
+
+		SECTION	"Code",CODE
+
+		dc.b	0,1,2
+		CNOP	0,8

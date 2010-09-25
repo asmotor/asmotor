@@ -1,0 +1,45 @@
+def GetXasmFiles(env):
+	return [
+		env.File("common/amigaobj.c"),
+		env.File("common/binobj.c"),
+		env.File("common/fstack.c"),
+		env.File("common/globlex.c"),
+		env.File("common/lexer.c"),
+		env.File("common/main.c"),
+		env.File("common/object.c"),
+		env.File("common/options.c"),
+		env.File("common/parse.c"),
+		env.File("common/patch.c"),
+		env.File("common/project.c"),
+		env.File("common/section.c"),
+		env.File("common/symbol.c")
+	]
+
+env = Environment()
+env.Append(CPPFLAGS = "-O3")
+env.Append(LIBS = ["m"])
+
+motor68k_env = env.Clone();
+motor68k_env["OBJSUFFIX"] = ".68k_o"
+motor68k_env.Append(CPPPATH = "#/680x0")
+motor68k_xasm_files = GetXasmFiles(motor68k_env)
+SConscript("680x0/SConscript", ["motor68k_env", "motor68k_xasm_files"])
+
+motormips_env = env.Clone();
+motormips_env["OBJSUFFIX"] = ".mips_o"
+motormips_env.Append(CPPPATH = "#/mips")
+motormips_xasm_files = GetXasmFiles(motormips_env)
+SConscript("mips/SConscript", ["motormips_env", "motormips_xasm_files"])
+
+motor6502_env = env.Clone();
+motor6502_env["OBJSUFFIX"] = ".6502_o"
+motor6502_env.Append(CPPPATH = "#/6502")
+motor6502_xasm_files = GetXasmFiles(motor6502_env)
+SConscript("6502/SConscript", ["motor6502_env", "motor6502_xasm_files"])
+
+motorgb_env = env.Clone();
+motorgb_env["OBJSUFFIX"] = ".gb_o"
+motorgb_env.Append(CPPPATH = "#/gameboy")
+motorgb_xasm_files = GetXasmFiles(motorgb_env)
+SConscript("gameboy/SConscript", ["motorgb_env", "motorgb_xasm_files"])
+

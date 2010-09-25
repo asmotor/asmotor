@@ -1,0 +1,15 @@
+env = Environment()
+
+env.Append(CPPFLAGS = "-O3")
+env.Program("motorlib",
+	["assign.c",
+	"group.c",
+	"main.c",
+	"mapfile.c",
+	"object.c",
+	"output.c",
+	"patch.c",
+	"section.c",
+	"smart.c"], LIBS = ["m"])
+
+

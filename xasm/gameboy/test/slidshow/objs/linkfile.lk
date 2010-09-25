@@ -1,0 +1,10 @@
+[objects]
+main.obj
+user.obj
+pics.obj
+
+[libraries]
+c:\code\asmotor\src_v110\examples\minios\mos.lib
+
+[output]
+main.gb
