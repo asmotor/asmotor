@@ -316,14 +316,16 @@ static BOOL parse_ExpectRegisterA(void)
 
 static SExpression* parse_ExpressionPCRel(void)
 {
-	SExpression* expr;
+	SExpression* pExpr = parse_Expression();
 
-	if((expr = parse_Expression()) != NULL)
+	if(pExpr != NULL)
 	{
-		if((expr = parse_CheckRange(expr,-32768,65535)) != NULL)
-			return expr;
+		pExpr = parse_CreatePCRelExpr(pExpr, -1);
+		pExpr = parse_CheckRange(pExpr, -128, 127);
+		if(pExpr != NULL)
+			return pExpr;
 
-		prj_Error(ERROR_EXPRESSION_N_BIT, 16);
+		prj_Error(ERROR_EXPRESSION_N_BIT, 8);
 		return NULL;
 	}
 
@@ -1451,7 +1453,7 @@ BOOL	parse_TargetSpecific(void)
 
 			parse_GetToken();
 
-			if((cc=parse_ConditionCode())!=-1)
+			if((cc = parse_ConditionCode()) != -1)
 			{
 				if(parse_ExpectComma())
 				{

@@ -62,6 +62,7 @@ typedef	enum
 	OBJ_FUNC_ATAN,
 	OBJ_CONSTANT,
 	OBJ_SYMBOL,
+	OBJ_PCREL,
 	OBJ_FUNC_BANK,
 }	EExprOperator;
 
@@ -70,7 +71,7 @@ typedef	struct
 	ULONG		Offset;
 	EPatchType	Type;
 	ULONG		ExprSize;
-	UBYTE		*pExpr;
+	UBYTE*		pExpr;
 }	SPatch;
 
 typedef	struct

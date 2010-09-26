@@ -164,16 +164,16 @@ static	void	fix_local_exports(SSection* sect, SExpression* expr)
 
 static	int	write_expr(FILE* f, SExpression* expr)
 {
-	int	r=0;
+	int	r = 0;
 
 	if(expr)
 	{
-		r+=write_expr(f, expr->pLeft);
-		r+=write_expr(f, expr->pRight);
+		r += write_expr(f, expr->pLeft);
+		r += write_expr(f, expr->pRight);
 
 		switch(expr->Type)
 		{
-			case	EXPR_OPERATOR:
+			case EXPR_OPERATOR:
 			{
 				switch(expr->Operator)
 				{
@@ -384,8 +384,15 @@ static	int	write_expr(FILE* f, SExpression* expr)
 				r+=5;
 				break;
 			}
-			case	EXPR_NOP:
+			case	EXPR_PCREL:
 			{
+				fputc(OBJ_PCREL, f);
+				r += 1;
+				break;
+			}
+			default:
+			{
+				internalerror("Unknown expression");
 				break;
 			}
 		}

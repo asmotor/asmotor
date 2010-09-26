@@ -28,331 +28,569 @@
 
 #define	STACKSIZE	256
 
-static	SLONG	stack[STACKSIZE];
-static	SLONG	stack_index;
+static char* g_StringStack[STACKSIZE];
+static SLONG g_Stack[STACKSIZE];
+static SLONG g_nStackIndex;
 
-static	void	push(SLONG value)
+static void PushString(char *pszValue)
 {
-	if(stack_index<STACKSIZE)
-	{
-		stack[stack_index++]=value;
-	}
-	else
-	{
+	if(g_nStackIndex >= STACKSIZE)
 		Error("patch too complex");
-	}
+
+	g_StringStack[g_nStackIndex++] = pszValue;
 }
 
-static	SLONG	pop(void)
+static void push(SLONG value)
 {
-	if(stack_index>0)
-	{
-		return stack[--stack_index];
-	}
-	else
-	{
-		Error("mangled patch");
-		return 0;
-	}
+	if(g_nStackIndex >= STACKSIZE)
+		Error("patch too complex");
+
+	g_Stack[g_nStackIndex++] = value;
 }
 
-static	void	pop2(SLONG* left, SLONG* right)
+static SLONG pop(void)
 {
-	*right=pop();
-	*left=pop();
+	if(g_nStackIndex > 0)
+		return g_Stack[--g_nStackIndex];
+
+	Error("mangled patch");
+	return 0;
+}
+
+static char* PopString(void)
+{
+	if(g_nStackIndex > 0)
+		return g_StringStack[--g_nStackIndex];
+
+	Error("mangled patch");
+	return NULL;
+}
+
+
+static void	pop2(SLONG* pLeft, SLONG* pRight)
+{
+	*pRight = pop();
+	*pLeft = pop();
+}
+
+
+static void	PopStrings(char** ppszLeft, char** ppszRight)
+{
+	*ppszRight = PopString();
+	*ppszLeft = PopString();
+}
+
+
+static void CombinePatchStrings(char* pszOperator)
+{
+	char* pszLeft;
+	char* pszRight;
+	char* pszNewString;
+
+	PopStrings(&pszLeft, &pszRight);
+
+	pszNewString = (char*)malloc(strlen(pszLeft) + strlen(pszRight) + strlen(pszOperator) + 5);
+	sprintf(pszNewString, "(%s)%s(%s)", pszLeft, pszOperator, pszRight);
+
+	PushString(pszNewString);
+
+	free(pszLeft);
+	free(pszRight);
 }
 
 
 
-SLONG	calc_patch(SPatch* patch, SSection* sect)
+static void CombinePatchFunctionStrings(char* pszFunc)
 {
-	SLONG	size;
-	UBYTE* expr;
+	char* pszLeft;
+	char* pszRight;
+	char* pszNewString;
 
-	size=patch->ExprSize;
-	expr=patch->pExpr;
-	stack_index=0;
+	PopStrings(&pszLeft, &pszRight);
 
-	while(size>0)
+	pszNewString = (char*)malloc(strlen(pszLeft) + strlen(pszRight) + strlen(pszFunc) + 4);
+	sprintf(pszNewString, "%s(%s,%s)", pszFunc, pszLeft, pszRight);
+
+	PushString(pszNewString);
+
+	free(pszLeft);
+	free(pszRight);
+}
+
+
+static void CombinePatchFunctionString(char* pszFunc)
+{
+	char* pszLeft;
+	char* pszNewString;
+
+	pszLeft = PopString();
+
+	pszNewString = (char*)malloc(strlen(pszLeft) + strlen(pszFunc) + 3);
+	sprintf(pszNewString, "%s(%s)", pszFunc, pszLeft);
+
+	PushString(pszNewString);
+
+	free(pszLeft);
+}
+
+
+char* GetPatchString(SPatch* patch, SSection* sect)
+{
+	SLONG size = patch->ExprSize;
+	UBYTE* expr = patch->pExpr;
+
+	g_nStackIndex = 0;
+
+	while(size-- > 0)
 	{
-		SLONG	left,
-				right;
-
-		size-=1;
+		char* pszLeft;
+		char* pszRight;
 
 		switch(*expr++)
 		{
-			case	OBJ_OP_SUB:
+			case OBJ_OP_SUB:
+				CombinePatchStrings("-");
+				break;
+			case OBJ_OP_ADD:
+				CombinePatchStrings("+");
+				break;
+			case OBJ_OP_XOR:
+				CombinePatchStrings("^");
+				break;
+			case OBJ_OP_OR:
+				CombinePatchStrings("|");
+				break;
+			case OBJ_OP_AND:
+				CombinePatchStrings("&");
+				break;
+			case OBJ_OP_SHL:
+				CombinePatchStrings("<<");
+				break;
+			case OBJ_OP_SHR:
+				CombinePatchStrings(">>");
+				break;
+			case OBJ_OP_MUL:
+				CombinePatchStrings("*");
+				break;
+			case OBJ_OP_DIV:
+				CombinePatchStrings("/");
+				break;
+			case OBJ_OP_MOD:
+				CombinePatchStrings("%");
+				break;
+			case OBJ_OP_LOGICOR:
+				CombinePatchStrings("||");
+				break;
+			case OBJ_OP_LOGICAND:
+				CombinePatchStrings("&&");
+				break;
+			case OBJ_OP_LOGICNOT:
+				CombinePatchFunctionString("!");
+				break;
+			case OBJ_OP_LOGICGE:
+				CombinePatchStrings(">=");
+				break;
+			case OBJ_OP_LOGICGT:
+				CombinePatchStrings(">");
+				break;
+			case OBJ_OP_LOGICLE:
+				CombinePatchStrings("<=");
+				break;
+			case OBJ_OP_LOGICLT:
+				CombinePatchStrings("<");
+				break;
+			case OBJ_OP_LOGICEQU:
+				CombinePatchStrings("==");
+				break;
+			case OBJ_OP_LOGICNE:
+				CombinePatchStrings("!=");
+				break;
+			case OBJ_FUNC_LOWLIMIT:
 			{
-				pop2(&left, &right);
-				push(left-right);
+				PopStrings(&pszLeft, &pszRight);
+				PushString(pszLeft);
+				free(pszRight);
 				break;
 			}
-			case	OBJ_OP_ADD:
+			case OBJ_FUNC_HIGHLIMIT:
 			{
-				pop2(&left, &right);
-				push(left+right);
+				PopStrings(&pszLeft, &pszRight);
+				PushString(pszLeft);
+				free(pszRight);
 				break;
 			}
-			case	OBJ_OP_XOR:
-			{
-				pop2(&left, &right);
-				push(left^right);
+			case OBJ_FUNC_FDIV:
+				CombinePatchFunctionStrings("FDIV");
 				break;
-			}
-			case	OBJ_OP_OR:
-			{
-				pop2(&left, &right);
-				push(left|right);
+			case OBJ_FUNC_FMUL:
+				CombinePatchFunctionStrings("FMUL");
 				break;
-			}
-			case	OBJ_OP_AND:
-			{
-				pop2(&left, &right);
-				push(left&right);
+			case OBJ_FUNC_ATAN2:
+				CombinePatchFunctionStrings("ATAN2");
 				break;
-			}
-			case	OBJ_OP_SHL:
-			{
-				pop2(&left, &right);
-				push(left<<right);
+			case OBJ_FUNC_SIN:
+				CombinePatchFunctionString("SIN");
 				break;
-			}
-			case	OBJ_OP_SHR:
-			{
-				pop2(&left, &right);
-				push(left>>right);
+			case OBJ_FUNC_COS:
+				CombinePatchFunctionString("COS");
 				break;
-			}
-			case	OBJ_OP_MUL:
-			{
-				pop2(&left, &right);
-				push(left*right);
+			case OBJ_FUNC_TAN:
+				CombinePatchFunctionString("TAN");
 				break;
-			}
-			case	OBJ_OP_DIV:
-			{
-				pop2(&left, &right);
-				push(left/right);
+			case OBJ_FUNC_ASIN:
+				CombinePatchFunctionString("ASIN");
 				break;
-			}
-			case	OBJ_OP_MOD:
-			{
-				pop2(&left, &right);
-				push(left%right);
+			case OBJ_FUNC_ACOS:
+				CombinePatchFunctionString("ACOS");
 				break;
-			}
-			case	OBJ_OP_LOGICOR:
-			{
-				pop2(&left, &right);
-				push((left||right)?1:0);
+			case OBJ_FUNC_ATAN:
+				CombinePatchFunctionString("ATAN");
 				break;
-			}
-			case	OBJ_OP_LOGICAND:
+			case OBJ_CONSTANT:
 			{
-				pop2(&left, &right);
-				push((left&&right)?1:0);
-				break;
-			}
-			case	OBJ_OP_LOGICNOT:
-			{
-				push(pop()?0:1);
-				break;
-			}
-			case	OBJ_OP_LOGICGE:
-			{
-				pop2(&left, &right);
-				push((left>=right)?1:0);
-				break;
-			}
-			case	OBJ_OP_LOGICGT:
-			{
-				pop2(&left, &right);
-				push((left>right)?1:0);
-				break;
-			}
-			case	OBJ_OP_LOGICLE:
-			{
-				pop2(&left, &right);
-				push((left<=right)?1:0);
-				break;
-			}
-			case	OBJ_OP_LOGICLT:
-			{
-				pop2(&left, &right);
-				push((left<right)?1:0);
-				break;
-			}
-			case	OBJ_OP_LOGICEQU:
-			{
-				pop2(&left, &right);
-				push((left==right)?1:0);
-				break;
-			}
-			case	OBJ_OP_LOGICNE:
-			{
-				pop2(&left, &right);
-				push((left!=right)?1:0);
-				break;
-			}
-			case	OBJ_FUNC_LOWLIMIT:
-			{
-				pop2(&left, &right);
-				if(left>=right)
-				{
-					push(left);
-				}
-				else
-				{
-					Error("LOWLIMIT failed");
-				}
-				break;
-			}
-			case	OBJ_FUNC_HIGHLIMIT:
-			{
-				pop2(&left, &right);
-				if(left<=right)
-				{
-					push(left);
-				}
-				else
-				{
-					Error("HIGHLIMIT failed");
-				}
-				break;
-			}
-			case	OBJ_FUNC_FDIV:
-			{
-				pop2(&left, &right);
-				push(double2fix(fix2double(left)/fix2double(right)));
-				break;
-			}
-			case	OBJ_FUNC_FMUL:
-			{
-				pop2(&left, &right);
-				push(double2fix(fix2double(left)*fix2double(right)));
-				break;
-			}
-			case	OBJ_FUNC_ATAN2:
-			{
-				pop2(&left, &right);
-				push(double2fix(atan2(fix2double(left),fix2double(right))/2/PI*65536));
-				break;
-			}
-			case	OBJ_FUNC_SIN:
-			{
-				push(double2fix(sin(fix2double(pop()))*2*PI/65536));
-				break;
-			}
-			case	OBJ_FUNC_COS:
-			{
-				push(double2fix(cos(fix2double(pop()))*2*PI/65536));
-				break;
-			}
-			case	OBJ_FUNC_TAN:
-			{
-				push(double2fix(tan(fix2double(pop()))*2*PI/65536));
-				break;
-			}
-			case	OBJ_FUNC_ASIN:
-			{
-				push(double2fix(asin(fix2double(pop()))/2/PI*65536));
-				break;
-			}
-			case	OBJ_FUNC_ACOS:
-			{
-				push(double2fix(acos(fix2double(pop()))/2/PI*65536));
-				break;
-			}
-			case	OBJ_FUNC_ATAN:
-			{
-				push(double2fix(atan(fix2double(pop()))/2/PI*65536));
-				break;
-			}
-			case	OBJ_CONSTANT:
-			{
-				ULONG	d;
+				ULONG d;
+				char s[16];
 
-				d =(*expr++);
-				d|=(*expr++)<<8;
-				d|=(*expr++)<<16;
-				d|=(*expr++)<<24;
+				d  = (*expr++);
+				d |= (*expr++) << 8;
+				d |= (*expr++) << 16;
+				d |= (*expr++) << 24;
+
+				sprintf(s, "%d", d);
+				PushString(strdup(s));
+
+				size -= 4;
+				break;
+			}
+			case OBJ_SYMBOL:
+			{
+				ULONG d;
+
+				d  = (*expr++);
+				d |= (*expr++) << 8;
+				d |= (*expr++) << 16;
+				d |= (*expr++) << 24;
+
+				PushString(strdup(sect_GetSymbolName(sect, d)));
+				size -= 4;
+				break;
+			}
+			case OBJ_FUNC_BANK:
+			{
+				char* pszName;
+				char* pszNew;
+				ULONG d;
+
+				d  = (*expr++);
+				d |= (*expr++) << 8;
+				d |= (*expr++) << 16;
+				d |= (*expr++) << 24;
+
+				pszName = sect_GetSymbolName(sect, d);
+
+				pszNew = malloc(strlen(pszName) + 7);
+				sprintf(pszNew, "BANK(%s)", pszName); 
+
+				PushString(pszNew);
+
+				size -= 4;
+				break;
+			}
+			case OBJ_PCREL:
+			{
+				CombinePatchStrings("+");
+				PushString("*");
+				CombinePatchStrings("-");
+				break;
+			}
+			default:
+				Error("Unknown patch operator");
+				break;
+		}
+	}
+
+	return PopString();
+}
+
+
+
+SLONG calc_patch(SPatch* patch, SSection* sect)
+{
+	SLONG size = patch->ExprSize;
+	UBYTE* expr = patch->pExpr;
+
+	g_nStackIndex = 0;
+
+	while(size > 0)
+	{
+		SLONG left, right;
+
+		--size;
+
+		switch(*expr++)
+		{
+			case OBJ_OP_SUB:
+			{
+				pop2(&left, &right);
+				push(left - right);
+				break;
+			}
+			case OBJ_OP_ADD:
+			{
+				pop2(&left, &right);
+				push(left + right);
+				break;
+			}
+			case OBJ_OP_XOR:
+			{
+				pop2(&left, &right);
+				push(left ^ right);
+				break;
+			}
+			case OBJ_OP_OR:
+			{
+				pop2(&left, &right);
+				push(left | right);
+				break;
+			}
+			case OBJ_OP_AND:
+			{
+				pop2(&left, &right);
+				push(left & right);
+				break;
+			}
+			case OBJ_OP_SHL:
+			{
+				pop2(&left, &right);
+				push(left << right);
+				break;
+			}
+			case OBJ_OP_SHR:
+			{
+				pop2(&left, &right);
+				push(left >> right);
+				break;
+			}
+			case OBJ_OP_MUL:
+			{
+				pop2(&left, &right);
+				push(left * right);
+				break;
+			}
+			case OBJ_OP_DIV:
+			{
+				pop2(&left, &right);
+				push(left / right);
+				break;
+			}
+			case OBJ_OP_MOD:
+			{
+				pop2(&left, &right);
+				push(left % right);
+				break;
+			}
+			case OBJ_OP_LOGICOR:
+			{
+				pop2(&left, &right);
+				push(left || right ? 1 : 0);
+				break;
+			}
+			case OBJ_OP_LOGICAND:
+			{
+				pop2(&left, &right);
+				push(left && right ? 1 : 0);
+				break;
+			}
+			case OBJ_OP_LOGICNOT:
+			{
+				push(pop() ? 0 : 1);
+				break;
+			}
+			case OBJ_OP_LOGICGE:
+			{
+				pop2(&left, &right);
+				push(left >= right ? 1 : 0);
+				break;
+			}
+			case OBJ_OP_LOGICGT:
+			{
+				pop2(&left, &right);
+				push(left > right ? 1 : 0);
+				break;
+			}
+			case OBJ_OP_LOGICLE:
+			{
+				pop2(&left, &right);
+				push(left <= right ? 1 : 0);
+				break;
+			}
+			case OBJ_OP_LOGICLT:
+			{
+				pop2(&left, &right);
+				push(left < right ? 1 : 0);
+				break;
+			}
+			case OBJ_OP_LOGICEQU:
+			{
+				pop2(&left, &right);
+				push(left == right ? 1 : 0);
+				break;
+			}
+			case OBJ_OP_LOGICNE:
+			{
+				pop2(&left, &right);
+				push(left != right ? 1 : 0);
+				break;
+			}
+			case OBJ_FUNC_LOWLIMIT:
+			{
+				pop2(&left, &right);
+				if(left >= right)
+					push(left);
+				else
+					Error("Expression \"%s\" at offset %d in section \"%s\" out of range", GetPatchString(patch, sect), patch->Offset, sect->Name);
+				break;
+			}
+			case OBJ_FUNC_HIGHLIMIT:
+			{
+				pop2(&left, &right);
+				if(left <= right)
+					push(left);
+				else
+					Error("Expression \"%s\" at offset %d in section \"%s\" out of range", GetPatchString(patch, sect), patch->Offset, sect->Name);
+				break;
+			}
+			case OBJ_FUNC_FDIV:
+			{
+				pop2(&left, &right);
+				push(double2fix(fix2double(left) / fix2double(right)));
+				break;
+			}
+			case OBJ_FUNC_FMUL:
+			{
+				pop2(&left, &right);
+				push(double2fix(fix2double(left) * fix2double(right)));
+				break;
+			}
+			case OBJ_FUNC_ATAN2:
+			{
+				pop2(&left, &right);
+				push(double2fix(atan2(fix2double(left), fix2double(right)) / 2 / PI * 65536));
+				break;
+			}
+			case OBJ_FUNC_SIN:
+			{
+				push(double2fix(sin(fix2double(pop())) * 2 * PI / 65536));
+				break;
+			}
+			case OBJ_FUNC_COS:
+			{
+				push(double2fix(cos(fix2double(pop())) * 2 * PI / 65536));
+				break;
+			}
+			case OBJ_FUNC_TAN:
+			{
+				push(double2fix(tan(fix2double(pop())) * 2 * PI / 65536));
+				break;
+			}
+			case OBJ_FUNC_ASIN:
+			{
+				push(double2fix(asin(fix2double(pop())) / 2 / PI * 65536));
+				break;
+			}
+			case OBJ_FUNC_ACOS:
+			{
+				push(double2fix(acos(fix2double(pop())) / 2 / PI * 65536));
+				break;
+			}
+			case OBJ_FUNC_ATAN:
+			{
+				push(double2fix(atan(fix2double(pop())) / 2 / PI * 65536));
+				break;
+			}
+			case OBJ_CONSTANT:
+			{
+				ULONG d;
+
+				d  = (*expr++);
+				d |= (*expr++) << 8;
+				d |= (*expr++) << 16;
+				d |= (*expr++) << 24;
 
 				push(d);
-				size-=4;
+				size -= 4;
 				break;
 			}
-			case	OBJ_SYMBOL:
+			case OBJ_SYMBOL:
 			{
-				ULONG	d;
+				ULONG d;
 
-				d =(*expr++);
-				d|=(*expr++)<<8;
-				d|=(*expr++)<<16;
-				d|=(*expr++)<<24;
+				d  = (*expr++);
+				d |= (*expr++) << 8;
+				d |= (*expr++) << 16;
+				d |= (*expr++) << 24;
 
-				push(sect_GetSymbolValue(sect,d));
-				size-=4;
+				push(sect_GetSymbolValue(sect, d));
+				size -= 4;
 				break;
 			}
-			case	OBJ_FUNC_BANK:
+			case OBJ_FUNC_BANK:
 			{
-				ULONG	d;
+				ULONG d;
 
-				d =(*expr++);
-				d|=(*expr++)<<8;
-				d|=(*expr++)<<16;
-				d|=(*expr++)<<24;
+				d  = (*expr++);
+				d |= (*expr++) << 8;
+				d |= (*expr++) << 16;
+				d |= (*expr++) << 24;
 
-				push(sect_GetSymbolBank(sect,d));
-				size-=4;
+				push(sect_GetSymbolBank(sect, d));
+				size -= 4;
 				break;
 			}
+			case OBJ_PCREL:
+			{
+				pop2(&left, &right);
+				push(left + right - (patch->Offset + sect->ImageOffset));
+				break;
+			}
+			default:
+				Error("Unknown patch operator");
+				break;
 		}
 	}
 
 	return pop();
 }
 
-static	void	do_section(SSection* sect)
+static void do_section(SSection* sect)
 {
-	SPatches* patches;
+	SPatches* patches = sect->pPatches;
 
-	patches=sect->pPatches;
-
-	if(patches)
+	if(patches != NULL)
 	{
-		ULONG	i;
+		ULONG i;
 
-		for(i=0; i<patches->TotalPatches; i+=1)
+		for(i = 0; i < patches->TotalPatches; ++i)
 		{
-			SLONG	value;
-			SPatch* patch;
-
-			patch=&patches->Patches[i];
-
-			value=calc_patch(patch, sect);
+			SPatch* patch = &patches->Patches[i];
+			SLONG value = calc_patch(patch, sect);
 
 			switch(patch->Type)
 			{
-				case	PATCH_BYTE:
+				case PATCH_BYTE:
 				{
-					if(value>=-128 && value<=255)
-					{
+					if(value >= -128 && value <= 255)
 						sect->pData[patch->Offset] = (UBYTE)value;
-					}
 					else
-					{
-						Error("patch out of range");
-					}
+						Error("Expression \"%s\" at offset %d in section \"%s\" out of range", GetPatchString(patch, sect), patch->Offset, sect->Name);
 					break;
 				}
-				case	PATCH_LWORD:
+				case PATCH_LWORD:
 				{
-					if(value>=-32768 && value<=65535)
+					if(value >= -32768 && value <= 65535)
 					{
-						sect->pData[patch->Offset+0] = (UBYTE)value;
-						sect->pData[patch->Offset+1] = (UBYTE)(value >> 8);
+						sect->pData[patch->Offset + 0] = (UBYTE)value;
+						sect->pData[patch->Offset + 1] = (UBYTE)(value >> 8);
 					}
 					else
 					{

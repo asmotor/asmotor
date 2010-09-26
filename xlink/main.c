@@ -19,10 +19,10 @@
 #include "xlink.h"
 #include <stdarg.h>
 
-void	Error(char* fmt, ...)
+void Error(char* fmt, ...)
 {
 	va_list	list;
-	char	temp[256];
+	char temp[256];
 
 	va_start(list, fmt);
 	vsprintf(temp, fmt, list);
@@ -34,197 +34,52 @@ void	Error(char* fmt, ...)
 
 /*	Help text */
 
-void    PrintUsage(void)
+void PrintUsage(void)
 {
-    printf(	"xlink v" LINK_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n"
+    printf(	"motorlink v" LINK_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n"
 			"\n"
-			"Usage: xlink [options] [file1[file2[...[filen]]]]\n"
+			"Usage: motorlink [options] file1 file2 ... filen\n"
     		"Options: (a forward slash (/) can be used instead of the dash (-))\n"
-			"\t-@ <file>\tRead <file> for options\n"
 			"\t-h\t\tThis text\n"
-			"\t-m <mapfile>\tWrite a mapfile\n"
-			"\t-o <output>\tWrite output to file <output>\n"
-    		"\t-s <symbol>\tPerform smart linking starting with <symbol>\n"
+			"\t-m<mapfile>\tWrite a mapfile\n"
+			"\t-o<output>\tWrite output to file <output>\n"
+    		"\t-s<symbol>\tPerform smart linking starting with <symbol>\n"
 			"\t-t\t\tOutput target\n"
 			"\t    -tg\t\tGameboy ROM image(default)\n"
 			"\t    -ts\t\tGameboy small mode (32kB)\n"
-			"\t    -tm <mach>\tUse file <mach>\n"
-    		"\t-z <hx>\t\tSet the byte value (hex format) used for uninitialised\n"
+			"\t    -tm<mach>\tUse file <mach>\n"
+    		"\t-z<hx>\t\tSet the byte value (hex format) used for uninitialised\n"
 			"\t\t\tdata (default is ? for random)\n"
 			);
     exit(EXIT_SUCCESS);
 }
 
-int	GetLine(char* s, int size, FILE* f)
-{
-	int ch;
-	int	read;
 
-	ch = fgetc(f);
-	read = 0;
-	while(ch != EOF && ch != 10 && ch != 13 && read < size)
-	{
-		*s++ = (char)ch;
-		ch = fgetc(f);
-		++read;
-	}
-
-	*s = 0;
-
-	return ch != EOF;
-}
-
-void	ProcessFileLine(char* s1, void(*func)(char* ))
-{
-	char* s2;
-	int		ok;
-
-	ok=1;
-
-	while(ok)
-	{
-		while(isspace(*s1) && *s1!=0)
-		{
-			s1+=1;
-		}
-
-		if(*s1)
-		{
-			char* s3;
-
-			s2=s1;
-			while(*s2!=',' && *s2!=0)
-			{
-				s2+=1;
-			}
-
-			if(*s2==0)
-			{
-				ok=0;
-			}
-
-			*s2=0;
-			s3=s2-1;
-			while(isspace(*s3))
-			{
-				*s3--=0;
-			}
-
-
-			if(*s1=='\"')
-			{
-				s1+=1;
-			}
-
-			if(*s3=='\"')
-			{
-				*s3=0;
-			}
-
-			func(s1);
-
-			s1=s2+1;
-		}
-		else
-		{
-			ok=0;
-		}
-	}
-}
-
-void	ParseResponseFile(char* filename)
-{
-	if(filename)
-	{
-		FILE* f;
-
-		if((f=fopen(filename,"rb"))!=NULL)
-		{
-			char	text[1024];
-
-			GetLine(text, 1024, f);
-
-			do
-			{
-				if(text[0]!='#')
-				{
-					if(strnicmp(text,"files",5)==0)
-					{
-						ProcessFileLine(&text[5], obj_Read);
-					}
-					else if(strnicmp(text,"lib",3)==0)
-					{
-						ProcessFileLine(&text[3], obj_Read);
-					}
-					else if(strnicmp(text,"output",3)==0)
-					{
-						ProcessFileLine(&text[6], output_SetFilename);
-					}
-					else if(strnicmp(text,"mapfile",7)==0)
-					{
-						ProcessFileLine(&text[7], map_SetFilename);
-					}
-					/*
-					else
-					{
-						Error("Invalid command \"%s\"", text);
-					}
-					*/
-				}
-			} while(GetLine(text,1024,f));
-		}
-	}
-}
-
-
-/*	This thing runs the show */
 
 int	main(int argc, char* argv[])
 {
-	int		argn=1;
-	int		target_defined=0;
-	char* smartlink=NULL;
+	int argn = 1;
+	int target_defined = 0;
+	char* smartlink = NULL;
 
-	argc-=1;
-	if(argc==0)
-	{
+	if(argc == 1)
 		PrintUsage();
-	}
 
-	while(argc && ((argv[argn][0]=='-')||(argv[argn][0]=='/')))
+	while(argn < argc && (argv[argn][0] == '-' || argv[argn][0] == '/'))
 	{
 		switch(tolower(argv[argn][1]))
 		{
 			case '?':
 			case 'h':
-				argn+=1;
-				argc-=1;
-				PrintUsage ();
-				break;
-			case '@':
-				/* Response file */
-				argn+=1;
-				argc-=1;
-				if(argc && argv[argn])
-				{
-					ParseResponseFile(argv[argn]);
-					argn+=1;
-					argc-=1;
-				}
-				else
-				{
-					Error("option \"@\" needs an argument");
-				}
+				++argn;
+				PrintUsage();
 				break;
 			case 'm':
 				/* MapFile */
-				argn+=1;
-				argc-=1;
-				if(argc && argv[argn])
+				if(argv[argn][2] != 0)
 				{
-					map_SetFilename(argv[argn]);
-					argn+=1;
-					argc-=1;
+					map_SetFilename(&argv[argn][2]);
+					++argn;
 				}
 				else
 				{
@@ -233,13 +88,10 @@ int	main(int argc, char* argv[])
 				break;
 			case 'o':
 				/* Output filename */
-				argn+=1;
-				argc-=1;
-				if(argc && argv[argn])
+				if(argv[argn][2] != 0)
 				{
-					output_SetFilename(argv[argn]);
-					argn+=1;
-					argc-=1;
+					output_SetFilename(&argv[argn][2]);
+					++argn;
 				}
 				else
 				{
@@ -248,13 +100,10 @@ int	main(int argc, char* argv[])
 				break;
 			case 's':
 				/* Smart linking */
-				argn+=1;
-				argc-=1;
-				if(argc && argv[argn])
+				if(argv[argn][2] != 0)
 				{
-					smartlink=argv[argn];
-					argn+=1;
-					argc-=1;
+					smartlink = &argv[argn][2];
+					++argn;
 				}
 				else
 				{
@@ -263,35 +112,32 @@ int	main(int argc, char* argv[])
 				break;
 			case 't':
 				/* Target */
-				if(target_defined==0)
+				if(argv[argn][2] != 0 && target_defined == 0)
 				{
 					switch(tolower(argv[argn][2]))
 					{
-						case	'g':
+						case 'g':
 						{
 							/* Gameboy ROM image */
 							group_SetupGameboy();
-							target_defined=1;
-							argn+=1;
-							argc-=1;
+							target_defined = 1;
+							++argn;
 							break;
 						}
-						case	's':
+						case 's':
 						{
 							/* Gameboy small mode ROM image */
 							group_SetupSmallGameboy();
-							target_defined=1;
-							argn+=1;
-							argc-=1;
+							target_defined = 1;
+							++argn;
 							break;
 						}
-						case	'm':
+						case 'm':
 						{
 							/* Use machine def file */
-							target_defined=1;
+							target_defined = 1;
 							Error("option \"tm\" not implemented yet");
 							++argn;
-							--argc;
 							break;
 						}
 					}
@@ -311,16 +157,16 @@ int	main(int argc, char* argv[])
 		}
 	}
 
-	while(argc && argv[argn])
+	while(argn < argc && argv[argn])
 	{
 		obj_Read(argv[argn]);
-		argn+=1;
-		argc-=1;
+		++argn;
 	}
 
 	smart_Process(smartlink);
 	assign_Process();
 	patch_Process();
+	output_WriteRomImage();
 
 	return EXIT_SUCCESS;
 }

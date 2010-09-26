@@ -7,7 +7,7 @@
 ;*
 ;***************************************************************************
 
-	INCLUDE	"HARDWARE.INC"
+	INCLUDE	"hardware.i"
 
 	SECTION	"Startup",HOME[0]
 

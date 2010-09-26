@@ -18,121 +18,98 @@
 
 #include "xlink.h"
 
-SSection* pSections=NULL;
+SSection* pSections = NULL;
 
 SSection* sect_CreateNew(void)
 {
-	SSection* *ppsect;
-
-	ppsect=&pSections;
+	SSection** ppsect = &pSections;
 
 	while(*ppsect)
-	{
-		ppsect=&(*ppsect)->pNext;
-	}
+		ppsect = &(*ppsect)->pNext;
 
-	if((*ppsect=(SSection* )malloc(sizeof(SSection)))!=NULL)
-	{
-		(*ppsect)->pNext=NULL;
-		(*ppsect)->Used=FALSE;
-		(*ppsect)->Assigned=FALSE;
-		(*ppsect)->pPatches=NULL;
-		return* ppsect;
-	}
+	*ppsect = (SSection*)malloc(sizeof(SSection));
+	if(*ppsect == NULL)
+		Error("Out of memory");
 
-	Error("Out of memory");
-	return NULL;
+	(*ppsect)->pNext = NULL;
+	(*ppsect)->Used = FALSE;
+	(*ppsect)->Assigned = FALSE;
+	(*ppsect)->pPatches = NULL;
+
+	return *ppsect;
 }
 
-static	void	resolve_symbol(SSection* sect, SSymbol* sym)
+static void resolve_symbol(SSection* sect, SSymbol* sym)
 {
 	switch(sym->Type)
 	{
-		case	SYM_LOCALEXPORT:
-		case	SYM_EXPORT:
-		case	SYM_LOCAL:
+		case SYM_LOCALEXPORT:
+		case SYM_EXPORT:
+		case SYM_LOCAL:
 		{
-			sym->Resolved=TRUE;
-			sym->Value+=sect->Org;
-			sym->pSection=sect;
+			sym->Resolved = TRUE;
+			sym->Value += sect->Org;
+			sym->pSection = sect;
 			break;
 		}
-		case	SYM_IMPORT:
+		case SYM_IMPORT:
 		{
 			SSection* filesect;
-
-			filesect=pSections;
-
-			while(filesect)
+			
+			for(filesect = pSections; filesect != NULL; filesect = filesect->pNext)
 			{
 				if(filesect->Used)
 				{
-					ULONG	i;
-					SSymbol* filesym;
+					ULONG i;
+					SSymbol* filesym = filesect->pSymbols;
 
-					filesym=filesect->pSymbols;
-
-					for(i=0; i<filesect->TotalSymbols; i+=1)
+					for(i = 0; i < filesect->TotalSymbols; ++i, ++filesym)
 					{
-						if( (filesym->Type==SYM_EXPORT)
-						&&	strcmp(filesym->Name,sym->Name)==0 )
+						if(filesym->Type == SYM_EXPORT && strcmp(filesym->Name, sym->Name) == 0)
 						{
 							if(!filesym->Resolved)
-							{
 								resolve_symbol(filesect, filesym);
-							}
 
-							sym->Resolved=TRUE;
-							sym->Value=filesym->Value;
-							sym->pSection=filesect;
+							sym->Resolved = TRUE;
+							sym->Value = filesym->Value;
+							sym->pSection = filesect;
 
 							return;
 						}
-						filesym+=1;
 					}
 				}
-				filesect=filesect->pNext;
 			}
 
 			Error("unresolved symbol \"%s\"", sym->Name);
 			break;
 		}
-		case	SYM_LOCALIMPORT:
+		case SYM_LOCALIMPORT:
 		{
 			SSection* filesect;
 
-			filesect=pSections;
-
-			while(filesect)
+			for(filesect = pSections; filesect != NULL; filesect = filesect->pNext)
 			{
-				if( filesect->Used 
-				&&	filesect->FileID==sect->FileID )
+				if(filesect->Used && filesect->FileID == sect->FileID)
 				{
-					ULONG	i;
-					SSymbol* filesym;
+					ULONG i;
+					SSymbol* filesym = filesect->pSymbols;
 
-					filesym=filesect->pSymbols;
-
-					for(i=0; i<filesect->TotalSymbols; i+=1)
+					for(i = 0; i < filesect->TotalSymbols; ++i, ++filesym)
 					{
-						if( ((filesym->Type==SYM_LOCALEXPORT)||(filesym->Type==SYM_EXPORT))
-						&&	strcmp(filesym->Name,sym->Name)==0 )
+						if((filesym->Type == SYM_LOCALEXPORT || filesym->Type == SYM_EXPORT)
+						&&	strcmp(filesym->Name, sym->Name) == 0)
 						{
 							if(!filesym->Resolved)
-							{
 								resolve_symbol(filesect, filesym);
-							}
 
-							sym->Resolved=TRUE;
-							sym->Value=filesym->Value;
-							sym->pSection=filesect;
+							sym->Resolved = TRUE;
+							sym->Value = filesym->Value;
+							sym->pSection = filesect;
 
 							return;
 						}
-						filesym+=1;
 					}
 				}
-				filesect=filesect->pNext;
 			}
 
 			Error("unresolved symbol \"%s\"", sym->Name);
@@ -146,30 +123,29 @@ static	void	resolve_symbol(SSection* sect, SSymbol* sym)
 	}
 }
 
-SLONG	sect_GetSymbolValue(SSection* sect, SLONG symbolid)
+SLONG sect_GetSymbolValue(SSection* sect, SLONG symbolid)
 {
-	SSymbol* sym;
-
-	sym=&sect->pSymbols[symbolid];
+	SSymbol* sym = &sect->pSymbols[symbolid];
 
 	if(!sym->Resolved)
-	{
 		resolve_symbol(sect, sym);
-	}
 
 	return sym->Value;
 }
 
-SLONG	sect_GetSymbolBank(SSection* sect, SLONG symbolid)
+char* sect_GetSymbolName(SSection* sect, SLONG symbolid)
 {
-	SSymbol* sym;
+	SSymbol* sym = &sect->pSymbols[symbolid];
 
-	sym=&sect->pSymbols[symbolid];
+	return sym->Name;
+}
+
+SLONG sect_GetSymbolBank(SSection* sect, SLONG symbolid)
+{
+	SSymbol* sym = &sect->pSymbols[symbolid];
 
 	if(!sym->Resolved)
-	{
 		resolve_symbol(sect, sym);
-	}
 
 	return sym->pSection->Bank;
 }

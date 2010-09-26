@@ -28,9 +28,7 @@ void assign_Process(void)
 	for(sect = pSections; sect != NULL; sect = sect->pNext)
 	{
 		if(sect->Used && !sect->Assigned && sect->Bank != -1 && sect->Org != -1)
-		{
 			group_Alloc(sect);
-		}
 	}
 
 	/*
@@ -39,9 +37,7 @@ void assign_Process(void)
 	for(sect = pSections; sect != NULL; sect = sect->pNext)
 	{
 		if(sect->Used && !sect->Assigned &&	(sect->Bank != -1 || sect->Org != -1))
-		{
 			group_Alloc(sect);
-		}
 	}
 
 	/*
@@ -54,8 +50,6 @@ void assign_Process(void)
 	for(sect = pSections; sect != NULL; sect = sect->pNext)
 	{
 		if(sect->Used && !sect->Assigned)
-		{
 			group_Alloc(sect);
-		}
 	}
 }
