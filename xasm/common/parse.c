@@ -499,23 +499,19 @@ SExpression* parse_CreateBITExpr(SExpression* right)
 
 SExpression* parse_CreatePCRelExpr(SExpression* in, int nAdjust)
 {
-	SExpression* expr;
+	SExpression* expr = (SExpression*)malloc(sizeof(SExpression));
 
-	if((expr=(SExpression*)malloc(sizeof(SExpression)))!=NULL)
-	{
-		expr->Value.Value = 0;
-		expr->Type = EXPR_PCREL;
-		expr->Flags = EXPRF_isRELOC;
-		expr->pLeft = parse_CreateConstExpr(nAdjust);
-		expr->pRight = in;
-		return expr;
-	}
-	else
-	{
+	if(expr == NULL)
 		internalerror("Out of memory!");
-	}
-	return NULL;
+
+	expr->Value.Value = 0;
+	expr->Type = EXPR_PCREL;
+	expr->Flags = EXPRF_isRELOC;
+	expr->pLeft = parse_CreateConstExpr(nAdjust);
+	expr->pRight = in;
+	return expr;
 }
+
 
 SExpression* parse_CreatePCExpr()
 {

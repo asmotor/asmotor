@@ -91,7 +91,7 @@ static	void	fgetasciiz(char* s, int size, FILE* f)
 }
 
 
-static	SGroups* read_groups(FILE* f)
+static SGroups* read_groups(FILE* f)
 {
 /*
  *	ULONG	NumberOfGroups

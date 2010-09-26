@@ -127,9 +127,6 @@
     <None Include="gameboy\test\irqtest\irqtest.asm">
       <Filter>test\irqtest</Filter>
     </None>
-    <None Include="gameboy\test\irqtest\irqtest.lk">
-      <Filter>test\irqtest</Filter>
-    </None>
     <None Include="gameboy\test\irqtest\m.bat">
       <Filter>test\irqtest</Filter>
     </None>

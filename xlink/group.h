@@ -19,36 +19,33 @@
 #ifndef	GROUP_H
 #define	GROUP_H
 
-typedef	struct	_SMemChunk
+typedef	struct _SMemChunk
 {
 	ULONG	Org;
 	ULONG	Size;
-	struct	_SMemChunk* pNext;
+	struct _SMemChunk* pNext;
 }	SMemChunk;
 
-typedef	struct	_SMemoryPool
+typedef	struct _SMemoryPool
 {
 	SLONG	ImageOffset;		//	This pool's position in the ROM image, -1 if not written
 	ULONG	AddressingOffset;	//	Where the CPU sees this pool in its address space
 	SLONG	BankId;				//	What the CPU calls this bank
 	ULONG	Size;
 	ULONG	Available;
-	SMemChunk				*pFreeChunks;
-	//SMachineGroup			*pGroups;
-	//struct	_SMemoryPool* pNext;
+	SMemChunk*	pFreeChunks;
 }	SMemoryPool;
 
-typedef	struct	_SMachineGroup
+typedef	struct _SMachineGroup
 {
 	char					Name[MAXSYMNAMELENGTH];
 	SLONG					TotalPools;
-	struct	_SMachineGroup* pNext;
-	SMemoryPool				*Pool[];
+	struct _SMachineGroup*	pNext;
+	SMemoryPool*			Pool[];
 }	SMachineGroup;
 
-extern	void	group_SetupGameboy(void);
-extern	void	group_SetupSmallGameboy(void);
-extern	void	group_Alloc(SSection* sect);
-
+extern void	group_SetupGameboy(void);
+extern void	group_SetupSmallGameboy(void);
+extern void	group_Alloc(SSection* sect);
 
 #endif
