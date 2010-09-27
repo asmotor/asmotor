@@ -122,6 +122,15 @@
     <Filter Include="test\irqtest">
       <UniqueIdentifier>{14815fd3-795a-4652-99aa-bcf89b90048b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="test\minios">
+      <UniqueIdentifier>{8cf1017d-76b9-41b2-8f8b-63c4b371237f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test\minios\include">
+      <UniqueIdentifier>{930f4b18-e1fb-40b7-9d35-c2719b63eb3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test\slideshow">
+      <UniqueIdentifier>{182d5764-2710-43da-905d-aa627fe4fdf1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="gameboy\test\irqtest\irqtest.asm">
@@ -129,6 +138,45 @@
     </None>
     <None Include="gameboy\test\irqtest\m.bat">
       <Filter>test\irqtest</Filter>
+    </None>
+    <None Include="gameboy\test\minios\irq.asm">
+      <Filter>test\minios</Filter>
+    </None>
+    <None Include="gameboy\test\minios\m.bat">
+      <Filter>test\minios</Filter>
+    </None>
+    <None Include="gameboy\test\minios\makefile">
+      <Filter>test\minios</Filter>
+    </None>
+    <None Include="gameboy\test\minios\never.asm">
+      <Filter>test\minios</Filter>
+    </None>
+    <None Include="gameboy\test\minios\utility.asm">
+      <Filter>test\minios</Filter>
+    </None>
+    <None Include="gameboy\test\minios\include\hardware.i">
+      <Filter>test\minios\include</Filter>
+    </None>
+    <None Include="gameboy\test\minios\include\irq.i">
+      <Filter>test\minios\include</Filter>
+    </None>
+    <None Include="gameboy\test\minios\include\utility.i">
+      <Filter>test\minios\include</Filter>
+    </None>
+    <None Include="gameboy\test\slidshow\m.bat">
+      <Filter>test\slideshow</Filter>
+    </None>
+    <None Include="gameboy\test\slidshow\main.asm">
+      <Filter>test\slideshow</Filter>
+    </None>
+    <None Include="gameboy\test\slidshow\Makefile">
+      <Filter>test\slideshow</Filter>
+    </None>
+    <None Include="gameboy\test\slidshow\pics.asm">
+      <Filter>test\slideshow</Filter>
+    </None>
+    <None Include="gameboy\test\slidshow\user.asm">
+      <Filter>test\slideshow</Filter>
     </None>
   </ItemGroup>
 </Project>

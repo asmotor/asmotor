@@ -6,7 +6,7 @@
 ; -- happen to like very modular projects and small sourcefiles
 ; --
 
-	INCLUDE	"utility.inc"
+	INCLUDE	"utility.i"
 
 
 

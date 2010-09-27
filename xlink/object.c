@@ -246,28 +246,32 @@ static	void	read_sections(SGroups* groups, FILE* f)
 	totalsections=fgetll(f);
 	while(totalsections--)
 	{
-		SSection* section;
+		SSection* section = sect_CreateNew();
 
-		section=sect_CreateNew();
+		section->pGroups = groups;
+		section->FileID = FileID;
 
-		section->pGroups=groups;
-		section->FileID=FileID;
-
-		section->GroupID=fgetll(f);
+		section->GroupID = fgetll(f);
 		fgetasciiz(section->Name, MAXSYMNAMELENGTH, f);
-		section->Bank=fgetll(f);
-		section->Org=fgetll(f);
+		section->Bank = fgetll(f);
+		section->Org = fgetll(f);
+
+		if(groups->Groups[section->GroupID].Type == GROUP_TEXT
+		&& strcmp(groups->Groups[section->GroupID].Name, "HOME") == 0)
+		{
+			section->Bank = 0;
+		}
 
 		section->TotalSymbols=read_symbols(f, &section->pSymbols);
 
 		section->Size=fgetll(f);
 
-		if((section->GroupID>=0) && (groups->Groups[section->GroupID].Type==GROUP_TEXT))
+		if(section->GroupID >= 0 && groups->Groups[section->GroupID].Type == GROUP_TEXT)
 		{
-			if((section->pData=malloc(section->Size))!=NULL)
+			if((section->pData = malloc(section->Size)) != NULL)
 			{
 				fread(section->pData, 1, section->Size, f);
-				section->pPatches=read_patches(f);
+				section->pPatches = read_patches(f);
 			}
 		}
 	}

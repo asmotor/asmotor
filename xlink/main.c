@@ -153,6 +153,7 @@ int	main(int argc, char* argv[])
 				break;
 			default:
 				printf("Unknown option \"%s\", ignored\n", argv[argn]);
+				++argn;
 				break;
 		}
 	}

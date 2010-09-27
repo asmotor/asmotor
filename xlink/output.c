@@ -51,6 +51,8 @@ void output_WriteRomImage(void)
 		if(pSect->Used && pSect->Assigned && pSect->ImageOffset != -1)
 		{
 			ULONG offset = pSect->ImageOffset;
+			ULONG nSectEnd = offset + pSect->Size;
+
 			if(offset > fsize)
 			{
 				ULONG totaltowrite = offset - fsize;
@@ -63,9 +65,10 @@ void output_WriteRomImage(void)
 					totaltowrite -= towrite;
 				}
 			}
-			fsize = offset;
+			fseek(f, pSect->ImageOffset, SEEK_SET);
 			fwrite(pSect->pData, 1, pSect->Size, f);
-			fsize += pSect->Size;
+			if(nSectEnd > fsize)
+				fsize = nSectEnd;
 		}
 	}
 

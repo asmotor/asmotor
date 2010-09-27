@@ -1356,6 +1356,7 @@ static	SExpression* parse_ExprPri1(void)
 {
 	switch(g_CurrentToken.ID.Token)
 	{
+		case T_OP_OR:
 		case T_OP_LOGICNOT:
 		{
 			parse_GetToken();
@@ -2408,20 +2409,18 @@ static BOOL parse_PseudoOp(void)
 			}
 			prj_Error(ERROR_EXPECT_IDENTIFIER);
 			return FALSE;
-			break;
 		}
 		case T_POP_IF:
 		{
 			parse_GetToken();
 
-			if(!(parse_ConstantExpression() != 0))
+			if(parse_ConstantExpression() == 0)
 			{
 				/* will continue parsing just after ELSE or just at ENDC keyword */
 				parse_IfSkipToElse();
 				parse_GetToken();
 			}
 			return TRUE;
-			break;
 		}
 		case T_POP_IFEQ:
 		{
