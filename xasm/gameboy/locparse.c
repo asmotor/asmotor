@@ -744,9 +744,9 @@ BOOL	parse_TargetSpecific(void)
 			}
 			break;
 		}
-		case	T_Z80_BIT:
-		case	T_Z80_RES:
-		case	T_POP_SET:
+		case T_Z80_BIT:
+		case T_Z80_RES:
+		case T_POP_SET:
 		{
 			//	BIT n3,r : 0xCB 0x40|(n3<<3)|r
 			//	RES n3,r : 0xCB 0x80|(n3<<3)|r
@@ -769,15 +769,19 @@ BOOL	parse_TargetSpecific(void)
 
 			parse_GetToken();
 
-			if((expr=parse_Expression3bit())!=NULL)
+			if((expr = parse_Expression3bit()) != NULL)
 			{
-				SLONG	reg;
+				SLONG reg;
+
 				parse_ExpectComma();
-				if((reg=parse_Register_8bit())!=-1)
+				expr = parse_CreateSHLExpr(expr, parse_CreateConstExpr(3));
+
+				if((reg = parse_Register_8bit()) != -1)
 				{
 					SExpression* expr2;
 
-					expr2=parse_CreateConstExpr(opcode|reg);
+					expr2 = parse_CreateConstExpr(opcode | reg);
+					sect_OutputAbsByte(0xCB);
 					sect_OutputExprByte(parse_CreateORExpr(expr,expr2));
 					return TRUE;
 				}
