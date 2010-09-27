@@ -179,7 +179,7 @@ SLibrary* lib_Read(char* filename)
 
 			r = lib_ReadLib0(f, size);
 			fclose(f);
-			printf("Library '%s' opened\n", filename);
+			/*printf("Library '%s' opened\n", filename);*/
 			return r;
 		}
 		else
@@ -191,7 +191,7 @@ SLibrary* lib_Read(char* filename)
 	}
 	else
 	{
-		printf("Library '%s' not found, it will be created if necessary\n", filename);
+		/*printf("Library '%s' not found, it will be created if necessary\n", filename);*/
 		return NULL;
 	}
 }
@@ -222,7 +222,7 @@ BOOL lib_Write(SLibrary* lib, char* filename)
 		file_WriteLong(count, f);
 
 		fclose(f);
-		printf("Library '%s' closed\n", filename);
+		/*printf("Library '%s' closed\n", filename);*/
 		return TRUE;
 	}
 
@@ -264,7 +264,7 @@ SLibrary* lib_AddReplace(SLibrary* lib, char* filename)
 	if((f = fopen(filename,"rb")) != NULL)
 	{
 		SLibrary* module;
-		char		truncname[MAXNAMELENGTH];
+		char truncname[MAXNAMELENGTH];
 
 		TruncateFileName(truncname, filename);
 
@@ -291,7 +291,7 @@ SLibrary* lib_AddReplace(SLibrary* lib, char* filename)
 			fread(module->pData, sizeof(UBYTE), module->nByteLength, f);
 		}
 
-		printf("Added module '%s'\n", truncname);
+		/*printf("Added module '%s'\n", truncname);*/
 
 		fclose(f);
 	}
@@ -301,22 +301,19 @@ SLibrary* lib_AddReplace(SLibrary* lib, char* filename)
 
 SLibrary* lib_DeleteModule(SLibrary* lib, char* filename)
 {
-	char		truncname[MAXNAMELENGTH];
-	SLibrary* *pp,
-				**first;
-	BOOL		found=0;
+	char truncname[MAXNAMELENGTH];
+	SLibrary** pp;
+	SLibrary** first;
+	BOOL found = 0;
 
-	pp=&lib;
-	first=pp;
+	first = pp = &lib;
 
 	TruncateFileName(truncname, filename);
-	while((*pp) && (!found))
+	while(*pp != NULL && !found)
 	{
-		if(strcmp((*pp)->tName,truncname)==0)
+		if(strcmp((*pp)->tName, truncname) == 0)
 		{
-			SLibrary* t;
-
-			t=*pp;
+			SLibrary* t = *pp;
 
 			if(t->pData)
 				free(t->pData);
@@ -324,17 +321,19 @@ SLibrary* lib_DeleteModule(SLibrary* lib, char* filename)
 			*pp = t->pNext;
 
 			free(t);
-			found=1;
+			found = 1;
 		}
-		pp=&((*pp)->pNext);
+		pp = &(*pp)->pNext;
 	}
 
 	if(!found)
 		fatalerror("Module not found");
+	/*
 	else
 		printf("Module '%s' deleted from library\n", truncname);
+		*/
 
-	return* first;
+	return *first;
 }
 
 void	lib_Free(SLibrary* lib)

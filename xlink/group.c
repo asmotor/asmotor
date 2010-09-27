@@ -233,7 +233,7 @@ void	group_SetupGameboy(void)
 
 	for(i = 0; i < 256; ++i)
 	{
-		codepools[i]=createpool();
+		codepools[i] = createpool();
 		codepools[i]->ImageOffset = i * 0x4000;
 		codepools[i]->BankId = i;
 		codepools[i]->Size = codepools[i]->Available = 0x4000;

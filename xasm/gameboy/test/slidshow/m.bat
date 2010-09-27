@@ -1,15 +1,12 @@
-set MYASM=..\..\asm\gameboy\rgbasm.exe -ic:\code\asmotor\examples\minios\include\
-set MYLINK=..\..\link\xlink.exe
-set MYFIX=..\..\rgbfix\rgbfix.exe
+set MYASM=..\..\..\..\Win32Release\motorgb.exe -i..\minios\include\
+set MYLINK=..\..\..\..\Win32Release\motorlink.exe
+set MYFIX=..\..\..\..\Win32Release\motorgbfix.exe
 
-%MYASM% -oobjs\main.obj main.asm
-%MYASM% -oobjs\user.obj user.asm
-%MYASM% -oobjs\pics.obj pics.asm
+%MYASM% -omain.obj main.asm
+%MYASM% -ouser.obj user.asm
+%MYASM% -opics.obj pics.asm
 
-cd objs
-..\%MYLINK% -mmap.map -nsym.sym linkfile.lnk
-move >NUL main.gb ..\gbfade.gb
-cd ..
+%MYLINK% -mmap.map -tg -ogbfade.gb main.obj user.obj pics.obj ..\minios\mos.lib
 %MYFIX% -tGBFADE -p -v gbfade.gb
 
 set MYASM=

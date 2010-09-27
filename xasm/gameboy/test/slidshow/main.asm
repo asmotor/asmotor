@@ -8,9 +8,9 @@
 ;***************************************************************************
 
 	IMPORT	UserMain
-	INCLUDE	"irq.inc"
-	INCLUDE	"utility.inc"
-	INCLUDE	"hardware.inc"
+	INCLUDE	"irq.i"
+	INCLUDE	"utility.i"
+	INCLUDE	"hardware.i"
 
 	SECTION	"Startup",HOME[0]
 

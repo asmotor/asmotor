@@ -7,8 +7,8 @@
 ;*
 ;***************************************************************************
 
-	INCLUDE	"hardware.inc"
-	INCLUDE	"utility.inc"
+	INCLUDE	"hardware.i"
+	INCLUDE	"utility.i"
 
 	SECTION	"InterruptControl",HOME
 

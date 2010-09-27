@@ -241,6 +241,19 @@
   <ItemGroup>
     <None Include="gameboy\test\irqtest\irqtest.asm" />
     <None Include="gameboy\test\irqtest\m.bat" />
+    <None Include="gameboy\test\minios\include\hardware.i" />
+    <None Include="gameboy\test\minios\include\irq.i" />
+    <None Include="gameboy\test\minios\include\utility.i" />
+    <None Include="gameboy\test\minios\irq.asm" />
+    <None Include="gameboy\test\minios\m.bat" />
+    <None Include="gameboy\test\minios\makefile" />
+    <None Include="gameboy\test\minios\never.asm" />
+    <None Include="gameboy\test\minios\utility.asm" />
+    <None Include="gameboy\test\slidshow\m.bat" />
+    <None Include="gameboy\test\slidshow\main.asm" />
+    <None Include="gameboy\test\slidshow\Makefile" />
+    <None Include="gameboy\test\slidshow\pics.asm" />
+    <None Include="gameboy\test\slidshow\user.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

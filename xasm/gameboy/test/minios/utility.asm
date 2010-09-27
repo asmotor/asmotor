@@ -24,8 +24,8 @@
 ;*
 ;***************************************************************************
 
-	INCLUDE	"hardware.inc"
-	INCLUDE	"irq.inc"
+	INCLUDE	"hardware.i"
+	INCLUDE	"irq.i"
 
 	SECTION	"Utility",HOME
 

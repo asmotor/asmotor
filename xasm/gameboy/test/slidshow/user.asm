@@ -6,9 +6,9 @@
 ;*
 ;***************************************************************************
 
-	INCLUDE	"irq.inc"
-	INCLUDE	"utility.inc"
-	INCLUDE	"hardware.inc"
+	INCLUDE	"irq.i"
+	INCLUDE	"utility.i"
+	INCLUDE	"hardware.i"
 
 	IMPORT	Picture1,Picture2,Picture3,Picture4
 	IMPORT	Picture5,Picture6,Picture7,Picture8
