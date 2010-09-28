@@ -258,19 +258,6 @@ static BOOL parse_Dec(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return TRUE;
 }
 
-static BOOL parse_Ex(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
-{
-	if((pAddrMode1->nMode == 0 && pAddrMode2->nMode == 0)
-	|| ((pAddrMode1->nMode & MODE_REG_HL) && (pAddrMode2->nMode & MODE_REG_SP_IND))
-	|| ((pAddrMode1->nMode & MODE_REG_SP_IND) && (pAddrMode2->nMode & MODE_REG_HL)))
-	{
-		sect_OutputAbsByte(pOpcode->nOpcode);
-	}
-	else
-		prj_Error(ERROR_OPERAND);
-
-	return TRUE;
-}
 static BOOL parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_PCREL) && pAddrMode2->nMode == 0)
@@ -460,6 +447,13 @@ static BOOL parse_Rst(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return TRUE;
 }
 
+static BOOL parse_Stop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+{
+	sect_OutputAbsByte(0x10);
+	sect_OutputAbsByte(0x00);
+	return TRUE;
+}
+
 SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 {
 	{ 0x08, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* ADC */
@@ -474,7 +468,6 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ 0x01, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* DEC */
 	{ 0xF3, 0, 0, parse_Implied },							/* DI */
 	{ 0xFB, 0, 0, parse_Implied },							/* EI */
-	{ 0xE3, MODE_REG_HL | MODE_REG_SP_IND | MODE_NONE, MODE_REG_HL | MODE_REG_SP_IND | MODE_NONE, parse_Ex },	/* EX */
 	{ 0x76, 0, 0, parse_Implied },							/* HALT */
 	{ 0x00, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* INC */
 	{ 0xC3, MODE_F | MODE_IMM_16U | MODE_REG_HL_IND, MODE_IMM_16U | MODE_NONE, parse_Jp },	/* JP */
@@ -507,7 +500,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ 0x20, MODE_GROUP_D, 0, parse_Rotate },	/* SLA */
 	{ 0x28, MODE_GROUP_D, 0, parse_Rotate },	/* SRA */
 	{ 0x38, MODE_GROUP_D, 0, parse_Rotate },	/* SRL */
-	{ 0x10, 0, 0, parse_Implied },	/* STOP */
+	{ 0x10, 0, 0, parse_Stop },	/* STOP */
 	{ 0x10, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* SUB */
 	{ 0x30, MODE_GROUP_D, 0, parse_Rotate },	/* SWAP */
 	{ 0x28, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* XOR */
@@ -788,10 +781,19 @@ BOOL parse_TargetSpecific(void)
 
 				if(bExpectComma)
 				{
-					if(g_CurrentToken.ID.Token != ',' && (pOpcode->nAddrMode2 & MODE_NONE))
+					if(g_CurrentToken.ID.Token != ',')
 					{
-						addrMode2.nMode = 0;
-						done = TRUE;
+						if(pOpcode->nAddrMode2 & MODE_NONE)
+						{
+							addrMode2.nMode = 0;
+							done = TRUE;
+						}
+						else if((addrMode1.nMode & MODE_REG_A) && (pOpcode->nAddrMode2 & (MODE_REG_A | MODE_GROUP_D)))
+						{
+							addrMode2.nMode = (MODE_REG_A | MODE_GROUP_D) & pOpcode->nAddrMode2;
+							addrMode2.eRegD = REG_A;
+							done = TRUE;
+						}
 					}
 					else if(!parse_ExpectComma())
 						return TRUE;
