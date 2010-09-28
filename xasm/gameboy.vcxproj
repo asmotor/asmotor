@@ -239,6 +239,7 @@
     <ClInclude Include="gameboy\locopt.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="gameboy\test\allcodes.asm" />
     <None Include="gameboy\test\irqtest\irqtest.asm" />
     <None Include="gameboy\test\irqtest\m.bat" />
     <None Include="gameboy\test\minios\include\hardware.i" />

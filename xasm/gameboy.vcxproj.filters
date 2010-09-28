@@ -178,5 +178,8 @@
     <None Include="gameboy\test\slidshow\user.asm">
       <Filter>test\slideshow</Filter>
     </None>
+    <None Include="gameboy\test\allcodes.asm">
+      <Filter>test</Filter>
+    </None>
   </ItemGroup>
 </Project>

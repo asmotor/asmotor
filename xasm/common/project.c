@@ -39,6 +39,8 @@ static char* g_pszError[]=
 	"Invalid expression",
 	"Invalid source operand",
 	"Invalid destination operand",
+	"Invalid first operand",
+	"Invalid second operand",
 	"Invalid operand",
 	"Expression expected",
 	"Operand out of range",
