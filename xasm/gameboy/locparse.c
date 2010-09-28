@@ -781,22 +781,19 @@ BOOL parse_TargetSpecific(void)
 
 				if(bExpectComma)
 				{
-					if(g_CurrentToken.ID.Token != ',')
+					if(g_CurrentToken.ID.Token == ',')
+						parse_GetToken();
+					else
 					{
-						if(pOpcode->nAddrMode2 & MODE_NONE)
-						{
-							addrMode2.nMode = 0;
-							done = TRUE;
-						}
-						else if((addrMode1.nMode & MODE_REG_A) && (pOpcode->nAddrMode2 & (MODE_REG_A | MODE_GROUP_D)))
+						if((addrMode1.nMode & MODE_REG_A) && (pOpcode->nAddrMode2 & (MODE_REG_A | MODE_GROUP_D)))
 						{
 							addrMode2.nMode = (MODE_REG_A | MODE_GROUP_D) & pOpcode->nAddrMode2;
 							addrMode2.eRegD = REG_A;
-							done = TRUE;
 						}
+						else if(pOpcode->nAddrMode2 & MODE_NONE)
+							addrMode2.nMode = 0;
+						done = TRUE;
 					}
-					else if(!parse_ExpectComma())
-						return TRUE;
 				}
 
 				if(!done && !parse_AddrMode(&addrMode2, pOpcode->nAddrMode2))
