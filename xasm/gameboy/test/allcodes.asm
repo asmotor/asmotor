@@ -1,4 +1,6 @@
-	SECTION	"allcodes",CODE
+	SECTION	"allcodes",CODE[0]
+
+	DS	$150
 
 	adc	a,[hl]
 	adc	a,0
@@ -127,7 +129,6 @@ B0_004F:	add	hl,sp
 	dec	sp
 	di
 	ei
-	ex	[sp],hl
 	halt
 	inc	[hl]
 	inc	a
@@ -260,6 +261,7 @@ B0_0043:	ld	sp,$100
 	or	a,e
 	or	a,h
 	or	a,l
+	or	[hl]
 	pop	af
 	pop	bc
 	pop	de

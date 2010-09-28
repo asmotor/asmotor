@@ -61,7 +61,6 @@ typedef	enum
 	T_Z80_DEC,
 	T_Z80_DI,
 	T_Z80_EI,
-	T_Z80_EX,
 	T_Z80_HALT,
 	T_Z80_INC,
 	T_Z80_JP,
