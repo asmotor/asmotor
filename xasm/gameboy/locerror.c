@@ -22,6 +22,7 @@ static char* g_pszLocalError[]=
 {
 	"Register A expected",
 	"Register SP expected",
+	"Consider using %s instead",
 };
 
 char* loc_GetError(int n)

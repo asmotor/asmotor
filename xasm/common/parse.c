@@ -705,10 +705,7 @@ SExpression* parse_CheckRange(SExpression* expr, SLONG low, SLONG high)
 	if(expr != NULL)
 		return parse_CreateHIGHLIMITExpr(expr, high_expr);
 
-	parse_FreeExpression(low_expr);
 	parse_FreeExpression(high_expr);
-	parse_FreeExpression(expr);
-
 	return NULL;
 }
 

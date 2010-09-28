@@ -244,6 +244,12 @@ B0_002D:	ld	hl,$100
 	ld	l,l
 B0_0043:	ld	sp,$100
 	ld	sp,hl
+	ldd	a,[hl]
+	ldd	[hl],a
+	ldi	a,[hl]
+	ldi	[hl],a
+	ldh	[$fffe],a
+	ldh	a,[$fffe]
 	nop
 	or	a,[hl]
 	or	a,0

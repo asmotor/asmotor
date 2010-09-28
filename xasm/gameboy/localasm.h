@@ -23,6 +23,7 @@ typedef enum
 {
 	MERROR_EXPECT_A = 1000,
 	MERROR_EXPECT_SP,
+	MERROR_SUGGEST_OPCODE,
 } EMachineError;
 
 #define LOCASM_CPUID	"gameboy"
@@ -48,7 +49,7 @@ typedef enum
 
 typedef	enum
 {
-	T_Z80_ADC=6000,
+	T_Z80_ADC = 6000,
 	T_Z80_ADD,
 	T_Z80_AND,
 	T_Z80_BIT,
@@ -66,16 +67,16 @@ typedef	enum
 	T_Z80_JP,
 	T_Z80_JR,
 	T_Z80_LD,
-	T_Z80_LDI,
 	T_Z80_LDD,
+	T_Z80_LDI,
 	T_Z80_LDH,
 	T_Z80_NOP,
 	T_Z80_OR,
 	T_Z80_POP,
 	T_Z80_PUSH,
 	T_Z80_RES,
-	T_Z80_RETI,
 	T_Z80_RET,
+	T_Z80_RETI,
 	T_Z80_RLCA,
 	T_Z80_RLC,
 	T_Z80_RLA,
@@ -90,6 +91,7 @@ typedef	enum
 
 // Handled by globallex.c
 // "set"        ,       T_POP_SET,
+	T_Z80_SET,
 
 	T_Z80_SLA,
 	T_Z80_SRA,
@@ -104,25 +106,28 @@ typedef	enum
 	T_CC_NC,
 //      "c"             ,       T_MODE_C
 
-	T_MODE_HL_IND,
+	T_MODE_AF,
+	T_MODE_SP_IND,
+	T_MODE_C_IND,
+
+	T_MODE_BC_IND,
+	T_MODE_DE_IND,
 	T_MODE_HL_INDINC,
 	T_MODE_HL_INDDEC,
-	T_MODE_HL,
-	T_MODE_AF,
-	T_MODE_BC_IND,
+
 	T_MODE_BC,
-	T_MODE_DE_IND,
 	T_MODE_DE,
-	T_MODE_SP_IND,
+	T_MODE_HL,
 	T_MODE_SP,
-	T_MODE_A,
+
 	T_MODE_B,
-	T_MODE_C_IND,
 	T_MODE_C,
 	T_MODE_D,
 	T_MODE_E,
 	T_MODE_H,
 	T_MODE_L,
+	T_MODE_HL_IND,
+	T_MODE_A,
 }	eTargetToken;
 
 #endif	//LOCALASM_H
