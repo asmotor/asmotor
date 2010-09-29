@@ -23,6 +23,7 @@ static char* g_pszLocalError[]=
 	"Register A expected",
 	"Register SP expected",
 	"Consider using %s instead",
+	"Expression must be in the $FF00-$FFFF range"
 };
 
 char* loc_GetError(int n)

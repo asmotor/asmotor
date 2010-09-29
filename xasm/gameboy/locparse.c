@@ -83,29 +83,22 @@ typedef struct _Opcode
 
 extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
 
-#define MODE_NONE		0x000001
-#define MODE_REG_A		0x000002
-#define MODE_REG_C_IND	0x004000
-#define MODE_REG_HL		0x000004
-#define MODE_REG_HL_IND	0x000008
-#define MODE_REG_SP		0x000010
-#define MODE_REG_SP_IND	0x000020
+#define MODE_NONE		0x0001
+#define MODE_REG_A		0x0002
+#define MODE_REG_C_IND	0x0004
+#define MODE_REG_HL		0x0008
+#define MODE_REG_HL_IND	0x0010
+#define MODE_REG_SP		0x0020
+#define MODE_REG_SP_IND	0x0040
 #define MODE_REG_SP_IND_DISP	\
-						0x040000
-#define MODE_GROUP_D	0x000040
-#define MODE_GROUP_SS	0x000080
-#define MODE_GROUP_RR	0x000100
-#define MODE_GROUP_TT	0x080000
-#define MODE_IMM		0x020000
-#define MODE_IMM_8SU	0x000200
-#define MODE_IMM_3U		0x000400
-#define MODE_IMM_16U	0x000800
-#define MODE_IMM_IND	0x008000
-#define MODE_IMM_IND_HI	0x010000
-#define MODE_IMM_CONST	0x100000
-#define MODE_PCREL		0x001000
-#define MODE_F			0x002000
-#define MODE_EXPR		(MODE_IMM_8SU | MODE_IMM_3U | MODE_IMM_16U | MODE_PCREL | MODE_IMM | MODE_IMM_CONST)
+						0x0080
+#define MODE_GROUP_D	0x0100
+#define MODE_GROUP_SS	0x0200
+#define MODE_GROUP_RR	0x0400
+#define MODE_GROUP_TT	0x0800
+#define MODE_IMM		0x1000
+#define MODE_IMM_IND	0x2000
+#define MODE_F			0x4000
 
 static SExpression* parse_ExpressionPCRel(void)
 {
@@ -168,7 +161,11 @@ static SExpression* parse_CreateExpressionPCRel(SExpression* pExpr)
 
 static SExpression* parse_CreateExpressionImmHi(SExpression* pExpr)
 {
-	return parse_CreateANDExpr(parse_CreateExpressionNBit(pExpr, 0xFF00, 0xFFFF, 16), parse_CreateConstExpr(0xFF));
+	pExpr = parse_CheckRange(pExpr, 0xFF00, 0xFFFF);
+	if(pExpr == NULL)
+		prj_Error(MERROR_EXPRESSION_FF00);
+
+	return parse_CreateANDExpr(pExpr, parse_CreateConstExpr(0xFF));
 }
 
 static BOOL parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
@@ -180,7 +177,7 @@ static BOOL parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	}
 
 	sect_OutputAbsByte(0xC6 | pOpcode->nOpcode);
-	sect_OutputExprByte(pAddrMode2->pExpr);
+	sect_OutputExprByte(parse_CreateExpression8SU(pAddrMode2->pExpr));
 	return TRUE;
 }
 
@@ -190,10 +187,10 @@ static BOOL parse_Add(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 		return parse_Alu(pOpcode, pAddrMode1, pAddrMode2);
 	else if((pAddrMode1->nMode & MODE_REG_HL) && (pAddrMode2->nMode & MODE_GROUP_SS))
 		sect_OutputAbsByte((UBYTE)(0x09 | (pAddrMode2->eRegSS << 4)));
-	else if((pAddrMode1->nMode & MODE_REG_SP) && (pAddrMode2->nMode & MODE_IMM_8SU))
+	else if((pAddrMode1->nMode & MODE_REG_SP) && (pAddrMode2->nMode & MODE_IMM))
 	{
 		sect_OutputAbsByte(0xE8);
-		sect_OutputExprByte(pAddrMode2->pExpr);
+		sect_OutputExprByte(parse_CreateExpression8SU(pAddrMode2->pExpr));
 	}
 
 	return TRUE;
@@ -206,7 +203,7 @@ static BOOL parse_Bit(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 		parse_CreateORExpr(
 			parse_CreateConstExpr(pOpcode->nOpcode | pAddrMode2->eRegD),
 			parse_CreateSHLExpr(
-				pAddrMode1->pExpr,
+			parse_CreateExpression3U(pAddrMode1->pExpr),
 				parse_CreateConstExpr(3))
 			)
 		);
@@ -216,15 +213,15 @@ static BOOL parse_Bit(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 
 static BOOL parse_Call(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	if((pAddrMode1->nMode & MODE_IMM_16U) && pAddrMode2->nMode == 0)
+	if((pAddrMode1->nMode & MODE_IMM) && pAddrMode2->nMode == 0)
 	{
 		sect_OutputAbsByte(pOpcode->nOpcode);
-		sect_OutputExprWord(pAddrMode1->pExpr);
+		sect_OutputExprWord(parse_CreateExpression16U(pAddrMode1->pExpr));
 	}
-	else if((pAddrMode1->nMode & MODE_F) && (pAddrMode2->nMode & MODE_IMM_16U))
+	else if((pAddrMode1->nMode & MODE_F) && (pAddrMode2->nMode & MODE_IMM))
 	{
 		sect_OutputAbsByte((UBYTE)((pOpcode->nOpcode & ~0x19) | (pAddrMode1->eModeF << 3)));
-		sect_OutputExprWord(pAddrMode2->pExpr);
+		sect_OutputExprWord(parse_CreateExpression16U(pAddrMode2->pExpr));
 	}
 	else
 		prj_Error(ERROR_OPERAND);
@@ -260,15 +257,15 @@ static BOOL parse_Dec(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 
 static BOOL parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	if((pAddrMode1->nMode & MODE_PCREL) && pAddrMode2->nMode == 0)
+	if((pAddrMode1->nMode & MODE_IMM) && pAddrMode2->nMode == 0)
 	{
 		sect_OutputAbsByte(0x18);
-		sect_OutputExprByte(pAddrMode1->pExpr);
+		sect_OutputExprByte(parse_CreateExpressionPCRel(pAddrMode1->pExpr));
 	}
-	else if((pAddrMode1->nMode & MODE_F) && (pAddrMode2->nMode & MODE_PCREL))
+	else if((pAddrMode1->nMode & MODE_F) && (pAddrMode2->nMode & MODE_IMM))
 	{
 		sect_OutputAbsByte((UBYTE)(0x20 | (pAddrMode1->eModeF << 3)));
-		sect_OutputExprByte(pAddrMode2->pExpr);
+		sect_OutputExprByte(parse_CreateExpressionPCRel(pAddrMode2->pExpr));
 	}
 	else
 		prj_Error(ERROR_OPERAND);
@@ -293,15 +290,20 @@ static BOOL parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	{
 		sect_OutputAbsByte(0xF2);
 	}
-	else if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_IMM_IND_HI))
-	{
-		sect_OutputAbsByte(0xF0);
-		sect_OutputExprByte(pAddrMode2->pExpr);
-	}
 	else if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_IMM_IND))
 	{
-		sect_OutputAbsByte(0xFA);
-		sect_OutputExprWord(pAddrMode2->pExpr);
+		if((pAddrMode2->pExpr->Flags & EXPRF_isCONSTANT)
+		&& pAddrMode2->pExpr->Value.Value >= 0xFF00 
+		&& pAddrMode2->pExpr->Value.Value <= 0xFFFF)
+		{
+			sect_OutputAbsByte(0xF0);
+			sect_OutputExprByte(parse_CreateExpressionImmHi(pAddrMode2->pExpr));
+		}
+		else
+		{
+			sect_OutputAbsByte(0xFA);
+			sect_OutputExprWord(parse_CreateExpression16U(pAddrMode2->pExpr));
+		}
 	}
 	else if((pAddrMode1->nMode & MODE_GROUP_D) && (pAddrMode2->nMode & MODE_IMM))
 	{
@@ -333,17 +335,22 @@ static BOOL parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	else if((pAddrMode1->nMode & MODE_IMM_IND) && (pAddrMode2->nMode & MODE_REG_SP))
 	{
 		sect_OutputAbsByte(0x08);
-		sect_OutputExprWord(pAddrMode1->pExpr);
-	}
-	else if((pAddrMode1->nMode & MODE_IMM_IND_HI) && (pAddrMode2->nMode & MODE_REG_A))
-	{
-		sect_OutputAbsByte(0xE0);
-		sect_OutputExprByte(pAddrMode1->pExpr);
+		sect_OutputExprWord(parse_CreateExpression16U(pAddrMode1->pExpr));
 	}
 	else if((pAddrMode1->nMode & MODE_IMM_IND) && (pAddrMode2->nMode & MODE_REG_A))
 	{
-		sect_OutputAbsByte(0xEA);
-		sect_OutputExprWord(pAddrMode1->pExpr);
+		if((pAddrMode1->pExpr->Flags & EXPRF_isCONSTANT)
+		&& pAddrMode1->pExpr->Value.Value >= 0xFF00 
+		&& pAddrMode1->pExpr->Value.Value <= 0xFFFF)
+		{
+			sect_OutputAbsByte(0xE0);
+			sect_OutputExprByte(parse_CreateExpressionImmHi(pAddrMode1->pExpr));
+		}
+		else
+		{
+			sect_OutputAbsByte(0xEA);
+			sect_OutputExprWord(parse_CreateExpression16U(pAddrMode1->pExpr));
+		}
 	}
 	else
 		prj_Error(ERROR_OPERAND);
@@ -436,14 +443,17 @@ static BOOL parse_Ret(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 
 static BOOL parse_Rst(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	SLONG val = pAddrMode1->pExpr->Value.Value;
-	if(val == (val & 0x38))
+	if(pAddrMode1->pExpr->Flags & EXPRF_isCONSTANT)
 	{
-		sect_OutputAbsByte((UBYTE)(pOpcode->nOpcode | val));
-		return TRUE;
+		SLONG val = pAddrMode1->pExpr->Value.Value;
+		if(val == (val & 0x38))
+			sect_OutputAbsByte((UBYTE)(pOpcode->nOpcode | val));
+		else
+			prj_Error(ERROR_OPERAND_RANGE);
 	}
+	else
+		prj_Error(ERROR_EXPR_CONST);
 
-	prj_Error(ERROR_OPERAND_RANGE);
 	return TRUE;
 }
 
@@ -456,33 +466,33 @@ static BOOL parse_Stop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 
 SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 {
-	{ 0x08, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* ADC */
-	{ 0x00, MODE_REG_A | MODE_REG_HL | MODE_REG_SP, MODE_GROUP_D | MODE_IMM_8SU | MODE_GROUP_SS, parse_Add },	/* ADD */
-	{ 0x20, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* AND */
-	{ 0x40, MODE_IMM_3U, MODE_GROUP_D, parse_Bit },				/* BIT */
-	{ 0xCD, MODE_F | MODE_IMM_16U, MODE_IMM_16U | MODE_NONE, parse_Call },	/* CALL */
+	{ 0x08, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* ADC */
+	{ 0x00, MODE_REG_A | MODE_REG_HL | MODE_REG_SP, MODE_GROUP_D | MODE_IMM | MODE_GROUP_SS, parse_Add },	/* ADD */
+	{ 0x20, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* AND */
+	{ 0x40, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* BIT */
+	{ 0xCD, MODE_F | MODE_IMM, MODE_IMM | MODE_NONE, parse_Call },	/* CALL */
 	{ 0x3F, 0, 0, parse_Implied },							/* CCF */
 	{ 0x2F, 0, 0, parse_Implied },							/* CPL */
-	{ 0x38, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* CP */
+	{ 0x38, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* CP */
 	{ 0x27, 0, 0, parse_Implied },							/* DAA */
 	{ 0x01, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* DEC */
 	{ 0xF3, 0, 0, parse_Implied },							/* DI */
 	{ 0xFB, 0, 0, parse_Implied },							/* EI */
 	{ 0x76, 0, 0, parse_Implied },							/* HALT */
 	{ 0x00, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* INC */
-	{ 0xC3, MODE_F | MODE_IMM_16U | MODE_REG_HL_IND, MODE_IMM_16U | MODE_NONE, parse_Jp },	/* JP */
-	{ 0x00, MODE_F | MODE_PCREL, MODE_PCREL | MODE_NONE, parse_Jr },	/* JR */
+	{ 0xC3, MODE_F | MODE_IMM | MODE_REG_HL_IND, MODE_IMM | MODE_NONE, parse_Jp },	/* JP */
+	{ 0x00, MODE_F | MODE_IMM, MODE_IMM | MODE_NONE, parse_Jr },	/* JR */
 	{ 0x00,
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND,
-		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_REG_SP_IND_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM_IND_HI | MODE_IMM, parse_Ld },	/* LD */
+		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_REG_SP_IND_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM, parse_Ld },	/* LD */
 	{ 0x32, MODE_REG_A | MODE_REG_HL_IND, MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDD */
 	{ 0x22, MODE_REG_A | MODE_REG_HL_IND, MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDI */
 	{ 0xE0, MODE_IMM_IND | MODE_REG_A, MODE_IMM_IND | MODE_REG_A, parse_Ldh },	/* LDH */
 	{ 0x00, 0, 0, parse_Implied },	/* LDH */
-	{ 0x30, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* OR */
+	{ 0x30, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* OR */
 	{ 0xC1, MODE_GROUP_TT, 0, parse_Pop },	/* POP */
 	{ 0xC5, MODE_GROUP_TT, 0, parse_Pop },	/* PUSH */
-	{ 0x80, MODE_IMM_3U, MODE_GROUP_D, parse_Bit },				/* RES */
+	{ 0x80, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* RES */
 	{ 0xC0, MODE_NONE | MODE_F, 0, parse_Ret },	/* RET */
 	{ 0xD9, 0, 0, parse_Implied },	/* RETI */
 	{ 0x07, 0, 0, parse_Implied },	/* RLCA */
@@ -493,54 +503,45 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ 0x0F, 0, 0, parse_Implied },	/* RRCA */
 	{ 0x1F, 0, 0, parse_Implied },	/* RRA */
 	{ 0x18, MODE_GROUP_D, 0, parse_Rr },	/* RR */
-	{ 0xC7, MODE_IMM_CONST, 0, parse_Rst },	/* RST */
-	{ 0x18, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* SBC */
+	{ 0xC7, MODE_IMM, 0, parse_Rst },	/* RST */
+	{ 0x18, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* SBC */
 	{ 0x37, 0, 0, parse_Implied },	/* SCF */
-	{ 0xC0, MODE_IMM_3U, MODE_GROUP_D, parse_Bit },				/* SET */
+	{ 0xC0, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* SET */
 	{ 0x20, MODE_GROUP_D, 0, parse_Rotate },	/* SLA */
 	{ 0x28, MODE_GROUP_D, 0, parse_Rotate },	/* SRA */
 	{ 0x38, MODE_GROUP_D, 0, parse_Rotate },	/* SRL */
 	{ 0x10, 0, 0, parse_Stop },	/* STOP */
-	{ 0x10, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* SUB */
+	{ 0x10, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* SUB */
 	{ 0x30, MODE_GROUP_D, 0, parse_Rotate },	/* SWAP */
-	{ 0x28, MODE_REG_A, MODE_GROUP_D | MODE_IMM_8SU, parse_Alu },	/* XOR */
+	{ 0x28, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* XOR */
 };
 
 
-static BOOL parse_AddrMode(SAddrMode* pAddrMode, int nAllowedModes)
+static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MODE_B
 	&& g_CurrentToken.ID.TargetToken <= T_MODE_A)
 	{
-		if(g_CurrentToken.ID.TargetToken == T_MODE_A && (nAllowedModes & MODE_REG_A))
+		if(g_CurrentToken.ID.TargetToken == T_MODE_A)
 			pAddrMode->nMode |= MODE_REG_A;
 
-		if(g_CurrentToken.ID.TargetToken == T_MODE_HL_IND && (nAllowedModes & MODE_REG_HL_IND))
+		if(g_CurrentToken.ID.TargetToken == T_MODE_HL_IND)
 			pAddrMode->nMode |= MODE_REG_HL_IND;
 
-		if(nAllowedModes & MODE_GROUP_D)
-		{
-			pAddrMode->nMode |= MODE_GROUP_D;
-			pAddrMode->eRegD = g_CurrentToken.ID.TargetToken - T_MODE_B + REG_B;
-		}
-
-		if(g_CurrentToken.ID.TargetToken == T_MODE_C
-		&& (nAllowedModes & MODE_F))
+		if(g_CurrentToken.ID.TargetToken == T_MODE_C)
 		{
 			pAddrMode->nMode |= MODE_F;
 			pAddrMode->eModeF = CC_C;
 		}
 
-		if(pAddrMode->nMode)
-		{
-			parse_GetToken();
-			return TRUE;
-		}
-		return FALSE;
+		pAddrMode->nMode |= MODE_GROUP_D;
+		pAddrMode->eRegD = g_CurrentToken.ID.TargetToken - T_MODE_B + REG_B;
+
+		parse_GetToken();
+		return TRUE;
 	}
 
-	if(g_CurrentToken.ID.TargetToken == T_MODE_AF
-	&& (nAllowedModes & MODE_GROUP_TT))
+	if(g_CurrentToken.ID.TargetToken == T_MODE_AF)
 	{
 		pAddrMode->nMode |= MODE_GROUP_TT;
 		pAddrMode->eRegTT = REG_AF;
@@ -552,72 +553,60 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode, int nAllowedModes)
 	if(g_CurrentToken.ID.TargetToken >= T_MODE_BC
 	&& g_CurrentToken.ID.TargetToken <= T_MODE_SP)
 	{
-		if(g_CurrentToken.ID.TargetToken <= T_MODE_HL
-		&& (nAllowedModes & MODE_GROUP_TT))
+		if(g_CurrentToken.ID.TargetToken <= T_MODE_HL)
 		{
 			pAddrMode->nMode |= MODE_GROUP_TT;
 			pAddrMode->eRegTT = g_CurrentToken.ID.TargetToken - T_MODE_BC + REG_BC;
 		}
 
-		if(g_CurrentToken.ID.TargetToken == T_MODE_HL && (nAllowedModes & MODE_REG_HL))
+		if(g_CurrentToken.ID.TargetToken == T_MODE_HL)
 			pAddrMode->nMode |= MODE_REG_HL;
 
-		if(g_CurrentToken.ID.TargetToken == T_MODE_SP && (nAllowedModes & MODE_REG_SP))
+		if(g_CurrentToken.ID.TargetToken == T_MODE_SP)
 			pAddrMode->nMode |= MODE_REG_SP;
 
-		if(nAllowedModes & MODE_GROUP_SS)
-		{
-			pAddrMode->nMode |= MODE_GROUP_SS;
-			pAddrMode->eRegSS = g_CurrentToken.ID.TargetToken - T_MODE_BC + REG_BC;
-		}
+		pAddrMode->nMode |= MODE_GROUP_SS;
+		pAddrMode->eRegSS = g_CurrentToken.ID.TargetToken - T_MODE_BC + REG_BC;
 
-		if(pAddrMode->nMode)
-		{
-			parse_GetToken();
-			return TRUE;
-		}
-		return FALSE;
+		parse_GetToken();
+		return TRUE;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_MODE_BC_IND
-	&& g_CurrentToken.ID.TargetToken <= T_MODE_HL_INDDEC
-	&& (nAllowedModes & MODE_GROUP_RR))
+	&& g_CurrentToken.ID.TargetToken <= T_MODE_HL_INDDEC)
 	{
 		pAddrMode->nMode |= MODE_GROUP_RR;
 		pAddrMode->eRegRR = g_CurrentToken.ID.TargetToken - T_MODE_BC_IND + REG_BC_IND;
-		parse_GetToken();
 
+		parse_GetToken();
 		return TRUE;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_CC_NZ
-	&& g_CurrentToken.ID.TargetToken <= T_CC_NC
-	&& (nAllowedModes & MODE_F))
+	&& g_CurrentToken.ID.TargetToken <= T_CC_NC)
 	{
 		pAddrMode->nMode |= MODE_F;
 		pAddrMode->eModeF = g_CurrentToken.ID.TargetToken - T_CC_NZ + CC_NZ;
+
 		parse_GetToken();
 		return TRUE;
 	}
 
-	if(g_CurrentToken.ID.TargetToken == T_MODE_SP_IND
-	&& (nAllowedModes & MODE_REG_SP_IND))
+	if(g_CurrentToken.ID.TargetToken == T_MODE_SP_IND)
 	{
 		pAddrMode->nMode |= MODE_REG_SP_IND;
 		parse_GetToken();
 		return TRUE;
 	}
 
-	if(g_CurrentToken.ID.TargetToken == T_MODE_C_IND
-	&& (nAllowedModes & MODE_REG_C_IND))
+	if(g_CurrentToken.ID.TargetToken == T_MODE_C_IND)
 	{
 		pAddrMode->nMode |= MODE_REG_C_IND;
 		parse_GetToken();
 		return TRUE;
 	}
 
-	if((nAllowedModes & MODE_REG_SP_IND_DISP)
-	&&	g_CurrentToken.ID.Token == '[')
+	if(g_CurrentToken.ID.Token == '[')
 	{
 		SLexBookmark bm;
 		lex_Bookmark(&bm);
@@ -648,48 +637,25 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode, int nAllowedModes)
 				parse_FreeExpression(pExpr);
 			}
 		}
-		lex_Goto(&bm);
-	}
-
-	if((nAllowedModes & (MODE_IMM_IND | MODE_IMM_IND_HI))
-	&&	g_CurrentToken.ID.Token == '[')
-	{
-		SExpression* pExpr;
-		SLexBookmark bm;
-
-		lex_Bookmark(&bm);
-
-		parse_GetToken();
-		pExpr = parse_Expression();
-		if(pExpr != NULL)
+		else
 		{
-			if(parse_ExpectChar(']'))
+			SExpression* pExpr = parse_Expression();
+			if(pExpr != NULL)
 			{
-				if(nAllowedModes & MODE_IMM_IND_HI)
-				{
-					if(((pExpr->Flags & EXPRF_isCONSTANT) && pExpr->Value.Value >= 0xFF00 && pExpr->Value.Value <= 0xFFFF)
-					|| ((pExpr->Flags & EXPRF_isRELOC) && (nAllowedModes & MODE_IMM_IND) == 0))
-					{
-						pAddrMode->nMode |= MODE_IMM_IND_HI;
-						pAddrMode->pExpr = parse_CreateExpressionImmHi(pExpr);
-						return TRUE;
-					}
-				}
-
-				if(nAllowedModes & MODE_IMM_IND)
+				if(parse_ExpectChar(']'))
 				{
 					pAddrMode->nMode |= MODE_IMM_IND;
-					pAddrMode->pExpr = parse_CreateExpression16U(pExpr);
+					pAddrMode->pExpr = pExpr;
 					return TRUE;
 				}
+				parse_FreeExpression(pExpr);
 			}
-			parse_FreeExpression(pExpr);
-		}
 
+		}
 		lex_Goto(&bm);
 	}
 
-	if(nAllowedModes & MODE_EXPR)
+	/* Try expression */
 	{
 		SExpression* pExpr;
 		SLexBookmark bm;
@@ -698,39 +664,10 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode, int nAllowedModes)
 		pExpr = parse_Expression();
 		if(pExpr != NULL)
 		{
-			if((nAllowedModes & MODE_IMM_CONST)
-			&& (pExpr->Flags & EXPRF_isCONSTANT))
-			{
-				pAddrMode->nMode |= MODE_IMM_CONST;
-				pAddrMode->pExpr = pExpr;
-			}
-			else if(nAllowedModes & MODE_IMM)
-			{
-				pAddrMode->nMode |= MODE_IMM;
-				pAddrMode->pExpr = pExpr;
-			}
-			else if(nAllowedModes & MODE_IMM_16U)
-			{
-				pAddrMode->nMode |= MODE_IMM_16U;
-				pAddrMode->pExpr = parse_CreateExpression16U(pExpr);
-			}
-			else if(nAllowedModes & MODE_IMM_8SU)
-			{
-				pAddrMode->nMode |= MODE_IMM_8SU;
-				pAddrMode->pExpr = parse_CreateExpression8SU(pExpr);
-			}
-			else if(nAllowedModes & MODE_IMM_3U)
-			{
-				pAddrMode->nMode |= MODE_IMM_3U;
-				pAddrMode->pExpr = parse_CreateExpression3U(pExpr);
-			}
-			else if(nAllowedModes & MODE_PCREL)
-			{
-				pAddrMode->nMode |= MODE_PCREL;
-				pAddrMode->pExpr = parse_CreateExpressionPCRel(pExpr);
-			}
+			pAddrMode->nMode |= MODE_IMM;
+			pAddrMode->pExpr = pExpr;
 
-			return pAddrMode->nMode ? TRUE : FALSE;
+			return TRUE;
 		}
 		
 		lex_Goto(&bm);
@@ -738,7 +675,6 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode, int nAllowedModes)
 
 	return FALSE;
 }
-
 
 BOOL parse_TargetSpecific(void)
 {
@@ -757,59 +693,48 @@ BOOL parse_TargetSpecific(void)
 
 		if(pOpcode->nAddrMode1 != 0)
 		{
-			BOOL bExpectComma = TRUE;
-
-			if(!parse_AddrMode(&addrMode1, pOpcode->nAddrMode1))
+			if(parse_AddrMode(&addrMode1))
 			{
-				if((pOpcode->nAddrMode1 & (MODE_NONE | MODE_REG_A)) == MODE_REG_A)
+				if(g_CurrentToken.ID.Token == ',')
 				{
-					addrMode1.nMode = MODE_REG_A;
-					bExpectComma = FALSE;
-				}
-				else if(pOpcode->nAddrMode1 == 0 || (pOpcode->nAddrMode1 & MODE_NONE))
-					addrMode1.nMode = 0;
-				else
-				{
-					prj_Error(ERROR_FIRST_OPERAND);
-					return TRUE;
-				}
-			}
-			
-			if(pOpcode->nAddrMode2 != 0)
-			{
-				BOOL done = FALSE;
-
-				if(bExpectComma)
-				{
-					if(g_CurrentToken.ID.Token == ',')
-						parse_GetToken();
-					else
-					{
-						if((addrMode1.nMode & MODE_REG_A) && (pOpcode->nAddrMode2 & (MODE_REG_A | MODE_GROUP_D)))
-						{
-							addrMode2.nMode = (MODE_REG_A | MODE_GROUP_D) & pOpcode->nAddrMode2;
-							addrMode2.eRegD = REG_A;
-						}
-						else if(pOpcode->nAddrMode2 & MODE_NONE)
-							addrMode2.nMode = 0;
-						done = TRUE;
-					}
-				}
-
-				if(!done && !parse_AddrMode(&addrMode2, pOpcode->nAddrMode2))
-				{
-					if(pOpcode->nAddrMode2 & MODE_NONE)
-						addrMode2.nMode = 0;
-					else
+					parse_GetToken();
+					if(!parse_AddrMode(&addrMode2))
 					{
 						prj_Error(ERROR_SECOND_OPERAND);
 						return TRUE;
 					}
 				}
+				else if(pOpcode->nAddrMode2 != 0
+				&& (pOpcode->nAddrMode1 & REG_A)
+				&& (pOpcode->nAddrMode2 & addrMode1.nMode))
+				{
+					addrMode2 = addrMode1;
+					addrMode1.nMode = MODE_REG_A | MODE_GROUP_D;
+					addrMode1.eRegD = REG_A;
+				}
+			}
+			else if(addrMode1.nMode != 0 && (addrMode1.nMode & MODE_NONE) == 0)
+			{
+				prj_Error(ERROR_FIRST_OPERAND);
+				return TRUE;
 			}
 		}
 
-		return pOpcode->pParser(pOpcode, &addrMode1, &addrMode2);
+		if((addrMode1.nMode & pOpcode->nAddrMode1)
+		|| (addrMode1.nMode == 0 && ((pOpcode->nAddrMode1 == 0) || (pOpcode->nAddrMode1 & MODE_NONE))))
+		{
+			if((addrMode2.nMode & pOpcode->nAddrMode2)
+			|| (addrMode2.nMode == 0 && ((pOpcode->nAddrMode2 == 0) || (pOpcode->nAddrMode2 & MODE_NONE))))
+			{
+				return pOpcode->pParser(pOpcode, &addrMode1, &addrMode2);
+			}
+			else
+				prj_Error(ERROR_SECOND_OPERAND);
+		}
+		else
+			prj_Error(ERROR_FIRST_OPERAND);
+
+		return TRUE;
 	}
 
 	return FALSE;

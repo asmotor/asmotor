@@ -249,7 +249,7 @@ B0_0043:	ld	sp,$100
 	ldd	[hl],a
 	ldi	a,[hl]
 	ldi	[hl],a
-	ldh	[$fffe],a
+	ldh	[$1ffe],a
 	ldh	a,[$fffe]
 	nop
 	or	a,[hl]

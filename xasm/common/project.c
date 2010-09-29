@@ -56,6 +56,7 @@ static char* g_pszError[]=
 	"Expression must be constant",
 	"Expression must be relocatable",
 	"Invalid string expression",
+	"Bad expression",
 	"BANK expected",
 	"TEXT or BSS expected",
 	"Identifier must be a GROUP symbol",
