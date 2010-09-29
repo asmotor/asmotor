@@ -173,21 +173,20 @@ static	BOOL	sect_CheckAvailableSpace(ULONG count)
 
 //	Public routines
 
-void	sect_OutputAbsByte(UBYTE value)
+void sect_OutputAbsByte(UBYTE value)
 {
 	if(sect_CheckAvailableSpace(1))
 	{
-		//printf("*DEBUG* outputting abs byte %d\n", value);
 		switch(sect_GetCurrentType())
 		{
-			case	GROUP_TEXT:
+			case GROUP_TEXT:
 			{
-				pCurrentSection->FreeSpace-=1;
-				pCurrentSection->UsedSpace+=1;
-				pCurrentSection->pData[pCurrentSection->PC++]=value;
+				pCurrentSection->FreeSpace -= 1;
+				pCurrentSection->UsedSpace += 1;
+				pCurrentSection->pData[pCurrentSection->PC++] = value;
 				break;
 			}
-			case	GROUP_BSS:
+			case GROUP_BSS:
 			{
 				prj_Error(ERROR_SECTION_DATA);
 				break;
@@ -201,21 +200,22 @@ void	sect_OutputAbsByte(UBYTE value)
 	}
 }
 
-void	sect_OutputRelByte(SExpression* expr)
+
+void sect_OutputRelByte(SExpression* expr)
 {
 	if(sect_CheckAvailableSpace(1))
 	{
 		switch(sect_GetCurrentType())
 		{
-			case	GROUP_TEXT:
+			case GROUP_TEXT:
 			{
 				patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_BYTE);
-				pCurrentSection->PC+=1;
-				pCurrentSection->FreeSpace-=1;
-				pCurrentSection->UsedSpace+=1;
+				pCurrentSection->PC += 1;
+				pCurrentSection->FreeSpace -= 1;
+				pCurrentSection->UsedSpace += 1;
 				break;
 			}
-			case	GROUP_BSS:
+			case GROUP_BSS:
 			{
 				prj_Error(ERROR_SECTION_DATA);
 				sect_SkipBytes(1);
@@ -230,46 +230,44 @@ void	sect_OutputRelByte(SExpression* expr)
 	}
 }
 
-void	sect_OutputExprByte(SExpression* expr)
+
+void sect_OutputExprByte(SExpression* expr)
 {
-	if(expr->Flags&EXPRF_isCONSTANT)
+	if(expr == NULL)
+		prj_Error(ERROR_EXPR_BAD);
+	else if(expr->Flags&EXPRF_isRELOC)
+		sect_OutputRelByte(expr);
+	else if(expr->Flags & EXPRF_isCONSTANT)
 	{
 		sect_OutputAbsByte((UBYTE)(expr->Value.Value));
 		parse_FreeExpression(expr);
 	}
-	else if(expr->Flags&EXPRF_isRELOC)
-	{
-		sect_OutputRelByte(expr);
-	}
 	else
-	{
 		prj_Error(ERROR_EXPR_CONST_RELOC);
-	}
 }
 
-void	sect_OutputAbsWord(UWORD value)
+void sect_OutputAbsWord(UWORD value)
 {
 	if(sect_CheckAvailableSpace(2))
 	{
-		pCurrentSection->FreeSpace-=2;
-		pCurrentSection->UsedSpace+=2;
-		//printf("*DEBUG* outputting abs word %d\n", value);
+		pCurrentSection->FreeSpace -= 2;
+		pCurrentSection->UsedSpace += 2;
 		switch(sect_GetCurrentType())
 		{
-			case	GROUP_TEXT:
+			case GROUP_TEXT:
 			{
 				switch(pOptions->Endian)
 				{
-					case	ASM_LITTLE_ENDIAN:
+					case ASM_LITTLE_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value);
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value>>8);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value>>8);
 						break;
 					}
-					case	ASM_BIG_ENDIAN:
+					case ASM_BIG_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value>>8);
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value>>8);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value);
 						break;
 					}
 					default:
@@ -280,7 +278,7 @@ void	sect_OutputAbsWord(UWORD value)
 				}
 				break;
 			}
-			case	GROUP_BSS:
+			case GROUP_BSS:
 			{
 				prj_Error(ERROR_SECTION_DATA);
 				break;
@@ -294,24 +292,24 @@ void	sect_OutputAbsWord(UWORD value)
 	}
 }
 
-void	sect_OutputRelWord(SExpression* expr)
+void sect_OutputRelWord(SExpression* expr)
 {
 	if(sect_CheckAvailableSpace(2))
 	{
 		switch(sect_GetCurrentType())
 		{
-			case	GROUP_TEXT:
+			case GROUP_TEXT:
 			{
-				pCurrentSection->FreeSpace-=2;
-				pCurrentSection->UsedSpace+=2;
+				pCurrentSection->FreeSpace -= 2;
+				pCurrentSection->UsedSpace += 2;
 				switch(pOptions->Endian)
 				{
-					case	ASM_LITTLE_ENDIAN:
+					case ASM_LITTLE_ENDIAN:
 					{
 						patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_LWORD);
 						break;
 					}
-					case	ASM_BIG_ENDIAN:
+					case ASM_BIG_ENDIAN:
 					{
 						patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_BWORD);
 						break;
@@ -322,10 +320,10 @@ void	sect_OutputRelWord(SExpression* expr)
 						break;
 					}
 				}
-				pCurrentSection->PC+=2;
+				pCurrentSection->PC += 2;
 				break;
 			}
-			case	GROUP_BSS:
+			case GROUP_BSS:
 			{
 				prj_Error(ERROR_SECTION_DATA);
 				sect_SkipBytes(2);
@@ -340,50 +338,47 @@ void	sect_OutputRelWord(SExpression* expr)
 	}
 }
 
-void	sect_OutputExprWord(SExpression* expr)
+void sect_OutputExprWord(SExpression* expr)
 {
-	if(expr->Flags&EXPRF_isCONSTANT)
+	if(expr == NULL)
+		prj_Error(ERROR_EXPR_BAD);
+	else if(expr->Flags & EXPRF_isRELOC)
+		sect_OutputRelWord(expr);
+	else if(expr->Flags & EXPRF_isCONSTANT)
 	{
 		sect_OutputAbsWord((UWORD)(expr->Value.Value));
 		parse_FreeExpression(expr);
 	}
-	else if(expr->Flags&EXPRF_isRELOC)
-	{
-		sect_OutputRelWord(expr);
-	}
 	else
-	{
 		prj_Error(ERROR_EXPR_CONST_RELOC);
-	}
 }
 
-void	sect_OutputAbsLong(ULONG value)
+void sect_OutputAbsLong(ULONG value)
 {
 	if(sect_CheckAvailableSpace(4))
 	{
-		//printf("*DEBUG* outputting abs word %d\n", value);
 		switch(sect_GetCurrentType())
 		{
-			case	GROUP_TEXT:
+			case GROUP_TEXT:
 			{
-				pCurrentSection->FreeSpace-=4;
-				pCurrentSection->UsedSpace+=4;
+				pCurrentSection->FreeSpace -= 4;
+				pCurrentSection->UsedSpace += 4;
 				switch(pOptions->Endian)
 				{
-					case	ASM_LITTLE_ENDIAN:
+					case ASM_LITTLE_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value);
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value>>8);
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value>>16);
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value>>24);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 8);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 16);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 24);
 						break;
 					}
-					case	ASM_BIG_ENDIAN:
+					case ASM_BIG_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value>>24);
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value>>16);
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value>>8);
-						pCurrentSection->pData[pCurrentSection->PC++]=(UBYTE)(value);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 24);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 16);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 8);
+						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value);
 						break;
 					}
 					default:
@@ -394,7 +389,7 @@ void	sect_OutputAbsLong(ULONG value)
 				}
 				break;
 			}
-			case	GROUP_BSS:
+			case GROUP_BSS:
 			{
 				prj_Error(ERROR_SECTION_DATA);
 				break;
@@ -408,24 +403,24 @@ void	sect_OutputAbsLong(ULONG value)
 	}
 }
 
-void	sect_OutputRelLong(SExpression* expr)
+void sect_OutputRelLong(SExpression* expr)
 {
 	if(sect_CheckAvailableSpace(4))
 	{
 		switch(sect_GetCurrentType())
 		{
-			case	GROUP_TEXT:
+			case GROUP_TEXT:
 			{
-				pCurrentSection->FreeSpace-=4;
-				pCurrentSection->UsedSpace+=4;
+				pCurrentSection->FreeSpace -= 4;
+				pCurrentSection->UsedSpace += 4;
 				switch(pOptions->Endian)
 				{
-					case	ASM_LITTLE_ENDIAN:
+					case ASM_LITTLE_ENDIAN:
 					{
 						patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_LLONG);
 						break;
 					}
-					case	ASM_BIG_ENDIAN:
+					case ASM_BIG_ENDIAN:
 					{
 						patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_BLONG);
 						break;
@@ -436,10 +431,10 @@ void	sect_OutputRelLong(SExpression* expr)
 						break;
 					}
 				}
-				pCurrentSection->PC+=4;
+				pCurrentSection->PC += 4;
 				break;
 			}
-			case	GROUP_BSS:
+			case GROUP_BSS:
 			{
 				prj_Error(ERROR_SECTION_DATA);
 				sect_SkipBytes(1);
@@ -454,24 +449,22 @@ void	sect_OutputRelLong(SExpression* expr)
 	}
 }
 
-void	sect_OutputExprLong(SExpression* expr)
+void sect_OutputExprLong(SExpression* expr)
 {
-	if(expr->Flags&EXPRF_isCONSTANT)
+	if(expr == NULL)
+		prj_Error(ERROR_EXPR_BAD);
+	else if(expr->Flags & EXPRF_isRELOC)
+		sect_OutputRelLong(expr);
+	else if(expr->Flags & EXPRF_isCONSTANT)
 	{
 		sect_OutputAbsLong(expr->Value.Value);
 		parse_FreeExpression(expr);
 	}
-	else if(expr->Flags&EXPRF_isRELOC)
-	{
-		sect_OutputRelLong(expr);
-	}
 	else
-	{
 		prj_Error(ERROR_EXPR_CONST_RELOC);
-	}
 }
 
-void	sect_OutputBinaryFile(char* s)
+void sect_OutputBinaryFile(char* s)
 {
 	FILE* f;
 
