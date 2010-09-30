@@ -251,6 +251,68 @@ Label:  moveq   #1,d0   ;load register d0 with the value 1
 \end_layout
 
 \begin_layout Chapter*
+Expressions
+\end_layout
+
+\begin_layout Section*
+Integer expressions
+\end_layout
+
+\begin_layout Standard
+Whenever the assembler expects an integer, an integer expression may be
+ used.
+ Integer expressions are always evaluated using signed 32 bit math.
+\end_layout
+
+\begin_layout Standard
+The simplest integer expression is a number.
+\end_layout
+
+\begin_layout Subsection*
+Numeric formats
+\end_layout
+
+\begin_layout Standard
+The assembler supports several numeric formats:
+\end_layout
+
+\begin_layout Description
+Hexadecimal $0123456789ABCDEF.
+\begin_inset space ~
+\end_inset
+
+Case-insensitive.
+\end_layout
+
+\begin_layout Description
+Decimal 0123456789
+\end_layout
+
+\begin_layout Description
+Octal &01234567
+\end_layout
+
+\begin_layout Description
+Binary %01
+\end_layout
+
+\begin_layout Description
+Fixedpoint
+\begin_inset space ~
+\end_inset
+
+(16.16) 01234.56789
+\end_layout
+
+\begin_layout Description
+Character "ABYZ"
+\end_layout
+
+\begin_layout Section*
+String expressions
+\end_layout
+
+\begin_layout Chapter*
 Labels
 \begin_inset CommandInset label
 LatexCommand label
@@ -294,7 +356,7 @@ reference "sec:Exporting-and-importing"
 
 \end_inset
 
-.
+
 \end_layout
 
 \begin_layout Standard
@@ -425,7 +487,7 @@ Exporting and importing labels
 status collapsed
 
 \begin_layout Plain Layout
-labels, export and import
+Labels, export and import
 \end_layout
 
 \end_inset
@@ -448,10 +510,49 @@ Most of the time programs consists of several source files that are assembled
 
 \begin_layout Standard
 To export a symbol (to let other source files use the symbol,) you use the
- keyword EXPORT (or its synonym XDEF) followed by the symbol that should
- be exported.
+ keyword EXPORT
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+EXPORT
+\end_layout
+
+\end_inset
+
+ (or its synonym XDEF
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+XDEF
+\end_layout
+
+\end_inset
+
+) followed by the symbol that should be exported.
  To import a symbol (to make an externally defined symbol available in the
- current source file,) the keyword IMPORT (or its synonym XREF) is used.
+ current source file,) the keyword IMPORT
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+IMPORT
+\end_layout
+
+\end_inset
+
+ (or its synonym XREF
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+XREF
+\end_layout
+
+\end_inset
+
+) is used.
 \end_layout
 
 \begin_layout Standard
@@ -466,9 +567,21 @@ Often you will want to make a header file for these definitions that other
  structure definitions, it becomes slightly complicated - if a symbol is
  first imported in the include file and later appears as a label, you have
  multiple definitions of the symbol.
- The assembler provides a third keyword, GLOBAL, that either imports or
- exports a symbol, depending on whether it appears as a label in the current
- source file.
+\end_layout
+
+\begin_layout Standard
+The assembler provides a third keyword, GLOBAL
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+GLOBAL
+\end_layout
+
+\end_inset
+
+, that either imports or exports a symbol, depending on whether it appears
+ as a label in the current source file.
 \end_layout
 
 \begin_layout Standard
@@ -528,16 +641,6 @@ AutomaticExport::
 \begin_layout Standard
 Note that all three assembler instructions accept a comma separated list
  of labels.
-\end_layout
-
-\begin_layout Chapter*
-The macro language
-\end_layout
-
-\begin_layout Standard
-The macro language is an interpreted language that offers features which
- make an assembly source more readable.
- It also offers fine control over how the source is assembled.
 \end_layout
 
 \begin_layout Section*
@@ -607,11 +710,301 @@ MyCounter   =   MyCounter+1 ;Increment MyCounter
 Integer symbols are often used to define the offsets of structure members.
  While the EQU instruction can be used for this it quickly becomes cumbersome
  when adding, reordering or removing members from the structure.
- The assembler provides a group of instructions to make this easier, see
- the RS group of instructions
-\begin_inset CommandInset ref
-LatexCommand vpageref
-reference "sec:RS-GROUP"
+ The assembler provides a group of instructions to make this easier, the
+ RS group of instructions.
+\end_layout
+
+\begin_layout List
+\labelwidthstring 00.00.0000
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="2">
+<features booktabs="true">
+<column alignment="left" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Command
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Meaning
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+RSRESET
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Resets the _RS counter to zero
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+RSSET constexpr
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Sets the _RS counter to the value of constexpr
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Symbol: RB constexpr
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Sets Symbol to _RS and adds constexpr to _RS
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Symbol: RW constexpr
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Sets Symbol to _RS and adds 2*constexpr to _RS
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Symbol: RL constexpr
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Sets Symbol to _RS and adds 4*constexpr to _RS
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily},language={[Motorola68k]Assembler}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+RS example
+\end_layout
+
+\end_inset
+
+           RSRESET
+\end_layout
+
+\begin_layout Plain Layout
+
+str_pStuff RW 1
+\end_layout
+
+\begin_layout Plain Layout
+
+str_tData  RB 256
+\end_layout
+
+\begin_layout Plain Layout
+
+str_bCount RB 1
+\end_layout
+
+\begin_layout Plain Layout
+
+str_SIZEOF RB 0
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The example defines four equated symbols and their values:
+\end_layout
+
+\begin_layout List
+\labelwidthstring 00.00.0000
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="2">
+<features booktabs="true">
+<column alignment="left" valignment="top" width="0">
+<column alignment="right" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Symbol
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Value
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+str_pStuff
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+str_tData
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+str_bCount
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+258
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+str_SIZEOF
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+259
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
 
 \end_inset
 
@@ -1232,6 +1625,15 @@ status open
 
 \begin_layout Plain Layout
 
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Passing a comma to a macro
+\end_layout
+
+\end_inset
+
 PrintString: MACRO
 \end_layout
 
@@ -1360,6 +1762,34 @@ push: MACRO
 \end_layout
 
 \begin_layout Subsection*
+SHIFT
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+SHIFT
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+SHIFT is a command only available in macros and particularly useful in REPT-bloc
+ks.
+ It "shifts" the macro arguments one position "to the left" - 
+\backslash
+1 will get 
+\backslash
+2's value, 
+\backslash
+2 will get 
+\backslash
+3's value and so forth.
+\end_layout
+
+\begin_layout Subsection*
 Final notes
 \end_layout
 
@@ -1367,14 +1797,6 @@ Final notes
 A colon (:) following the macro-name is required, macros cannot be exported
  or imported and it's valid to call a macro from a macro (even the same
  one for recursive behaviour).
- See also SHIFT
-\begin_inset CommandInset ref
-LatexCommand vpageref
-reference "sec:SHIFT"
-
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Section*
@@ -1391,12 +1813,363 @@ Symbols, predeclared
 
 \end_layout
 
-\begin_layout Section*
-Integer expressions
+\begin_layout Standard
+The assembler declares several symbols:
 \end_layout
 
-\begin_layout Section*
-String expressions
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="9" columns="3">
+<features booktabs="true">
+<column alignment="left" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Contents
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Type
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+@, *
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Current PC value
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+EQU
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+_PI
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+_PI
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Fixed point ¶
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+EQU
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+_RS
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+_RS
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+_RS counter
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+SET
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+_NARG
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+_NARG
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Number of arguments passed to macro
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+EQU
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+__LINE__
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+__LINE__
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The current line number
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+EQU
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+__FILE__
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+__FILE__
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The current filename
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+EQUS
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+__DATE__
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+__DATE__
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Todays date
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+EQUS
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+__TIME__
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+__TIME__
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The current time
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+EQUS
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter*
+The macro language
+\end_layout
+
+\begin_layout Standard
+The macro language is an interpreted language that offers features which
+ make an assembly source more readable.
+ It also offers fine control over how the source is assembled.
 \end_layout
 
 \begin_layout Section*
@@ -1420,179 +2193,25 @@ Using macros
 \end_layout
 
 \begin_layout Chapter*
-Assembler instructions reference
-\begin_inset CommandInset label
-LatexCommand label
-name "cha:Assembler-instructions"
-
-\end_inset
-
-
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Assembler instructions
-\end_layout
-
-\end_inset
-
-
+Gameboy backend
 \end_layout
 
 \begin_layout Standard
-Assembler instructions are not machine instructions but rather instructions
- to the assembler that offer control over how the source is assembled, provide
- methods to define data and ways to partition code and data into logical
- groups and units.
- 
+The Gameboy backend supports an additional numeric format:
 \end_layout
 
-\begin_layout Section*
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:RS-GROUP"
-
+\begin_layout Description
+Gameboy
+\begin_inset space ~
 \end_inset
 
-RSRESET
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-RSRESET
-\end_layout
-
-\end_inset
-
-, RSSET
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-RSSET
-\end_layout
-
-\end_inset
-
-, RS
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-RS
-\end_layout
-
-\end_inset
-
-/RB
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-RB
-\end_layout
-
-\end_inset
-
-/RW
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-RW
-\end_layout
-
-\end_inset
-
-
+graphics `00112233
 \end_layout
 
 \begin_layout Standard
-Defines a structure
-\end_layout
-
-\begin_layout Section*
-SHIFT
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:SHIFT"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-SHIFT
-\end_layout
-
-\begin_layout Section*
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:XDEF,-EXPORT"
-
-\end_inset
-
-XDEF
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-XDEF
-\end_layout
-
-\end_inset
-
-, EXPORT
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-EXPORT
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Exports a symbol.
-\end_layout
-
-\begin_layout Section*
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:XDEF,-EXPORT"
-
-\end_inset
-
-XREF
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-XREF
-\end_layout
-
-\end_inset
-
-, IMPORT
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-IMPORT
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Imports a symbol.
+The values are actually pixel values.
+ The values are converted from chunky data format to the planar format as
+ used in the Gameboy.
 \end_layout
 
 \begin_layout Standard
