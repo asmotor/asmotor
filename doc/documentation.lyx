@@ -176,7 +176,7 @@ reference "cha:Symbols-and-labels"
 , assembler instructions
 \begin_inset CommandInset ref
 LatexCommand vpageref
-reference "cha:Assembler-instructions"
+reference "cha:The-macro-language"
 
 \end_inset
 
@@ -251,68 +251,6 @@ Label:  moveq   #1,d0   ;load register d0 with the value 1
 \end_layout
 
 \begin_layout Chapter*
-Expressions
-\end_layout
-
-\begin_layout Section*
-Integer expressions
-\end_layout
-
-\begin_layout Standard
-Whenever the assembler expects an integer, an integer expression may be
- used.
- Integer expressions are always evaluated using signed 32 bit math.
-\end_layout
-
-\begin_layout Standard
-The simplest integer expression is a number.
-\end_layout
-
-\begin_layout Subsection*
-Numeric formats
-\end_layout
-
-\begin_layout Standard
-The assembler supports several numeric formats:
-\end_layout
-
-\begin_layout Description
-Hexadecimal $0123456789ABCDEF.
-\begin_inset space ~
-\end_inset
-
-Case-insensitive.
-\end_layout
-
-\begin_layout Description
-Decimal 0123456789
-\end_layout
-
-\begin_layout Description
-Octal &01234567
-\end_layout
-
-\begin_layout Description
-Binary %01
-\end_layout
-
-\begin_layout Description
-Fixedpoint
-\begin_inset space ~
-\end_inset
-
-(16.16) 01234.56789
-\end_layout
-
-\begin_layout Description
-Character "ABYZ"
-\end_layout
-
-\begin_layout Section*
-String expressions
-\end_layout
-
-\begin_layout Chapter*
 Labels
 \begin_inset CommandInset label
 LatexCommand label
@@ -340,7 +278,7 @@ status open
 see XDEF reference
 \begin_inset CommandInset ref
 LatexCommand vpageref
-reference "sec:XDEF,-EXPORT"
+reference "sec:Exporting-and-importing"
 
 \end_inset
 
@@ -859,7 +797,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 RS example
 \end_layout
 
@@ -903,9 +840,9 @@ The example defines four equated symbols and their values:
 <lyxtabular version="3" rows="5" columns="2">
 <features booktabs="true">
 <column alignment="left" valignment="top" width="0">
-<column alignment="right" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
 <row>
-<cell alignment="center" valignment="top" topline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -1132,671 +1069,6 @@ n"
 \end_inset
 
 
-\end_layout
-
-\begin_layout Section*
-Macros
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Macros
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-One of the most useful features of an assembler is the ability to write
- macros.
- Macros also provide a method of passing arguments to them and they can
- then react to the input using conditional assembling constructs.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-Macro example
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-
-MyMacro: MACRO
-\end_layout
-
-\begin_layout Plain Layout
-
-         ld   a,80
-\end_layout
-
-\begin_layout Plain Layout
-
-         call MyFunc
-\end_layout
-
-\begin_layout Plain Layout
-
-         ENDM
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The example above is a very simple macro.
- You use the macro by using its name where you would normally use an instruction.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-Macro expansion
-\end_layout
-
-\end_inset
-
-         add a,b
-\end_layout
-
-\begin_layout Plain Layout
-
-         ld  sp,hl
-\end_layout
-
-\begin_layout Plain Layout
-
-         MyMacro  ;This will be expanded
-\end_layout
-
-\begin_layout Plain Layout
-
-         sub a,87
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-When the assembler sees MyMacro it will insert the macro definition, the
- text enclosed in MACRO/ENDM.
-\end_layout
-
-\begin_layout Subsection*
-Macro loops
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Macro loops
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Often macros will contains loops, such as:
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-Macro with loop
-\end_layout
-
-\end_inset
-
-LoopMacro: MACRO
-\end_layout
-
-\begin_layout Plain Layout
-
-           xor a,a
-\end_layout
-
-\begin_layout Plain Layout
-
-.loop      ld  [hl+],a
-\end_layout
-
-\begin_layout Plain Layout
-
-           dec c
-\end_layout
-
-\begin_layout Plain Layout
-
-           jr  nz,.loop
-\end_layout
-
-\begin_layout Plain Layout
-
-           ENDM
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-This will work fine, until you start using the macro more than once per
- scope.
- To get around this problem there is a special label string equate called
- 
-\backslash
-@ that you can append to your labels and it will then expand to a unique
- string.
- 
-\backslash
-@ also works in REPT-blocks.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-Macro with unique local label
-\end_layout
-
-\end_inset
-
-LoopMacro: MACRO
-\end_layout
-
-\begin_layout Plain Layout
-
-           xor a,a
-\end_layout
-
-\begin_layout Plain Layout
-
-.loop
-\backslash
-@    ld  [hl+],a
-\end_layout
-
-\begin_layout Plain Layout
-
-           dec c
-\end_layout
-
-\begin_layout Plain Layout
-
-           jr  nz,.loop
-\backslash
-@
-\end_layout
-
-\begin_layout Plain Layout
-
-           ENDM
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection*
-Arguments
-\begin_inset Index
-status collapsed
-
-\begin_layout Plain Layout
-Macro arguments
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-LoopMacro above would be a lot nicer if you didn't have to preload the registers
- with values and then call it.
- Fortunately it's possible to pass arguments to a macro, the LoopMacro example
- would then be able to load the registers itself.
-\end_layout
-
-\begin_layout Standard
-In macros you can get the arguments by using the special macro string equates
- 
-\backslash
-1 through 
-\backslash
-9, 
-\backslash
-1 being the first argument specified on the call of the macro.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-Macro with two arguments
-\end_layout
-
-\end_inset
-
-LoopMacro: MACRO
-\end_layout
-
-\begin_layout Plain Layout
-
-           ld  hl,
-\backslash
-1
-\end_layout
-
-\begin_layout Plain Layout
-
-           ld  c,
-\backslash
-2
-\end_layout
-
-\begin_layout Plain Layout
-
-           xor a,a
-\end_layout
-
-\begin_layout Plain Layout
-
-.loop
-\backslash
-@    ld  [hl+],a
-\end_layout
-
-\begin_layout Plain Layout
-
-           dec c
-\end_layout
-
-\begin_layout Plain Layout
-
-           jr  nz,.loop
-\backslash
-@
-\end_layout
-
-\begin_layout Plain Layout
-
-           ENDM
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The macro now accepts two arguments.
- The first being an address and the second being a byte count.
- The macro will then set all bytes in this range to zero.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-Invoking Macro with arguments
-\end_layout
-
-\end_inset
-
-           LoopMacro MyVars,54
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-You can specify up to nine arguments when calling a macro.
- Arguments are passed as string equates, there's no need to enclose them
- in quotes.
- As the arguments are considered strings, this means that it's a good idea
- to use brackets around 
-\backslash
-1-
-\backslash
-9 if you perform further calculations on them.
- Consider the following scenario:
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-Macro argument caveat
-\end_layout
-
-\end_inset
-
-PrintValue: MACRO
-\end_layout
-
-\begin_layout Plain Layout
-
-            PRINTV 
-\backslash
-1*2
-\end_layout
-
-\begin_layout Plain Layout
-
-            ENDM
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-            PrintValue 1+2
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Here the assembler will print the value 5 on screen and not 6 as you might
- expect.
- The solution is to enclose 
-\backslash
-1 in brackets:
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-Macro argument caveat fix
-\end_layout
-
-\end_inset
-
-PrintValue: MACRO
-\end_layout
-
-\begin_layout Plain Layout
-
-            PRINTV (
-\backslash
-1)*2
-\end_layout
-
-\begin_layout Plain Layout
-
-            ENDM
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Sometimes it may be necessary to pass a comma into a macro.
- To do this, the macro argument can be enclosed in angle brackets:
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-
-Passing a comma to a macro
-\end_layout
-
-\end_inset
-
-PrintString: MACRO
-\end_layout
-
-\begin_layout Plain Layout
-
-             lea  .string
-\backslash
-@(PC),a0
-\end_layout
-
-\begin_layout Plain Layout
-
-             jsr  _print
-\end_layout
-
-\begin_layout Plain Layout
-
-             bra  .skip
-\backslash
-@
-\end_layout
-
-\begin_layout Plain Layout
-
-.string
-\backslash
-@    dc.b 
-\backslash
-1
-\end_layout
-
-\begin_layout Plain Layout
-
-             EVEN
-\end_layout
-
-\begin_layout Plain Layout
-
-.skip
-\backslash
-@
-\end_layout
-
-\begin_layout Plain Layout
-
-             ENDM
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-             PrintString <"Hello,"," world",0>
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection*
-The special argument 
-\backslash
-0
-\end_layout
-
-\begin_layout Standard
-Particularly useful on MC680x0, it's also possible to use the special argument
- 
-\backslash
-0.
- To pass a value into 
-\backslash
-0 you append a dot (.) followed by the value to the macro name.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "basicstyle={\ttfamily}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-Macro argument 
-\backslash
-0
-\end_layout
-
-\end_inset
-
-push: MACRO
-\end_layout
-
-\begin_layout Plain Layout
-
-      movem.
-\backslash
-0 
-\backslash
-1,-(sp)
-\end_layout
-
-\begin_layout Plain Layout
-
-      ENDM
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-      push.l   d0-a6
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection*
-SHIFT
-\begin_inset Index
-status open
-
-\begin_layout Plain Layout
-SHIFT
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-SHIFT is a command only available in macros and particularly useful in REPT-bloc
-ks.
- It "shifts" the macro arguments one position "to the left" - 
-\backslash
-1 will get 
-\backslash
-2's value, 
-\backslash
-2 will get 
-\backslash
-3's value and so forth.
-\end_layout
-
-\begin_layout Subsection*
-Final notes
-\end_layout
-
-\begin_layout Standard
-A colon (:) following the macro-name is required, macros cannot be exported
- or imported and it's valid to call a macro from a macro (even the same
- one for recursive behaviour).
 \end_layout
 
 \begin_layout Section*
@@ -2163,13 +1435,708 @@ EQUS
 \end_layout
 
 \begin_layout Chapter*
+Code, data and variables
+\end_layout
+
+\begin_layout Standard
+From the assembler's point of view, there is no difference between code
+ and data.
+ Code is entered by using the mnemonics described in the relevant backend
+ chapters.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Code example
+\end_layout
+
+\end_inset
+
+mfhi t0
+\end_layout
+
+\begin_layout Plain Layout
+
+nop
+\end_layout
+
+\begin_layout Plain Layout
+
+nop
+\end_layout
+
+\begin_layout Plain Layout
+
+mult t0,t1
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Data (or instructions) can also be entered using data declaration statements:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+DC.W $4E75
+\end_layout
+
+\begin_layout Plain Layout
+
+DC.B "This is a string",0
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The data declaration statements may be called something different depending
+ on the CPU backend.
+ Please refer to the relevant backend chapter.
+\end_layout
+
+\begin_layout Standard
+Data can also be declared by simply including a binary file directly from
+ the file system:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Binary file inclusion
+\end_layout
+
+\end_inset
+
+        SECTION "Graphics",DATA
+\end_layout
+
+\begin_layout Plain Layout
+
+Ship:   INCBIN "Spaceship.bin"
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Sections
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+Sections
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Code, data and variables are organised in sections.
+ Before any mnemonics or data declarations can be used, a section must be
+ declared.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+A simple code section
+\end_layout
+
+\end_inset
+
+SECTION "A_Code_Section",CODE
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This will switch to the section 
+\begin_inset Quotes eld
+\end_inset
+
+A_Code_Section
+\begin_inset Quotes erd
+\end_inset
+
+ if it is already known (and its type matches), or declare it if it doesn't.
+ DATA
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+DATA
+\end_layout
+
+\end_inset
+
+ may also be used instead of CODE
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+CODE
+\end_layout
+
+\end_inset
+
+, they are synonymous.
+\end_layout
+
+\begin_layout Standard
+Variables are usually placed in a BSS
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+BSS
+\end_layout
+
+\end_inset
+
+ section.
+ BSS section cannot contain initialised data, typically only the DS
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+DS
+\end_layout
+
+\end_inset
+
+ command is used.
+ However, it is also possible to use the DB
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+DB
+\end_layout
+
+\end_inset
+
+, DW
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+DW
+\end_layout
+
+\end_inset
+
+ and DL
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+DL
+\end_layout
+
+\end_inset
+
+ commands without any arguments.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Variable section
+\end_layout
+
+\end_inset
+
+        SECTION "Variables",BSS
+\end_layout
+
+\begin_layout Plain Layout
+
+Foo:    DB            ; Reserve one byte for Foo
+\end_layout
+
+\begin_layout Plain Layout
+
+Bar:	DW            ; Reserve a word for Bar
+\end_layout
+
+\begin_layout Plain Layout
+
+Baz:	DS str_SIZEOF ; Reserve str_SIZEOF bytes for Baz
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If the chosen object output format supports it, you can force a section
+ into a specific address:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Section fixed to address
+\end_layout
+
+\end_inset
+
+        SECTION "LoadSection",CODE[$F000]
+\end_layout
+
+\begin_layout Plain Layout
+
+Code:   xor a
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The different CPU backends may support additional section types and other
+ options.
+ Please refer to the relevant chapters.
+\end_layout
+
+\begin_layout Section*
+The section stack
+\end_layout
+
+\begin_layout Standard
+A section stack is available, which is particularly useful when defining
+ sections in included files (or macros) and it's necessary to preserve the
+ section context for the program that included the file or called the macro.
+ 
+\end_layout
+
+\begin_layout Standard
+POPS
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+POPS
+\end_layout
+
+\end_inset
+
+ and PUSHS
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+PUSHS
+\end_layout
+
+\end_inset
+
+ provide the interface to the section stack.
+ PUSHS will push the current section context on the section stack.
+ POPS can then later be used to restore it.
+ 
+\end_layout
+
+\begin_layout Chapter*
 The macro language
+\begin_inset CommandInset label
+LatexCommand label
+name "cha:The-macro-language"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 The macro language is an interpreted language that offers features which
  make an assembly source more readable.
  It also offers fine control over how the source is assembled.
+\end_layout
+
+\begin_layout Section*
+Integer expressions
+\end_layout
+
+\begin_layout Standard
+Whenever the assembler expects an integer, an integer expression may be
+ used.
+ Integer expressions are always evaluated using signed 32 bit math.
+\end_layout
+
+\begin_layout Standard
+The simplest integer expression is a number.
+\end_layout
+
+\begin_layout Standard
+An expression is said to be constant when it doesn't change its value during
+ linking.
+ This basically means that you can't use labels in those expressions.
+ The instructions in the macro-language all require expressions that are
+ constant
+\end_layout
+
+\begin_layout Subsection*
+Integer literals
+\end_layout
+
+\begin_layout Standard
+The assembler supports several numeric formats:
+\end_layout
+
+\begin_layout Description
+Hexadecimal $0123456789ABCDEF (case-insensitive)
+\end_layout
+
+\begin_layout Description
+Decimal 0123456789
+\end_layout
+
+\begin_layout Description
+Octal &01234567
+\end_layout
+
+\begin_layout Description
+Binary %01
+\end_layout
+
+\begin_layout Description
+Fixedpoint
+\begin_inset space ~
+\end_inset
+
+(16.16) 01234.56789
+\end_layout
+
+\begin_layout Description
+Character "ABYZ"
+\end_layout
+
+\begin_layout Subsection*
+Operators
+\end_layout
+
+\begin_layout Standard
+Several operators can be used to build up integer expressions.
+ In order of precedence they are:
+\end_layout
+
+\begin_layout List
+\labelwidthstring 00.00.0000
+\begin_inset Tabular
+<lyxtabular version="3" rows="11" columns="2">
+<features booktabs="true">
+<column alignment="center" valignment="top" width="0">
+<column alignment="left" valignment="top" width="40page%">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Operator
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Meaning
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+( )
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Precedence override
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+FunctionName(...)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Function call
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+~ + -
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Unary bitwise not, plus, negation
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+* / ~/
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Multiply, divide, modulo
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+<< >>
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Shift left, shift right
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+& ^ |
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Bitwise and, bitwise exclusive or, bitwise or
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
++ -
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Add, subtract
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+~= == <= >= < >
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Comparison operators: not equal, equal, less than or equal, greater than
+ or equal, less than, greater than
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+&& ||
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Boolean and, boolean or
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+~!
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Unary boolean not
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The result of the boolean operators and comparison operators is zero if
+ when 
+\emph on
+false
+\emph default
+ and non-zero when 
+\emph on
+true
+\emph default
+.
+\end_layout
+
+\begin_layout Section*
+String expressions
 \end_layout
 
 \begin_layout Section*
@@ -2189,11 +2156,675 @@ Conditional assembling
 \end_layout
 
 \begin_layout Section*
-Using macros
+Macros
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Macros
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+One of the most useful features of an assembler is the ability to write
+ macros.
+ Macros also provide a method of passing arguments to them and they can
+ then react to the input using conditional assembling constructs.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Macro example
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+MyMacro: MACRO
+\end_layout
+
+\begin_layout Plain Layout
+
+         ld   a,80
+\end_layout
+
+\begin_layout Plain Layout
+
+         call MyFunc
+\end_layout
+
+\begin_layout Plain Layout
+
+         ENDM
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The example above is a very simple macro.
+ You use the macro by using its name where you would normally use an instruction.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Macro expansion
+\end_layout
+
+\end_inset
+
+         add a,b
+\end_layout
+
+\begin_layout Plain Layout
+
+         ld  sp,hl
+\end_layout
+
+\begin_layout Plain Layout
+
+         MyMacro  ;This will be expanded
+\end_layout
+
+\begin_layout Plain Layout
+
+         sub a,87
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When the assembler sees MyMacro it will insert the macro definition, the
+ text enclosed in MACRO/ENDM.
+\end_layout
+
+\begin_layout Subsection*
+Macro loops
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Macro loops
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Often macros will contains loops, such as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Macro with loop
+\end_layout
+
+\end_inset
+
+LoopMacro: MACRO
+\end_layout
+
+\begin_layout Plain Layout
+
+           xor a,a
+\end_layout
+
+\begin_layout Plain Layout
+
+.loop      ld  [hl+],a
+\end_layout
+
+\begin_layout Plain Layout
+
+           dec c
+\end_layout
+
+\begin_layout Plain Layout
+
+           jr  nz,.loop
+\end_layout
+
+\begin_layout Plain Layout
+
+           ENDM
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This will work fine, until you start using the macro more than once per
+ scope.
+ To get around this problem there is a special label string equate called
+ 
+\backslash
+@ that you can append to your labels and it will then expand to a unique
+ string.
+ 
+\backslash
+@ also works in REPT-blocks.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Macro with unique local label
+\end_layout
+
+\end_inset
+
+LoopMacro: MACRO
+\end_layout
+
+\begin_layout Plain Layout
+
+           xor a,a
+\end_layout
+
+\begin_layout Plain Layout
+
+.loop
+\backslash
+@    ld  [hl+],a
+\end_layout
+
+\begin_layout Plain Layout
+
+           dec c
+\end_layout
+
+\begin_layout Plain Layout
+
+           jr  nz,.loop
+\backslash
+@
+\end_layout
+
+\begin_layout Plain Layout
+
+           ENDM
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Arguments
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+Macro arguments
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+LoopMacro above could be improved, it would be better if the user didn't
+ have to preload the registers with values and then call the macro.
+ Fortunately it's possible to pass arguments to a macro, the LoopMacro example
+ would then be able to load the registers itself.
+\end_layout
+
+\begin_layout Standard
+In macros you can get the arguments by using the special macro string equates
+ 
+\backslash
+1 through 
+\backslash
+9, 
+\backslash
+1 being the first argument specified on the call of the macro.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Macro with two arguments
+\end_layout
+
+\end_inset
+
+LoopMacro: MACRO
+\end_layout
+
+\begin_layout Plain Layout
+
+           ld  hl,
+\backslash
+1
+\end_layout
+
+\begin_layout Plain Layout
+
+           ld  c,
+\backslash
+2
+\end_layout
+
+\begin_layout Plain Layout
+
+           xor a,a
+\end_layout
+
+\begin_layout Plain Layout
+
+.loop
+\backslash
+@    ld  [hl+],a
+\end_layout
+
+\begin_layout Plain Layout
+
+           dec c
+\end_layout
+
+\begin_layout Plain Layout
+
+           jr  nz,.loop
+\backslash
+@
+\end_layout
+
+\begin_layout Plain Layout
+
+           ENDM
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The macro now accepts two arguments.
+ The first being an address and the second being a byte count.
+ The macro will then set all bytes in this range to zero.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Invoking Macro with arguments
+\end_layout
+
+\end_inset
+
+           LoopMacro MyVars,54
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+You can specify up to nine arguments when calling a macro.
+ Arguments are passed as string equates, there's no need to enclose them
+ in quotes.
+ As the arguments are considered strings, this means that it's a good idea
+ to use brackets around 
+\backslash
+1-
+\backslash
+9 if you perform further calculations on them.
+ Consider the following scenario:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Macro argument caveat
+\end_layout
+
+\end_inset
+
+PrintValue: MACRO
+\end_layout
+
+\begin_layout Plain Layout
+
+            PRINTV 
+\backslash
+1*2
+\end_layout
+
+\begin_layout Plain Layout
+
+            ENDM
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+            PrintValue 1+2
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Here the assembler will print the value 5 on screen and not 6 as you might
+ expect.
+ The solution is to enclose 
+\backslash
+1 in brackets:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Macro argument caveat fix
+\end_layout
+
+\end_inset
+
+PrintValue: MACRO
+\end_layout
+
+\begin_layout Plain Layout
+
+            PRINTV (
+\backslash
+1)*2
+\end_layout
+
+\begin_layout Plain Layout
+
+            ENDM
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Sometimes it may be necessary to pass a comma into a macro.
+ To do this, the macro argument can be enclosed in angle brackets:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Passing a comma to a macro
+\end_layout
+
+\end_inset
+
+PrintString: MACRO
+\end_layout
+
+\begin_layout Plain Layout
+
+             lea  .string
+\backslash
+@(PC),a0
+\end_layout
+
+\begin_layout Plain Layout
+
+             jsr  _print
+\end_layout
+
+\begin_layout Plain Layout
+
+             bra  .skip
+\backslash
+@
+\end_layout
+
+\begin_layout Plain Layout
+
+.string
+\backslash
+@    dc.b 
+\backslash
+1
+\end_layout
+
+\begin_layout Plain Layout
+
+             EVEN
+\end_layout
+
+\begin_layout Plain Layout
+
+.skip
+\backslash
+@
+\end_layout
+
+\begin_layout Plain Layout
+
+             ENDM
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+             PrintString <"Hello,"," world",0>
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+The special argument 
+\backslash
+0
+\end_layout
+
+\begin_layout Standard
+Particularly useful on MC680x0, it's also possible to use the special argument
+ 
+\backslash
+0.
+ To pass a value into 
+\backslash
+0 you append a dot (.) followed by the value to the macro name.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Macro argument 
+\backslash
+0
+\end_layout
+
+\end_inset
+
+push: MACRO
+\end_layout
+
+\begin_layout Plain Layout
+
+      movem.
+\backslash
+0 
+\backslash
+1,-(sp)
+\end_layout
+
+\begin_layout Plain Layout
+
+      ENDM
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+      push.l   d0-a6
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+SHIFT
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+SHIFT
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+SHIFT is a command only available in macros and particularly useful in REPT-bloc
+ks.
+ It "shifts" the macro arguments one position "to the left" - 
+\backslash
+1 will get 
+\backslash
+2's value, 
+\backslash
+2 will get 
+\backslash
+3's value and so forth.
+\end_layout
+
+\begin_layout Subsection*
+Final notes
+\end_layout
+
+\begin_layout Standard
+A colon (:) following the macro-name is required, macros cannot be exported
+ or imported and it's valid to call a macro from a macro (even the same
+ one for recursive behaviour).
 \end_layout
 
 \begin_layout Chapter*
 Gameboy backend
+\end_layout
+
+\begin_layout Section*
+Numeric formats
 \end_layout
 
 \begin_layout Standard
@@ -2212,6 +2843,68 @@ graphics `00112233
 The values are actually pixel values.
  The values are converted from chunky data format to the planar format as
  used in the Gameboy.
+\end_layout
+
+\begin_layout Section*
+Sections
+\end_layout
+
+\begin_layout Standard
+The Gameboy supports several banks of code and data, in addition to fixing
+ a section to a specific address, it's also possible to force it into a
+ specific bank:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Section fixed to address and bank
+\end_layout
+
+\end_inset
+
+SECTION "FixedSection",DATA[$1100],BANK[3]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It's also possible to only specify the bank:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Section fixed to bank
+\end_layout
+
+\end_inset
+
+SECTION "FixedSection",CODE,BANK[3]
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
