@@ -955,6 +955,13 @@ Like labels constants can also be exported, if the chosen object format
 
 \begin_layout Section*
 String symbols
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:String-symbols"
+
+\end_inset
+
+
 \begin_inset Index
 status collapsed
 
@@ -1456,7 +1463,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Code example
 \end_layout
 
@@ -1532,7 +1538,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Binary file inclusion
 \end_layout
 
@@ -1582,7 +1587,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 A simple code section
 \end_layout
 
@@ -1696,7 +1700,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Variable section
 \end_layout
 
@@ -1740,7 +1743,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Section fixed to address
 \end_layout
 
@@ -2136,7 +2138,984 @@ true
 \end_layout
 
 \begin_layout Section*
+Fixed point math
+\end_layout
+
+\begin_layout Standard
+The assembler supports fixed point constants, which are normal 32 bit constants
+ where the upper 16 bits are used for the integer part and the lower 16
+ bits are used for the fraction (65536ths).
+\end_layout
+
+\begin_layout Standard
+Fixed point values can be used in normal integer expressions, some integer
+ operators like plus and minus work the same whether the operands are integer
+ or fixed point.
+ A fixed point number can be converted to an integer by shifting it right
+ 16 bits, as this will discard the fractional part and leave the integer
+ part at the right bit position.
+ It follows that you can convert an integer to a fixed point number by shifting
+ it left 16 positions.
+\end_layout
+
+\begin_layout Standard
+Other fixed point operations require more precision than 32 bit math provides,
+ the following fixed point functions are therefore available:
+\end_layout
+
+\begin_layout List
+\labelwidthstring 00.00.0000
+\begin_inset Tabular
+<lyxtabular version="3" rows="10" columns="2">
+<features booktabs="true">
+<column alignment="center" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Operation
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+DIV(
+\emph on
+x
+\emph default
+,
+\emph on
+y
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $x/y$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+MUL(
+\emph on
+x
+\emph default
+,
+\emph on
+y
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $x*y$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+SIN(
+\emph on
+x
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $sin(x)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+COS(
+\emph on
+x
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $cos(x)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+TAN(
+\emph on
+x
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $tan(x)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ASIN(
+\emph on
+x
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $sin{}^{\text{-1}}(x)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ACOS(
+\emph on
+x
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $cos{}^{\text{-1}}(x)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ATAN(
+\emph on
+x
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $tan^{\text{-1}}(x)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ATAN2(
+\emph on
+x
+\emph default
+,
+\emph on
+y
+\emph default
+)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Angle of the vector 
+\begin_inset Formula $\left[\begin{array}{c}
+x\\
+y\end{array}\right]$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A circle has 65536.0 degrees, sine values are in the range 
+\begin_inset Formula $\left[-1.0;1.0\right]$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+These functions are particularly useful for generating various tables:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "Sine-table-example"
+
+\end_inset
+
+Generate a 256 byte sine table with values between 0 and 128
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+ANGLE   SET     0.0
+\end_layout
+
+\begin_layout Plain Layout
+
+        REPT    256
+\end_layout
+
+\begin_layout Plain Layout
+
+        DB      (MUL(64.0,SIN(ANGLE))+64.0)>>16
+\end_layout
+
+\begin_layout Plain Layout
+
+ANGLE   SET     ANGLE+256.0
+\end_layout
+
+\begin_layout Plain Layout
+
+        ENDR
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
 String expressions
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+String expressions
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Whenever the assembler excepts a string literal, a string expression may
+ be used instead.
+ The simplest string expression is a string literal - a string contained
+ in double quotes.
+ A string literal can also contain special characters, such as newlines
+ and tabs by using escape sequences initiated by a backslash:
+\end_layout
+
+\begin_layout List
+\labelwidthstring 00.00.0000
+\begin_inset Tabular
+<lyxtabular version="3" rows="9" columns="2">
+<features booktabs="true">
+<column alignment="center" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Sequence
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Meaning
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+
+\backslash
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+{
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+{
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+}
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+}
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+n
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Newline ($0A)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+t
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Tab ($09)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+0 ..
+ 
+\backslash
+9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Value of macro argument
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\backslash
+@
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Unique label suffix
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The macro arguments are only valid within a macro, the 
+\backslash
+@ sequence is valid in macros and REPT blocks.
+\end_layout
+
+\begin_layout Standard
+Within a string literal it's possible to embed the value of a symbol.
+ This is done by encloding the symbol name in curly brackets:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Symbol embedded in string literal
+\end_layout
+
+\end_inset
+
+StringSymbol EQUS "A String"
+\end_layout
+
+\begin_layout Plain Layout
+
+             DB   "Store the value {StringSymbol}",0
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As a shorthand, a symbol can simply be surrounded by curly brackets outside
+ a string literal, to convert its value to a string expression:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Converting a symbol to string expression
+\end_layout
+
+\end_inset
+
+StringSymbol EQUS "Another string"
+\end_layout
+
+\begin_layout Plain Layout
+
+             DB   {StringSymbol} ; The value of StringSymbol will be stored
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+String functions
+\end_layout
+
+\begin_layout Standard
+Several functions that work on string expressions are available.
+ Some of these return strings and some return integers.
+ Functions that return integer can be used as part of integer expressions,
+ when a string is returned the function can be used in a string expression.
+\end_layout
+
+\begin_layout List
+\labelwidthstring 00.00.0000
+\begin_inset Tabular
+<lyxtabular version="3" rows="8" columns="3">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Type
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Result
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+STRLEN(s)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The number of characters in 
+\emph on
+s
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+STRCMP(s1,s2)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Negative if 
+\emph on
+s1
+\emph default
+ is alphabetically < 
+\emph on
+s2
+\emph default
+, 0 if equal, positive if >
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+STRIN(haystack,needle)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The position of 
+\emph on
+needle
+\emph default
+ within 
+\emph on
+haystack
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+STRCAT(s1,s2)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+STRSUB(s,pos,count)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+STRUPR(s)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+STRLWR(s)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section*
@@ -2144,15 +3123,650 @@ Outputting messages
 \end_layout
 
 \begin_layout Standard
-PRINTT/FAIL/WARN
+While assembling it is possible to cause the assembler to print out various
+ user defined messages.
+\end_layout
+
+\begin_layout Standard
+Simple diagnostic messages are possible with PRINTT
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+PRINTT
+\end_layout
+
+\end_inset
+
+, PRINTF
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+PRINTF
+\end_layout
+
+\end_inset
+
+ and PRINTV
+\begin_inset Index
+status collapsed
+
+\begin_layout Plain Layout
+PRINTV
+\end_layout
+
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+PRINTT "A simple message
+\backslash
+n" ; Remember 
+\backslash
+n for newline
+\end_layout
+
+\begin_layout Plain Layout
+
+PRINTV (2+3)/5              ; Prints an integer
+\end_layout
+
+\begin_layout Plain Layout
+
+PRINTF MUL(3.14,2)          ; Prints a fixed point value
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In macros it can be helpful to warn the user of a wrong argument or completely
+ abort the assembly process.
+ This is possible with the FAIL
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+FAIL
+\end_layout
+
+\end_inset
+
+ and WARN
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+WARN
+\end_layout
+
+\end_inset
+
+ commands.
+ FAIL and WARN take a string as the only argument and will print it out
+ as a regular warning or error with a line number.
+\end_layout
+
+\begin_layout Standard
+FAIL stops assembling immediately while WARN continues after printing the
+ errormessage.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+FAIL and WARN example
+\end_layout
+
+\end_inset
+
+IF (
+\backslash
+1)<42
+\end_layout
+
+\begin_layout Plain Layout
+
+WARN "Argument should be >= 42"
+\end_layout
+
+\begin_layout Plain Layout
+
+ENDC
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+IF (
+\backslash
+1)>100
+\end_layout
+
+\begin_layout Plain Layout
+
+FAIL "Argument MUST be <= 100"
+\end_layout
+
+\begin_layout Plain Layout
+
+ENDC
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Including files
+\end_layout
+
+\begin_layout Standard
+The INCLUDE
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+INCLUDE
+\end_layout
+
+\end_inset
+
+ command is used to process another assembly file and then return to the
+ current file when done.
+ If the file is not found in the current directory, the include path list
+ will be searched.
+ INCLUDE files may be nested.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+INCLUDE example
+\end_layout
+
+\end_inset
+
+INCLUDE "irq.inc"
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section*
 Repeating blocks
 \end_layout
 
+\begin_layout Standard
+To repeat a block it can be placed inside a REPT
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+REPT
+\end_layout
+
+\end_inset
+
+/ENDR
+\begin_inset Index
+status open
+
+\begin_layout Plain Layout
+ENDR
+\end_layout
+
+\end_inset
+
+ structure.
+ The REPT construct repeats the block a specified number of times.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Basic REPT example
+\end_layout
+
+\end_inset
+
+REPT 4
+\end_layout
+
+\begin_layout Plain Layout
+
+add  a,c
+\end_layout
+
+\begin_layout Plain Layout
+
+ENDR
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+REPT can also be used to repeat macro language constructs such as IF/ENDC
+ and used to construct various tables (example 
+\begin_inset CommandInset ref
+LatexCommand vpageref
+reference "Sine-table-example"
+
+\end_inset
+
+.)
+\end_layout
+
 \begin_layout Section*
 Conditional assembling
+\end_layout
+
+\begin_layout Standard
+The IF/ELSE/ENDC commands are used to conditionally include or exclude parts
+ of an assembly file.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\ttfamily}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+IF     2+2==4
+\end_layout
+
+\begin_layout Plain Layout
+
+PRINTT "2+2==4
+\backslash
+n"
+\end_layout
+
+\begin_layout Plain Layout
+
+ELSE
+\end_layout
+
+\begin_layout Plain Layout
+
+PRINTT "2+2!=4
+\backslash
+n"
+\end_layout
+
+\begin_layout Plain Layout
+
+ENDC
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The ELSE block is optional.
+\end_layout
+
+\begin_layout Standard
+While the integer operators can be used to test for many conditions, the
+ assembler also supports the traditional IF commands:
+\end_layout
+
+\begin_layout List
+\labelwidthstring 00.00.0000
+\begin_inset Tabular
+<lyxtabular version="3" rows="11" columns="2">
+<features booktabs="true">
+<column alignment="center" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Command
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+True when
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFC 
+\emph on
+s1
+\emph default
+,
+\emph on
+s2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The string 
+\emph on
+s1
+\emph default
+ equals the string 
+\emph on
+s2
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFNC 
+\emph on
+s1
+\emph default
+,
+\emph on
+s2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The string 
+\emph on
+s1
+\emph default
+ is different from the string 
+\emph on
+s2
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFD 
+\emph on
+symbol
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The symbol 
+\emph on
+symbol
+\emph default
+ is defined
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFND 
+\emph on
+symbol
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The symbol 
+\emph on
+symbol
+\emph default
+ is not defined
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFEQ 
+\emph on
+n
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+n
+\emph default
+ equals zero
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFNE 
+\emph on
+n
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+n
+\emph default
+ is not equal to zero
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFGE 
+\emph on
+n
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+n
+\emph default
+ is greater than or equal to zero
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFGT 
+\emph on
+n
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+n
+\emph default
+ is greater than zero
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFLE 
+\emph on
+n
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+n
+\emph default
+ is less than or equal to zero
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+IFLT 
+\emph on
+n
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+n
+\emph default
+ is less than zero
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section*
