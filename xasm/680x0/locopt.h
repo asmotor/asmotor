@@ -19,9 +19,9 @@
 #ifndef M68K_LOCOPT_H_
 #define M68K_LOCOPT_H_
 
-typedef struct
+typedef struct MachineOptions
 {
 	int	nCpu;
-} sMachineOptions;
+} SMachineOptions;
 
 #endif

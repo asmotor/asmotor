@@ -19,7 +19,7 @@
 #ifndef	LIBWRAP_H
 #define	LIBWRAP_H
 
-#include "../types.h"
+#include "types.h"
 
 #define	MAXNAMELENGTH	256
 

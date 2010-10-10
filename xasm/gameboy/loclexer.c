@@ -16,9 +16,14 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include <string.h>
+#include "xasm.h"
+#include "lexer.h"
+#include "localasm.h"
+#include "options.h"
+#include "locopt.h"
 
-static	SLexInitString	localstrings[]=
+static SLexInitString localstrings[]=
 {
 	"adc",	T_Z80_ADC,
 	"add",	T_Z80_ADD,
@@ -100,7 +105,64 @@ static	SLexInitString	localstrings[]=
     NULL, 0
 };
 
+static SLONG gbgfx2bin(char ch)
+{
+	SLONG i;
+
+	for(i = 0; i <= 3; ++i)
+	{
+		if(g_pOptions->pMachine->GameboyChar[i] == ch)
+			return i;
+	}
+
+	return 0;
+}
+
+
+static SLONG ascii2bin(char* s)
+{
+	SLONG result = 0;
+
+	++s;
+	while(*s != '\0')
+	{
+		SLONG c = gbgfx2bin(*s++);
+		result = result * 2 + ((c & 1) << 8) + ((c & 2) >> 1);
+	}
+
+	return result;
+}
+
+
+static BOOL ParseGameboyNumber(char* s, ULONG size)
+{
+    char dest[256];
+
+	if(size >= 256)
+		size = 255;
+
+    strncpy(dest, s, size);
+    dest[size] = 0;
+    g_CurrentToken.Value.nInteger = ascii2bin(dest);
+
+    return TRUE;
+}
+
+
+static SLexFloat	tNumberToken=
+{
+	ParseGameboyNumber,
+	T_NUMBER
+};
+
+
 void	loclexer_Init(void)
 {
+	/* Gameboy constants */
+
+    GameboyConstID = lex_FloatAlloc(&tNumberToken);
+    lex_FloatAddRange(GameboyConstID, '`', '`', 1);
+    lex_FloatAddRangeAndBeyond(GameboyConstID, '0', '3', 2);
+
 	lex_AddStrings(localstrings);
 }

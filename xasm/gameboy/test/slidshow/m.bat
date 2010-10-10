@@ -1,6 +1,6 @@
-set MYASM=..\..\..\..\Win32Release\motorgb.exe -i..\minios\include\
-set MYLINK=..\..\..\..\Win32Release\motorlink.exe
-set MYFIX=..\..\..\..\Win32Release\motorgbfix.exe
+set MYASM=..\..\..\..\build\Win32\Release\motorgb.exe -i..\minios\include\
+set MYLINK=..\..\..\..\build\Win32\Release\motorlink.exe
+set MYFIX=..\..\..\..\build\Win32\Release\motorgbfix.exe
 
 %MYASM% -omain.obj main.asm
 %MYASM% -ouser.obj user.asm

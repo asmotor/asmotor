@@ -17,6 +17,7 @@
 */
 
 #include "xlink.h"
+#include "asmotor.h"
 #include <stdarg.h>
 
 void Error(char* fmt, ...)

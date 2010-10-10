@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\xasm\common\amigaobj.c" />
+    <ClCompile Include="..\..\xasm\common\binobj.c" />
+    <ClCompile Include="..\..\xasm\common\fstack.c" />
+    <ClCompile Include="..\..\xasm\common\globlex.c" />
+    <ClCompile Include="..\..\xasm\common\lexer.c" />
+    <ClCompile Include="..\..\xasm\common\main.c" />
+    <ClCompile Include="..\..\xasm\common\object.c" />
+    <ClCompile Include="..\..\xasm\common\options.c" />
+    <ClCompile Include="..\..\xasm\common\parse.c" />
+    <ClCompile Include="..\..\xasm\common\patch.c" />
+    <ClCompile Include="..\..\xasm\common\project.c" />
+    <ClCompile Include="..\..\xasm\common\section.c" />
+    <ClCompile Include="..\..\xasm\common\symbol.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\xasm\common\amigaobj.h" />
+    <ClInclude Include="..\..\xasm\common\binobj.h" />
+    <ClInclude Include="..\..\xasm\common\expr.h" />
+    <ClInclude Include="..\..\xasm\common\fstack.h" />
+    <ClInclude Include="..\..\xasm\common\globlex.h" />
+    <ClInclude Include="..\..\xasm\common\lexer.h" />
+    <ClInclude Include="..\..\xasm\common\lists.h" />
+    <ClInclude Include="..\..\xasm\common\object.h" />
+    <ClInclude Include="..\..\xasm\common\options.h" />
+    <ClInclude Include="..\..\xasm\common\parse.h" />
+    <ClInclude Include="..\..\xasm\common\patch.h" />
+    <ClInclude Include="..\..\xasm\common\project.h" />
+    <ClInclude Include="..\..\xasm\common\section.h" />
+    <ClInclude Include="..\..\xasm\common\symbol.h" />
+    <ClInclude Include="..\..\xasm\common\tokens.h" />
+    <ClInclude Include="..\..\xasm\common\xasm.h" />
+  </ItemGroup>
+</Project>

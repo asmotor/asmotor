@@ -1,3 +1,4 @@
+#ifdef __VBCC__
 #include <devices/timer.h>
 #include <proto/timer.h>
 #include <proto/exec.h>
@@ -34,3 +35,4 @@ ULONG time_GetMicroSeconds(void)
 	GetSysTime(&tv);
 	return tv.tv_secs * 1000000 + tv.tv_micro;
 }
+#endif

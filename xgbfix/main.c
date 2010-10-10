@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../asmotor.h"
+#include "asmotor.h"
 
 #define XGBFIX_VERSION "1.0.0"
 

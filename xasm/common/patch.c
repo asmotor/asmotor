@@ -16,10 +16,18 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
 #include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <memory.h>
+#include <string.h>
 
-
+#include "xasm.h"
+#include "patch.h"
+#include "tokens.h"
+#include "parse.h"
+#include "project.h"
+#include "fstack.h"
 
 
 //	Private defines
@@ -738,7 +746,7 @@ void	patch_Create(SSection* sect, ULONG offset, SExpression* expr, EPatchType ty
 {
 	SPatch* patch;
 
-	if((patch=malloc(sizeof(SPatch)))!=NULL)
+	if((patch = malloc(sizeof(SPatch))) != NULL)
 	{
 		memset(patch, 0, sizeof(SPatch));
 		if(sect->pPatches)
@@ -754,7 +762,7 @@ void	patch_Create(SSection* sect, ULONG offset, SExpression* expr, EPatchType ty
 		patch->Offset = offset;
 		patch->Type = type;
 		patch->pExpression = expr;
-		patch->pszFile = strdup(g_pFileContext->pName);
+		patch->pszFile = _strdup(g_pFileContext->pName);
 		patch->nLine = g_pFileContext->LineNumber;
 	}
 	else

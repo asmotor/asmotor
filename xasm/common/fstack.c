@@ -16,9 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "xasm.h"
-
-
+#include "fstack.h"
+#include "project.h"
+#include "lexer.h"
+#include "tokens.h"
+#include "symbol.h"
 
 
 //	Internal structures
@@ -53,7 +60,7 @@ static char* fstk_CreateNewRunID(void)
 	static ULONG runid = 0;
 
 	sprintf(s, "_%lu", runid++);
-	if((r=strdup(s)) != NULL)
+	if((r = _strdup(s)) != NULL)
 		return r;
 
 	internalerror("Out of memory");
@@ -107,7 +114,7 @@ void fstk_AddMacroArg(char* s)
 {
 	if((g_ppszNewMacroArgs = (char**)realloc(g_ppszNewMacroArgs, sizeof(char*) * (g_nTotalNewMacroArgs+1))) != NULL)
 	{
-		if((g_ppszNewMacroArgs[g_nTotalNewMacroArgs++] = strdup(s)) != NULL)
+		if((g_ppszNewMacroArgs[g_nTotalNewMacroArgs++] = _strdup(s)) != NULL)
 		{
 			return;
 		}
@@ -118,7 +125,7 @@ void fstk_AddMacroArg(char* s)
 
 void fstk_SetMacroArg0(char* s)
 {
-	if((g_pszNewMacroArg0 = strdup(s)) != NULL)
+	if((g_pszNewMacroArg0 = _strdup(s)) != NULL)
 		return;
 
 	internalerror("Out of memory");
@@ -187,7 +194,7 @@ void fstk_FindFile(char** s)
 
 	if(fstk_FileExists(*s))
 	{
-		*s = strdup(*s);
+		*s = _strdup(*s);
 		return;
 	}
 
@@ -211,7 +218,7 @@ void fstk_FindFile(char** s)
 			FILE* f;
 			strcpy(fname, g_aIncludePaths[count]);
 			strcat(fname, *s);
-			if((f = fopen(fname,"rt")) != NULL)
+			if((f = fopen(fname, "rt")) != NULL)
 			{
 				fclose(f);
 				free(*s);
@@ -365,7 +372,7 @@ void	fstk_RunInclude(char* s)
 		memset(newcontext, 0, sizeof(SFileStack));
 		newcontext->Type=CONTEXT_FILE;
 
-		if((newcontext->pName = strdup(s)) != NULL)
+		if((newcontext->pName = _strdup(s)) != NULL)
 		{
 			FILE* f;
 
@@ -403,7 +410,7 @@ void fstk_RunRept(char* buffer, ULONG size, ULONG count)
 		memset(newcontext, 0, sizeof(SFileStack));
 		newcontext->Type = CONTEXT_REPT;
 
-		if((newcontext->pName = strdup("REPT")) != NULL)
+		if((newcontext->pName = _strdup("REPT")) != NULL)
 		{
 			if((newcontext->pLexBuffer = lex_CreateMemoryBuffer(buffer,size)) != NULL)
 			{
@@ -435,7 +442,7 @@ void	fstk_RunMacro(char* symname)
 			memset(newcontext, 0, sizeof(SFileStack));
 			newcontext->Type = CONTEXT_MACRO;
 
-			if((newcontext->pName = strdup(symname)) != NULL)
+			if((newcontext->pName = _strdup(symname)) != NULL)
 			{
 				if((newcontext->pLexBuffer = lex_CreateMemoryBuffer(sym->Value.Macro.pData, sym->Value.Macro.Size)) != NULL)
 				{
@@ -477,7 +484,7 @@ BOOL fstk_Init(char* s)
 		memset(g_pFileContext, 0, sizeof(SFileStack));
 		g_pFileContext->Type = CONTEXT_FILE;
 
-		if((g_pFileContext->pName = strdup(s)) != NULL)
+		if((g_pFileContext->pName = _strdup(s)) != NULL)
 		{
 			FILE* f;
 

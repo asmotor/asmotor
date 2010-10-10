@@ -16,47 +16,74 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "xasm.h"
+#include "options.h"
+#include "lexer.h"
+#include "globlex.h"
+#include "project.h"
+#include "fstack.h"
 
 extern void locopt_Update(void);
 extern BOOL locopt_Parse(char*);
 extern void locopt_Open(void);
 
-sOptions* pOptions;
+SOptions* g_pOptions;
 
-static	void	opt_Update(void)
+static void opt_Update(void)
 {
 	lex_FloatRemoveAll(BinaryConstID);
 
 	lex_FloatAddRange(BinaryConstID, '%', '%', 1);
-    lex_FloatAddRangeAndBeyond(BinaryConstID, pOptions->BinaryChar[0], pOptions->BinaryChar[0], 2);
-    lex_FloatAddRangeAndBeyond(BinaryConstID, pOptions->BinaryChar[1], pOptions->BinaryChar[1], 2);
+    lex_FloatAddRangeAndBeyond(BinaryConstID, g_pOptions->BinaryChar[0], g_pOptions->BinaryChar[0], 2);
+    lex_FloatAddRangeAndBeyond(BinaryConstID, g_pOptions->BinaryChar[1], g_pOptions->BinaryChar[1], 2);
 
 	locopt_Update();
 }
 
-void	opt_Push(void)
+static SOptions* opt_Alloc(void)
 {
-	sOptions* nopt;
+	SOptions* nopt;
 
-	if((nopt = (sOptions*)malloc(sizeof(sOptions))) != NULL)
+	if((nopt = (SOptions*)malloc(sizeof(SOptions))) != NULL)
 	{
-		*nopt = *pOptions;
-		list_Insert(pOptions, nopt);
+		memset(nopt, 0, sizeof(SOptions));
+		nopt->pMachine = locopt_Alloc();
+		return nopt;
 	}
-	else
-	{
-		internalerror("Out of memory");
-	}
+
+	internalerror("Out of memory");
+	return NULL;
+}
+
+static void opt_Copy(SOptions* pDest, SOptions* pSrc)
+{
+	struct MachineOptions* p = pDest->pMachine;
+
+	*pDest = *pSrc;
+	pDest->pMachine = p;
+
+	locopt_Copy(pDest->pMachine, pSrc->pMachine);
+}
+
+void opt_Push(void)
+{
+	SOptions* nopt = opt_Alloc();
+	opt_Copy(nopt, g_pOptions);
+
+	list_Insert(g_pOptions, nopt);
 }
 
 void	opt_Pop(void)
 {
-	if(!list_isLast(pOptions))
+	if(!list_isLast(g_pOptions))
 	{
-		sOptions* nopt = pOptions;
+		SOptions* nopt = g_pOptions;
 
-		list_Remove(pOptions, pOptions);
+		list_Remove(g_pOptions, g_pOptions);
 		free(nopt);
 		opt_Update();
 	}
@@ -73,10 +100,10 @@ void	opt_Parse(char* s)
 		case 'w':
 		{
 			int w;
-			if(pOptions->nTotalDisabledWarnings < MAXDISABLEDWARNINGS
+			if(g_pOptions->nTotalDisabledWarnings < MAXDISABLEDWARNINGS
 			&& 1 == sscanf(&s[1], "%d", &w))
 			{
-				pOptions->aDisabledWarnings[pOptions->nTotalDisabledWarnings++] = (UWORD)w;
+				g_pOptions->aDisabledWarnings[g_pOptions->nTotalDisabledWarnings++] = (UWORD)w;
 			}
 			else
 				prj_Warn(WARN_OPTION, s);
@@ -92,10 +119,10 @@ void	opt_Parse(char* s)
 			switch(s[1])
 			{
 				case 'b':
-					pOptions->Endian = ASM_BIG_ENDIAN;
+					g_pOptions->Endian = ASM_BIG_ENDIAN;
 					break;
 				case 'l':
-					pOptions->Endian = ASM_LITTLE_ENDIAN;
+					g_pOptions->Endian = ASM_LITTLE_ENDIAN;
 					break;
 				default:
 					prj_Warn(WARN_OPTION, s);
@@ -112,8 +139,8 @@ void	opt_Parse(char* s)
 		{
 			if(strlen(&s[1]) == 2)
 			{
-				pOptions->BinaryChar[0] = s[1];
-				pOptions->BinaryChar[1] = s[2];
+				g_pOptions->BinaryChar[0] = s[1];
+				g_pOptions->BinaryChar[1] = s[2];
 			}
 			else
 			{
@@ -127,11 +154,11 @@ void	opt_Parse(char* s)
 			{
 				if(strcmp(&s[1], "?") == 0)
 				{
-					pOptions->UninitChar = -1;
+					g_pOptions->UninitChar = -1;
 				}
 				else
 				{
-					int	result = sscanf(&s[1], "%x", &pOptions->UninitChar);
+					int	result = sscanf(&s[1], "%x", &g_pOptions->UninitChar);
 					if(result == EOF || result != 1)
 					{
 						prj_Warn(WARN_OPTION, s);
@@ -153,32 +180,26 @@ void	opt_Parse(char* s)
 	opt_Update();
 }
 
-void	opt_Open(void)
+void opt_Open(void)
 {
-	if((pOptions = (sOptions*)malloc(sizeof(sOptions))) != NULL)
-	{
-		memset(pOptions, 0, sizeof(sOptions));
-		pOptions->Flags = 0;
-		pOptions->Endian = ASM_DEFAULT_ENDIAN;
-		pOptions->BinaryChar[0] = '0';
-		pOptions->BinaryChar[1] = '1';
-		pOptions->UninitChar = -1;
-		pOptions->nTotalDisabledWarnings = 0;
-		locopt_Open();
-		opt_Update();
-	}
-	else
-	{
-		internalerror("Out of memory");
-	}
+	g_pOptions = opt_Alloc();
+
+	g_pOptions->Flags = 0;
+	g_pOptions->Endian = g_pConfiguration->eDefaultEndianness;
+	g_pOptions->BinaryChar[0] = '0';
+	g_pOptions->BinaryChar[1] = '1';
+	g_pOptions->UninitChar = -1;
+	g_pOptions->nTotalDisabledWarnings = 0;
+	locopt_Open();
+	opt_Update();
 }
 
-void	opt_Close(void)
+void opt_Close(void)
 {
-	while(pOptions != NULL)
+	while(g_pOptions != NULL)
 	{
-		sOptions* t = pOptions;
-		list_Remove(pOptions, pOptions);
+		SOptions* t = g_pOptions;
+		list_Remove(g_pOptions, g_pOptions);
 		free(t);
 	}
 }

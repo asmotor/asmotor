@@ -16,13 +16,29 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "xasm.h"
+#include "localasm.h"
+#include "options.h"
+#include "project.h"
+#include "locopt.h"
 #include "loccpu.h"
+
+SMachineOptions* locopt_Alloc(void)
+{
+	return malloc(sizeof(SMachineOptions));
+}
+
+void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
+{
+	*pDest = *pSrc;
+}
 
 void locopt_Open(void)
 {
-	pOptions->Machine.nCpu = CPUF_MIPS32R2;
+	g_pOptions->pMachine->nCpu = CPUF_MIPS32R2;
 }
 
 void locopt_Update(void)
@@ -42,10 +58,10 @@ BOOL locopt_Parse(char* s)
 				switch(s[1] - '0')
 				{
 					case 0:
-						pOptions->Machine.nCpu = CPUF_MIPS32R1;
+						g_pOptions->pMachine->nCpu = CPUF_MIPS32R1;
 						return TRUE;
 					case 1:
-						pOptions->Machine.nCpu = CPUF_MIPS32R2;
+						g_pOptions->pMachine->nCpu = CPUF_MIPS32R2;
 						return TRUE;
 					default:
 						prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);

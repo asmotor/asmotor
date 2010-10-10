@@ -16,9 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stdlib.h>
+#include <string.h>
+#include <memory.h>
+#include <ctype.h>
 
-
+#include "lists.h"
+#include "lexer.h"
+#include "fstack.h"
+#include "symbol.h"
+#include "project.h"
 
 
 /*	Internal defines*/
@@ -172,7 +179,7 @@ static ULONG lex_CalcHash(char* s)
 
 static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, BOOL bAllowUndefinedSymbols)
 {
-	while(*src && (strchr(stopchar, *src) == NULL))
+	while(*src && strchr(stopchar, *src) == NULL)
 	{
 		char ch;
 
@@ -640,51 +647,53 @@ void lex_PrintMaxTokensPerHash(void)
 	printf("Total strings %d, max %d strings with same hash, %d slots in use\n", nTotal, nMax, nInUse);
 }
 
+void lex_AddString(char* pszName, int nToken)
+{
+	SLexString** pHash = &g_aLexHash[lex_CalcHash(pszName)];
+	SLexString* pPrev = *pHash;
+	SLexString* pNew;
+
+	/*printf("%s has hashvalue %d\n", lex->tzName, hash);*/
+
+	if((pNew = (SLexString*)malloc(sizeof(SLexString))) != NULL)
+	{
+		memset(pNew, 0, sizeof(SLexString));
+		if((pNew->pszName = (char*)_strdup(pszName)) != NULL)
+		{
+			pNew->NameLength = (SLONG)strlen(pszName);
+			pNew->Token = nToken;
+
+			_strupr(pNew->pszName);
+
+			if(pNew->NameLength > g_nLexTokenMaxLength)
+				g_nLexTokenMaxLength = pNew->NameLength;
+
+			if(pPrev)
+			{
+				list_InsertAfter(pPrev, pNew);
+			}
+			else
+			{
+				*pHash = pNew;
+			}
+
+		}
+		else
+		{
+			internalerror("Out of memory");
+		}
+	}
+	else
+	{
+		internalerror("Out of memory");
+	}
+}
+
 void lex_AddStrings(SLexInitString* lex)
 {
     while(lex->pszName)
     {
-		SLexString** pHash = &g_aLexHash[lex_CalcHash(lex->pszName)];
-		SLexString* pPrev = *pHash;
-		SLexString* pNew;
-
-		/*printf("%s has hashvalue %d\n", lex->tzName, hash);*/
-
-		if((pNew = (SLexString*)malloc(sizeof(SLexString))) != NULL)
-		{
-			memset(pNew, 0, sizeof(SLexString));
-		    if((pNew->pszName = (char*)strdup(lex->pszName))!=NULL)
-		    {
-				pNew->NameLength = (SLONG)strlen(lex->pszName);
-				pNew->Token = lex->nToken;
-
-				strupr(pNew->pszName);
-
-				if(pNew->NameLength > g_nLexTokenMaxLength)
-				{
-				    g_nLexTokenMaxLength = pNew->NameLength;
-				}
-
-				if(pPrev)
-				{
-					list_InsertAfter(pPrev, pNew);
-				}
-				else
-				{
-					*pHash = pNew;
-				}
-
-		    }
-		    else
-			{
-				internalerror("Out of memory");
-			}
-		}
-		else
-		{
-		    internalerror("Out of memory");
-		}
-
+		lex_AddString(lex->pszName, lex->nToken);
 		++lex;
     }
 
@@ -780,7 +789,7 @@ static ULONG lex_LexStateNormal()
 				while(lex)
 				{
 					if(lex->NameLength == g_CurrentToken.TokenLength
-					&& 0 == strnicmp(g_pCurrentBuffer->pBuffer, lex->pszName, g_CurrentToken.TokenLength))
+					&& 0 == _strnicmp(g_pCurrentBuffer->pBuffer, lex->pszName, g_CurrentToken.TokenLength))
 					{
 						pLongestFixed = lex;
 					}

@@ -16,8 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+#include "xasm.h"
+#include "symbol.h"
+#include "fstack.h"
+#include "project.h"
+#include "section.h"
 
 extern void locsym_Init(void);
 
@@ -235,7 +243,7 @@ SSymbol* sym_FindSymbol(char* name)
 	return sym_FindOrCreate(name, sym_GetScope(name));
 }
 
-SSymbol* sym_AddGROUP(char* name, eGroupType value)
+SSymbol* sym_AddGROUP(char* name, EGroupType value)
 {
 	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
 
@@ -268,7 +276,7 @@ SSymbol* sym_AddEQUS(char* name, char* value)
 		}
 
 		sym->Value.Macro.Size = strlen(value);
-		if((sym->Value.Macro.pData = strdup(value)) != NULL)
+		if((sym->Value.Macro.pData = _strdup(value)) != NULL)
 			return sym;
 
 		internalerror("Out of memory");

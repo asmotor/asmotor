@@ -19,25 +19,6 @@
 #ifndef	LOCALASM_H
 #define	LOCALASM_H
 
-#define MAXSECTIONSIZE 0xFFFFFFFF
-
-#define	LOCASM_VERSION	"0.1"
-
-#define	ASM_DEFAULT_ENDIAN	ASM_BIG_ENDIAN
-
-#define	APPNAME			"rmipsasm"
-#define	EXENAME			"rmipsasm"
-
-#define	NAME_DB			"db"
-#define	NAME_DW			"dh"
-#define	NAME_DL			"dw"
-#define	NAME_RB			"rb"
-#define	NAME_RW			"rh"
-#define	NAME_RL			"rw"
-#define	NAME_DSB		"dsb"
-#define	NAME_DSW		"dsh"
-#define	NAME_DSL		"dsw"
-
 typedef enum
 {
 	MERROR_UNDEFINED_RESULT = 1000,

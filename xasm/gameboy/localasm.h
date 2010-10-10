@@ -27,26 +27,7 @@ typedef enum
 	MERROR_EXPRESSION_FF00
 } EMachineError;
 
-#define LOCASM_CPUID	"gameboy"
-#define	LOCASM_VERSION	"1.0"
-
-#define LOCAL_SUPPORT_GAMEBOY
-
 #define	HASBANKS
-
-#define MAXSECTIONSIZE	0x4000
-
-#define	ASM_DEFAULT_ENDIAN	ASM_LITTLE_ENDIAN
-
-#define	EXENAME		"motorgb"
-
-#define	NAME_DB		"db"
-#define	NAME_DW		"dw"
-#define	NAME_DL		"dl"
-#define	NAME_RB		"rb"
-#define	NAME_RW		"rw"
-#define	NAME_RL		"rl"
-#define NAME_DSB	"ds"
 
 typedef	enum
 {

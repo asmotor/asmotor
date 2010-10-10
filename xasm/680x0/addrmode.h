@@ -19,9 +19,6 @@
 #if !defined(AM_M68K_)
 #define AM_M68K_
 
-#include "../common/expr.h"
-#include "loccpu.h"
-
 typedef enum
 {
 	AM_DREG          = 0x00000001,	// Dn
@@ -133,17 +130,17 @@ static ESize parse_GetSizeSpec(ESize eDefault)
 {
 	if(g_CurrentToken.ID.Token == T_ID && strlen(g_CurrentToken.Value.aString) == 2)
 	{
-		if(strnicmp(g_CurrentToken.Value.aString,".b",2) == 0)
+		if(_strnicmp(g_CurrentToken.Value.aString,".b",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_BYTE;
 		}
-		else if(strnicmp(g_CurrentToken.Value.aString,".w",2) == 0)
+		else if(_strnicmp(g_CurrentToken.Value.aString,".w",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_WORD;
 		}
-		else if(strnicmp(g_CurrentToken.Value.aString,".l",2) == 0)
+		else if(_strnicmp(g_CurrentToken.Value.aString,".l",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_LONG;
@@ -291,7 +288,7 @@ static BOOL parse_GetInnerMode(SAddrMode* pMode)
 
 static BOOL parse_GetOuterPart(SAddrMode* pMode)
 {
-	if(pOptions->Machine.nCpu >= CPUF_68020 && g_CurrentToken.ID.TargetToken == '[')
+	if(g_pOptions->pMachine->nCpu >= CPUF_68020 && g_CurrentToken.ID.TargetToken == '[')
 	{
 		parse_GetToken();
 		return parse_GetInnerMode(pMode);
@@ -489,7 +486,7 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 				return FALSE;
 			}
 
-			if(pOptions->Machine.nCpu <= CPUF_68010)
+			if(g_pOptions->pMachine->nCpu <= CPUF_68010)
 			{
 				if(pMode->Outer.eDispSize == SIZE_DEFAULT)
 					pMode->Outer.eDispSize = SIZE_WORD;
@@ -520,7 +517,7 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 
 			return TRUE;
 		case O_BASE | O_INDEX | O_DISP:
-			if(pOptions->Machine.nCpu <= CPUF_68010)
+			if(g_pOptions->pMachine->nCpu <= CPUF_68010)
 			{
 				if(pMode->Outer.eDispSize == SIZE_DEFAULT)
 					pMode->Outer.eDispSize = SIZE_BYTE;

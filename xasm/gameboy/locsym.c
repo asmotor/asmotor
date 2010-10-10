@@ -16,7 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include "symbol.h"
+#include "xasm.h"
 
 void locsym_Init(void)
 {

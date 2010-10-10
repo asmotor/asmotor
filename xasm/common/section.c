@@ -16,7 +16,20 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <memory.h>
+
 #include "xasm.h"
+#include "section.h"
+#include "symbol.h"
+#include "project.h"
+#include "expr.h"
+#include "patch.h"
+#include "parse.h"
+#include "options.h"
+#include "fstack.h"
 
 
 
@@ -38,30 +51,19 @@ SSection* pSectionList;
 
 //	Private routines
 
-static	eGroupType	sect_GetCurrentType(void)
+static EGroupType sect_GetCurrentType(void)
 {
-	if(pCurrentSection)
-	{
-		if(pCurrentSection->pGroup)
-		{
-			if(pCurrentSection->pGroup->Type==SYM_GROUP)
-			{
-				return pCurrentSection->pGroup->Value.GroupType;
-			}
-			else
-			{
-				internalerror("SECTION's GROUP symbol is not of type SYM_GROUP");
-			}
-		}
-		else
-		{
-			internalerror("No GROUP defined for SECTION");
-		}
-	}
-	else
-	{
+	if(pCurrentSection == NULL)
 		internalerror("No SECTION defined");
-	}
+
+	if(pCurrentSection->pGroup == NULL)
+		internalerror("No GROUP defined for SECTION");
+
+	if(pCurrentSection->pGroup->Type==SYM_GROUP)
+		return pCurrentSection->pGroup->Value.GroupType;
+	else
+		internalerror("SECTION's GROUP symbol is not of type SYM_GROUP");
+
 	return -1;
 }
 
@@ -72,7 +74,7 @@ static	SSection* sect_Create(char* name)
 	if((sect=malloc(sizeof(SSection)))!=NULL)
 	{
 		memset(sect, 0, sizeof(SSection));
-		sect->FreeSpace=MAXSECTIONSIZE;
+		sect->FreeSpace = g_pConfiguration->nMaxSectionSize;
 		if(pSectionList)
 		{
 			SSection* list = pSectionList;
@@ -256,7 +258,7 @@ void sect_OutputAbsWord(UWORD value)
 		{
 			case GROUP_TEXT:
 			{
-				switch(pOptions->Endian)
+				switch(g_pOptions->Endian)
 				{
 					case ASM_LITTLE_ENDIAN:
 					{
@@ -302,7 +304,7 @@ void sect_OutputRelWord(SExpression* expr)
 			{
 				pCurrentSection->FreeSpace -= 2;
 				pCurrentSection->UsedSpace += 2;
-				switch(pOptions->Endian)
+				switch(g_pOptions->Endian)
 				{
 					case ASM_LITTLE_ENDIAN:
 					{
@@ -363,7 +365,7 @@ void sect_OutputAbsLong(ULONG value)
 			{
 				pCurrentSection->FreeSpace -= 4;
 				pCurrentSection->UsedSpace += 4;
-				switch(pOptions->Endian)
+				switch(g_pOptions->Endian)
 				{
 					case ASM_LITTLE_ENDIAN:
 					{
@@ -413,7 +415,7 @@ void sect_OutputRelLong(SExpression* expr)
 			{
 				pCurrentSection->FreeSpace -= 4;
 				pCurrentSection->UsedSpace += 4;
-				switch(pOptions->Endian)
+				switch(g_pOptions->Endian)
 				{
 					case ASM_LITTLE_ENDIAN:
 					{
@@ -534,10 +536,10 @@ void	sect_SkipBytes(SLONG count)
 		{
 			case	GROUP_TEXT:
 			{
-				if(pOptions->UninitChar!=-1)
+				if(g_pOptions->UninitChar!=-1)
 				{
 					while(count--)
-						sect_OutputAbsByte((UBYTE)pOptions->UninitChar);
+						sect_OutputAbsByte((UBYTE)g_pOptions->UninitChar);
 					return;
 				}
 				//	Fall through to GROUP_BSS

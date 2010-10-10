@@ -1,5 +1,5 @@
-set MYASM=..\..\..\..\Win32Release\motorgb.exe -iinclude\ -z0
-set MYLIB=..\..\..\..\Win32Release\motorlib.exe
+set MYASM=..\..\..\..\build\Win32\Release\motorgb.exe -iinclude\ -z0
+set MYLIB=..\..\..\..\build\Win32\Release\motorlib.exe
 
 %MYASM% -oirq.obj irq.asm
 %MYASM% -outility.obj utility.asm

@@ -16,13 +16,28 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "xasm.h"
+#include "options.h"
+#include "locopt.h"
 #include "loccpu.h"
+#include "project.h"
+
+void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc)
+{
+	*pDest = *pSrc;
+}
+
+struct MachineOptions* locopt_Alloc(void)
+{
+	return malloc(sizeof(SMachineOptions));
+}
 
 void locopt_Open(void)
 {
-	pOptions->Machine.bUndocumented = FALSE;
+	g_pOptions->pMachine->bUndocumented = FALSE;
 }
 
 void locopt_Update(void)
@@ -39,7 +54,7 @@ BOOL locopt_Parse(char* s)
 		case 'u':
 			if(strlen(&s[0]) == 1)
 			{
-				pOptions->Machine.bUndocumented = TRUE;
+				g_pOptions->pMachine->bUndocumented = TRUE;
 				return TRUE;
 			}
 			break;

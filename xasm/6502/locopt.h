@@ -19,9 +19,9 @@
 #ifndef MIPS_LOCOPT_H_
 #define MIPS_LOCOPT_H_
 
-typedef struct
+typedef struct MachineOptions
 {
 	BOOL bUndocumented;
-} sMachineOptions;
+} SMachineOptions;
 
 #endif

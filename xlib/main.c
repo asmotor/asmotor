@@ -20,8 +20,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "../asmotor.h"
-#include "../types.h"
+#include "asmotor.h"
+#include "types.h"
 #include "library.h"
 
 //	Quick and dirty...but it works

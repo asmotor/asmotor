@@ -19,8 +19,6 @@
 #ifndef	INCLUDE_TOKENS_H
 #define	INCLUDE_TOKENS_H
 
-#include "localasm.h"
-
 typedef	enum
 {
 	T_FIRST_TOKEN = 300,
@@ -77,10 +75,9 @@ typedef	enum
 
     T_POP_RB,
     T_POP_RW,
-#ifdef	NAME_RL
     T_POP_RL,
-#endif
-    T_POP_EQU,
+
+	T_POP_EQU,
     T_POP_EQUS,
     T_POP_SET,
 
@@ -100,20 +97,14 @@ typedef	enum
 
     T_POP_INCLUDE,
 
-#ifdef NAME_DSB
 	T_POP_DSB,
-#endif
-#ifdef NAME_DSW
 	T_POP_DSW,
-#endif
-#ifdef NAME_DSL
 	T_POP_DSL,
-#endif
-    T_POP_DB,
+
+	T_POP_DB,
     T_POP_DW,
-#ifdef	NAME_DL
     T_POP_DL,
-#endif
+
 	T_POP_SECTION,
 
 	T_POP_INCBIN,

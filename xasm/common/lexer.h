@@ -19,9 +19,11 @@
 #ifndef	INCLUDE_LEXER_H
 #define	INCLUDE_LEXER_H
 
-#include "../../types.h"
+#include <stdio.h>
 
-#include "localasm.h"
+#include "types.h"
+#include "tokens.h"
+#include "xasm.h"
 
 typedef	struct
 {
@@ -42,7 +44,7 @@ typedef	enum
 	LEX_STATE_MACROARGS
 } ELexerState;
 
-typedef	struct
+typedef	struct LexBuffer
 {
 	char*	pBufferStart;
 	char*	pBuffer;
@@ -61,8 +63,8 @@ typedef	struct
 	SLONG	TokenLength;
 	union
 	{
-		eToken			Token;
-		eTargetToken	TargetToken;
+		eToken	Token;
+		int		TargetToken;
 	}	ID;
 } SLexToken;
 
@@ -78,6 +80,7 @@ extern void	lex_FreeBuffer(SLexBuffer* buf);
 extern SLexBuffer* lex_CreateFileBuffer(FILE* f);
 extern void lex_SetBuffer(SLexBuffer* buf);
 extern ULONG lex_GetNextToken(void);
+extern void lex_AddString(char* pszName, int nToken);
 extern void lex_AddStrings(SLexInitString* lex);
 extern void	lex_SetState(ELexerState i);
 extern ULONG lex_FloatAlloc(SLexFloat* tok);

@@ -16,8 +16,21 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
 #include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#include "types.h"
+#include "expr.h"
+#include "project.h"
+#include "fstack.h"
+#include "lexer.h"
+#include "parse.h"
+#include "symbol.h"
+#include "section.h"
+#include "globlex.h"
+#include "options.h"
 
 extern BOOL parse_TargetSpecific(void);
 extern SExpression* parse_TargetFunction(void);
@@ -43,7 +56,7 @@ static BOOL parse_isWhiteSpace(char s)
 static BOOL parse_isToken(char* s, char* token)
 {
 	int len = (int)strlen(token);
-	return strnicmp(s, token, len) == 0 && parse_isWhiteSpace(s[len]);
+	return _strnicmp(s, token, len) == 0 && parse_isWhiteSpace(s[len]);
 }
 
 static BOOL parse_isRept(char* s)
@@ -227,7 +240,7 @@ static int parse_GetIfLength(char* s)
 			s = token + parse_GetIfLength(token) + 4;	// 4 = strlen("ENDC")
 			s = parse_SkipToLine(s);
 		}
-		else if(strnicmp(token, "ENDC", 4) == 0)
+		else if(_strnicmp(token, "ENDC", 4) == 0)
 		{
 			return (int)(token - start);
 		}
@@ -297,12 +310,12 @@ BOOL parse_IfSkipToElse(void)
 			s = token + parse_GetIfLength(token) + 4; // 4 = strlen("ENDC");
 			s = parse_SkipToLine(s);
 		}
-		else if(strnicmp(token, "ENDC", 4) == 0)
+		else if(_strnicmp(token, "ENDC", 4) == 0)
 		{
 			lex_SkipBytes((int)(token - src));
 			return TRUE;
 		}
-		else if(strnicmp(token, "ELSE", 4) == 0)
+		else if(_strnicmp(token, "ELSE", 4) == 0)
 		{
 			lex_SkipBytes((int)(token + 4 - src));
 			return TRUE;
@@ -332,7 +345,7 @@ BOOL parse_IfSkipToEndc(void)
 			s = token + parse_GetIfLength(token);
 			s = parse_SkipToLine(s);
 		}
-		else if(strnicmp(token, "ENDC", 4) == 0)
+		else if(_strnicmp(token, "ENDC", 4) == 0)
 		{
 			lex_SkipBytes((int)(token - src));
 			return TRUE;
@@ -1445,7 +1458,7 @@ static	char* parse_StringExpressionRaw(void)
 		{
 			char* r;
 
-			if((r = strdup(g_CurrentToken.Value.aString)) != NULL)
+			if((r = _strdup(g_CurrentToken.Value.aString)) != NULL)
 			{
 				parse_GetToken();
 				return r;
@@ -1535,7 +1548,7 @@ static	char* parse_StringExpressionRaw(void)
 			r = parse_StringExpression();
 			if(parse_ExpectChar(')'))
 			{
-				strupr(r);
+				_strupr(r);
 			}
 
 			return r;
@@ -1551,7 +1564,7 @@ static	char* parse_StringExpressionRaw(void)
 			r = parse_StringExpression();
 			if(parse_ExpectChar(')'))
 			{
-				strlwr(r);
+				_strlwr(r);
 			}
 
 			return r;
@@ -1614,7 +1627,6 @@ static BOOL parse_Symbol(void)
 
 				return TRUE;
 			}
-#ifdef	NAME_RL
 			case T_POP_RL:
 			{
 				parse_GetToken();
@@ -1622,7 +1634,6 @@ static BOOL parse_Symbol(void)
 
 				return TRUE;
 			}
-#endif
 			case T_POP_EQU:
 			{
 				parse_GetToken();
@@ -1982,13 +1993,11 @@ static BOOL parse_PseudoOp(void)
 			parse_RS_Skip(parse_ConstantExpression() * 2);
 			return TRUE;
 		}
-#ifdef	NAME_RL
 		case T_POP_RL:
 		{
 			parse_RS_Skip(parse_ConstantExpression() * 4);
 			return TRUE;
 		}
-#endif
 		case T_POP_FAIL:
 		{
 			char* r;
@@ -2056,7 +2065,6 @@ static BOOL parse_PseudoOp(void)
 			return TRUE;
 			break;
 		}
-#ifdef NAME_DSB
 		case T_POP_DSB:
 		{
 			SLONG offset;
@@ -2075,8 +2083,6 @@ static BOOL parse_PseudoOp(void)
 			}
 			break;
 		}
-#endif
-#ifdef NAME_DSW
 		case T_POP_DSW:
 		{
 			SLONG offset;
@@ -2095,8 +2101,6 @@ static BOOL parse_PseudoOp(void)
 			}
 			break;
 		}
-#endif
-#ifdef NAME_DSL
 		case T_POP_DSL:
 		{
 			SLONG offset;
@@ -2115,7 +2119,6 @@ static BOOL parse_PseudoOp(void)
 			}
 			break;
 		}
-#endif
 		case T_POP_DB:
 		{
 			SExpression* expr;
@@ -2167,7 +2170,6 @@ static BOOL parse_PseudoOp(void)
 			return TRUE;
 			break;
 		}
-#ifdef	NAME_DL
 		case T_POP_DL:
 		{
 			SExpression* expr;
@@ -2185,7 +2187,6 @@ static BOOL parse_PseudoOp(void)
 			return TRUE;
 			break;
 		}
-#endif
 		case T_POP_INCLUDE:
 		{
 			SLexBookmark mark;
@@ -2540,7 +2541,7 @@ BOOL parse_Misc(void)
 			{
 				char* s;
 
-				if((s = strdup(g_CurrentToken.Value.aString)) != NULL)
+				if((s = _strdup(g_CurrentToken.Value.aString)) != NULL)
 				{
 					lex_SetState(LEX_STATE_MACROARG0);
 					parse_GetToken();

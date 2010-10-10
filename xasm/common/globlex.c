@@ -16,16 +16,18 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "xasm.h"
-#include "localasm.h"
-
-
+#include "lexer.h"
+#include "options.h"
+#include "fstack.h"
+#include "project.h"
+#include "symbol.h"
 
 
 BOOL g_bDontExpandStrings;
-#if defined(LOCAL_SUPPORT_GAMEBOY)
-ULONG GameboyConstID;
-#endif
 ULONG BinaryConstID;
 
 /*	Private data */
@@ -97,11 +99,6 @@ static SLexInitString staticstrings[] =
     "text",		T_GROUP_TEXT,
     "ram",		T_GROUP_BSS,
 
-    NAME_RB,	T_POP_RB,
-    NAME_RW,	T_POP_RW,
-#ifdef	NAME_RL
-    NAME_RL,	T_POP_RL,
-#endif
     "equ",		T_POP_EQU,
     "equs",		T_POP_EQUS,
 
@@ -109,21 +106,6 @@ static SLexInitString staticstrings[] =
 
     "fail",		T_POP_FAIL,
     "warn",		T_POP_WARN,
-
-#ifdef NAME_DSB
-	NAME_DSB,	T_POP_DSB,
-#endif
-#ifdef NAME_DSW
-	NAME_DSW,	T_POP_DSW,
-#endif
-#ifdef NAME_DSL
-	NAME_DSL,	T_POP_DSL,
-#endif
-    NAME_DB,	T_POP_DB,
-    NAME_DW,	T_POP_DW,
-#ifdef	NAME_DL
-    NAME_DL,	T_POP_DL,
-#endif
 
     "include",	T_POP_INCLUDE,
 	"incbin",	T_POP_INCBIN,
@@ -169,28 +151,13 @@ static SLexInitString staticstrings[] =
     NULL, 0
 };
 
-#if defined(LOCAL_SUPPORT_GAMEBOY)
-static SLONG gbgfx2bin(char ch)
-{
-	SLONG i;
-
-	for(i = 0; i <= 3; ++i)
-	{
-		if(pOptions->Machine.GameboyChar[i] == ch)
-			return i;
-	}
-
-	return 0;
-}
-#endif
-
 static SLONG binary2bin(char ch)
 {
 	SLONG i;
 
 	for(i = 0; i <= 1; ++i)
 	{
-		if(pOptions->BinaryChar[i] == ch)
+		if(g_pOptions->BinaryChar[i] == ch)
 			return i;
 	}
 
@@ -226,13 +193,6 @@ static SLONG ascii2bin(char* s)
 			s += 1;
 			convertfunc=char2bin;
 			break;
-#if defined(LOCAL_SUPPORT_GAMEBOY)
-		case '`':
-			radix = 4;
-			s += 1;
-			convertfunc=gbgfx2bin;
-			break;
-#endif
 		case '%':
 			radix = 2;
 			s += 1;
@@ -240,21 +200,8 @@ static SLONG ascii2bin(char* s)
 			break;
 	}
 
-	if(radix == 4)
-	{
-		SLONG c;
-
-		while(*s != '\0')
-		{
-			c = convertfunc(*s++);
-			result = result * 2 + ((c & 1) << 8) + ((c & 2) >> 1);
-		}
-	}
-	else
-	{
-		while(*s != '\0')
-			result = result * radix + convertfunc(*s++);
-	}
+	while(*s != '\0')
+		result = result * radix + convertfunc(*s++);
 
 	return (result);
 }
@@ -428,7 +375,30 @@ void	globlex_Init(void)
 
 	lex_AddStrings(staticstrings);
 
-    /*      Local ID */
+	if(g_pConfiguration->pszNameRB)
+		lex_AddString(g_pConfiguration->pszNameRB, T_POP_RB);
+	if(g_pConfiguration->pszNameRW)
+		lex_AddString(g_pConfiguration->pszNameRW, T_POP_RW);
+	if(g_pConfiguration->pszNameRL)
+		lex_AddString(g_pConfiguration->pszNameRL, T_POP_RL);
+
+	if(g_pConfiguration->pszNameDSB)
+		lex_AddString(g_pConfiguration->pszNameDSB, T_POP_DSB);
+	if(g_pConfiguration->pszNameDSW)
+		lex_AddString(g_pConfiguration->pszNameDSW, T_POP_DSW);
+	if(g_pConfiguration->pszNameDSL)
+		lex_AddString(g_pConfiguration->pszNameDSL, T_POP_DSL);
+
+	if(g_pConfiguration->pszNameDB)
+		lex_AddString(g_pConfiguration->pszNameDB, T_POP_DB);
+	if(g_pConfiguration->pszNameDW)
+		lex_AddString(g_pConfiguration->pszNameDW, T_POP_DW);
+	if(g_pConfiguration->pszNameDL)
+		lex_AddString(g_pConfiguration->pszNameDL, T_POP_DL);
+
+
+
+	/* Local ID */
 
     id = lex_FloatAlloc(&tIDToken);
     lex_FloatAddRange(id, '.', '.', 1);
@@ -486,14 +456,6 @@ void	globlex_Init(void)
     BinaryConstID = id = lex_FloatAlloc(&tNumberToken);
     lex_FloatAddRange(id, '%', '%', 1);
     lex_FloatAddRangeAndBeyond(id, '0', '1', 2);
-
-#if defined(LOCAL_SUPPORT_GAMEBOY)
-	/* Gameboy constants*/
-
-    GameboyConstID = id = lex_FloatAlloc(&tNumberToken);
-    lex_FloatAddRange(id, '`', '`', 1);
-    lex_FloatAddRangeAndBeyond(id, '0', '3', 2);
-#endif
 
     /* ID's */
 

@@ -16,7 +16,13 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stdio.h>
+
+#include "types.h"
+#include "section.h"
+#include "project.h"
+#include "symbol.h"
+#include "patch.h"
 
 BOOL bin_Write(char* name)
 {

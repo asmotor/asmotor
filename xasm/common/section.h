@@ -19,13 +19,18 @@
 #ifndef	INCLUDE_SECTION_H
 #define	INCLUDE_SECTION_H
 
-struct	Symbol;
+#include "lists.h"
+#include "xasm.h"
 
-struct	Section
+struct Patch;
+struct Symbol;
+struct Expression;
+
+struct Section
 {
 	list_Data(struct Section);
-	char	Name[MAXSYMNAMELENGTH+1];
-	struct	Symbol* pGroup;
+	char	Name[MAXSYMNAMELENGTH + 1];
+	struct Symbol* pGroup;
 	ULONG	PC;
 	ULONG	Flags;
 	ULONG	UsedSpace;		/*	How many bytes are used in the section */
@@ -35,7 +40,7 @@ struct	Section
 #ifdef	HASBANKS
 	SLONG	Bank;
 #endif
-	SPatch* pPatches;
+	struct Patch* pPatches;
 	UBYTE* pData;
 };
 typedef	struct Section SSection;
@@ -54,9 +59,9 @@ extern BOOL	sect_SwitchTo_NAMEONLY(char* sectname);
 extern BOOL	sect_Init(void);
 extern void	sect_SkipBytes(SLONG count);
 extern void	sect_Align(SLONG align);
-extern void	sect_OutputExprByte(SExpression* expr);
-extern void	sect_OutputExprWord(SExpression* expr);
-extern void	sect_OutputExprLong(SExpression* expr);
+extern void	sect_OutputExprByte(struct Expression* expr);
+extern void	sect_OutputExprWord(struct Expression* expr);
+extern void	sect_OutputExprLong(struct Expression* expr);
 extern void	sect_OutputBinaryFile(char* s);
 extern void	sect_OutputAbsByte(UBYTE value);
 extern void	sect_OutputAbsWord(UWORD value);

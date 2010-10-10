@@ -55,7 +55,16 @@
  *
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "xasm.h"
+#include "section.h"
+#include "expr.h"
+#include "symbol.h"
+#include "tokens.h"
+#include "object.h"
+#include "patch.h"
 
 
 
@@ -93,7 +102,7 @@ static void fputasciiz(char* s, FILE* f)
 	fputc(0, f);
 }
 
-static	ULONG	calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, ULONG ID)
+static ULONG calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, ULONG ID)
 {
 	if(expr)
 	{
@@ -106,9 +115,9 @@ static	ULONG	calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, ULONG I
 #endif
 		)
 		{
-			if(expr->Value.pSymbol->ID==-1)
+			if(expr->Value.pSymbol->ID == -1)
 			{
-				expr->Value.pSymbol->ID=ID++;
+				expr->Value.pSymbol->ID = ID++;
 				fputasciiz(expr->Value.pSymbol->Name, f);
 				if(expr->Value.pSymbol->pSection==sect)
 				{
@@ -177,7 +186,7 @@ static	int	write_expr(FILE* f, SExpression* expr)
 			{
 				switch(expr->Operator)
 				{
-					case	T_OP_SUB:
+					case T_OP_SUB:
 					{
 						fputc(OBJ_OP_SUB, f);
 						r+=1;
