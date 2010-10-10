@@ -1,0 +1,23 @@
+Import("env")
+
+b = "build_xasm"
+localEnv = env.Clone();
+localEnv.VariantDir(b, "../../xasm/common")
+libxasm = localEnv.StaticLibrary(b + "/xasm", [
+	b + "/amigaobj.c",
+	b + "/binobj.c",
+	b + "/fstack.c",
+	b + "/globlex.c",
+	b + "/lexer.c",
+	b + "/main.c",
+	b + "/object.c",
+	b + "/options.c",
+	b + "/parse.c",
+	b + "/patch.c",
+	b + "/project.c",
+	b + "/section.c",
+	b + "/symbol.c"
+	])
+
+Return("libxasm")
+

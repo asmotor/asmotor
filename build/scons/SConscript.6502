@@ -1,12 +1,19 @@
-Import('motor6502_env')
-Import('motor6502_xasm_files')
+Import("env")
+Import("libxasm")
+Import("libutil")
 
-files = [
-	motor6502_env.File("locerror.c"),
-	motor6502_env.File("loclexer.c"),
-	motor6502_env.File("locopt.c"),
-	motor6502_env.File("locparse.c"),
-	motor6502_env.File("locsym.c")
-] + motor6502_xasm_files
+b = "build_6502"
 
-motor6502_env.Program('motor6502', files)
+localEnv = env.Clone()
+
+localEnv.VariantDir(b, "../../xasm/6502")
+motorgb = localEnv.Program(b + "/motor6502", LIBS = [libxasm, libutil, "m"], source = [
+	b + "/locerror.c",
+	b + "/loclexer.c",
+	b + "/locopt.c",
+	b + "/locparse.c",
+	b + "/locsym.c",
+	b + "/main.c"
+	])
+
+Return("motorgb")

@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "asmotor.h"
 #include "xasm.h"
 #include "options.h"
 #include "lexer.h"

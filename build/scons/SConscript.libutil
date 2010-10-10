@@ -1,0 +1,12 @@
+Import("env")
+
+b = "build_util"
+localEnv = env.Clone();
+localEnv.VariantDir(b, "../../util")
+libutil = localEnv.StaticLibrary(b + "/util", [
+	b + "/amitime.c",
+	b + "/strings.c"
+	])
+
+Return("libutil")
+

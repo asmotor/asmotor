@@ -31,11 +31,18 @@
 #define	stricmp strcasecmp
 #endif
 
-#ifdef __VBCC__
-extern char* strdup(const char* pszString);
-extern char* strupr(char* pszString);
-extern char* strlwr(char* pszString);
-extern int strnicmp(const char* pszString1, const char* pszString2, int nCount);
+#if defined(__VBCC__) || defined(__GNUC__)
+extern char* _strdup(const char* pszString);
+extern char* _strupr(char* pszString);
+extern char* _strlwr(char* pszString);
+extern int _strnicmp(const char* pszString1, const char* pszString2, int nCount);
 #endif
+
+#if defined(_MSC_VER) || defined(__VBCC__) || defined(__GNUC__)
+#	define	internalerror(s)	fprintf( stderr, "Internal error at "__FILE__"(%d): %s\n", __LINE__, s),exit(EXIT_FAILURE)
+#else
+#	define	internalerror(s)	fprintf( stderr, "Internal error at "__FILE__"(%d): %s\n", __LINE__, s),exit(EXIT_FAILURE),return(NULL)
+#endif
+
 
 #endif  //INCLUDE_ASMOTOR_H

@@ -22,6 +22,7 @@
 #include <memory.h>
 #include <string.h>
 
+#include "asmotor.h"
 #include "xasm.h"
 #include "patch.h"
 #include "tokens.h"

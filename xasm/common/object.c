@@ -58,6 +58,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "asmotor.h"
 #include "xasm.h"
 #include "section.h"
 #include "expr.h"

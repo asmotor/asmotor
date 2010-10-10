@@ -40,7 +40,6 @@
 #define OPTF_PAD		0x02L
 #define OPTF_VALIDATE	0x04L
 #define OPTF_TITLE		0x08L
-#define OPTF_TRUNCATE	0x10L
 
 int g_nOptions;
 
@@ -78,7 +77,6 @@ void PrintUsage( void )
 	printf("\t-h\t\tThis text\n");
 	printf("\t-d\t\tDebug: Don't change image\n");
 	printf("\t-p\t\tPad image to valid size\n\t\t\tPads to 32/64/128/256/512kB as appropriate\n");
-	printf("\t-r\t\ttRuncate image to valid size\n\t\t\tTruncates to 32/64/128/256/512kB as appropriate\n");
 	printf("\t-t<name>\tChange cartridge title field (16 characters)\n");
 	printf("\t-v\t\tValidate header\n\t\t\tCorrects - Nintendo Character Area (0x0104)\n\t\t\t\t - ROM type (0x0147)\n\t\t\t\t - ROM size (0x0148)\n\t\t\t\t - Checksums (0x014D-0x014F)\n");
 	exit(EXIT_SUCCESS);
@@ -158,7 +156,7 @@ void ValidateNintendoCharacterArea(FILE* f)
 	if(IsOptionSet(OPTF_DEBUG))
 	{
 		if(nBytesChanged != 0)
-			printf("\tChanged %ld bytes in the Nintendo Character Area\n", nBytesChanged);
+			printf("\tChanged %d bytes in the Nintendo Character Area\n", nBytesChanged);
 		else
 			printf("\tNintendo Character Area is OK\n");
 	}
@@ -190,7 +188,7 @@ void ValidateRomSize(FILE* f)
 
 	if(IsOptionSet(OPTF_DEBUG))
 	{
-		printf("\tChanged ROM size byte from 0x%02X (%ldkB) to 0x%02X (%dkB)\n",
+		printf("\tChanged ROM size byte from 0x%02X (%ldkB) to 0x%02X (%ldkB)\n",
 			nCartRomSize, (0x8000L << nCartRomSize) / 1024,
 			nCalcRomSize, (0x8000L << nCalcRomSize) / 1024);
 	}
@@ -342,43 +340,6 @@ void PadRomImage(FILE* f)
 }
 
 
-FILE* TruncateRomImage(FILE* f, char* pszFilename)
-{
-	long size = FileSize(f);
-	long padto;
-	char szTempfile[TMP_MAX];
-	FILE* tf;
-
-	padto = 256 * 32768;
-	while(size < padto)
-		padto /= 2;
-
-	if(IsOptionSet(OPTF_DEBUG))
-	{
-		printf("Truncating to %ldkB:\n", padto / 1024);
-		return f;
-	}
-
-	tmpnam(szTempfile);
-
-	if((tf = fopen(szTempfile, "wb")) != NULL)
-	{
-		fseek(f, 0, SEEK_SET);
-
-		while(padto--)
-			fputc(fgetc(f), tf);
-
-		fclose(f);
-		fclose(tf);
-		remove(pszFilename);
-		rename(szTempfile, pszFilename);
-		f = fopen(pszFilename, "rb+");
-	}
-
-	return f;
-}
-
-
 void SetCartridgeTitle(FILE* f, char* pszTitle)
 {
 	char szCartname[16];
@@ -432,9 +393,6 @@ int main( int argc, char *argv[] )
 			case 'p':
 				g_nOptions |= OPTF_PAD;
 				break;
-			case 'r':
-				g_nOptions |= OPTF_TRUNCATE;
-				break;
 			case 'v':
 				g_nOptions |= OPTF_VALIDATE;
 				break;
@@ -467,14 +425,6 @@ int main( int argc, char *argv[] )
 
 		if(IsOptionSet(OPTF_PAD))
 			PadRomImage(f);
-
-		/*
-		 * -r (Truncate) option code
-		 *
-		 */
-
-		if(IsOptionSet(OPTF_TRUNCATE))
-			f = TruncateRomImage(f, filename);
 
 		/*
 		 * -t (Set carttitle) option code

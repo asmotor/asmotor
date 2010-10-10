@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "asmotor.h"
 #include "xasm.h"
 #include "fstack.h"
 #include "project.h"

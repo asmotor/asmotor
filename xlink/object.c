@@ -192,7 +192,8 @@ static	SPatches* read_patches(FILE* f)
 			patches->Patches[i].ExprSize=fgetll(f);
 			if((patches->Patches[i].pExpr=malloc(patches->Patches[i].ExprSize))!=NULL)
 			{
-				fread(patches->Patches[i].pExpr, 1, patches->Patches[i].ExprSize, f);
+				if(patches->Patches[i].ExprSize != fread(patches->Patches[i].pExpr, 1, patches->Patches[i].ExprSize, f))
+					Error("File read failed");
 			}
 			else
 			{
@@ -270,7 +271,8 @@ static	void	read_sections(SGroups* groups, FILE* f)
 		{
 			if((section->pData = malloc(section->Size)) != NULL)
 			{
-				fread(section->pData, 1, section->Size, f);
+				if(section->Size != fread(section->pData, 1, section->Size, f))
+					Error("File read failed");
 				section->pPatches = read_patches(f);
 			}
 		}

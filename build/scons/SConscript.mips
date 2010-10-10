@@ -1,12 +1,19 @@
-Import('motormips_env')
-Import('motormips_xasm_files')
+Import("env")
+Import("libxasm")
+Import("libutil")
 
-files = [
-	motormips_env.File("locerror.c"),
-	motormips_env.File("loclexer.c"),
-	motormips_env.File("locopt.c"),
-	motormips_env.File("locparse.c"),
-	motormips_env.File("locsym.c")
-] + motormips_xasm_files
+b = "build_mips"
 
-motormips_env.Program('motormips', files)
+localEnv = env.Clone()
+
+localEnv.VariantDir(b, "../../xasm/mips")
+motormips = localEnv.Program(b + "/motormips", LIBS = [libxasm, libutil, "m"], source = [
+	b + "/locerror.c",
+	b + "/loclexer.c",
+	b + "/locopt.c",
+	b + "/locparse.c",
+	b + "/locsym.c",
+	b + "/main.c"
+	])
+
+Return("motormips")

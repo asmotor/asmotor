@@ -1,0 +1,13 @@
+Import("env")
+Import("libutil")
+
+b = "build_xgbfix"
+
+localEnv = env.Clone()
+
+localEnv.VariantDir(b, "../../xgbfix")
+xgbfix = localEnv.Program(b + "/xgbfix", LIBS = [libutil, "m"], source = [
+	b + "/main.c"
+	])
+
+Return("xgbfix")

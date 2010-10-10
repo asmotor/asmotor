@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "asmotor.h"
 #include "xasm.h"
 #include "symbol.h"
 #include "fstack.h"
