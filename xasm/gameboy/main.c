@@ -14,7 +14,7 @@ static SConfiguration s_sConfiguration =
 	"ds", NULL, NULL
 };
 
-extern SConfiguration* g_pConfiguration = &s_sConfiguration;
+SConfiguration* g_pConfiguration = &s_sConfiguration;
 
 extern int main(int argc, char* argv[])
 {

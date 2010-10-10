@@ -1,11 +1,11 @@
-#ifdef __VBCC__
+#if defined(__VBCC__) || defined(__GNUC__)
 #include "asmotor.h"
 
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 
-char* strdup(const char* pszString)
+char* _strdup(const char* pszString)
 {
 	int l = strlen(pszString);
 	char* r = malloc(l + 1);
@@ -13,7 +13,7 @@ char* strdup(const char* pszString)
 	return r;
 }
 
-char* strupr(char* pszString)
+char* _strupr(char* pszString)
 {
 	char* r = pszString;
 	while(*r)
@@ -24,7 +24,7 @@ char* strupr(char* pszString)
 	return pszString;
 }
 
-char* strlwr(char* pszString)
+char* _strlwr(char* pszString)
 {
 	char* r = pszString;
 	while(*r)
@@ -35,7 +35,7 @@ char* strlwr(char* pszString)
 	return pszString;
 }
 
-int strnicmp(const char* pszString1, const char* pszString2, int nCount)
+int _strnicmp(const char* pszString1, const char* pszString2, int nCount)
 {
 	char l1;
 	char l2;

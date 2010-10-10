@@ -1,12 +1,19 @@
-Import('motorgb_env')
-Import('motorgb_xasm_files')
+Import("env")
+Import("libxasm")
+Import("libutil")
 
-files = [
-	motorgb_env.File("locerror.c"),
-	motorgb_env.File("loclexer.c"),
-	motorgb_env.File("locopt.c"),
-	motorgb_env.File("locparse.c"),
-	motorgb_env.File("locsym.c")
-] + motorgb_xasm_files
+b = "build_gameboy"
 
-motorgb_env.Program('motorgb', files)
+localEnv = env.Clone()
+
+localEnv.VariantDir(b, "../../xasm/gameboy")
+motorgb = localEnv.Program(b + "/motorgb", LIBS = [libxasm, libutil, "m"], source = [
+	b + "/locerror.c",
+	b + "/loclexer.c",
+	b + "/locopt.c",
+	b + "/locparse.c",
+	b + "/locsym.c",
+	b + "/main.c"
+	])
+
+Return("motorgb")

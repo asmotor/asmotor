@@ -1,12 +1,19 @@
-Import('motor68k_env')
-Import('motor68k_xasm_files')
+Import("env")
+Import("libxasm")
+Import("libutil")
 
-files = [
-	motor68k_env.File("locerror.c"),
-	motor68k_env.File("loclexer.c"),
-	motor68k_env.File("locopt.c"),
-	motor68k_env.File("locparse.c"),
-	motor68k_env.File("locsym.c")
-] + motor68k_xasm_files
+b = "build_680x0"
 
-motor68k_env.Program('motor68k', files)
+localEnv = env.Clone()
+
+localEnv.VariantDir(b, "../../xasm/680x0")
+motor68k = localEnv.Program(b + "/motor68k", LIBS = [libxasm, libutil, "m"], source = [
+	b + "/locerror.c",
+	b + "/loclexer.c",
+	b + "/locopt.c",
+	b + "/locparse.c",
+	b + "/locsym.c",
+	b + "/main.c"
+	])
+
+Return("motor68k")

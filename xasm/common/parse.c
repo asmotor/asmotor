@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include "asmotor.h"
 #include "types.h"
 #include "expr.h"
 #include "project.h"

@@ -21,6 +21,7 @@
 #include <memory.h>
 #include <ctype.h>
 
+#include "asmotor.h"
 #include "lists.h"
 #include "lexer.h"
 #include "fstack.h"

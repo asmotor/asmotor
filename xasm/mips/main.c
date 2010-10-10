@@ -14,7 +14,7 @@ static SConfiguration s_sConfiguration =
 	"dsb", "dsh", "dsl"
 };
 
-extern SConfiguration* g_pConfiguration = &s_sConfiguration;
+SConfiguration* g_pConfiguration = &s_sConfiguration;
 
 extern int main(int argc, char* argv[])
 {

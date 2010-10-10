@@ -17,10 +17,7 @@
 */
 
 /*
- * xLib - MAIN.C
- * Copyright 1996-1998 Carsten Sorensen (csorensen@ea.com)
- *
- *	ULONG	"XLB\0"
+ *	ULONG	"XLB0"
  *	ULONG	TotalFiles
  *	REPT	TotalFiles
  *		ASCIIZ	Name
@@ -34,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "asmotor.h"
 #include "types.h"
 #include "libwrap.h"
 
@@ -136,11 +134,12 @@ SLibrary* lib_ReadLib0(FILE* f, SLONG size)
 			size-=file_ReadASCIIz(l->tName, f);
 			l->ulTime=file_ReadLong(f); size-=4;
 			l->ulDate=file_ReadLong(f); size-=4;
-			l->nByteLength=file_ReadLong(f); size-=4;
+			l->nByteLength = file_ReadLong(f); size-=4;
 			if((l->pData = (UBYTE* )malloc(l->nByteLength)) != NULL)
 			{
-				fread(l->pData, sizeof(UBYTE), l->nByteLength, f);
-				size-=l->nByteLength;
+				if(l->nByteLength != fread(l->pData, sizeof(UBYTE), l->nByteLength, f))
+					fatalerror("File read failed");
+				size -= l->nByteLength;
 			}
 			else
 				fatalerror("Out of memory");
@@ -169,11 +168,12 @@ SLibrary* lib_Read(char* filename)
 			return NULL;
 		}
 
-		fread(ID, sizeof(char), 4, f);
+		if(4 != fread(ID, sizeof(char), 4, f))
+			internalerror("File read failed");
 		ID[4]=0;
 		size-=4;
 
-		if(strcmp(ID,"XLB\0")==0)
+		if(strcmp(ID,"XLB0")==0)
 		{
 			SLibrary* r;
 
@@ -204,7 +204,7 @@ BOOL lib_Write(SLibrary* lib, char* filename)
 	{
 		ULONG count = 0;
 
-		fwrite("XLB\0", sizeof(char), 4, f);
+		fwrite("XLB0", sizeof(char), 4, f);
 		file_WriteLong(0, f);
 
 		while(lib)
@@ -288,7 +288,8 @@ SLibrary* lib_AddReplace(SLibrary* lib, char* filename)
 		strcpy(module->tName, truncname);
 		if((module->pData = (UBYTE* )malloc(module->nByteLength)) != NULL)
 		{
-			fread(module->pData, sizeof(UBYTE), module->nByteLength, f);
+			if(module->nByteLength != fread(module->pData, sizeof(UBYTE), module->nByteLength, f))
+				internalerror("File read failed");
 		}
 
 		/*printf("Added module '%s'\n", truncname);*/

@@ -1,5 +1,14 @@
-env = Environment()
+Import("env")
+Import("libutil")
 
-env.Append(CPPFLAGS = "-O3")
-env.Program("motorlib", ["library.c", "main.c"])
+b = "build_xlib"
 
+localEnv = env.Clone()
+
+localEnv.VariantDir(b, "../../xlib")
+xlib = localEnv.Program(b + "/xlib", LIBS = [libutil, "m"], source = [
+	b + "/library.c",
+	b + "/main.c"
+	])
+
+Return("xlib")

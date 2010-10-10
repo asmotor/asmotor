@@ -28,13 +28,6 @@
 
 #define	MAXTOKENLENGTH			256
 
-#if defined(_MSC_VER) || defined(__VBCC__) || defined(__GNUC__)
-#	define	internalerror(s)	fprintf( stderr, "Internal error at "__FILE__"(%d): %s\n", __LINE__, s),exit(EXIT_FAILURE)
-#else
-#	define	internalerror(s)	fprintf( stderr, "Internal error at "__FILE__"(%d): %s\n", __LINE__, s),exit(EXIT_FAILURE),return(NULL)
-#endif
-
-
 #if	defined(__GNUC__) && !defined(__DJGPP__)
 extern void strupr(char* s);
 extern void strlwr(char* s);

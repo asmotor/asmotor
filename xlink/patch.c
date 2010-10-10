@@ -16,6 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "asmotor.h"
 #include "xlink.h"
 #include <math.h>
 
@@ -256,7 +257,7 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 				d |= (*expr++) << 16;
 				d |= (*expr++) << 24;
 
-				sprintf(s, "%d", d);
+				sprintf(s, "%lu", d);
 				PushString(_strdup(s));
 
 				size -= 4;

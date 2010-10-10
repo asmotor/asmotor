@@ -48,31 +48,6 @@ ULONG g_nTotalWarnings = 0;
 
 
 
-/*	Various system kludges*/
-
-#if	defined(__GNUC__) && !defined(__DJGPP__)
-void strupr(char* s)
-{
-	while(*s)
-	{
-		*s = toupper(*s);
-		s += 1;
-	}
-}
-
-void strlwr(char* s)
-{
-	while(*s)
-	{
-		*s = tolower(*s);
-		s += 1;
-	}
-}
-#endif
-
-
-
-
 /*	Help text*/
 
 void PrintUsage(void)

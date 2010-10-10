@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "asmotor.h"
 #include "xasm.h"
 #include "lexer.h"
 #include "options.h"
