@@ -1,0 +1,30 @@
+def GetXasmFiles(env):
+	return [
+		env.File("common/amigaobj.c"),
+		env.File("common/binobj.c"),
+		env.File("common/fstack.c"),
+		env.File("common/globlex.c"),
+		env.File("common/lexer.c"),
+		env.File("common/main.c"),
+		env.File("common/object.c"),
+		env.File("common/options.c"),
+		env.File("common/parse.c"),
+		env.File("common/patch.c"),
+		env.File("common/project.c"),
+		env.File("common/section.c"),
+		env.File("common/symbol.c")
+	]
+
+def BuildVariant(env, variant):
+	localDir = 'build_' + variant
+	localEnv = env.Clone()
+	localEnv.VariantDir(localDir,'common')
+	localEnv.VariantDir(localDir,variant)
+	localAsmFiles = GetXasmFiles(localEnv)
+	SConscript(localDir+"/SConscript", ["localEnv", "localAsmFiles"])
+
+env = Environment()
+env.Append(CPPFLAGS = "-O3")
+env.Append(LIBS = ["m"])
+
+BuildVariant(env, "680x0")
