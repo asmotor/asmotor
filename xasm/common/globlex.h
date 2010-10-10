@@ -22,7 +22,6 @@
 extern void globlex_Init(void);
 
 extern BOOL	g_bDontExpandStrings;
-extern ULONG GameboyConstID;
 extern ULONG BinaryConstID;
 
 #endif	/*INCLUDE_GLOBLEX_H*/

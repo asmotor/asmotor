@@ -1,3 +1,4 @@
+#ifdef __VBCC__
 #include "asmotor.h"
 
 #include <ctype.h>
@@ -53,4 +54,5 @@ int strnicmp(const char* pszString1, const char* pszString2, int nCount)
 
 	return l1 - l2;
 }
+#endif
 

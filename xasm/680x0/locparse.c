@@ -16,8 +16,21 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include <string.h>
+#include <stdlib.h>
 
+#include "xasm.h"
+#include "asmotor.h"
+#include "parse.h"
+#include "project.h"
+#include "localasm.h"
+#include "expr.h"
+#include "lexer.h"
+#include "options.h"
+#include "section.h"
+
+#include "locopt.h"
+#include "loccpu.h"
 #include "addrmode.h"
 #include "intinstr.h"
 #include "pseudoop.h"

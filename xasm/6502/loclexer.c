@@ -16,7 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include "xasm.h"
+#include "localasm.h"
+#include "lexer.h"
 
 static SLexInitString localstrings[]=
 {

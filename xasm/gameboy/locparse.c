@@ -16,7 +16,13 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include "xasm.h"
+#include "expr.h"
+#include "parse.h"
+#include "section.h"
+#include "project.h"
+#include "lexer.h"
+#include "localasm.h"
 
 typedef enum
 {

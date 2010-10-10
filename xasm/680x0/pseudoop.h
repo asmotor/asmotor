@@ -24,27 +24,27 @@ static BOOL parse_PseudoOp()
 	switch(g_CurrentToken.ID.TargetToken)
 	{
 		case T_68K_MC68000:
-			pOptions->Machine.nCpu = CPUF_68000;
+			g_pOptions->pMachine->nCpu = CPUF_68000;
 			parse_GetToken();
 			return TRUE;
 		case T_68K_MC68010:
-			pOptions->Machine.nCpu = CPUF_68010;
+			g_pOptions->pMachine->nCpu = CPUF_68010;
 			parse_GetToken();
 			return TRUE;
 		case T_68K_MC68020:
-			pOptions->Machine.nCpu = CPUF_68020;
+			g_pOptions->pMachine->nCpu = CPUF_68020;
 			parse_GetToken();
 			return TRUE;
 		case T_68K_MC68030:
-			pOptions->Machine.nCpu = CPUF_68030;
+			g_pOptions->pMachine->nCpu = CPUF_68030;
 			parse_GetToken();
 			return TRUE;
 		case T_68K_MC68040:
-			pOptions->Machine.nCpu = CPUF_68040;
+			g_pOptions->pMachine->nCpu = CPUF_68040;
 			parse_GetToken();
 			return TRUE;
 		case T_68K_MC68060:
-			pOptions->Machine.nCpu = CPUF_68060;
+			g_pOptions->pMachine->nCpu = CPUF_68060;
 			parse_GetToken();
 			return TRUE;
 	}

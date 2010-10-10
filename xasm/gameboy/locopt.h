@@ -19,9 +19,11 @@
 #ifndef GAMEBOY_LOCOPT_H_
 #define GAMEBOY_LOCOPT_H_
 
-typedef struct
+typedef struct MachineOptions
 {
-	char	GameboyChar[4];
-} sMachineOptions;
+	char GameboyChar[4];
+} SMachineOptions;
+
+extern ULONG GameboyConstID;
 
 #endif

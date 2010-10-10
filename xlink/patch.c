@@ -257,7 +257,7 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 				d |= (*expr++) << 24;
 
 				sprintf(s, "%d", d);
-				PushString(strdup(s));
+				PushString(_strdup(s));
 
 				size -= 4;
 				break;
@@ -271,7 +271,7 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 				d |= (*expr++) << 16;
 				d |= (*expr++) << 24;
 
-				PushString(strdup(sect_GetSymbolName(sect, d)));
+				PushString(_strdup(sect_GetSymbolName(sect, d)));
 				size -= 4;
 				break;
 			}

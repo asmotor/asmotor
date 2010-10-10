@@ -19,6 +19,7 @@
 #ifndef	INCLUDE_PATCH_H
 #define	INCLUDE_PATCH_H
 
+#include "lists.h"
 #include "expr.h"
 
 struct	Section;

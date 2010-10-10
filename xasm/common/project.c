@@ -16,7 +16,13 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "xasm.h"
+#include "fstack.h"
+#include "options.h"
 
 extern char* loc_GetError(int n);
 
@@ -119,9 +125,9 @@ void prj_Warn(int n, ...)
 	va_list	args;
 
 	int i = 0;
-	for(i = 0; i < pOptions->nTotalDisabledWarnings; ++i)
+	for(i = 0; i < g_pOptions->nTotalDisabledWarnings; ++i)
 	{
-		if(pOptions->aDisabledWarnings[i] == n)
+		if(g_pOptions->aDisabledWarnings[i] == n)
 			return;
 	}
 

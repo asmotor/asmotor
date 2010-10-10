@@ -19,6 +19,8 @@
 #ifndef	INCLUDE_PARSE_H
 #define	INCLUDE_PARSE_H
 
+#include "expr.h"
+
 extern	BOOL	parse_Do(void);
 extern	void	parse_GetToken(void);
 extern	SExpression* parse_Expression(void);

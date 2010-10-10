@@ -19,21 +19,6 @@
 #ifndef	LOCALASM_H
 #define	LOCALASM_H
 
-#define MAXSECTIONSIZE 0x1000
-
-#define	LOCASM_CPUID	"6502"
-#define	LOCASM_VERSION	"0.1"
-
-#define	ASM_DEFAULT_ENDIAN	ASM_LITTLE_ENDIAN
-
-#define	EXENAME			"motor6502"
-
-#define	NAME_DB			"db"
-#define	NAME_DW			"dw"
-#define	NAME_RB			"rb"
-#define	NAME_RW			"rw"
-#define	NAME_DSB		"ds"
-
 typedef enum
 {
 	MERROR_ILLEGAL_ADDRMODE = 1000

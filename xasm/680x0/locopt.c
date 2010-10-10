@@ -16,13 +16,29 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "xasm.h"
+#include "project.h"
+#include "options.h"
+#include "locopt.h"
 
 #include "loccpu.h"
 
+void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
+{
+	*pDest = *pSrc;
+}
+
+SMachineOptions* locopt_Alloc(void)
+{
+	return malloc(sizeof(SMachineOptions));
+}
+
 void locopt_Open(void)
 {
-	pOptions->Machine.nCpu = CPUF_68000;
+	g_pOptions->pMachine->nCpu = CPUF_68000;
 }
 
 void locopt_Update(void)
@@ -42,22 +58,22 @@ BOOL locopt_Parse(char* s)
 				switch(s[1] - '0')
 				{
 					case 0:
-						pOptions->Machine.nCpu = CPUF_68000;
+						g_pOptions->pMachine->nCpu = CPUF_68000;
 						return TRUE;
 					case 1:
-						pOptions->Machine.nCpu = CPUF_68010;
+						g_pOptions->pMachine->nCpu = CPUF_68010;
 						return TRUE;
 					case 2:
-						pOptions->Machine.nCpu = CPUF_68020;
+						g_pOptions->pMachine->nCpu = CPUF_68020;
 						return TRUE;
 					case 3:
-						pOptions->Machine.nCpu = CPUF_68030;
+						g_pOptions->pMachine->nCpu = CPUF_68030;
 						return TRUE;
 					case 4:
-						pOptions->Machine.nCpu = CPUF_68040;
+						g_pOptions->pMachine->nCpu = CPUF_68040;
 						return TRUE;
 					case 6:
-						pOptions->Machine.nCpu = CPUF_68060;
+						g_pOptions->pMachine->nCpu = CPUF_68060;
 						return TRUE;
 					default:
 						prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);

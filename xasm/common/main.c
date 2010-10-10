@@ -18,10 +18,24 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "asmotor.h"
+#include "amitime.h"
+#include "section.h"
+#include "symbol.h"
+#include "globlex.h"
+#include "options.h"
+#include "project.h"
+#include "fstack.h"
+#include "parse.h"
+#include "patch.h"
+#include "object.h"
+#include "binobj.h"
 #include "xasm.h"
 
-extern void loclexer_Init(void);
-extern void locopt_PrintOptions(void);
 
 
 
@@ -64,7 +78,7 @@ void strlwr(char* s)
 void PrintUsage(void)
 {
     printf(
-		EXENAME " v" LOCASM_VERSION " (based on asmotor " ASMOTOR_VERSION ")\n\nUsage: " EXENAME " [options] asmfile\n"
+		"%s v%s, ASMotor v" ASMOTOR_VERSION ")\n\nUsage: %s [options] asmfile\n"
    		"Options:\n"
    		"    -b<AS>  Change the two characters used for binary constants\n"
 		"            (default is 01)\n"
@@ -84,7 +98,8 @@ void PrintUsage(void)
    		"    -z<XX>  Set the byte value (hex format) used for uninitialised\n"
 		"            data (default is ? for random)\n"
 		"\n"
-		"Machine specific options:\n");
+		"Machine specific options:\n",
+		g_pConfiguration->pszExecutable, g_pConfiguration->pszBackendVersion, g_pConfiguration->pszExecutable);
 	locopt_PrintOptions();
     exit(EXIT_SUCCESS);
 }
@@ -94,7 +109,7 @@ void PrintUsage(void)
 
 /*	This thing runs the show*/
 
-int	main(int argc, char* argv[])
+extern int xasm_Main(int argc, char* argv[])
 {
 	char format = 'x';
 	int	argn = 1;

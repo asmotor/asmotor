@@ -997,7 +997,7 @@ static BOOL parse_Bcc(UWORD ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 	{
 		SExpression* expr;
 
-		if(pOptions->Machine.nCpu < CPUF_68020)
+		if(g_pOptions->pMachine->nCpu < CPUF_68020)
 		{
 			prj_Error(MERROR_INSTRUCTION_SIZE);
 			return TRUE;
@@ -1258,7 +1258,7 @@ static BOOL parse_CAS(ESize sz, SAddrMode* dc, SAddrMode* du)
 	UWORD ins;
 	SAddrMode ea;
 
-	if(pOptions->Machine.nCpu == CPUF_68060
+	if(g_pOptions->pMachine->nCpu == CPUF_68060
 	&& sz != SIZE_BYTE)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
@@ -1410,7 +1410,7 @@ static BOOL parse_CHK(ESize sz, SAddrMode* src, SAddrMode* dest)
 	UWORD ins;
 
 	if(sz == SIZE_LONG
-	&& pOptions->Machine.nCpu < CPUF_68020)
+	&& g_pOptions->pMachine->nCpu < CPUF_68020)
 	{
 		prj_Error(MERROR_INSTRUCTION_SIZE);
 		return TRUE;
@@ -1565,7 +1565,7 @@ static BOOL parse_DIVxx(BOOL sign, BOOL l, ESize sz, SAddrMode* src, SAddrMode* 
 			div64 = FALSE;
 		}
 
-		if(pOptions->Machine.nCpu >= CPUF_68060
+		if(g_pOptions->pMachine->nCpu >= CPUF_68060
 		&& div64)
 		{
 			prj_Error(MERROR_INSTRUCTION_CPU);
@@ -1730,7 +1730,7 @@ static BOOL parse_LEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 static BOOL parse_LINK(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(sz == SIZE_LONG
-	&& pOptions->Machine.nCpu < CPUF_68020)
+	&& g_pOptions->pMachine->nCpu < CPUF_68020)
 	{
 		prj_Error(MERROR_INSTRUCTION_SIZE);
 		return TRUE;
@@ -1776,7 +1776,7 @@ static BOOL parse_MOVEfromSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 		EAddrMode allow;
 
 		allow = AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG;
-		if(pOptions->Machine.nCpu >= CPUF_68020)
+		if(g_pOptions->pMachine->nCpu >= CPUF_68020)
 			allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
 
 		if((dest->eMode & allow) == 0)
@@ -1787,7 +1787,7 @@ static BOOL parse_MOVEfromSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 		if(src->nDirectReg == T_68K_REG_CCR)
 		{
-			if(pOptions->Machine.nCpu < CPUF_68010)
+			if(g_pOptions->pMachine->nCpu < CPUF_68010)
 			{
 				prj_Error(MERROR_INSTRUCTION_CPU);
 				return TRUE;
@@ -1804,7 +1804,7 @@ static BOOL parse_MOVEfromSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 		}
 		else if(src->nDirectReg == T_68K_REG_SR)
 		{
-			if(pOptions->Machine.nCpu >= CPUF_68010)
+			if(g_pOptions->pMachine->nCpu >= CPUF_68010)
 				prj_Warn(MERROR_INSTRUCTION_PRIV);
 
 			if(sz != SIZE_WORD)
@@ -1847,7 +1847,7 @@ static BOOL parse_MOVEtoSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 		EAddrMode allow;
 
 		allow = AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP;
-		if(pOptions->Machine.nCpu >= CPUF_68020)
+		if(g_pOptions->pMachine->nCpu >= CPUF_68020)
 			allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
 
 		if((src->eMode & allow) == 0)
@@ -2078,7 +2078,7 @@ static BOOL parse_MOVEM(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 		if(!parse_GetAddrMode(&mode))
 			return FALSE;
 
-		if(pOptions->Machine.nCpu >= CPUF_68020)
+		if(g_pOptions->pMachine->nCpu >= CPUF_68020)
 			allowdest |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
 
 		if((mode.eMode & allowdest) == 0)
@@ -2095,7 +2095,7 @@ static BOOL parse_MOVEM(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 		if(!parse_GetAddrMode(&mode))
 			return FALSE;
 
-		if(pOptions->Machine.nCpu >= CPUF_68020)
+		if(g_pOptions->pMachine->nCpu >= CPUF_68020)
 			allowsrc |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
 
 		if((mode.eMode & allowsrc) == 0)
@@ -2205,7 +2205,7 @@ static BOOL parse_MOVEQ(ESize sz, SAddrMode* src, SAddrMode* dest)
 static BOOL parse_MULx(UWORD sign, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(sz == SIZE_LONG
-	&& pOptions->Machine.nCpu < CPUF_68020)
+	&& g_pOptions->pMachine->nCpu < CPUF_68020)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return TRUE;
@@ -2224,7 +2224,7 @@ static BOOL parse_MULx(UWORD sign, ESize sz, SAddrMode* src, SAddrMode* dest)
 			if(dh == dl)
 				prj_Warn(MERROR_UNDEFINED_RESULT);
 
-			if(pOptions->Machine.nCpu == CPUF_68060)
+			if(g_pOptions->pMachine->nCpu == CPUF_68060)
 			{
 				prj_Error(MERROR_INSTRUCTION_CPU);
 				return TRUE;
@@ -2833,7 +2833,7 @@ static BOOL parse_MOVEC(ESize sz, SAddrMode* src, SAddrMode* dest)
 	}
 
 	pReg = &g_ControlRegister[control - T_68K_REG_SFC];
-	if((pReg->nCpu & pOptions->Machine.nCpu) == 0)
+	if((pReg->nCpu & g_pOptions->pMachine->nCpu) == 0)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return TRUE;
@@ -4060,7 +4060,7 @@ static BOOL parse_IntegerOp(int op, ESize inssz, SAddrMode* src, SAddrMode* dest
 	pIns = &sIntegerInstructions[op];
 
 	allowsrc = pIns->nAllowSrc;
-	if(pOptions->Machine.nCpu >= CPUF_68020)
+	if(g_pOptions->pMachine->nCpu >= CPUF_68020)
 		allowsrc |= pIns->nAllowSrc020;
 
 	if((allowsrc & src->eMode) == 0
@@ -4071,7 +4071,7 @@ static BOOL parse_IntegerOp(int op, ESize inssz, SAddrMode* src, SAddrMode* dest
 	}
 
 	allowdest = pIns->nAllowDest;
-	if(pOptions->Machine.nCpu >= CPUF_68020)
+	if(g_pOptions->pMachine->nCpu >= CPUF_68020)
 		allowdest |= pIns->nAllowDest020;
 
 	if((allowdest & dest->eMode) == 0
@@ -4153,7 +4153,7 @@ BOOL parse_IntegerInstruction(void)
 	parse_GetToken();
 
 	pIns = &sIntegerInstructions[op];
-	if((pIns->nCPU & pOptions->Machine.nCpu) == 0)
+	if((pIns->nCPU & g_pOptions->pMachine->nCpu) == 0)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return TRUE;

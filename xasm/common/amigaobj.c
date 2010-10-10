@@ -16,7 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "types.h"
+
+#include "section.h"
+#include "symbol.h"
+#include "patch.h"
+#include "project.h"
 
 #define	HUNK_UNIT	0x3E7
 #define	HUNK_NAME	0x3E8
@@ -93,7 +102,7 @@ void ami_WriteSymbolHunk(FILE* f, SSection* pSect, BOOL bSkipExt)
 		fputml(0, f);
 }
 
-void ami_WriteExtHunk(FILE* f, SSection* pSect, SPatch* pImportPatches, ULONG nCodePos)
+void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatches, ULONG nCodePos)
 {
 	int i;
 	int count = 0;
@@ -211,8 +220,9 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 		hunkpos = ftell(f);
 		fputbuf(pSect->pData, pSect->UsedSpace, f);
 
-		// move the patches into the pPatches array according to
-		// the section to which their value is relative
+		/* move the patches into the pPatches array according to
+		   the section to which their value is relative
+		 */
 		patch = pSect->pPatches;
 		while(patch)
 		{
@@ -354,7 +364,8 @@ void ami_WriteSectionNames(FILE* f, BOOL bDebugInfo)
 		}
 	}
 
-	fputml(0, f);	// name list terminator
+	/* name list terminator */
+	fputml(0, f);
 }
 
 BOOL ami_WriteObject(char* pszDestFilename, char* pszSourceFilename, BOOL bDebugInfo)

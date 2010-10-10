@@ -19,6 +19,11 @@
 #ifndef	INCLUDE_SYMBOL_H
 #define	INCLUDE_SYMBOL_H
 
+#include <stdlib.h>
+
+#include "xasm.h"
+#include "lists.h"
+
 #define	HASHSIZE	1024
 
 typedef	enum
@@ -36,9 +41,9 @@ typedef	enum
 
 typedef	enum
 {
-	GROUP_TEXT=0,
-	GROUP_BSS=1
-}	eGroupType;
+	GROUP_TEXT = 0,
+	GROUP_BSS = 1
+}	EGroupType;
 
 #define	SYMF_CONSTANT		0x001		/*	symbol has a constant value (the Value field is safe to use)	*/
 #define	SYMF_RELOC			0x002		/*	symbol will change its value during linking						*/
@@ -51,14 +56,14 @@ typedef	enum
 #define	SYMF_HASDATA		0x100		/*	symbol has data attached (Macro.pData)							*/
 #define	SYMF_LOCALEXPORT	0x200		/*	symbol should be exported to sections local to this file        */
 
-struct	Symbol
+struct Symbol
 {
 	list_Data(struct Symbol);
-	char		Name[MAXSYMNAMELENGTH+1];
+	char		Name[MAXSYMNAMELENGTH + 1];
 	ESymbolType	Type;
 	ULONG		Flags;
-	struct		Symbol* pScope;
-	SSection* pSection;
+	struct Symbol* pScope;
+	struct Section* pSection;
 	union
 	{
 		SLONG 	(*Integer)(struct Symbol*);
@@ -67,7 +72,7 @@ struct	Symbol
 	union
 	{
 		SLONG		Value;
-		eGroupType	GroupType;
+		EGroupType	GroupType;
 		struct
 		{
 			size_t	Size;
@@ -86,7 +91,7 @@ typedef	struct	Symbol	SSymbol;
 extern SSymbol* sym_AddEQUS(char* name, char* value);
 extern SSymbol* sym_AddEQU(char* name, SLONG value);
 extern SSymbol* sym_AddSET(char* name, SLONG value);
-extern SSymbol* sym_AddGROUP(char* name, eGroupType value);
+extern SSymbol* sym_AddGROUP(char* name, EGroupType value);
 extern SSymbol* sym_AddMACRO(char* name, char* value, ULONG size);
 extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
 extern SSymbol*	sym_Export(char* name);

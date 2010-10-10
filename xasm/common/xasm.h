@@ -19,23 +19,7 @@
 #ifndef	INCLUDE_XASM_H
 #define	INCLUDE_XASM_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdarg.h>
-
-#if defined(__VBCC__)
-#define __CLOCK_T 1
-typedef unsigned long clock_t;
-#include <time.h>
-#include "../../amitime.h"
-#define clock time_GetMicroSeconds
-#undef CLOCKS_PER_SEC
-#define CLOCKS_PER_SEC 1000000
-#else
-#include <time.h>
-#endif
+#include "types.h"
 
 #define	MAXSYMNAMELENGTH		256
 #define	MAXSTRINGSYMBOLSIZE		256
@@ -43,27 +27,6 @@ typedef unsigned long clock_t;
 #define	ASM_TAB					9
 
 #define	MAXTOKENLENGTH			256
-
-#include "../../asmotor.h"
-#include "../../types.h"
-
-#include "lists.h"
-#include "project.h"
-#include "options.h"
-#include "tokens.h"
-#include "lexer.h"
-#include "expr.h"
-#include "patch.h"
-#include "section.h"
-#include "symbol.h"
-#include "fstack.h"
-#include "parse.h"
-#include "globlex.h"
-#include "object.h"
-#include "binobj.h"
-#include "amigaobj.h"
-
-#include "localasm.h"
 
 #if defined(_MSC_VER) || defined(__VBCC__) || defined(__GNUC__)
 #	define	internalerror(s)	fprintf( stderr, "Internal error at "__FILE__"(%d): %s\n", __LINE__, s),exit(EXIT_FAILURE)
@@ -73,13 +36,45 @@ typedef unsigned long clock_t;
 
 
 #if	defined(__GNUC__) && !defined(__DJGPP__)
-extern	void	strupr(char* s);
-extern	void	strlwr(char* s);
+extern void strupr(char* s);
+extern void strlwr(char* s);
 #endif
 
 extern ULONG g_nTotalLines;
 extern ULONG g_nTotalErrors;
 extern ULONG g_nTotalWarnings;
 
+extern int xasm_Main(int argc, char* argv[]);
+
+extern void loclexer_Init(void);
+extern void locopt_PrintOptions(void);
+extern struct MachineOptions* locopt_Alloc(void);
+extern void locopt_Free(struct MachineOptions* pOptions);
+extern void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc);
+
+typedef	enum Endian
+{
+	ASM_LITTLE_ENDIAN = 0,
+	ASM_BIG_ENDIAN = 1
+} EEndian;
+
+typedef struct Configuration
+{
+	char* pszExecutable;
+	char* pszBackendVersion;
+	ULONG nMaxSectionSize;
+	EEndian eDefaultEndianness;
+	char* pszNameRB;
+	char* pszNameRW;
+	char* pszNameRL;
+	char* pszNameDB;
+	char* pszNameDW;
+	char* pszNameDL;
+	char* pszNameDSB;
+	char* pszNameDSW;
+	char* pszNameDSL;
+} SConfiguration;
+
+extern SConfiguration* g_pConfiguration;
 
 #endif	/*INCLUDE_XASM_H*/

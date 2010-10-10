@@ -19,35 +19,33 @@
 #ifndef	INCLUDE_OPTIONS_H
 #define	INCLUDE_OPTIONS_H
 
-#include "locopt.h"
+#include "lists.h"
+#include "xasm.h"
 
-typedef	enum
-{
-	ASM_LITTLE_ENDIAN=0,
-	ASM_BIG_ENDIAN=1
-}	eEndian;
 
 #define MAXDISABLEDWARNINGS 16
 
-struct	Options
+struct MachineOptions;
+
+struct Options
 {
 	list_Data(struct Options);
 	ULONG	Flags;
-	eEndian	Endian;
+	EEndian	Endian;
 	char	BinaryChar[2];
 	int		UninitChar;
 	int		nTotalDisabledWarnings;
 	UWORD	aDisabledWarnings[MAXDISABLEDWARNINGS];
-	sMachineOptions Machine;
+	struct MachineOptions*	pMachine;
 };
-typedef	struct Options	sOptions;
+typedef	struct Options SOptions;
 
-extern	void	opt_Push(void);
-extern	void	opt_Pop(void);
-extern	void	opt_Parse(char* s);
-extern	void	opt_Open(void);
-extern	void	opt_Close(void);
+extern void	opt_Push(void);
+extern void	opt_Pop(void);
+extern void	opt_Parse(char* s);
+extern void	opt_Open(void);
+extern void	opt_Close(void);
 
-extern	sOptions* pOptions;
+extern SOptions* g_pOptions;
 
 #endif	/*INCLUDE_OPTIONS_H*/

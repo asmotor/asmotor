@@ -16,7 +16,13 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include "xasm.h"
+#include "expr.h"
+#include "parse.h"
+#include "project.h"
+#include "localasm.h"
+#include "lexer.h"
+#include "section.h"
 
 
 SExpression* parse_ExpressionS16(void)

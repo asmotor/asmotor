@@ -19,6 +19,10 @@
 #ifndef	INCLUDE_FSTACK_H
 #define	INCLUDE_FSTACK_H
 
+#include "lists.h"
+
+struct LexBuffer;
+
 typedef	enum
 {
 	CONTEXT_FILE,
@@ -30,7 +34,7 @@ struct FileStack
 {
 	list_Data(struct FileStack);
 	char*			pName;
-	SLexBuffer*		pLexBuffer;
+	struct LexBuffer* pLexBuffer;
 	SLONG			LineNumber;
 	EContextType	Type;
 	char*			RunID;	/*	For the \@ symbol */
