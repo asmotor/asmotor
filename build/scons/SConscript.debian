@@ -1,0 +1,88 @@
+# Based on
+# http://www.qandr.org/quentin/writings/debscons
+
+import os, shutil, sys
+
+Import("env")
+Import("install_bin")
+
+svn_version = os.popen('svnversion ..').read()[:-1]
+# This may be as simple as '89' or as complex as '4123:4184M'.
+# We'll just use the last bit.
+svn_version = svn_version.split(':')[-1]
+
+# Here's the core info for the package
+
+DEBNAME = "asmotor"
+DEBVERSION = "0.1"
+DEBMAINT = "Carsten Elton Sorensen [csoren@gmail.com]"
+DEBARCH = "amd64"
+DEBDEPENDS = "" # what are we dependent on?
+DEBDESC = "Cross assemblers for several CPU architectures"
+
+DEBFILES = []
+
+for f in install_bin:
+	path = f[0].abspath
+	DEBFILES += [("usr/local/bin/" + path.split('/')[-1], path)]
+
+# This is the debian package we're going to create
+debpkg = '#%s_%s-%s_%s.deb' % (DEBNAME, DEBVERSION, svn_version, DEBARCH)
+
+# and we want it to be built when we build 'debian'
+env.Alias("debian", debpkg)
+
+DEBCONTROLFILE = os.path.join(DEBNAME, "DEBIAN/control")
+
+# This copies the necessary files into place into place.
+# Fortunately, SCons creates the necessary directories for us.
+for f in DEBFILES:
+	# We put things in a directory named after the package
+	dest = os.path.join(DEBNAME, f[0])
+	# The .deb package will depend on this file
+	env.Depends(debpkg, dest)
+	# Copy from the the source tree.
+	env.Command(dest, f[1], Copy('$TARGET','$SOURCE'))
+	# The control file also depends on each source because we'd like
+	# to know the total installed size of the package
+	env.Depends(DEBCONTROLFILE, dest)
+
+# Now to create the control file:
+
+CONTROL_TEMPLATE = """
+Package: %s
+Priority: extra
+Section: misc
+Installed-Size: %s
+Maintainer: %s
+Architecture: %s
+Version: %s-%s
+Depends: %s
+Description: %s
+
+"""
+env.Depends(debpkg,DEBCONTROLFILE )
+
+# The control file should be updated when the SVN version changes
+env.Depends(DEBCONTROLFILE, env.Value(svn_version))
+
+# This function creates the control file from the template and info
+# specified above, and works out the final size of the package.
+def make_control(target=None, source=None, env=None):
+	installed_size = 0
+	for i in DEBFILES:
+		installed_size += os.stat(str(env.File(i[1])))[6]
+	control_info = CONTROL_TEMPLATE % (
+		DEBNAME, installed_size, DEBMAINT, DEBARCH, DEBVERSION,
+		svn_version, DEBDEPENDS, DEBDESC)
+	f = open(str(target[0]), 'w')
+	f.write(control_info)
+	f.close()
+    
+# We can generate the control file by calling make_control
+env.Command(DEBCONTROLFILE, None, make_control)
+
+# And we can generate the .deb file by calling dpkg-deb
+env.Command(debpkg, DEBCONTROLFILE,
+            "fakeroot dpkg-deb -b %s %s" % ("%s" % DEBNAME, "$TARGET"))
+
