@@ -15,10 +15,19 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motorgb", "motorgb.vcxproj"
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xlink", "xlink.vcxproj", "{4B447559-0E7B-4C06-8753-6EFAB6C96262}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FD9FF05-9906-4B86-9B75-5911E9B0CA20} = {4FD9FF05-9906-4B86-9B75-5911E9B0CA20}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xlib", "xlib.vcxproj", "{562BA39E-A4B5-488D-8DFA-72EE9FAE4AF2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FD9FF05-9906-4B86-9B75-5911E9B0CA20} = {4FD9FF05-9906-4B86-9B75-5911E9B0CA20}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xgbfix", "xgbfix.vcxproj", "{8C183CFC-565A-4B25-AEEC-EE80FD50B762}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FD9FF05-9906-4B86-9B75-5911E9B0CA20} = {4FD9FF05-9906-4B86-9B75-5911E9B0CA20}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motor6502", "motor6502.vcxproj", "{21A60429-8E0D-4B28-A6FB-1EBD7829431D}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -27,8 +36,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motor6502", "motor6502.vcxp
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motor68k", "motor68k.vcxproj", "{E17CDD68-5566-450E-8A3D-DC0D75F05270}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FD9FF05-9906-4B86-9B75-5911E9B0CA20} = {4FD9FF05-9906-4B86-9B75-5911E9B0CA20}
+		{B8E60034-A4C8-42E5-8FD6-4C64713EC864} = {B8E60034-A4C8-42E5-8FD6-4C64713EC864}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motormips", "motormips.vcxproj", "{7FD0E175-0ED5-434E-91A7-6C8EB6E3CF13}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FD9FF05-9906-4B86-9B75-5911E9B0CA20} = {4FD9FF05-9906-4B86-9B75-5911E9B0CA20}
+		{B8E60034-A4C8-42E5-8FD6-4C64713EC864} = {B8E60034-A4C8-42E5-8FD6-4C64713EC864}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
