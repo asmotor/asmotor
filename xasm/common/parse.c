@@ -1413,23 +1413,6 @@ SExpression* parse_Expression(void)
 	return parse_ExprPri0();
 }
 
-static SExpression* parse_RelocExpression(void)
-{
-	SExpression* expr;
-
-	if((expr = parse_Expression()) != NULL)
-	{
-		if(expr->Flags & EXPRF_isRELOC)
-			return expr;
-
-		prj_Error(ERROR_EXPR_RELOC);
-	}
-	else
-		prj_Error(ERROR_INVALID_EXPRESSION);
-
-	return NULL;
-}
-
 SLONG parse_ConstantExpression(void)
 {
 	SExpression* expr;

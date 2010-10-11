@@ -309,7 +309,6 @@ void PadRomImage(FILE* f)
 {
 	long size = FileSize(f);
 	long padto;
-	long bytesadded = 0;
 
 	padto = 0x8000L;
 	while(size > padto)

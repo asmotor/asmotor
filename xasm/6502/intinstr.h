@@ -199,62 +199,62 @@ static BOOL parse_BRK(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
 
 static SParser g_Parsers[T_6502_STY - T_6502_ADC + 1] = 
 {
-	{ 0x61, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	//	ADC
-	{ 0x21, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	//	AND
-	{ 0x02, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	//	ASL
-	{ 0x20, MODE_ZP | MODE_ABS, parse_Standard_All },	//	BIT
-	{ 0x10, MODE_ABS, parse_Branch },	//	BPL
-	{ 0x30, MODE_ABS, parse_Branch },	//	BMI
-	{ 0x50, MODE_ABS, parse_Branch },	//	BVC
-	{ 0x70, MODE_ABS, parse_Branch },	//	BVS
-	{ 0x90, MODE_ABS, parse_Branch },	//	BCC
-	{ 0xB0, MODE_ABS, parse_Branch },	//	BCS
-	{ 0xD0, MODE_ABS, parse_Branch },	//	BNE
-	{ 0xF0, MODE_ABS, parse_Branch },	//	BEQ
-	{ 0x00, MODE_NONE | MODE_IMM, parse_BRK },	//	BRK
-	{ 0xC1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	//	CMP
-	{ 0xE0, MODE_IMM | MODE_ZP | MODE_ABS, parse_Standard_Imm0 },	//	CPX
-	{ 0xC0, MODE_IMM | MODE_ZP | MODE_ABS, parse_Standard_Imm0 },	//	CPY
-	{ 0xC2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, parse_Standard_All },	//	DEC
-	{ 0x41, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	//	EOR
-	{ 0x18, 0, parse_Implied },	//	CLC
-	{ 0x38, 0, parse_Implied },	//	SEC
-	{ 0x58, 0, parse_Implied },	//	CLI
-	{ 0x78, 0, parse_Implied },	//	SEI
-	{ 0xB8, 0, parse_Implied },	//	CLV
-	{ 0xD8, 0, parse_Implied },	//	CLD
-	{ 0xF8, 0, parse_Implied },	//	SED
-	{ 0xE2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, parse_Standard_All },	//	INC
-	{ 0x4C, MODE_ABS | MODE_IND, parse_JMP },	//	JMP
-	{ 0x20, MODE_ABS, parse_JMP },	//	JSR
-	{ 0xA1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	//	LDA
-	{ 0xA2, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_Y | MODE_ABS_Y, parse_Standard_Imm0 },	//	LDX
-	{ 0xA0, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, parse_Standard_Imm0 },	//	LDY
-	{ 0x42, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	//	LSR
-	{ 0xEA, 0, parse_Implied },	//	NOP
-	{ 0x01, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	//	ORA
-	{ 0xAA, 0, parse_Implied },	//	TAX
-	{ 0x8A, 0, parse_Implied },	//	TXA
-	{ 0xCA, 0, parse_Implied },	//	DEX
-	{ 0xE8, 0, parse_Implied },	//	INX
-	{ 0xA8, 0, parse_Implied },	//	TAY
-	{ 0x98, 0, parse_Implied },	//	TYA
-	{ 0x88, 0, parse_Implied },	//	DEY
-	{ 0xC8, 0, parse_Implied },	//	INY
-	{ 0x22, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	//	ROL
-	{ 0x62, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	//	ROR
-	{ 0x40, 0, parse_Implied },	//	RTI
-	{ 0x60, 0, parse_Implied },	//	RTS
-	{ 0xE1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	//	SBC
-	{ 0x81, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	//	LDA
-	{ 0x9A, 0, parse_Implied },	//	TXS
-	{ 0xBA, 0, parse_Implied },	//	TSX
-	{ 0x48, 0, parse_Implied },	//	PHA
-	{ 0x68, 0, parse_Implied },	//	PLA
-	{ 0x08, 0, parse_Implied },	//	PHP
-	{ 0x28, 0, parse_Implied },	//	PLP
-	{ 0x82, MODE_ZP | MODE_ABS | MODE_ZP_Y, parse_Standard_Imm0 },	//	STX
-	{ 0x80, MODE_ZP | MODE_ABS | MODE_ZP_X, parse_Standard_Imm0 },	//	STY
+	{ 0x61, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* ADC */
+	{ 0x21, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* AND */
+	{ 0x02, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	/* ASL */
+	{ 0x20, MODE_ZP | MODE_ABS, parse_Standard_All },	/* BIT */
+	{ 0x10, MODE_ABS, parse_Branch },	/* BPL */
+	{ 0x30, MODE_ABS, parse_Branch },	/* BMI */
+	{ 0x50, MODE_ABS, parse_Branch },	/* BVC */
+	{ 0x70, MODE_ABS, parse_Branch },	/* BVS */
+	{ 0x90, MODE_ABS, parse_Branch },	/* BCC */
+	{ 0xB0, MODE_ABS, parse_Branch },	/* BCS */
+	{ 0xD0, MODE_ABS, parse_Branch },	/* BNE */
+	{ 0xF0, MODE_ABS, parse_Branch },	/* BEQ */
+	{ 0x00, MODE_NONE | MODE_IMM, parse_BRK },	/* BRK */
+	{ 0xC1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* CMP */
+	{ 0xE0, MODE_IMM | MODE_ZP | MODE_ABS, parse_Standard_Imm0 },	/* CPX */
+	{ 0xC0, MODE_IMM | MODE_ZP | MODE_ABS, parse_Standard_Imm0 },	/* CPY */
+	{ 0xC2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, parse_Standard_All },	/* DEC */
+	{ 0x41, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* EOR */
+	{ 0x18, 0, parse_Implied },	/* CLC */
+	{ 0x38, 0, parse_Implied },	/* SEC */
+	{ 0x58, 0, parse_Implied },	/* CLI */
+	{ 0x78, 0, parse_Implied },	/* SEI */
+	{ 0xB8, 0, parse_Implied },	/* CLV */
+	{ 0xD8, 0, parse_Implied },	/* CLD */
+	{ 0xF8, 0, parse_Implied },	/* SED */
+	{ 0xE2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, parse_Standard_All },	/* INC */
+	{ 0x4C, MODE_ABS | MODE_IND, parse_JMP },	/* JMP */
+	{ 0x20, MODE_ABS, parse_JMP },	/* JSR */
+	{ 0xA1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* LDA */
+	{ 0xA2, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_Y | MODE_ABS_Y, parse_Standard_Imm0 },	/* LDX */
+	{ 0xA0, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, parse_Standard_Imm0 },	/* LDY */
+	{ 0x42, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	/* LSR */
+	{ 0xEA, 0, parse_Implied },	/* NOP */
+	{ 0x01, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* ORA */
+	{ 0xAA, 0, parse_Implied },	/* TAX */
+	{ 0x8A, 0, parse_Implied },	/* TXA */
+	{ 0xCA, 0, parse_Implied },	/* DEX */
+	{ 0xE8, 0, parse_Implied },	/* INX */
+	{ 0xA8, 0, parse_Implied },	/* TAY */
+	{ 0x98, 0, parse_Implied },	/* TYA */
+	{ 0x88, 0, parse_Implied },	/* DEY */
+	{ 0xC8, 0, parse_Implied },	/* INY */
+	{ 0x22, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	/* ROL */
+	{ 0x62, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	/* ROR */
+	{ 0x40, 0, parse_Implied },	/* RTI */
+	{ 0x60, 0, parse_Implied },	/* RTS */
+	{ 0xE1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* SBC */
+	{ 0x81, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* STA */
+	{ 0x9A, 0, parse_Implied },	/* TXS */
+	{ 0xBA, 0, parse_Implied },	/* TSX */
+	{ 0x48, 0, parse_Implied },	/* PHA */
+	{ 0x68, 0, parse_Implied },	/* PLA */
+	{ 0x08, 0, parse_Implied },	/* PHP */
+	{ 0x28, 0, parse_Implied },	/* PLP */
+	{ 0x82, MODE_ZP | MODE_ABS | MODE_ZP_Y, parse_Standard_Imm0 },	/* STX */
+	{ 0x80, MODE_ZP | MODE_ABS | MODE_ZP_X, parse_Standard_Imm0 },	/* STY */
 };
 
 

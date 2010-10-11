@@ -56,8 +56,9 @@ enum
 	OBJ_FUNC_ATAN,
 	OBJ_CONSTANT,
 	OBJ_SYMBOL,
-	OBJ_PCREL,
+	OBJ_PCREL
 #ifdef	HASBANKS
+	,
 	OBJ_FUNC_BANK,
 #endif
 };
