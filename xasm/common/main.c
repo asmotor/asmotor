@@ -1,5 +1,3 @@
-// -w1008 -oStartup.o -fh -iC:\Users\cso\UAE\HD2\Asm\Include -iC:\Users\cso\UAE\HD2\Projects\DemoSys2  C:\Users\cso\UAE\HD2\Projects\Demosys2\Startup.S
-
 /*  Copyright 2008 Carsten Sørensen
 
     This file is part of ASMotor.

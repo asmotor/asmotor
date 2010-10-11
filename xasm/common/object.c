@@ -70,20 +70,6 @@
 
 
 
-//	Internal structures
-
-
-
-
-//	Internal variables
-
-static	ULONG	TotalLocals;
-static	ULONG	TotalExports;
-static	ULONG	TotalImports;
-
-
-
-
 //	Private routines
 
 static void fputll(SLONG d, FILE* f)

@@ -45,4 +45,4 @@ extern int _strnicmp(const char* pszString1, const char* pszString2, int nCount)
 #endif
 
 
-#endif  //INCLUDE_ASMOTOR_H
+#endif  /* INCLUDE_ASMOTOR_H */

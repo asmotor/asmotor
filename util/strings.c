@@ -37,8 +37,8 @@ char* _strlwr(char* pszString)
 
 int _strnicmp(const char* pszString1, const char* pszString2, int nCount)
 {
-	char l1;
-	char l2;
+	char l1 = 0;
+	char l2 = 0;
 
 	while(*pszString1 && *pszString2 && nCount-- > 0)
 	{

@@ -1,5 +1,5 @@
 env = Environment()
-env.Append(CPPFLAGS = "-Wall -O3 -std=c99")
+env.Append(CPPFLAGS = "-O3 -std=c99 -pedantic")
 env.Append(LIBS = ["m"])
 env.Append(CPPPATH = ["#/../../util", "#/../../xasm/common"])
 

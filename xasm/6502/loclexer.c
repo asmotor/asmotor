@@ -20,7 +20,7 @@
 #include "localasm.h"
 #include "lexer.h"
 
-static SLexInitString localstrings[]=
+static SLexInitString localstrings[] =
 {
 	"adc",	T_6502_ADC,
 	"and",	T_6502_AND,

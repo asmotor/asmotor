@@ -106,20 +106,6 @@ extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
 #define MODE_IMM_IND	0x2000
 #define MODE_F			0x4000
 
-static SExpression* parse_ExpressionPCRel(void)
-{
-	SExpression* pExpr = parse_Expression();
-	if(pExpr == NULL)
-		prj_Error(ERROR_INVALID_EXPRESSION);
-
-	pExpr = parse_CreatePCRelExpr(pExpr, -1);
-	pExpr = parse_CheckRange(pExpr, -128, 127);
-	if(pExpr == NULL)
-		prj_Error(ERROR_EXPRESSION_N_BIT, 8);
-
-	return pExpr;
-}
-
 static SExpression* parse_CreateExpressionNBit(SExpression* pExpr, int nLowLimit, int nHighLimit, int nBits)
 {
 	pExpr = parse_CheckRange(pExpr, nLowLimit, nHighLimit);
@@ -127,11 +113,6 @@ static SExpression* parse_CreateExpressionNBit(SExpression* pExpr, int nLowLimit
 		prj_Error(ERROR_EXPRESSION_N_BIT, nBits);
 
 	return pExpr;
-}
-
-static SExpression* parse_CreateExpression16SU(SExpression* pExpr)
-{
-	return parse_CreateExpressionNBit(pExpr, -32768, 65535, 16);
 }
 
 static SExpression* parse_CreateExpression16U(SExpression* pExpr)

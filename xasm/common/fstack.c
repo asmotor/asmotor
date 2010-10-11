@@ -29,14 +29,14 @@
 #include "symbol.h"
 
 
-//	Internal structures
+/* Internal structures */
 
 #define	MAXINCLUDEPATHS	16
 
 
 
 
-//	Internal variables
+/* Internal variables */
 
 SFileStack*	g_pFileContext;
 
@@ -52,7 +52,7 @@ static ULONG g_nTotalNewMacroArgs;
 
 
 
-//	Private routines
+/* Private routines */
 
 static char* fstk_CreateNewRunID(void)
 {
@@ -75,7 +75,7 @@ static void fstk_SetNewContext(SFileStack* newcontext)
 	g_pszCurrentRunId = g_pFileContext->RunID;
 }
 
-//	Public routines
+/* Public routines */
 
 char* fstk_GetMacroArgValue(char ch)
 {

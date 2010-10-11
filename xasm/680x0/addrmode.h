@@ -40,9 +40,8 @@ typedef enum
 	AM_PREINDPCXD020 = 0x00100000,	// ([bd,PC,Xn],od)
 	AM_POSTINDPCXD020= 0x00200000,	// ([bd,PC],Xn,od)
 	AM_SYSREG        = 0x01000000,	// CCR
-
-	AM_BITFIELD      = 0x40000000,	// {offset:width}
-	AM_EMPTY         = 0x80000000
+	AM_BITFIELD      = 0x20000000,	// {offset:width}
+	AM_EMPTY         = 0x40000000
 } EAddrMode;
 
 typedef enum
