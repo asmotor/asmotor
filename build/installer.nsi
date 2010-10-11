@@ -38,10 +38,10 @@ Section "Executables (required)"
   ; Set output path to the installation directory.
   ${If} ${RunningX64}
     SetOutPath $INSTDIR
-    File "..\x64Release\*.exe"
+    File "Visual Studio 2010\x64\Release\*.exe"
   ${Else}
     SetOutPath $INSTDIR
-    File "..\Win32Release\*.exe"
+    File "Visual Studio 2010\Win32\Release\*.exe"
   ${EndIf}
   
   ; Put file there
