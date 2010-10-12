@@ -59,9 +59,6 @@ static SLexInitString staticstrings[] =
 
     "def",	T_FUNC_DEF,
 
-#ifdef	HASBANKS
-    "bank", T_FUNC_BANK,
-#endif
     "div",	T_FUNC_FDIV,
     "mul",	T_FUNC_FMUL,
     "sin",	T_FUNC_SIN,
@@ -397,7 +394,8 @@ void	globlex_Init(void)
 	if(g_pConfiguration->pszNameDL)
 		lex_AddString(g_pConfiguration->pszNameDL, T_POP_DL);
 
-
+	if(g_pConfiguration->bSupportBanks)
+		lex_AddString("bank", T_FUNC_BANK);
 
 	/* Local ID */
 

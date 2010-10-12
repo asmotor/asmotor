@@ -58,11 +58,16 @@ void PrintUsage(void)
    		"    -e(l|b) Change endianness (CAUTION!)\n"
 		"    -f<f>   Output format, one of\n"
 		"                x - xobj (default)\n"
-		"                b - binary file \n"
-#ifdef LOCAL_SUPPORT_AMIGA
+		"                b - binary file \n");
+
+	if(g_pConfiguration->bSupportAmiga)
+	{
+		printf(
 		"                g - Amiga executable file\n"
-		"                h - Amiga object file\n"
-#endif
+		"                h - Amiga object file\n");
+	}
+
+	printf(
 		"    -h      This text\n"
    		"    -i<dir> Extra include path (can appear more than once)\n"
    		"    -o<f>   Write assembly output to <file>\n"
@@ -131,12 +136,15 @@ extern int xasm_Main(int argc, char* argv[])
 					{
 						case 'x':
 						case 'b':
-#ifdef LOCAL_SUPPORT_AMIGA
-						case 'g':
-						case 'h':
-#endif
 							format = argv[argn][2];
 							break;
+						case 'g':
+						case 'h':
+							if(g_pConfiguration->bSupportAmiga)
+							{
+								format = argv[argn][2];
+								break;
+							}
 						default:
 							prj_Warn(WARN_OPTION, argv[argn]);
 							break;
@@ -212,14 +220,12 @@ extern int xasm_Main(int argc, char* argv[])
 						case 'b':
 							wr = bin_Write(outname);
 							break;
-#ifdef LOCAL_SUPPORT_AMIGA
 						case 'g':
 							wr = ami_WriteExecutable(outname, debuginfo);
 							break;
 						case 'h':
 							wr = ami_WriteObject(outname, source, debuginfo);
 							break;
-#endif
 					}
 					if(!wr)
 					{

@@ -814,10 +814,12 @@ CREATEATRANSEXPR(ASIN,asin)
 CREATEATRANSEXPR(ACOS,acos)
 CREATEATRANSEXPR(ATAN,atan)
 
-#ifdef	HASBANKS
 static SExpression* parse_CreateBANKExpr(char* s)
 {
 	SExpression* expr;
+
+	if(!g_pConfiguration->bSupportBanks)
+		internalerror("Banks not supported");
 
 	if((expr = (SExpression*)malloc(sizeof(SExpression))) != NULL)
 	{
@@ -836,7 +838,6 @@ static SExpression* parse_CreateBANKExpr(char* s)
 		return NULL;
 	}
 }
-#endif
 
 static SExpression* parse_CreateSymbolExpr(char* s)
 {
@@ -1046,10 +1047,12 @@ static SExpression* parse_ExprPri7(void)
 
 			return t1;
 		}
-#ifdef	HASBANKS
 		case T_FUNC_BANK:
 		{
 			SExpression* t1;
+
+			if(!g_pConfiguration->bSupportBanks)
+				internalerror("Banks not supported");
 
 			parse_GetToken();
 
@@ -1070,7 +1073,6 @@ static SExpression* parse_ExprPri7(void)
 
 			return t1;
 		}
-#endif
 		case T_FUNC_STRCMP:
 		{
 			SExpression* r = NULL;
@@ -1765,10 +1767,12 @@ static BOOL parse_SymbolOp(BOOL (*pOp)(char* pszSymbol))
 	return r;
 }
 
-#ifdef HASBANKS
 static SLONG parse_ExpectBankFixed(void)
 {
 	SLONG bank;
+
+	if(!g_pConfiguration->bSupportBanks)
+		internalerror("Banks not supported");
 
 	if(g_CurrentToken.ID.Token != T_FUNC_BANK)
 	{
@@ -1787,7 +1791,6 @@ static SLONG parse_ExpectBankFixed(void)
 
 	return bank;
 }
-#endif
 
 static BOOL parse_PseudoOp(void)
 {
@@ -1851,8 +1854,7 @@ static BOOL parse_PseudoOp(void)
 			}
 			parse_GetToken();
 
-#ifdef	HASBANKS
-			if(g_CurrentToken.ID.Token == ',')
+			if(g_pConfiguration->bSupportBanks && g_CurrentToken.ID.Token == ',')
 			{
 				SLONG bank;
 				parse_GetToken();
@@ -1863,9 +1865,7 @@ static BOOL parse_PseudoOp(void)
 
 				return sect_SwitchTo_BANK(r, sym, bank);
 			}
-			else
-#endif
-			if(g_CurrentToken.ID.Token != '[')
+			else if(g_CurrentToken.ID.Token != '[')
 			{
 				return sect_SwitchTo(r, sym);
 			}
@@ -1875,8 +1875,7 @@ static BOOL parse_PseudoOp(void)
 			if(!parse_ExpectChar(']'))
 				return TRUE;
 
-#ifdef	HASBANKS
-			if(g_CurrentToken.ID.Token == ',')
+			if(g_pConfiguration->bSupportBanks && g_CurrentToken.ID.Token == ',')
 			{
 				SLONG bank;
 				parse_GetToken();
@@ -1887,7 +1886,7 @@ static BOOL parse_PseudoOp(void)
 
 				return sect_SwitchTo_ORG_BANK(r, sym, org, bank);
 			}
-#endif
+
 			return sect_SwitchTo_ORG(r, sym, org);
 		}
 		case T_POP_PRINTT:

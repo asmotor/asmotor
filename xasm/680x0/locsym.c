@@ -23,9 +23,9 @@
 void locsym_Init(void)
 {
 	sym_AddGROUP("CODE", GROUP_TEXT);
-	sym_AddGROUP("DATA", GROUP_TEXT)->Flags |= LOCSYMF_DATA;
+	sym_AddGROUP("DATA", GROUP_TEXT)->Flags |= SYMF_DATA;
 	sym_AddGROUP("BSS", GROUP_BSS);
-	sym_AddGROUP("CODE_C", GROUP_TEXT)->Flags |= LOCSYMF_CHIP;
-	sym_AddGROUP("DATA_C", GROUP_TEXT)->Flags |= LOCSYMF_DATA | LOCSYMF_CHIP;
-	sym_AddGROUP("BSS_C", GROUP_BSS)->Flags |= LOCSYMF_CHIP;
+	sym_AddGROUP("CODE_C", GROUP_TEXT)->Flags |= SYMF_CHIP;
+	sym_AddGROUP("DATA_C", GROUP_TEXT)->Flags |= SYMF_DATA | SYMF_CHIP;
+	sym_AddGROUP("BSS_C", GROUP_BSS)->Flags |= SYMF_CHIP;
 }

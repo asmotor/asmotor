@@ -51,9 +51,7 @@ typedef	enum
 
 	T_FUNC_DEF,
 
-#ifdef	HASBANKS
 	T_FUNC_BANK,
-#endif
 
     T_FUNC_FDIV,
     T_FUNC_FMUL,

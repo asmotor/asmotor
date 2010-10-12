@@ -24,20 +24,16 @@
 #include "types.h"
 #include "library.h"
 
-//	Quick and dirty...but it works
-#ifdef __GNUC__
-#define	strcmpi	strcasecmp
-#endif
 
 /*
  * Print out an errormessage
  *
  */
 
-void	fatalerror(char* s)
+void fatalerror(char* s)
 {
 	printf("*ERROR* : %s\n", s);
-	exit(5);
+	exit(EXIT_FAILURE);
 }
 
 /*
