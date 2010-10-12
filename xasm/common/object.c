@@ -96,11 +96,8 @@ static ULONG calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, ULONG I
 		ID=calc_symbol_ids(sect, f, expr->pLeft, ID);
 		ID=calc_symbol_ids(sect, f, expr->pRight, ID);
 
-		if( (expr->Type==EXPR_SYMBOL)
-#ifdef	HASBANKS
-		|| ((expr->Type==EXPR_OPERATOR) && (expr->Operator==T_FUNC_BANK))
-#endif
-		)
+		if(expr->Type == EXPR_SYMBOL
+		||(g_pConfiguration->bSupportBanks && expr->Type==EXPR_OPERATOR && expr->Operator == T_FUNC_BANK))
 		{
 			if(expr->Value.pSymbol->ID == -1)
 			{
@@ -138,22 +135,18 @@ static ULONG calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, ULONG I
 	return ID;
 }
 
-static	void	fix_local_exports(SSection* sect, SExpression* expr)
+static void fix_local_exports(SSection* sect, SExpression* expr)
 {
 	if(expr)
 	{
 		fix_local_exports(sect, expr->pLeft);
 		fix_local_exports(sect, expr->pRight);
 
-		if( ((expr->Type==EXPR_SYMBOL)
-#ifdef	HASBANKS
-			|| ((expr->Type==EXPR_OPERATOR) && (expr->Operator==T_FUNC_BANK))
-#endif
-			)
+		if((expr->Type == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr->Type == EXPR_OPERATOR && expr->Operator == T_FUNC_BANK))
 		&&	expr->Value.pSymbol->Flags&SYMF_EXPORTABLE
-		&&	expr->Value.pSymbol->pSection!=sect )
+		&&	expr->Value.pSymbol->pSection != sect)
 		{
-			expr->Value.pSymbol->Flags|=SYMF_LOCALEXPORT;
+			expr->Value.pSymbol->Flags |= SYMF_LOCALEXPORT;
 		}
 	}
 }
@@ -353,15 +346,18 @@ static	int	write_expr(FILE* f, SExpression* expr)
 						r+=1;
 						break;
 					}
-#ifdef	HASBANKS
-					case	T_FUNC_BANK:
+					case T_FUNC_BANK:
 					{
-						fputc(OBJ_FUNC_BANK, f);
-						fputll(expr->Value.pSymbol->ID, f);
-						r+=5;
+						if(g_pConfiguration->bSupportBanks)
+						{
+							fputc(OBJ_FUNC_BANK, f);
+							fputll(expr->Value.pSymbol->ID, f);
+							r += 5;
+						}
+						else
+							internalerror("Banks not supported");
 						break;
 					}
-#endif
 				}
 
 				break;
@@ -545,18 +541,15 @@ BOOL	obj_Write(char* name)
 
 			fputll(sect->pGroup->ID, f);
 			fputasciiz(sect->Name, f);
-#ifdef	HASBANKS
-			if(sect->Flags&SECTF_BANKFIXED)
+			if(sect->Flags & SECTF_BANKFIXED)
 			{
+				if(!g_pConfiguration->bSupportBanks)
+					internalerror("Banks not supported");
 				fputll(sect->Bank, f);
 			}
 			else
-			{
 				fputll(-1, f);
-			}
-#else
-			fputll(-1, f);
-#endif
+
 			if(sect->Flags&SECTF_ORGFIXED)
 			{
 				fputll(sect->Org, f);

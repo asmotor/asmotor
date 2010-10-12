@@ -205,17 +205,13 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 		for(i = 0; i < nSections; ++i)
 			pPatches[i] = NULL;
 
-#if defined(LOCAL_SUPPORT_AMIGA)
-		if(pSect->pGroup->Flags & LOCSYMF_DATA)
+		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_DATA))
 			hunktype = HUNK_DATA;
 		else
-#endif
 			hunktype = HUNK_CODE;
 
-#if defined(LOCAL_SUPPORT_AMIGA)
-		if(pSect->pGroup->Flags & LOCSYMF_CHIP)
+		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_CHIP))
 			hunktype |= HUNKF_CHIP;
-#endif
 
 		fputml(hunktype, f);
 		fputml((pSect->UsedSpace + 3) / 4, f);
@@ -336,10 +332,8 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 	else /*if(pSect->pGroup->Flags & GROUP_BSS)*/
 	{
 		ULONG hunktype = HUNK_BSS;
-#if defined(LOCAL_SUPPORT_AMIGA)
-		if(pSect->pGroup->Flags & LOCSYMF_CHIP)
+		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_CHIP))
 			hunktype |= HUNKF_CHIP;
-#endif
 		fputml(hunktype, f);
 		fputml((pSect->UsedSpace + 3) / 4, f);
 
@@ -440,10 +434,8 @@ BOOL ami_WriteExecutable(char* pszDestFilename, BOOL bDebugInfo)
 	while(pSect != NULL)
 	{
 		ULONG size = (pSect->UsedSpace + 3) / 4;
-#if defined(LOCAL_SUPPORT_AMIGA)
-		if(pSect->pGroup->Flags & LOCSYMF_CHIP)
+		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_CHIP))
 			size |= HUNKF_CHIP;
-#endif
 		fputml(size, f);
 		pSect = list_GetNext(pSect);
 	}

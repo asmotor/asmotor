@@ -23,16 +23,14 @@
 
 #define	MAXNAMELENGTH	256
 
-struct	LibraryWrapper
+typedef struct Library
 {
-	char		tName[MAXNAMELENGTH];
-	ULONG		ulTime;
-	ULONG		ulDate;
-	SLONG		nByteLength;
-	UBYTE		*pData;
-	struct	LibraryWrapper* pNext;
-};
-
-typedef	struct	LibraryWrapper	SLibrary;
+	char	tName[MAXNAMELENGTH];
+	ULONG	ulTime;
+	ULONG	ulDate;
+	size_t	nByteLength;
+	UBYTE*	pData;
+	struct Library* pNext;
+} SLibrary;
 
 #endif

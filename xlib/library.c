@@ -110,8 +110,8 @@ SLibrary* lib_ReadLib0(FILE* f, SLONG size)
 {
 	if(size)
 	{
-		SLibrary* l=NULL,
-					*first=NULL;
+		SLibrary* l = NULL;
+		SLibrary* first = NULL;
 
 		file_ReadLong(f);	size-=4;	//	Skip count
 
@@ -229,7 +229,7 @@ BOOL lib_Write(SLibrary* lib, char* filename)
 	return FALSE;
 }
 
-void	TruncateFileName(char* dest, char* src)
+void TruncateFileName(char* dest, char* src)
 {
 	SLONG l;
 

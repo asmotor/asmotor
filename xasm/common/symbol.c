@@ -362,16 +362,13 @@ SSymbol* sym_AddLabel(char* name)
 			if(name[0] != '.' && name[strlen(name) - 1] != '$')
 				pCurrentScope = sym;
 
-#ifndef	HASBANKS
 			if((pCurrentSection->Flags & SECTF_ORGFIXED) == 0)
 			{
-#endif
 				sym->Type = SYM_LABEL;
 				SetFlags(sym->Flags, SYM_LABEL);
 				sym->pSection = pCurrentSection;
 				sym->Value.Value = pCurrentSection->PC;
 				return sym;
-#ifndef	HASBANKS
 			}
 			else
 			{
@@ -380,7 +377,6 @@ SSymbol* sym_AddLabel(char* name)
 				sym->Value.Value = pCurrentSection->PC + pCurrentSection->Org;
 				return sym;
 			}
-#endif
 		}
 		else
 			prj_Error(ERROR_LABEL_SECTION);
@@ -570,10 +566,11 @@ BOOL sym_Init(void)
 	p__TIME__Symbol = sym_AddEQUS("__TIME", 0);
 	p__TIME__Symbol->Callback.String = __TIME__Callback;
 
-#if defined(LOCAL_SUPPORT_AMIGA)
-	p__AMIGADATE__Symbol = sym_AddEQUS("__AMIGADATE", 0);
-	p__AMIGADATE__Symbol->Callback.String = __AMIGADATE__Callback;
-#endif
+	if(g_pConfiguration->bSupportAmiga)
+	{
+		p__AMIGADATE__Symbol = sym_AddEQUS("__AMIGADATE", 0);
+		p__AMIGADATE__Symbol->Callback.String = __AMIGADATE__Callback;
+	}
 
 	sym_AddEQU("__ASMOTOR", 0);
 

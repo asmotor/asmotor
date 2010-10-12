@@ -37,9 +37,7 @@ struct Section
 	ULONG	FreeSpace;		/*	How many bytes are free */
 	ULONG	AllocatedSpace;	/*	How big a chunk of memory pData is pointing to */
 	SLONG	Org;
-#ifdef	HASBANKS
 	SLONG	Bank;
-#endif
 	struct Patch* pPatches;
 	UBYTE* pData;
 };

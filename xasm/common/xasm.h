@@ -57,6 +57,8 @@ typedef struct Configuration
 	char* pszBackendVersion;
 	ULONG nMaxSectionSize;
 	EEndian eDefaultEndianness;
+	BOOL bSupportBanks;
+	BOOL bSupportAmiga;
 	char* pszNameRB;
 	char* pszNameRW;
 	char* pszNameRL;

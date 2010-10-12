@@ -698,13 +698,13 @@ static BOOL parsepatch(SPatch* patch, SExpression* expr, SLONG* v)
 							return b;
 							break;
 						}
-#ifdef	HASBANKS
-						case	T_FUNC_BANK:
+						case T_FUNC_BANK:
 						{
+							if(!g_pConfiguration->bSupportBanks)
+								internalerror("Banks not supported");
+
 							return FALSE;
-							break;
 						}
-#endif
 					}
 					break;
 				}

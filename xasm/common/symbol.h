@@ -55,6 +55,8 @@ typedef	enum
 #define	SYMF_MODIFY			0x080		/*	symbol can be redefined											*/
 #define	SYMF_HASDATA		0x100		/*	symbol has data attached (Macro.pData)							*/
 #define	SYMF_LOCALEXPORT	0x200		/*	symbol should be exported to sections local to this file        */
+#define SYMF_DATA 0x40000000
+#define SYMF_CHIP 0x20000000
 
 struct Symbol
 {

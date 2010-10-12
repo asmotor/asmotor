@@ -27,8 +27,6 @@ typedef enum
 	MERROR_EXPRESSION_FF00
 } EMachineError;
 
-#define	HASBANKS
-
 typedef	enum
 {
 	T_Z80_ADC = 6000,

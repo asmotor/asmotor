@@ -615,74 +615,70 @@ BOOL	sect_SwitchTo_ORG(char* sectname, SSymbol* group, SLONG org)
 	}
 }
 
-#ifdef	HASBANKS
-BOOL	sect_SwitchTo_BANK(char* sectname, SSymbol* group, SLONG bank)
+BOOL sect_SwitchTo_BANK(char* sectname, SSymbol* group, SLONG bank)
 {
 	SSection* sect;
 
-	sect=sect_Find(sectname,group);
+	if(!g_pConfiguration->bSupportBanks)
+		internalerror("Banks not supported");
+
+	sect = sect_Find(sectname, group);
 	if(sect)
 	{
-		if(sect->Flags==SECTF_BANKFIXED && sect->Bank==bank)
+		if(sect->Flags == SECTF_BANKFIXED && sect->Bank == bank)
 		{
-			pCurrentSection=sect;
+			pCurrentSection = sect;
 			return TRUE;
 		}
-		else
-		{
-			prj_Fail(ERROR_SECT_EXISTS_BANK);
-			return FALSE;
-		}
-	}
-	else
-	{
-		sect=sect_Create(sectname);
-		if(sect)
-		{
-			sect->pGroup=group;
-			sect->Flags=SECTF_BANKFIXED;
-			sect->Bank=bank;
-		}
-		pCurrentSection=sect;
-		return sect!=NULL;
-	}
-}
-#endif
 
-#ifdef	HASBANKS
-BOOL	sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, SLONG org, SLONG bank)
+		prj_Fail(ERROR_SECT_EXISTS_BANK);
+		return FALSE;
+	}
+
+	sect = sect_Create(sectname);
+	if(sect)
+	{
+		sect->pGroup = group;
+		sect->Flags = SECTF_BANKFIXED;
+		sect->Bank = bank;
+	}
+	pCurrentSection = sect;
+	return sect != NULL;
+}
+
+BOOL sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, SLONG org, SLONG bank)
 {
 	SSection* sect;
 
-	sect=sect_Find(sectname,group);
+	if(!g_pConfiguration->bSupportBanks)
+		internalerror("Banks not supported");
+
+	sect = sect_Find(sectname,group);
 	if(sect)
 	{
-		if(sect->Flags==(SECTF_BANKFIXED|SECTF_ORGFIXED) && sect->Bank==bank && sect->Org==org)
+		if(sect->Flags== (SECTF_BANKFIXED | SECTF_ORGFIXED)
+		&& sect->Bank == bank
+		&& sect->Org == org)
 		{
-			pCurrentSection=sect;
+			pCurrentSection = sect;
 			return TRUE;
 		}
-		else
-		{
-			prj_Fail(ERROR_SECT_EXISTS_BANK_ORG);
-			return FALSE;
-		}
+
+		prj_Fail(ERROR_SECT_EXISTS_BANK_ORG);
+		return FALSE;
 	}
-	else
+
+	sect=sect_Create(sectname);
+	if(sect)
 	{
-		sect=sect_Create(sectname);
-		if(sect)
-		{
-			sect->pGroup=group;
-			sect->Flags=SECTF_BANKFIXED|SECTF_ORGFIXED;
-			sect->Bank=bank;
-			sect->Org=org;
-		}
-		pCurrentSection=sect;
-		return sect!=NULL;
+		sect->pGroup = group;
+		sect->Flags = SECTF_BANKFIXED | SECTF_ORGFIXED;
+		sect->Bank = bank;
+		sect->Org = org;
 	}
+	pCurrentSection=sect;
+	return sect!=NULL;
 }
-#endif
 
 BOOL	sect_SwitchTo_NAMEONLY(char* sectname)
 {
