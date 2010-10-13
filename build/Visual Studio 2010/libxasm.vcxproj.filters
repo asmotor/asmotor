@@ -33,4 +33,17 @@
     <ClInclude Include="..\..\xasm\common\tokens.h" />
     <ClInclude Include="..\..\xasm\common\xasm.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="test">
+      <UniqueIdentifier>{f96da3e2-a09e-4f13-ba61-0178975f3fec}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\xasm\common\test\strings.asm">
+      <Filter>test</Filter>
+    </None>
+    <None Include="..\..\xasm\common\test\timedate.asm">
+      <Filter>test</Filter>
+    </None>
+  </ItemGroup>
 </Project>

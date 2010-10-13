@@ -302,10 +302,13 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, BOOL bAl
 			}
 
 			dst = sym_ConvertSymbolValueToString(dst, sym);
-			if(*src != '}')
-				prj_Fail(ERROR_CHAR_EXPECTED, '}');
+			if(*src == '}')
+			{
+				if(strchr(stopchar, *src++) != NULL)
+					return src;
+			}
 			else
-				++src;
+				prj_Fail(ERROR_CHAR_EXPECTED, '}');
 
 			ch = 0;
 		}

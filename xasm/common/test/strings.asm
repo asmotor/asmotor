@@ -1,4 +1,3 @@
-
 	PRINTT	"\"long\"'s position in \"A reasonably long string\": "
 	PRINTV	strin("A reasonably long string","long")
 
@@ -16,16 +15,16 @@
 
 Test	EQUS	"This is a test"
 	PRINTT	"\n{Test}"
-	PRINTT	strsub({Test},strin({Test}," is"),20)
+	PRINTT	{Test}.slice(strin({Test}," is"),20)
 	PRINTT	"\n"
 
 	PRINTT	"strlen(\"{Test}\") == "
 	PRINTV	strlen({Test})
 	PRINTT	"\n"
 
-	PRINTT	strcat({Test}," you bastard\n")
+	PRINTT	{Test}+" you bastard\n"
 
-	PRINTT	strupr("JohnD\n")
-	PRINTT	strlwr("JohnD\n")
+	PRINTT	"JohnD\n".toupper()
+	PRINTT	"JohnD\n".tolower()
 
 	

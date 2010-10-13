@@ -71,11 +71,10 @@ static SLexInitString staticstrings[] =
 
     "strcmp",	T_FUNC_STRCMP,
     "strin",	T_FUNC_STRIN,
-    "strsub",	T_FUNC_STRSUB,
+    "slice",	T_FUNC_STRSUB,
     "strlen",	T_FUNC_STRLEN,
-    "strcat",	T_FUNC_STRCAT,
-    "strupr",	T_FUNC_STRUPR,
-    "strlwr",	T_FUNC_STRLWR,
+    "toupper",	T_FUNC_STRUPR,
+    "tolower",	T_FUNC_STRLWR,
 
     "printt",	T_POP_PRINTT,
     "printv",	T_POP_PRINTV,

@@ -1089,8 +1089,6 @@ static SExpression* parse_ExprPri7(void)
 
 			if(parse_ExpectChar(','))
 			{
-				parse_GetToken();
-
 				if((s2 = parse_StringExpression()) != NULL)
 				{
 					if(parse_ExpectChar(')'))
@@ -1436,7 +1434,9 @@ SLONG parse_ConstantExpression(void)
 	return 0;
 }
 
-static	char* parse_StringExpressionRaw(void)
+static char* parse_StringExpressionRaw_Pri0(void);
+
+static char* parse_StringExpressionRaw_Pri2(void)
 {
 	switch(g_CurrentToken.ID.Token)
 	{
@@ -1449,119 +1449,147 @@ static	char* parse_StringExpressionRaw(void)
 				parse_GetToken();
 				return r;
 			}
-			else
-				internalerror("Out of memory");
+
+			internalerror("Out of memory");
 			break;
 		}
-		case T_FUNC_STRSUB:
+		case '(':
 		{
-			char* r = NULL;
-			char* t;
-			SLONG start;
-			SLONG count;
+			char *r;
 
 			parse_GetToken();
-			if(!parse_ExpectChar('('))
-				return NULL;
-
-			if((t = parse_StringExpression()) != NULL)
-			{
-				if(parse_ExpectChar(','))
-				{
-					start = parse_ConstantExpression();
-					if(parse_ExpectChar(','))
-					{
-						count = parse_ConstantExpression();
-						if(parse_ExpectChar(')'))
-						{
-							if((r = malloc(count + 1)) != NULL)
-							{
-								strncpy(r, t + start - 1, count);
-								r[count] = 0;
-							}
-							else
-								internalerror("Out of memory!");
-						}
-					}
-				}
-				free(t);
-			}
-
-			return r;
-		}
-		case T_FUNC_STRCAT:
-		{
-			char* r = NULL;
-			char* t1;
-
-			parse_GetToken();
-			if(!parse_ExpectChar('('))
-				return NULL;
-
-			if((t1 = parse_StringExpression()) == NULL)
-				return NULL;
-
-			if(parse_ExpectChar(','))
-			{
-				char* t2;
-				
-				if((t2 = parse_StringExpression()) != NULL)
-				{
-					if(parse_ExpectChar(')'))
-					{
-						if((r = malloc(strlen(t1) + strlen(t2) + 1)) != NULL)
-						{
-							strcpy(r, t1);
-							strcat(r, t2);
-						}
-					}
-					free(t2);
-				}
-			}
-			free(t1);
-
-			return r;
-			break;
-		}
-		case T_FUNC_STRUPR:
-		{
-			char* r = NULL;
-
-			parse_GetToken();
-			if(!parse_ExpectChar('('))
-				return NULL;
-
-			r = parse_StringExpression();
+			r = parse_StringExpressionRaw_Pri0();
 			if(parse_ExpectChar(')'))
-			{
-				_strupr(r);
-			}
+				return r;
 
-			return r;
-		}
-		case	T_FUNC_STRLWR:
-		{
-			char* r = NULL;
-
-			parse_GetToken();
-			if(!parse_ExpectChar('('))
-				return NULL;
-
-			r = parse_StringExpression();
-			if(parse_ExpectChar(')'))
-			{
-				_strlwr(r);
-			}
-
-			return r;
+			free(r);
+			return NULL;
 		}
 	}
 	return NULL;
 }
 
-static	char* parse_StringExpression(void)
+static char* parse_StringExpressionRaw_Pri1(void)
 {
-	char* s = parse_StringExpressionRaw();
+	char* t = parse_StringExpressionRaw_Pri2();
+
+	while(g_CurrentToken.ID.Token == '.'
+	|| (g_CurrentToken.ID.Token == T_ID && g_CurrentToken.Value.aString[0] == '.'))
+	{
+		if(g_CurrentToken.ID.Token == '.')
+			parse_GetToken();
+		else
+		{
+			lex_RewindBytes(strlen(g_CurrentToken.Value.aString) - 1);
+			parse_GetToken();
+		}
+
+		switch(g_CurrentToken.ID.Token)
+		{
+			case T_FUNC_STRSUB:
+			{
+				SLONG start;
+				SLONG count;
+				SLONG len = strlen(t);
+
+				parse_GetToken();
+
+				if(!parse_ExpectChar('('))
+					return NULL;
+
+				start = parse_ConstantExpression();
+				if(start < 0)
+				{
+					start = len + start;
+					if(start < 0)
+						start = 0;
+				}
+
+				if(g_CurrentToken.ID.Token == ',')
+				{
+					parse_GetToken();
+					count = parse_ConstantExpression();
+				}
+				else
+					count = len - start;
+
+				if(parse_ExpectChar(')'))
+				{
+					char* r;
+					if((r = malloc(count + 1)) != NULL)
+					{
+						if(start + count >= len)
+							count = len - start;
+
+						strncpy(r, t + start, count);
+						r[count] = 0;
+						free(t);
+						t = r;
+					}
+					else
+						internalerror("Out of memory!");
+				}
+				break;
+			}
+			case T_FUNC_STRUPR:
+			{
+				parse_GetToken();
+				if(!parse_ExpectChar('('))
+					return NULL;
+
+				if(parse_ExpectChar(')'))
+					_strupr(t);
+
+				break;
+			}
+			case T_FUNC_STRLWR:
+			{
+				parse_GetToken();
+				if(!parse_ExpectChar('('))
+					return NULL;
+
+				if(parse_ExpectChar(')'))
+					_strlwr(t);
+
+				break;
+			}
+		}
+	}
+
+	return t;
+}
+
+static char* parse_StringExpressionRaw_Pri0(void)
+{
+	char* t1 = parse_StringExpressionRaw_Pri1();
+
+	while(g_CurrentToken.ID.Token == T_OP_ADD)
+	{
+		char* r = NULL;
+		char* t2;
+
+		parse_GetToken();
+
+		if((t2 = parse_StringExpressionRaw_Pri1()) == NULL)
+			return NULL;
+
+		if((r = malloc(strlen(t1) + strlen(t2) + 1)) != NULL)
+		{
+			strcpy(r, t1);
+			strcat(r, t2);
+		}
+		free(t2);
+		free(t1);
+
+		return r;
+	}
+
+	return t1;
+}
+
+static char* parse_StringExpression(void)
+{
+	char* s = parse_StringExpressionRaw_Pri0();
 
 	if(s == NULL)
 		prj_Error(ERROR_EXPR_STRING);
@@ -1900,12 +1928,8 @@ static BOOL parse_PseudoOp(void)
 				free(r);
 				return TRUE;
 			}
-			else
-			{
-				internalerror("String expression is NULL");
-				return FALSE;
-			}
-			break;
+
+			return FALSE;
 		}
 		case T_POP_PRINTV:
 		{
@@ -2110,7 +2134,7 @@ static BOOL parse_PseudoOp(void)
 			do
 			{
 				parse_GetToken();
-				if((s = parse_StringExpressionRaw()) != NULL)
+				if((s = parse_StringExpressionRaw_Pri0()) != NULL)
 				{
 					while(*s)
 						sect_OutputAbsByte(*s++);
@@ -2177,7 +2201,7 @@ static BOOL parse_PseudoOp(void)
 
 			lex_Bookmark(&mark);
 			parse_GetToken();
-			if((r = parse_StringExpressionRaw()) == NULL)
+			if((r = parse_StringExpressionRaw_Pri0()) == NULL)
 			{
 				char* pStart = mark.Buffer.pBuffer;
 				char* pEnd;

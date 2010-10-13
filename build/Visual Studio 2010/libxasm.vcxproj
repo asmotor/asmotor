@@ -51,6 +51,10 @@
     <ClInclude Include="..\..\xasm\common\tokens.h" />
     <ClInclude Include="..\..\xasm\common\xasm.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\xasm\common\test\strings.asm" />
+    <None Include="..\..\xasm\common\test\timedate.asm" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B8E60034-A4C8-42E5-8FD6-4C64713EC864}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
