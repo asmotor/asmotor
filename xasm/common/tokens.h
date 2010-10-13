@@ -67,7 +67,6 @@ typedef	enum
     T_FUNC_STRIN,
     T_FUNC_STRSUB,
     T_FUNC_STRLEN,
-    T_FUNC_STRCAT,
     T_FUNC_STRUPR,
     T_FUNC_STRLWR,
 
