@@ -1,30 +1,42 @@
 	PRINTT	"\"long\"'s position in \"A reasonably long string\": "
-	PRINTV	strin("A reasonably long string","long")
+	PRINTV	"A reasonably long string".indexof("long")
 
 	PRINTT	"\n\"two\"'s position in \"Another one\": "
-	PRINTV	strin("Another one","two")
+	PRINTV	"Another one".indexof("two")
 
 	PRINTT	"\n\"abc\" compared to \"abc\": "
-	PRINTV	strcmp("abc","abc")
+	PRINTV	"abc".compareto("abc")
 
 	PRINTT	"\n\"abc\" compared to \"bcd\": "
-	PRINTV	strcmp("abc","bcd")
+	PRINTV	"abc".compareto("bcd")
 
 	PRINTT	"\n\"bcd\" compared to \"abc\": "
-	PRINTV	strcmp("bcd","abc")
+	PRINTV	"bcd".compareto("abc")
+
+	PRINTT	"\n\"bcd\" > \"abc\": "
+	PRINTV	"bcd">"abc"
+
+	PRINTT	"\n\"abc\" == \"abcd\": "
+	PRINTV	"abc"=="abcd"
+
+	PRINTT	"\n\"abc\" == \"abc\": "
+	PRINTV	"abc"=="abc"
+	
+	PRINTT	"\n\"1234\": "
+	PRINTV	"1234"
 
 Test	EQUS	"This is a test"
 	PRINTT	"\n{Test}"
-	PRINTT	{Test}.slice(strin({Test}," is"),20)
+	PRINTT	{Test}.slice({Test}.indexof(" is"),20)
 	PRINTT	"\n"
 
-	PRINTT	"strlen(\"{Test}\") == "
-	PRINTV	strlen({Test})
+	PRINTT	"\{Test\}\.length == "
+	PRINTV	{Test}.length
 	PRINTT	"\n"
 
-	PRINTT	{Test}+" you bastard\n"
+	PRINTT	{Test}+" of string concatenation\n"
 
-	PRINTT	"JohnD\n".toupper()
-	PRINTT	"JohnD\n".tolower()
+	PRINTT	"This should be upper case\n".toupper()
+	PRINTT	"This should be lower case\n".tolower()
 
 	

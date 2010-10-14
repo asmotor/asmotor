@@ -409,6 +409,26 @@ static ULONG parse_ColonCount(void)
 	return 1;
 }
 
+BOOL parse_IsDot(SLexBookmark* pBookmark)
+{
+	if(pBookmark)
+		lex_Bookmark(pBookmark);
+
+	if(g_CurrentToken.ID.Token == '.')
+	{
+		parse_GetToken();
+		return TRUE;
+	}
+
+	if(g_CurrentToken.ID.Token == T_ID && g_CurrentToken.Value.aString[0] == '.')
+	{
+		lex_RewindBytes(strlen(g_CurrentToken.Value.aString) - 1);
+		parse_GetToken();
+		return TRUE;
+	}
+
+	return FALSE;
+}
 
 BOOL parse_ExpectChar(char ch)
 {
@@ -875,9 +895,9 @@ static SExpression* parse_CreateSymbolExpr(char* s)
 	}
 }
 
-static	SExpression* parse_ExprPri0(void);
+static SExpression* parse_ExprPri0(void);
 
-static	SExpression* parse_ExprPri8(void)
+static SExpression* parse_ExprPri9(void)
 {
 	switch(g_CurrentToken.ID.Token)
 	{
@@ -961,6 +981,129 @@ static	SExpression* parse_ExprPri8(void)
 }
 
 static char* parse_StringExpression(void);
+static char* parse_StringExpressionRaw_Pri0(void);
+
+SLONG parse_StringCompare(char* s)
+{
+	SLONG r = 0;
+	char* t;
+
+	parse_GetToken();
+	if((t = parse_StringExpression()) != NULL)
+	{
+		r = strcmp(s, t);
+		free(t);
+	}
+	free(s);
+
+	return r;
+}
+
+static SExpression* parse_ExprPri8(void)
+{
+	SLexBookmark bm;
+	char* s;
+
+	lex_Bookmark(&bm);
+	if((s = parse_StringExpressionRaw_Pri0()) != NULL)
+	{
+		if(parse_IsDot(NULL))
+		{
+			switch(g_CurrentToken.ID.Token)
+			{
+				case T_FUNC_COMPARETO:
+				{
+					SExpression* r = NULL;
+					char* t;
+
+					parse_GetToken();
+
+					if(parse_ExpectChar('('))
+					{
+						if((t = parse_StringExpression()) != NULL)
+						{
+							if(parse_ExpectChar(')'))
+								r = parse_CreateConstExpr(strcmp(s, t));
+
+							free(t);
+						}
+					}
+
+					free(s);
+					return r;
+				}
+				case T_FUNC_LENGTH:
+				{
+					SExpression* r = parse_CreateConstExpr((SLONG)strlen(s));
+					free(s);
+					parse_GetToken();
+
+					return r;
+				}
+				case T_FUNC_INDEXOF:
+				{
+					SExpression* r = NULL;
+					parse_GetToken();
+
+					if(parse_ExpectChar('('))
+					{
+						char* needle;
+						if((needle = parse_StringExpression()) != NULL)
+						{
+							if(parse_ExpectChar(')'))
+							{
+								char* p;
+								SLONG val = -1;
+
+								if((p = strstr(s, needle)) != NULL)
+									val = (SLONG)(p - s);
+
+								r = parse_CreateConstExpr(val);
+							}
+							free(needle);
+						}
+					}
+					free(s);
+					return r;
+				}
+				case T_OP_LOGICEQU:
+				{
+					SLONG v = parse_StringCompare(s);
+					return parse_CreateConstExpr(v == 0 ? TRUE : FALSE);
+				}
+				case T_OP_LOGICNE:
+				{
+					SLONG v = parse_StringCompare(s);
+					return parse_CreateConstExpr(v != 0 ? TRUE : FALSE);
+				}
+				case T_OP_LOGICGE:
+				{
+					SLONG v = parse_StringCompare(s);
+					return parse_CreateConstExpr(v >= 0 ? TRUE : FALSE);
+				}
+				case T_OP_LOGICGT:
+				{
+					SLONG v = parse_StringCompare(s);
+					return parse_CreateConstExpr(v > 0 ? TRUE : FALSE);
+				}
+				case T_OP_LOGICLE:
+				{
+					SLONG v = parse_StringCompare(s);
+					return parse_CreateConstExpr(v <= 0 ? TRUE : FALSE);
+				}
+				case T_OP_LOGICLT:
+				{
+					SLONG v = parse_StringCompare(s);
+					return parse_CreateConstExpr(v < 0 ? TRUE : FALSE);
+				}
+			}
+		}
+	}
+
+	free(s);
+	lex_Goto(&bm);
+	return parse_ExprPri9();
+}
 
 static SExpression* parse_TwoArgFunc(SExpression*(*pFunc)(SExpression*,SExpression*))
 {
@@ -1072,92 +1215,6 @@ static SExpression* parse_ExprPri7(void)
 				return NULL;
 
 			return t1;
-		}
-		case T_FUNC_STRCMP:
-		{
-			SExpression* r = NULL;
-			char* s1;
-			char* s2;
-
-			parse_GetToken();
-
-			if(!parse_ExpectChar('('))
-				return NULL;
-
-			if((s1 = parse_StringExpression()) == NULL)
-				return NULL;
-
-			if(parse_ExpectChar(','))
-			{
-				if((s2 = parse_StringExpression()) != NULL)
-				{
-					if(parse_ExpectChar(')'))
-					{
-						r = parse_CreateConstExpr(strcmp(s1,s2));
-					}
-
-					free(s2);
-				}
-			}
-
-			free(s1);
-			return r;
-		}
-		case T_FUNC_STRIN:
-		{
-			SExpression* r = NULL;
-			char* s1;
-			char* s2;
-
-			parse_GetToken();
-
-			if(!parse_ExpectChar('('))
-				return NULL;
-
-			if((s1 = parse_StringExpression()) == NULL)
-				return NULL;
-
-			if(parse_ExpectChar(','))
-			{
-				if((s2 = parse_StringExpression()) != NULL)
-				{
-					if(parse_ExpectChar(')'))
-					{
-						char* p;
-						SLONG val = 0;
-
-						if((p = strstr(s1, s2)) != NULL)
-							val = (SLONG)(p - s1 + 1);
-
-						r = parse_CreateConstExpr(val);
-					}
-					free(s2);
-				}
-			}
-
-			free(s1);
-			return r;
-		}
-		case T_FUNC_STRLEN:
-		{
-			SExpression* r = NULL;
-			char* s1;
-
-			parse_GetToken();
-
-			if(!parse_ExpectChar('('))
-				return NULL;
-
-			if((s1 = parse_StringExpression()) == NULL)
-				return NULL;
-
-			if(parse_ExpectChar(')'))
-			{
-				r = parse_CreateConstExpr((SLONG)strlen(s1));
-			}
-
-			free(s1);
-			return r;
 		}
 		default:
 		{
@@ -1471,22 +1528,14 @@ static char* parse_StringExpressionRaw_Pri2(void)
 
 static char* parse_StringExpressionRaw_Pri1(void)
 {
+	SLexBookmark bm;
 	char* t = parse_StringExpressionRaw_Pri2();
 
-	while(g_CurrentToken.ID.Token == '.'
-	|| (g_CurrentToken.ID.Token == T_ID && g_CurrentToken.Value.aString[0] == '.'))
+	while(parse_IsDot(&bm))
 	{
-		if(g_CurrentToken.ID.Token == '.')
-			parse_GetToken();
-		else
-		{
-			lex_RewindBytes(strlen(g_CurrentToken.Value.aString) - 1);
-			parse_GetToken();
-		}
-
 		switch(g_CurrentToken.ID.Token)
 		{
-			case T_FUNC_STRSUB:
+			case T_FUNC_SLICE:
 			{
 				SLONG start;
 				SLONG count;
@@ -1531,7 +1580,7 @@ static char* parse_StringExpressionRaw_Pri1(void)
 				}
 				break;
 			}
-			case T_FUNC_STRUPR:
+			case T_FUNC_TOUPPER:
 			{
 				parse_GetToken();
 				if(!parse_ExpectChar('('))
@@ -1542,7 +1591,7 @@ static char* parse_StringExpressionRaw_Pri1(void)
 
 				break;
 			}
-			case T_FUNC_STRLWR:
+			case T_FUNC_TOLOWER:
 			{
 				parse_GetToken();
 				if(!parse_ExpectChar('('))
@@ -1552,6 +1601,11 @@ static char* parse_StringExpressionRaw_Pri1(void)
 					_strlwr(t);
 
 				break;
+			}
+			default:
+			{
+				lex_Goto(&bm);
+				return t;
 			}
 		}
 	}
