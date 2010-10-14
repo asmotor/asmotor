@@ -69,12 +69,12 @@ static SLexInitString staticstrings[] =
     "atan",	T_FUNC_ATAN,
     "atan2",T_FUNC_ATAN2,
 
-    "strcmp",	T_FUNC_STRCMP,
-    "strin",	T_FUNC_STRIN,
-    "slice",	T_FUNC_STRSUB,
-    "strlen",	T_FUNC_STRLEN,
-    "toupper",	T_FUNC_STRUPR,
-    "tolower",	T_FUNC_STRLWR,
+    "compareto",	T_FUNC_COMPARETO,
+    "indexof",	T_FUNC_INDEXOF,
+    "slice",	T_FUNC_SLICE,
+    "length",	T_FUNC_LENGTH,
+    "toupper",	T_FUNC_TOUPPER,
+    "tolower",	T_FUNC_TOLOWER,
 
     "printt",	T_POP_PRINTT,
     "printv",	T_POP_PRINTV,
