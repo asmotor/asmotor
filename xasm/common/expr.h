@@ -32,7 +32,7 @@ typedef	enum
 #define EXPRF_isCONSTANT	0x01
 #define EXPRF_isRELOC		0x02
 
-struct Expression
+typedef struct Expression
 {
 	struct Expression*	pLeft;
 	struct Expression*	pRight;
@@ -42,9 +42,8 @@ struct Expression
 	union
 	{
 		SLONG	Value;
-		struct	Symbol*	pSymbol;
+		struct Symbol*	pSymbol;
 	} Value;
-};
-typedef	struct Expression SExpression;
+} SExpression;
 
 #endif	/*INCLUDE_EXPR_H*/
