@@ -967,24 +967,24 @@ ULONG	lex_GetNextToken(void)
 
 			if(index)
 			{
-				g_CurrentToken.TokenLength=index;
-				if(*(g_pCurrentBuffer->pBuffer)=='\n')
+				g_CurrentToken.TokenLength = index;
+				if(*(g_pCurrentBuffer->pBuffer) == '\n')
 				{
-					while(g_CurrentToken.Value.aString[--index]==' ')
+					while(g_CurrentToken.Value.aString[--index] == ' ')
 					{
-						g_CurrentToken.Value.aString[index]=0;
-						g_CurrentToken.TokenLength-=1;
+						g_CurrentToken.Value.aString[index] = 0;
+						g_CurrentToken.TokenLength -= 1;
 					}
 				}
-				g_CurrentToken.ID.Token=T_STRING;
-				return (T_STRING);
+				g_CurrentToken.ID.Token = T_STRING;
+				return T_STRING;
 			}
-			else if(*(g_pCurrentBuffer->pBuffer)=='\n')
+			else if(*(g_pCurrentBuffer->pBuffer) == '\n')
 			{
-				g_pCurrentBuffer->pBuffer+=1;
+				g_pCurrentBuffer->pBuffer += 1;
 				g_pCurrentBuffer->bAtLineStart = TRUE;
 				g_CurrentToken.TokenLength = 1;
-				g_CurrentToken.ID.Token='\n';
+				g_CurrentToken.ID.Token = '\n';
 				return '\n';
 			}
 			else if(*(g_pCurrentBuffer->pBuffer)==',')

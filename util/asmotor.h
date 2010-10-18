@@ -46,7 +46,7 @@ extern int _strnicmp(const char* pszString1, const char* pszString2, int nCount)
 #if defined(_MSC_VER) || defined(__VBCC__) || defined(__GNUC__)
 #	define	internalerror(s)	fprintf( stderr, "Internal error at "__FILE__"(%d): %s\n", __LINE__, s),exit(EXIT_FAILURE)
 #else
-#	define	internalerror(s)	fprintf( stderr, "Internal error at "__FILE__"(%d): %s\n", __LINE__, s),exit(EXIT_FAILURE),return(NULL)
+#	define	internalerror(s)	fprintf( stderr, "Internal error at "__FILE__"(%d): %s\n", __LINE__, s),exit(EXIT_FAILURE),return NULL
 #endif
 
 
