@@ -59,8 +59,9 @@ static SLexInitString staticstrings[] =
 
     "def",	T_FUNC_DEF,
 
-    "div",	T_FUNC_FDIV,
-    "mul",	T_FUNC_FMUL,
+    "//",	T_FUNC_FDIV,
+    "**",	T_FUNC_FMUL,
+
     "sin",	T_FUNC_SIN,
     "cos",	T_FUNC_COS,
     "tan",	T_FUNC_TAN,
@@ -177,44 +178,65 @@ static SLONG char2bin(char ch)
 
 typedef	SLONG (*x2bin)(char ch);
 
-static SLONG ascii2bin(char* s)
+static SLONG ascii2bin(char* s, size_t len)
 {
-	SLONG	radix = 10;
-	SLONG   result = 0;
-	x2bin	convertfunc=char2bin;
+	SLONG radix = 10;
+	SLONG result = 0;
+	x2bin convertfunc = char2bin;
 
-	switch (*s)
+	switch(*s)
 	{
 		case '$':
 			radix = 16;
-			s += 1;
-			convertfunc=char2bin;
+			++s;
+			--len;
+			convertfunc = char2bin;
 			break;
 		case '%':
 			radix = 2;
-			s += 1;
-			convertfunc=binary2bin;
+			++s;
+			--len;
+			convertfunc = binary2bin;
 			break;
 	}
 
-	while(*s != '\0')
+	while(*s != '\0' && len-- > 0)
 		result = result * radix + convertfunc(*s++);
 
-	return (result);
+	return result;
 }
 
 
 static BOOL ParseNumber(char* s, ULONG size)
 {
-    char dest[256];
+    g_CurrentToken.Value.nInteger = ascii2bin(s, size);
+    return TRUE;
+}
 
-	if(size >= 256)
-		size = 255;
+static BOOL ParseDecimal(char* s, ULONG size)
+{
+	ULONG integer = 0;
 
-    strncpy(dest, s, size);
-    dest[size] = 0;
-    g_CurrentToken.Value.nInteger = ascii2bin(dest);
+	while(*s >= '0' && *s <= '9' && size-- > 0)
+		integer = integer * 10 + *s++ - '0';
 
+	if(*s == '.')
+	{
+		ULONG fraction = 0;
+		ULONG d = 1;
+		++s;
+		--size;
+		while(*s >= '0' && *s <= '9' && size-- > 0)
+		{
+			fraction = fraction * 10 + *s++ - '0';
+			d *= 10;
+		}
+
+		integer = (integer << 16) + imuldiv(fraction, 65536, d);
+	}
+
+	g_CurrentToken.TokenLength -= size;
+    g_CurrentToken.Value.nInteger = integer;
     return TRUE;
 }
 
@@ -283,33 +305,6 @@ static BOOL ParseSymbol(char* src, ULONG size)
 	return TRUE;
 }
 
-static BOOL ParseFixedPoint(char* s, ULONG size)
-{
-	char dest[256];
-	ULONG i = 0;
-	ULONG dot = 0;
-
-	while(size && dot != 2)
-	{
-		if(s[i] == '.')
-			dot+=1;
-
-		if(dot < 2)
-		{
-			dest[i] = s[i];
-			size -= 1;
-			i += 1;
-		}
-	}
-
-	dest[i] = 0;
-
-	lex_RewindBytes(size);
-
-	g_CurrentToken.Value.nInteger = (SLONG)(atof(s) * 65536);
-	return TRUE;
-}
-
 BOOL ParseMacroArg(char* src, ULONG size)
 {
 	char* arg = fstk_GetMacroArgValue(src[1]);
@@ -344,25 +339,25 @@ SLexFloat tMacroUniqueToken=
     T_LEX_MACROUNIQUE
 };
 
-SLexFloat	tFixedToken=
+SLexFloat tDecimal =
 {
-    ParseFixedPoint,
+    ParseDecimal,
     T_NUMBER
 };
 
-SLexFloat	tNumberToken=
+SLexFloat tNumberToken=
 {
     ParseNumber,
     T_NUMBER
 };
 
-SLexFloat	tIDToken=
+SLexFloat tIDToken=
 {
     ParseSymbol,
     T_ID
 };
 
-void	globlex_Init(void)
+void globlex_Init(void)
 {
 	ULONG	id;
 
@@ -419,7 +414,7 @@ void	globlex_Init(void)
     lex_FloatAddRangeAndBeyond(id, '@', '@', 2);
 	lex_FloatSetSuffix(id, '$');
 
-    /*      Macro arguments */
+    /* Macro arguments */
 
     id = lex_FloatAlloc(&tMacroArgToken);
     lex_FloatAddRange(id, '\\', '\\', 1);
@@ -428,20 +423,14 @@ void	globlex_Init(void)
     lex_FloatAddRange(id, '\\', '\\', 1);
     lex_FloatAddRange(id, '@', '@', 2);
 
-	/*      Decimal constants*/
+	/* Decimal constants */
 
-    id = lex_FloatAlloc(&tNumberToken);
-    lex_FloatAddRangeAndBeyond(id, '0', '9', 1);
-
-	/* Fixedpoint constants */
-	/*
-    id = lex_FloatAlloc(&tFixedToken);
-    lex_FloatAddRange(id, '@', '@', 1);
+    id = lex_FloatAlloc(&tDecimal);
+    lex_FloatAddRange(id, '0', '9', 1);
     lex_FloatAddRangeAndBeyond(id, '0', '9', 2);
     lex_FloatAddRangeAndBeyond(id, '.', '.', 2);
-	*/
 
-	/*      Hex constants*/
+	/* Hex constants*/
 
     id = lex_FloatAlloc(&tNumberToken);
     lex_FloatAddRange(id, '$', '$', 1);

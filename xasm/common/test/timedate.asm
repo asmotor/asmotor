@@ -1,2 +1,2 @@
-	PRINTT	"The time is {__TIME__}\n"
-	PRINTT	"Todays date {__DATE__}\n"
+	PRINTT	"The time is {__TIME}\n"
+	PRINTT	"Todays date {__DATE}\n"
