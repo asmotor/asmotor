@@ -464,13 +464,13 @@ SLONG calc_patch(SPatch* patch, SSection* sect)
 			case OBJ_FUNC_FDIV:
 			{
 				pop2(&left, &right);
-				push(double2fix(fix2double(left) / fix2double(right)));
+				push(imuldiv(left, 65536, right));
 				break;
 			}
 			case OBJ_FUNC_FMUL:
 			{
 				pop2(&left, &right);
-				push(double2fix(fix2double(left) * fix2double(right)));
+				push(imuldiv(left, right, 65536));
 				break;
 			}
 			case OBJ_FUNC_ATAN2:

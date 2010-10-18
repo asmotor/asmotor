@@ -58,7 +58,8 @@ void PrintUsage(void)
    		"    -e(l|b) Change endianness (CAUTION!)\n"
 		"    -f<f>   Output format, one of\n"
 		"                x - xobj (default)\n"
-		"                b - binary file \n");
+		"                b - binary file \n",
+		g_pConfiguration->pszExecutable, g_pConfiguration->pszBackendVersion, g_pConfiguration->pszExecutable);
 
 	if(g_pConfiguration->bSupportAmiga)
 	{
@@ -76,8 +77,7 @@ void PrintUsage(void)
    		"    -z<XX>  Set the byte value (hex format) used for uninitialised\n"
 		"            data (default is ? for random)\n"
 		"\n"
-		"Machine specific options:\n",
-		g_pConfiguration->pszExecutable, g_pConfiguration->pszBackendVersion, g_pConfiguration->pszExecutable);
+		"Machine specific options:\n");
 	locopt_PrintOptions();
     exit(EXIT_SUCCESS);
 }

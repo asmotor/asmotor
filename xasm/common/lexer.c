@@ -871,7 +871,7 @@ static ULONG lex_LexStateNormal()
 			if(pFloatToken->nToken == T_ID && bLineStart)
 			{
 				g_pCurrentBuffer->pBuffer += g_CurrentToken.TokenLength;
-				g_CurrentToken.ID.Token=T_LABEL;
+				g_CurrentToken.ID.Token = T_LABEL;
 				return T_LABEL;
 			}
 			else

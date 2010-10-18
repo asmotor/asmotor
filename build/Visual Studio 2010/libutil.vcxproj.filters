@@ -3,6 +3,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\util\amitime.c" />
     <ClCompile Include="..\..\util\strings.c" />
+    <ClCompile Include="..\..\util\math.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\util\amitime.h" />

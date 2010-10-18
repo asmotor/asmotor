@@ -29,6 +29,8 @@ Test	EQUS	"This is a test"
 	PRINTT	"\n{Test}"
 	PRINTT	{Test}.slice({Test}.indexof(" is"),20)
 	PRINTT	"\n"
+	PRINTV	{Test}.slice({Test}.indexof(" is"),20).toupper().length
+	PRINTT	"\n"
 
 	PRINTT	"\{Test\}\.length == "
 	PRINTV	{Test}.length

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\util\amitime.c" />
+    <ClCompile Include="..\..\util\math.c" />
     <ClCompile Include="..\..\util\strings.c" />
   </ItemGroup>
   <ItemGroup>

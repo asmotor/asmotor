@@ -751,7 +751,7 @@ static SExpression* parse_CreateFDIVExpr(SExpression* left, SExpression* right)
 
 	if(right->Value.Value != 0)
 	{
-		val = double2fix(fix2double(left->Value.Value) / fix2double(right->Value.Value));
+		val = imuldiv(left->Value.Value, 65536, right->Value.Value);
 
 		left = parse_MergeExpressions(left, right);
 		left->Type = EXPR_OPERATOR;
@@ -773,7 +773,7 @@ static SExpression* parse_CreateFMULExpr(SExpression* left, SExpression* right)
 
 	parse_VerifyPointers(left, right);
 
-	val = double2fix(fix2double(left->Value.Value) * fix2double(right->Value.Value));
+	val = imuldiv(left->Value.Value, right->Value.Value, 65536);
 
 	left = parse_MergeExpressions(left, right);
 	left->Type = EXPR_OPERATOR;
@@ -1149,10 +1149,6 @@ static SExpression* parse_ExprPri7(void)
 {
 	switch(g_CurrentToken.ID.Token)
 	{
-		case T_FUNC_FDIV:
-			return parse_TwoArgFunc(parse_CreateFDIVExpr);
-		case T_FUNC_FMUL:
-			return parse_TwoArgFunc(parse_CreateFMULExpr);
 		case T_FUNC_ATAN2:
 			return parse_TwoArgFunc(parse_CreateATAN2Expr);
 		case T_FUNC_SIN:
@@ -1263,6 +1259,8 @@ static	SExpression* parse_ExprPri5(void)
 	   || g_CurrentToken.ID.Token == T_OP_SHR
 	   || g_CurrentToken.ID.Token == T_OP_MUL
 	   || g_CurrentToken.ID.Token == T_OP_DIV
+	   || g_CurrentToken.ID.Token == T_FUNC_FMUL
+	   || g_CurrentToken.ID.Token == T_FUNC_FDIV
 	   || g_CurrentToken.ID.Token == T_OP_MOD)
 	{
 		switch(g_CurrentToken.ID.Token)
@@ -1279,10 +1277,22 @@ static	SExpression* parse_ExprPri5(void)
 				t1 = parse_CreateSHRExpr(t1, parse_ExprPri6());
 				break;
 			}
+			case T_FUNC_FMUL:
+			{
+				parse_GetToken();
+				t1 = parse_CreateFMULExpr(t1, parse_ExprPri6());
+				break;
+			}
 			case T_OP_MUL:
 			{
 				parse_GetToken();
 				t1 = parse_CreateMULExpr(t1, parse_ExprPri6());
+				break;
+			}
+			case T_FUNC_FDIV:
+			{
+				parse_GetToken();
+				t1 = parse_CreateFDIVExpr(t1, parse_ExprPri6());
 				break;
 			}
 			case T_OP_DIV:
@@ -1495,6 +1505,9 @@ static char* parse_StringExpressionRaw_Pri0(void);
 
 static char* parse_StringExpressionRaw_Pri2(void)
 {
+	SLexBookmark bm;
+	lex_Bookmark(&bm);
+
 	switch(g_CurrentToken.ID.Token)
 	{
 		case T_STRING:
@@ -1516,9 +1529,13 @@ static char* parse_StringExpressionRaw_Pri2(void)
 
 			parse_GetToken();
 			r = parse_StringExpressionRaw_Pri0();
-			if(parse_ExpectChar(')'))
-				return r;
+			if(r != NULL)
+			{
+				if(parse_ExpectChar(')'))
+					return r;
+			}
 
+			lex_Goto(&bm);
 			free(r);
 			return NULL;
 		}

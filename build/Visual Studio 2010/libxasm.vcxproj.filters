@@ -45,5 +45,8 @@
     <None Include="..\..\xasm\common\test\timedate.asm">
       <Filter>test</Filter>
     </None>
+    <None Include="..\..\xasm\common\test\fractal.asm">
+      <Filter>test</Filter>
+    </None>
   </ItemGroup>
 </Project>

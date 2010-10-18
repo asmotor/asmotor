@@ -34,8 +34,9 @@ typedef	enum
 
 
 typedef	signed char	SBYTE;
-typedef	signed short	SWORD;
+typedef	signed short SWORD;
 typedef	signed long	SLONG;
+typedef signed long long SLLONG;
 
 
 #define	INVERTBOOL(x)	((x)?FALSE:TRUE)
