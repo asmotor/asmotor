@@ -27,8 +27,17 @@
 #define	LINK_VERSION	"1.00"
 #define	LIB_VERSION		"1.00"
 
-
 extern SLONG imuldiv(SLONG a, SLONG b, SLONG c);
+
+extern SLONG fmul(SLONG a, SLONG b);
+extern SLONG fdiv(SLONG a, SLONG b);
+extern SLONG fsin(SLONG a);
+extern SLONG fcos(SLONG a);
+extern SLONG ftan(SLONG a);
+extern SLONG fasin(SLONG a);
+extern SLONG facos(SLONG a);
+extern SLONG fatan(SLONG a);
+extern SLONG fatan2(SLONG a, SLONG b);
 
 
 #ifdef	__GNUC__
