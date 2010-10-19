@@ -389,12 +389,6 @@ BOOL	parse_CopyMacro(char** dest, ULONG* size)
 
 
 
-#define	fix2double(i)	((double)(i/65536.0))
-#define	double2fix(d)	((SLONG)(d*65536.0))
-#ifndef	PI
-#define	PI				3.14159265358979323846264338327950288419716939937510
-#endif
-
 static ULONG parse_ColonCount(void)
 {
 	if(g_CurrentToken.ID.Token == ':')
@@ -751,7 +745,7 @@ static SExpression* parse_CreateFDIVExpr(SExpression* left, SExpression* right)
 
 	if(right->Value.Value != 0)
 	{
-		val = imuldiv(left->Value.Value, 65536, right->Value.Value);
+		val = fdiv(left->Value.Value, right->Value.Value);
 
 		left = parse_MergeExpressions(left, right);
 		left->Type = EXPR_OPERATOR;
@@ -773,7 +767,7 @@ static SExpression* parse_CreateFMULExpr(SExpression* left, SExpression* right)
 
 	parse_VerifyPointers(left, right);
 
-	val = imuldiv(left->Value.Value, right->Value.Value, 65536);
+	val = fmul(left->Value.Value, right->Value.Value);
 
 	left = parse_MergeExpressions(left, right);
 	left->Type = EXPR_OPERATOR;
@@ -789,7 +783,7 @@ static SExpression* parse_CreateATAN2Expr(SExpression* left, SExpression* right)
 
 	parse_VerifyPointers(left, right);
 
-	val = (double2fix(atan2(fix2double(left->Value.Value), fix2double(right->Value.Value)) / 2 / PI * 65536));
+	val = fatan2(left->Value.Value, right->Value.Value);
 
 	left = parse_MergeExpressions(left, right);
 	left->Type = EXPR_OPERATOR;
@@ -799,7 +793,7 @@ static SExpression* parse_CreateATAN2Expr(SExpression* left, SExpression* right)
 	return left;
 }
 
-#define CREATETRANSEXPR_(NAME,FUNC,SCALE)								\
+#define CREATETRANSEXPR(NAME,FUNC)										\
 static SExpression* parse_Create ## NAME ## Expr(SExpression* right)	\
 {																		\
 	SExpression* expr;													\
@@ -808,7 +802,7 @@ static SExpression* parse_Create ## NAME ## Expr(SExpression* right)	\
 	{																	\
 		expr->pRight = right;											\
 		expr->pLeft = NULL;												\
-		expr->Value.Value = double2fix(FUNC(fix2double(right->Value.Value) * (SCALE)));	\
+		expr->Value.Value = FUNC(right->Value.Value);					\
 		expr->Flags = right->Flags & ~EXPRF_isRELOC;					\
 		expr->Type = EXPR_OPERATOR;										\
 		expr->Operator = T_FUNC_ ## NAME;								\
@@ -821,18 +815,12 @@ static SExpression* parse_Create ## NAME ## Expr(SExpression* right)	\
 	}																	\
 }
 
-#define CREATETRANSEXPR(NAME,FUNC)	\
-	CREATETRANSEXPR_(NAME,FUNC,2*PI/65536)
-
-#define CREATEATRANSEXPR(NAME,FUNC)	\
-	CREATETRANSEXPR_(NAME,FUNC,65536/(2*PI))
-
-CREATETRANSEXPR(SIN,sin)
-CREATETRANSEXPR(COS,cos)
-CREATETRANSEXPR(TAN,tan)
-CREATEATRANSEXPR(ASIN,asin)
-CREATEATRANSEXPR(ACOS,acos)
-CREATEATRANSEXPR(ATAN,atan)
+CREATETRANSEXPR(SIN,fsin)
+CREATETRANSEXPR(COS,fcos)
+CREATETRANSEXPR(TAN,ftan)
+CREATETRANSEXPR(ASIN,fasin)
+CREATETRANSEXPR(ACOS,facos)
+CREATETRANSEXPR(ATAN,fatan)
 
 static SExpression* parse_CreateBANKExpr(char* s)
 {
@@ -2015,10 +2003,12 @@ static BOOL parse_PseudoOp(void)
 
 			parse_GetToken();
 			i = parse_ConstantExpression();
-		    if(i >= 0)
-				printf( "%ld.%05ld", i>>16, ((SLONG)(fix2double(i)*100000+0.5))%100000);
-		    else
-				printf( "-%ld.%05ld", (-i)>>16, ((SLONG)(fix2double(-i)*100000+0.5))%100000);
+			if(i < 0)
+			{
+				printf("-");
+				i = -i;
+			}
+			printf("%ld.%05ld", i >> 16, imuldiv(i & 0xFFFF, 100000, 65536));
 
 			return TRUE;
 			break;

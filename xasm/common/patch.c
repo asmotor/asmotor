@@ -32,11 +32,6 @@
 
 
 //	Private defines
-#define	fix2double(i)	((double)((i)/65536.0))
-#define	double2fix(d)	((SLONG)((d)*65536.0))
-#ifndef	PI
-#define	PI				(acos(-1))
-#endif
 
 typedef SLONG (*pPredicate_t)(SLONG nLeft, SLONG nRight);
 typedef SLONG (*pPredicate1_t)(SLONG nValue);
@@ -153,17 +148,17 @@ static SLONG patch_PredNotEquals(SLONG nLeft, SLONG nRight)
 
 static SLONG patch_PredFDiv(SLONG nLeft, SLONG nRight)
 {
-	return double2fix(fix2double(nLeft) / fix2double(nRight));
+	return fdiv(nLeft, nRight);
 }
 
 static SLONG patch_PredFMul(SLONG nLeft, SLONG nRight)
 {
-	return double2fix(fix2double(nLeft) * fix2double(nRight));
+	return fmul(nLeft, nRight);
 }
 
 static SLONG patch_PredAtan2(SLONG nLeft, SLONG nRight)
 {
-	return double2fix(atan2(fix2double(nLeft), fix2double(nRight)) / 2 / PI * 65536);
+	return fatan2(nLeft, nRight);
 }
 
 static SLONG patch_PredBoolNot(SLONG nValue)
@@ -178,32 +173,32 @@ static SLONG patch_PredNot(SLONG nValue)
 
 static SLONG patch_PredSin(SLONG nValue)
 {
-	return double2fix(sin(fix2double(nValue) * 2 * PI / 65536));
+	return fsin(nValue);
 }
 
 static SLONG patch_PredCos(SLONG nValue)
 {
-	return double2fix(cos(fix2double(nValue) * 2 * PI / 65536));
+	return fcos(nValue);
 }
 
 static SLONG patch_PredTan(SLONG nValue)
 {
-	return double2fix(tan(fix2double(nValue) * 2 * PI / 65536));
+	return ftan(nValue);
 }
 
 static SLONG patch_PredAsin(SLONG nValue)
 {
-	return double2fix(asin(fix2double(nValue)) / 2 / PI * 65536);
+	return fasin(nValue);
 }
 
 static SLONG patch_PredAcos(SLONG nValue)
 {
-	return double2fix(acos(fix2double(nValue)) / 2 / PI * 65536);
+	return facos(nValue);
 }
 
 static SLONG patch_PredAtan(SLONG nValue)
 {
-	return double2fix(atan(fix2double(nValue)) / 2 / PI * 65536);
+	return fatan(nValue);
 }
 
 

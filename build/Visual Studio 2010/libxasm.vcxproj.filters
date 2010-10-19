@@ -48,5 +48,8 @@
     <None Include="..\..\xasm\common\test\fractal.asm">
       <Filter>test</Filter>
     </None>
+    <None Include="..\..\xasm\common\test\sinetest.asm">
+      <Filter>test</Filter>
+    </None>
   </ItemGroup>
 </Project>

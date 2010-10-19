@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\xasm\common\test\fractal.asm" />
+    <None Include="..\..\xasm\common\test\sinetest.asm" />
     <None Include="..\..\xasm\common\test\strings.asm" />
     <None Include="..\..\xasm\common\test\timedate.asm" />
   </ItemGroup>

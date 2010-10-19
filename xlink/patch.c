@@ -20,13 +20,6 @@
 #include "xlink.h"
 #include <math.h>
 
-#define	fix2double(i)	((double)((i)/65536.0))
-#define	double2fix(d)	((SLONG)((d)*65536.0))
-
-#ifndef	PI
-#define	PI				(acos(-1))
-#endif
-
 #define	STACKSIZE	256
 
 static char* g_StringStack[STACKSIZE];
@@ -476,37 +469,37 @@ SLONG calc_patch(SPatch* patch, SSection* sect)
 			case OBJ_FUNC_ATAN2:
 			{
 				pop2(&left, &right);
-				push(double2fix(atan2(fix2double(left), fix2double(right)) / 2 / PI * 65536));
+				push(fatan2(left, right));
 				break;
 			}
 			case OBJ_FUNC_SIN:
 			{
-				push(double2fix(sin(fix2double(pop())) * 2 * PI / 65536));
+				push(fsin(pop()));
 				break;
 			}
 			case OBJ_FUNC_COS:
 			{
-				push(double2fix(cos(fix2double(pop())) * 2 * PI / 65536));
+				push(fcos(pop()));
 				break;
 			}
 			case OBJ_FUNC_TAN:
 			{
-				push(double2fix(tan(fix2double(pop())) * 2 * PI / 65536));
+				push(ftan(pop()));
 				break;
 			}
 			case OBJ_FUNC_ASIN:
 			{
-				push(double2fix(asin(fix2double(pop())) / 2 / PI * 65536));
+				push(fasin(pop()));
 				break;
 			}
 			case OBJ_FUNC_ACOS:
 			{
-				push(double2fix(acos(fix2double(pop())) / 2 / PI * 65536));
+				push(facos(pop()));
 				break;
 			}
 			case OBJ_FUNC_ATAN:
 			{
-				push(double2fix(atan(fix2double(pop())) / 2 / PI * 65536));
+				push(fatan(pop()));
 				break;
 			}
 			case OBJ_CONSTANT:
