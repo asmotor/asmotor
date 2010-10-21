@@ -22,6 +22,7 @@
 
 #include "asmotor.h"
 #include "amitime.h"
+#include "amigaobj.h"
 #include "section.h"
 #include "symbol.h"
 #include "globlex.h"
