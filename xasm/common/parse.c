@@ -1084,6 +1084,8 @@ static SExpression* parse_ExprPri8(void)
 					SLONG v = parse_StringCompare(s);
 					return parse_CreateConstExpr(v < 0 ? TRUE : FALSE);
 				}
+				default:
+					break;
 			}
 		}
 	}
@@ -1295,6 +1297,8 @@ static	SExpression* parse_ExprPri5(void)
 				t1 = parse_CreateMODExpr(t1, parse_ExprPri6());
 				break;
 			}
+			default:
+				break;
 		}
 	}
 
@@ -1329,6 +1333,8 @@ static	SExpression* parse_ExprPri4(void)
 				t1 = parse_CreateANDExpr(t1, parse_ExprPri5());
 				break;
 			}
+			default:
+				break;
 		}
 	}
 
@@ -1356,6 +1362,8 @@ static SExpression* parse_ExprPri3(void)
 				t1 = parse_CreateSUBExpr(t1, parse_ExprPri4());
 				break;
 			}
+			default:
+				 break;
 		}
 	}
 	return t1;
@@ -1412,6 +1420,8 @@ static	SExpression* parse_ExprPri2(void)
 				t1 = parse_CreateLOGICNEExpr(t1, parse_ExprPri3());
 				break;
 			}
+			default:
+				break;
 		}
 	}
 
@@ -1457,6 +1467,8 @@ static	SExpression* parse_ExprPri0(void)
 				t1 = parse_CreateLOGICANDExpr(t1, parse_ExprPri1());
 				break;
 			}
+			default:
+				break;
 		}
 	}
 
@@ -1527,6 +1539,8 @@ static char* parse_StringExpressionRaw_Pri2(void)
 			free(r);
 			return NULL;
 		}
+		default:
+		  break;
 	}
 	return NULL;
 }

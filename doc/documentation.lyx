@@ -1,4 +1,4 @@
-#LyX 1.6.5 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.7 created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -693,7 +693,7 @@ RSRESET
 \begin_inset Text
 
 \begin_layout Plain Layout
-Resets the _RS counter to zero
+Resets the __RS counter to zero
 \end_layout
 
 \end_inset
@@ -713,7 +713,7 @@ RSSET constexpr
 \begin_inset Text
 
 \begin_layout Plain Layout
-Sets the _RS counter to the value of constexpr
+Sets the __RS counter to the value of constexpr
 \end_layout
 
 \end_inset
@@ -733,7 +733,7 @@ Symbol: RB constexpr
 \begin_inset Text
 
 \begin_layout Plain Layout
-Sets Symbol to _RS and adds constexpr to _RS
+Sets Symbol to __RS and adds constexpr to __RS
 \end_layout
 
 \end_inset
@@ -753,7 +753,7 @@ Symbol: RW constexpr
 \begin_inset Text
 
 \begin_layout Plain Layout
-Sets Symbol to _RS and adds 2*constexpr to _RS
+Sets Symbol to __RS and adds 2*constexpr to __RS
 \end_layout
 
 \end_inset
@@ -773,7 +773,7 @@ Symbol: RL constexpr
 \begin_inset Text
 
 \begin_layout Plain Layout
-Sets Symbol to _RS and adds 4*constexpr to _RS
+Sets Symbol to __RS and adds 4*constexpr to __RS
 \end_layout
 
 \end_inset
@@ -1098,7 +1098,7 @@ The assembler declares several symbols:
 
 \begin_layout Standard
 \begin_inset Tabular
-<lyxtabular version="3" rows="9" columns="3">
+<lyxtabular version="3" rows="8" columns="3">
 <features booktabs="true">
 <column alignment="left" valignment="top" width="0">
 <column alignment="left" valignment="top" width="0">
@@ -1166,12 +1166,12 @@ EQU
 \begin_inset Text
 
 \begin_layout Plain Layout
-_PI
+__RS
 \begin_inset Index
 status open
 
 \begin_layout Plain Layout
-_PI
+__RS
 \end_layout
 
 \end_inset
@@ -1185,46 +1185,7 @@ _PI
 \begin_inset Text
 
 \begin_layout Plain Layout
-Fixed point ¶
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-EQU
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-_RS
-\begin_inset Index
-status open
-
-\begin_layout Plain Layout
-_RS
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-_RS counter
+__RS counter
 \end_layout
 
 \end_inset
@@ -1244,12 +1205,12 @@ SET
 \begin_inset Text
 
 \begin_layout Plain Layout
-_NARG
+__NARG
 \begin_inset Index
 status open
 
 \begin_layout Plain Layout
-_NARG
+__NARG
 \end_layout
 
 \end_inset
@@ -1283,12 +1244,12 @@ EQU
 \begin_inset Text
 
 \begin_layout Plain Layout
-__LINE__
+__LINE
 \begin_inset Index
 status open
 
 \begin_layout Plain Layout
-__LINE__
+__LINE
 \end_layout
 
 \end_inset
@@ -1322,12 +1283,12 @@ EQU
 \begin_inset Text
 
 \begin_layout Plain Layout
-__FILE__
+__FILE
 \begin_inset Index
 status open
 
 \begin_layout Plain Layout
-__FILE__
+__FILE
 \end_layout
 
 \end_inset
@@ -1361,12 +1322,12 @@ EQUS
 \begin_inset Text
 
 \begin_layout Plain Layout
-__DATE__
+__DATE
 \begin_inset Index
 status open
 
 \begin_layout Plain Layout
-__DATE__
+__DATE
 \end_layout
 
 \end_inset
@@ -1400,12 +1361,12 @@ EQUS
 \begin_inset Text
 
 \begin_layout Plain Layout
-__TIME__
+__TIME
 \begin_inset Index
 status open
 
 \begin_layout Plain Layout
-__TIME__
+__TIME
 \end_layout
 
 \end_inset
@@ -1861,10 +1822,6 @@ Decimal 0123456789
 \end_layout
 
 \begin_layout Description
-Octal &01234567
-\end_layout
-
-\begin_layout Description
 Binary %01
 \end_layout
 
@@ -1981,7 +1938,7 @@ Unary bitwise not, plus, negation
 \begin_inset Text
 
 \begin_layout Plain Layout
-* / ~/
+* / ~/ ** //
 \end_layout
 
 \end_inset
@@ -1990,7 +1947,7 @@ Unary bitwise not, plus, negation
 \begin_inset Text
 
 \begin_layout Plain Layout
-Multiply, divide, modulo
+Multiply, divide, modulo, fixedpoint multiply and divide
 \end_layout
 
 \end_inset
@@ -2195,15 +2152,13 @@ Operation
 \begin_inset Text
 
 \begin_layout Plain Layout
-DIV(
+
 \emph on
 x
 \emph default
-,
+ // 
 \emph on
 y
-\emph default
-)
 \end_layout
 
 \end_inset
@@ -2226,15 +2181,13 @@ y
 \begin_inset Text
 
 \begin_layout Plain Layout
-MUL(
+
 \emph on
 x
 \emph default
-,
+ ** 
 \emph on
 y
-\emph default
-)
 \end_layout
 
 \end_inset
@@ -2456,7 +2409,8 @@ y\end{array}\right]$
 \end_layout
 
 \begin_layout Standard
-A circle has 65536.0 degrees, sine values are in the range 
+A circle has 1.0 fixed point degrees (65536 integer), sine values are in
+ the range 
 \begin_inset Formula $\left[-1.0;1.0\right]$
 \end_inset
 
@@ -2504,12 +2458,12 @@ ANGLE   SET     0.0
 
 \begin_layout Plain Layout
 
-        DB      (MUL(64.0,SIN(ANGLE))+64.0)>>16
+        DB      (64.0**SIN(ANGLE)+64.0)>>16
 \end_layout
 
 \begin_layout Plain Layout
 
-ANGLE   SET     ANGLE+256.0
+ANGLE   SET     ANGLE+1.0/256
 \end_layout
 
 \begin_layout Plain Layout
@@ -2791,7 +2745,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Symbol embedded in string literal
 \end_layout
 
@@ -2825,7 +2778,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Converting a symbol to string expression
 \end_layout
 
@@ -2845,20 +2797,20 @@ StringSymbol EQUS "Another string"
 \end_layout
 
 \begin_layout Section*
-String functions
+String functions and properties
 \end_layout
 
 \begin_layout Standard
 Several functions that work on string expressions are available.
  Some of these return strings and some return integers.
- Functions that return integer can be used as part of integer expressions,
+ Functions that return an integer can be used as part of integer expressions,
  when a string is returned the function can be used in a string expression.
 \end_layout
 
 \begin_layout List
 \labelwidthstring 00.00.0000
 \begin_inset Tabular
-<lyxtabular version="3" rows="8" columns="3">
+<lyxtabular version="3" rows="10" columns="3">
 <features>
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
@@ -2897,7 +2849,11 @@ Result
 \begin_inset Text
 
 \begin_layout Plain Layout
-STRLEN(s)
+
+\emph on
+s
+\emph default
+.length
 \end_layout
 
 \end_inset
@@ -2928,7 +2884,15 @@ s
 \begin_inset Text
 
 \begin_layout Plain Layout
-STRCMP(s1,s2)
+
+\emph on
+s1
+\emph default
+.compareto(
+\emph on
+s2
+\emph default
+)
 \end_layout
 
 \end_inset
@@ -2965,7 +2929,15 @@ s2
 \begin_inset Text
 
 \begin_layout Plain Layout
-STRIN(haystack,needle)
+
+\emph on
+s1
+\emph default
+.indexof(
+\emph on
+s2
+\emph default
+)
 \end_layout
 
 \end_inset
@@ -2985,11 +2957,13 @@ integer
 \begin_layout Plain Layout
 The position of 
 \emph on
-needle
+s2
 \emph default
  within 
 \emph on
-haystack
+s1
+\emph default
+, -1 if not found
 \end_layout
 
 \end_inset
@@ -3000,7 +2974,132 @@ haystack
 \begin_inset Text
 
 \begin_layout Plain Layout
-STRCAT(s1,s2)
+
+\emph on
+s1
+\emph default
+==
+\emph on
+s2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Non-zero if 
+\emph on
+s1
+\emph default
+ is equal to 
+\emph on
+s2
+\emph default
+, otherwise zero
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+~= < <= > >=
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+String comparison operators.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+s1
+\emph default
++
+\emph on
+s2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+string
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+String concatenation, 
+\emph on
+s1
+\emph default
+ followed by 
+\emph on
+s2
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\emph on
+s
+\emph default
+.slice(
+\emph on
+pos
+\emph default
+,
+\emph on
+count
+\emph default
+)
 \end_layout
 
 \end_inset
@@ -3019,6 +3118,18 @@ string
 
 \begin_layout Plain Layout
 
+\emph on
+count
+\emph default
+ characters from 
+\emph on
+s
+\emph default
+, starting at 
+\emph on
+pos
+\emph default
+ 
 \end_layout
 
 \end_inset
@@ -3029,7 +3140,11 @@ string
 \begin_inset Text
 
 \begin_layout Plain Layout
-STRSUB(s,pos,count)
+
+\emph on
+s
+\emph default
+.toupper()
 \end_layout
 
 \end_inset
@@ -3047,36 +3162,9 @@ string
 \begin_inset Text
 
 \begin_layout Plain Layout
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-STRUPR(s)
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-string
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Plain Layout
-
+Upper case version of 
+\emph on
+s
 \end_layout
 
 \end_inset
@@ -3087,7 +3175,11 @@ string
 \begin_inset Text
 
 \begin_layout Plain Layout
-STRLWR(s)
+
+\emph on
+s
+\emph default
+.tolower()
 \end_layout
 
 \end_inset
@@ -3105,7 +3197,9 @@ string
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+Lower case version of 
+\emph on
+s
 \end_layout
 
 \end_inset
@@ -3116,6 +3210,25 @@ string
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+pos
+\emph default
+ parameter for .slice() may also be a negative number, in which case the
+ position is relative to the end of the string, with -1 being the last character
+ of the string.
+ 
+\emph on
+count
+\emph default
+ may be completely omitted, in which case characters from 
+\emph on
+pos
+\emph default
+ until the end of the string is returned.
 \end_layout
 
 \begin_layout Section*
@@ -3183,7 +3296,7 @@ PRINTV (2+3)/5              ; Prints an integer
 
 \begin_layout Plain Layout
 
-PRINTF MUL(3.14,2)          ; Prints a fixed point value
+PRINTF 3.14**,2             ; Prints a fixed point value
 \end_layout
 
 \end_inset
@@ -3235,7 +3348,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 FAIL and WARN example
 \end_layout
 
@@ -3315,7 +3427,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 INCLUDE example
 \end_layout
 
@@ -3369,7 +3480,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Basic REPT example
 \end_layout
 

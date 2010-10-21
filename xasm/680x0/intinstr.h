@@ -43,6 +43,7 @@ static BOOL parse_OutputExtWords(SAddrMode* mode)
 					}
 					return FALSE;
 				}
+				default:
 				case SIZE_WORD:
 				{
 					mode->pImmediate = parse_Check16bit(mode->pImmediate);
@@ -206,6 +207,7 @@ static BOOL parse_OutputExtWords(SAddrMode* mode)
 				{
 					switch(mode->Outer.eDispSize)
 					{
+						default:
 						case SIZE_WORD:
 							sect_OutputExprWord(mode->Outer.pDisp);
 							break;
@@ -302,6 +304,7 @@ static BOOL parse_OutputExtWords(SAddrMode* mode)
 				{
 					switch(mode->Inner.eDispSize)
 					{
+						default:
 						case SIZE_WORD:
 							sect_OutputExprWord(mode->Inner.pDisp);
 							break;
@@ -315,6 +318,7 @@ static BOOL parse_OutputExtWords(SAddrMode* mode)
 				{
 					switch(mode->Outer.eDispSize)
 					{
+						default:
 						case SIZE_WORD:
 							sect_OutputExprWord(mode->Outer.pDisp);
 							break;
@@ -411,6 +415,7 @@ static BOOL parse_OutputExtWords(SAddrMode* mode)
 				{
 					switch(mode->Inner.eDispSize)
 					{
+						default:
 						case SIZE_WORD:
 							sect_OutputExprWord(mode->Inner.pDisp);
 							break;
@@ -424,6 +429,7 @@ static BOOL parse_OutputExtWords(SAddrMode* mode)
 				{
 					switch(mode->Outer.eDispSize)
 					{
+						default:
 						case SIZE_WORD:
 							sect_OutputExprWord(mode->Outer.pDisp);
 							break;

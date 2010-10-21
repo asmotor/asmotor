@@ -1,7 +1,5 @@
 	SECTION	"Mandelbrot",CODE
 
-	PRINTV	1.2.0
-
 PlotChar:	MACRO
 	PRINTT	".'-=+#*!?%&$?œ@ ".slice(\1&$F,1)
 	ENDM

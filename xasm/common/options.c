@@ -159,7 +159,9 @@ void	opt_Parse(char* s)
 				}
 				else
 				{
-					int	result = sscanf(&s[1], "%x", &g_pOptions->UninitChar);
+					unsigned int nUninitChar;
+					int	result = sscanf(&s[1], "%x", &nUninitChar);
+					g_pOptions->UninitChar = (int)nUninitChar;
 					if(result == EOF || result != 1)
 					{
 						prj_Warn(WARN_OPTION, s);
