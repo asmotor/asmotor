@@ -35,8 +35,8 @@ Label_In_Macro	adc	a,$10
 	PRINTT	"2+2==5\n"
 	ELSE
 	PRINTT	"2+2!=5\n"
-		IF	2+2!=4
-		PRINTT	"2+2!=4\n"
+		IF	2+2~=4
+		PRINTT	"2+2~=4\n"
 		ELSE
 		PRINTT	"2+2==4\n"
 		ENDC
