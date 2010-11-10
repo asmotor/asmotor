@@ -170,7 +170,7 @@ static BOOL parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 
 static BOOL parse_Add(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	if(pAddrMode1->nMode & MODE_REG_A)
+	if(pAddrMode1->nMode & MODE_REG_A && (pAddrMode2->nMode & (MODE_IMM | MODE_GROUP_D)))
 		return parse_Alu(pOpcode, pAddrMode1, pAddrMode2);
 	else if((pAddrMode1->nMode & MODE_REG_HL) && (pAddrMode2->nMode & MODE_GROUP_SS))
 		sect_OutputAbsByte((UBYTE)(0x09 | (pAddrMode2->eRegSS << 4)));
