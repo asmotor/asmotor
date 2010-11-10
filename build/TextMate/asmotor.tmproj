@@ -3,12 +3,10 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>../scons/SConscript.6502</string>
+	<string>../../xasm/gameboy/test/allcodes.asm</string>
 	<key>documents</key>
 	<array>
 		<dict>
-			<key>expanded</key>
-			<true/>
 			<key>name</key>
 			<string>scons</string>
 			<key>regexFolderFilter</key>
@@ -63,19 +61,103 @@
 	<integer>200</integer>
 	<key>metaData</key>
 	<dict>
-		<key>../scons/SConscript.6502</key>
+		<key>../../xasm/gameboy/test/allcodes.asm</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>8</integer>
+				<key>line</key>
+				<integer>12</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>../../xasm/gameboy/test/funkymac.asm</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
 				<integer>0</integer>
 				<key>line</key>
-				<integer>5</integer>
+				<integer>11</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
+		</dict>
+		<key>../../xasm/gameboy/test/irqtest/irqtest.asm</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>326</integer>
+		</dict>
+		<key>../../xasm/gameboy/test/pctest.asm</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>../../xasm/gameboy/test/stress/inctest.inc</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>../../xasm/gameboy/test/stress/rpntest.asm</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>2</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>../../xasm/gameboy/test/stress/z80test.asm</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>19</integer>
+				<key>line</key>
+				<integer>38</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>86</integer>
 		</dict>
 		<key>../scons/SConscript.libxasm</key>
 		<dict>
@@ -105,46 +187,20 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>../scons/SConscript.xgbfix</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>0</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
-		</dict>
-		<key>../scons/SConstruct</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>4</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
-		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
-		<string>../scons/SConstruct</string>
-		<string>../scons/SConscript.xgbfix</string>
-		<string>../scons/SConscript.6502</string>
-		<string>../scons/SConscript.mips</string>
-		<string>../scons/SConscript.libxasm</string>
+		<string>../../xasm/gameboy/test/funkymac.asm</string>
+		<string>../../xasm/gameboy/test/stress/inctest.inc</string>
+		<string>../../xasm/gameboy/test/stress/rpntest.asm</string>
+		<string>../../xasm/gameboy/test/irqtest/irqtest.asm</string>
+		<string>../../xasm/gameboy/test/allcodes.asm</string>
+		<string>../../xasm/gameboy/test/stress/z80test.asm</string>
+		<string>../../xasm/gameboy/test/pctest.asm</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{335, 149}, {774, 540}}</string>
+	<string>{{537, 105}, {774, 540}}</string>
 </dict>
 </plist>

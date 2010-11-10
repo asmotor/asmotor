@@ -1,14 +1,12 @@
 
 	SECTION	"Test",CODE
 
-John	EQUS	"\tPRINTT \"Weee\\n\"\nPRINTT \"Dang\\n\"\n"
-John2	EQUS	"[hl]"
+Print	EQUS	"\tPRINTT \"First\\n\"\nPRINTT \"Second\\n\"\n"
 
 	REPT	3
-	John
+	Print
 	REPT	2
 	PRINTT	"\t2nd REPT\n"
 	ENDR
 	ENDR
 
-	nop
