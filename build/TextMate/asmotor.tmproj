@@ -3,14 +3,16 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>../../xasm/gameboy/test/allcodes.asm</string>
+	<string>../../xasm/common/fstack.c</string>
 	<key>documents</key>
 	<array>
 		<dict>
+			<key>expanded</key>
+			<true/>
 			<key>name</key>
 			<string>scons</string>
 			<key>regexFolderFilter</key>
-			<string>!.*/(\.[^/]*|CVS|_darcs|_MTN|\{arch\}|blib|.*~\.nib|.*\.(framework|app|pbproj|pbxproj|xcode(proj)?|bundle))$</string>
+			<string>!.*</string>
 			<key>sourceDirectory</key>
 			<string>../scons</string>
 		</dict>
@@ -61,49 +63,7 @@
 	<integer>200</integer>
 	<key>metaData</key>
 	<dict>
-		<key>../../xasm/gameboy/test/allcodes.asm</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>8</integer>
-				<key>line</key>
-				<integer>12</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
-		</dict>
-		<key>../../xasm/gameboy/test/funkymac.asm</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>11</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
-		</dict>
-		<key>../../xasm/gameboy/test/irqtest/irqtest.asm</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>0</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>326</integer>
-		</dict>
-		<key>../../xasm/gameboy/test/pctest.asm</key>
+		<key>../../xasm/680x0/locparse.c</key>
 		<dict>
 			<key>caret</key>
 			<dict>
@@ -117,7 +77,7 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>../../xasm/gameboy/test/stress/inctest.inc</key>
+		<key>../../xasm/680x0/test/amigaexe.68k</key>
 		<dict>
 			<key>caret</key>
 			<dict>
@@ -131,33 +91,161 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>../../xasm/gameboy/test/stress/rpntest.asm</key>
+		<key>../../xasm/680x0/test/amigaobj.68k</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
 				<integer>0</integer>
 				<key>line</key>
-				<integer>2</integer>
+				<integer>0</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>../../xasm/gameboy/test/stress/z80test.asm</key>
+		<key>../../xasm/680x0/test/rept.68k</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>19</integer>
+				<integer>0</integer>
 				<key>line</key>
+				<integer>64</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>41</integer>
+		</dict>
+		<key>../../xasm/680x0/test/test.68k</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>6</integer>
+				<key>line</key>
+				<integer>13</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>150</integer>
+		</dict>
+		<key>../../xasm/common/fstack.c</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
 				<integer>38</integer>
+				<key>line</key>
+				<integer>289</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>86</integer>
+			<integer>278</integer>
+		</dict>
+		<key>../../xasm/common/globlex.c</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>20</integer>
+				<key>line</key>
+				<integer>393</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>379</integer>
+		</dict>
+		<key>../../xasm/common/lexer.c</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>362</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>336</integer>
+		</dict>
+		<key>../../xasm/common/parse.c</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>13</integer>
+				<key>line</key>
+				<integer>1910</integer>
+			</dict>
+			<key>columnSelection</key>
+			<false/>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>1906</integer>
+			<key>selectFrom</key>
+			<dict>
+				<key>column</key>
+				<integer>4</integer>
+				<key>line</key>
+				<integer>1910</integer>
+			</dict>
+			<key>selectTo</key>
+			<dict>
+				<key>column</key>
+				<integer>22</integer>
+				<key>line</key>
+				<integer>1910</integer>
+			</dict>
+		</dict>
+		<key>../../xasm/gameboy/locparse.c</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>37</integer>
+				<key>line</key>
+				<integer>612</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>598</integer>
+		</dict>
+		<key>../scons/SConscript.6502</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>3</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>../scons/SConscript.libutil</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
 		</dict>
 		<key>../scons/SConscript.libxasm</key>
 		<dict>
@@ -190,13 +278,18 @@
 	</dict>
 	<key>openDocuments</key>
 	<array>
-		<string>../../xasm/gameboy/test/funkymac.asm</string>
-		<string>../../xasm/gameboy/test/stress/inctest.inc</string>
-		<string>../../xasm/gameboy/test/stress/rpntest.asm</string>
-		<string>../../xasm/gameboy/test/irqtest/irqtest.asm</string>
-		<string>../../xasm/gameboy/test/allcodes.asm</string>
-		<string>../../xasm/gameboy/test/stress/z80test.asm</string>
-		<string>../../xasm/gameboy/test/pctest.asm</string>
+		<string>../../xasm/common/globlex.c</string>
+		<string>../../xasm/gameboy/locparse.c</string>
+		<string>../../xasm/680x0/test/test.68k</string>
+		<string>../../xasm/680x0/test/rept.68k</string>
+		<string>../../xasm/680x0/locparse.c</string>
+		<string>../../xasm/680x0/test/amigaobj.68k</string>
+		<string>../../xasm/680x0/test/amigaexe.68k</string>
+		<string>../../xasm/common/parse.c</string>
+		<string>../../xasm/common/fstack.c</string>
+		<string>../scons/SConscript.libutil</string>
+		<string>../scons/SConscript.6502</string>
+		<string>../../xasm/common/lexer.c</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>
