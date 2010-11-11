@@ -314,11 +314,13 @@ BOOL parse_IfSkipToElse(void)
 		else if(_strnicmp(token, "ENDC", 4) == 0)
 		{
 			lex_SkipBytes((int)(token - src));
+			g_pFileContext->LineNumber++;
 			return TRUE;
 		}
 		else if(_strnicmp(token, "ELSE", 4) == 0)
 		{
 			lex_SkipBytes((int)(token + 4 - src));
+			g_pFileContext->LineNumber++;
 			return TRUE;
 		}
 		else

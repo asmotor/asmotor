@@ -602,15 +602,15 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 		if(g_CurrentToken.ID.TargetToken == T_MODE_SP)
 		{
 			parse_GetToken();
-			if(g_CurrentToken.ID.Token == T_OP_ADD)
+			if(g_CurrentToken.ID.Token == T_OP_ADD
+			|| g_CurrentToken.ID.Token == T_OP_SUB)
 			{
 				SExpression* pExpr;
 
-				parse_GetToken();
 				pExpr = parse_Expression();
 				if(pExpr != NULL)
 				{
-					pExpr = parse_CreateExpression8U(pExpr);
+					pExpr = parse_CreateExpression8S(pExpr);
 					if(pExpr != NULL)
 					{
 						if(parse_ExpectChar(']'))

@@ -2,11 +2,11 @@
 ExportEQU	EQU	4
 	EXPORT	ExportEQU
 
-	SECTION	"Code",HOME
+	SECTION	"Code",CODE
 
-	ld	hl,Stack
+	__DCL	Stack
 
 	SECTION	"Vars",BSS
 
-	DS	256
+	__DSB	256
 Stack:
