@@ -367,6 +367,10 @@ void globlex_Init(void)
 
 	lex_AddStrings(staticstrings);
 
+	lex_AddString("__RSB", T_POP_RB);
+	lex_AddString("__RSW", T_POP_RW);
+	lex_AddString("__RSL", T_POP_RL);
+	
 	if(g_pConfiguration->pszNameRB)
 		lex_AddString(g_pConfiguration->pszNameRB, T_POP_RB);
 	if(g_pConfiguration->pszNameRW)
@@ -374,6 +378,10 @@ void globlex_Init(void)
 	if(g_pConfiguration->pszNameRL)
 		lex_AddString(g_pConfiguration->pszNameRL, T_POP_RL);
 
+	lex_AddString("__DSB", T_POP_DSB);
+	lex_AddString("__DSW", T_POP_DSW);
+	lex_AddString("__DSL", T_POP_DSL);
+	
 	if(g_pConfiguration->pszNameDSB)
 		lex_AddString(g_pConfiguration->pszNameDSB, T_POP_DSB);
 	if(g_pConfiguration->pszNameDSW)
@@ -381,6 +389,10 @@ void globlex_Init(void)
 	if(g_pConfiguration->pszNameDSL)
 		lex_AddString(g_pConfiguration->pszNameDSL, T_POP_DSL);
 
+	lex_AddString("__DCB", T_POP_DB);
+	lex_AddString("__DCW", T_POP_DW);
+	lex_AddString("__DCL", T_POP_DL);
+	
 	if(g_pConfiguration->pszNameDB)
 		lex_AddString(g_pConfiguration->pszNameDB, T_POP_DB);
 	if(g_pConfiguration->pszNameDW)

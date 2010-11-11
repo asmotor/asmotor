@@ -30,6 +30,10 @@ Label_In_Macro	adc	a,$10
 	ENDM
 
 	PRINTT	"This is a test\n"
+	
+	PRINTT	"Expect $23:"
+	PRINTV	__LINE
+	PRINTT	"\n"
 
 	IF	2+2==5
 	PRINTT	"2+2==5\n"
@@ -41,6 +45,10 @@ Label_In_Macro	adc	a,$10
 		PRINTT	"2+2==4\n"
 		ENDC
 	ENDC
+
+	PRINTT	"Expect $32:"
+	PRINTV	__LINE
+	PRINTT	"\n"
 
 	PRINTT	"Yet another test\n"
 label
@@ -56,6 +64,10 @@ SETTest	SET	4
 
 ;testcomment:
 ; .test
+
+	PRINTT	"Expect 61:"
+	PRINTV	__LINE
+	PRINTT	"\n"
 
 	PRINTT	"Print the numbers $0-$5:\n"
 	RecursiveArgs 5
@@ -99,7 +111,7 @@ newscope2:
 
 	daa
 
-	PRINTV	@-newscope2
+;	PRINTV	@-newscope2
 
 	INCLUDE	"inctest.inc"
 
@@ -109,9 +121,6 @@ newscope2:
 
 	di
 	ei
-
-	ex	hl,[sp]
-	ex	[sp],hl
 
 	halt
 

@@ -3,9 +3,9 @@
 Scope:
 
 	RSSET	30
-Test1	RB	1
-Test2	RW	1
-Test3	RW	4
+Test1	__RSB	1
+Test2	__RSW	1
+Test3	__RSW	4
 Test_SIZEOF	RB	0
 
 	PRINTT	"Test1 (should be $1E): "
@@ -26,7 +26,7 @@ Test_SIZEOF	RB	0
 
 TestMacro:	MACRO
 	PRINTT	"\@"
-.label\@	DW	.label\@
+.label\@	__DCW	.label\@
 	ENDM
 
 	TestMacro
