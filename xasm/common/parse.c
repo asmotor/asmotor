@@ -1909,6 +1909,7 @@ static BOOL parse_PseudoOp(void)
 			{
 				g_pFileContext->BlockInfo.Rept.RemainingRuns = 0;
 				fstk_RunNextBuffer();
+				g_pFileContext->LineNumber++;
 			}
 			parse_GetToken();
 			return TRUE;

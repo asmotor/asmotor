@@ -34,6 +34,12 @@
     <ClCompile Include="..\..\xasm\680x0\locsym.c" />
     <ClCompile Include="..\..\xasm\680x0\main.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\xasm\680x0\test\amigaexe.68k" />
+    <None Include="..\..\xasm\680x0\test\amigaobj.68k" />
+    <None Include="..\..\xasm\680x0\test\rept.68k" />
+    <None Include="..\..\xasm\680x0\test\test.68k" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E17CDD68-5566-450E-8A3D-DC0D75F05270}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
