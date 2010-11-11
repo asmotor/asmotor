@@ -22,6 +22,7 @@
     <ClInclude Include="..\..\xasm\6502\intinstr.h" />
     <ClInclude Include="..\..\xasm\6502\localasm.h" />
     <ClInclude Include="..\..\xasm\6502\loccpu.h" />
+    <ClInclude Include="..\..\xasm\6502\loclexer.h" />
     <ClInclude Include="..\..\xasm\6502\locopt.h" />
   </ItemGroup>
   <ItemGroup>
@@ -31,6 +32,10 @@
     <ClCompile Include="..\..\xasm\6502\locparse.c" />
     <ClCompile Include="..\..\xasm\6502\locsym.c" />
     <ClCompile Include="..\..\xasm\6502\main.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\xasm\6502\test\test.6502" />
+    <None Include="..\..\xasm\6502\test\undoc0.6502" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{21A60429-8E0D-4B28-A6FB-1EBD7829431D}</ProjectGuid>
