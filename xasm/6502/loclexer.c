@@ -44,7 +44,9 @@ static SLexInitString s_UndocumentedInstructions0[] =
 	{ "sya", T_6502U_SYA },
 	{ "top", T_6502U_TOP },
 	{ "xaa", T_6502U_XAA },
-	{ "xas", T_6502U_XAS } 
+	{ "xas", T_6502U_XAS },
+	
+	{ NULL, 0 }
 };
 
 static SLexInitString s_UndocumentedInstructions1[] =
@@ -70,7 +72,9 @@ static SLexInitString s_UndocumentedInstructions1[] =
 	{ "shy", T_6502U_SYA },
 	{ "top", T_6502U_TOP },
 	{ "ane", T_6502U_XAA },
-	{ "shs", T_6502U_XAS }
+	{ "shs", T_6502U_XAS },
+	
+	{ NULL, 0 }
 };
 
 static SLexInitString s_UndocumentedInstructions2[] =
@@ -96,7 +100,9 @@ static SLexInitString s_UndocumentedInstructions2[] =
 	{ "say", T_6502U_SYA },
 	{ "skw", T_6502U_TOP },
 	{ "xaa", T_6502U_XAA },
-	{ "tas", T_6502U_XAS }
+	{ "tas", T_6502U_XAS },
+	
+	{ NULL, 0 }
 };
 
 static SLexInitString localstrings[] =
