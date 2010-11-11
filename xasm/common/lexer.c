@@ -651,6 +651,35 @@ void lex_PrintMaxTokensPerHash(void)
 	printf("Total strings %d, max %d strings with same hash, %d slots in use\n", nTotal, nMax, nInUse);
 }
 
+void lex_RemoveString(char* pszName, int nToken)
+{
+	SLexString** pHash = &g_aLexHash[lex_CalcHash(pszName)];
+	SLexString* pToken = *pHash;
+	
+	while(pToken)
+	{
+		if(pToken->Token == nToken)
+		{
+			list_Remove(*pHash, pToken);
+			if(strcmp(pToken->pszName, pszName) != 0)
+				internalerror("Tokens do not match");
+			free(pToken->pszName);
+			free(pToken);
+			return;
+		}
+		pToken = list_GetNext(pToken);
+	}
+}
+
+void lex_RemoveStrings(SLexInitString* pLex)
+{
+    while(pLex->pszName)
+    {
+		lex_RemoveString(pLex->pszName, pLex->nToken);
+		++pLex;
+    }
+}
+
 void lex_AddString(char* pszName, int nToken)
 {
 	SLexString** pHash = &g_aLexHash[lex_CalcHash(pszName)];

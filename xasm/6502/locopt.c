@@ -22,9 +22,13 @@
 
 #include "xasm.h"
 #include "options.h"
+#include "localasm.h"
 #include "locopt.h"
 #include "loccpu.h"
 #include "project.h"
+#include "loclexer.h"
+
+static int s_nPreviousInstructionSet = 0;
 
 void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc)
 {
@@ -38,11 +42,23 @@ struct MachineOptions* locopt_Alloc(void)
 
 void locopt_Open(void)
 {
-	g_pOptions->pMachine->bUndocumented = FALSE;
+	g_pOptions->pMachine->nUndocumented = 0;
 }
 
 void locopt_Update(void)
 {
+	int nNewSet = g_pOptions->pMachine->nUndocumented;
+	if(s_nPreviousInstructionSet != nNewSet)
+	{
+		SLexInitString* pPrev = loclexer_GetUndocumentedInstructions(s_nPreviousInstructionSet);
+		SLexInitString* pNew = loclexer_GetUndocumentedInstructions(nNewSet);
+		if(pPrev)
+			lex_RemoveStrings(pPrev);
+		if(pNew)
+			lex_AddStrings(pNew);
+			
+		s_nPreviousInstructionSet = nNewSet;
+	}
 }
 
 BOOL locopt_Parse(char* s)
@@ -53,10 +69,16 @@ BOOL locopt_Parse(char* s)
 	switch(s[0])
 	{
 		case 'u':
-			if(strlen(&s[0]) == 1)
+			if(strlen(&s[0]) >= 2)
 			{
-				g_pOptions->pMachine->bUndocumented = TRUE;
-				return TRUE;
+				int n = atoi(&s[1]);
+				if(n >= 0 && n <= 3)
+				{
+					g_pOptions->pMachine->nUndocumented = n;
+					return TRUE;
+				}
+				prj_Error(ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE);
+				return FALSE;
 			}
 			break;
 	}
@@ -67,5 +89,5 @@ BOOL locopt_Parse(char* s)
 
 void locopt_PrintOptions(void)
 {
-	printf("    -mu     Enable undocumented opcodes\n");
+	printf("    -mu<x>  Enable undocumented opcodes, name set x (0, 1 or 2)\n");
 }

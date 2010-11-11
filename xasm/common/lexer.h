@@ -82,6 +82,8 @@ extern void lex_SetBuffer(SLexBuffer* buf);
 extern ULONG lex_GetNextToken(void);
 extern void lex_AddString(char* pszName, int nToken);
 extern void lex_AddStrings(SLexInitString* lex);
+extern void lex_RemoveString(char* pszName, int nToken);
+extern void lex_RemoveStrings(SLexInitString* lex);
 extern void	lex_SetState(ELexerState i);
 extern ULONG lex_FloatAlloc(SLexFloat* tok);
 extern void	lex_FloatAddRange(ULONG id, UWORD start, UWORD end, SLONG charnumber);

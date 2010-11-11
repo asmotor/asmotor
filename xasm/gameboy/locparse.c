@@ -130,11 +130,6 @@ static SExpression* parse_CreateExpression8S(SExpression* pExpr)
 	return parse_CreateExpressionNBit(pExpr, -128, 127, 8);
 }
 
-static SExpression* parse_CreateExpression8U(SExpression* pExpr)
-{
-	return parse_CreateExpressionNBit(pExpr, 0, 255, 8);
-}
-
 static SExpression* parse_CreateExpression3U(SExpression* pExpr)
 {
 	return parse_CreateExpressionNBit(pExpr, 0, 7, 3);

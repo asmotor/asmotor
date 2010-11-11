@@ -16,12 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MIPS_LOCOPT_H_
-#define MIPS_LOCOPT_H_
+#include "lexer.h"
 
-typedef struct MachineOptions
-{
-	int	nUndocumented;
-} SMachineOptions;
+extern SLexInitString* loclexer_GetUndocumentedInstructions(int n);
 
-#endif
