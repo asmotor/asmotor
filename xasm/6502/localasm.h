@@ -92,10 +92,6 @@ typedef	enum
 	T_6502_STX,
 	T_6502_STY,
 
-	T_6502_REG_A,
-	T_6502_REG_X,
-	T_6502_REG_Y,
-	
 	/* Undocumented instructions */
 	
 	T_6502U_AAC,
@@ -119,8 +115,14 @@ typedef	enum
 	T_6502U_SYA,
 	T_6502U_TOP,
 	T_6502U_XAA,
-	T_6502U_XAS
-		
+	T_6502U_XAS,
+
+	/* Registers */
+	
+	T_6502_REG_A,
+	T_6502_REG_X,
+	T_6502_REG_Y,
+	
 }	eTargetToken;
 
 #endif	/* LOCALASM_H */

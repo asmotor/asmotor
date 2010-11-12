@@ -658,17 +658,17 @@ void lex_RemoveString(char* pszName, int nToken)
 	
 	while(pToken)
 	{
-		if(pToken->Token == nToken)
+		if(pToken->Token == nToken
+		&& strcasecmp(pToken->pszName, pszName) == 0)
 		{
 			list_Remove(*pHash, pToken);
-			if(strcmp(pToken->pszName, pszName) != 0)
-				internalerror("Tokens do not match");
 			free(pToken->pszName);
 			free(pToken);
 			return;
 		}
 		pToken = list_GetNext(pToken);
 	}
+	internalerror("token not found");
 }
 
 void lex_RemoveStrings(SLexInitString* pLex)
