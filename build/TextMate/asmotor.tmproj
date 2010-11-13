@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>../../xasm/6502/test/undoc0.6502</string>
+	<string>../scons/SConstruct</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -387,6 +387,20 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
+		<key>../scons/SConstruct</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>34</integer>
+				<key>line</key>
+				<integer>15</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
@@ -399,6 +413,7 @@
 		<string>../../xasm/gameboy/locparse.c</string>
 		<string>../../xasm/6502/loclexer.c</string>
 		<string>../../xasm/6502/test/undoc0.6502</string>
+		<string>../scons/SConstruct</string>
 		<string>../../xasm/6502/intinstr.h</string>
 		<string>../../xasm/6502/localasm.h</string>
 		<string>../../xasm/6502/loclexer.h</string>
