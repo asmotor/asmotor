@@ -20,7 +20,8 @@
 
 static char* g_pszLocalError[]=
 {
-	"Illegal addressing mode"
+	"Illegal addressing mode",
+	"Undocumented instruction set must be 0, 1 or 2"
 };
 
 char* loc_GetError(int n)

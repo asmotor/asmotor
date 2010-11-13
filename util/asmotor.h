@@ -23,9 +23,9 @@
 
 #define	ASMOTOR
 
-#define	ASMOTOR_VERSION	"2.00"
-#define	LINK_VERSION	"1.00"
-#define	LIB_VERSION		"1.00"
+#define	ASMOTOR_VERSION	"0.1.0"
+#define	LINK_VERSION	"0.1.0"
+#define	LIB_VERSION		"0.1.0"
 
 extern SLONG imuldiv(SLONG a, SLONG b, SLONG c);
 

@@ -74,12 +74,52 @@ static BOOL parse_Standard_All(int nToken, UBYTE nBaseOpcode, SAddressingMode* p
 			sect_OutputExprWord(pAddrMode->pExpr);
 			return TRUE;
 		case MODE_ZP_X:
+		case MODE_ZP_Y:
 			sect_OutputAbsByte(nBaseOpcode | (5 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
 			return TRUE;
 		case MODE_ABS_X:
 			sect_OutputAbsByte(nBaseOpcode | (7 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
+			return TRUE;
+	}
+
+	prj_Fail(MERROR_ILLEGAL_ADDRMODE);
+	return TRUE;
+}
+
+static BOOL parse_Standard_AbsY7(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+{
+	switch(pAddrMode->nMode)
+	{
+		case MODE_IND_X:
+			sect_OutputAbsByte(nBaseOpcode | (0 << 2));
+			sect_OutputExprByte(pAddrMode->pExpr);
+			return TRUE;
+		case MODE_IMM:
+			sect_OutputAbsByte(nBaseOpcode | (2 << 2));
+			sect_OutputExprByte(pAddrMode->pExpr);
+			return TRUE;
+		case MODE_IND_Y:
+			sect_OutputAbsByte(nBaseOpcode | (4 << 2));
+			sect_OutputExprByte(pAddrMode->pExpr);
+			return TRUE;
+		case MODE_ABS_Y:
+			sect_OutputAbsByte(nBaseOpcode | (7 << 2));
+			sect_OutputExprWord(pAddrMode->pExpr);
+			return TRUE;
+		case MODE_ZP:
+			sect_OutputAbsByte(nBaseOpcode | (1 << 2));
+			sect_OutputExprByte(pAddrMode->pExpr);
+			return TRUE;
+		case MODE_ABS:
+			sect_OutputAbsByte(nBaseOpcode | (3 << 2));
+			sect_OutputExprWord(pAddrMode->pExpr);
+			return TRUE;
+		case MODE_ZP_X:
+		case MODE_ZP_Y:
+			sect_OutputAbsByte(nBaseOpcode | (5 << 2));
+			sect_OutputExprByte(pAddrMode->pExpr);
 			return TRUE;
 	}
 
@@ -197,7 +237,27 @@ static BOOL parse_BRK(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
 }
 
 
-static SParser g_Parsers[T_6502_STY - T_6502_ADC + 1] = 
+static BOOL parse_DOP(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+{
+	switch(pAddrMode->nMode)
+	{
+		case MODE_IMM:
+			sect_OutputAbsByte(0x80);
+			sect_OutputExprByte(pAddrMode->pExpr);
+			return TRUE;
+		case MODE_ZP:
+			sect_OutputAbsByte(0x04);
+			sect_OutputExprByte(pAddrMode->pExpr);
+			return TRUE;
+		case MODE_ZP_X:
+			sect_OutputAbsByte(0x14);
+			sect_OutputExprByte(pAddrMode->pExpr);
+			return TRUE;
+	}
+	return FALSE;
+}
+
+static SParser g_Parsers[T_6502U_XAS - T_6502_ADC + 1] = 
 {
 	{ 0x61, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* ADC */
 	{ 0x21, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* AND */
@@ -255,6 +315,31 @@ static SParser g_Parsers[T_6502_STY - T_6502_ADC + 1] =
 	{ 0x28, 0, parse_Implied },	/* PLP */
 	{ 0x82, MODE_ZP | MODE_ABS | MODE_ZP_Y, parse_Standard_Imm0 },	/* STX */
 	{ 0x80, MODE_ZP | MODE_ABS | MODE_ZP_X, parse_Standard_Imm0 },	/* STY */
+	
+	/* Undocumented instructions */
+	
+	{ 0x0B, MODE_IMM, parse_Standard_Imm0 },	/* AAC */
+	{ 0x83, MODE_ZP | MODE_ZP_Y | MODE_IND_X | MODE_ABS, parse_Standard_All },	/* AAX */
+	{ 0x6B, MODE_IMM, parse_Standard_Imm0 },	/* ARR */
+	{ 0x4B, MODE_IMM, parse_Standard_Imm0 },	/* ASR */
+	{ 0xAB, MODE_IMM, parse_Standard_Imm0 },	/* ATX */
+	{ 0x83, MODE_ABS_Y | MODE_IND_Y, parse_Standard_AbsY7 },	/* AXA */
+	{ 0xCB, MODE_IMM, parse_Standard_Imm0 },	/* AXS */
+	{ 0xC3, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* DCP */
+	{ 0x00, MODE_ZP | MODE_ZP_X | MODE_IMM, parse_DOP },	/* DOP */
+	{ 0xE3, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* ISC */
+	{ 0x02, 0, parse_Implied },	/* KIL */
+	{ 0xA3, MODE_ABS_Y, parse_Standard_All },	/* LAR */
+	{ 0xA3, MODE_ZP | MODE_ZP_Y | MODE_ABS | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_AbsY7 },	/* LAX */
+	{ 0x43, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* RLA */
+	{ 0x63, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* RRA */
+	{ 0x03, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* SLO */
+	{ 0x43, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* SRE */
+	{ 0x82, MODE_ABS_Y, parse_Standard_AbsY7 },	/* SXA */
+	{ 0x80, MODE_ABS_X, parse_Standard_All },	/* SYA */
+	{ 0x00, MODE_ABS | MODE_ABS_X, parse_Standard_All },	/* TOP */
+	{ 0x8B, MODE_IMM, parse_Standard_Imm0 },	/* XAA */
+	{ 0x83, MODE_ABS_Y, parse_Standard_All },	/* XAS */
 };
 
 
@@ -410,7 +495,7 @@ BOOL parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 
 BOOL parse_IntegerInstruction(void)
 {
-	if(T_6502_ADC <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_6502_STY)
+	if(T_6502_ADC <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_6502U_XAS)
 	{
 		SAddressingMode addrMode;
 		eTargetToken nToken = g_CurrentToken.ID.TargetToken;

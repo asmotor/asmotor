@@ -43,7 +43,7 @@
 \begin_body
 
 \begin_layout Title
-ASMotor v0.1
+ASMotor v0.1.0
 \end_layout
 
 \begin_layout Author
@@ -155,7 +155,91 @@ Depending on the target CPU, the executable to invoke will be named motor,
 \end_layout
 
 \begin_layout Standard
-The following options are supported on the command line:
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Supported command line options
+\end_layout
+
+\end_inset
+
+-b<AS>  Change the two characters used for binary constants
+\end_layout
+
+\begin_layout Plain Layout
+
+        (default is 01)
+\end_layout
+
+\begin_layout Plain Layout
+
+-e(l|b) Change endianness
+\end_layout
+
+\begin_layout Plain Layout
+
+-f<f>   Output format, one of
+\end_layout
+
+\begin_layout Plain Layout
+
+        x - xobj (default)
+\end_layout
+
+\begin_layout Plain Layout
+
+        b - binary file
+\end_layout
+
+\begin_layout Plain Layout
+
+        g - Amiga executable file
+\end_layout
+
+\begin_layout Plain Layout
+
+        h - Amiga object file
+\end_layout
+
+\begin_layout Plain Layout
+
+-i<dir> Extra include path (can appear more than once)
+\end_layout
+
+\begin_layout Plain Layout
+
+-o<f>   Write assembly output to <file>
+\end_layout
+
+\begin_layout Plain Layout
+
+-v      Verbose text output
+\end_layout
+
+\begin_layout Plain Layout
+
+-w<d>   Disable warning <d> (four digits)
+\end_layout
+
+\begin_layout Plain Layout
+
+-z<XX>  Set the byte value (hex format) used for uninitialised
+\end_layout
+
+\begin_layout Plain Layout
+
+        data (default is ? for random) 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Chapter*

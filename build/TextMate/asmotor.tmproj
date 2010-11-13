@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>../../xasm/common/fstack.c</string>
+	<string>../scons/SConstruct</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -63,6 +63,120 @@
 	<integer>200</integer>
 	<key>metaData</key>
 	<dict>
+		<key>../../xasm/6502/intinstr.h</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>95</integer>
+				<key>line</key>
+				<integer>497</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>311</integer>
+		</dict>
+		<key>../../xasm/6502/localasm.h</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>4</integer>
+				<key>line</key>
+				<integer>117</integer>
+			</dict>
+			<key>columnSelection</key>
+			<false/>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>95</integer>
+			<key>selectFrom</key>
+			<dict>
+				<key>column</key>
+				<integer>1</integer>
+				<key>line</key>
+				<integer>117</integer>
+			</dict>
+			<key>selectTo</key>
+			<dict>
+				<key>column</key>
+				<integer>12</integer>
+				<key>line</key>
+				<integer>117</integer>
+			</dict>
+		</dict>
+		<key>../../xasm/6502/loclexer.c</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>160</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>133</integer>
+		</dict>
+		<key>../../xasm/6502/loclexer.h</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>18</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>../../xasm/6502/locopt.c</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>11</integer>
+				<key>line</key>
+				<integer>54</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>38</integer>
+		</dict>
+		<key>../../xasm/6502/test/test.6502</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
+		<key>../../xasm/6502/test/undoc0.6502</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>13</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
 		<key>../../xasm/680x0/locparse.c</key>
 		<dict>
 			<key>caret</key>
@@ -105,20 +219,6 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>../../xasm/680x0/test/rept.68k</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>64</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>41</integer>
-		</dict>
 		<key>../../xasm/680x0/test/test.68k</key>
 		<dict>
 			<key>caret</key>
@@ -133,33 +233,19 @@
 			<key>firstVisibleLine</key>
 			<integer>150</integer>
 		</dict>
-		<key>../../xasm/common/fstack.c</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>38</integer>
-				<key>line</key>
-				<integer>289</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>278</integer>
-		</dict>
 		<key>../../xasm/common/globlex.c</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>20</integer>
+				<integer>0</integer>
 				<key>line</key>
-				<integer>393</integer>
+				<integer>60</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>379</integer>
+			<integer>34</integer>
 		</dict>
 		<key>../../xasm/common/lexer.c</key>
 		<dict>
@@ -168,56 +254,82 @@
 				<key>column</key>
 				<integer>0</integer>
 				<key>line</key>
-				<integer>362</integer>
+				<integer>670</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>336</integer>
+			<integer>657</integer>
 		</dict>
-		<key>../../xasm/common/parse.c</key>
+		<key>../../xasm/common/lexer.h</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>13</integer>
+				<integer>22</integer>
 				<key>line</key>
-				<integer>1910</integer>
+				<integer>84</integer>
 			</dict>
-			<key>columnSelection</key>
-			<false/>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>1906</integer>
-			<key>selectFrom</key>
+			<integer>73</integer>
+		</dict>
+		<key>../../xasm/common/lists.h</key>
+		<dict>
+			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>4</integer>
+				<integer>0</integer>
 				<key>line</key>
-				<integer>1910</integer>
+				<integer>0</integer>
 			</dict>
-			<key>selectTo</key>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>20</integer>
+		</dict>
+		<key>../../xasm/common/options.c</key>
+		<dict>
+			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>22</integer>
+				<integer>0</integer>
 				<key>line</key>
-				<integer>1910</integer>
+				<integer>42</integer>
 			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>31</integer>
+		</dict>
+		<key>../../xasm/gameboy/loclexer.c</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
 		</dict>
 		<key>../../xasm/gameboy/locparse.c</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>37</integer>
+				<integer>0</integer>
 				<key>line</key>
-				<integer>612</integer>
+				<integer>132</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>598</integer>
+			<integer>119</integer>
 		</dict>
 		<key>../scons/SConscript.6502</key>
 		<dict>
@@ -275,25 +387,42 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
+		<key>../scons/SConstruct</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>34</integer>
+				<key>line</key>
+				<integer>15</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
-		<string>../../xasm/common/globlex.c</string>
-		<string>../../xasm/gameboy/locparse.c</string>
-		<string>../../xasm/680x0/test/test.68k</string>
-		<string>../../xasm/680x0/test/rept.68k</string>
-		<string>../../xasm/680x0/locparse.c</string>
-		<string>../../xasm/680x0/test/amigaobj.68k</string>
-		<string>../../xasm/680x0/test/amigaexe.68k</string>
-		<string>../../xasm/common/parse.c</string>
-		<string>../../xasm/common/fstack.c</string>
-		<string>../scons/SConscript.libutil</string>
-		<string>../scons/SConscript.6502</string>
 		<string>../../xasm/common/lexer.c</string>
+		<string>../../xasm/common/globlex.c</string>
+		<string>../../xasm/common/lexer.h</string>
+		<string>../../xasm/6502/test/test.6502</string>
+		<string>../../xasm/6502/locopt.c</string>
+		<string>../../xasm/gameboy/loclexer.c</string>
+		<string>../../xasm/gameboy/locparse.c</string>
+		<string>../../xasm/6502/loclexer.c</string>
+		<string>../../xasm/6502/test/undoc0.6502</string>
+		<string>../scons/SConstruct</string>
+		<string>../../xasm/6502/intinstr.h</string>
+		<string>../../xasm/6502/localasm.h</string>
+		<string>../../xasm/6502/loclexer.h</string>
+		<string>../../xasm/common/options.c</string>
+		<string>../../xasm/common/lists.h</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{537, 105}, {774, 540}}</string>
+	<string>{{563, 179}, {774, 540}}</string>
 </dict>
 </plist>

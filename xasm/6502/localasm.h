@@ -21,7 +21,8 @@
 
 typedef enum
 {
-	MERROR_ILLEGAL_ADDRMODE = 1000
+	MERROR_ILLEGAL_ADDRMODE = 1000,
+	ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE
 } EMachineError;
 
 typedef	enum
@@ -91,9 +92,37 @@ typedef	enum
 	T_6502_STX,
 	T_6502_STY,
 
+	/* Undocumented instructions */
+	
+	T_6502U_AAC,
+	T_6502U_AAX,
+	T_6502U_ARR,
+	T_6502U_ASR,
+	T_6502U_ATX,
+	T_6502U_AXA,
+	T_6502U_AXS,
+	T_6502U_DCP,
+	T_6502U_DOP,
+	T_6502U_ISC,
+	T_6502U_KIL,
+	T_6502U_LAR,
+	T_6502U_LAX,
+	T_6502U_RLA,
+	T_6502U_RRA,
+	T_6502U_SLO,
+	T_6502U_SRE,
+	T_6502U_SXA,
+	T_6502U_SYA,
+	T_6502U_TOP,
+	T_6502U_XAA,
+	T_6502U_XAS,
+
+	/* Registers */
+	
 	T_6502_REG_A,
 	T_6502_REG_X,
-	T_6502_REG_Y
+	T_6502_REG_Y,
+	
 }	eTargetToken;
 
 #endif	/* LOCALASM_H */
