@@ -1,4 +1,14 @@
-env = Environment()
+AddOption('--prefix',
+	dest = 'prefix',
+	type = 'string',
+	nargs = 1,
+	action = 'store',
+	metavar = 'DIR',
+	help = 'installation prefix',
+	default = "/usr/local")
+
+env = Environment(PREFIX = GetOption('prefix'))
+
 env.Append(CPPFLAGS = "-O3 -std=c99 -pedantic -Wall")
 env.Append(LIBS = ["m"])
 env.Append(CPPPATH = ["#/../../util", "#/../../xasm/common"])
@@ -17,3 +27,7 @@ install_bin = [motorgb, motor6502, motor68k, motormips, xgbfix, xlib, xlink]
 
 if 'debian' in COMMAND_LINE_TARGETS:
 	SConscript("SConscript.debian", ["env", "install_bin"])
+
+env.Alias('install', ['$PREFIX/bin'])
+
+env.Install('$PREFIX/bin', install_bin)
