@@ -12,9 +12,12 @@ svn_version = os.popen('svnversion ..').read()[:-1]
 svn_version = svn_version.split(':')[-1]
 
 # Here's the core info for the package
+f = open('../version','r')
+file_version = f.read().strip()
+f.close()
 
 DEBNAME = "asmotor"
-DEBVERSION = "0.1"
+DEBVERSION = file_version
 DEBMAINT = "Carsten Elton Sorensen [csoren@gmail.com]"
 DEBARCH = "amd64"
 DEBDEPENDS = "" # what are we dependent on?
