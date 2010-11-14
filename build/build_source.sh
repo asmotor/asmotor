@@ -21,7 +21,12 @@ CopyDirectory xgbfix
 CopyDirectory xlink
 CopyDirectory xlib
 
+TAR=tar
+if [ -x /opt/local/bin/gnutar ]; then
+	TAR=/opt/local/bin/gnutar
+fi
+
 DIR=asmotor-`cat version`-src
 mv source $DIR
-gnutar -cvjf $DIR.tar.bz2 $DIR
+$TAR -cvjf $DIR.tar.bz2 $DIR
 rm -rf $DIR
