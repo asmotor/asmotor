@@ -196,7 +196,7 @@ extern int xasm_Main(int argc, char* argv[])
 					EndClock = clock();
 
 					timespent = ((float)(EndClock - StartClock))/CLOCKS_PER_SEC;
-					printf("Success! %lu lines in %.02f seconds ", g_nTotalLines, timespent);
+					printf("Success! %u lines in %.02f seconds ", g_nTotalLines, timespent);
 					if(timespent == 0)
 					{
 						printf("\n");
@@ -207,7 +207,7 @@ extern int xasm_Main(int argc, char* argv[])
 					}
 					if(g_nTotalWarnings != 0)
 					{
-						printf("Encountered %lu warnings\n", g_nTotalWarnings);
+						printf("Encountered %u warnings\n", g_nTotalWarnings);
 					}
 				}
 
@@ -238,9 +238,9 @@ extern int xasm_Main(int argc, char* argv[])
 			{
 				if(verbose)
 				{
-					printf("Encountered %lu error%s", g_nTotalErrors, g_nTotalErrors > 1 ? "s" : "");
+					printf("Encountered %u error%s", g_nTotalErrors, g_nTotalErrors > 1 ? "s" : "");
 					if(g_nTotalWarnings != 0)
-						printf(" and %lu warning%s\n", g_nTotalWarnings, g_nTotalWarnings > 1 ? "s" : "");
+						printf(" and %u warning%s\n", g_nTotalWarnings, g_nTotalWarnings > 1 ? "s" : "");
 					else
 						printf("\n");
 				}

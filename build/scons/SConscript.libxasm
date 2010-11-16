@@ -6,6 +6,7 @@ localEnv.VariantDir(b, "../../xasm/common")
 libxasm = localEnv.StaticLibrary(b + "/xasm", [
 	b + "/amigaobj.c",
 	b + "/binobj.c",
+	b + "/expr.c",
 	b + "/fstack.c",
 	b + "/globlex.c",
 	b + "/lexer.c",

@@ -138,7 +138,7 @@ SExpression* expr_CreatePcExpr()
 		char sym[MAXSYMNAMELENGTH + 20];
 		SSymbol* pSym;
 
-		sprintf(sym, "$%s%lu", pCurrentSection->Name, pCurrentSection->PC);
+		sprintf(sym, "$%s%u", pCurrentSection->Name, pCurrentSection->PC);
 		pSym = sym_AddLabel(sym);
 
 		if(pSym->Flags & SYMF_CONSTANT)

@@ -398,7 +398,7 @@ char* sym_ConvertSymbolValueToString(char* dst, char* sym)
 		case SYM_EQU:
 		case SYM_SET:
 		{
-			sprintf(dst, "$%lX", sym_GetValueField(psym));
+			sprintf(dst, "$%X", sym_GetValueField(psym));
 			return dst + strlen(dst);
 			break;
 		}

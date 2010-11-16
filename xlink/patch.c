@@ -250,7 +250,7 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 				d |= (*expr++) << 16;
 				d |= (*expr++) << 24;
 
-				sprintf(s, "%lu", d);
+				sprintf(s, "%u", d);
 				PushString(_strdup(s));
 
 				size -= 4;

@@ -60,7 +60,7 @@ static char* fstk_CreateNewRunID(void)
 	char* r;
 	static uint32_t runid = 0;
 
-	sprintf(s, "_%lu", runid++);
+	sprintf(s, "_%u", runid++);
 	if((r = _strdup(s)) != NULL)
 		return r;
 
@@ -255,7 +255,7 @@ void fstk_Dump(void)
 
 	while(stack)
 	{
-		printf("%s(%ld)", stack->pName, stack->LineNumber);
+		printf("%s(%d)", stack->pName, stack->LineNumber);
 		stack = list_GetPrev(stack);
 		if(stack)
 		{

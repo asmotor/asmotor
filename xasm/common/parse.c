@@ -1595,7 +1595,7 @@ static bool_t parse_PseudoOp(void)
 		case T_POP_PRINTV:
 		{
 			parse_GetToken();
-			printf("$%lX", parse_ConstantExpression());
+			printf("$%X", parse_ConstantExpression());
 			return true;
 			break;
 		}
@@ -1610,7 +1610,7 @@ static bool_t parse_PseudoOp(void)
 				printf("-");
 				i = -i;
 			}
-			printf("%ld.%05ld", i >> 16, imuldiv(i & 0xFFFF, 100000, 65536));
+			printf("%d.%05d", i >> 16, imuldiv(i & 0xFFFF, 100000, 65536));
 
 			return true;
 			break;
