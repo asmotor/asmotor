@@ -59,7 +59,7 @@ void	PrintUsage(void)
 
 int	main(int argc, char* argv[])
 {
-	SLONG	argn=0;
+	int32_t	argn=0;
 	char* libname;
 
 	argc-=1;
@@ -67,7 +67,7 @@ int	main(int argc, char* argv[])
 
 	if(argc>=2)
 	{
-		UBYTE		command;
+		uint8_t		command;
 		SLibrary* lib;
 
 		lib=lib_Read(libname=argv[argn++]);
@@ -123,7 +123,7 @@ int	main(int argc, char* argv[])
 
 							if((f = fopen(argv[argn],"wb")) != NULL)
 							{
-								fwrite(l->pData, sizeof(UBYTE), l->nByteLength, f);
+								fwrite(l->pData, sizeof(uint8_t), l->nByteLength, f);
 								fclose(f);
 								printf("Extracted module '%s'\n", argv[argn]);
 							}

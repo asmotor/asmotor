@@ -23,8 +23,8 @@
 #define	STACKSIZE	256
 
 static char* g_StringStack[STACKSIZE];
-static SLONG g_Stack[STACKSIZE];
-static SLONG g_nStackIndex;
+static int32_t g_Stack[STACKSIZE];
+static int32_t g_nStackIndex;
 
 static void PushString(char *pszValue)
 {
@@ -34,7 +34,7 @@ static void PushString(char *pszValue)
 	g_StringStack[g_nStackIndex++] = pszValue;
 }
 
-static void push(SLONG value)
+static void push(int32_t value)
 {
 	if(g_nStackIndex >= STACKSIZE)
 		Error("patch too complex");
@@ -42,7 +42,7 @@ static void push(SLONG value)
 	g_Stack[g_nStackIndex++] = value;
 }
 
-static SLONG pop(void)
+static int32_t pop(void)
 {
 	if(g_nStackIndex > 0)
 		return g_Stack[--g_nStackIndex];
@@ -61,7 +61,7 @@ static char* PopString(void)
 }
 
 
-static void	pop2(SLONG* pLeft, SLONG* pRight)
+static void	pop2(int32_t* pLeft, int32_t* pRight)
 {
 	*pRight = pop();
 	*pLeft = pop();
@@ -130,8 +130,8 @@ static void CombinePatchFunctionString(char* pszFunc)
 
 char* GetPatchString(SPatch* patch, SSection* sect)
 {
-	SLONG size = patch->ExprSize;
-	UBYTE* expr = patch->pExpr;
+	int32_t size = patch->ExprSize;
+	uint8_t* expr = patch->pExpr;
 
 	g_nStackIndex = 0;
 
@@ -242,7 +242,7 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 				break;
 			case OBJ_CONSTANT:
 			{
-				ULONG d;
+				uint32_t d;
 				char s[16];
 
 				d  = (*expr++);
@@ -258,7 +258,7 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 			}
 			case OBJ_SYMBOL:
 			{
-				ULONG d;
+				uint32_t d;
 
 				d  = (*expr++);
 				d |= (*expr++) << 8;
@@ -273,7 +273,7 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 			{
 				char* pszName;
 				char* pszNew;
-				ULONG d;
+				uint32_t d;
 
 				d  = (*expr++);
 				d |= (*expr++) << 8;
@@ -308,16 +308,16 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 
 
 
-SLONG calc_patch(SPatch* patch, SSection* sect)
+int32_t calc_patch(SPatch* patch, SSection* sect)
 {
-	SLONG size = patch->ExprSize;
-	UBYTE* expr = patch->pExpr;
+	int32_t size = patch->ExprSize;
+	uint8_t* expr = patch->pExpr;
 
 	g_nStackIndex = 0;
 
 	while(size > 0)
 	{
-		SLONG left, right;
+		int32_t left, right;
 
 		--size;
 
@@ -504,7 +504,7 @@ SLONG calc_patch(SPatch* patch, SSection* sect)
 			}
 			case OBJ_CONSTANT:
 			{
-				ULONG d;
+				uint32_t d;
 
 				d  = (*expr++);
 				d |= (*expr++) << 8;
@@ -517,7 +517,7 @@ SLONG calc_patch(SPatch* patch, SSection* sect)
 			}
 			case OBJ_SYMBOL:
 			{
-				ULONG d;
+				uint32_t d;
 
 				d  = (*expr++);
 				d |= (*expr++) << 8;
@@ -530,7 +530,7 @@ SLONG calc_patch(SPatch* patch, SSection* sect)
 			}
 			case OBJ_FUNC_BANK:
 			{
-				ULONG d;
+				uint32_t d;
 
 				d  = (*expr++);
 				d |= (*expr++) << 8;
@@ -562,19 +562,19 @@ static void do_section(SSection* sect)
 
 	if(patches != NULL)
 	{
-		ULONG i;
+		uint32_t i;
 
 		for(i = 0; i < patches->TotalPatches; ++i)
 		{
 			SPatch* patch = &patches->Patches[i];
-			SLONG value = calc_patch(patch, sect);
+			int32_t value = calc_patch(patch, sect);
 
 			switch(patch->Type)
 			{
 				case PATCH_BYTE:
 				{
 					if(value >= -128 && value <= 255)
-						sect->pData[patch->Offset] = (UBYTE)value;
+						sect->pData[patch->Offset] = (uint8_t)value;
 					else
 						Error("Expression \"%s\" at offset %d in section \"%s\" out of range", GetPatchString(patch, sect), patch->Offset, sect->Name);
 					break;
@@ -583,8 +583,8 @@ static void do_section(SSection* sect)
 				{
 					if(value >= -32768 && value <= 65535)
 					{
-						sect->pData[patch->Offset + 0] = (UBYTE)value;
-						sect->pData[patch->Offset + 1] = (UBYTE)(value >> 8);
+						sect->pData[patch->Offset + 0] = (uint8_t)value;
+						sect->pData[patch->Offset + 1] = (uint8_t)(value >> 8);
 					}
 					else
 					{
@@ -596,8 +596,8 @@ static void do_section(SSection* sect)
 				{
 					if(value>=-32768 && value<=65535)
 					{
-						sect->pData[patch->Offset+0] = (UBYTE)(value>>8);
-						sect->pData[patch->Offset+1] = (UBYTE)value;
+						sect->pData[patch->Offset+0] = (uint8_t)(value>>8);
+						sect->pData[patch->Offset+1] = (uint8_t)value;
 					}
 					else
 					{
@@ -607,18 +607,18 @@ static void do_section(SSection* sect)
 				}
 				case	PATCH_LLONG:
 				{
-					sect->pData[patch->Offset+0] = (UBYTE)value;
-					sect->pData[patch->Offset+1] = (UBYTE)(value>>8);
-					sect->pData[patch->Offset+2] = (UBYTE)(value>>16);
-					sect->pData[patch->Offset+3] = (UBYTE)(value>>24);
+					sect->pData[patch->Offset+0] = (uint8_t)value;
+					sect->pData[patch->Offset+1] = (uint8_t)(value>>8);
+					sect->pData[patch->Offset+2] = (uint8_t)(value>>16);
+					sect->pData[patch->Offset+3] = (uint8_t)(value>>24);
 					break;
 				}
 				case	PATCH_BLONG:
 				{
-					sect->pData[patch->Offset+0] = (UBYTE)(value>>24);
-					sect->pData[patch->Offset+1] = (UBYTE)(value>>16);
-					sect->pData[patch->Offset+2] = (UBYTE)(value>>8);
-					sect->pData[patch->Offset+3] = (UBYTE)value;
+					sect->pData[patch->Offset+0] = (uint8_t)(value>>24);
+					sect->pData[patch->Offset+1] = (uint8_t)(value>>16);
+					sect->pData[patch->Offset+2] = (uint8_t)(value>>8);
+					sect->pData[patch->Offset+3] = (uint8_t)value;
 					break;
 				}
 				default:

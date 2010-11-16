@@ -21,8 +21,8 @@
 
 #define	list_GetNext(e)	((e)->pNext)
 #define	list_GetPrev(e)	((e)->pPrev)
-#define	list_isLast(e)	(list_GetNext(e)==NULL?TRUE:FALSE)
-#define	list_isFirst(e)	(list_GetPrev(e)==NULL?TRUE:FALSE)
+#define	list_isLast(e)	(list_GetNext(e)==NULL?true:false)
+#define	list_isFirst(e)	(list_GetPrev(e)==NULL?true:false)
 
 #define	list_Remove(head,e)				\
 {										\

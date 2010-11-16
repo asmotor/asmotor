@@ -24,6 +24,6 @@ typedef struct MachineOptions
 	char GameboyChar[4];
 } SMachineOptions;
 
-extern ULONG GameboyConstID;
+extern uint32_t GameboyConstID;
 
 #endif

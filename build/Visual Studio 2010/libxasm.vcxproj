@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\xasm\common\amigaobj.c" />
     <ClCompile Include="..\..\xasm\common\binobj.c" />
+    <ClCompile Include="..\..\xasm\common\expr.c" />
     <ClCompile Include="..\..\xasm\common\fstack.c" />
     <ClCompile Include="..\..\xasm\common\globlex.c" />
     <ClCompile Include="..\..\xasm\common\lexer.c" />

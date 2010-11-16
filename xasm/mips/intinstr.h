@@ -47,7 +47,7 @@ static int parse_ExpectRegister(void)
 }
 
 
-static ULONG s_InstructionsRRR[T_MIPS_INTEGER_RRR_LAST - T_MIPS_INTEGER_RRR_FIRST + 1] =
+static uint32_t s_InstructionsRRR[T_MIPS_INTEGER_RRR_LAST - T_MIPS_INTEGER_RRR_FIRST + 1] =
 {
 	0x00000020, // ADD
 	0x00000021, // ADDU
@@ -69,12 +69,12 @@ static ULONG s_InstructionsRRR[T_MIPS_INTEGER_RRR_LAST - T_MIPS_INTEGER_RRR_FIRS
 };
 
 
-static BOOL parse_IntegerInstructionRRR(void)
+static bool_t parse_IntegerInstructionRRR(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_INTEGER_RRR_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_INTEGER_RRR_LAST)
 	{
-		ULONG ins = s_InstructionsRRR[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RRR_FIRST];
+		uint32_t ins = s_InstructionsRRR[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RRR_FIRST];
 		int rd;
 		int rs;
 		int rt;
@@ -83,50 +83,50 @@ static BOOL parse_IntegerInstructionRRR(void)
 
 		rd = parse_ExpectRegister();
 		if(rd == -1)
-			return FALSE;
+			return false;
 		
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 		
 		rs = parse_ExpectRegister();
 		if(rs == -1)
-			return FALSE;
+			return false;
 		
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 		
 		rt = parse_ExpectRegister();
 		if(rt == -1)
-			return FALSE;
+			return false;
 		
-		sect_OutputAbsLong(ins | (rs << 21) | (rt << 16) | (rd << 11));
-		return TRUE;
+		sect_OutputAbint32_t(ins | (rs << 21) | (rt << 16) | (rd << 11));
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
 typedef struct
 {
-	ULONG	nIns;
-	BOOL	bSigned;
+	uint32_t	nIns;
+	bool_t	bSigned;
 } SInstructionRRI;
 
 
 static SInstructionRRI s_InstructionsRRI[T_MIPS_INTEGER_RRI_LAST - T_MIPS_INTEGER_RRI_FIRST + 1] =
 {
-	{ 0x20000000, TRUE },	// ADDI
-	{ 0x24000000, TRUE },	// ADDIU
-	{ 0x30000000, FALSE }, 	// ANDI
-	{ 0x34000000, FALSE }, 	// ORI
-	{ 0x28000000, TRUE }, 	// SLTI
-	{ 0x2C000000, FALSE }, 	// SLTIU
-	{ 0x38000000, FALSE }, 	// XORI
+	{ 0x20000000, true },	// ADDI
+	{ 0x24000000, true },	// ADDIU
+	{ 0x30000000, false }, 	// ANDI
+	{ 0x34000000, false }, 	// ORI
+	{ 0x28000000, true }, 	// SLTI
+	{ 0x2C000000, false }, 	// SLTIU
+	{ 0x38000000, false }, 	// XORI
 };
 
 
-static BOOL parse_IntegerInstructionRRI(void)
+static bool_t parse_IntegerInstructionRRI(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_INTEGER_RRI_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_INTEGER_RRI_LAST)
@@ -140,17 +140,17 @@ static BOOL parse_IntegerInstructionRRI(void)
 
 		rt = parse_ExpectRegister();
 		if(rt == -1)
-			return FALSE;
+			return false;
 		
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 		
 		rs = parse_ExpectRegister();
 		if(rs == -1)
-			return FALSE;
+			return false;
 		
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 
 		if(pIns->bSigned)
 			pExpr = parse_ExpressionS16();
@@ -159,21 +159,21 @@ static BOOL parse_IntegerInstructionRRI(void)
 
 		if(pExpr != NULL)
 		{
-			pExpr = parse_CreateORExpr(pExpr, parse_CreateConstExpr((rs << 21) | (rt << 16) | pIns->nIns));
+			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr((rs << 21) | (rt << 16) | pIns->nIns));
 		
 			sect_OutputExprLong(pExpr);
 		}
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
 typedef struct
 {
 	int		nRegisters;
-	ULONG	nIns;
+	uint32_t	nIns;
 } SInstructionBranch;
 
 
@@ -206,7 +206,7 @@ static SInstructionBranch s_InstructionBranches[T_MIPS_BRANCH_LAST - T_MIPS_BRAN
 };
 
 
-static BOOL parse_Branch(void)
+static bool_t parse_Branch(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_BRANCH_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_BRANCH_LAST)
@@ -222,10 +222,10 @@ static BOOL parse_Branch(void)
 		{
 			rs = parse_ExpectRegister();
 			if(rs == -1)
-				return FALSE;
+				return false;
 				
 			if(!parse_ExpectChar(','))
-				return FALSE;
+				return false;
 		}
 		else
 			rs = 0;
@@ -234,40 +234,40 @@ static BOOL parse_Branch(void)
 		{
 			rt = parse_ExpectRegister();
 			if(rt == -1)
-				return FALSE;
+				return false;
 				
 			if(!parse_ExpectChar(','))
-				return FALSE;
+				return false;
 		}
 		else
 			rt = 0;
 		
 		pExpr = parse_Expression();
 		if(pExpr == NULL)
-			return FALSE;
+			return false;
 
-		pExpr = parse_CreatePCRelExpr(pExpr, -4);
-		pExpr = parse_CreateSHRExpr(pExpr, parse_CreateConstExpr(2));
-		pExpr = parse_CheckRange(pExpr, -32768, 32767);
+		pExpr = expr_CreatePcRelativeExpr(pExpr, -4);
+		pExpr = expr_CreateShrExpr(pExpr, expr_CreateConstExpr(2));
+		pExpr = expr_CheckRange(pExpr, -32768, 32767);
 		if(pExpr != NULL)
 		{
-			pExpr = parse_CreateANDExpr(pExpr, parse_CreateConstExpr(0xFFFF));
+			pExpr = expr_CreateAndExpr(pExpr, expr_CreateConstExpr(0xFFFF));
 		
-			pExpr = parse_CreateORExpr(pExpr, parse_CreateConstExpr(pIns->nIns | (rs << 21) | (rt << 16)));
+			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(pIns->nIns | (rs << 21) | (rt << 16)));
 		
 			sect_OutputExprLong(pExpr);
 		}
 		else
 			prj_Error(ERROR_OPERAND_RANGE);
 
-		return TRUE;
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_ShiftInstructions[T_MIPS_SHIFT_LAST - T_MIPS_SHIFT_FIRST + 1] =
+static uint32_t s_ShiftInstructions[T_MIPS_SHIFT_LAST - T_MIPS_SHIFT_FIRST + 1] =
 {
 	0x00200002, // ROTR
 	0x00000000, // SLL
@@ -276,12 +276,12 @@ static ULONG s_ShiftInstructions[T_MIPS_SHIFT_LAST - T_MIPS_SHIFT_FIRST + 1] =
 };
 
 
-static BOOL parse_Shift(void)
+static bool_t parse_Shift(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_SHIFT_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_SHIFT_LAST)
 	{
-		ULONG ins = s_ShiftInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_SHIFT_FIRST];
+		uint32_t ins = s_ShiftInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_SHIFT_FIRST];
 		int rd;
 		int rt;
 		SExpression* pExpr;
@@ -290,40 +290,40 @@ static BOOL parse_Shift(void)
 		
 		rd = parse_ExpectRegister();
 		if(rd == -1)
-			return FALSE;
+			return false;
 			
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 			
 		rt = parse_ExpectRegister();
 		if(rt == -1)
-			return FALSE;
+			return false;
 			
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 			
 		pExpr = parse_Expression();
 		if(pExpr == NULL)
-			return FALSE;
+			return false;
 
-		pExpr = parse_CheckRange(pExpr, 0, 31);
+		pExpr = expr_CheckRange(pExpr, 0, 31);
 		if(pExpr != NULL)
 		{
-			pExpr = parse_CreateSHLExpr(pExpr, parse_CreateConstExpr(6));
-			pExpr = parse_CreateORExpr(pExpr, parse_CreateConstExpr(ins | (rt << 16) | (rd << 11)));
+			pExpr = expr_CreateShlExpr(pExpr, expr_CreateConstExpr(6));
+			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(ins | (rt << 16) | (rd << 11)));
 		
 			sect_OutputExprLong(pExpr);
 		}
 		else
 			prj_Error(ERROR_OPERAND_RANGE);
 		
-		return TRUE;
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
-static ULONG s_LoadStoreInstructions[T_MIPS_LOADSTORE_LAST - T_MIPS_LOADSTORE_FIRST + 1] =
+static uint32_t s_LoadStoreInstructions[T_MIPS_LOADSTORE_LAST - T_MIPS_LOADSTORE_FIRST + 1] =
 {
 	0x80000000,	// LB
 	0x90000000,	// LBU
@@ -346,12 +346,12 @@ static ULONG s_LoadStoreInstructions[T_MIPS_LOADSTORE_LAST - T_MIPS_LOADSTORE_FI
 };
 
 
-static BOOL parse_LoadStore(void)
+static bool_t parse_LoadStore(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_LOADSTORE_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_LOADSTORE_LAST)
 	{
-		ULONG ins = s_LoadStoreInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_LOADSTORE_FIRST];
+		uint32_t ins = s_LoadStoreInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_LOADSTORE_FIRST];
 		int rt;
 		int base;
 		SExpression* pExpr;
@@ -360,35 +360,35 @@ static BOOL parse_LoadStore(void)
 		
 		rt = parse_ExpectRegister();
 		if(rt == -1)
-			return FALSE;
+			return false;
 			
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 			
 		pExpr = parse_ExpressionS16();
 		if(pExpr == NULL)
-			return FALSE;
+			return false;
 			
 		if(!parse_ExpectChar('('))
-			return FALSE;
+			return false;
 			
 		base = parse_ExpectRegister();
 		if(base == -1)
-			return FALSE;
+			return false;
 			
 		if(parse_ExpectChar(')'))
 		{
-			pExpr = parse_CreateORExpr(pExpr, parse_CreateConstExpr(ins | (base << 21) | (rt << 16)));
+			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(ins | (base << 21) | (rt << 16)));
 			sect_OutputExprLong(pExpr);
-			return TRUE;
+			return true;
 		}
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_RSRTInstructions[T_MIPS_RSRT_LAST - T_MIPS_RSRT_FIRST + 1] =
+static uint32_t s_RSRTInstructions[T_MIPS_RSRT_LAST - T_MIPS_RSRT_FIRST + 1] =
 {
 	0x0000001A,	// DIV
 	0x0000001B,	// DIVU
@@ -401,12 +401,12 @@ static ULONG s_RSRTInstructions[T_MIPS_RSRT_LAST - T_MIPS_RSRT_FIRST + 1] =
 };
 
 
-static BOOL parse_IntegerInstructionRSRT(void)
+static bool_t parse_IntegerInstructionRSRT(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_RSRT_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_RSRT_LAST)
 	{
-		ULONG ins = s_RSRTInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_RSRT_FIRST];
+		uint32_t ins = s_RSRTInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_RSRT_FIRST];
 		int rs;
 		int rt;
 		
@@ -414,24 +414,24 @@ static BOOL parse_IntegerInstructionRSRT(void)
 		
 		rs = parse_ExpectRegister();
 		if(rs == -1)
-			return FALSE;
+			return false;
 			
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 			
 		rt = parse_ExpectRegister();
 		if(rt != -1)
 		{
-			sect_OutputAbsLong(ins | (rs << 21) | (rt << 16));
-			return TRUE;
+			sect_OutputAbint32_t(ins | (rs << 21) | (rt << 16));
+			return true;
 		}
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_RDRTInstructions[T_MIPS_RDRT_LAST - T_MIPS_RDRT_FIRST + 1] =
+static uint32_t s_RDRTInstructions[T_MIPS_RDRT_LAST - T_MIPS_RDRT_FIRST + 1] =
 {
 	0x41400000,	// RDPGPR
 	0x7C000420,	// SEB
@@ -441,12 +441,12 @@ static ULONG s_RDRTInstructions[T_MIPS_RDRT_LAST - T_MIPS_RDRT_FIRST + 1] =
 };
 
 
-static BOOL parse_IntegerInstructionRDRT(void)
+static bool_t parse_IntegerInstructionRDRT(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_RDRT_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_RDRT_LAST)
 	{
-		ULONG ins = s_RDRTInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_RDRT_FIRST];
+		uint32_t ins = s_RDRTInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_RDRT_FIRST];
 		int rd;
 		int rt;
 		
@@ -454,24 +454,24 @@ static BOOL parse_IntegerInstructionRDRT(void)
 		
 		rd = parse_ExpectRegister();
 		if(rd == -1)
-			return FALSE;
+			return false;
 			
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 			
 		rt = parse_ExpectRegister();
 		if(rt != -1)
 		{
-			sect_OutputAbsLong(ins | (rd << 11) | (rt << 16));
-			return TRUE;
+			sect_OutputAbint32_t(ins | (rd << 11) | (rt << 16));
+			return true;
 		}
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_RSRTCodeInstructions[T_MIPS_RSRTCODE_LAST - T_MIPS_RSRTCODE_FIRST + 1] =
+static uint32_t s_RSRTCodeInstructions[T_MIPS_RSRTCODE_LAST - T_MIPS_RSRTCODE_FIRST + 1] =
 {
 	0x00000034,	// TEQ
 	0x00000030,	// TGE
@@ -482,12 +482,12 @@ static ULONG s_RSRTCodeInstructions[T_MIPS_RSRTCODE_LAST - T_MIPS_RSRTCODE_FIRST
 };
 
 
-static BOOL parse_IntegerInstructionRSRTCode(void)
+static bool_t parse_IntegerInstructionRSRTCode(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_RSRTCODE_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_RSRTCODE_LAST)
 	{
-		ULONG ins = s_RSRTCodeInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_RSRTCODE_FIRST];
+		uint32_t ins = s_RSRTCodeInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_RSRTCODE_FIRST];
 		int rs;
 		int rt;
 		
@@ -495,10 +495,10 @@ static BOOL parse_IntegerInstructionRSRTCode(void)
 		
 		rs = parse_ExpectRegister();
 		if(rs == -1)
-			return FALSE;
+			return false;
 			
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 			
 		rt = parse_ExpectRegister();
 		if(rt != -1)
@@ -511,45 +511,45 @@ static BOOL parse_IntegerInstructionRSRTCode(void)
 				if(pExpr == NULL)
 				{
 					prj_Error(ERROR_INVALID_EXPRESSION);
-					return TRUE;
+					return true;
 				}
 				
-				pExpr = parse_CheckRange(pExpr, 0, 1023);
+				pExpr = expr_CheckRange(pExpr, 0, 1023);
 				if(pExpr == NULL)
 				{
 					prj_Error(ERROR_OPERAND_RANGE);
-					return TRUE;
+					return true;
 				}
 				
-				pExpr = parse_CreateSHLExpr(pExpr, parse_CreateConstExpr(6));
-				pExpr = parse_CreateORExpr(pExpr, parse_CreateConstExpr(ins | (rs << 21) | (rt << 16)));
+				pExpr = expr_CreateShlExpr(pExpr, expr_CreateConstExpr(6));
+				pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(ins | (rs << 21) | (rt << 16)));
 				sect_OutputExprLong(pExpr);
 			}
 			else
 			{
-				sect_OutputAbsLong(ins | (rs << 21) | (rt << 16));
+				sect_OutputAbint32_t(ins | (rs << 21) | (rt << 16));
 			}
 			
-			return TRUE;
+			return true;
 		}
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
 static SInstructionRRI s_RIInstructions[T_MIPS_INTEGER_RI_LAST - T_MIPS_INTEGER_RI_FIRST + 1] =
 {
-	{ 0x040C0000, TRUE },	// TEQI
-	{ 0x04080000, TRUE },	// TGEI
-	{ 0x04090000, FALSE },	// TGEIU
-	{ 0x040A0000, TRUE },	// TLTI
-	{ 0x040B0000, FALSE },	// TLTIU
-	{ 0x040E0000, TRUE },	// TNEI
+	{ 0x040C0000, true },	// TEQI
+	{ 0x04080000, true },	// TGEI
+	{ 0x04090000, false },	// TGEIU
+	{ 0x040A0000, true },	// TLTI
+	{ 0x040B0000, false },	// TLTIU
+	{ 0x040E0000, true },	// TNEI
 };
 
 
-static BOOL parse_IntegerInstructionRI(void)
+static bool_t parse_IntegerInstructionRI(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_INTEGER_RI_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_INTEGER_RI_LAST)
@@ -561,10 +561,10 @@ static BOOL parse_IntegerInstructionRI(void)
 		parse_GetToken();
 		rs = parse_ExpectRegister();
 		if(rs == -1)
-			return FALSE;
+			return false;
 			
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 			
 		if(pIns->bSigned)
 			pExpr = parse_ExpressionS16();
@@ -573,29 +573,29 @@ static BOOL parse_IntegerInstructionRI(void)
 
 		if(pExpr != NULL)
 		{
-			pExpr = parse_CreateORExpr(pExpr, parse_CreateConstExpr(pIns->nIns | (rs << 21)));
+			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(pIns->nIns | (rs << 21)));
 			sect_OutputExprLong(pExpr);
-			return TRUE;
+			return true;
 		}
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_RDRSRTCopyInstructions[T_MIPS_INTEGER_RDRS_RTCOPY_LAST - T_MIPS_INTEGER_RDRS_RTCOPY_FIRST + 1] =
+static uint32_t s_RDRSRTCopyInstructions[T_MIPS_INTEGER_RDRS_RTCOPY_LAST - T_MIPS_INTEGER_RDRS_RTCOPY_FIRST + 1] =
 {
 	0x70000021,	// CLO
 	0x70000020	// CLZ
 };
 
 
-static BOOL parse_IntegerInstructionRDRSRTCopy(void)
+static bool_t parse_IntegerInstructionRDRSRTCopy(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_INTEGER_RDRS_RTCOPY_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_INTEGER_RDRS_RTCOPY_LAST)
 	{
-		ULONG ins = s_RDRSRTCopyInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RDRS_RTCOPY_FIRST];
+		uint32_t ins = s_RDRSRTCopyInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RDRS_RTCOPY_FIRST];
 		int rd;
 		int rs;
 		
@@ -603,25 +603,25 @@ static BOOL parse_IntegerInstructionRDRSRTCopy(void)
 		
 		rd = parse_ExpectRegister();
 		if(rd == -1)
-			return FALSE;
+			return false;
 			
 		if(!parse_ExpectChar(','))
-			return FALSE;
+			return false;
 			
 		rs = parse_ExpectRegister();
 		if(rs != -1)
 		{
-			sect_OutputAbsLong(ins | (rd << 11) | (rs << 21) | (rd << 16));
+			sect_OutputAbint32_t(ins | (rd << 11) | (rs << 21) | (rd << 16));
 			
-			return TRUE;
+			return true;
 		}
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_NoParameterInstructions[T_MIPS_INTEGER_NO_PARAMETER_LAST - T_MIPS_INTEGER_NO_PARAMETER_FIRST + 1] =
+static uint32_t s_NoParameterInstructions[T_MIPS_INTEGER_NO_PARAMETER_LAST - T_MIPS_INTEGER_NO_PARAMETER_FIRST + 1] =
 {
 	0x4200001F,	// DERET
 	0x000000C0,	// EHB
@@ -634,36 +634,36 @@ static ULONG s_NoParameterInstructions[T_MIPS_INTEGER_NO_PARAMETER_LAST - T_MIPS
 	0x42000006,	// TLBWR
 };
 
-static BOOL parse_IntegerNoParameter(void)
+static bool_t parse_IntegerNoParameter(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_INTEGER_NO_PARAMETER_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_INTEGER_NO_PARAMETER_LAST)
 	{
-		ULONG ins = s_NoParameterInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_NO_PARAMETER_FIRST];
+		uint32_t ins = s_NoParameterInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_NO_PARAMETER_FIRST];
 		
 		parse_GetToken();
 		
-		sect_OutputAbsLong(ins);
-		return TRUE;
+		sect_OutputAbint32_t(ins);
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_RTInstructions[T_MIPS_INTEGER_RT_LAST - T_MIPS_INTEGER_RT_FIRST + 1] =
+static uint32_t s_RTInstructions[T_MIPS_INTEGER_RT_LAST - T_MIPS_INTEGER_RT_FIRST + 1] =
 {
 	0x41606000,	// DI
 	0x41606020,	// EI
 };
 
 
-static BOOL parse_IntegerRT(void)
+static bool_t parse_IntegerRT(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_INTEGER_RT_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_INTEGER_RT_LAST)
 	{
-		ULONG ins = s_RTInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RT_FIRST];
+		uint32_t ins = s_RTInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RT_FIRST];
 		int rt;
 		
 		parse_GetToken();
@@ -672,44 +672,44 @@ static BOOL parse_IntegerRT(void)
 		if(rt == -1)
 			rt = 0;
 			
-		sect_OutputAbsLong(ins | (rt << 16));
+		sect_OutputAbint32_t(ins | (rt << 16));
 		
-		return TRUE;
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_RDInstructions[T_MIPS_INTEGER_RD_LAST - T_MIPS_INTEGER_RD_FIRST + 1] =
+static uint32_t s_RDInstructions[T_MIPS_INTEGER_RD_LAST - T_MIPS_INTEGER_RD_FIRST + 1] =
 {
 	0x00000010,	// MFHI
 	0x00000012,	// MFLO
 };
 
-static BOOL parse_IntegerRD(void)
+static bool_t parse_IntegerRD(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_INTEGER_RD_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_INTEGER_RD_LAST)
 	{
-		ULONG ins = s_RDInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RD_FIRST];
+		uint32_t ins = s_RDInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RD_FIRST];
 		int rd;
 		
 		parse_GetToken();
 		
 		rd = parse_ExpectRegister();
 		if(rd == -1)
-			return FALSE;
+			return false;
 			
-		sect_OutputAbsLong(ins | (rd << 11));
-		return TRUE;
+		sect_OutputAbint32_t(ins | (rd << 11));
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_RSInstructions[T_MIPS_INTEGER_RS_LAST - T_MIPS_INTEGER_RS_FIRST + 1] =
+static uint32_t s_RSInstructions[T_MIPS_INTEGER_RS_LAST - T_MIPS_INTEGER_RS_FIRST + 1] =
 {
 	0x00000008,	// JR
 	0x00000408,	// JR.HB
@@ -717,41 +717,41 @@ static ULONG s_RSInstructions[T_MIPS_INTEGER_RS_LAST - T_MIPS_INTEGER_RS_FIRST +
 	0x00000013,	// MTLO
 };
 
-static BOOL parse_IntegerRS(void)
+static bool_t parse_IntegerRS(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_INTEGER_RS_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_INTEGER_RS_LAST)
 	{
-		ULONG ins = s_RSInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RS_FIRST];
+		uint32_t ins = s_RSInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_RS_FIRST];
 		int rs;
 		
 		parse_GetToken();
 		
 		rs = parse_ExpectRegister();
 		if(rs == -1)
-			return FALSE;
+			return false;
 			
-		sect_OutputAbsLong(ins | (rs << 21));
-		return TRUE;
+		sect_OutputAbint32_t(ins | (rs << 21));
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
 
-static ULONG s_JumpAbsInstructions[T_MIPS_INTEGER_J_ABS_LAST - T_MIPS_INTEGER_J_ABS_FIRST + 1] =
+static uint32_t s_JumpAbsInstructions[T_MIPS_INTEGER_J_ABS_LAST - T_MIPS_INTEGER_J_ABS_FIRST + 1] =
 {
 	0x08000000,	// J
 	0x0C000000,	// JAL
 };
 
 
-static BOOL parse_IntegerJumpAbs(void)
+static bool_t parse_IntegerJumpAbs(void)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MIPS_INTEGER_J_ABS_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_MIPS_INTEGER_J_ABS_LAST)
 	{
-		ULONG ins = s_JumpAbsInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_J_ABS_FIRST];
+		uint32_t ins = s_JumpAbsInstructions[g_CurrentToken.ID.TargetToken - T_MIPS_INTEGER_J_ABS_FIRST];
 		SExpression* pExpr;
 		
 		parse_GetToken();
@@ -759,18 +759,18 @@ static BOOL parse_IntegerJumpAbs(void)
 		pExpr = parse_Expression();
 		if(pExpr != NULL)
 		{
-			pExpr = parse_CreateSHRExpr(pExpr, parse_CreateConstExpr(2));
-			pExpr = parse_CreateANDExpr(pExpr, parse_CreateConstExpr(0x03FFFFFF));
-			pExpr = parse_CreateORExpr(pExpr, parse_CreateConstExpr(ins));
+			pExpr = expr_CreateShrExpr(pExpr, expr_CreateConstExpr(2));
+			pExpr = expr_CreateAndExpr(pExpr, expr_CreateConstExpr(0x03FFFFFF));
+			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(ins));
 		
 			sect_OutputExprLong(pExpr);
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
-static BOOL parse_LUI(void)
+static bool_t parse_LUI(void)
 {
 	if(g_CurrentToken.ID.TargetToken == T_MIPS_LUI)
 	{
@@ -785,18 +785,18 @@ static BOOL parse_LUI(void)
 				SExpression* pExpr = parse_ExpressionU16();
 				if(pExpr != NULL)
 				{
-					pExpr = parse_CreateORExpr(pExpr, parse_CreateConstExpr((15 << 26) | (rd << 16)));
+					pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr((15 << 26) | (rd << 16)));
 					sect_OutputExprLong(pExpr);
 				}
 			}
 		}
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
-typedef BOOL (*fpParser_t)(void);
+typedef bool_t (*fpParser_t)(void);
 
 fpParser_t g_fpParsers[T_MIPS_LUI - T_MIPS_ADD + 1] =
 {
@@ -929,14 +929,14 @@ fpParser_t g_fpParsers[T_MIPS_LUI - T_MIPS_ADD + 1] =
 };
 
 
-BOOL parse_IntegerInstruction(void)
+bool_t parse_IntegerInstruction(void)
 {
 	if(T_MIPS_ADD <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_MIPS_LUI)
 	{
 		return g_fpParsers[g_CurrentToken.ID.TargetToken - T_MIPS_ADD]();
 	}
 
-	return FALSE;
+	return false;
 }
 
 

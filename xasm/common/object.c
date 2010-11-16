@@ -17,38 +17,38 @@
 */
 
 /*	char	ID[4]="XOB\0";
- *	ULONG	NumberOfGroups
+ *	uint32_t	NumberOfGroups
  *	REPT	NumberOfGroups
  *			ASCIIZ	Name
- *			ULONG	Type
+ *			uint32_t	Type
  *	ENDR
- *	ULONG	NumberOfSections
+ *	uint32_t	NumberOfSections
  *	REPT	NumberOfSections
- *			SLONG	GroupID	; -1 = exported EQU symbols
+ *			int32_t	GroupID	; -1 = exported EQU symbols
  *			ASCIIZ	Name
- *			SLONG	Bank	; -1 = not bankfixed
- *			SLONG	Org		; -1 = not orgfixed
- *			ULONG	NumberOfSymbols
+ *			int32_t	Bank	; -1 = not bankfixed
+ *			int32_t	Org		; -1 = not orgfixed
+ *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
- *					ULONG	Type	;0=EXPORT
+ *					uint32_t	Type	;0=EXPORT
  *									;1=IMPORT
  *									;2=LOCAL
  *									;3=LOCALEXPORT
  *									;4=LOCALIMPORT
  *					IF Type==EXPORT or LOCAL or LOCALEXPORT
- *						SLONG	Value
+ *						int32_t	Value
  *					ENDC
  *			ENDR
- *			ULONG	Size
+ *			uint32_t	Size
  *			IF	SectionCanContainData
- *					UBYTE	Data[Size]
- *					ULONG	NumberOfPatches
+ *					uint8_t	Data[Size]
+ *					uint32_t	NumberOfPatches
  *					REPT	NumberOfPatches
- *							ULONG	Offset
- *							ULONG	Type
- *							ULONG	ExprSize
- *							UBYTE	Expr[ExprSize]
+ *							uint32_t	Offset
+ *							uint32_t	Type
+ *							uint32_t	ExprSize
+ *							uint8_t	Expr[ExprSize]
  *					ENDR
  *			ENDC
  *	ENDR
@@ -72,7 +72,7 @@
 
 //	Private routines
 
-static void fputll(SLONG d, FILE* f)
+static void fputll(int32_t d, FILE* f)
 {
 	fputc(d&0xFF, f);
 	fputc((d>>8)&0xFF, f);
@@ -89,7 +89,7 @@ static void fputasciiz(char* s, FILE* f)
 	fputc(0, f);
 }
 
-static ULONG calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, ULONG ID)
+static uint32_t calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, uint32_t ID)
 {
 	if(expr)
 	{
@@ -396,10 +396,10 @@ static	int	write_expr(FILE* f, SExpression* expr)
 static	void	write_patch(FILE* f, SPatch* patch)
 {
 /*
- *	ULONG	Offset
- *	ULONG	Type
- *	ULONG	ExprSize
- *	UBYTE	Expr[ExprSize]
+ *	uint32_t	Offset
+ *	uint32_t	Type
+ *	uint32_t	ExprSize
+ *	uint8_t	Expr[ExprSize]
  */
 
 	long	size,
@@ -422,16 +422,16 @@ static	void	write_patch(FILE* f, SPatch* patch)
 
 //	Public routines
 
-BOOL	obj_Write(char* name)
+bool_t	obj_Write(char* name)
 {
 	FILE* f;
 
 	if((f=fopen(name,"wb"))!=NULL)
 	{
 		int i;
-		ULONG groupcount = 0;
-		ULONG equsetcount = 0;
-		ULONG sectioncount = 0;
+		uint32_t groupcount = 0;
+		uint32_t equsetcount = 0;
+		uint32_t sectioncount = 0;
 		long pos;
 		long pos2;
 		SSection* sect;
@@ -576,7 +576,7 @@ BOOL	obj_Write(char* name)
 				{
 					if(sym->Type!=SYM_GROUP)
 					{
-						sym->ID = (ULONG)-1;
+						sym->ID = (uint32_t)-1;
 					}
 
 					if( (sym->pSection==sect)
@@ -622,15 +622,15 @@ BOOL	obj_Write(char* name)
 			fseek(f, oldpos, SEEK_SET);
 
 /*
- *			ULONG	Size
+ *			uint32_t	Size
  *			IF	SectionCanContainData
- *					UBYTE	Data[Size]
- *					ULONG	NumberOfPatches
+ *					uint8_t	Data[Size]
+ *					uint32_t	NumberOfPatches
  *					REPT	NumberOfPatches
- *							ULONG	Offset
- *							ULONG	Type
- *							ULONG	ExprSize
- *							UBYTE	Expr[ExprSize]
+ *							uint32_t	Offset
+ *							uint32_t	Type
+ *							uint32_t	ExprSize
+ *							uint8_t	Expr[ExprSize]
  *					ENDR
  *			ENDC
  */
@@ -657,8 +657,8 @@ BOOL	obj_Write(char* name)
 		}
 
 		fclose(f);
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }

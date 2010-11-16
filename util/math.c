@@ -7,62 +7,62 @@
 #define	PI	acos(-1.0)
 #endif
 
-double f2d(SLONG a)
+double f2d(int32_t a)
 {
 	return a * (1.0 / 65536.0);
 }
 
-SLONG d2f(double a)
+int32_t d2f(double a)
 {
-	return (SLONG)(a * 65536);
+	return (int32_t)(a * 65536);
 }
 
-SLONG imuldiv(SLONG a, SLONG b, SLONG c)
+int32_t imuldiv(int32_t a, int32_t b, int32_t c)
 {
-	return (SLLONG)a * b / c;
+	return (int64_t)a * b / c;
 }
 
-SLONG fmul(SLONG a, SLONG b)
+int32_t fmul(int32_t a, int32_t b)
 {
-	return (SLONG)(((SLLONG)a * b) >> 16);
+	return (int32_t)(((int64_t)a * b) >> 16);
 }
 
-SLONG fdiv(SLONG a, SLONG b)
+int32_t fdiv(int32_t a, int32_t b)
 {
-	return (SLONG)(((SLLONG)a << 16) / b);
+	return (int32_t)(((int64_t)a << 16) / b);
 }
 
-SLONG fsin(SLONG a)
+int32_t fsin(int32_t a)
 {
 	return d2f(sin(f2d(a) * 2 * PI));
 }
 
-SLONG fasin(SLONG a)
+int32_t fasin(int32_t a)
 {
 	return d2f(asin(f2d(a)) / (2 * PI));
 }
 
-SLONG fcos(SLONG a)
+int32_t fcos(int32_t a)
 {
 	return d2f(cos(f2d(a) * 2 * PI));
 }
 
-SLONG facos(SLONG a)
+int32_t facos(int32_t a)
 {
 	return d2f(acos(f2d(a)) / (2 * PI));
 }
 
-SLONG ftan(SLONG a)
+int32_t ftan(int32_t a)
 {
 	return d2f(tan(f2d(a) * 2 * PI));
 }
 
-SLONG fatan(SLONG a)
+int32_t fatan(int32_t a)
 {
 	return d2f(atan(f2d(a)) / (2 * PI));
 }
 
-SLONG fatan2(SLONG a, SLONG b)
+int32_t fatan2(int32_t a, int32_t b)
 {
 	return d2f(atan2(f2d(a), f2d(b)) / (2 * PI));
 }

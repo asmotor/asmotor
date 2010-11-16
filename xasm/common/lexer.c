@@ -52,15 +52,15 @@
 struct LexString
 {
 	char*	pszName;
-	ULONG	Token;
-	SLONG	NameLength;
+	uint32_t	Token;
+	int32_t	NameLength;
 	list_Data(struct LexString);
 };
 typedef	struct LexString SLexString;
 
 struct FloatingChars
 {
-	ULONG Chars[256];
+	uint32_t Chars[256];
 	list_Data(struct FloatingChars);
 };
 typedef	struct FloatingChars SFloatingChars;
@@ -71,13 +71,13 @@ typedef	struct FloatingChars SFloatingChars;
 /*	Private variables*/
 
 static SLexFloat g_aLexFloat[MAXFLOATS];
-static ULONG g_nNextFreeFloat;
+static uint32_t g_nNextFreeFloat;
 static SLexString* g_aLexHash[LEXHASHSIZE];
 static SLexBuffer* g_pCurrentBuffer;
-static SLONG g_nLexTokenMaxLength;
+static int32_t g_nLexTokenMaxLength;
 static SFloatingChars* g_pFloatingChars;
-static ULONG g_aFloatSuffix[256];
-static ULONG g_nHasSuffix;
+static uint32_t g_aFloatSuffix[256];
+static uint32_t g_nHasSuffix;
 
 
 
@@ -90,7 +90,7 @@ SLexToken	g_CurrentToken;
 
 /*	Private routines*/
 
-static SFloatingChars* lex_GetPointerToFloatingChar(SLONG charnumber)
+static SFloatingChars* lex_GetPointerToFloatingChar(int32_t charnumber)
 {
 	if(charnumber >= 0)
 	{
@@ -148,10 +148,10 @@ static SFloatingChars* lex_GetPointerToFloatingChar(SLONG charnumber)
 	}
 }
 
-static SLexFloat* lex_GetFloat(ULONG id)
+static SLexFloat* lex_GetFloat(uint32_t id)
 {
-    ULONG r = 0;
-	ULONG mask = 1;
+    uint32_t r = 0;
+	uint32_t mask = 1;
 
     if(id == 0)
 		return NULL;
@@ -165,9 +165,9 @@ static SLexFloat* lex_GetFloat(ULONG id)
     return &g_aLexFloat[r];
 }
 
-static ULONG lex_CalcHash(char* s)
+static uint32_t lex_CalcHash(char* s)
 {
-    ULONG r = 0;
+    uint32_t r = 0;
 
     while(*s)
     {
@@ -178,7 +178,7 @@ static ULONG lex_CalcHash(char* s)
     return r;
 }
 
-static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, BOOL bAllowUndefinedSymbols)
+static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t bAllowUndefinedSymbols)
 {
 	while(*src && strchr(stopchar, *src) == NULL)
 	{
@@ -339,7 +339,7 @@ void lex_Goto(SLexBookmark* pBookmark)
 	g_CurrentToken = pBookmark->Token;
 }
 
-void lex_SkipBytes(ULONG count)
+void lex_SkipBytes(uint32_t count)
 {
 	if(g_pCurrentBuffer)
 	{
@@ -357,7 +357,7 @@ void lex_SkipBytes(ULONG count)
 	}
 }
 
-void lex_RewindBytes(ULONG count)
+void lex_RewindBytes(uint32_t count)
 {
 	if(g_pCurrentBuffer)
 	{
@@ -448,7 +448,7 @@ SLexBuffer* lex_CreateMemoryBuffer(char* mem, size_t size)
 			pBuffer->pBufferStart += SAFETYMARGIN;
 			memcpy(pBuffer->pBuffer, mem, size);
 			pBuffer->nBufferSize = size;
-			pBuffer->bAtLineStart = TRUE;
+			pBuffer->bAtLineStart = true;
 			pBuffer->pBuffer[size] = 0;
 			pBuffer->State = LEX_STATE_NORMAL;
 			return pBuffer;
@@ -476,13 +476,13 @@ SLexBuffer* lex_CreateFileBuffer(FILE* f)
 
 		if((pFile = (char*)malloc(size)) != NULL)
 		{
-			size = fread(pFile, sizeof(UBYTE), size, f);
+			size = fread(pFile, sizeof(uint8_t), size, f);
 
 			if((pBuffer->pBuffer = pBuffer->pBufferStart = (char*)malloc(size + 2 + SAFETYMARGIN)) != NULL)
 			{
 				char* mem;
 				char* dest;
-				BOOL bWasSpace = TRUE;
+				bool_t bWasSpace = true;
 
 				pBuffer->pBuffer += SAFETYMARGIN;
 				pBuffer->pBufferStart += SAFETYMARGIN;
@@ -504,30 +504,30 @@ SLexBuffer* lex_CreateFileBuffer(FILE* f)
 							*dest++ = *mem++;
 						}
 						*dest++ = *mem++;
-						bWasSpace = FALSE;
+						bWasSpace = false;
 					}
 					else if((mem[0]==10 && mem[1]==13) || (mem[0]==13 && mem[1]==10))
 					{
 						*dest++ = '\n';
 						mem += 2;
-						bWasSpace = TRUE;
+						bWasSpace = true;
 					}
 					else if(mem[0] == 10 || mem[0] == 13)
 					{
 						*dest++ = '\n';
 						mem += 1;
-						bWasSpace = TRUE;
+						bWasSpace = true;
 					}
 					else if(*mem==';' || (bWasSpace && mem[0] == '*'))
 					{
 						++mem;
 						while(*mem && *mem != 13 && *mem != 10)
 							++mem;
-						bWasSpace = FALSE;
+						bWasSpace = false;
 					}
 					else
 					{
-						bWasSpace = isspace((UBYTE)*mem);
+						bWasSpace = isspace((uint8_t)*mem);
 						*dest++ = *mem++;
 					}
 				}
@@ -535,7 +535,7 @@ SLexBuffer* lex_CreateFileBuffer(FILE* f)
 				*dest++ = '\n';
 				*dest++ = 0;
 				pBuffer->nBufferSize = dest - pBuffer->pBufferStart;
-				pBuffer->bAtLineStart = TRUE;
+				pBuffer->bAtLineStart = true;
 
 				free(pFile);
 				return pBuffer;
@@ -549,14 +549,14 @@ SLexBuffer* lex_CreateFileBuffer(FILE* f)
 	return NULL;
 }
 
-ULONG lex_FloatAlloc(SLexFloat* tok)
+uint32_t lex_FloatAlloc(SLexFloat* tok)
 {
 	g_aLexFloat[g_nNextFreeFloat] = *tok;
 
 	return 1 << g_nNextFreeFloat++;
 }
 
-void lex_FloatRemoveAll(ULONG id)
+void lex_FloatRemoveAll(uint32_t id)
 {
 	SFloatingChars* chars = g_pFloatingChars;
 
@@ -571,7 +571,7 @@ void lex_FloatRemoveAll(ULONG id)
 	}
 }
 
-void lex_FloatAddRangeAndBeyond(ULONG id, UWORD start, UWORD end, SLONG charnumber)
+void lex_FloatAddRangeAndBeyond(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber)
 {
 	if(charnumber >= 0)
 	{
@@ -579,7 +579,7 @@ void lex_FloatAddRangeAndBeyond(ULONG id, UWORD start, UWORD end, SLONG charnumb
 
 		while(chars)
 		{
-			UWORD c;
+			uint16_t c;
 
 			c = start;
 
@@ -591,7 +591,7 @@ void lex_FloatAddRangeAndBeyond(ULONG id, UWORD start, UWORD end, SLONG charnumb
 	}
 }
 
-void lex_FloatAddRange(ULONG id, UWORD start, UWORD end, SLONG charnumber)
+void lex_FloatAddRange(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber)
 {
 	if(charnumber >= 0)
 	{
@@ -602,7 +602,7 @@ void lex_FloatAddRange(ULONG id, UWORD start, UWORD end, SLONG charnumber)
 	}
 }
 
-void lex_FloatSetSuffix(ULONG id, UBYTE ch)
+void lex_FloatSetSuffix(uint32_t id, uint8_t ch)
 {
 	g_nHasSuffix |= id;
 	g_aFloatSuffix[ch] |= id;
@@ -693,7 +693,7 @@ void lex_AddString(char* pszName, int nToken)
 		memset(pNew, 0, sizeof(SLexString));
 		if((pNew->pszName = (char*)_strdup(pszName)) != NULL)
 		{
-			pNew->NameLength = (SLONG)strlen(pszName);
+			pNew->NameLength = (int32_t)strlen(pszName);
 			pNew->Token = nToken;
 
 			_strupr(pNew->pszName);
@@ -733,21 +733,21 @@ void lex_AddStrings(SLexInitString* lex)
 	/*lex_PrintMaxTokensPerHash();*/
 }
 
-static ULONG lex_LexStateNormal()
+static uint32_t lex_LexStateNormal()
 {
-	BOOL bLineStart = g_pCurrentBuffer->bAtLineStart;
+	bool_t bLineStart = g_pCurrentBuffer->bAtLineStart;
 	SLexString* pLongestFixed = NULL;
 
-	g_pCurrentBuffer->bAtLineStart = FALSE;
+	g_pCurrentBuffer->bAtLineStart = false;
 
 	for(;;)
 	{
-		SLONG nFloatLen;
-		ULONG nNewFloatMask;
-		ULONG nFloatMask;
+		int32_t nFloatLen;
+		uint32_t nNewFloatMask;
+		uint32_t nFloatMask;
 		SFloatingChars* pFloat;
-		SLONG nMaxLen;
-		ULONG nHash;
+		int32_t nMaxLen;
+		uint32_t nHash;
 		SLexFloat* pFloatToken;
 		unsigned char* s;
 
@@ -762,7 +762,7 @@ static ULONG lex_LexStateNormal()
 			if(fstk_RunNextBuffer())
 			{
 				bLineStart = g_pCurrentBuffer->bAtLineStart;
-				g_pCurrentBuffer->bAtLineStart = FALSE;
+				g_pCurrentBuffer->bAtLineStart = false;
 				continue;
 			}
 			else
@@ -802,7 +802,7 @@ static ULONG lex_LexStateNormal()
 			}
 		}
 
-		nMaxLen = (SLONG)BUF_REMAINING_CHARS;
+		nMaxLen = (int32_t)BUF_REMAINING_CHARS;
 		if(g_nLexTokenMaxLength < nMaxLen)
 		{
 			nMaxLen = g_nLexTokenMaxLength;
@@ -841,7 +841,7 @@ static ULONG lex_LexStateNormal()
 				term[0] = *g_pCurrentBuffer->pBuffer;
 				term[1] = '\n';
 				term[2] = 0;
-				g_pCurrentBuffer->pBuffer = lex_ParseStringUntil(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer+1, term, TRUE);
+				g_pCurrentBuffer->pBuffer = lex_ParseStringUntil(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer+1, term, true);
 		 		if(*g_pCurrentBuffer->pBuffer != term[0])
 				{
 					prj_Fail(ERROR_STRING_TERM);
@@ -858,7 +858,7 @@ static ULONG lex_LexStateNormal()
 				char sym[MAXSYMNAMELENGTH];
 				char* pNewBuf;
 
-				pNewBuf = lex_ParseStringUntil(sym, g_pCurrentBuffer->pBuffer, "}\n", FALSE);
+				pNewBuf = lex_ParseStringUntil(sym, g_pCurrentBuffer->pBuffer, "}\n", false);
 				if(pNewBuf)
 				{
 					g_pCurrentBuffer->pBuffer = pNewBuf;
@@ -869,7 +869,7 @@ static ULONG lex_LexStateNormal()
 			}
 			if(*g_pCurrentBuffer->pBuffer == '\n')
 			{
-				g_pCurrentBuffer->bAtLineStart = TRUE;
+				g_pCurrentBuffer->bAtLineStart = true;
 			}
 
 			g_CurrentToken.TokenLength = 1;
@@ -938,7 +938,7 @@ static ULONG lex_LexStateNormal()
 	}
 }
 
-ULONG	lex_GetNextToken(void)
+uint32_t	lex_GetNextToken(void)
 {
 	switch(g_pCurrentBuffer->State)
 	{
@@ -969,9 +969,9 @@ ULONG	lex_GetNextToken(void)
 		}
 		case LEX_STATE_MACROARGS:
 		{
-			BOOL  linestart = g_pCurrentBuffer->bAtLineStart;
+			bool_t  linestart = g_pCurrentBuffer->bAtLineStart;
 			char* newbuf;
-			ULONG index;
+			uint32_t index;
 
 			while(isspace(g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n')
 			{
@@ -982,15 +982,15 @@ ULONG	lex_GetNextToken(void)
 			if(g_pCurrentBuffer->pBuffer[0] == '<')
 			{
 				g_pCurrentBuffer->pBuffer += 1;
-				newbuf = lex_ParseStringUntil(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer, ">\n", TRUE);
-				index = (SLONG)(newbuf - g_pCurrentBuffer->pBuffer);
+				newbuf = lex_ParseStringUntil(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer, ">\n", true);
+				index = (int32_t)(newbuf - g_pCurrentBuffer->pBuffer);
 				if(newbuf[0] == '>')
 					newbuf += 1;
 			}
 			else
 			{
-				newbuf = lex_ParseStringUntil(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer, ",\n", TRUE);
-				index = (SLONG)(newbuf - g_pCurrentBuffer->pBuffer);
+				newbuf = lex_ParseStringUntil(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer, ",\n", true);
+				index = (int32_t)(newbuf - g_pCurrentBuffer->pBuffer);
 			}
 			g_pCurrentBuffer->pBuffer = newbuf;
 
@@ -1011,7 +1011,7 @@ ULONG	lex_GetNextToken(void)
 			else if(*(g_pCurrentBuffer->pBuffer) == '\n')
 			{
 				g_pCurrentBuffer->pBuffer += 1;
-				g_pCurrentBuffer->bAtLineStart = TRUE;
+				g_pCurrentBuffer->bAtLineStart = true;
 				g_CurrentToken.TokenLength = 1;
 				g_CurrentToken.ID.Token = '\n';
 				return '\n';

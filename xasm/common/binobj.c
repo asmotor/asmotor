@@ -24,20 +24,20 @@
 #include "symbol.h"
 #include "patch.h"
 
-BOOL bin_Write(char* name)
+bool_t bin_Write(char* name)
 {
 	FILE* f;
 
 	SSection* sect;
-	SLONG nAddress;
+	int32_t nAddress;
 	int i;
-	BOOL bNeedOrg = FALSE;
+	bool_t bNeedOrg = false;
 
 	sect = pSectionList;
 	while(sect)
 	{
 		if(sect->pPatches != NULL)
-			bNeedOrg = TRUE;
+			bNeedOrg = true;
 		sect = list_GetNext(sect);
 	}
 	
@@ -45,7 +45,7 @@ BOOL bin_Write(char* name)
 	if(bNeedOrg && (sect->Flags & SECTF_ORGFIXED) == 0)
 	{
 		prj_Error(ERROR_SECTION_MUST_ORG);
-		return FALSE;
+		return false;
 	}
 
 	nAddress = sect->Org;
@@ -60,7 +60,7 @@ BOOL bin_Write(char* name)
 				if(sect->Org < nAddress)
 				{
 					prj_Error(ERROR_SECTION_ORG, sect->Name, sect->Org);
-					return FALSE;
+					return false;
 				}
 				nAddress = sect->Org;
 			}
@@ -109,9 +109,9 @@ BOOL bin_Write(char* name)
 		}
 
 		fclose(f);
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 

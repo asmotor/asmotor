@@ -33,7 +33,7 @@ typedef	struct
 
 typedef	struct
 {
-	ULONG	TotalGroups;
+	uint32_t	TotalGroups;
 	SGroup	Groups[];
 }	SGroups;
 

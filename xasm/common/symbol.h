@@ -63,17 +63,17 @@ struct Symbol
 	list_Data(struct Symbol);
 	char		Name[MAXSYMNAMELENGTH + 1];
 	ESymbolType	Type;
-	ULONG		Flags;
+	uint32_t		Flags;
 	struct Symbol* pScope;
 	struct Section* pSection;
 	union
 	{
-		SLONG 	(*Integer)(struct Symbol*);
+		int32_t 	(*Integer)(struct Symbol*);
 		char*	(*String)(struct Symbol*);
 	} Callback;
 	union
 	{
-		SLONG		Value;
+		int32_t		Value;
 		EGroupType	GroupType;
 		struct
 		{
@@ -82,7 +82,7 @@ struct Symbol
 		} Macro;
 	} Value;
 
-	ULONG		ID;	/*	Used by object output routines */
+	uint32_t		ID;	/*	Used by object output routines */
 };
 
 typedef	struct	Symbol	SSymbol;
@@ -91,23 +91,23 @@ typedef	struct	Symbol	SSymbol;
 
 
 extern SSymbol* sym_AddEQUS(char* name, char* value);
-extern SSymbol* sym_AddEQU(char* name, SLONG value);
-extern SSymbol* sym_AddSET(char* name, SLONG value);
+extern SSymbol* sym_AddEQU(char* name, int32_t value);
+extern SSymbol* sym_AddSET(char* name, int32_t value);
 extern SSymbol* sym_AddGROUP(char* name, EGroupType value);
-extern SSymbol* sym_AddMACRO(char* name, char* value, ULONG size);
+extern SSymbol* sym_AddMACRO(char* name, char* value, uint32_t size);
 extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
 extern SSymbol*	sym_Export(char* name);
-extern SLONG	sym_GetConstant(char* name);
-extern BOOL		sym_Init(void);
+extern int32_t	sym_GetConstant(char* name);
+extern bool_t		sym_Init(void);
 extern SSymbol* sym_AddLabel(char* name);
-extern BOOL		sym_isString(char* name);
-extern BOOL		sym_isMacro(char* name);
+extern bool_t		sym_isString(char* name);
+extern bool_t		sym_isMacro(char* name);
 extern char*	sym_GetStringValue(char* name);
-extern BOOL		sym_isDefined(char* name);
+extern bool_t		sym_isDefined(char* name);
 extern SSymbol* sym_FindSymbol(char* name);
 extern SSymbol* sym_Import(char* name);
 extern SSymbol* sym_Global(char* name);
-extern BOOL		sym_Purge(char* name);
+extern bool_t		sym_Purge(char* name);
 
 extern	SSymbol* g_pHashedSymbols[HASHSIZE];
 

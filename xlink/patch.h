@@ -68,15 +68,15 @@ typedef	enum
 
 typedef	struct
 {
-	ULONG		Offset;
+	uint32_t		Offset;
 	EPatchType	Type;
-	ULONG		ExprSize;
-	UBYTE*		pExpr;
+	uint32_t		ExprSize;
+	uint8_t*		pExpr;
 }	SPatch;
 
 typedef	struct
 {
-	ULONG	TotalPatches;
+	uint32_t	TotalPatches;
 	SPatch	Patches[];
 }	SPatches;
 

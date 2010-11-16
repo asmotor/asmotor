@@ -30,11 +30,11 @@ SExpression* parse_ExpressionS16(void)
 	if(pExpr == NULL)
 		return NULL;
 		
-	pExpr = parse_CheckRange(pExpr, -32768, 32767);
+	pExpr = expr_CheckRange(pExpr, -32768, 32767);
 	if(pExpr == NULL)
 		prj_Error(ERROR_OPERAND_RANGE);
 	
-	return parse_CreateANDExpr(pExpr, parse_CreateConstExpr(0xFFFF));
+	return expr_CreateAndExpr(pExpr, expr_CreateConstExpr(0xFFFF));
 }
 
 
@@ -44,7 +44,7 @@ SExpression* parse_ExpressionU16(void)
 	if(pExpr == NULL)
 		return NULL;
 		
-	pExpr = parse_CheckRange(pExpr, 0, 65535);
+	pExpr = expr_CheckRange(pExpr, 0, 65535);
 	if(pExpr == NULL)
 		prj_Error(ERROR_OPERAND_RANGE);
 	return pExpr;
@@ -57,11 +57,11 @@ SExpression* parse_ExpressionSU8(void)
 	if(pExpr == NULL)
 		return NULL;
 		
-	pExpr = parse_CheckRange(pExpr, -128, 255);
+	pExpr = expr_CheckRange(pExpr, -128, 255);
 	if(pExpr == NULL)
 		prj_Error(ERROR_OPERAND_RANGE);
 	
-	return parse_CreateANDExpr(pExpr, parse_CreateConstExpr(0xFF));
+	return expr_CreateAndExpr(pExpr, expr_CreateConstExpr(0xFF));
 }
 
 
@@ -79,10 +79,10 @@ SExpression* parse_TargetFunction(void)
 	}
 }
 
-BOOL parse_TargetSpecific(void)
+bool_t parse_TargetSpecific(void)
 {
 	if(parse_IntegerInstruction())
-		return TRUE;
+		return true;
 
-	return FALSE;
+	return false;
 }

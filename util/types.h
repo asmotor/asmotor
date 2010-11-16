@@ -22,27 +22,25 @@
 #if defined(__VBCC__)
 #include <exec/types.h>
 #else
-typedef	unsigned char	UBYTE;
-typedef	unsigned short	UWORD;
-typedef	unsigned long	ULONG;
+typedef	unsigned char	uint8_t;
+typedef	signed char		int8_t;
+typedef	unsigned short	uint16_t;
+typedef	signed short	int16_t;
+typedef	unsigned long	uint32_t;
+typedef	signed long		int32_t;
+typedef signed long long int64_t;
+
+
 typedef	enum
 {
-	FALSE=0,
-	TRUE=1
-}	BOOL;
+	false = 0,
+	true = 1
+}	bool_t;
 #endif
 
 
-typedef	signed char	SBYTE;
-typedef	signed short SWORD;
-typedef	signed long	SLONG;
-typedef signed long long SLLONG;
-
-
-#define	INVERTBOOL(x)	((x)?FALSE:TRUE)
-
 #ifndef	NULL
-#define	NULL	0L
+#	define	NULL	0L
 #endif
 
 #endif	/*INCLUDE_TYPES_H*/

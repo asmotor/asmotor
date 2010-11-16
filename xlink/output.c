@@ -31,7 +31,7 @@ void output_WriteRomImage(void)
 	char* data;
 	FILE* f;
 	SSection* pSect;
-	ULONG fsize = 0;
+	uint32_t fsize = 0;
 
 	data = (char*)malloc(WRITE_BLOCK_SIZE);
 	memset(data, 0, WRITE_BLOCK_SIZE);
@@ -50,16 +50,16 @@ void output_WriteRomImage(void)
 
 		if(pSect->Used && pSect->Assigned && pSect->ImageOffset != -1)
 		{
-			ULONG offset = pSect->ImageOffset;
-			ULONG nSectEnd = offset + pSect->Size;
+			uint32_t offset = pSect->ImageOffset;
+			uint32_t nSectEnd = offset + pSect->Size;
 
 			if(offset > fsize)
 			{
-				ULONG totaltowrite = offset - fsize;
+				uint32_t totaltowrite = offset - fsize;
 				fseek(f, fsize, SEEK_SET);
 				while(totaltowrite > 0)
 				{
-					ULONG towrite = totaltowrite > WRITE_BLOCK_SIZE ? WRITE_BLOCK_SIZE : totaltowrite;
+					uint32_t towrite = totaltowrite > WRITE_BLOCK_SIZE ? WRITE_BLOCK_SIZE : totaltowrite;
 					if(towrite != fwrite(data, 1, towrite, f))
 						Error("Disk possibly full");
 					totaltowrite -= towrite;

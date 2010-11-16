@@ -27,17 +27,17 @@
 #define	LINK_VERSION	"0.1.0"
 #define	LIB_VERSION		"0.1.0"
 
-extern SLONG imuldiv(SLONG a, SLONG b, SLONG c);
+extern int32_t imuldiv(int32_t a, int32_t b, int32_t c);
 
-extern SLONG fmul(SLONG a, SLONG b);
-extern SLONG fdiv(SLONG a, SLONG b);
-extern SLONG fsin(SLONG a);
-extern SLONG fcos(SLONG a);
-extern SLONG ftan(SLONG a);
-extern SLONG fasin(SLONG a);
-extern SLONG facos(SLONG a);
-extern SLONG fatan(SLONG a);
-extern SLONG fatan2(SLONG a, SLONG b);
+extern int32_t fmul(int32_t a, int32_t b);
+extern int32_t fdiv(int32_t a, int32_t b);
+extern int32_t fsin(int32_t a);
+extern int32_t fcos(int32_t a);
+extern int32_t ftan(int32_t a);
+extern int32_t fasin(int32_t a);
+extern int32_t facos(int32_t a);
+extern int32_t fatan(int32_t a);
+extern int32_t fatan2(int32_t a, int32_t b);
 
 
 #ifdef	__GNUC__

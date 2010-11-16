@@ -105,9 +105,9 @@ static SLexInitString localstrings[]=
     NULL, 0
 };
 
-static SLONG gbgfx2bin(char ch)
+static int32_t gbgfx2bin(char ch)
 {
-	SLONG i;
+	int32_t i;
 
 	for(i = 0; i <= 3; ++i)
 	{
@@ -119,14 +119,14 @@ static SLONG gbgfx2bin(char ch)
 }
 
 
-static SLONG ascii2bin(char* s)
+static int32_t ascii2bin(char* s)
 {
-	SLONG result = 0;
+	int32_t result = 0;
 
 	++s;
 	while(*s != '\0')
 	{
-		SLONG c = gbgfx2bin(*s++);
+		int32_t c = gbgfx2bin(*s++);
 		result = result * 2 + ((c & 1) << 8) + ((c & 2) >> 1);
 	}
 
@@ -134,7 +134,7 @@ static SLONG ascii2bin(char* s)
 }
 
 
-static BOOL ParseGameboyNumber(char* s, ULONG size)
+static bool_t ParseGameboyNumber(char* s, uint32_t size)
 {
     char dest[256];
 
@@ -145,7 +145,7 @@ static BOOL ParseGameboyNumber(char* s, ULONG size)
     dest[size] = 0;
     g_CurrentToken.Value.nInteger = ascii2bin(dest);
 
-    return TRUE;
+    return true;
 }
 
 

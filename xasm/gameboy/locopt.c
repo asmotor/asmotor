@@ -26,7 +26,7 @@
 #include "globlex.h"
 #include "project.h"
 
-ULONG GameboyConstID;
+uint32_t GameboyConstID;
 
 SMachineOptions* locopt_Alloc(void)
 {
@@ -56,10 +56,10 @@ void locopt_Update(void)
     lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[3], g_pOptions->pMachine->GameboyChar[3], 2);
 }
 
-BOOL locopt_Parse(char* s)
+bool_t locopt_Parse(char* s)
 {
 	if(s == NULL || strlen(s) == 0)
-		return FALSE;
+		return false;
 
 	switch(s[0])
 	{
@@ -70,17 +70,17 @@ BOOL locopt_Parse(char* s)
 				g_pOptions->pMachine->GameboyChar[1]=s[2];
 				g_pOptions->pMachine->GameboyChar[2]=s[3];
 				g_pOptions->pMachine->GameboyChar[3]=s[4];
-				return TRUE;
+				return true;
 			}
 			else
 			{
 				prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-				return FALSE;
+				return false;
 			}
 			break;
 		default:
 			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return FALSE;
+			return false;
 	}
 }
 

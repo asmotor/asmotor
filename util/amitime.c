@@ -26,7 +26,7 @@ void time_Init(void)
 	}
 }
 
-ULONG time_GetMicroSeconds(void)
+uint32_t time_GetMicroSeconds(void)
 {
 	struct timeval tv;
 

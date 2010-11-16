@@ -32,8 +32,8 @@ SSection* sect_CreateNew(void)
 		Error("Out of memory");
 
 	(*ppsect)->pNext = NULL;
-	(*ppsect)->Used = FALSE;
-	(*ppsect)->Assigned = FALSE;
+	(*ppsect)->Used = false;
+	(*ppsect)->Assigned = false;
 	(*ppsect)->pPatches = NULL;
 
 	return *ppsect;
@@ -47,7 +47,7 @@ static void resolve_symbol(SSection* sect, SSymbol* sym)
 		case SYM_EXPORT:
 		case SYM_LOCAL:
 		{
-			sym->Resolved = TRUE;
+			sym->Resolved = true;
 			sym->Value += sect->Org;
 			sym->pSection = sect;
 			break;
@@ -60,7 +60,7 @@ static void resolve_symbol(SSection* sect, SSymbol* sym)
 			{
 				if(filesect->Used)
 				{
-					ULONG i;
+					uint32_t i;
 					SSymbol* filesym = filesect->pSymbols;
 
 					for(i = 0; i < filesect->TotalSymbols; ++i, ++filesym)
@@ -70,7 +70,7 @@ static void resolve_symbol(SSection* sect, SSymbol* sym)
 							if(!filesym->Resolved)
 								resolve_symbol(filesect, filesym);
 
-							sym->Resolved = TRUE;
+							sym->Resolved = true;
 							sym->Value = filesym->Value;
 							sym->pSection = filesect;
 
@@ -91,7 +91,7 @@ static void resolve_symbol(SSection* sect, SSymbol* sym)
 			{
 				if(filesect->Used && filesect->FileID == sect->FileID)
 				{
-					ULONG i;
+					uint32_t i;
 					SSymbol* filesym = filesect->pSymbols;
 
 					for(i = 0; i < filesect->TotalSymbols; ++i, ++filesym)
@@ -102,7 +102,7 @@ static void resolve_symbol(SSection* sect, SSymbol* sym)
 							if(!filesym->Resolved)
 								resolve_symbol(filesect, filesym);
 
-							sym->Resolved = TRUE;
+							sym->Resolved = true;
 							sym->Value = filesym->Value;
 							sym->pSection = filesect;
 
@@ -123,7 +123,7 @@ static void resolve_symbol(SSection* sect, SSymbol* sym)
 	}
 }
 
-SLONG sect_GetSymbolValue(SSection* sect, SLONG symbolid)
+int32_t sect_GetSymbolValue(SSection* sect, int32_t symbolid)
 {
 	SSymbol* sym = &sect->pSymbols[symbolid];
 
@@ -133,14 +133,14 @@ SLONG sect_GetSymbolValue(SSection* sect, SLONG symbolid)
 	return sym->Value;
 }
 
-char* sect_GetSymbolName(SSection* sect, SLONG symbolid)
+char* sect_GetSymbolName(SSection* sect, int32_t symbolid)
 {
 	SSymbol* sym = &sect->pSymbols[symbolid];
 
 	return sym->Name;
 }
 
-SLONG sect_GetSymbolBank(SSection* sect, SLONG symbolid)
+int32_t sect_GetSymbolBank(SSection* sect, int32_t symbolid)
 {
 	SSymbol* sym = &sect->pSymbols[symbolid];
 

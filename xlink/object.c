@@ -21,38 +21,38 @@
  * Copyright 1996-1998 Carsten Sorensen (csorensen@ea.com)
  *
  *	char	ID[4]="XOB\0";
- *	ULONG	NumberOfGroups
+ *	uint32_t	NumberOfGroups
  *	REPT	NumberOfGroups
  *			ASCIIZ	Name
- *			ULONG	Type
+ *			uint32_t	Type
  *	ENDR
- *	ULONG	NumberOfSections
+ *	uint32_t	NumberOfSections
  *	REPT	NumberOfSections
- *			SLONG	GroupID	; -1 = exported EQU symbols
+ *			int32_t	GroupID	; -1 = exported EQU symbols
  *			ASCIIZ	Name
- *			SLONG	Bank	; -1 = not bankfixed
- *			SLONG	Org		; -1 = not orgfixed
- *			ULONG	NumberOfSymbols
+ *			int32_t	Bank	; -1 = not bankfixed
+ *			int32_t	Org		; -1 = not orgfixed
+ *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
- *					ULONG	Type	;0=EXPORT
+ *					uint32_t	Type	;0=EXPORT
  *									;1=IMPORT
  *									;2=LOCAL
  *									;3=LOCALEXPORT
  *									;4=LOCALIMPORT
  *					IF Type==EXPORT or LOCAL or LOCALEXPORT
- *						SLONG	Value
+ *						int32_t	Value
  *					ENDC
  *			ENDR
- *			ULONG	Size
+ *			uint32_t	Size
  *			IF	SectionCanContainData
- *					UBYTE	Data[Size]
- *					ULONG	NumberOfPatches
+ *					uint8_t	Data[Size]
+ *					uint32_t	NumberOfPatches
  *					REPT	NumberOfPatches
- *							ULONG	Offset
- *							ULONG	Type
- *							ULONG	ExprSize
- *							UBYTE	Expr[ExprSize]
+ *							uint32_t	Offset
+ *							uint32_t	Type
+ *							uint32_t	ExprSize
+ *							uint8_t	Expr[ExprSize]
  *					ENDR
  *			ENDC
  *	ENDR
@@ -62,11 +62,11 @@
 
 #define	MAKE_ID(a,b,c,d)	(a)|((b)<<8)|((c)<<16)|((d)<<24)
 
-static	ULONG	FileID=0;
+static	uint32_t	FileID=0;
 
-static	ULONG	fgetll(FILE* f)
+static	uint32_t	fgetll(FILE* f)
 {
-	ULONG	r;
+	uint32_t	r;
 
 	r =fgetc(f);
 	r|=fgetc(f)<<8;
@@ -94,21 +94,21 @@ static	void	fgetasciiz(char* s, int size, FILE* f)
 static SGroups* read_groups(FILE* f)
 {
 /*
- *	ULONG	NumberOfGroups
+ *	uint32_t	NumberOfGroups
  *	REPT	NumberOfGroups
  *			ASCIIZ	Name
- *			ULONG	Type
+ *			uint32_t	Type
  *	ENDR
  */
 
 	SGroups* pGroups;
-	ULONG	totalgroups;
+	uint32_t	totalgroups;
 
 	totalgroups=fgetll(f);
 
 	if((pGroups=malloc(sizeof(SGroups)+totalgroups*sizeof(SGroup)))!=NULL)
 	{
-		ULONG	i;
+		uint32_t	i;
 
 		pGroups->TotalGroups=totalgroups;
 
@@ -127,31 +127,31 @@ static SGroups* read_groups(FILE* f)
 	return pGroups;
 }
 
-static	ULONG	read_symbols(FILE* f, SSymbol* *pdestsym)
+static	uint32_t	read_symbols(FILE* f, SSymbol* *pdestsym)
 {
 /*
- *			ULONG	NumberOfSymbols
+ *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
- *					ULONG	Type	;0=EXPORT
+ *					uint32_t	Type	;0=EXPORT
  *									;1=IMPORT
  *									;2=LOCAL
  *									;3=LOCALEXPORT
  *									;4=LOCALIMPORT
  *					IF Type==EXPORT or LOCAL or LOCALEXPORT
- *						SLONG	Value
+ *						int32_t	Value
  *					ENDC
  *			ENDR
  */
 
-	ULONG	totalsymbols;
+	uint32_t	totalsymbols;
 	SSymbol* sym;
 
 	totalsymbols=fgetll(f);
 
 	if((sym=malloc(totalsymbols*sizeof(SSymbol)))!=NULL)
 	{
-		ULONG	i;
+		uint32_t	i;
 
 		for(i=0; i<totalsymbols; i+=1)
 		{
@@ -161,7 +161,7 @@ static	ULONG	read_symbols(FILE* f, SSymbol* *pdestsym)
 			{
 				sym[i].Value=fgetll(f);
 			}
-			sym[i].Resolved=FALSE;
+			sym[i].Resolved=false;
 		}
 
 		*pdestsym=sym;
@@ -210,39 +210,39 @@ static	SPatches* read_patches(FILE* f)
 static	void	read_sections(SGroups* groups, FILE* f)
 {
 /*
- *	ULONG	NumberOfSections
+ *	uint32_t	NumberOfSections
  *	REPT	NumberOfSections
- *			SLONG	GroupID	; -1 = exported EQU symbols
+ *			int32_t	GroupID	; -1 = exported EQU symbols
  *			ASCIIZ	Name
- *			SLONG	Bank	; -1 = not bankfixed
- *			SLONG	Org		; -1 = not orgfixed
- *			ULONG	NumberOfSymbols
+ *			int32_t	Bank	; -1 = not bankfixed
+ *			int32_t	Org		; -1 = not orgfixed
+ *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
- *					ULONG	Type	;0=EXPORT
+ *					uint32_t	Type	;0=EXPORT
  *									;1=IMPORT
  *									;2=LOCAL
  *									;3=LOCALEXPORT
  *									;4=LOCALIMPORT
  *					IF Type==EXPORT or LOCAL or LOCALEXPORT
- *						SLONG	Value
+ *						int32_t	Value
  *					ENDC
  *			ENDR
- *			ULONG	Size
+ *			uint32_t	Size
  *			IF	SectionCanContainData
- *					UBYTE	Data[Size]
- *					ULONG	NumberOfPatches
+ *					uint8_t	Data[Size]
+ *					uint32_t	NumberOfPatches
  *					REPT	NumberOfPatches
- *							ULONG	Offset
- *							ULONG	Type
- *							ULONG	ExprSize
- *							UBYTE	Expr[ExprSize]
+ *							uint32_t	Offset
+ *							uint32_t	Type
+ *							uint32_t	ExprSize
+ *							uint8_t	Expr[ExprSize]
  *					ENDR
  *			ENDC
  *	ENDR
  */
 
-	ULONG	totalsections;
+	uint32_t	totalsections;
 
 	totalsections=fgetll(f);
 	while(totalsections--)
@@ -290,7 +290,7 @@ static	void	read_xob0(FILE* f)
 
 static	void	read_xlb0(FILE* f)
 {
-	ULONG	count;
+	uint32_t	count;
 
 	count=fgetll(f);
 
@@ -309,7 +309,7 @@ static	void	read_xlb0(FILE* f)
 
 static	void	readchunk(FILE* f)
 {
-	ULONG	id;
+	uint32_t	id;
 
 	id=fgetll(f);
 

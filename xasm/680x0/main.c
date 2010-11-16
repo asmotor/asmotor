@@ -8,8 +8,8 @@ static SConfiguration s_sConfiguration =
 	"1.0",
 	0x7FFFFFFF,
 	ASM_BIG_ENDIAN,
-	FALSE,
-	TRUE,
+	false,
+	true,
 
 	"rs.b", "rs.w", "rs.l",
 	"dc.b", "dc.w", "dc.l",

@@ -44,7 +44,7 @@
 #define EXT_DEF		0x01000000
 #define EXT_REF32	0x81000000
 
-static void fputml(SLONG d, FILE* f)
+static void fputml(int32_t d, FILE* f)
 {
 	fputc((d >> 24) & 0xFF, f);
 	fputc((d >> 16) & 0xFF, f);
@@ -63,14 +63,14 @@ static void fputbuf(void* pBuf, int nLen, FILE* f)
 	}
 }
 
-static void fputstr(char* pStr, FILE* f, ULONG def)
+static void fputstr(char* pStr, FILE* f, uint32_t def)
 {
 	int nLen = (int)strlen(pStr);
 	fputml(((nLen + 3) / 4) | def, f);
 	fputbuf(pStr, nLen, f);
 }
 
-void ami_WriteSymbolHunk(FILE* f, SSection* pSect, BOOL bSkipExt)
+void ami_WriteSymbolHunk(FILE* f, SSection* pSect, bool_t bSkipExt)
 {
 	int i;
 	int count = 0;
@@ -104,7 +104,7 @@ void ami_WriteSymbolHunk(FILE* f, SSection* pSect, BOOL bSkipExt)
 		fputml(0, f);
 }
 
-void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatches, ULONG nCodePos)
+void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatches, uint32_t nCodePos)
 {
 	int i;
 	int count = 0;
@@ -115,7 +115,7 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 
 	while(pImportPatches != NULL)
 	{
-		ULONG offset;
+		uint32_t offset;
 		SSymbol* pSym = NULL;
 		if(patch_GetImportOffset(&offset, &pSym, pImportPatches->pExpression))
 		{
@@ -190,7 +190,7 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 
 }
 
-BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections, BOOL bLink)
+bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nSections, bool_t bLink)
 {
 	if(pSect->pGroup->Value.GroupType == GROUP_TEXT)
 	{
@@ -198,9 +198,9 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 		SPatch* pImportPatches = NULL;
 		SPatch* patch;
 		long hunkpos;
-		ULONG i;
-		ULONG hunktype;
-		BOOL bHasReloc32 = FALSE;
+		uint32_t i;
+		uint32_t hunktype;
+		bool_t bHasReloc32 = false;
 
 		for(i = 0; i < nSections; ++i)
 			pPatches[i] = NULL;
@@ -229,10 +229,10 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 			{
 				SSection* fsect = pSectionList;
 				int nsect = 0;
-				BOOL foundsect = FALSE;
+				bool_t foundsect = false;
 				while(fsect != NULL)
 				{
-					ULONG offset;
+					uint32_t offset;
 					if(patch_GetSectionOffset(&offset, patch->pExpression, fsect))
 					{
 						if(patch->pPrev)
@@ -247,8 +247,8 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 						if(pPatches[nsect])
 							pPatches[nsect]->pPrev = patch;
 						pPatches[nsect] = patch;
-						bHasReloc32 = TRUE;
-						foundsect = TRUE;
+						bHasReloc32 = true;
+						foundsect = true;
 						break;
 					}
 					++nsect;
@@ -257,7 +257,7 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 
 				if((!foundsect) && bLink)
 				{
-					ULONG offset;
+					uint32_t offset;
 					SSymbol* pSym = NULL;
 					if(patch_GetImportOffset(&offset, &pSym, patch->pExpression))
 					{
@@ -281,19 +281,19 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 		if(pSect->pPatches != NULL)
 		{
 			prj_Error(ERROR_OBJECTFILE_PATCH);
-			return FALSE;
+			return false;
 		}
 
 		if(bHasReloc32)
 		{
-			ULONG i;
+			uint32_t i;
 			SSection* fsect = pSectionList;
 
 			fputml(HUNK_RELOC32, f);
 
 			for(i = 0; i < nSections; ++i)
 			{
-				ULONG nReloc = 0;
+				uint32_t nReloc = 0;
 				SPatch* patch = pPatches[i];
 				while(patch)
 				{
@@ -307,7 +307,7 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 					patch = pPatches[i];
 					while(patch)
 					{
-						ULONG value;
+						uint32_t value;
 						size_t fpos;
 						patch_GetSectionOffset(&value, patch->pExpression, fsect);
 						fpos = ftell(f);
@@ -331,7 +331,7 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 	}
 	else /*if(pSect->pGroup->Flags & GROUP_BSS)*/
 	{
-		ULONG hunktype = HUNK_BSS;
+		uint32_t hunktype = HUNK_BSS;
 		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_CHIP))
 			hunktype |= HUNKF_CHIP;
 		fputml(hunktype, f);
@@ -342,13 +342,13 @@ BOOL ami_WriteSection(FILE* f, SSection* pSect, BOOL bDebugInfo, ULONG nSections
 	}
 
 	if(bDebugInfo)
-		ami_WriteSymbolHunk(f, pSect, /*bLink*/ FALSE);
+		ami_WriteSymbolHunk(f, pSect, /*bLink*/ false);
 
 	fputml(HUNK_END, f);
-	return TRUE;
+	return true;
 }
 
-void ami_WriteSectionNames(FILE* f, BOOL bDebugInfo)
+void ami_WriteSectionNames(FILE* f, bool_t bDebugInfo)
 {
 	if(bDebugInfo)
 	{
@@ -364,16 +364,16 @@ void ami_WriteSectionNames(FILE* f, BOOL bDebugInfo)
 	fputml(0, f);
 }
 
-BOOL ami_WriteObject(char* pszDestFilename, char* pszSourceFilename, BOOL bDebugInfo)
+bool_t ami_WriteObject(char* pszDestFilename, char* pszSourceFilename, bool_t bDebugInfo)
 {
 	FILE* f;
 	SSection* pSect;
-	ULONG nSections;
-	BOOL r = TRUE;
+	uint32_t nSections;
+	bool_t r = true;
 
 	f = fopen(pszDestFilename, "wb");
 	if(f == NULL)
-		return FALSE;
+		return false;
 
 	nSections = 0;
 	pSect = pSectionList;
@@ -391,9 +391,9 @@ BOOL ami_WriteObject(char* pszDestFilename, char* pszSourceFilename, BOOL bDebug
 	{
 		fputml(HUNK_NAME, f);
 		fputstr(pSect->Name, f, 0);
-		if(!ami_WriteSection(f, pSect, TRUE, nSections, TRUE))
+		if(!ami_WriteSection(f, pSect, true, nSections, true))
 		{
-			r = FALSE;
+			r = false;
 			break;
 		}
 
@@ -404,16 +404,16 @@ BOOL ami_WriteObject(char* pszDestFilename, char* pszSourceFilename, BOOL bDebug
 	return r;
 }
 
-BOOL ami_WriteExecutable(char* pszDestFilename, BOOL bDebugInfo)
+bool_t ami_WriteExecutable(char* pszDestFilename, bool_t bDebugInfo)
 {
 	FILE* f;
 	SSection* pSect;
-	ULONG nSections;
-	BOOL r = TRUE;
+	uint32_t nSections;
+	bool_t r = true;
 
 	f = fopen(pszDestFilename, "wb");
 	if(f == NULL)
-		return FALSE;
+		return false;
 
 	fputml(HUNK_HEADER, f);
 	ami_WriteSectionNames(f, bDebugInfo);
@@ -433,7 +433,7 @@ BOOL ami_WriteExecutable(char* pszDestFilename, BOOL bDebugInfo)
 	pSect = pSectionList;
 	while(pSect != NULL)
 	{
-		ULONG size = (pSect->UsedSpace + 3) / 4;
+		uint32_t size = (pSect->UsedSpace + 3) / 4;
 		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_CHIP))
 			size |= HUNKF_CHIP;
 		fputml(size, f);
@@ -443,9 +443,9 @@ BOOL ami_WriteExecutable(char* pszDestFilename, BOOL bDebugInfo)
 	pSect = pSectionList;
 	while(pSect != NULL)
 	{
-		if(!ami_WriteSection(f, pSect, bDebugInfo, nSections, FALSE))
+		if(!ami_WriteSection(f, pSect, bDebugInfo, nSections, false))
 		{
-			r = FALSE;
+			r = false;
 			break;
 		}
 

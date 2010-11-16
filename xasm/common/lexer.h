@@ -28,13 +28,13 @@
 typedef	struct
 {
 	char*	pszName;
-	ULONG	nToken;
+	uint32_t	nToken;
 } SLexInitString;
 
 typedef	struct
 {
-	BOOL 	(*pCallback)(char* s, ULONG size);
-	ULONG	nToken;
+	bool_t 	(*pCallback)(char* s, uint32_t size);
+	uint32_t	nToken;
 } SLexFloat;
 
 typedef	enum
@@ -49,7 +49,7 @@ typedef	struct LexBuffer
 	char*	pBufferStart;
 	char*	pBuffer;
 	size_t	nBufferSize;
-	BOOL	bAtLineStart;
+	bool_t	bAtLineStart;
 	ELexerState	State;
 } SLexBuffer;
 
@@ -58,9 +58,9 @@ typedef	struct
 	union
 	{
 		char	aString[MAXTOKENLENGTH+1];
-		SLONG	nInteger;
+		int32_t	nInteger;
 	} Value;
-	SLONG	TokenLength;
+	int32_t	TokenLength;
 	union
 	{
 		eToken	Token;
@@ -79,23 +79,23 @@ extern	SLexToken	g_CurrentToken;
 extern void	lex_FreeBuffer(SLexBuffer* buf);
 extern SLexBuffer* lex_CreateFileBuffer(FILE* f);
 extern void lex_SetBuffer(SLexBuffer* buf);
-extern ULONG lex_GetNextToken(void);
+extern uint32_t lex_GetNextToken(void);
 extern void lex_AddString(char* pszName, int nToken);
 extern void lex_AddStrings(SLexInitString* lex);
 extern void lex_RemoveString(char* pszName, int nToken);
 extern void lex_RemoveStrings(SLexInitString* lex);
 extern void	lex_SetState(ELexerState i);
-extern ULONG lex_FloatAlloc(SLexFloat* tok);
-extern void	lex_FloatAddRange(ULONG id, UWORD start, UWORD end, SLONG charnumber);
-extern void	lex_FloatAddRangeAndBeyond(ULONG id, UWORD start, UWORD end, SLONG charnumber);
-extern void	lex_FloatRemoveAll(ULONG id);
-extern void	lex_FloatSetSuffix(ULONG id, UBYTE ch);
+extern uint32_t lex_FloatAlloc(SLexFloat* tok);
+extern void	lex_FloatAddRange(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber);
+extern void	lex_FloatAddRangeAndBeyond(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber);
+extern void	lex_FloatRemoveAll(uint32_t id);
+extern void	lex_FloatSetSuffix(uint32_t id, uint8_t ch);
 extern void lex_UnputString(char* s);
 extern void	lex_UnputChar(char c);
-extern void	lex_SkipBytes(ULONG count);
+extern void	lex_SkipBytes(uint32_t count);
 extern void	lex_Init(void);
 extern SLexBuffer* lex_CreateMemoryBuffer(char* mem, size_t size);
-extern void	lex_RewindBytes(ULONG count);
+extern void	lex_RewindBytes(uint32_t count);
 extern void lex_Bookmark(SLexBookmark* pBookmark);
 extern void	lex_Goto(SLexBookmark* pBookmark);
 

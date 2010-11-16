@@ -41,13 +41,13 @@
 SFileStack*	g_pFileContext;
 
 static char* g_aIncludePaths[MAXINCLUDEPATHS];
-static ULONG g_nTotalIncludePaths = 0;
+static uint32_t g_nTotalIncludePaths = 0;
 static SFileStack* g_pMacroContext;
 static char* g_pszCurrentRunId;
 
 static char** g_ppszNewMacroArgs;
 static char* g_pszNewMacroArg0;
-static ULONG g_nTotalNewMacroArgs;
+static uint32_t g_nTotalNewMacroArgs;
 
 
 
@@ -58,7 +58,7 @@ static char* fstk_CreateNewRunID(void)
 {
 	char s[MAXSYMNAMELENGTH + 1];
 	char* r;
-	static ULONG runid = 0;
+	static uint32_t runid = 0;
 
 	sprintf(s, "_%lu", runid++);
 	if((r = _strdup(s)) != NULL)
@@ -79,7 +79,7 @@ static void fstk_SetNewContext(SFileStack* newcontext)
 
 char* fstk_GetMacroArgValue(char ch)
 {
-	ULONG ct;
+	uint32_t ct;
 
 	if(ch == '0')
 		return g_pMacroContext->BlockInfo.Macro.Arg0;
@@ -100,7 +100,7 @@ char* fstk_GetMacroRunID(void)
 	return g_pszCurrentRunId;
 }
 
-SLONG fstk_GetMacroArgCount(void)
+int32_t fstk_GetMacroArgCount(void)
 {
 	if(g_pMacroContext == NULL
 	|| g_pMacroContext->Type != CONTEXT_MACRO)
@@ -132,13 +132,13 @@ void fstk_SetMacroArg0(char* s)
 	internalerror("Out of memory");
 }
 
-void fstk_ShiftMacroArgs(SLONG count)
+void fstk_ShiftMacroArgs(int32_t count)
 {
 	if(g_pMacroContext)
 	{
 		while(count >= 1)
 		{
-			ULONG i;
+			uint32_t i;
 
 			free(g_pMacroContext->BlockInfo.Macro.Args[0]);
 			i = 1;
@@ -176,22 +176,22 @@ char* fstk_BuildPath(char* path, char* file)
 	return r;
 }
 
-BOOL fstk_FileExists(char* pszFile)
+bool_t fstk_FileExists(char* pszFile)
 {
 	FILE* f;
 	if((f = fopen(pszFile, "rb")) != NULL)
 	{
 		fclose(f);
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 void fstk_FindFile(char** s)
 {
 	char* pszFile;
-	ULONG count;
+	uint32_t count;
 
 	if(fstk_FileExists(*s))
 	{
@@ -268,11 +268,11 @@ void fstk_Dump(void)
 	}
 }
 
-BOOL fstk_RunNextBuffer(void)
+bool_t fstk_RunNextBuffer(void)
 {
 	if(list_isLast(g_pFileContext))
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
@@ -316,7 +316,7 @@ BOOL fstk_RunNextBuffer(void)
 			}
 			case CONTEXT_MACRO:
 			{
-				ULONG i;
+				uint32_t i;
 
 				for(i = 0; i < oldcontext->BlockInfo.Macro.ArgCount; i += 1)
 				{
@@ -335,7 +335,7 @@ BOOL fstk_RunNextBuffer(void)
 				break;
 			}
 		}
-		return TRUE;
+		return true;
 	}
 }
 
@@ -348,10 +348,10 @@ void fstk_AddIncludePath(char* s)
 	else
 	{
 		int len = (int)strlen(s);
-		BOOL addslash = FALSE;
+		bool_t addslash = false;
 		if(s[len - 1] != '\\' && s[len - 1] != '/')
 		{
-			addslash = TRUE;
+			addslash = true;
 			++len;
 		}
 
@@ -402,7 +402,7 @@ void	fstk_RunInclude(char* s)
 	internalerror("Out of memory");
 }
 
-void fstk_RunRept(char* buffer, ULONG size, ULONG count)
+void fstk_RunRept(char* buffer, uint32_t size, uint32_t count)
 {
 	SFileStack* newcontext;
 
@@ -471,7 +471,7 @@ void	fstk_RunMacro(char* symname)
 	}
 }
 
-BOOL fstk_Init(char* s)
+bool_t fstk_Init(char* s)
 {
 	g_nTotalNewMacroArgs = 0;
 	g_ppszNewMacroArgs = NULL;
@@ -499,7 +499,7 @@ BOOL fstk_Init(char* s)
 				lex_SetBuffer(g_pFileContext->pLexBuffer);
 				lex_SetState(LEX_STATE_NORMAL);
 				g_pFileContext->LineNumber = 1;
-				return TRUE;
+				return true;
 		    }
 			else
 			{
@@ -509,7 +509,7 @@ BOOL fstk_Init(char* s)
 	}
 
 	internalerror("Out of memory");
-	return FALSE;
+	return false;
 }
 
 void fstk_Cleanup(void)

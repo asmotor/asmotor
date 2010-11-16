@@ -41,7 +41,7 @@ extern void locsym_Init(void);
 
 /*	Private data */
 
-static ULONG g_aDefaultSymbolFlags[] =
+static uint32_t g_aDefaultSymbolFlags[] =
 {
 	SYMF_RELOC|SYMF_EXPORTABLE|SYMF_EXPR,		/*	SYM_LABEL		*/
 	SYMF_CONSTANT|SYMF_EXPORTABLE|SYMF_EXPR,	/*	SYM_EQU			*/
@@ -69,12 +69,12 @@ SSymbol* p__AMIGADATE__Symbol;
 
 static char* sym_GetStringValueBySymbol(SSymbol* sym);
 
-static SLONG __NARG__Callback(SSymbol* sym)
+static int32_t __NARG__Callback(SSymbol* sym)
 {
 	return fstk_GetMacroArgCount();
 }
 
-static SLONG __LINE__Callback(SSymbol* sym)
+static int32_t __LINE__Callback(SSymbol* sym)
 {
 	SFileStack* p = g_pFileContext;
 	while(list_GetNext(p))
@@ -131,9 +131,9 @@ static char* __AMIGADATE__Callback(SSymbol* sym)
 	return sym->Value.Macro.pData;
 }
 
-static ULONG sym_CalcHash(char* s)
+static uint32_t sym_CalcHash(char* s)
 {
-	ULONG hash = 0;
+	uint32_t hash = 0;
 
 	while(*s != 0)
 	{
@@ -168,7 +168,7 @@ static SSymbol* sym_Create(char* s)
 {
     SSymbol** phash;
 	SSymbol* psym;
-    ULONG hash;
+    uint32_t hash;
 
     hash = sym_CalcHash(s);
     phash = &g_pHashedSymbols[hash];
@@ -210,12 +210,12 @@ static SSymbol* sym_GetScope(char* s)
 	return NULL;
 }
 
-static BOOL sym_isType(SSymbol* sym, ESymbolType type)
+static bool_t sym_isType(SSymbol* sym, ESymbolType type)
 {
 	return sym->Type == type || sym->Type == SYM_UNDEFINED;
 }
 
-static SLONG sym_GetValueField(SSymbol* sym)
+static int32_t sym_GetValueField(SSymbol* sym)
 {
 	if(sym->Callback.Integer)
 		return sym->Callback.Integer(sym);
@@ -228,7 +228,7 @@ static SLONG sym_GetValueField(SSymbol* sym)
 
 /*	Public routines */
 
-SLONG sym_GetConstant(char* name)
+int32_t sym_GetConstant(char* name)
 {
 	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
 
@@ -288,7 +288,7 @@ SSymbol* sym_AddEQUS(char* name, char* value)
 	return NULL;
 }
 
-SSymbol* sym_AddMACRO(char* name, char* value, ULONG size)
+SSymbol* sym_AddMACRO(char* name, char* value, uint32_t size)
 {
 	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
 
@@ -311,7 +311,7 @@ SSymbol* sym_AddMACRO(char* name, char* value, ULONG size)
 	return NULL;
 }
 
-SSymbol* sym_AddEQU(char* name, SLONG value)
+SSymbol* sym_AddEQU(char* name, int32_t value)
 {
 	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
 
@@ -331,7 +331,7 @@ SSymbol* sym_AddEQU(char* name, SLONG value)
 	return NULL;
 }
 
-SSymbol* sym_AddSET(char* name, SLONG value)
+SSymbol* sym_AddSET(char* name, int32_t value)
 {
 	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
 
@@ -474,7 +474,7 @@ SSymbol* sym_Global(char* name)
 	return NULL;
 }
 
-BOOL	sym_Purge(char* name)
+bool_t	sym_Purge(char* name)
 {
     SSymbol** ppsym;
 	SSymbol* sym;
@@ -489,34 +489,34 @@ BOOL	sym_Purge(char* name)
 			free(sym->Value.Macro.pData);
 		}
 		free(sym);
-		return TRUE;
+		return true;
 	}
 
 	prj_Warn(WARN_CANNOT_PURGE);
-	return FALSE;
+	return false;
 }
 
-BOOL sym_isString(char* name)
+bool_t sym_isString(char* name)
 {
 	SSymbol* sym;
 
 	if((sym = sym_Find(name,sym_GetScope(name))) != NULL)
 		return sym->Type == SYM_EQUS;
 
-	return FALSE;
+	return false;
 }
 
-BOOL sym_isMacro(char* name)
+bool_t sym_isMacro(char* name)
 {
 	SSymbol* sym;
 
 	if((sym = sym_Find(name, sym_GetScope(name))) != NULL)
 		return sym->Type == SYM_MACRO;
 
-	return FALSE;
+	return false;
 }
 
-BOOL sym_isDefined(char* name)
+bool_t sym_isDefined(char* name)
 {
 	SSymbol* sym;
 
@@ -524,7 +524,7 @@ BOOL sym_isDefined(char* name)
 		return sym->Type != SYM_UNDEFINED;
 
 
-	return FALSE;
+	return false;
 }
 
 static char* sym_GetStringValueBySymbol(SSymbol* sym)
@@ -552,7 +552,7 @@ char* sym_GetStringValue(char* name)
 	return NULL;
 }
 
-BOOL sym_Init(void)
+bool_t sym_Init(void)
 {
 	pCurrentScope = NULL;
 
@@ -574,5 +574,5 @@ BOOL sym_Init(void)
 
 	sym_AddEQU("__ASMOTOR", 0);
 
-	return TRUE;
+	return true;
 }

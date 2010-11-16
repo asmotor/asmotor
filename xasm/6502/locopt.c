@@ -61,10 +61,10 @@ void locopt_Update(void)
 	}
 }
 
-BOOL locopt_Parse(char* s)
+bool_t locopt_Parse(char* s)
 {
 	if(s == NULL || strlen(s) == 0)
-		return FALSE;
+		return false;
 
 	switch(s[0])
 	{
@@ -75,16 +75,16 @@ BOOL locopt_Parse(char* s)
 				if(n >= 0 && n <= 3)
 				{
 					g_pOptions->pMachine->nUndocumented = n;
-					return TRUE;
+					return true;
 				}
 				prj_Error(ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE);
-				return FALSE;
+				return false;
 			}
 			break;
 	}
 
 	prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-	return FALSE;
+	return false;
 }
 
 void locopt_PrintOptions(void)

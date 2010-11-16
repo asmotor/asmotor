@@ -40,9 +40,9 @@
 
 /*	Some global variables*/
 
-ULONG g_nTotalLines = 0;
-ULONG g_nTotalErrors = 0;
-ULONG g_nTotalWarnings = 0;
+uint32_t g_nTotalLines = 0;
+uint32_t g_nTotalErrors = 0;
+uint32_t g_nTotalWarnings = 0;
 
 
 
@@ -96,8 +96,8 @@ extern int xasm_Main(int argc, char* argv[])
 	clock_t	StartClock;
 	clock_t EndClock;
 	char* outname = NULL;
-	BOOL debuginfo = FALSE;
-	BOOL verbose = FALSE;
+	bool_t debuginfo = false;
+	bool_t verbose = false;
 
 #if defined(_DEBUG)
 	atexit(getchar);
@@ -125,10 +125,10 @@ extern int xasm_Main(int argc, char* argv[])
 				PrintUsage();
 				break;
 			case 'g':
-				debuginfo = TRUE;
+				debuginfo = true;
 				break;
 			case 'v':
-				verbose = TRUE;
+				verbose = true;
 				break;
 			case 'f':
 				if(strlen(argv[argn]) > 2)
@@ -178,7 +178,7 @@ extern int xasm_Main(int argc, char* argv[])
 		char* source = argv[argn];
 		if(fstk_Init(source))
 		{
-			BOOL b = parse_Do();
+			bool_t b = parse_Do();
 
 			if(b)
 			{
@@ -189,7 +189,7 @@ extern int xasm_Main(int argc, char* argv[])
 			if(b && g_nTotalErrors == 0)
 			{
 				float timespent;
-				BOOL wr = FALSE;
+				bool_t wr = false;
 
 				if(verbose)
 				{

@@ -17,14 +17,14 @@
 */
 
 /*
- *	ULONG	"XLB0"
- *	ULONG	TotalFiles
+ *	uint32_t	"XLB0"
+ *	uint32_t	TotalFiles
  *	REPT	TotalFiles
  *		ASCIIZ	Name
- *		ULONG	Time
- *		ULONG	Date
- *		ULONG	Size
- *		UBYTE	Data[Size]
+ *		uint32_t	Time
+ *		uint32_t	Date
+ *		uint32_t	Size
+ *		uint8_t	Data[Size]
  *	ENDR
  */
 
@@ -37,9 +37,9 @@
 
 extern	void	fatalerror(char* s);
 
-SLONG	file_Length(FILE* f)
+int32_t	file_Length(FILE* f)
 {
-	ULONG	r,
+	uint32_t	r,
 			p;
 
 	p=ftell(f);
@@ -50,9 +50,9 @@ SLONG	file_Length(FILE* f)
 	return r;
 }
 
-SLONG file_ReadASCIIz(char* b, FILE* f)
+int32_t file_ReadASCIIz(char* b, FILE* f)
 {
-	SLONG r = 0;
+	int32_t r = 0;
 
 	while((*b++ = (char)fgetc(f)) != 0)
 	{
@@ -70,25 +70,25 @@ void	file_WriteASCIIz(char* b, FILE* f)
 	fputc(0, f);
 }
 
-UWORD	file_ReadWord(FILE* f)
+uint16_t	file_ReadWord(FILE* f)
 {
-	UWORD	r;
+	uint16_t	r;
 
-	r  = (UWORD)fgetc(f);
-	r |= (UWORD)(fgetc(f)<<8);
+	r  = (uint16_t)fgetc(f);
+	r |= (uint16_t)(fgetc(f)<<8);
 
 	return r;
 }
 
-void	file_WriteWord(UWORD w, FILE* f)
+void	file_WriteWord(uint16_t w, FILE* f)
 {
 	fputc(w, f);
 	fputc(w>>8, f);
 }
 
-ULONG	file_ReadLong(FILE* f)
+uint32_t	file_ReadLong(FILE* f)
 {
-	ULONG	r;
+	uint32_t	r;
 
 	r =fgetc(f);
 	r|=fgetc(f)<<8;
@@ -98,7 +98,7 @@ ULONG	file_ReadLong(FILE* f)
 	return r;
 }
 
-void	file_WriteLong(ULONG w, FILE* f)
+void	file_WriteLong(uint32_t w, FILE* f)
 {
 	fputc(w, f);
 	fputc(w>>8, f);
@@ -106,7 +106,7 @@ void	file_WriteLong(ULONG w, FILE* f)
 	fputc(w>>24, f);
 }
 
-SLibrary* lib_ReadLib0(FILE* f, SLONG size)
+SLibrary* lib_ReadLib0(FILE* f, int32_t size)
 {
 	if(size)
 	{
@@ -135,9 +135,9 @@ SLibrary* lib_ReadLib0(FILE* f, SLONG size)
 			l->ulTime=file_ReadLong(f); size-=4;
 			l->ulDate=file_ReadLong(f); size-=4;
 			l->nByteLength = file_ReadLong(f); size-=4;
-			if((l->pData = (UBYTE* )malloc(l->nByteLength)) != NULL)
+			if((l->pData = (uint8_t* )malloc(l->nByteLength)) != NULL)
 			{
-				if(l->nByteLength != fread(l->pData, sizeof(UBYTE), l->nByteLength, f))
+				if(l->nByteLength != fread(l->pData, sizeof(uint8_t), l->nByteLength, f))
 					fatalerror("File read failed");
 				size -= l->nByteLength;
 			}
@@ -158,7 +158,7 @@ SLibrary* lib_Read(char* filename)
 
 	if((f = fopen(filename,"rb")) != NULL)
 	{
-		SLONG		size;
+		int32_t		size;
 		char		ID[5];
 
 		size=file_Length(f);
@@ -196,13 +196,13 @@ SLibrary* lib_Read(char* filename)
 	}
 }
 
-BOOL lib_Write(SLibrary* lib, char* filename)
+bool_t lib_Write(SLibrary* lib, char* filename)
 {
 	FILE* f;
 
 	if((f = fopen(filename,"wb")) != NULL)
 	{
-		ULONG count = 0;
+		uint32_t count = 0;
 
 		fwrite("XLB0", sizeof(char), 4, f);
 		file_WriteLong(0, f);
@@ -213,7 +213,7 @@ BOOL lib_Write(SLibrary* lib, char* filename)
 			file_WriteLong(lib->ulTime, f);
 			file_WriteLong(lib->ulDate, f);
 			file_WriteLong(lib->nByteLength, f);
-			fwrite(lib->pData, sizeof(UBYTE), lib->nByteLength,f);
+			fwrite(lib->pData, sizeof(uint8_t), lib->nByteLength,f);
 			lib = lib->pNext;
 			++count;
 		}
@@ -223,17 +223,17 @@ BOOL lib_Write(SLibrary* lib, char* filename)
 
 		fclose(f);
 		/*printf("Library '%s' closed\n", filename);*/
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 void TruncateFileName(char* dest, char* src)
 {
-	SLONG l;
+	int32_t l;
 
-	l = (SLONG)strlen(src) - 1;
+	l = (int32_t)strlen(src) - 1;
 	while((l >= 0) && (src[l] != '\\') && (src[l] != '/'))
 		--l;
 
@@ -286,9 +286,9 @@ SLibrary* lib_AddReplace(SLibrary* lib, char* filename)
 
 		module->nByteLength=file_Length(f);
 		strcpy(module->tName, truncname);
-		if((module->pData = (UBYTE* )malloc(module->nByteLength)) != NULL)
+		if((module->pData = (uint8_t* )malloc(module->nByteLength)) != NULL)
 		{
-			if(module->nByteLength != fread(module->pData, sizeof(UBYTE), module->nByteLength, f))
+			if(module->nByteLength != fread(module->pData, sizeof(uint8_t), module->nByteLength, f))
 				internalerror("File read failed");
 		}
 
@@ -305,7 +305,7 @@ SLibrary* lib_DeleteModule(SLibrary* lib, char* filename)
 	char truncname[MAXNAMELENGTH];
 	SLibrary** pp;
 	SLibrary** first;
-	BOOL found = 0;
+	bool_t found = 0;
 
 	first = pp = &lib;
 

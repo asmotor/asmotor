@@ -21,26 +21,11 @@
 
 #include "expr.h"
 
-extern	BOOL	parse_Do(void);
+extern	bool_t	parse_Do(void);
 extern	void	parse_GetToken(void);
 extern	SExpression* parse_Expression(void);
-extern	SExpression* parse_CheckRange(SExpression* expr, SLONG low, SLONG high);
-extern	SExpression* parse_CreateConstExpr(SLONG value);
-extern	SExpression* parse_CreateABSExpr(SExpression* expr);
-extern	SExpression* parse_CreateORExpr(SExpression* left, SExpression* right);
-extern	SExpression* parse_CreateADDExpr(SExpression* left, SExpression* right);
-extern	SExpression* parse_CreateSUBExpr(SExpression* left, SExpression* right);
-extern	SExpression* parse_CreateANDExpr(SExpression* left, SExpression* right);
-extern	SExpression* parse_CreateXORExpr(SExpression* left, SExpression* right);
-extern	SExpression* parse_CreatePCRelExpr(SExpression* expr, int nAdjust);
-extern	SExpression* parse_CreateBITExpr(SExpression* right);
-extern	SExpression* parse_CreateSHLExpr(SExpression* left, SExpression* right);
-extern	SExpression* parse_CreateSHRExpr(SExpression* left, SExpression* right);
-extern	SExpression* parse_CreateMULExpr(SExpression* left, SExpression* right);
-extern	SExpression* parse_DuplicateExpr(SExpression* expr);
-extern	void	parse_FreeExpression(SExpression* expr);
-extern	SLONG	parse_ConstantExpression(void);
-extern BOOL	parse_ExpectChar(char ch);
-extern BOOL parse_ExpectComma(void);
+extern	int32_t	parse_ConstantExpression(void);
+extern bool_t	parse_ExpectChar(char ch);
+extern bool_t parse_ExpectComma(void);
 
 #endif	/*INCLUDE_PARSE_H*/

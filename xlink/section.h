@@ -23,28 +23,28 @@ typedef	struct	_SSection
 {
 	SGroups* pGroups;
 
-	ULONG	FileID;
+	uint32_t	FileID;
 
-	SLONG	GroupID;
+	int32_t	GroupID;
 
 	//	Before assigned Bank and Org reflect the programmers wish.
 	//	After, they point to where this section actually is
-	SLONG	Bank;
-	SLONG	Org;
-	SLONG	ImageOffset;
+	int32_t	Bank;
+	int32_t	Org;
+	int32_t	ImageOffset;
 
 	char	Name[MAXSYMNAMELENGTH];
 
-	ULONG	TotalSymbols;
+	uint32_t	TotalSymbols;
 	SSymbol* pSymbols;
 
-	ULONG	Size;
+	uint32_t	Size;
 
-	UBYTE*	pData;
+	uint8_t*	pData;
 	SPatches*	pPatches;
 
-	BOOL	Used;
-	BOOL	Assigned;
+	bool_t	Used;
+	bool_t	Assigned;
 
 	struct _SSection* pNext;
 }	SSection;
@@ -52,8 +52,8 @@ typedef	struct	_SSection
 extern SSection* pSections;
 
 extern SSection* sect_CreateNew(void);
-extern SLONG sect_GetSymbolValue(SSection* sect, SLONG symbolid);
-extern SLONG sect_GetSymbolBank(SSection* sect, SLONG symbolid);
-extern char* sect_GetSymbolName(SSection* sect, SLONG symbolid);
+extern int32_t sect_GetSymbolValue(SSection* sect, int32_t symbolid);
+extern int32_t sect_GetSymbolBank(SSection* sect, int32_t symbolid);
+extern char* sect_GetSymbolName(SSection* sect, int32_t symbolid);
 
 #endif

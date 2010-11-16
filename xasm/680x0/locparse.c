@@ -41,7 +41,7 @@ SExpression* parse_TargetFunction(void)
 	{
 		case T_68K_REGMASK:
 		{
-			ULONG regs;
+			uint32_t regs;
 			parse_GetToken();
 			if(!parse_ExpectChar('('))
 				return NULL;
@@ -50,19 +50,19 @@ SExpression* parse_TargetFunction(void)
 				return NULL;
 			if(!parse_ExpectChar(')'))
 				return NULL;
-			return parse_CreateConstExpr(regs);
+			return expr_CreateConstExpr(regs);
 		}
 		default:
 			return NULL;
 	}
 }
 
-BOOL parse_TargetSpecific(void)
+bool_t parse_TargetSpecific(void)
 {
 	if(parse_IntegerInstruction())
-		return TRUE;
+		return true;
 	else if(parse_PseudoOp())
-		return FALSE;
+		return false;
 
-	return FALSE;
+	return false;
 }

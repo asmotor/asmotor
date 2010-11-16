@@ -34,7 +34,7 @@ void	smart_Process(char* name)
 
 		while(sect)
 		{
-			sect->Used=TRUE;
+			sect->Used=true;
 			sect=sect->pNext;
 		}
 	}

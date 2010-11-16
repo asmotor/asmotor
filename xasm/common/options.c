@@ -29,7 +29,7 @@
 #include "fstack.h"
 
 extern void locopt_Update(void);
-extern BOOL locopt_Parse(char*);
+extern bool_t locopt_Parse(char*);
 extern void locopt_Open(void);
 
 SOptions* g_pOptions;
@@ -104,7 +104,7 @@ void	opt_Parse(char* s)
 			if(g_pOptions->nTotalDisabledWarnings < MAXDISABLEDWARNINGS
 			&& 1 == sscanf(&s[1], "%d", &w))
 			{
-				g_pOptions->aDisabledWarnings[g_pOptions->nTotalDisabledWarnings++] = (UWORD)w;
+				g_pOptions->aDisabledWarnings[g_pOptions->nTotalDisabledWarnings++] = (uint16_t)w;
 			}
 			else
 				prj_Warn(WARN_OPTION, s);

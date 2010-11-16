@@ -76,7 +76,7 @@ typedef struct
 	SModeRegs	Inner;
 	SModeRegs	Outer;
 
-	BOOL		bBitfield;
+	bool_t		bBitfield;
 	int			nBFOffsetReg;
 	SExpression* pBFOffsetExpr;
 	int			nBFWidthReg;
@@ -86,15 +86,15 @@ typedef struct
 
 typedef struct
 {
-	ULONG	nSourceModes;
-	ULONG	nDestModes;
+	uint32_t	nSourceModes;
+	uint32_t	nDestModes;
 } SIntInstruction;
 
 static void parse_OptimizeDisp(SModeRegs* pRegs);
 
 SExpression* parse_CheckScaleRange(SExpression* pExpr)
 {
-	if((pExpr = parse_CheckRange(pExpr,1,8)) == NULL)
+	if((pExpr = expr_CheckRange(pExpr,1,8)) == NULL)
 	{
 		prj_Error(MERROR_SCALE_RANGE);
 		return NULL;
@@ -105,7 +105,7 @@ SExpression* parse_CheckScaleRange(SExpression* pExpr)
 
 SExpression* parse_Check16bit(SExpression* pExpr)
 {
-	if((pExpr = parse_CheckRange(pExpr,-32768,65535)) == NULL)
+	if((pExpr = expr_CheckRange(pExpr,-32768,65535)) == NULL)
 	{
 		prj_Error(ERROR_EXPRESSION_N_BIT, 16);
 		return NULL;
@@ -116,7 +116,7 @@ SExpression* parse_Check16bit(SExpression* pExpr)
 
 SExpression* parse_Check8bit(SExpression* pExpr)
 {
-	if((pExpr = parse_CheckRange(pExpr,-128,255)) == NULL)
+	if((pExpr = expr_CheckRange(pExpr,-128,255)) == NULL)
 	{
 		prj_Error(ERROR_EXPRESSION_N_BIT, 8);
 		return NULL;
@@ -149,7 +149,7 @@ static ESize parse_GetSizeSpec(ESize eDefault)
 	return eDefault;
 }
 
-static BOOL parse_GetIndexReg(SModeRegs* pMode)
+static bool_t parse_GetIndexReg(SModeRegs* pMode)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_68K_REG_D0
 	&& g_CurrentToken.ID.TargetToken <= T_68K_REG_D7)
@@ -170,7 +170,7 @@ static BOOL parse_GetIndexReg(SModeRegs* pMode)
 	&& pMode->eIndexSize != SIZE_LONG)
 	{
 		prj_Error(MERROR_INDEXREG_SIZE);
-		return FALSE;
+		return false;
 	}
 
 	if(g_CurrentToken.ID.TargetToken == T_OP_MUL)
@@ -179,16 +179,16 @@ static BOOL parse_GetIndexReg(SModeRegs* pMode)
 		if((pMode->pIndexScale = parse_Expression()) == NULL)
 		{
 			prj_Error(ERROR_EXPECT_EXPR);
-			return FALSE;
+			return false;
 		}
 		pMode->pIndexScale = parse_CheckScaleRange(pMode->pIndexScale);
-		pMode->pIndexScale = parse_CreateBITExpr(pMode->pIndexScale);
+		pMode->pIndexScale = expr_CreateBitExpr(pMode->pIndexScale);
 	}
 
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_SingleModePart(SModeRegs* pMode)
+static bool_t parse_SingleModePart(SModeRegs* pMode)
 {
 	// parses xxxx, Ax, PC, Xn.S*scale
 	SExpression* expr;
@@ -196,11 +196,11 @@ static BOOL parse_SingleModePart(SModeRegs* pMode)
 	if(g_CurrentToken.ID.TargetToken == T_68K_REG_PC)
 	{
 		if(pMode->nBaseReg != -1)
-			return FALSE;
+			return false;
 
 		pMode->nBaseReg = 16;
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_68K_REG_A0
@@ -213,7 +213,7 @@ static BOOL parse_SingleModePart(SModeRegs* pMode)
 		{
 			if(pMode->nIndexReg != -1)
 			{
-				return FALSE;
+				return false;
 			}
 
 			return parse_GetIndexReg(pMode);
@@ -228,13 +228,13 @@ static BOOL parse_SingleModePart(SModeRegs* pMode)
 			{
 				pMode->nIndexReg = reg + 8;
 				pMode->eIndexSize = SIZE_WORD;
-				return TRUE;
+				return true;
 			}
-			return FALSE;
+			return false;
 		}
 
 		pMode->nBaseReg = reg;
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_68K_REG_D0
@@ -242,7 +242,7 @@ static BOOL parse_SingleModePart(SModeRegs* pMode)
 	{
 		if(pMode->nIndexReg != -1)
 		{
-			return FALSE;
+			return false;
 		}
 
 		return parse_GetIndexReg(pMode);
@@ -252,27 +252,27 @@ static BOOL parse_SingleModePart(SModeRegs* pMode)
 	if(expr != NULL)
 	{
 		if(pMode->pDisp != NULL)
-			return FALSE;
+			return false;
 
 		pMode->pDisp = expr;
 		pMode->eDispSize = parse_GetSizeSpec(SIZE_DEFAULT);
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
-static BOOL parse_GetInnerMode(SAddrMode* pMode)
+static bool_t parse_GetInnerMode(SAddrMode* pMode)
 {
 	for(;;)
 	{
 		if(!parse_SingleModePart(&pMode->Inner))
-			return FALSE;
+			return false;
 
 		if(g_CurrentToken.ID.TargetToken == ']')
 		{
 			parse_GetToken();
-			return TRUE;
+			return true;
 		}
 
 		if(g_CurrentToken.ID.TargetToken == ',')
@@ -281,11 +281,11 @@ static BOOL parse_GetInnerMode(SAddrMode* pMode)
 			continue;
 		}
 
-		return FALSE;
+		return false;
 	}
 }
 
-static BOOL parse_GetOuterPart(SAddrMode* pMode)
+static bool_t parse_GetOuterPart(SAddrMode* pMode)
 {
 	if(g_pOptions->pMachine->nCpu >= CPUF_68020 && g_CurrentToken.ID.TargetToken == '[')
 	{
@@ -296,17 +296,17 @@ static BOOL parse_GetOuterPart(SAddrMode* pMode)
 	return parse_SingleModePart(&pMode->Outer);
 }
 
-static BOOL parse_GetOuterMode(SAddrMode* pMode)
+static bool_t parse_GetOuterMode(SAddrMode* pMode)
 {
 	for(;;)
 	{
 		if(!parse_GetOuterPart(pMode))
-			return FALSE;
+			return false;
 
 		if(g_CurrentToken.ID.TargetToken == ')')
 		{
 			parse_GetToken();
-			return TRUE;
+			return true;
 		}
 
 		if(g_CurrentToken.ID.TargetToken == ',')
@@ -315,10 +315,10 @@ static BOOL parse_GetOuterMode(SAddrMode* pMode)
 			continue;
 		}
 
-		return FALSE;
+		return false;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -328,7 +328,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 	&& (pRegs->pDisp->Flags & EXPRF_isCONSTANT)
 	&& pRegs->pDisp->Value.Value == 0)
 	{
-		parse_FreeExpression(pRegs->pDisp);
+		expr_FreeExpression(pRegs->pDisp);
 		pRegs->pDisp = NULL;
 	}
 
@@ -336,7 +336,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 	&& (pRegs->pIndexScale->Flags & EXPRF_isCONSTANT)
 	&& pRegs->pIndexScale->Value.Value == 0)
 	{
-		parse_FreeExpression(pRegs->pIndexScale);
+		expr_FreeExpression(pRegs->pIndexScale);
 		pRegs->pIndexScale = NULL;
 	}
 
@@ -357,7 +357,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 #define O_INDEX 0x10
 #define O_DISP  0x20
 
-static BOOL parse_OptimizeMode(SAddrMode* pMode)
+static bool_t parse_OptimizeMode(SAddrMode* pMode)
 {
 	int inner = 0;
 
@@ -394,7 +394,7 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 
 		if(pMode->Outer.nBaseReg != -1
 		&& pMode->Outer.nIndexReg != -1)
-			return FALSE;
+			return false;
 
 		if(pMode->Outer.nBaseReg != -1
 		&& pMode->Outer.nIndexReg == -1)
@@ -408,7 +408,7 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 		switch(inner)
 		{
 			default:
-				return FALSE;
+				return false;
 			case I_BASE:
 			case          I_INDEX:
 			case I_BASE | I_INDEX:
@@ -429,7 +429,7 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 					pMode->eMode = AM_PREINDPCXD020;
 				else
 					pMode->eMode = AM_PREINDAXD020;
-				return TRUE;
+				return true;
 
 			//case I_BASE:
 			//case          I_DISP:
@@ -451,7 +451,7 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 					pMode->eMode = AM_POSTINDPCXD020;
 				else
 					pMode->eMode = AM_POSTINDAXD020;
-				return TRUE;
+				return true;
 		}
 	}
 
@@ -459,30 +459,30 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 	{
 		case O_BASE:
 			pMode->eMode = AM_AIND;
-			return TRUE;
+			return true;
 		case          O_INDEX:
 		case          O_INDEX | O_DISP:
 			pMode->eMode = AM_AXDISP020;
-			return TRUE;
+			return true;
 		case O_BASE | O_INDEX:
 			pMode->eMode = AM_AXDISP;
-			return TRUE;
+			return true;
 		case                    O_DISP:
 			if(pMode->Outer.eDispSize == SIZE_BYTE)
 			{
 				prj_Error(MERROR_DISP_SIZE);
-				return FALSE;
+				return false;
 			}
 			if(pMode->Outer.eDispSize == SIZE_WORD)
 				pMode->eMode = AM_WORD;
 			else
 				pMode->eMode = AM_LONG;
-			return TRUE;
+			return true;
 		case O_BASE           | O_DISP:
 			if(pMode->Outer.eDispSize == SIZE_BYTE)
 			{
 				prj_Error(MERROR_DISP_SIZE);
-				return FALSE;
+				return false;
 			}
 
 			if(g_pOptions->pMachine->nCpu <= CPUF_68010)
@@ -495,7 +495,7 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 				else
 					pMode->eMode = AM_ADISP;
 
-				return TRUE;
+				return true;
 			}
 
 			parse_OptimizeDisp(&pMode->Outer);
@@ -506,7 +506,7 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 				else
 					pMode->eMode = AM_ADISP;
 
-				return TRUE;
+				return true;
 			}
 
 			if(pMode->Outer.nBaseReg == 16)
@@ -514,7 +514,7 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 			else
 				pMode->eMode = AM_AXDISP020;
 
-			return TRUE;
+			return true;
 		case O_BASE | O_INDEX | O_DISP:
 			if(g_pOptions->pMachine->nCpu <= CPUF_68010)
 			{
@@ -555,10 +555,10 @@ static BOOL parse_OptimizeMode(SAddrMode* pMode)
 				else
 					pMode->eMode = AM_AXDISP020;
 			}
-			return TRUE;
+			return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -581,7 +581,7 @@ static void parse_OptimizeDisp(SModeRegs* pRegs)
 }
 
 
-static BOOL parse_GetAddrMode(SAddrMode* pMode)
+static bool_t parse_GetAddrMode(SAddrMode* pMode)
 {
 	pMode->Inner.nBaseReg = -1;
 	pMode->Inner.nIndexReg = -1;
@@ -591,7 +591,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 	pMode->Outer.nIndexReg = -1;
 	pMode->Outer.pIndexScale = NULL;
 	pMode->Outer.pDisp = NULL;
-	pMode->bBitfield = FALSE;
+	pMode->bBitfield = false;
 
 	if(g_CurrentToken.ID.TargetToken >= T_68K_SYSREG_FIRST
 	&& g_CurrentToken.ID.TargetToken <= T_68K_SYSREG_LAST)
@@ -599,7 +599,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 		pMode->eMode = AM_SYSREG;
 		pMode->nDirectReg = g_CurrentToken.ID.TargetToken;
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_68K_REG_D0
@@ -608,7 +608,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 		pMode->eMode = AM_DREG;
 		pMode->nDirectReg = g_CurrentToken.ID.TargetToken - T_68K_REG_D0;
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_68K_REG_A0
@@ -617,7 +617,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 		pMode->eMode = AM_AREG;
 		pMode->nDirectReg = g_CurrentToken.ID.TargetToken - T_68K_REG_A0;
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_68K_REG_A0_IND
@@ -626,7 +626,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 		pMode->eMode = AM_AIND;
 		pMode->Outer.nBaseReg = g_CurrentToken.ID.TargetToken - T_68K_REG_A0_IND;
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_68K_REG_A0_DEC
@@ -635,7 +635,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 		pMode->eMode = AM_ADEC;
 		pMode->Outer.nBaseReg = g_CurrentToken.ID.TargetToken - T_68K_REG_A0_DEC;
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_68K_REG_A0_INC
@@ -644,7 +644,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 		pMode->eMode = AM_AINC;
 		pMode->Outer.nBaseReg = g_CurrentToken.ID.TargetToken - T_68K_REG_A0_INC;
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken == '#')
@@ -668,7 +668,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 		{
 			return parse_OptimizeMode(pMode);
 		}
-		return FALSE;
+		return false;
 	}
 
 	if(pMode->Outer.pDisp != NULL)
@@ -679,7 +679,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 			pMode->Outer.nBaseReg = 16;
 			pMode->Outer.eDispSize = SIZE_WORD;
 			parse_GetToken();
-			return TRUE;
+			return true;
 		}
 		else if(g_CurrentToken.ID.TargetToken >= T_68K_REG_A0_IND
 		&& g_CurrentToken.ID.TargetToken <= T_68K_REG_A7_IND)
@@ -690,7 +690,7 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 				pMode->Outer.nBaseReg = g_CurrentToken.ID.TargetToken - T_68K_REG_A0_IND;
 				pMode->Outer.eDispSize = SIZE_WORD;
 				parse_GetToken();
-				return TRUE;
+				return true;
 			}
 		}
 	}
@@ -707,18 +707,18 @@ static BOOL parse_GetAddrMode(SAddrMode* pMode)
 		if(pMode->Outer.eDispSize == SIZE_WORD)
 		{
 			pMode->eMode = AM_WORD;
-			return TRUE;
+			return true;
 		}
 		else if(pMode->Outer.eDispSize == SIZE_LONG)
 		{
 			pMode->eMode = AM_LONG;
-			return TRUE;
+			return true;
 		}
 		else
 			prj_Error(MERROR_DISP_SIZE);
 	}
 
-	return FALSE;
+	return false;
 }
 
 

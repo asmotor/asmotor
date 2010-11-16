@@ -28,8 +28,8 @@
 #include "symbol.h"
 
 
-BOOL g_bDontExpandStrings;
-ULONG BinaryConstID;
+bool_t g_bDontExpandStrings;
+uint32_t BinaryConstID;
 
 /*	Private data */
 
@@ -149,9 +149,9 @@ static SLexInitString staticstrings[] =
     NULL, 0
 };
 
-static SLONG binary2bin(char ch)
+static int32_t binary2bin(char ch)
 {
-	SLONG i;
+	int32_t i;
 
 	for(i = 0; i <= 1; ++i)
 	{
@@ -162,7 +162,7 @@ static SLONG binary2bin(char ch)
     return 0;
 }
 
-static SLONG char2bin(char ch)
+static int32_t char2bin(char ch)
 {
 	if(ch >= 'a' && ch <= 'f')
 		return ch - 'a' + 10;
@@ -176,12 +176,12 @@ static SLONG char2bin(char ch)
 	return 0;
 }
 
-typedef	SLONG (*x2bin)(char ch);
+typedef	int32_t (*x2bin)(char ch);
 
-static SLONG ascii2bin(char* s, size_t len)
+static int32_t ascii2bin(char* s, size_t len)
 {
-	SLONG radix = 10;
-	SLONG result = 0;
+	int32_t radix = 10;
+	int32_t result = 0;
 	x2bin convertfunc = char2bin;
 
 	switch(*s)
@@ -207,23 +207,23 @@ static SLONG ascii2bin(char* s, size_t len)
 }
 
 
-static BOOL ParseNumber(char* s, ULONG size)
+static bool_t ParseNumber(char* s, uint32_t size)
 {
     g_CurrentToken.Value.nInteger = ascii2bin(s, size);
-    return TRUE;
+    return true;
 }
 
-static BOOL ParseDecimal(char* s, ULONG size)
+static bool_t ParseDecimal(char* s, uint32_t size)
 {
-	ULONG integer = 0;
+	uint32_t integer = 0;
 
 	while(*s >= '0' && *s <= '9' && size-- > 0)
 		integer = integer * 10 + *s++ - '0';
 
 	if(*s == '.')
 	{
-		ULONG fraction = 0;
-		ULONG d = 1;
+		uint32_t fraction = 0;
+		uint32_t d = 1;
 		++s;
 		--size;
 		while(*s >= '0' && *s <= '9' && size-- > 0)
@@ -237,10 +237,10 @@ static BOOL ParseDecimal(char* s, ULONG size)
 
 	g_CurrentToken.TokenLength -= size;
     g_CurrentToken.Value.nInteger = integer;
-    return TRUE;
+    return true;
 }
 
-static BOOL ParseSymbol(char* src, ULONG size)
+static bool_t ParseSymbol(char* src, uint32_t size)
 {
 	char dest[MAXSYMNAMELENGTH+1];
 	int copied = 0;
@@ -262,7 +262,7 @@ static BOOL ParseSymbol(char* src, ULONG size)
 			else
 			{
 				prj_Fail(ERROR_ID_MALFORMED);
-				return FALSE;
+				return false;
 			}
 
 			++src;
@@ -298,27 +298,27 @@ static BOOL ParseSymbol(char* src, ULONG size)
 			if(*s++ == '\n')
 				g_pFileContext->LineNumber -= 1;
 		}
-		return FALSE;
+		return false;
 	}
 
 	strcpy(g_CurrentToken.Value.aString, dest);
-	return TRUE;
+	return true;
 }
 
-BOOL ParseMacroArg(char* src, ULONG size)
+bool_t ParseMacroArg(char* src, uint32_t size)
 {
 	char* arg = fstk_GetMacroArgValue(src[1]);
     lex_SkipBytes(size);
 	if(arg != NULL)
 	    lex_UnputString(arg);
-    return FALSE;
+    return false;
 }
 
-BOOL ParseUniqueArg(char* src, ULONG size)
+bool_t ParseUniqueArg(char* src, uint32_t size)
 {
     lex_SkipBytes(size);
     lex_UnputString(fstk_GetMacroRunID());
-    return FALSE;
+    return false;
 }
 
 enum
@@ -359,9 +359,9 @@ SLexFloat tIDToken=
 
 void globlex_Init(void)
 {
-	ULONG	id;
+	uint32_t	id;
 
-	g_bDontExpandStrings=FALSE;
+	g_bDontExpandStrings=false;
 
 	lex_Init();
 

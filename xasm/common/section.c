@@ -128,11 +128,11 @@ static	SSection* sect_Find(char* name, SSymbol* group)
 	return NULL;
 }
 
-static	void	sect_GrowCurrent(SLONG count)
+static	void	sect_GrowCurrent(int32_t count)
 {
 	if(count+pCurrentSection->UsedSpace > pCurrentSection->AllocatedSpace)
 	{
-		SLONG	allocate;
+		int32_t	allocate;
 
 		allocate=(count+pCurrentSection->UsedSpace+CHUNKSIZE-1)&(~(CHUNKSIZE-1));
 		if((pCurrentSection->pData=realloc(pCurrentSection->pData,allocate))!=NULL)
@@ -146,7 +146,7 @@ static	void	sect_GrowCurrent(SLONG count)
 	}
 }
 
-static	BOOL	sect_CheckAvailableSpace(ULONG count)
+static	bool_t	sect_CheckAvailableSpace(uint32_t count)
 {
 	if(pCurrentSection)
 	{
@@ -156,18 +156,18 @@ static	BOOL	sect_CheckAvailableSpace(ULONG count)
 			{
 				sect_GrowCurrent(count);
 			}
-			return TRUE;
+			return true;
 		}
 		else
 		{
 			prj_Error(ERROR_SECTION_FULL);
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
 		prj_Error(ERROR_SECTION_MISSING);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -176,7 +176,7 @@ static	BOOL	sect_CheckAvailableSpace(ULONG count)
 
 //	Public routines
 
-void sect_OutputAbsByte(UBYTE value)
+void sect_OutputAbint8_t(uint8_t value)
 {
 	if(sect_CheckAvailableSpace(1))
 	{
@@ -242,14 +242,14 @@ void sect_OutputExprByte(SExpression* expr)
 		sect_OutputRelByte(expr);
 	else if(expr->Flags & EXPRF_isCONSTANT)
 	{
-		sect_OutputAbsByte((UBYTE)(expr->Value.Value));
-		parse_FreeExpression(expr);
+		sect_OutputAbint8_t((uint8_t)(expr->Value.Value));
+		expr_FreeExpression(expr);
 	}
 	else
 		prj_Error(ERROR_EXPR_CONST_RELOC);
 }
 
-void sect_OutputAbsWord(UWORD value)
+void sect_OutputAbint16_t(uint16_t value)
 {
 	if(sect_CheckAvailableSpace(2))
 	{
@@ -263,14 +263,14 @@ void sect_OutputAbsWord(UWORD value)
 				{
 					case ASM_LITTLE_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value);
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value>>8);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value>>8);
 						break;
 					}
 					case ASM_BIG_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value>>8);
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value>>8);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value);
 						break;
 					}
 					default:
@@ -349,14 +349,14 @@ void sect_OutputExprWord(SExpression* expr)
 		sect_OutputRelWord(expr);
 	else if(expr->Flags & EXPRF_isCONSTANT)
 	{
-		sect_OutputAbsWord((UWORD)(expr->Value.Value));
-		parse_FreeExpression(expr);
+		sect_OutputAbint16_t((uint16_t)(expr->Value.Value));
+		expr_FreeExpression(expr);
 	}
 	else
 		prj_Error(ERROR_EXPR_CONST_RELOC);
 }
 
-void sect_OutputAbsLong(ULONG value)
+void sect_OutputAbint32_t(uint32_t value)
 {
 	if(sect_CheckAvailableSpace(4))
 	{
@@ -370,18 +370,18 @@ void sect_OutputAbsLong(ULONG value)
 				{
 					case ASM_LITTLE_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value);
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 8);
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 16);
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 24);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 8);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 16);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 24);
 						break;
 					}
 					case ASM_BIG_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 24);
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 16);
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value >> 8);
-						pCurrentSection->pData[pCurrentSection->PC++] = (UBYTE)(value);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 24);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 16);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 8);
+						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value);
 						break;
 					}
 					default:
@@ -460,8 +460,8 @@ void sect_OutputExprLong(SExpression* expr)
 		sect_OutputRelLong(expr);
 	else if(expr->Flags & EXPRF_isCONSTANT)
 	{
-		sect_OutputAbsLong(expr->Value.Value);
-		parse_FreeExpression(expr);
+		sect_OutputAbint32_t(expr->Value.Value);
+		expr_FreeExpression(expr);
 	}
 	else
 		prj_Error(ERROR_EXPR_CONST_RELOC);
@@ -476,7 +476,7 @@ void sect_OutputBinaryFile(char* s)
 	if( s!=NULL
 	&&	(f=fopen(s,"rb"))!=NULL )
 	{
-		ULONG	size;
+		uint32_t	size;
 
 		fseek(f, 0, SEEK_END);
 		size=ftell(f);
@@ -492,7 +492,7 @@ void sect_OutputBinaryFile(char* s)
 				{
 					size_t read;
 
-					read = fread((char*)&(pCurrentSection->pData[pCurrentSection->PC]), sizeof(UBYTE), size, f);
+					read = fread((char*)&(pCurrentSection->pData[pCurrentSection->PC]), sizeof(uint8_t), size, f);
 					pCurrentSection->PC+=size;
 					if(read!=size)
 					{
@@ -521,14 +521,14 @@ void sect_OutputBinaryFile(char* s)
 	}
 }
 
-void sect_Align(SLONG align)
+void sect_Align(int32_t align)
 {
-	SLONG t = pCurrentSection->PC + align - 1;
+	int32_t t = pCurrentSection->PC + align - 1;
 	t -= t % align;
 	sect_SkipBytes(t - pCurrentSection->PC);
 }
 
-void	sect_SkipBytes(SLONG count)
+void	sect_SkipBytes(int32_t count)
 {
 	if(sect_CheckAvailableSpace(count))
 	{
@@ -540,7 +540,7 @@ void	sect_SkipBytes(SLONG count)
 				if(g_pOptions->UninitChar!=-1)
 				{
 					while(count--)
-						sect_OutputAbsByte((UBYTE)g_pOptions->UninitChar);
+						sect_OutputAbint8_t((uint8_t)g_pOptions->UninitChar);
 					return;
 				}
 				//	Fall through to GROUP_BSS
@@ -560,7 +560,7 @@ void	sect_SkipBytes(SLONG count)
 	}
 }
 
-BOOL	sect_SwitchTo(char* sectname, SSymbol* group)
+bool_t	sect_SwitchTo(char* sectname, SSymbol* group)
 {
 	SSection* sect;
 
@@ -568,7 +568,7 @@ BOOL	sect_SwitchTo(char* sectname, SSymbol* group)
 	if(sect)
 	{
 		pCurrentSection=sect;
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -583,7 +583,7 @@ BOOL	sect_SwitchTo(char* sectname, SSymbol* group)
 	}
 }
 
-BOOL	sect_SwitchTo_ORG(char* sectname, SSymbol* group, SLONG org)
+bool_t	sect_SwitchTo_ORG(char* sectname, SSymbol* group, int32_t org)
 {
 	SSection* sect;
 
@@ -593,12 +593,12 @@ BOOL	sect_SwitchTo_ORG(char* sectname, SSymbol* group, SLONG org)
 		if(sect->Flags==SECTF_ORGFIXED && sect->Org==org)
 		{
 			pCurrentSection=sect;
-			return TRUE;
+			return true;
 		}
 		else
 		{
 			prj_Fail(ERROR_SECT_EXISTS_ORG);
-			return FALSE;
+			return false;
 		}
 	}
 	else
@@ -615,7 +615,7 @@ BOOL	sect_SwitchTo_ORG(char* sectname, SSymbol* group, SLONG org)
 	}
 }
 
-BOOL sect_SwitchTo_BANK(char* sectname, SSymbol* group, SLONG bank)
+bool_t sect_SwitchTo_BANK(char* sectname, SSymbol* group, int32_t bank)
 {
 	SSection* sect;
 
@@ -628,11 +628,11 @@ BOOL sect_SwitchTo_BANK(char* sectname, SSymbol* group, SLONG bank)
 		if(sect->Flags == SECTF_BANKFIXED && sect->Bank == bank)
 		{
 			pCurrentSection = sect;
-			return TRUE;
+			return true;
 		}
 
 		prj_Fail(ERROR_SECT_EXISTS_BANK);
-		return FALSE;
+		return false;
 	}
 
 	sect = sect_Create(sectname);
@@ -646,7 +646,7 @@ BOOL sect_SwitchTo_BANK(char* sectname, SSymbol* group, SLONG bank)
 	return sect != NULL;
 }
 
-BOOL sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, SLONG org, SLONG bank)
+bool_t sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, int32_t org, int32_t bank)
 {
 	SSection* sect;
 
@@ -661,11 +661,11 @@ BOOL sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, SLONG org, SLONG ban
 		&& sect->Org == org)
 		{
 			pCurrentSection = sect;
-			return TRUE;
+			return true;
 		}
 
 		prj_Fail(ERROR_SECT_EXISTS_BANK_ORG);
-		return FALSE;
+		return false;
 	}
 
 	sect=sect_Create(sectname);
@@ -680,25 +680,25 @@ BOOL sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, SLONG org, SLONG ban
 	return sect!=NULL;
 }
 
-BOOL	sect_SwitchTo_NAMEONLY(char* sectname)
+bool_t	sect_SwitchTo_NAMEONLY(char* sectname)
 {
 	SSection* sect;
 
 	sect=pCurrentSection=sect_Find(sectname,NULL);
 	if(sect)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		prj_Fail(ERROR_NO_SECT);
-		return FALSE;
+		return false;
 	}
 }
 
-BOOL	sect_Init(void)
+bool_t	sect_Init(void)
 {
 	pCurrentSection=NULL;
 	pSectionList=NULL;
-	return TRUE;
+	return true;
 }

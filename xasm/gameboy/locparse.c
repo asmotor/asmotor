@@ -84,7 +84,7 @@ typedef struct _Opcode
 	unsigned char nOpcode;
 	int nAddrMode1;
 	int nAddrMode2;
-	BOOL (*pParser)(struct _Opcode* pCode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2);
+	bool_t (*pParser)(struct _Opcode* pCode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2);
 } SOpcode;
 
 extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
@@ -108,7 +108,7 @@ extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
 
 static SExpression* parse_CreateExpressionNBit(SExpression* pExpr, int nLowLimit, int nHighLimit, int nBits)
 {
-	pExpr = parse_CheckRange(pExpr, nLowLimit, nHighLimit);
+	pExpr = expr_CheckRange(pExpr, nLowLimit, nHighLimit);
 	if(pExpr == NULL)
 		prj_Error(ERROR_EXPRESSION_N_BIT, nBits);
 
@@ -137,140 +137,140 @@ static SExpression* parse_CreateExpression3U(SExpression* pExpr)
 
 static SExpression* parse_CreateExpressionPCRel(SExpression* pExpr)
 {
-	pExpr = parse_CreatePCRelExpr(pExpr, -1);
+	pExpr = expr_CreatePcRelativeExpr(pExpr, -1);
 	return parse_CreateExpression8S(pExpr);
 }
 
 static SExpression* parse_CreateExpressionImmHi(SExpression* pExpr)
 {
-	pExpr = parse_CheckRange(pExpr, 0xFF00, 0xFFFF);
+	pExpr = expr_CheckRange(pExpr, 0xFF00, 0xFFFF);
 	if(pExpr == NULL)
 		prj_Error(MERROR_EXPRESSION_FF00);
 
-	return parse_CreateANDExpr(pExpr, parse_CreateConstExpr(0xFF));
+	return expr_CreateAndExpr(pExpr, expr_CreateConstExpr(0xFF));
 }
 
-static BOOL parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if(pAddrMode2->nMode & MODE_GROUP_D)
 	{
-		sect_OutputAbsByte((UBYTE)(0x80 | pOpcode->nOpcode | pAddrMode2->eRegD));
-		return TRUE;
+		sect_OutputAbint8_t((uint8_t)(0x80 | pOpcode->nOpcode | pAddrMode2->eRegD));
+		return true;
 	}
 
-	sect_OutputAbsByte(0xC6 | pOpcode->nOpcode);
+	sect_OutputAbint8_t(0xC6 | pOpcode->nOpcode);
 	sect_OutputExprByte(parse_CreateExpression8SU(pAddrMode2->pExpr));
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Add(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Add(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if(pAddrMode1->nMode & MODE_REG_A && (pAddrMode2->nMode & (MODE_IMM | MODE_GROUP_D)))
 		return parse_Alu(pOpcode, pAddrMode1, pAddrMode2);
 	else if((pAddrMode1->nMode & MODE_REG_HL) && (pAddrMode2->nMode & MODE_GROUP_SS))
-		sect_OutputAbsByte((UBYTE)(0x09 | (pAddrMode2->eRegSS << 4)));
+		sect_OutputAbint8_t((uint8_t)(0x09 | (pAddrMode2->eRegSS << 4)));
 	else if((pAddrMode1->nMode & MODE_REG_SP) && (pAddrMode2->nMode & MODE_IMM))
 	{
-		sect_OutputAbsByte(0xE8);
+		sect_OutputAbint8_t(0xE8);
 		sect_OutputExprByte(parse_CreateExpression8SU(pAddrMode2->pExpr));
 	}
 
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Bit(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Bit(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	sect_OutputAbsByte(0xCB);
+	sect_OutputAbint8_t(0xCB);
 	sect_OutputExprByte(
-		parse_CreateORExpr(
-			parse_CreateConstExpr(pOpcode->nOpcode | pAddrMode2->eRegD),
-			parse_CreateSHLExpr(
+		expr_CreateOrExpr(
+			expr_CreateConstExpr(pOpcode->nOpcode | pAddrMode2->eRegD),
+			expr_CreateShlExpr(
 			parse_CreateExpression3U(pAddrMode1->pExpr),
-				parse_CreateConstExpr(3))
+				expr_CreateConstExpr(3))
 			)
 		);
 
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Call(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Call(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_IMM) && pAddrMode2->nMode == 0)
 	{
-		sect_OutputAbsByte(pOpcode->nOpcode);
+		sect_OutputAbint8_t(pOpcode->nOpcode);
 		sect_OutputExprWord(parse_CreateExpression16U(pAddrMode1->pExpr));
 	}
 	else if((pAddrMode1->nMode & MODE_F) && (pAddrMode2->nMode & MODE_IMM))
 	{
-		sect_OutputAbsByte((UBYTE)((pOpcode->nOpcode & ~0x19) | (pAddrMode1->eModeF << 3)));
+		sect_OutputAbint8_t((uint8_t)((pOpcode->nOpcode & ~0x19) | (pAddrMode1->eModeF << 3)));
 		sect_OutputExprWord(parse_CreateExpression16U(pAddrMode2->pExpr));
 	}
 	else
 		prj_Error(ERROR_OPERAND);
 
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Jp(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Jp(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_REG_HL_IND) && pAddrMode2->nMode == 0)
 	{
-		sect_OutputAbsByte(0xE9);
-		return TRUE;
+		sect_OutputAbint8_t(0xE9);
+		return true;
 	}
 
 	return parse_Call(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static BOOL parse_Implied(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Implied(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	sect_OutputAbsByte(pOpcode->nOpcode);
-	return TRUE;
+	sect_OutputAbint8_t(pOpcode->nOpcode);
+	return true;
 }
 
-static BOOL parse_Dec(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Dec(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if(pAddrMode1->nMode & MODE_GROUP_SS)
-		sect_OutputAbsByte((UBYTE)(0x03 | (pOpcode->nOpcode << 3) | (pAddrMode1->eRegSS << 4)));
+		sect_OutputAbint8_t((uint8_t)(0x03 | (pOpcode->nOpcode << 3) | (pAddrMode1->eRegSS << 4)));
 	else
-		sect_OutputAbsByte((UBYTE)(0x04 | pOpcode->nOpcode | (pAddrMode1->eRegD << 3)));
-	return TRUE;
+		sect_OutputAbint8_t((uint8_t)(0x04 | pOpcode->nOpcode | (pAddrMode1->eRegD << 3)));
+	return true;
 }
 
-static BOOL parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_IMM) && pAddrMode2->nMode == 0)
 	{
-		sect_OutputAbsByte(0x18);
+		sect_OutputAbint8_t(0x18);
 		sect_OutputExprByte(parse_CreateExpressionPCRel(pAddrMode1->pExpr));
 	}
 	else if((pAddrMode1->nMode & MODE_F) && (pAddrMode2->nMode & MODE_IMM))
 	{
-		sect_OutputAbsByte((UBYTE)(0x20 | (pAddrMode1->eModeF << 3)));
+		sect_OutputAbint8_t((uint8_t)(0x20 | (pAddrMode1->eModeF << 3)));
 		sect_OutputExprByte(parse_CreateExpressionPCRel(pAddrMode2->pExpr));
 	}
 	else
 		prj_Error(ERROR_OPERAND);
 
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_GROUP_D) && (pAddrMode2->nMode & MODE_GROUP_D))
 	{
 		if(pAddrMode1->eRegD == REG_HL_IND && pAddrMode2->eRegD == REG_HL_IND)
 			prj_Error(ERROR_OPERAND);
 		else
-			sect_OutputAbsByte((UBYTE)(0x40 | (pAddrMode1->eRegD << 3) | pAddrMode2->eRegD));
+			sect_OutputAbint8_t((uint8_t)(0x40 | (pAddrMode1->eRegD << 3) | pAddrMode2->eRegD));
 	}
 	else if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_GROUP_RR))
 	{
-		sect_OutputAbsByte((UBYTE)(0x0A | (pAddrMode2->eRegRR << 4)));
+		sect_OutputAbint8_t((uint8_t)(0x0A | (pAddrMode2->eRegRR << 4)));
 	}
 	else if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_REG_C_IND))
 	{
-		sect_OutputAbsByte(0xF2);
+		sect_OutputAbint8_t(0xF2);
 	}
 	else if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_IMM_IND))
 	{
@@ -278,45 +278,45 @@ static BOOL parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 		&& pAddrMode2->pExpr->Value.Value >= 0xFF00 
 		&& pAddrMode2->pExpr->Value.Value <= 0xFFFF)
 		{
-			sect_OutputAbsByte(0xF0);
+			sect_OutputAbint8_t(0xF0);
 			sect_OutputExprByte(parse_CreateExpressionImmHi(pAddrMode2->pExpr));
 		}
 		else
 		{
-			sect_OutputAbsByte(0xFA);
+			sect_OutputAbint8_t(0xFA);
 			sect_OutputExprWord(parse_CreateExpression16U(pAddrMode2->pExpr));
 		}
 	}
 	else if((pAddrMode1->nMode & MODE_GROUP_D) && (pAddrMode2->nMode & MODE_IMM))
 	{
-		sect_OutputAbsByte((UBYTE)(0x06 | (pAddrMode1->eRegD << 3)));
+		sect_OutputAbint8_t((uint8_t)(0x06 | (pAddrMode1->eRegD << 3)));
 		sect_OutputExprByte(parse_CreateExpression8SU(pAddrMode2->pExpr));
 	}
 	else if((pAddrMode1->nMode & MODE_GROUP_RR) && (pAddrMode2->nMode & MODE_REG_A))
 	{
-		sect_OutputAbsByte((UBYTE)(0x02 | (pAddrMode1->eRegRR << 4)));
+		sect_OutputAbint8_t((uint8_t)(0x02 | (pAddrMode1->eRegRR << 4)));
 	}
 	else if((pAddrMode1->nMode & MODE_REG_SP) && (pAddrMode2->nMode & MODE_REG_HL))
 	{
-		sect_OutputAbsByte(0xF9);
+		sect_OutputAbint8_t(0xF9);
 	}
 	else if((pAddrMode1->nMode & MODE_REG_HL) && (pAddrMode2->nMode & MODE_REG_SP_IND_DISP))
 	{
-		sect_OutputAbsByte(0xF8);
+		sect_OutputAbint8_t(0xF8);
 		sect_OutputExprByte(pAddrMode2->pExpr);
 	}
 	else if((pAddrMode1->nMode & MODE_GROUP_SS) && (pAddrMode2->nMode & MODE_IMM))
 	{
-		sect_OutputAbsByte((UBYTE)(0x01 | (pAddrMode1->eRegSS << 4)));
+		sect_OutputAbint8_t((uint8_t)(0x01 | (pAddrMode1->eRegSS << 4)));
 		sect_OutputExprWord(parse_CreateExpression16U(pAddrMode2->pExpr));
 	}
 	else if((pAddrMode1->nMode & MODE_REG_C_IND) && (pAddrMode2->nMode & MODE_REG_A))
 	{
-		sect_OutputAbsByte(0xE2);
+		sect_OutputAbint8_t(0xE2);
 	}
 	else if((pAddrMode1->nMode & MODE_IMM_IND) && (pAddrMode2->nMode & MODE_REG_SP))
 	{
-		sect_OutputAbsByte(0x08);
+		sect_OutputAbint8_t(0x08);
 		sect_OutputExprWord(parse_CreateExpression16U(pAddrMode1->pExpr));
 	}
 	else if((pAddrMode1->nMode & MODE_IMM_IND) && (pAddrMode2->nMode & MODE_REG_A))
@@ -325,125 +325,125 @@ static BOOL parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 		&& pAddrMode1->pExpr->Value.Value >= 0xFF00 
 		&& pAddrMode1->pExpr->Value.Value <= 0xFFFF)
 		{
-			sect_OutputAbsByte(0xE0);
+			sect_OutputAbint8_t(0xE0);
 			sect_OutputExprByte(parse_CreateExpressionImmHi(pAddrMode1->pExpr));
 		}
 		else
 		{
-			sect_OutputAbsByte(0xEA);
+			sect_OutputAbint8_t(0xEA);
 			sect_OutputExprWord(parse_CreateExpression16U(pAddrMode1->pExpr));
 		}
 	}
 	else
 		prj_Error(ERROR_OPERAND);
 
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Ldd(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Ldd(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_REG_HL_IND))
-		sect_OutputAbsByte((UBYTE)(pOpcode->nOpcode | 0x08));
+		sect_OutputAbint8_t((uint8_t)(pOpcode->nOpcode | 0x08));
 	else if((pAddrMode1->nMode & MODE_REG_HL_IND) && (pAddrMode2->nMode & MODE_REG_A))
-		sect_OutputAbsByte((UBYTE)pOpcode->nOpcode);
+		sect_OutputAbint8_t((uint8_t)pOpcode->nOpcode);
 	else
 		prj_Error(ERROR_OPERAND);
 
-	return TRUE;
+	return true;
 }
 
 
-static BOOL parse_Ldh(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Ldh(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_IMM_IND))
 	{
-		sect_OutputAbsByte((UBYTE)(pOpcode->nOpcode | 0x10));
+		sect_OutputAbint8_t((uint8_t)(pOpcode->nOpcode | 0x10));
 		sect_OutputExprByte(parse_CreateExpressionImmHi(pAddrMode2->pExpr));
 	}
 	else if((pAddrMode1->nMode & MODE_IMM_IND) && (pAddrMode2->nMode & MODE_REG_A))
 	{
-		sect_OutputAbsByte(pOpcode->nOpcode);
+		sect_OutputAbint8_t(pOpcode->nOpcode);
 		sect_OutputExprByte(parse_CreateExpressionImmHi(pAddrMode1->pExpr));
 	}
 	else
 		prj_Error(ERROR_OPERAND);
 
-	return TRUE;
+	return true;
 }
 
 
-static BOOL parse_Pop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Pop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	sect_OutputAbsByte((UBYTE)(pOpcode->nOpcode | (pAddrMode1->eRegTT << 4)));
-	return TRUE;
+	sect_OutputAbint8_t((uint8_t)(pOpcode->nOpcode | (pAddrMode1->eRegTT << 4)));
+	return true;
 }
 
-static BOOL parse_Rotate(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Rotate(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	sect_OutputAbsByte(0xCB);
-	sect_OutputAbsByte((UBYTE)(pOpcode->nOpcode | pAddrMode1->eRegD));
-	return TRUE;
+	sect_OutputAbint8_t(0xCB);
+	sect_OutputAbint8_t((uint8_t)(pOpcode->nOpcode | pAddrMode1->eRegD));
+	return true;
 }
 
-static BOOL parse_Rr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Rr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if(pAddrMode1->eRegD == REG_A)
 		prj_Warn(MERROR_SUGGEST_OPCODE, "RRA");
 	return parse_Rotate(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static BOOL parse_Rl(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Rl(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if(pAddrMode1->eRegD == REG_A)
 		prj_Warn(MERROR_SUGGEST_OPCODE, "RLA");
 	return parse_Rotate(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static BOOL parse_Rrc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Rrc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if(pAddrMode1->eRegD == REG_A)
 		prj_Warn(MERROR_SUGGEST_OPCODE, "RRCA");
 	return parse_Rotate(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static BOOL parse_Rlc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Rlc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if(pAddrMode1->eRegD == REG_A)
 		prj_Warn(MERROR_SUGGEST_OPCODE, "RLCA");
 	return parse_Rotate(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static BOOL parse_Ret(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Ret(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if(pAddrMode1->nMode & MODE_F)
-		sect_OutputAbsByte((UBYTE)(0xC0 | (pAddrMode1->eModeF << 3)));
+		sect_OutputAbint8_t((uint8_t)(0xC0 | (pAddrMode1->eModeF << 3)));
 	else
-		sect_OutputAbsByte(0xC9);
+		sect_OutputAbint8_t(0xC9);
 
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Rst(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Rst(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if(pAddrMode1->pExpr->Flags & EXPRF_isCONSTANT)
 	{
-		SLONG val = pAddrMode1->pExpr->Value.Value;
+		int32_t val = pAddrMode1->pExpr->Value.Value;
 		if(val == (val & 0x38))
-			sect_OutputAbsByte((UBYTE)(pOpcode->nOpcode | val));
+			sect_OutputAbint8_t((uint8_t)(pOpcode->nOpcode | val));
 		else
 			prj_Error(ERROR_OPERAND_RANGE);
 	}
 	else
 		prj_Error(ERROR_EXPR_CONST);
 
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Stop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_Stop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	sect_OutputAbsByte(0x10);
-	sect_OutputAbsByte(0x00);
-	return TRUE;
+	sect_OutputAbint8_t(0x10);
+	sect_OutputAbint8_t(0x00);
+	return true;
 }
 
 SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
@@ -499,7 +499,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 };
 
 
-static BOOL parse_AddrMode(SAddrMode* pAddrMode)
+static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MODE_B
 	&& g_CurrentToken.ID.TargetToken <= T_MODE_A)
@@ -520,7 +520,7 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 		pAddrMode->eRegD = g_CurrentToken.ID.TargetToken - T_MODE_B + REG_B;
 
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken == T_MODE_AF)
@@ -529,7 +529,7 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 		pAddrMode->eRegTT = REG_AF;
 
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_MODE_BC
@@ -551,7 +551,7 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 		pAddrMode->eRegSS = g_CurrentToken.ID.TargetToken - T_MODE_BC + REG_BC;
 
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_MODE_BC_IND
@@ -561,7 +561,7 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 		pAddrMode->eRegRR = g_CurrentToken.ID.TargetToken - T_MODE_BC_IND + REG_BC_IND;
 
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken >= T_CC_NZ
@@ -571,21 +571,21 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 		pAddrMode->eModeF = g_CurrentToken.ID.TargetToken - T_CC_NZ + CC_NZ;
 
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken == T_MODE_SP_IND)
 	{
 		pAddrMode->nMode |= MODE_REG_SP_IND;
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.TargetToken == T_MODE_C_IND)
 	{
 		pAddrMode->nMode |= MODE_REG_C_IND;
 		parse_GetToken();
-		return TRUE;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.Token == '[')
@@ -612,11 +612,11 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 						{
 							pAddrMode->nMode |= MODE_REG_SP_IND_DISP;
 							pAddrMode->pExpr = pExpr;
-							return TRUE;
+							return true;
 						}
 					}
 				}
-				parse_FreeExpression(pExpr);
+				expr_FreeExpression(pExpr);
 			}
 		}
 		else
@@ -628,9 +628,9 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 				{
 					pAddrMode->nMode |= MODE_IMM_IND;
 					pAddrMode->pExpr = pExpr;
-					return TRUE;
+					return true;
 				}
-				parse_FreeExpression(pExpr);
+				expr_FreeExpression(pExpr);
 			}
 
 		}
@@ -649,16 +649,16 @@ static BOOL parse_AddrMode(SAddrMode* pAddrMode)
 			pAddrMode->nMode |= MODE_IMM;
 			pAddrMode->pExpr = pExpr;
 
-			return TRUE;
+			return true;
 		}
 		
 		lex_Goto(&bm);
 	}
 
-	return FALSE;
+	return false;
 }
 
-BOOL parse_TargetSpecific(void)
+bool_t parse_TargetSpecific(void)
 {
 	if((g_CurrentToken.ID.TargetToken >= T_Z80_ADC && g_CurrentToken.ID.TargetToken <= T_Z80_XOR)
 	|| g_CurrentToken.ID.TargetToken == T_POP_SET)
@@ -683,7 +683,7 @@ BOOL parse_TargetSpecific(void)
 					if(!parse_AddrMode(&addrMode2))
 					{
 						prj_Error(ERROR_SECOND_OPERAND);
-						return TRUE;
+						return true;
 					}
 				}
 				else if(pOpcode->nAddrMode2 != 0
@@ -698,7 +698,7 @@ BOOL parse_TargetSpecific(void)
 			else if(addrMode1.nMode != 0 && (addrMode1.nMode & MODE_NONE) == 0)
 			{
 				prj_Error(ERROR_FIRST_OPERAND);
-				return TRUE;
+				return true;
 			}
 		}
 
@@ -716,10 +716,10 @@ BOOL parse_TargetSpecific(void)
 		else
 			prj_Error(ERROR_FIRST_OPERAND);
 
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 

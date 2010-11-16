@@ -33,9 +33,9 @@ extern void strupr(char* s);
 extern void strlwr(char* s);
 #endif
 
-extern ULONG g_nTotalLines;
-extern ULONG g_nTotalErrors;
-extern ULONG g_nTotalWarnings;
+extern uint32_t g_nTotalLines;
+extern uint32_t g_nTotalErrors;
+extern uint32_t g_nTotalWarnings;
 
 extern int xasm_Main(int argc, char* argv[]);
 
@@ -55,10 +55,10 @@ typedef struct Configuration
 {
 	char* pszExecutable;
 	char* pszBackendVersion;
-	ULONG nMaxSectionSize;
+	uint32_t nMaxSectionSize;
 	EEndian eDefaultEndianness;
-	BOOL bSupportBanks;
-	BOOL bSupportAmiga;
+	bool_t bSupportBanks;
+	bool_t bSupportAmiga;
 	char* pszNameRB;
 	char* pszNameRW;
 	char* pszNameRL;

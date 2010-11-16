@@ -21,25 +21,25 @@
 
 typedef	struct _SMemChunk
 {
-	ULONG	Org;
-	ULONG	Size;
+	uint32_t	Org;
+	uint32_t	Size;
 	struct _SMemChunk* pNext;
 }	SMemChunk;
 
 typedef	struct _SMemoryPool
 {
-	SLONG	ImageOffset;		//	This pool's position in the ROM image, -1 if not written
-	ULONG	AddressingOffset;	//	Where the CPU sees this pool in its address space
-	SLONG	BankId;				//	What the CPU calls this bank
-	ULONG	Size;
-	ULONG	Available;
+	int32_t	ImageOffset;		//	This pool's position in the ROM image, -1 if not written
+	uint32_t	AddressingOffset;	//	Where the CPU sees this pool in its address space
+	int32_t	BankId;				//	What the CPU calls this bank
+	uint32_t	Size;
+	uint32_t	Available;
 	SMemChunk*	pFreeChunks;
 }	SMemoryPool;
 
 typedef	struct _SMachineGroup
 {
 	char					Name[MAXSYMNAMELENGTH];
-	SLONG					TotalPools;
+	int32_t					TotalPools;
 	struct _SMachineGroup*	pNext;
 	SMemoryPool*			Pool[];
 }	SMachineGroup;

@@ -19,6 +19,8 @@
 #ifndef	INCLUDE_EXPR_H
 #define	INCLUDE_EXPR_H
 
+#include "types.h"
+
 struct Symbol;
 
 typedef	enum
@@ -36,14 +38,72 @@ typedef struct Expression
 {
 	struct Expression*	pLeft;
 	struct Expression*	pRight;
-	EExprType Type;
-	ULONG	Flags;
-	ULONG	Operator;
+	EExprType	Type;
+	uint32_t	Flags;
+	uint32_t	Operator;
 	union
 	{
-		SLONG	Value;
+		int32_t	Value;
 		struct Symbol*	pSymbol;
 	} Value;
 } SExpression;
+
+
+extern SExpression* expr_CheckRange(SExpression* expr, int32_t low, int32_t high);
+
+extern SExpression* expr_CreateEqualExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateNotEqualExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateGreaterThanExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateLessThanExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateGreaterEqualExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateLessEqualExpr(SExpression* left, SExpression* right);
+
+extern SExpression* expr_CreateBooleanNotExpr(SExpression* expr);
+extern SExpression* expr_CreateBooleanOrExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateBooleanAndExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateBooleanXorExpr(SExpression* left, SExpression* right);
+
+extern SExpression* expr_CreateAbsExpr(SExpression* expr);
+
+extern SExpression* expr_CreateOrExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateAndExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateXorExpr(SExpression* left, SExpression* right);
+
+extern SExpression* expr_CreateAddExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateSubExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateMulExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateDivExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateModExpr(SExpression* left, SExpression* right);
+
+extern SExpression* expr_CreatePcRelativeExpr(SExpression* expr, int nAdjust);
+
+extern SExpression* expr_CreateBitExpr(SExpression* right);
+extern SExpression* expr_CreateShlExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateShrExpr(SExpression* left, SExpression* right);
+
+extern SExpression* expr_CreateSinExpr(SExpression* right);
+extern SExpression* expr_CreateCosExpr(SExpression* right);
+extern SExpression* expr_CreateTanExpr(SExpression* right);
+extern SExpression* expr_CreateASinExpr(SExpression* right);
+extern SExpression* expr_CreateACosExpr(SExpression* right);
+extern SExpression* expr_CreateATanExpr(SExpression* right);
+extern SExpression* expr_CreateATan2Expr(SExpression* left, SExpression* right);
+
+extern SExpression* expr_CreateHighLimitExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateLowLimitExpr(SExpression* left, SExpression* right);
+
+extern SExpression* expr_CreateFMulExpr(SExpression* left, SExpression* right);
+extern SExpression* expr_CreateFDivExpr(SExpression* left, SExpression* right);
+
+extern SExpression* expr_CreatePcRelativeExpr(SExpression* in, int nAdjust);
+
+extern SExpression* expr_CreatePcExpr();
+extern SExpression* expr_CreateConstExpr(int32_t value);
+extern SExpression* expr_CreateSymbolExpr(char* s);
+extern SExpression* expr_CreateBankExpr(char* s);
+
+extern SExpression* expr_DuplicateExpr(SExpression* expr);
+extern void expr_FreeExpression(SExpression* expr);
+
 
 #endif	/*INCLUDE_EXPR_H*/

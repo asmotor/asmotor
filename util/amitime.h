@@ -15,7 +15,7 @@ typedef unsigned long clock_t;
 #include <exec/types.h>
 
 
-extern ULONG time_GetMicroSeconds(void);
+extern uint32_t time_GetMicroSeconds(void);
 
 #else
 

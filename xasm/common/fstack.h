@@ -35,7 +35,7 @@ struct FileStack
 	list_Data(struct FileStack);
 	char*			pName;
 	struct LexBuffer* pLexBuffer;
-	SLONG			LineNumber;
+	int32_t			LineNumber;
 	EContextType	Type;
 	char*			RunID;	/*	For the \@ symbol */
 
@@ -45,14 +45,14 @@ struct FileStack
 		struct
 		{
 			char*	pOriginalBuffer;
-			ULONG	OriginalSize;
-			ULONG	RemainingRuns;
+			uint32_t	OriginalSize;
+			uint32_t	RemainingRuns;
 		} Rept;
 		struct
 		{
 			char*	Arg0;
 			char**	Args;
-			ULONG	ArgCount;
+			uint32_t	ArgCount;
 		} Macro;
 	} BlockInfo;
 };
@@ -60,18 +60,18 @@ typedef struct FileStack SFileStack;
 
 extern void fstk_RunMacro(char* symname);
 extern void fstk_RunInclude(char* s);
-extern BOOL fstk_RunNextBuffer(void);
-extern BOOL fstk_Init(char* s);
+extern bool_t fstk_RunNextBuffer(void);
+extern bool_t fstk_Init(char* s);
 extern void fstk_Cleanup(void);
 extern void fstk_Dump(void);
 extern void fstk_FindFile(char* *s);
-extern void fstk_RunRept(char* buffer, ULONG size, ULONG count);
+extern void fstk_RunRept(char* buffer, uint32_t size, uint32_t count);
 extern char* fstk_GetMacroArgValue(char ch);
 extern char* fstk_GetMacroRunID(void);
 extern void fstk_AddMacroArg(char* s);
 extern void fstk_SetMacroArg0(char* s);
-extern void fstk_ShiftMacroArgs(SLONG count);
-extern SLONG fstk_GetMacroArgCount(void);
+extern void fstk_ShiftMacroArgs(int32_t count);
+extern int32_t fstk_GetMacroArgCount(void);
 extern void fstk_AddIncludePath(char* s);
 
 extern SFileStack* g_pFileContext;

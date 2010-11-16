@@ -19,6 +19,6 @@
 #ifndef	INCLUDE_BINOBJ_H
 #define	INCLUDE_BINOBJ_H
 
-extern BOOL bin_Write(char* name);
+extern bool_t bin_Write(char* name);
 
 #endif

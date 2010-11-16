@@ -31,15 +31,15 @@ struct Section
 	list_Data(struct Section);
 	char	Name[MAXSYMNAMELENGTH + 1];
 	struct Symbol* pGroup;
-	ULONG	PC;
-	ULONG	Flags;
-	ULONG	UsedSpace;		/*	How many bytes are used in the section */
-	ULONG	FreeSpace;		/*	How many bytes are free */
-	ULONG	AllocatedSpace;	/*	How big a chunk of memory pData is pointing to */
-	SLONG	Org;
-	SLONG	Bank;
+	uint32_t	PC;
+	uint32_t	Flags;
+	uint32_t	UsedSpace;		/*	How many bytes are used in the section */
+	uint32_t	FreeSpace;		/*	How many bytes are free */
+	uint32_t	AllocatedSpace;	/*	How big a chunk of memory pData is pointing to */
+	int32_t	Org;
+	int32_t	Bank;
 	struct Patch* pPatches;
-	UBYTE* pData;
+	uint8_t* pData;
 };
 typedef	struct Section SSection;
 
@@ -49,20 +49,20 @@ typedef	struct Section SSection;
 extern	SSection* pCurrentSection;
 extern	SSection* pSectionList;
 
-extern BOOL	sect_SwitchTo(char* sectname, struct Symbol* group);
-extern BOOL	sect_SwitchTo_ORG(char* sectname, struct Symbol* group, SLONG org);
-extern BOOL	sect_SwitchTo_BANK(char* sectname, struct Symbol* group, SLONG bank);
-extern BOOL	sect_SwitchTo_ORG_BANK(char* sectname, struct Symbol* group, SLONG org, SLONG bank);
-extern BOOL	sect_SwitchTo_NAMEONLY(char* sectname);
-extern BOOL	sect_Init(void);
-extern void	sect_SkipBytes(SLONG count);
-extern void	sect_Align(SLONG align);
+extern bool_t	sect_SwitchTo(char* sectname, struct Symbol* group);
+extern bool_t	sect_SwitchTo_ORG(char* sectname, struct Symbol* group, int32_t org);
+extern bool_t	sect_SwitchTo_BANK(char* sectname, struct Symbol* group, int32_t bank);
+extern bool_t	sect_SwitchTo_ORG_BANK(char* sectname, struct Symbol* group, int32_t org, int32_t bank);
+extern bool_t	sect_SwitchTo_NAMEONLY(char* sectname);
+extern bool_t	sect_Init(void);
+extern void	sect_SkipBytes(int32_t count);
+extern void	sect_Align(int32_t align);
 extern void	sect_OutputExprByte(struct Expression* expr);
 extern void	sect_OutputExprWord(struct Expression* expr);
 extern void	sect_OutputExprLong(struct Expression* expr);
 extern void	sect_OutputBinaryFile(char* s);
-extern void	sect_OutputAbsByte(UBYTE value);
-extern void	sect_OutputAbsWord(UWORD value);
-extern void	sect_OutputAbsLong(ULONG value);
+extern void	sect_OutputAbint8_t(uint8_t value);
+extern void	sect_OutputAbint16_t(uint16_t value);
+extern void	sect_OutputAbint32_t(uint32_t value);
 
 #endif	/*INCLUDE_SECTION_H*/

@@ -37,7 +37,7 @@ struct Patch
 {
 	list_Data(struct Patch);
 	struct Section* pSection;
-	ULONG		Offset;
+	uint32_t		Offset;
  	EPatchType	Type;
 	SExpression* pExpression;
 	char*	pszFile;
@@ -48,11 +48,11 @@ typedef	struct Patch SPatch;
 #include "section.h"
 #include "symbol.h"
 
-extern void patch_Create(SSection* sect, ULONG offset, SExpression* expr, EPatchType type);
+extern void patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType type);
 extern void patch_BackPatch(void);
 extern void patch_OptimizeAll(void);
-extern BOOL patch_GetSectionOffset(ULONG* pOffset, SExpression* pExpr, SSection* pSection);
-extern BOOL patch_GetImportOffset(ULONG* pOffset, SSymbol** ppSym, SExpression* pExpr);
+extern bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* pSection);
+extern bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExpr);
 
 
 #endif	/*INCLUDE_PATCH_H*/

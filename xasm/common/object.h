@@ -19,7 +19,7 @@
 #ifndef	INCLUDE_OBJECT_H
 #define	INCLUDE_OBJECT_H
 
-extern BOOL obj_Write(char* name);
+extern bool_t obj_Write(char* name);
 
 
 enum

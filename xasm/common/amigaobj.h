@@ -19,7 +19,7 @@
 #ifndef XASM_COMMON_AMIGAOBJ_H_INCLUDED_
 #define XASM_COMMON_AMIGAOBJ_H_INCLUDED_
 
-extern BOOL ami_WriteObject(char* pszDestFilename, char* pszSourceFilename, BOOL bDebugInfo);
-extern BOOL ami_WriteExecutable(char* pszDestFilename, BOOL bDebugInfo);
+extern bool_t ami_WriteObject(char* pszDestFilename, char* pszSourceFilename, bool_t bDebugInfo);
+extern bool_t ami_WriteExecutable(char* pszDestFilename, bool_t bDebugInfo);
 
 #endif

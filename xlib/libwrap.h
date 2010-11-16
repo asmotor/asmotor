@@ -26,10 +26,10 @@
 typedef struct Library
 {
 	char	tName[MAXNAMELENGTH];
-	ULONG	ulTime;
-	ULONG	ulDate;
+	uint32_t	ulTime;
+	uint32_t	ulDate;
 	size_t	nByteLength;
-	UBYTE*	pData;
+	uint8_t*	pData;
 	struct Library* pNext;
 } SLibrary;
 

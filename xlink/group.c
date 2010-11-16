@@ -20,7 +20,7 @@
 
 SMachineGroup* pMachineGroups = NULL;
 
-static SMachineGroup* creategroup(char* name, ULONG totalbanks)
+static SMachineGroup* creategroup(char* name, uint32_t totalbanks)
 {
 	SMachineGroup** ppgroup;
 
@@ -57,7 +57,7 @@ static	SMemoryPool* createpool(void)
 	return pool;
 }
 
-BOOL alloc_from_pool(SMemoryPool* pool, ULONG size, ULONG* org)
+bool_t alloc_from_pool(SMemoryPool* pool, uint32_t size, uint32_t* org)
 {
 	SMemChunk* pchunk;
 	
@@ -69,14 +69,14 @@ BOOL alloc_from_pool(SMemoryPool* pool, ULONG size, ULONG* org)
 			pchunk->Org+=size;
 			pchunk->Size-=size;
 
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
-BOOL alloc_abs_from_pool(SMemoryPool* pool, ULONG size, ULONG org)
+bool_t alloc_abs_from_pool(SMemoryPool* pool, uint32_t size, uint32_t org)
 {
 	SMemChunk** ppchunk = &pool->pFreeChunks;
 
@@ -99,12 +99,12 @@ BOOL alloc_abs_from_pool(SMemoryPool* pool, ULONG size, ULONG org)
 
 			pchunk->Size = org - pchunk->Org;
 
-			return TRUE;
+			return true;
 		}
 		ppchunk = &pchunk->pNext;
 	}
 
-	return FALSE;
+	return false;
 }
 
 void group_Alloc(SSection* sect)
@@ -120,7 +120,7 @@ void group_Alloc(SSection* sect)
 		sect->Org = 0;
 		sect->Bank = 0;
 		sect->ImageOffset = -1;
-		sect->Assigned = TRUE;
+		sect->Assigned = true;
 
 		return;
 	}
@@ -131,7 +131,7 @@ void group_Alloc(SSection* sect)
 	{
 		if(strcmp(group->Name, groupname) == 0)
 		{
-			SLONG i;
+			int32_t i;
 			foundgroup = 1;
 
 			for(i = 0; i < group->TotalPools; ++i)
@@ -142,14 +142,14 @@ void group_Alloc(SSection* sect)
 				{
 					if(sect->Org == -1)
 					{
-						ULONG org;
+						uint32_t org;
 
 						if(alloc_from_pool(pool, sect->Size, &org))
 						{
 							sect->Org = org;
 							sect->Bank = pool->BankId;
 							sect->ImageOffset = pool->ImageOffset == -1 ? -1 : pool->ImageOffset + sect->Org - pool->AddressingOffset;
-							sect->Assigned = TRUE;
+							sect->Assigned = true;
 							return;
 						}
 					}
@@ -157,7 +157,7 @@ void group_Alloc(SSection* sect)
 					{
 						sect->Bank = pool->BankId;
 						sect->ImageOffset = pool->ImageOffset == -1 ? -1 : pool->ImageOffset + sect->Org - pool->AddressingOffset;
-						sect->Assigned = TRUE;
+						sect->Assigned = true;
 						return;
 					}
 				}
@@ -177,7 +177,7 @@ static void init_memchunks(void)
 
 	for(group = pMachineGroups; group != NULL; group=group->pNext)
 	{
-		SLONG i;
+		int32_t i;
 
 		for(i = 0; i < group->TotalPools; ++i)
 		{

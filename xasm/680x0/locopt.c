@@ -46,10 +46,10 @@ void locopt_Update(void)
 {
 }
 
-BOOL locopt_Parse(char* s)
+bool_t locopt_Parse(char* s)
 {
 	if(s == NULL || strlen(s) == 0)
-		return FALSE;
+		return false;
 
 	switch(s[0])
 	{
@@ -60,36 +60,36 @@ BOOL locopt_Parse(char* s)
 				{
 					case 0:
 						g_pOptions->pMachine->nCpu = CPUF_68000;
-						return TRUE;
+						return true;
 					case 1:
 						g_pOptions->pMachine->nCpu = CPUF_68010;
-						return TRUE;
+						return true;
 					case 2:
 						g_pOptions->pMachine->nCpu = CPUF_68020;
-						return TRUE;
+						return true;
 					case 3:
 						g_pOptions->pMachine->nCpu = CPUF_68030;
-						return TRUE;
+						return true;
 					case 4:
 						g_pOptions->pMachine->nCpu = CPUF_68040;
-						return TRUE;
+						return true;
 					case 6:
 						g_pOptions->pMachine->nCpu = CPUF_68060;
-						return TRUE;
+						return true;
 					default:
 						prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-						return FALSE;
+						return false;
 				}
 			}
 			else
 			{
 				prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-				return FALSE;
+				return false;
 			}
 			break;
 		default:
 			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return FALSE;
+			return false;
 	}
 }
 

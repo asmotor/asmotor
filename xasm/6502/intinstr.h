@@ -40,221 +40,221 @@ typedef struct
 
 typedef struct Parser
 {
-	UBYTE	nBaseOpcode;
+	uint8_t	nBaseOpcode;
 	int		nAddressingModes;
-	BOOL	(*fpParser)(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode);
+	bool_t	(*fpParser)(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode);
 } SParser;
 
-static BOOL parse_Standard_All(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Standard_All(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IND_X:
-			sect_OutputAbsByte(nBaseOpcode | (0 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (0 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_IMM:
-			sect_OutputAbsByte(nBaseOpcode | (2 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (2 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_IND_Y:
-			sect_OutputAbsByte(nBaseOpcode | (4 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (4 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ABS_Y:
-			sect_OutputAbsByte(nBaseOpcode | (6 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (6 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ZP:
-			sect_OutputAbsByte(nBaseOpcode | (1 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (1 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ABS:
-			sect_OutputAbsByte(nBaseOpcode | (3 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (3 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
-			sect_OutputAbsByte(nBaseOpcode | (5 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (5 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ABS_X:
-			sect_OutputAbsByte(nBaseOpcode | (7 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (7 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 	}
 
 	prj_Fail(MERROR_ILLEGAL_ADDRMODE);
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Standard_AbsY7(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Standard_AbsY7(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IND_X:
-			sect_OutputAbsByte(nBaseOpcode | (0 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (0 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_IMM:
-			sect_OutputAbsByte(nBaseOpcode | (2 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (2 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_IND_Y:
-			sect_OutputAbsByte(nBaseOpcode | (4 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (4 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ABS_Y:
-			sect_OutputAbsByte(nBaseOpcode | (7 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (7 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ZP:
-			sect_OutputAbsByte(nBaseOpcode | (1 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (1 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ABS:
-			sect_OutputAbsByte(nBaseOpcode | (3 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (3 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
-			sect_OutputAbsByte(nBaseOpcode | (5 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (5 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 	}
 
 	prj_Fail(MERROR_ILLEGAL_ADDRMODE);
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Standard_Imm0(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Standard_Imm0(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IMM:
-			sect_OutputAbsByte(nBaseOpcode | (0 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (0 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ZP:
-			sect_OutputAbsByte(nBaseOpcode | (1 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (1 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ABS:
-			sect_OutputAbsByte(nBaseOpcode | (3 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (3 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
-			sect_OutputAbsByte(nBaseOpcode | (5 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (5 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ABS_X:
 		case MODE_ABS_Y:
-			sect_OutputAbsByte(nBaseOpcode | (7 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (7 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 	}
 
 	prj_Fail(MERROR_ILLEGAL_ADDRMODE);
-	return TRUE;
+	return true;
 }
 
-static BOOL parse_Standard_Rotate(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Standard_Rotate(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
 		case MODE_A:
-			sect_OutputAbsByte(nBaseOpcode | (2 << 2));
-			return TRUE;
+			sect_OutputAbint8_t(nBaseOpcode | (2 << 2));
+			return true;
 		case MODE_ZP:
-			sect_OutputAbsByte(nBaseOpcode | (1 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (1 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ABS:
-			sect_OutputAbsByte(nBaseOpcode | (3 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (3 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ZP_X:
-			sect_OutputAbsByte(nBaseOpcode | (5 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (5 << 2));
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ABS_X:
-			sect_OutputAbsByte(nBaseOpcode | (7 << 2));
+			sect_OutputAbint8_t(nBaseOpcode | (7 << 2));
 			sect_OutputExprWord(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 	}
 
 	prj_Fail(MERROR_ILLEGAL_ADDRMODE);
-	return TRUE;
+	return true;
 }
 
 
-static BOOL parse_Branch(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Branch(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	SExpression* pExpr;
 
-	sect_OutputAbsByte(nBaseOpcode);
-	pExpr = parse_CreatePCRelExpr(pAddrMode->pExpr, -1);
-	pExpr = parse_CheckRange(pExpr, -128, 127);
+	sect_OutputAbint8_t(nBaseOpcode);
+	pExpr = expr_CreatePcRelativeExpr(pAddrMode->pExpr, -1);
+	pExpr = expr_CheckRange(pExpr, -128, 127);
 	if(pExpr == NULL)
 	{
 		prj_Error(ERROR_OPERAND_RANGE);
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		sect_OutputExprByte(pExpr);
 	}
 
-	return TRUE;
+	return true;
 }
 
 
-static BOOL parse_Implied(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Implied(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
-	sect_OutputAbsByte(nBaseOpcode);
-	return TRUE;
+	sect_OutputAbint8_t(nBaseOpcode);
+	return true;
 }
 
 
-static BOOL parse_JMP(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_JMP(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	if(pAddrMode->nMode == MODE_IND)
 		nBaseOpcode += 0x20;
 
-	sect_OutputAbsByte(nBaseOpcode);
+	sect_OutputAbint8_t(nBaseOpcode);
 	sect_OutputExprWord(pAddrMode->pExpr);
-	return TRUE;
+	return true;
 }
 
 
-static BOOL parse_BRK(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_BRK(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
-	sect_OutputAbsByte(nBaseOpcode);
+	sect_OutputAbint8_t(nBaseOpcode);
 	if(pAddrMode->nMode == MODE_IMM)
 		sect_OutputExprByte(pAddrMode->pExpr);
-	return TRUE;
+	return true;
 }
 
 
-static BOOL parse_DOP(int nToken, UBYTE nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_DOP(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IMM:
-			sect_OutputAbsByte(0x80);
+			sect_OutputAbint8_t(0x80);
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ZP:
-			sect_OutputAbsByte(0x04);
+			sect_OutputAbint8_t(0x04);
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 		case MODE_ZP_X:
-			sect_OutputAbsByte(0x14);
+			sect_OutputAbint8_t(0x14);
 			sect_OutputExprByte(pAddrMode->pExpr);
-			return TRUE;
+			return true;
 	}
-	return FALSE;
+	return false;
 }
 
 static SParser g_Parsers[T_6502U_XAS - T_6502_ADC + 1] = 
@@ -343,7 +343,7 @@ static SParser g_Parsers[T_6502U_XAS - T_6502_ADC + 1] =
 };
 
 
-BOOL parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
+bool_t parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 {
 	SLexBookmark bm;
 	lex_Bookmark(&bm);
@@ -353,14 +353,14 @@ BOOL parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 		parse_GetToken();
 		pAddrMode->nMode = MODE_A;
 		pAddrMode->pExpr = NULL;
-		return TRUE;
+		return true;
 	}
 	else if((nAllowedModes & MODE_IMM) && g_CurrentToken.ID.Token == '#')
 	{
 		parse_GetToken();
 		pAddrMode->nMode = MODE_IMM;
 		pAddrMode->pExpr = parse_ExpressionSU8();
-		return TRUE;
+		return true;
 	}
 
 	if((nAllowedModes & (MODE_IND_X | MODE_IND_Y)) && g_CurrentToken.ID.Token == '(')
@@ -379,7 +379,7 @@ BOOL parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 					if(parse_ExpectChar(')'))
 					{
 						pAddrMode->nMode = MODE_IND_X;
-						return TRUE;
+						return true;
 					}
 				}
 			}
@@ -393,7 +393,7 @@ BOOL parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 					{
 						parse_GetToken();
 						pAddrMode->nMode = MODE_IND_Y;
-						return TRUE;
+						return true;
 					}
 				}
 			}
@@ -414,7 +414,7 @@ BOOL parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 				if(parse_ExpectChar(')'))
 				{
 					pAddrMode->nMode = MODE_IND;
-					return TRUE;
+					return true;
 				}
 			}
 		}
@@ -437,17 +437,17 @@ BOOL parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 					{
 						parse_GetToken();
 						pAddrMode->nMode = MODE_ZP_X;
-						return TRUE;
+						return true;
 					}
 					else if(g_CurrentToken.ID.TargetToken == T_6502_REG_Y)
 					{
 						parse_GetToken();
 						pAddrMode->nMode = MODE_ZP_Y;
-						return TRUE;
+						return true;
 					}
 				}
 				pAddrMode->nMode = MODE_ZP;
-				return TRUE;
+				return true;
 			}
 
 			if(g_CurrentToken.ID.Token == ',')
@@ -458,18 +458,18 @@ BOOL parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 				{
 					parse_GetToken();
 					pAddrMode->nMode = MODE_ABS_X;
-					return TRUE;
+					return true;
 				}
 				else if(g_CurrentToken.ID.TargetToken == T_6502_REG_Y)
 				{
 					parse_GetToken();
 					pAddrMode->nMode = MODE_ABS_Y;
-					return TRUE;
+					return true;
 				}
 			}
 
 			pAddrMode->nMode = MODE_ABS;
-			return TRUE;
+			return true;
 		}
 
 		lex_Goto(&bm);
@@ -479,21 +479,21 @@ BOOL parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 	{
 		pAddrMode->nMode = MODE_NONE;
 		pAddrMode->pExpr = NULL;
-		return TRUE;
+		return true;
 	}
 
 	if(nAllowedModes & MODE_A)
 	{
 		pAddrMode->nMode = MODE_A;
 		pAddrMode->pExpr = NULL;
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
-BOOL parse_IntegerInstruction(void)
+bool_t parse_IntegerInstruction(void)
 {
 	if(T_6502_ADC <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_6502U_XAS)
 	{
@@ -508,7 +508,7 @@ BOOL parse_IntegerInstruction(void)
 			prj_Error(MERROR_ILLEGAL_ADDRMODE);
 	}
 
-	return FALSE;
+	return false;
 }
 
 

@@ -32,8 +32,8 @@ typedef	struct
 {
 	char		Name[MAXSYMNAMELENGTH];
 	ESymbolType	Type;
-	SLONG		Value;
-	BOOL		Resolved;
+	int32_t		Value;
+	bool_t		Resolved;
 	struct	_SSection* pSection;
 }	SSymbol;
 
