@@ -53,7 +53,7 @@ extern char* _strdup(const char* pszString);
 extern char* _strupr(char* pszString);
 extern char* _strlwr(char* pszString);
 extern int _strnicmp(const char* pszString1, const char* pszString2, int nCount);
-extern int _stricmp(const char* pszString1, const char* pszString2, int nCount);
+extern int _stricmp(const char* pszString1, const char* pszString2);
 #endif
 
 #if defined(_MSC_VER) || defined(__VBCC__) || defined(__GNUC__)

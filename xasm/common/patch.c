@@ -513,8 +513,11 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
 
 			return false;
 		}
+		
+		default:
+			internalerror("Unknown operator");
+			break;
 	}
-	internalerror("Unknown operator");
 	return false;
 }
 

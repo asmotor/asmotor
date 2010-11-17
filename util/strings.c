@@ -55,7 +55,7 @@ int _strnicmp(const char* pszString1, const char* pszString2, int nCount)
 	return l1 - l2;
 }
 
-int _strnicmp(const char* pszString1, const char* pszString2)
+int _stricmp(const char* pszString1, const char* pszString2)
 {
 	char l1 = 0;
 	char l2 = 0;
