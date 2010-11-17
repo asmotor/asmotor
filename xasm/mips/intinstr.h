@@ -159,7 +159,7 @@ static bool_t parse_IntegerInstructionRRI(void)
 
 		if(pExpr != NULL)
 		{
-			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr((rs << 21) | (rt << 16) | pIns->nIns));
+			pExpr = expr_Or(pExpr, expr_Const((rs << 21) | (rt << 16) | pIns->nIns));
 		
 			sect_OutputExprLong(pExpr);
 		}
@@ -246,14 +246,14 @@ static bool_t parse_Branch(void)
 		if(pExpr == NULL)
 			return false;
 
-		pExpr = expr_CreatePcRelativeExpr(pExpr, -4);
-		pExpr = expr_CreateShrExpr(pExpr, expr_CreateConstExpr(2));
+		pExpr = expr_PcRelative(pExpr, -4);
+		pExpr = expr_Shr(pExpr, expr_Const(2));
 		pExpr = expr_CheckRange(pExpr, -32768, 32767);
 		if(pExpr != NULL)
 		{
-			pExpr = expr_CreateAndExpr(pExpr, expr_CreateConstExpr(0xFFFF));
+			pExpr = expr_And(pExpr, expr_Const(0xFFFF));
 		
-			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(pIns->nIns | (rs << 21) | (rt << 16)));
+			pExpr = expr_Or(pExpr, expr_Const(pIns->nIns | (rs << 21) | (rt << 16)));
 		
 			sect_OutputExprLong(pExpr);
 		}
@@ -309,8 +309,8 @@ static bool_t parse_Shift(void)
 		pExpr = expr_CheckRange(pExpr, 0, 31);
 		if(pExpr != NULL)
 		{
-			pExpr = expr_CreateShlExpr(pExpr, expr_CreateConstExpr(6));
-			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(ins | (rt << 16) | (rd << 11)));
+			pExpr = expr_Shl(pExpr, expr_Const(6));
+			pExpr = expr_Or(pExpr, expr_Const(ins | (rt << 16) | (rd << 11)));
 		
 			sect_OutputExprLong(pExpr);
 		}
@@ -378,7 +378,7 @@ static bool_t parse_LoadStore(void)
 			
 		if(parse_ExpectChar(')'))
 		{
-			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(ins | (base << 21) | (rt << 16)));
+			pExpr = expr_Or(pExpr, expr_Const(ins | (base << 21) | (rt << 16)));
 			sect_OutputExprLong(pExpr);
 			return true;
 		}
@@ -521,8 +521,8 @@ static bool_t parse_IntegerInstructionRSRTCode(void)
 					return true;
 				}
 				
-				pExpr = expr_CreateShlExpr(pExpr, expr_CreateConstExpr(6));
-				pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(ins | (rs << 21) | (rt << 16)));
+				pExpr = expr_Shl(pExpr, expr_Const(6));
+				pExpr = expr_Or(pExpr, expr_Const(ins | (rs << 21) | (rt << 16)));
 				sect_OutputExprLong(pExpr);
 			}
 			else
@@ -573,7 +573,7 @@ static bool_t parse_IntegerInstructionRI(void)
 
 		if(pExpr != NULL)
 		{
-			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(pIns->nIns | (rs << 21)));
+			pExpr = expr_Or(pExpr, expr_Const(pIns->nIns | (rs << 21)));
 			sect_OutputExprLong(pExpr);
 			return true;
 		}
@@ -759,9 +759,9 @@ static bool_t parse_IntegerJumpAbs(void)
 		pExpr = parse_Expression();
 		if(pExpr != NULL)
 		{
-			pExpr = expr_CreateShrExpr(pExpr, expr_CreateConstExpr(2));
-			pExpr = expr_CreateAndExpr(pExpr, expr_CreateConstExpr(0x03FFFFFF));
-			pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr(ins));
+			pExpr = expr_Shr(pExpr, expr_Const(2));
+			pExpr = expr_And(pExpr, expr_Const(0x03FFFFFF));
+			pExpr = expr_Or(pExpr, expr_Const(ins));
 		
 			sect_OutputExprLong(pExpr);
 			return true;
@@ -785,7 +785,7 @@ static bool_t parse_LUI(void)
 				SExpression* pExpr = parse_ExpressionU16();
 				if(pExpr != NULL)
 				{
-					pExpr = expr_CreateOrExpr(pExpr, expr_CreateConstExpr((15 << 26) | (rd << 16)));
+					pExpr = expr_Or(pExpr, expr_Const((15 << 26) | (rd << 16)));
 					sect_OutputExprLong(pExpr);
 				}
 			}

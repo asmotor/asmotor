@@ -50,7 +50,7 @@ SExpression* parse_TargetFunction(void)
 				return NULL;
 			if(!parse_ExpectChar(')'))
 				return NULL;
-			return expr_CreateConstExpr(regs);
+			return expr_Const(regs);
 		}
 		default:
 			return NULL;

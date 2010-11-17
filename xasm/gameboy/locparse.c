@@ -137,7 +137,7 @@ static SExpression* parse_CreateExpression3U(SExpression* pExpr)
 
 static SExpression* parse_CreateExpressionPCRel(SExpression* pExpr)
 {
-	pExpr = expr_CreatePcRelativeExpr(pExpr, -1);
+	pExpr = expr_PcRelative(pExpr, -1);
 	return parse_CreateExpression8S(pExpr);
 }
 
@@ -147,7 +147,7 @@ static SExpression* parse_CreateExpressionImmHi(SExpression* pExpr)
 	if(pExpr == NULL)
 		prj_Error(MERROR_EXPRESSION_FF00);
 
-	return expr_CreateAndExpr(pExpr, expr_CreateConstExpr(0xFF));
+	return expr_And(pExpr, expr_Const(0xFF));
 }
 
 static bool_t parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
@@ -182,11 +182,11 @@ static bool_t parse_Bit(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 {
 	sect_OutputConst8(0xCB);
 	sect_OutputExpr8(
-		expr_CreateOrExpr(
-			expr_CreateConstExpr(pOpcode->nOpcode | pAddrMode2->eRegD),
-			expr_CreateShlExpr(
+		expr_Or(
+			expr_Const(pOpcode->nOpcode | pAddrMode2->eRegD),
+			expr_Shl(
 			parse_CreateExpression3U(pAddrMode1->pExpr),
-				expr_CreateConstExpr(3))
+				expr_Const(3))
 			)
 		);
 

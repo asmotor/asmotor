@@ -182,7 +182,7 @@ static bool_t parse_GetIndexReg(SModeRegs* pMode)
 			return false;
 		}
 		pMode->pIndexScale = parse_CheckScaleRange(pMode->pIndexScale);
-		pMode->pIndexScale = expr_CreateBitExpr(pMode->pIndexScale);
+		pMode->pIndexScale = expr_Bit(pMode->pIndexScale);
 	}
 
 	return true;

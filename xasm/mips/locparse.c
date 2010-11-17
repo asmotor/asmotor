@@ -35,7 +35,7 @@ SExpression* parse_ExpressionS16(void)
 	if(pExpr == NULL)
 		prj_Error(ERROR_OPERAND_RANGE);
 	
-	return expr_CreateAndExpr(pExpr, expr_CreateConstExpr(0xFFFF));
+	return expr_And(pExpr, expr_Const(0xFFFF));
 }
 
 

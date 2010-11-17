@@ -194,7 +194,7 @@ static bool_t parse_Branch(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAd
 	SExpression* pExpr;
 
 	sect_OutputConst8(nBaseOpcode);
-	pExpr = expr_CreatePcRelativeExpr(pAddrMode->pExpr, -1);
+	pExpr = expr_PcRelative(pAddrMode->pExpr, -1);
 	pExpr = expr_CheckRange(pExpr, -128, 127);
 	if(pExpr == NULL)
 	{

@@ -462,7 +462,7 @@ static SExpression* parse_ExprPri9(void)
 					val |= (uint8_t)g_CurrentToken.Value.aString[i];
 				}
 				parse_GetToken();
-				return expr_CreateConstExpr(val);
+				return expr_Const(val);
 			}
 			return NULL;
 		}
@@ -470,7 +470,7 @@ static SExpression* parse_ExprPri9(void)
 		{
 			int32_t val = g_CurrentToken.Value.nInteger;
 			parse_GetToken();
-			return expr_CreateConstExpr(val);
+			return expr_Const(val);
 			break;
 		}
 		case '(':
@@ -501,7 +501,7 @@ static SExpression* parse_ExprPri9(void)
 		{
 			if(strcmp(g_CurrentToken.Value.aString, "@") != 0)
 			{
-				SExpression* expr = expr_CreateSymbolExpr(g_CurrentToken.Value.aString);
+				SExpression* expr = expr_Symbol(g_CurrentToken.Value.aString);
 				parse_GetToken();
 				return expr;
 			}
@@ -510,7 +510,7 @@ static SExpression* parse_ExprPri9(void)
 		case T_OP_MUL:
 		case '@':
 		{
-			SExpression* expr = expr_CreatePcExpr();
+			SExpression* expr = expr_Pc();
 			parse_GetToken();
 			return expr;
 		}
@@ -518,7 +518,7 @@ static SExpression* parse_ExprPri9(void)
 		{
 			if(g_CurrentToken.TokenLength > 0 && g_CurrentToken.ID.Token >= T_FIRST_TOKEN)
 			{
-				SExpression* expr = expr_CreateSymbolExpr(g_CurrentToken.Value.aString);
+				SExpression* expr = expr_Symbol(g_CurrentToken.Value.aString);
 				parse_GetToken();
 				return expr;
 			}
@@ -571,7 +571,7 @@ static SExpression* parse_ExprPri8(void)
 						if((t = parse_StringExpression()) != NULL)
 						{
 							if(parse_ExpectChar(')'))
-								r = expr_CreateConstExpr(strcmp(s, t));
+								r = expr_Const(strcmp(s, t));
 
 							free(t);
 						}
@@ -582,7 +582,7 @@ static SExpression* parse_ExprPri8(void)
 				}
 				case T_FUNC_LENGTH:
 				{
-					SExpression* r = expr_CreateConstExpr((int32_t)strlen(s));
+					SExpression* r = expr_Const((int32_t)strlen(s));
 					free(s);
 					parse_GetToken();
 
@@ -606,7 +606,7 @@ static SExpression* parse_ExprPri8(void)
 								if((p = strstr(s, needle)) != NULL)
 									val = (int32_t)(p - s);
 
-								r = expr_CreateConstExpr(val);
+								r = expr_Const(val);
 							}
 							free(needle);
 						}
@@ -617,32 +617,32 @@ static SExpression* parse_ExprPri8(void)
 				case T_OP_LOGICEQU:
 				{
 					int32_t v = parse_StringCompare(s);
-					return expr_CreateConstExpr(v == 0 ? true : false);
+					return expr_Const(v == 0 ? true : false);
 				}
 				case T_OP_LOGICNE:
 				{
 					int32_t v = parse_StringCompare(s);
-					return expr_CreateConstExpr(v != 0 ? true : false);
+					return expr_Const(v != 0 ? true : false);
 				}
 				case T_OP_LOGICGE:
 				{
 					int32_t v = parse_StringCompare(s);
-					return expr_CreateConstExpr(v >= 0 ? true : false);
+					return expr_Const(v >= 0 ? true : false);
 				}
 				case T_OP_LOGICGT:
 				{
 					int32_t v = parse_StringCompare(s);
-					return expr_CreateConstExpr(v > 0 ? true : false);
+					return expr_Const(v > 0 ? true : false);
 				}
 				case T_OP_LOGICLE:
 				{
 					int32_t v = parse_StringCompare(s);
-					return expr_CreateConstExpr(v <= 0 ? true : false);
+					return expr_Const(v <= 0 ? true : false);
 				}
 				case T_OP_LOGICLT:
 				{
 					int32_t v = parse_StringCompare(s);
-					return expr_CreateConstExpr(v < 0 ? true : false);
+					return expr_Const(v < 0 ? true : false);
 				}
 				default:
 					break;
@@ -700,19 +700,19 @@ static SExpression* parse_ExprPri7(void)
 	switch(g_CurrentToken.ID.Token)
 	{
 		case T_FUNC_ATAN2:
-			return parse_TwoArgFunc(expr_CreateATan2Expr);
+			return parse_TwoArgFunc(expr_Atan2);
 		case T_FUNC_SIN:
-			return parse_SingleArgFunc(expr_CreateSinExpr);
+			return parse_SingleArgFunc(expr_Sin);
 		case T_FUNC_COS:
-			return parse_SingleArgFunc(expr_CreateCosExpr);
+			return parse_SingleArgFunc(expr_Cos);
 		case T_FUNC_TAN:
-			return parse_SingleArgFunc(expr_CreateTanExpr);
+			return parse_SingleArgFunc(expr_Tan);
 		case T_FUNC_ASIN:
-			return parse_SingleArgFunc(expr_CreateASinExpr);
+			return parse_SingleArgFunc(expr_Asin);
 		case T_FUNC_ACOS:
-			return parse_SingleArgFunc(expr_CreateACosExpr);
+			return parse_SingleArgFunc(expr_Acos);
 		case T_FUNC_ATAN:
-			return parse_SingleArgFunc(expr_CreateATanExpr);
+			return parse_SingleArgFunc(expr_Atan);
 		case T_FUNC_DEF:
 		{
 			SExpression* t1;
@@ -728,7 +728,7 @@ static SExpression* parse_ExprPri7(void)
 				return NULL;
 			}
 
-			t1 = expr_CreateConstExpr(sym_isDefined(g_CurrentToken.Value.aString));
+			t1 = expr_Const(sym_isDefined(g_CurrentToken.Value.aString));
 			parse_GetToken();
 
 			if(!parse_ExpectChar(')'))
@@ -754,7 +754,7 @@ static SExpression* parse_ExprPri7(void)
 				return NULL;
 			}
 
-			t1 = expr_CreateBankExpr(g_CurrentToken.Value.aString);
+			t1 = expr_Bank(g_CurrentToken.Value.aString);
 			parse_GetToken();
 
 			if(!parse_ExpectChar(')'))
@@ -781,12 +781,12 @@ static	SExpression* parse_ExprPri6(void)
 		case T_OP_SUB:
 		{
 			parse_GetToken();
-			return expr_CreateSubExpr(expr_CreateConstExpr(0), parse_ExprPri6());
+			return expr_Sub(expr_Const(0), parse_ExprPri6());
 		}
 		case T_OP_NOT:
 		{
 			parse_GetToken();
-			return expr_CreateXorExpr(expr_CreateConstExpr(0xFFFFFFFF), parse_ExprPri6());
+			return expr_Xor(expr_Const(0xFFFFFFFF), parse_ExprPri6());
 		}
 		case T_OP_ADD:
 		{
@@ -818,43 +818,43 @@ static	SExpression* parse_ExprPri5(void)
 			case T_OP_SHL:
 			{
 				parse_GetToken();
-				t1 = expr_CreateShlExpr(t1, parse_ExprPri6());
+				t1 = expr_Shl(t1, parse_ExprPri6());
 				break;
 			}
 			case T_OP_SHR:
 			{
 				parse_GetToken();
-				t1 = expr_CreateShrExpr(t1, parse_ExprPri6());
+				t1 = expr_Shr(t1, parse_ExprPri6());
 				break;
 			}
 			case T_FUNC_FMUL:
 			{
 				parse_GetToken();
-				t1 = expr_CreateFMulExpr(t1, parse_ExprPri6());
+				t1 = expr_Fmul(t1, parse_ExprPri6());
 				break;
 			}
 			case T_OP_MUL:
 			{
 				parse_GetToken();
-				t1 = expr_CreateMulExpr(t1, parse_ExprPri6());
+				t1 = expr_Mul(t1, parse_ExprPri6());
 				break;
 			}
 			case T_FUNC_FDIV:
 			{
 				parse_GetToken();
-				t1 = expr_CreateFDivExpr(t1, parse_ExprPri6());
+				t1 = expr_Fdiv(t1, parse_ExprPri6());
 				break;
 			}
 			case T_OP_DIV:
 			{
 				parse_GetToken();
-				t1 = expr_CreateDivExpr(t1, parse_ExprPri6());
+				t1 = expr_Div(t1, parse_ExprPri6());
 				break;
 			}
 			case T_OP_MOD:
 			{
 				parse_GetToken();
-				t1 = expr_CreateModExpr(t1, parse_ExprPri6());
+				t1 = expr_Mod(t1, parse_ExprPri6());
 				break;
 			}
 			default:
@@ -878,19 +878,19 @@ static	SExpression* parse_ExprPri4(void)
 			case T_OP_XOR:
 			{
 				parse_GetToken();
-				t1 = expr_CreateXorExpr(t1, parse_ExprPri5());
+				t1 = expr_Xor(t1, parse_ExprPri5());
 				break;
 			}
 			case T_OP_OR:
 			{
 				parse_GetToken();
-				t1 = expr_CreateOrExpr(t1, parse_ExprPri5());
+				t1 = expr_Or(t1, parse_ExprPri5());
 				break;
 			}
 			case T_OP_AND:
 			{
 				parse_GetToken();
-				t1 = expr_CreateAndExpr(t1, parse_ExprPri5());
+				t1 = expr_And(t1, parse_ExprPri5());
 				break;
 			}
 			default:
@@ -913,13 +913,13 @@ static SExpression* parse_ExprPri3(void)
 			case T_OP_ADD:
 			{
 				parse_GetToken();
-				t1 = expr_CreateAddExpr(t1, parse_ExprPri4());
+				t1 = expr_Add(t1, parse_ExprPri4());
 				break;
 			}
 			case T_OP_SUB:
 			{
 				parse_GetToken();
-				t1 = expr_CreateSubExpr(t1, parse_ExprPri4());
+				t1 = expr_Sub(t1, parse_ExprPri4());
 				break;
 			}
 			default:
@@ -947,37 +947,37 @@ static	SExpression* parse_ExprPri2(void)
 			case T_OP_LOGICEQU:
 			{
 				parse_GetToken();
-				t1 = expr_CreateEqualExpr(t1, parse_ExprPri3());
+				t1 = expr_Equal(t1, parse_ExprPri3());
 				break;
 			}
 			case T_OP_LOGICGT:
 			{
 				parse_GetToken();
-				t1 = expr_CreateGreaterThanExpr(t1, parse_ExprPri3());
+				t1 = expr_GreaterThan(t1, parse_ExprPri3());
 				break;
 			}
 			case T_OP_LOGICLT:
 			{
 				parse_GetToken();
-				t1 = expr_CreateLessThanExpr(t1, parse_ExprPri3());
+				t1 = expr_LessThan(t1, parse_ExprPri3());
 				break;
 			}
 			case T_OP_LOGICGE:
 			{
 				parse_GetToken();
-				t1 = expr_CreateGreaterEqualExpr(t1, parse_ExprPri3());
+				t1 = expr_GreaterEqual(t1, parse_ExprPri3());
 				break;
 			}
 			case T_OP_LOGICLE:
 			{
 				parse_GetToken();
-				t1 = expr_CreateLessEqualExpr(t1, parse_ExprPri3());
+				t1 = expr_LessEqual(t1, parse_ExprPri3());
 				break;
 			}
 			case T_OP_LOGICNE:
 			{
 				parse_GetToken();
-				t1 = expr_CreateNotEqualExpr(t1, parse_ExprPri3());
+				t1 = expr_NotEqual(t1, parse_ExprPri3());
 				break;
 			}
 			default:
@@ -996,7 +996,7 @@ static	SExpression* parse_ExprPri1(void)
 		case T_OP_LOGICNOT:
 		{
 			parse_GetToken();
-			return expr_CreateBooleanNotExpr(parse_ExprPri1());
+			return expr_BooleanNot(parse_ExprPri1());
 		}
 		default:
 		{
@@ -1018,13 +1018,13 @@ static	SExpression* parse_ExprPri0(void)
 			case T_OP_LOGICOR:
 			{
 				parse_GetToken();
-				t1 = expr_CreateBooleanOrExpr(t1, parse_ExprPri1());
+				t1 = expr_BooleanOr(t1, parse_ExprPri1());
 				break;
 			}
 			case T_OP_LOGICAND:
 			{
 				parse_GetToken();
-				t1 = expr_CreateBooleanAndExpr(t1, parse_ExprPri1());
+				t1 = expr_BooleanAnd(t1, parse_ExprPri1());
 				break;
 			}
 			default:

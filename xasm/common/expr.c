@@ -48,10 +48,10 @@
 #define T_FUNC_Sin T_FUNC_SIN
 #define T_FUNC_Cos T_FUNC_COS
 #define T_FUNC_Tan T_FUNC_TAN
-#define T_FUNC_ASin T_FUNC_ASIN
-#define T_FUNC_ACos T_FUNC_ACOS
-#define T_FUNC_ATan T_FUNC_ATAN
-#define T_FUNC_ATan2 T_FUNC_ATAN2
+#define T_FUNC_Asin T_FUNC_ASIN
+#define T_FUNC_Acos T_FUNC_ACOS
+#define T_FUNC_Atan T_FUNC_ATAN
+#define T_FUNC_Atan2 T_FUNC_ATAN2
 
 #define T_FUNC_LowLimit T_FUNC_LOWLIMIT
 #define T_FUNC_HighLimit T_FUNC_HIGHLIMIT
@@ -64,14 +64,14 @@ static void parse_VerifyPointers(SExpression* left, SExpression* right)
 	prj_Fail(ERROR_INVALID_EXPRESSION);
 }
 
-SExpression* expr_CreateAbsExpr(SExpression* right)
+SExpression* expr_Abs(SExpression* right)
 {
-	SExpression* pSign = expr_CreateShrExpr(expr_DuplicateExpr(right), expr_CreateConstExpr(31));
-	return expr_CreateSubExpr(expr_CreateXorExpr(right, expr_DuplicateExpr(pSign)), pSign);
+	SExpression* pSign = expr_Shr(expr_Clone(right), expr_Const(31));
+	return expr_Sub(expr_Xor(right, expr_Clone(pSign)), pSign);
 }
 
 
-SExpression* expr_CreateBitExpr(SExpression* right)
+SExpression* expr_Bit(SExpression* right)
 {
 	SExpression* expr;
 
@@ -112,7 +112,7 @@ SExpression* expr_CreateBitExpr(SExpression* right)
 	}
 }
 
-SExpression* expr_CreatePcRelativeExpr(SExpression* in, int nAdjust)
+SExpression* expr_PcRelative(SExpression* in, int nAdjust)
 {
 	SExpression* expr = (SExpression*)malloc(sizeof(SExpression));
 
@@ -122,13 +122,13 @@ SExpression* expr_CreatePcRelativeExpr(SExpression* in, int nAdjust)
 	expr->Value.Value = 0;
 	expr->eType = EXPR_PCREL;
 	expr->nFlags = EXPRF_RELOC;
-	expr->pLeft = expr_CreateConstExpr(nAdjust);
+	expr->pLeft = expr_Const(nAdjust);
 	expr->pRight = in;
 	return expr;
 }
 
 
-SExpression* expr_CreatePcExpr()
+SExpression* expr_Pc()
 {
 	SExpression* expr;
 
@@ -164,7 +164,7 @@ SExpression* expr_CreatePcExpr()
 	return NULL;
 }
 
-SExpression* expr_CreateConstExpr(int32_t value)
+SExpression* expr_Const(int32_t value)
 {
 	SExpression* expr;
 
@@ -207,7 +207,7 @@ static SExpression* parse_MergeExpressions(SExpression* left, SExpression* right
 }
 
 #define CREATEEXPRDIV(NAME,OP)															\
-SExpression* expr_Create ## NAME ## Expr(SExpression* left, SExpression* right)	\
+SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
 {																						\
 	int32_t val;																			\
 	parse_VerifyPointers(left, right);													\
@@ -227,7 +227,7 @@ SExpression* expr_Create ## NAME ## Expr(SExpression* left, SExpression* right)	
 CREATEEXPRDIV(Div, /)
 CREATEEXPRDIV(Mod, %)
 
-SExpression* expr_CreateBooleanNotExpr(SExpression* right)
+SExpression* expr_BooleanNot(SExpression* right)
 {
 	SExpression* expr;
 
@@ -251,7 +251,7 @@ SExpression* expr_CreateBooleanNotExpr(SExpression* right)
 }
 
 #define CREATEEXPR(NAME,OP) \
-SExpression* expr_Create ## NAME ## Expr(SExpression* left, SExpression* right)	\
+SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
 {																					\
 	int32_t val;																		\
 	parse_VerifyPointers(left, right);												\
@@ -281,7 +281,7 @@ CREATEEXPR(Equal, ==)
 CREATEEXPR(NotEqual, !=)
 
 #define CREATELIMIT(NAME,OP)												\
-SExpression* expr_Create ## NAME ## Expr(SExpression* expr, SExpression* bound)	\
+SExpression* expr_ ## NAME(SExpression* expr, SExpression* bound)	\
 {																			\
 	int32_t val;															\
 	parse_VerifyPointers(expr, bound);										\
@@ -310,18 +310,18 @@ SExpression* expr_CheckRange(SExpression* expr, int32_t low, int32_t high)
 	SExpression* low_expr;
 	SExpression* high_expr;
 
-	low_expr = expr_CreateConstExpr(low);
-	high_expr = expr_CreateConstExpr(high);
+	low_expr = expr_Const(low);
+	high_expr = expr_Const(high);
 
-	expr = expr_CreateLowLimitExpr(expr, low_expr);
+	expr = expr_LowLimit(expr, low_expr);
 	if(expr != NULL)
-		return expr_CreateHighLimitExpr(expr, high_expr);
+		return expr_HighLimit(expr, high_expr);
 
 	expr_Free(high_expr);
 	return NULL;
 }
 
-SExpression* expr_CreateFDivExpr(SExpression* left, SExpression* right)
+SExpression* expr_Fdiv(SExpression* left, SExpression* right)
 {
 	int32_t val;
 
@@ -345,7 +345,7 @@ SExpression* expr_CreateFDivExpr(SExpression* left, SExpression* right)
 	}
 }
 
-SExpression* expr_CreateFMulExpr(SExpression* left, SExpression* right)
+SExpression* expr_Fmul(SExpression* left, SExpression* right)
 {
 	int32_t val;
 
@@ -361,7 +361,7 @@ SExpression* expr_CreateFMulExpr(SExpression* left, SExpression* right)
 	return left;
 }
 
-SExpression* expr_CreateATan2Expr(SExpression* left, SExpression* right)
+SExpression* expr_Atan2(SExpression* left, SExpression* right)
 {
 	int32_t val;
 
@@ -378,7 +378,7 @@ SExpression* expr_CreateATan2Expr(SExpression* left, SExpression* right)
 }
 
 #define CREATETRANSEXPR(NAME,FUNC)										\
-SExpression* expr_Create ## NAME ## Expr(SExpression* right)	\
+SExpression* expr_ ## NAME(SExpression* right)	\
 {																		\
 	SExpression* expr;													\
 	parse_VerifyPointers(right, right);									\
@@ -402,11 +402,11 @@ SExpression* expr_Create ## NAME ## Expr(SExpression* right)	\
 CREATETRANSEXPR(Sin,fsin)
 CREATETRANSEXPR(Cos,fcos)
 CREATETRANSEXPR(Tan,ftan)
-CREATETRANSEXPR(ASin,fasin)
-CREATETRANSEXPR(ACos,facos)
-CREATETRANSEXPR(ATan,fatan)
+CREATETRANSEXPR(Asin,fasin)
+CREATETRANSEXPR(Acos,facos)
+CREATETRANSEXPR(Atan,fatan)
 
-SExpression* expr_CreateBankExpr(char* s)
+SExpression* expr_Bank(char* s)
 {
 	SExpression* expr;
 
@@ -431,7 +431,7 @@ SExpression* expr_CreateBankExpr(char* s)
 	}
 }
 
-SExpression* expr_CreateSymbolExpr(char* s)
+SExpression* expr_Symbol(char* s)
 {
 	SExpression* expr;
 	SSymbol* sym = sym_FindSymbol(s);
@@ -440,7 +440,7 @@ SExpression* expr_CreateSymbolExpr(char* s)
 	{
 		sym->Flags |= SYMF_REFERENCED;
 		if(sym->Flags & SYMF_CONSTANT)
-			return expr_CreateConstExpr(sym_GetConstant(s));
+			return expr_Const(sym_GetConstant(s));
 
 
 		if((expr = (SExpression*)malloc(sizeof(SExpression))) != NULL)
@@ -473,7 +473,7 @@ void expr_Free(SExpression* expr)
 }
 
 
-SExpression* expr_DuplicateExpr(SExpression* expr)
+SExpression* expr_Clone(SExpression* expr)
 {
 	SExpression* r = (SExpression*)malloc(sizeof(SExpression));
 	
@@ -481,9 +481,9 @@ SExpression* expr_DuplicateExpr(SExpression* expr)
 	{
 		*r = *expr;
 		if(r->pLeft != NULL)
-			r->pLeft = expr_DuplicateExpr(r->pLeft);
+			r->pLeft = expr_Clone(r->pLeft);
 		if(r->pRight != NULL)
-			r->pRight = expr_DuplicateExpr(r->pRight);
+			r->pRight = expr_Clone(r->pRight);
 	}
 
 	return r;
