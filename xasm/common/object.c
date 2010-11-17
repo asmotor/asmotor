@@ -96,8 +96,8 @@ static uint32_t calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, uint
 		ID=calc_symbol_ids(sect, f, expr->pLeft, ID);
 		ID=calc_symbol_ids(sect, f, expr->pRight, ID);
 
-		if(expr->Type == EXPR_SYMBOL
-		||(g_pConfiguration->bSupportBanks && expr->Type==EXPR_OPERATOR && expr->Operator == T_FUNC_BANK))
+		if(expr_GetType(expr) == EXPR_SYMBOL
+		||(g_pConfiguration->bSupportBanks && expr_GetType(expr) == EXPR_OPERATOR && expr->Operator == T_FUNC_BANK))
 		{
 			if(expr->Value.pSymbol->ID == -1)
 			{
@@ -142,7 +142,7 @@ static void fix_local_exports(SSection* sect, SExpression* expr)
 		fix_local_exports(sect, expr->pLeft);
 		fix_local_exports(sect, expr->pRight);
 
-		if((expr->Type == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr->Type == EXPR_OPERATOR && expr->Operator == T_FUNC_BANK))
+		if((expr_GetType(expr) == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr_GetType(expr) == EXPR_OPERATOR && expr->Operator == T_FUNC_BANK))
 		&&	expr->Value.pSymbol->Flags&SYMF_EXPORTABLE
 		&&	expr->Value.pSymbol->pSection != sect)
 		{
@@ -160,7 +160,7 @@ static	int	write_expr(FILE* f, SExpression* expr)
 		r += write_expr(f, expr->pLeft);
 		r += write_expr(f, expr->pRight);
 
-		switch(expr->Type)
+		switch(expr_GetType(expr))
 		{
 			case EXPR_OPERATOR:
 			{

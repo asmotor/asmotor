@@ -213,7 +213,7 @@ static bool_t joinexpr(SPatch* pPatch, SExpression* pExpr, pPredicate_t pPred)
 		freeexpr(pExpr->pLeft);
 		freeexpr(pExpr->pRight);
 		pExpr->pLeft = pExpr->pRight = NULL;
-		pExpr->Type = EXPR_CONSTANT;
+		pExpr->eType = EXPR_CONSTANT;
 		pExpr->Flags |= EXPRF_isCONSTANT;
 		pExpr->Value.Value = pPred(vl, vr);
 		return true;
@@ -228,7 +228,7 @@ static bool_t joinexpr1(SPatch* pPatch, SExpression* pExpr, pPredicate1_t pPred)
 	{
 		freeexpr(pExpr->pRight);
 		pExpr->pLeft = pExpr->pRight = NULL;
-		pExpr->Type = EXPR_CONSTANT;
+		pExpr->eType = EXPR_CONSTANT;
 		pExpr->Flags |= EXPRF_isCONSTANT;
 		pExpr->Value.Value = pPred(vr);
 		return true;
@@ -241,7 +241,7 @@ bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pE
 	if(pExpr == NULL)
 		return false;
 
-	if(pExpr->Type == EXPR_SYMBOL)
+	if(expr_GetType(pExpr) == EXPR_SYMBOL)
 	{
 		SSymbol* pSym = pExpr->Value.pSymbol;
 		if(pSym->Type == SYM_IMPORT || pSym->Type == SYM_GLOBAL)
@@ -255,7 +255,7 @@ bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pE
 		}
 		return false;
 	}
-	else if(pExpr->Type == EXPR_OPERATOR
+	else if(expr_GetType(pExpr) == EXPR_OPERATOR
 	&& (pExpr->Operator == T_OP_ADD || pExpr->Operator == T_OP_SUB))
 	{
 		uint32_t offset;
@@ -290,12 +290,12 @@ bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 	if(pExpr == NULL)
 		return false;
 
-	if(pExpr->Type == EXPR_CONSTANT && (pSection->Flags & SECTF_ORGFIXED))
+	if(expr_GetType(pExpr) == EXPR_CONSTANT && (pSection->Flags & SECTF_ORGFIXED))
 	{
 		*pOffset = pExpr->Value.Value - pSection->Org;
 		return true;
 	}
-	else if(pExpr->Type == EXPR_SYMBOL)
+	else if(expr_GetType(pExpr) == EXPR_SYMBOL)
 	{
 		SSymbol* pSym = pExpr->Value.pSymbol;
 		if(pSym->pSection == pSection)
@@ -313,7 +313,7 @@ bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 		}
 		return false;
 	}
-	else if(pExpr->Type == EXPR_OPERATOR
+	else if(expr_GetType(pExpr) == EXPR_OPERATOR
 	&& (pExpr->Operator == T_OP_ADD || pExpr->Operator == T_OP_SUB))
 	{
 		uint32_t offset;
@@ -361,19 +361,19 @@ static bool_t parsepatch(SPatch* patch, SExpression* expr, int32_t* v)
 {
 	if(expr)
 	{
-		if(expr->Flags&EXPRF_isCONSTANT)
+		if(expr->Flags & EXPRF_isCONSTANT)
 		{
 			freeexpr(expr->pLeft);
 			freeexpr(expr->pRight);
-			expr->pLeft=NULL;
-			expr->pRight=NULL;
-			expr->Type=EXPR_CONSTANT;
-			*v=expr->Value.Value;
+			expr->pLeft = NULL;
+			expr->pRight = NULL;
+			expr->eType = EXPR_CONSTANT;
+			*v = expr->Value.Value;
 			return true;
 		}
 		else
 		{
-			switch(expr->Type)
+			switch(expr_GetType(expr))
 			{
 				case EXPR_PCREL:
 				{
@@ -405,7 +405,7 @@ static bool_t parsepatch(SPatch* patch, SExpression* expr, int32_t* v)
 							SSection* pRightSect = patch_GetExpressionSectionAndOffset(patch, expr->pRight, &r);
 							if(pLeftSect && pRightSect && pLeftSect == pRightSect)
 							{
-								expr->Type = EXPR_CONSTANT;
+								expr->eType = EXPR_CONSTANT;
 								expr->Flags = EXPRF_isCONSTANT;
 								expr->Operator = 0;
 								*v = expr->Value.Value = l - r;
@@ -532,7 +532,7 @@ static bool_t parsepatch(SPatch* patch, SExpression* expr, int32_t* v)
 									*v = b;
 									freeexpr(expr->pRight);
 									expr->pLeft = expr->pRight = NULL;
-									expr->Type = EXPR_CONSTANT;
+									expr->eType = EXPR_CONSTANT;
 									expr->Flags |= EXPRF_isCONSTANT;
 									expr->Value.Value = *v;
 									return true;
@@ -598,7 +598,7 @@ static bool_t parsepatch(SPatch* patch, SExpression* expr, int32_t* v)
 									freeexpr(expr->pRight);
 									freeexpr(expr->pLeft);
 									expr->pLeft=expr->pRight=NULL;
-									expr->Type=EXPR_CONSTANT;
+									expr->eType=EXPR_CONSTANT;
 									*v=expr->Value.Value=vl;
 									return true;
 								}
@@ -620,7 +620,7 @@ static bool_t parsepatch(SPatch* patch, SExpression* expr, int32_t* v)
 									freeexpr(expr->pRight);
 									freeexpr(expr->pLeft);
 									expr->pLeft=expr->pRight=NULL;
-									expr->Type=EXPR_CONSTANT;
+									expr->eType=EXPR_CONSTANT;
 									*v=expr->Value.Value=vl;
 									return true;
 								}
@@ -878,7 +878,7 @@ void patch_OptimizeExpression(SExpression* pExpr)
 		pExpr->pLeft = NULL;
 		expr_FreeExpression(pExpr->pRight);
 		pExpr->pRight = NULL;
-		pExpr->Type = EXPR_CONSTANT;
+		pExpr->eType = EXPR_CONSTANT;
 		pExpr->Operator = 0;
 	}
 }

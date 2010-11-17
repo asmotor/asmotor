@@ -19,7 +19,7 @@
 #ifndef	INCLUDE_EXPR_H
 #define	INCLUDE_EXPR_H
 
-#include "types.h"
+#include "asmotor.h"
 
 struct Symbol;
 
@@ -38,7 +38,7 @@ typedef struct Expression
 {
 	struct Expression*	pLeft;
 	struct Expression*	pRight;
-	EExprType	Type;
+	EExprType	eType;
 	uint32_t	Flags;
 	uint32_t	Operator;
 	union
@@ -47,6 +47,12 @@ typedef struct Expression
 		struct Symbol*	pSymbol;
 	} Value;
 } SExpression;
+
+
+INLINE EExprType expr_GetType(SExpression* pExpr)
+{
+	return pExpr->eType;
+}
 
 
 extern SExpression* expr_CheckRange(SExpression* expr, int32_t low, int32_t high);
@@ -88,9 +94,6 @@ extern SExpression* expr_CreateASinExpr(SExpression* right);
 extern SExpression* expr_CreateACosExpr(SExpression* right);
 extern SExpression* expr_CreateATanExpr(SExpression* right);
 extern SExpression* expr_CreateATan2Expr(SExpression* left, SExpression* right);
-
-extern SExpression* expr_CreateHighLimitExpr(SExpression* left, SExpression* right);
-extern SExpression* expr_CreateLowLimitExpr(SExpression* left, SExpression* right);
 
 extern SExpression* expr_CreateFMulExpr(SExpression* left, SExpression* right);
 extern SExpression* expr_CreateFDivExpr(SExpression* left, SExpression* right);

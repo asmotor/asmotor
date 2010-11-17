@@ -102,7 +102,7 @@ SExpression* expr_CreateBitExpr(SExpression* right)
 		expr->pLeft = NULL;
 		expr->Value.Value = b;
 		expr->Flags = right->Flags;
-		expr->Type = EXPR_OPERATOR;
+		expr->eType = EXPR_OPERATOR;
 		expr->Operator = T_OP_BIT;
 		return expr;
 	}
@@ -121,7 +121,7 @@ SExpression* expr_CreatePcRelativeExpr(SExpression* in, int nAdjust)
 		internalerror("Out of memory!");
 
 	expr->Value.Value = 0;
-	expr->Type = EXPR_PCREL;
+	expr->eType = EXPR_PCREL;
 	expr->Flags = EXPRF_isRELOC;
 	expr->pLeft = expr_CreateConstExpr(nAdjust);
 	expr->pRight = in;
@@ -144,7 +144,7 @@ SExpression* expr_CreatePcExpr()
 		if(pSym->Flags & SYMF_CONSTANT)
 		{
 			expr->Value.Value = pSym->Value.Value;
-			expr->Type = EXPR_CONSTANT;
+			expr->eType = EXPR_CONSTANT;
 			expr->Flags = EXPRF_isCONSTANT | EXPRF_isRELOC;
 			expr->pLeft = NULL;
 			expr->pRight = NULL;
@@ -155,7 +155,7 @@ SExpression* expr_CreatePcExpr()
 			expr->pLeft = NULL;
 			expr->Value.pSymbol = pSym;
 			expr->Flags = EXPRF_isRELOC;
-			expr->Type = EXPR_SYMBOL;
+			expr->eType = EXPR_SYMBOL;
 		}
 
 		return expr;
@@ -172,7 +172,7 @@ SExpression* expr_CreateConstExpr(int32_t value)
 	if((expr = (SExpression*)malloc(sizeof(SExpression))) != NULL)
 	{
 		expr->Value.Value = value;
-		expr->Type = EXPR_CONSTANT;
+		expr->eType = EXPR_CONSTANT;
 		expr->Flags = EXPRF_isCONSTANT | EXPRF_isRELOC;
 		expr->pLeft = NULL;
 		expr->pRight = NULL;
@@ -191,13 +191,13 @@ static SExpression* parse_MergeExpressions(SExpression* left, SExpression* right
 
 	parse_VerifyPointers(left, right);
 
-	if((expr=(SExpression*)malloc(sizeof(SExpression)))!=NULL)
+	if((expr = (SExpression*)malloc(sizeof(SExpression))) != NULL)
 	{
-		expr->Value.Value=0;
-		expr->Type=0;
-		expr->Flags=(left->Flags)&(right->Flags);
-		expr->pLeft=left;
-		expr->pRight=right;
+		expr->Value.Value = 0;
+		expr->eType = 0;
+		expr->Flags = left->Flags & right->Flags;
+		expr->pLeft = left;
+		expr->pRight = right;
 		return expr;
 	}
 	else
@@ -216,7 +216,7 @@ SExpression* expr_Create ## NAME ## Expr(SExpression* left, SExpression* right)	
 	{																					\
 		val = left->Value.Value OP right->Value.Value;									\
 		left = parse_MergeExpressions(left, right);										\
-		left->Type = EXPR_OPERATOR;														\
+		left->eType = EXPR_OPERATOR;														\
 		left->Operator = T_OP_ ## NAME;													\
 		left->Value.Value = val;														\
 		return left;																	\
@@ -243,7 +243,7 @@ SExpression* expr_CreateBooleanNotExpr(SExpression* right)
 		expr->pLeft = NULL;
 		expr->Value.Value = !right->Value.Value;
 		expr->Flags = right->Flags;
-		expr->Type = EXPR_OPERATOR;
+		expr->eType = EXPR_OPERATOR;
 		expr->Operator = T_OP_LOGICNOT;
 		return expr;
 	}
@@ -261,7 +261,7 @@ SExpression* expr_Create ## NAME ## Expr(SExpression* left, SExpression* right)	
 	parse_VerifyPointers(left, right);												\
 	val = left->Value.Value OP right->Value.Value;									\
 	left = parse_MergeExpressions(left, right);										\
-	left->Type = EXPR_OPERATOR;														\
+	left->eType = EXPR_OPERATOR;														\
 	left->Operator = T_OP_ ## NAME;													\
 	left->Value.Value = val;														\
 	return left;																	\
@@ -300,7 +300,7 @@ SExpression* expr_Create ## NAME ## Expr(SExpression* expr, SExpression* bound)	
 		}																	\
 	}																		\
 	expr = parse_MergeExpressions(expr, bound);								\
-	expr->Type = EXPR_OPERATOR;												\
+	expr->eType = EXPR_OPERATOR;												\
 	expr->Operator = T_FUNC_ ## NAME;										\
 	expr->Value.Value = val;												\
 	return expr;															\
@@ -336,7 +336,7 @@ SExpression* expr_CreateFDivExpr(SExpression* left, SExpression* right)
 		val = fdiv(left->Value.Value, right->Value.Value);
 
 		left = parse_MergeExpressions(left, right);
-		left->Type = EXPR_OPERATOR;
+		left->eType = EXPR_OPERATOR;
 		left->Operator = T_FUNC_FDIV;
 		left->Value.Value = val;
 		left->Flags &= ~EXPRF_isRELOC;
@@ -358,7 +358,7 @@ SExpression* expr_CreateFMulExpr(SExpression* left, SExpression* right)
 	val = fmul(left->Value.Value, right->Value.Value);
 
 	left = parse_MergeExpressions(left, right);
-	left->Type = EXPR_OPERATOR;
+	left->eType = EXPR_OPERATOR;
 	left->Operator = T_FUNC_FMUL;
 	left->Value.Value = val;
 	left->Flags &= ~EXPRF_isRELOC;
@@ -374,7 +374,7 @@ SExpression* expr_CreateATan2Expr(SExpression* left, SExpression* right)
 	val = fatan2(left->Value.Value, right->Value.Value);
 
 	left = parse_MergeExpressions(left, right);
-	left->Type = EXPR_OPERATOR;
+	left->eType = EXPR_OPERATOR;
 	left->Operator = T_FUNC_ATAN2;
 	left->Value.Value = val;
 	left->Flags &= ~EXPRF_isRELOC;
@@ -392,7 +392,7 @@ SExpression* expr_Create ## NAME ## Expr(SExpression* right)	\
 		expr->pLeft = NULL;												\
 		expr->Value.Value = FUNC(right->Value.Value);					\
 		expr->Flags = right->Flags & ~EXPRF_isRELOC;					\
-		expr->Type = EXPR_OPERATOR;										\
+		expr->eType = EXPR_OPERATOR;										\
 		expr->Operator = T_FUNC_ ## NAME;								\
 		return expr;													\
 	}																	\
@@ -424,7 +424,7 @@ SExpression* expr_CreateBankExpr(char* s)
 		expr->Value.pSymbol = sym_FindSymbol(s);
 		expr->Value.pSymbol->Flags |= SYMF_REFERENCED;
 		expr->Flags = EXPRF_isRELOC;
-		expr->Type = EXPR_OPERATOR;
+		expr->eType = EXPR_OPERATOR;
 		expr->Operator = T_FUNC_BANK;
 		return expr;
 	}
@@ -455,7 +455,7 @@ SExpression* expr_CreateSymbolExpr(char* s)
 			expr->pLeft = NULL;
 			expr->Value.pSymbol = sym;
 			expr->Flags = EXPRF_isRELOC;
-			expr->Type = EXPR_SYMBOL;
+			expr->eType = EXPR_SYMBOL;
 			return expr;
 		}
 		else

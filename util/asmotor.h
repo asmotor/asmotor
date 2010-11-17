@@ -21,6 +21,14 @@
 
 #include "types.h"
 
+#if defined(__GNUC_STDC_INLINE__)
+#	define INLINE static inline
+#elif defined(_MSC_VER)
+#	define INLINE static __inline
+#else
+#	define INLINE static
+#endif
+
 #define	ASMOTOR
 
 #define	ASMOTOR_VERSION	"0.1.0"
