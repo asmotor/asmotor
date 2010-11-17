@@ -164,23 +164,26 @@ SExpression* expr_Pc()
 	return NULL;
 }
 
-SExpression* expr_Const(int32_t value)
+void expr_SetConst(SExpression* pExpr, int32_t nValue)
 {
-	SExpression* expr;
+	pExpr->pLeft = NULL;
+	pExpr->pRight = NULL;
+	pExpr->eType = EXPR_CONSTANT;
+	pExpr->nFlags = EXPRF_CONSTANT | EXPRF_RELOC;
+	pExpr->Value.Value = nValue;
+}
 
-	if((expr = (SExpression*)malloc(sizeof(SExpression))) != NULL)
+SExpression* expr_Const(int32_t nValue)
+{
+	SExpression* pExpr;
+
+	if((pExpr = (SExpression*)malloc(sizeof(SExpression))) != NULL)
 	{
-		expr->Value.Value = value;
-		expr->eType = EXPR_CONSTANT;
-		expr->nFlags = EXPRF_CONSTANT | EXPRF_RELOC;
-		expr->pLeft = NULL;
-		expr->pRight = NULL;
-		return expr;
+		expr_SetConst(pExpr, nValue);
+		return pExpr;
 	}
-	else
-	{
-		internalerror("Out of memory!");
-	}
+
+	internalerror("Out of memory!");
 	return NULL;
 }
 
@@ -462,14 +465,30 @@ SExpression* expr_Symbol(char* s)
 }
 
 
-void expr_Free(SExpression* expr)
+void expr_Clear(SExpression* pExpr)
 {
-	if(expr == NULL)
+	if(pExpr == NULL)
 		return;
 
-	expr_Free(expr->pLeft);
-	expr_Free(expr->pRight);
-	free(expr);
+	expr_Free(pExpr->pLeft);
+	pExpr->pLeft = NULL;
+
+	expr_Free(pExpr->pRight);
+	pExpr->pRight = NULL;
+
+	pExpr->eType = 0;
+	pExpr->nFlags = 0;
+}
+
+
+void expr_Free(SExpression* pExpr)
+{
+	if(pExpr == NULL)
+		return;
+
+	expr_Free(pExpr->pLeft);
+	expr_Free(pExpr->pRight);
+	free(pExpr);
 }
 
 

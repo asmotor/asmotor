@@ -659,7 +659,7 @@ void lex_RemoveString(char* pszName, int nToken)
 	while(pToken)
 	{
 		if(pToken->Token == nToken
-		&& stricmp(pToken->pszName, pszName) == 0)
+		&& _stricmp(pToken->pszName, pszName) == 0)
 		{
 			list_Remove(*pHash, pToken);
 			free(pToken->pszName);

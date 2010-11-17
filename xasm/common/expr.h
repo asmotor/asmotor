@@ -70,57 +70,58 @@ INLINE bool_t expr_IsRelocatable(SExpression* pExpr)
 	return pExpr->nFlags & EXPRF_RELOC;
 }
 
-extern SExpression* expr_CheckRange(SExpression* expr, int32_t low, int32_t high);
+extern SExpression* expr_CheckRange(SExpression* pExpr, int32_t nLow, int32_t nHigh);
 
-extern SExpression* expr_Equal(SExpression* left, SExpression* right);
-extern SExpression* expr_NotEqual(SExpression* left, SExpression* right);
-extern SExpression* expr_GreaterThan(SExpression* left, SExpression* right);
-extern SExpression* expr_LessThan(SExpression* left, SExpression* right);
-extern SExpression* expr_GreaterEqual(SExpression* left, SExpression* right);
-extern SExpression* expr_LessEqual(SExpression* left, SExpression* right);
+extern SExpression* expr_Equal(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_NotEqual(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_GreaterThan(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_LessThan(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_GreaterEqual(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_LessEqual(SExpression* pLeft, SExpression* pRight);
 
-extern SExpression* expr_BooleanNot(SExpression* expr);
-extern SExpression* expr_BooleanOr(SExpression* left, SExpression* right);
-extern SExpression* expr_BooleanAnd(SExpression* left, SExpression* right);
-extern SExpression* expr_BooleanXor(SExpression* left, SExpression* right);
+extern SExpression* expr_BooleanNot(SExpression* pExpr);
+extern SExpression* expr_BooleanOr(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_BooleanAnd(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_BooleanXor(SExpression* pLeft, SExpression* pRight);
 
-extern SExpression* expr_Abs(SExpression* expr);
+extern SExpression* expr_Abs(SExpression* pExpr);
 
-extern SExpression* expr_Or(SExpression* left, SExpression* right);
-extern SExpression* expr_And(SExpression* left, SExpression* right);
-extern SExpression* expr_Xor(SExpression* left, SExpression* right);
+extern SExpression* expr_Or(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_And(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_Xor(SExpression* pLeft, SExpression* pRight);
 
-extern SExpression* expr_Add(SExpression* left, SExpression* right);
-extern SExpression* expr_Sub(SExpression* left, SExpression* right);
-extern SExpression* expr_Mul(SExpression* left, SExpression* right);
-extern SExpression* expr_Div(SExpression* left, SExpression* right);
-extern SExpression* expr_Mod(SExpression* left, SExpression* right);
+extern SExpression* expr_Add(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_Sub(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_Mul(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_Div(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_Mod(SExpression* pLeft, SExpression* pRight);
 
-extern SExpression* expr_Bit(SExpression* right);
-extern SExpression* expr_Shl(SExpression* left, SExpression* right);
-extern SExpression* expr_Shr(SExpression* left, SExpression* right);
+extern SExpression* expr_Bit(SExpression* pExpr);
+extern SExpression* expr_Shl(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_Shr(SExpression* pLeft, SExpression* pRight);
 
-extern SExpression* expr_Sin(SExpression* right);
-extern SExpression* expr_Cos(SExpression* right);
-extern SExpression* expr_Tan(SExpression* right);
-extern SExpression* expr_Asin(SExpression* right);
-extern SExpression* expr_Acos(SExpression* right);
-extern SExpression* expr_Atan(SExpression* right);
-extern SExpression* expr_Atan2(SExpression* left, SExpression* right);
+extern SExpression* expr_Sin(SExpression* pExpr);
+extern SExpression* expr_Cos(SExpression* pExpr);
+extern SExpression* expr_Tan(SExpression* pExpr);
+extern SExpression* expr_Asin(SExpression* pExpr);
+extern SExpression* expr_Acos(SExpression* pExpr);
+extern SExpression* expr_Atan(SExpression* pExpr);
+extern SExpression* expr_Atan2(SExpression* pLeft, SExpression* pRight);
 
-extern SExpression* expr_Fmul(SExpression* left, SExpression* right);
-extern SExpression* expr_Fdiv(SExpression* left, SExpression* right);
+extern SExpression* expr_Fmul(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_Fdiv(SExpression* pLeft, SExpression* pRight);
 
-extern SExpression* expr_PcRelative(SExpression* expr, int nAdjust);
+extern SExpression* expr_PcRelative(SExpression* pExpr, int nAdjust);
 
 extern SExpression* expr_Pc();
-extern SExpression* expr_Const(int32_t value);
-extern SExpression* expr_Symbol(char* s);
-extern SExpression* expr_Bank(char* s);
+extern SExpression* expr_Const(int32_t nValue);
+extern void expr_SetConst(SExpression* pExpr, int32_t nValue);
+extern SExpression* expr_Symbol(char* pszSymbol);
+extern SExpression* expr_Bank(char* pszSymbol);
 
-extern SExpression* expr_Clone(SExpression* expr);
-extern void expr_Free(SExpression* expr);
-extern void expr_Clear(SExpression* expr);
+extern SExpression* expr_Clone(SExpression* pExpr);
+extern void expr_Free(SExpression* pExpr);
+extern void expr_Clear(SExpression* pExpr);
 
 
 #endif	/*INCLUDE_EXPR_H*/

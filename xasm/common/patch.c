@@ -191,15 +191,8 @@ static bool_t patch_ReduceBinary(SPatch* pPatch, SExpression* pExpr, int32_t* v,
 	if(patch_Evaluate(pPatch, pExpr->pLeft, &vl)
 	&& patch_Evaluate(pPatch, pExpr->pRight, &vr))
 	{
-		expr_Free(pExpr->pLeft);
-		pExpr->pLeft = NULL;
-		expr_Free(pExpr->pRight);
-		pExpr->pRight = NULL;
-
-		pExpr->eType = EXPR_CONSTANT;
-		pExpr->nFlags |= EXPRF_CONSTANT;
-
-		*v = pExpr->Value.Value = pPred(vl, vr);
+		expr_Clear(pExpr);
+		expr_SetConst(pExpr, *v = pPred(vl, vr));
 		return true;
 	}
 	return false;
@@ -361,15 +354,8 @@ static bool_t patch_EvaluatePcRel(SPatch* patch, SExpression* expr, int32_t* v)
 		int32_t v1;
 		if(patch_Evaluate(patch, expr->pLeft, &v1))
 		{
-			expr_Free(expr->pRight);
-			expr->pRight = NULL;
-			expr_Free(expr->pLeft);
-			expr->pLeft = NULL;
-
-			expr->eType = EXPR_CONSTANT;
-			expr->nFlags |= EXPRF_CONSTANT;
-
-			expr->Value.Value = 	*v = offset + v1 - patch->Offset;
+			expr_Clear(expr);
+			expr_SetConst(expr, *v = offset + v1 - patch->Offset);
 			return true;
 		}
 	}
@@ -389,14 +375,8 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
 
 			if(pLeftSect && pRightSect && pLeftSect == pRightSect)
 			{
-				expr_Free(expr->pLeft);
-				expr->pLeft = NULL;
-				expr_Free(expr->pRight);
-				expr->pRight = NULL;
-
-				expr->eType = EXPR_CONSTANT;
-				expr->nFlags = EXPRF_CONSTANT;
-				*v = expr->Value.Value = l - r;
+				expr_Clear(expr);
+				expr_SetConst(expr, *v = l - r);
 				return true;
 			}
 
@@ -498,13 +478,8 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
 			{
 				if(vl >= vr)
 				{
-					expr_Free(expr->pRight);
-					expr->pRight = NULL;
-					expr_Free(expr->pLeft);
-					expr->pLeft = NULL;
-
-					expr->eType = EXPR_CONSTANT;
-					*v = expr->Value.Value = vl;
+					expr_Clear(expr);
+					expr_SetConst(expr, *v = vl);
 
 					return true;
 				}
@@ -522,13 +497,8 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
 			{
 				if(vl <= vr)
 				{
-					expr_Free(expr->pRight);
-					expr->pRight = NULL;
-					expr_Free(expr->pLeft);
-					expr->pLeft = NULL;
-
-					expr->eType = EXPR_CONSTANT;
-					*v = expr->Value.Value = vl;
+					expr_Clear(expr);
+					expr_SetConst(expr, *v = vl);
 					return true;
 				}
 				prj_Fail(ERROR_OPERAND_RANGE);
