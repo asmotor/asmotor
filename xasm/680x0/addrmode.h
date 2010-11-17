@@ -325,7 +325,7 @@ static bool_t parse_GetOuterMode(SAddrMode* pMode)
 static void parse_OptimizeFields(SModeRegs* pRegs)
 {
 	if(pRegs->pDisp != NULL
-	&& (pRegs->pDisp->Flags & EXPRF_isCONSTANT)
+	&& expr_IsConstant(pRegs->pDisp)
 	&& pRegs->pDisp->Value.Value == 0)
 	{
 		expr_Free(pRegs->pDisp);
@@ -333,7 +333,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 	}
 
 	if(pRegs->pIndexScale != NULL
-	&& (pRegs->pIndexScale->Flags & EXPRF_isCONSTANT)
+	&& expr_IsConstant(pRegs->pIndexScale)
 	&& pRegs->pIndexScale->Value.Value == 0)
 	{
 		expr_Free(pRegs->pIndexScale);
@@ -525,7 +525,7 @@ static bool_t parse_OptimizeMode(SAddrMode* pMode)
 			{
 				if(pMode->Outer.eDispSize == SIZE_DEFAULT)
 				{
-					if(pMode->Outer.pDisp->Flags & EXPRF_isCONSTANT)
+					if(expr_IsConstant(pMode->Outer.pDisp))
 					{
 						if(pMode->Outer.pDisp->Value.Value >= -128
 						&& pMode->Outer.pDisp->Value.Value <= 127)
@@ -567,7 +567,7 @@ static void parse_OptimizeDisp(SModeRegs* pRegs)
 	if(pRegs->pDisp != NULL
 	&& pRegs->eDispSize == SIZE_DEFAULT)
 	{
-		if(pRegs->pDisp->Flags & EXPRF_isCONSTANT)
+		if(expr_IsConstant(pRegs->pDisp))
 		{
 			if(pRegs->pDisp->Value.Value >= -32768
 			&& pRegs->pDisp->Value.Value <= 32767)

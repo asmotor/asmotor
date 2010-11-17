@@ -20,6 +20,7 @@
 #define	INCLUDE_EXPR_H
 
 #include "asmotor.h"
+#include "tokens.h"
 
 struct Symbol;
 
@@ -31,16 +32,16 @@ typedef	enum
 	EXPR_SYMBOL
 } EExprType;
 
-#define EXPRF_isCONSTANT	0x01
-#define EXPRF_isRELOC		0x02
+#define EXPRF_CONSTANT	0x01
+#define EXPRF_RELOC		0x02
 
 typedef struct Expression
 {
 	struct Expression*	pLeft;
 	struct Expression*	pRight;
 	EExprType	eType;
-	uint32_t	Flags;
-	uint32_t	Operator;
+	uint32_t	nFlags;
+	EToken		eOperator;
 	union
 	{
 		int32_t	Value;
@@ -54,6 +55,20 @@ INLINE EExprType expr_GetType(SExpression* pExpr)
 	return pExpr->eType;
 }
 
+INLINE bool_t expr_IsOperator(SExpression* pExpr, EToken eOperator)
+{
+	return pExpr->eType == EXPR_OPERATOR && pExpr->eOperator == eOperator;
+}
+
+INLINE bool_t expr_IsConstant(SExpression* pExpr)
+{
+	return pExpr->nFlags & EXPRF_CONSTANT;
+}
+
+INLINE bool_t expr_IsRelocatable(SExpression* pExpr)
+{
+	return pExpr->nFlags & EXPRF_RELOC;
+}
 
 extern SExpression* expr_CheckRange(SExpression* expr, int32_t low, int32_t high);
 

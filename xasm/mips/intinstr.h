@@ -99,7 +99,7 @@ static bool_t parse_IntegerInstructionRRR(void)
 		if(rt == -1)
 			return false;
 		
-		sect_OutputAbint32_t(ins | (rs << 21) | (rt << 16) | (rd << 11));
+		sect_OutputConst32(ins | (rs << 21) | (rt << 16) | (rd << 11));
 		return true;
 	}
 
@@ -422,7 +422,7 @@ static bool_t parse_IntegerInstructionRSRT(void)
 		rt = parse_ExpectRegister();
 		if(rt != -1)
 		{
-			sect_OutputAbint32_t(ins | (rs << 21) | (rt << 16));
+			sect_OutputConst32(ins | (rs << 21) | (rt << 16));
 			return true;
 		}
 	}
@@ -462,7 +462,7 @@ static bool_t parse_IntegerInstructionRDRT(void)
 		rt = parse_ExpectRegister();
 		if(rt != -1)
 		{
-			sect_OutputAbint32_t(ins | (rd << 11) | (rt << 16));
+			sect_OutputConst32(ins | (rd << 11) | (rt << 16));
 			return true;
 		}
 	}
@@ -527,7 +527,7 @@ static bool_t parse_IntegerInstructionRSRTCode(void)
 			}
 			else
 			{
-				sect_OutputAbint32_t(ins | (rs << 21) | (rt << 16));
+				sect_OutputConst32(ins | (rs << 21) | (rt << 16));
 			}
 			
 			return true;
@@ -611,7 +611,7 @@ static bool_t parse_IntegerInstructionRDRSRTCopy(void)
 		rs = parse_ExpectRegister();
 		if(rs != -1)
 		{
-			sect_OutputAbint32_t(ins | (rd << 11) | (rs << 21) | (rd << 16));
+			sect_OutputConst32(ins | (rd << 11) | (rs << 21) | (rd << 16));
 			
 			return true;
 		}
@@ -643,7 +643,7 @@ static bool_t parse_IntegerNoParameter(void)
 		
 		parse_GetToken();
 		
-		sect_OutputAbint32_t(ins);
+		sect_OutputConst32(ins);
 		return true;
 	}
 	
@@ -672,7 +672,7 @@ static bool_t parse_IntegerRT(void)
 		if(rt == -1)
 			rt = 0;
 			
-		sect_OutputAbint32_t(ins | (rt << 16));
+		sect_OutputConst32(ins | (rt << 16));
 		
 		return true;
 	}
@@ -701,7 +701,7 @@ static bool_t parse_IntegerRD(void)
 		if(rd == -1)
 			return false;
 			
-		sect_OutputAbint32_t(ins | (rd << 11));
+		sect_OutputConst32(ins | (rd << 11));
 		return true;
 	}
 	
@@ -731,7 +731,7 @@ static bool_t parse_IntegerRS(void)
 		if(rs == -1)
 			return false;
 			
-		sect_OutputAbint32_t(ins | (rs << 21));
+		sect_OutputConst32(ins | (rs << 21));
 		return true;
 	}
 	

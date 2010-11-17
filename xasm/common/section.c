@@ -60,7 +60,7 @@ static EGroupType sect_GetCurrentType(void)
 	if(pCurrentSection->pGroup == NULL)
 		internalerror("No GROUP defined for SECTION");
 
-	if(pCurrentSection->pGroup->Type==SYM_GROUP)
+	if(pCurrentSection->pGroup->Type == SYM_GROUP)
 		return pCurrentSection->pGroup->Value.GroupType;
 	else
 		internalerror("SECTION's GROUP symbol is not of type SYM_GROUP");
@@ -72,7 +72,7 @@ static	SSection* sect_Create(char* name)
 {
 	SSection* sect;
 
-	if((sect=malloc(sizeof(SSection)))!=NULL)
+	if((sect = malloc(sizeof(SSection))) != NULL)
 	{
 		memset(sect, 0, sizeof(SSection));
 		sect->FreeSpace = g_pConfiguration->nMaxSectionSize;
@@ -146,7 +146,7 @@ static	void	sect_GrowCurrent(int32_t count)
 	}
 }
 
-static	bool_t	sect_CheckAvailableSpace(uint32_t count)
+static bool_t sect_CheckAvailableSpace(uint32_t count)
 {
 	if(pCurrentSection)
 	{
@@ -176,7 +176,7 @@ static	bool_t	sect_CheckAvailableSpace(uint32_t count)
 
 //	Public routines
 
-void sect_OutputAbint8_t(uint8_t value)
+void sect_OutputConst8(uint8_t value)
 {
 	if(sect_CheckAvailableSpace(1))
 	{
@@ -204,7 +204,7 @@ void sect_OutputAbint8_t(uint8_t value)
 }
 
 
-void sect_OutputRelByte(SExpression* expr)
+void sect_OutputReloc8(SExpression* expr)
 {
 	if(sect_CheckAvailableSpace(1))
 	{
@@ -234,22 +234,22 @@ void sect_OutputRelByte(SExpression* expr)
 }
 
 
-void sect_OutputExprByte(SExpression* expr)
+void sect_OutputExpr8(SExpression* expr)
 {
 	if(expr == NULL)
 		prj_Error(ERROR_EXPR_BAD);
-	else if(expr->Flags&EXPRF_isRELOC)
-		sect_OutputRelByte(expr);
-	else if(expr->Flags & EXPRF_isCONSTANT)
+	else if(expr_IsRelocatable(expr))
+		sect_OutputReloc8(expr);
+	else if(expr_IsConstant(expr))
 	{
-		sect_OutputAbint8_t((uint8_t)(expr->Value.Value));
+		sect_OutputConst8((uint8_t)expr->Value.Value);
 		expr_Free(expr);
 	}
 	else
 		prj_Error(ERROR_EXPR_CONST_RELOC);
 }
 
-void sect_OutputAbint16_t(uint16_t value)
+void sect_OutputConst16(uint16_t value)
 {
 	if(sect_CheckAvailableSpace(2))
 	{
@@ -295,7 +295,7 @@ void sect_OutputAbint16_t(uint16_t value)
 	}
 }
 
-void sect_OutputRelWord(SExpression* expr)
+void sect_OutputReloc16(SExpression* expr)
 {
 	if(sect_CheckAvailableSpace(2))
 	{
@@ -341,22 +341,22 @@ void sect_OutputRelWord(SExpression* expr)
 	}
 }
 
-void sect_OutputExprWord(SExpression* expr)
+void sect_OutputExpr16(SExpression* expr)
 {
 	if(expr == NULL)
 		prj_Error(ERROR_EXPR_BAD);
-	else if(expr->Flags & EXPRF_isRELOC)
-		sect_OutputRelWord(expr);
-	else if(expr->Flags & EXPRF_isCONSTANT)
+	else if(expr_IsRelocatable(expr))
+		sect_OutputReloc16(expr);
+	else if(expr_IsConstant(expr))
 	{
-		sect_OutputAbint16_t((uint16_t)(expr->Value.Value));
+		sect_OutputConst16((uint16_t)(expr->Value.Value));
 		expr_Free(expr);
 	}
 	else
 		prj_Error(ERROR_EXPR_CONST_RELOC);
 }
 
-void sect_OutputAbint32_t(uint32_t value)
+void sect_OutputConst32(uint32_t value)
 {
 	if(sect_CheckAvailableSpace(4))
 	{
@@ -456,11 +456,11 @@ void sect_OutputExprLong(SExpression* expr)
 {
 	if(expr == NULL)
 		prj_Error(ERROR_EXPR_BAD);
-	else if(expr->Flags & EXPRF_isRELOC)
+	else if(expr_IsRelocatable(expr))
 		sect_OutputRelLong(expr);
-	else if(expr->Flags & EXPRF_isCONSTANT)
+	else if(expr_IsConstant(expr))
 	{
-		sect_OutputAbint32_t(expr->Value.Value);
+		sect_OutputConst32(expr->Value.Value);
 		expr_Free(expr);
 	}
 	else
@@ -540,7 +540,7 @@ void	sect_SkipBytes(int32_t count)
 				if(g_pOptions->UninitChar!=-1)
 				{
 					while(count--)
-						sect_OutputAbint8_t((uint8_t)g_pOptions->UninitChar);
+						sect_OutputConst8((uint8_t)g_pOptions->UninitChar);
 					return;
 				}
 				//	Fall through to GROUP_BSS

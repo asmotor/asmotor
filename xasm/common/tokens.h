@@ -147,6 +147,6 @@ typedef	enum
 	T_POP_CNOP,
 	T_POP_EVEN,
 	T_POP_END
-}	eToken;
+} EToken;
 
 #endif	/*INCLUDE_TOKENS_H*/

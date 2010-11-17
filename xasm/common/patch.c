@@ -197,7 +197,7 @@ static bool_t patch_ReduceBinary(SPatch* pPatch, SExpression* pExpr, int32_t* v,
 		pExpr->pRight = NULL;
 
 		pExpr->eType = EXPR_CONSTANT;
-		pExpr->Flags |= EXPRF_isCONSTANT;
+		pExpr->nFlags |= EXPRF_CONSTANT;
 
 		*v = pExpr->Value.Value = pPred(vl, vr);
 		return true;
@@ -216,7 +216,7 @@ static bool_t patch_ReduceUnary(SPatch* pPatch, SExpression* pExpr, int32_t* v, 
 		pExpr->pRight = NULL;
 
 		pExpr->eType = EXPR_CONSTANT;
-		pExpr->Flags |= EXPRF_isCONSTANT;
+		pExpr->nFlags |= EXPRF_CONSTANT;
 
 		*v = pExpr->Value.Value = pPred(vr);
 		return true;
@@ -245,15 +245,14 @@ bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pE
 		}
 		return false;
 	}
-	else if(expr_GetType(pExpr) == EXPR_OPERATOR
-	&& (pExpr->Operator == T_OP_ADD || pExpr->Operator == T_OP_SUB))
+	else if(expr_IsOperator(pExpr, T_OP_ADD) || expr_IsOperator(pExpr, T_OP_SUB))
 	{
 		uint32_t offset;
 		if(patch_GetImportOffset(&offset, ppSym, pExpr->pLeft))
 		{
-			if(pExpr->pRight->Flags & EXPRF_isCONSTANT)
+			if(expr_IsConstant(pExpr->pRight))
 			{
-				if(pExpr->Operator == T_OP_ADD)
+				if(expr_IsOperator(pExpr, T_OP_ADD))
 					*pOffset = offset + pExpr->pRight->Value.Value;
 				else
 					*pOffset = offset - pExpr->pRight->Value.Value;
@@ -262,9 +261,9 @@ bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pE
 		}
 		if(patch_GetImportOffset(&offset, ppSym, pExpr->pRight))
 		{
-			if(pExpr->pLeft->Flags & EXPRF_isCONSTANT)
+			if(expr_IsConstant(pExpr->pLeft))
 			{
-				if(pExpr->Operator == T_OP_ADD)
+				if(expr_IsOperator(pExpr, T_OP_ADD))
 					*pOffset = pExpr->pLeft->Value.Value + offset;
 				else
 					*pOffset = pExpr->pLeft->Value.Value - offset;
@@ -306,26 +305,26 @@ bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 		return false;
 	}
 	
-	if(expr_GetType(pExpr) == EXPR_OPERATOR
-	&& (pExpr->Operator == T_OP_ADD || pExpr->Operator == T_OP_SUB))
+	if(expr_IsOperator(pExpr, T_OP_ADD) || expr_IsOperator(pExpr, T_OP_SUB))
 	{
 		uint32_t offset;
 		if(patch_GetSectionOffset(&offset, pExpr->pLeft, pSection))
 		{
-			if(pExpr->pRight->Flags & EXPRF_isCONSTANT)
+			if(expr_IsConstant(pExpr->pRight))
 			{
-				if(pExpr->Operator == T_OP_ADD)
+				if(expr_IsOperator(pExpr, T_OP_ADD))
 					*pOffset = offset + pExpr->pRight->Value.Value;
 				else
 					*pOffset = offset - pExpr->pRight->Value.Value;
 				return true;
 			}
 		}
+
 		if(patch_GetSectionOffset(&offset, pExpr->pRight, pSection))
 		{
-			if(pExpr->pLeft->Flags & EXPRF_isCONSTANT)
+			if(expr_IsConstant(pExpr->pLeft))
 			{
-				if(pExpr->Operator == T_OP_ADD)
+				if(expr_IsOperator(pExpr, T_OP_ADD))
 					*pOffset = pExpr->pLeft->Value.Value + offset;
 				else
 					*pOffset = pExpr->pLeft->Value.Value - offset;
@@ -368,7 +367,7 @@ static bool_t patch_EvaluatePcRel(SPatch* patch, SExpression* expr, int32_t* v)
 			expr->pLeft = NULL;
 
 			expr->eType = EXPR_CONSTANT;
-			expr->Flags |= EXPRF_isCONSTANT;
+			expr->nFlags |= EXPRF_CONSTANT;
 
 			expr->Value.Value = 	*v = offset + v1 - patch->Offset;
 			return true;
@@ -379,7 +378,7 @@ static bool_t patch_EvaluatePcRel(SPatch* patch, SExpression* expr, int32_t* v)
 
 static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* v)
 {
-	switch(expr->Operator)
+	switch(expr->eOperator)
 	{
 		case T_OP_SUB:
 		{
@@ -396,7 +395,7 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
 				expr->pRight = NULL;
 
 				expr->eType = EXPR_CONSTANT;
-				expr->Flags = EXPRF_isCONSTANT;
+				expr->nFlags = EXPRF_CONSTANT;
 				*v = expr->Value.Value = l - r;
 				return true;
 			}
@@ -480,7 +479,7 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
 				expr->pRight = NULL;
 
 				expr->eType = EXPR_CONSTANT;
-				expr->Flags |= EXPRF_isCONSTANT;
+				expr->nFlags |= EXPRF_CONSTANT;
 
 				expr->Value.Value = *v = b;
 				return true;
@@ -554,7 +553,7 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
 	if(expr == NULL)
 		return false;
 
-	if(expr->Flags & EXPRF_isCONSTANT)
+	if(expr_IsConstant(expr))
 	{
 		expr_Free(expr->pLeft);
 		expr->pLeft = NULL;
@@ -708,14 +707,15 @@ void patch_OptimizeExpression(SExpression* pExpr)
 	if(pExpr->pRight != NULL)
 		patch_OptimizeExpression(pExpr->pRight);
 
-	if(pExpr->Flags & EXPRF_isCONSTANT)
+	if(expr_IsConstant(pExpr))
 	{
 		expr_Free(pExpr->pLeft);
 		pExpr->pLeft = NULL;
 		expr_Free(pExpr->pRight);
 		pExpr->pRight = NULL;
+
 		pExpr->eType = EXPR_CONSTANT;
-		pExpr->Operator = 0;
+		pExpr->eOperator = 0;
 	}
 }
 

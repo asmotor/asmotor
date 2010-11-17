@@ -50,37 +50,37 @@ static bool_t parse_Standard_All(int nToken, uint8_t nBaseOpcode, SAddressingMod
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IND_X:
-			sect_OutputAbint8_t(nBaseOpcode | (0 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (0 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_IMM:
-			sect_OutputAbint8_t(nBaseOpcode | (2 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (2 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_IND_Y:
-			sect_OutputAbint8_t(nBaseOpcode | (4 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (4 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_Y:
-			sect_OutputAbint8_t(nBaseOpcode | (6 << 2));
-			sect_OutputExprWord(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (6 << 2));
+			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP:
-			sect_OutputAbint8_t(nBaseOpcode | (1 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (1 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS:
-			sect_OutputAbint8_t(nBaseOpcode | (3 << 2));
-			sect_OutputExprWord(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (3 << 2));
+			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
-			sect_OutputAbint8_t(nBaseOpcode | (5 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (5 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_X:
-			sect_OutputAbint8_t(nBaseOpcode | (7 << 2));
-			sect_OutputExprWord(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (7 << 2));
+			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 	}
 
@@ -93,33 +93,33 @@ static bool_t parse_Standard_AbsY7(int nToken, uint8_t nBaseOpcode, SAddressingM
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IND_X:
-			sect_OutputAbint8_t(nBaseOpcode | (0 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (0 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_IMM:
-			sect_OutputAbint8_t(nBaseOpcode | (2 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (2 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_IND_Y:
-			sect_OutputAbint8_t(nBaseOpcode | (4 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (4 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_Y:
-			sect_OutputAbint8_t(nBaseOpcode | (7 << 2));
-			sect_OutputExprWord(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (7 << 2));
+			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP:
-			sect_OutputAbint8_t(nBaseOpcode | (1 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (1 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS:
-			sect_OutputAbint8_t(nBaseOpcode | (3 << 2));
-			sect_OutputExprWord(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (3 << 2));
+			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
-			sect_OutputAbint8_t(nBaseOpcode | (5 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (5 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 	}
 
@@ -132,26 +132,26 @@ static bool_t parse_Standard_Imm0(int nToken, uint8_t nBaseOpcode, SAddressingMo
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IMM:
-			sect_OutputAbint8_t(nBaseOpcode | (0 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (0 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP:
-			sect_OutputAbint8_t(nBaseOpcode | (1 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (1 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS:
-			sect_OutputAbint8_t(nBaseOpcode | (3 << 2));
-			sect_OutputExprWord(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (3 << 2));
+			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
-			sect_OutputAbint8_t(nBaseOpcode | (5 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (5 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_X:
 		case MODE_ABS_Y:
-			sect_OutputAbint8_t(nBaseOpcode | (7 << 2));
-			sect_OutputExprWord(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (7 << 2));
+			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 	}
 
@@ -164,23 +164,23 @@ static bool_t parse_Standard_Rotate(int nToken, uint8_t nBaseOpcode, SAddressing
 	switch(pAddrMode->nMode)
 	{
 		case MODE_A:
-			sect_OutputAbint8_t(nBaseOpcode | (2 << 2));
+			sect_OutputConst8(nBaseOpcode | (2 << 2));
 			return true;
 		case MODE_ZP:
-			sect_OutputAbint8_t(nBaseOpcode | (1 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (1 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS:
-			sect_OutputAbint8_t(nBaseOpcode | (3 << 2));
-			sect_OutputExprWord(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (3 << 2));
+			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP_X:
-			sect_OutputAbint8_t(nBaseOpcode | (5 << 2));
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (5 << 2));
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_X:
-			sect_OutputAbint8_t(nBaseOpcode | (7 << 2));
-			sect_OutputExprWord(pAddrMode->pExpr);
+			sect_OutputConst8(nBaseOpcode | (7 << 2));
+			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 	}
 
@@ -193,7 +193,7 @@ static bool_t parse_Branch(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAd
 {
 	SExpression* pExpr;
 
-	sect_OutputAbint8_t(nBaseOpcode);
+	sect_OutputConst8(nBaseOpcode);
 	pExpr = expr_CreatePcRelativeExpr(pAddrMode->pExpr, -1);
 	pExpr = expr_CheckRange(pExpr, -128, 127);
 	if(pExpr == NULL)
@@ -203,7 +203,7 @@ static bool_t parse_Branch(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAd
 	}
 	else
 	{
-		sect_OutputExprByte(pExpr);
+		sect_OutputExpr8(pExpr);
 	}
 
 	return true;
@@ -212,7 +212,7 @@ static bool_t parse_Branch(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAd
 
 static bool_t parse_Implied(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
-	sect_OutputAbint8_t(nBaseOpcode);
+	sect_OutputConst8(nBaseOpcode);
 	return true;
 }
 
@@ -222,17 +222,17 @@ static bool_t parse_JMP(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrM
 	if(pAddrMode->nMode == MODE_IND)
 		nBaseOpcode += 0x20;
 
-	sect_OutputAbint8_t(nBaseOpcode);
-	sect_OutputExprWord(pAddrMode->pExpr);
+	sect_OutputConst8(nBaseOpcode);
+	sect_OutputExpr16(pAddrMode->pExpr);
 	return true;
 }
 
 
 static bool_t parse_BRK(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
-	sect_OutputAbint8_t(nBaseOpcode);
+	sect_OutputConst8(nBaseOpcode);
 	if(pAddrMode->nMode == MODE_IMM)
-		sect_OutputExprByte(pAddrMode->pExpr);
+		sect_OutputExpr8(pAddrMode->pExpr);
 	return true;
 }
 
@@ -242,16 +242,16 @@ static bool_t parse_DOP(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrM
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IMM:
-			sect_OutputAbint8_t(0x80);
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(0x80);
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP:
-			sect_OutputAbint8_t(0x04);
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(0x04);
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP_X:
-			sect_OutputAbint8_t(0x14);
-			sect_OutputExprByte(pAddrMode->pExpr);
+			sect_OutputConst8(0x14);
+			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 	}
 	return false;
@@ -427,7 +427,7 @@ bool_t parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 
 		if(pAddrMode->pExpr != NULL)
 		{
-			if((pAddrMode->pExpr->Flags & EXPRF_isCONSTANT)
+			if(expr_IsConstant(pAddrMode->pExpr)
 			&& 0 <= pAddrMode->pExpr->Value.Value && pAddrMode->pExpr->Value.Value <= 255)
 			{
 				if(g_CurrentToken.ID.Token == ',')

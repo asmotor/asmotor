@@ -63,7 +63,7 @@ typedef	struct
 	int32_t	TokenLength;
 	union
 	{
-		eToken	Token;
+		EToken	Token;
 		int		TargetToken;
 	}	ID;
 } SLexToken;

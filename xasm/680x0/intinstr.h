@@ -38,7 +38,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 					mode->pImmediate = parse_Check8bit(mode->pImmediate);
 					if(mode->pImmediate)
 					{
-						sect_OutputExprWord(mode->pImmediate);
+						sect_OutputExpr16(mode->pImmediate);
 						return true;
 					}
 					return false;
@@ -49,7 +49,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 					mode->pImmediate = parse_Check16bit(mode->pImmediate);
 					if(mode->pImmediate)
 					{
-						sect_OutputExprWord(mode->pImmediate);
+						sect_OutputExpr16(mode->pImmediate);
 						return true;
 					}
 					return false;
@@ -69,7 +69,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 		{
 			if(mode->Outer.pDisp)
 			{
-				sect_OutputExprWord(mode->Outer.pDisp);
+				sect_OutputExpr16(mode->Outer.pDisp);
 				return true;
 			}
 			internalerror("no word");
@@ -98,7 +98,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 				if(mode->Outer.eDispSize == SIZE_WORD
 				|| mode->Outer.eDispSize == SIZE_DEFAULT)
 				{
-					sect_OutputExprWord(mode->Outer.pDisp);
+					sect_OutputExpr16(mode->Outer.pDisp);
 					return true;
 				}
 				prj_Error(MERROR_DISP_SIZE);
@@ -133,7 +133,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 				{
 					expr = expr_CreateOrExpr(expr, expr_CreateShlExpr(mode->Outer.pIndexScale, expr_CreateConstExpr(9)));
 				}
-				sect_OutputExprWord(expr);
+				sect_OutputExpr16(expr);
 				return true;
 			}
 			return false;
@@ -201,7 +201,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 				{
 					expr = expr_CreateOrExpr(expr, expr_CreateShlExpr(mode->Outer.pIndexScale, expr_CreateConstExpr(9)));
 				}
-				sect_OutputExprWord(expr);
+				sect_OutputExpr16(expr);
 
 				if(mode->Outer.pDisp != NULL)
 				{
@@ -209,7 +209,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 					{
 						default:
 						case SIZE_WORD:
-							sect_OutputExprWord(mode->Outer.pDisp);
+							sect_OutputExpr16(mode->Outer.pDisp);
 							break;
 						case SIZE_LONG:
 							sect_OutputExprLong(mode->Outer.pDisp);
@@ -298,7 +298,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 				{
 					expr = expr_CreateOrExpr(expr, expr_CreateShlExpr(mode->Inner.pIndexScale, expr_CreateConstExpr(9)));
 				}
-				sect_OutputExprWord(expr);
+				sect_OutputExpr16(expr);
 
 				if(mode->Inner.pDisp != NULL)
 				{
@@ -306,7 +306,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 					{
 						default:
 						case SIZE_WORD:
-							sect_OutputExprWord(mode->Inner.pDisp);
+							sect_OutputExpr16(mode->Inner.pDisp);
 							break;
 						case SIZE_LONG:
 							sect_OutputExprLong(mode->Inner.pDisp);
@@ -320,7 +320,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 					{
 						default:
 						case SIZE_WORD:
-							sect_OutputExprWord(mode->Outer.pDisp);
+							sect_OutputExpr16(mode->Outer.pDisp);
 							break;
 						case SIZE_LONG:
 							sect_OutputExprLong(mode->Outer.pDisp);
@@ -409,7 +409,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 				{
 					expr = expr_CreateOrExpr(expr, expr_CreateShlExpr(mode->Outer.pIndexScale, expr_CreateConstExpr(9)));
 				}
-				sect_OutputExprWord(expr);
+				sect_OutputExpr16(expr);
 
 				if(mode->Inner.pDisp != NULL)
 				{
@@ -417,7 +417,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 					{
 						default:
 						case SIZE_WORD:
-							sect_OutputExprWord(mode->Inner.pDisp);
+							sect_OutputExpr16(mode->Inner.pDisp);
 							break;
 						case SIZE_LONG:
 							sect_OutputExprLong(mode->Inner.pDisp);
@@ -431,7 +431,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 					{
 						default:
 						case SIZE_WORD:
-							sect_OutputExprWord(mode->Outer.pDisp);
+							sect_OutputExpr16(mode->Outer.pDisp);
 							break;
 						case SIZE_LONG:
 							sect_OutputExprLong(mode->Outer.pDisp);
@@ -525,7 +525,7 @@ static int parse_GetSizeField(ESize sz)
 static bool_t parse_SingleOpIns(uint16_t ins, ESize sz, SAddrMode* src)
 {
 	// CLR, TST
-	sect_OutputAbint16_t((uint16_t)(ins | parse_GetSizeField(sz) << 6 | parse_GetEAField(src)));
+	sect_OutputConst16((uint16_t)(ins | parse_GetSizeField(sz) << 6 | parse_GetEAField(src)));
 	parse_OutputExtWords(src);
 	return true;
 }
@@ -551,7 +551,7 @@ static bool_t parse_xBCD(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest
 
 	ins |= parse_GetSizeField(sz) << 6;
 
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 
 	return true;
 }
@@ -592,7 +592,7 @@ static bool_t parse_xxxQ(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest
 	expr = expr_CreateConstExpr(ins);
 	expr = expr_CreateOrExpr(expr, expr_CreateShlExpr(expr_CreateAndExpr(src->pImmediate, expr_CreateConstExpr(7)), expr_CreateConstExpr(9)));
 
-	sect_OutputExprWord(expr);
+	sect_OutputExpr16(expr);
 	return parse_OutputExtWords(dest);
 }
 
@@ -611,7 +611,7 @@ static bool_t parse_ADDA(ESize sz, SAddrMode* src, SAddrMode* dest)
 	uint16_t ins;
 
 	if(src->eMode == AM_IMM
-	&& src->pImmediate->Flags & EXPRF_isCONSTANT
+	&& expr_IsConstant(src->pImmediate)
 	&& src->pImmediate->Value.Value >= 1
 	&& src->pImmediate->Value.Value <= 8)
 	{
@@ -624,7 +624,7 @@ static bool_t parse_ADDA(ESize sz, SAddrMode* src, SAddrMode* dest)
 	else
 		ins |= 0x7 << 6;
 
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return parse_OutputExtWords(src);
 }
 
@@ -633,7 +633,7 @@ static bool_t parse_SUBA(ESize sz, SAddrMode* src, SAddrMode* dest)
 	uint16_t ins;
 
 	if(src->eMode == AM_IMM
-	&& src->pImmediate->Flags & EXPRF_isCONSTANT
+	&& expr_IsConstant(src->pImmediate)
 	&& src->pImmediate->Value.Value >= 1
 	&& src->pImmediate->Value.Value <= 8)
 	{
@@ -646,7 +646,7 @@ static bool_t parse_SUBA(ESize sz, SAddrMode* src, SAddrMode* dest)
 	else
 		ins |= 0x7 << 6;
 
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return parse_OutputExtWords(src);
 }
 
@@ -656,19 +656,19 @@ static bool_t parse_ArithmeticLogicalI(uint16_t ins, ESize sz, SAddrMode* src, S
 	if(sz == SIZE_BYTE)
 	{
 		ins |= 0x0 << 6;
-		sect_OutputAbint16_t(ins);
-		sect_OutputExprWord(expr_CreateAndExpr(parse_Check8bit(src->pImmediate), expr_CreateConstExpr(0xFF)));
+		sect_OutputConst16(ins);
+		sect_OutputExpr16(expr_CreateAndExpr(parse_Check8bit(src->pImmediate), expr_CreateConstExpr(0xFF)));
 	}
 	else if(sz == SIZE_WORD)
 	{
 		ins |= 0x1 << 6;
-		sect_OutputAbint16_t(ins);
-		sect_OutputExprWord(parse_Check16bit(src->pImmediate));
+		sect_OutputConst16(ins);
+		sect_OutputExpr16(parse_Check16bit(src->pImmediate));
 	}
 	else
 	{
 		ins |= 0x2 << 6;
-		sect_OutputAbint16_t(ins);
+		sect_OutputConst16(ins);
 		sect_OutputExprLong(src->pImmediate);
 	}
 
@@ -678,7 +678,7 @@ static bool_t parse_ArithmeticLogicalI(uint16_t ins, ESize sz, SAddrMode* src, S
 static bool_t parse_ADDI(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(src->eMode == AM_IMM
-	&& src->pImmediate->Flags & EXPRF_isCONSTANT
+	&& expr_IsConstant(src->pImmediate)
 	&& src->pImmediate->Value.Value >= 1
 	&& src->pImmediate->Value.Value <= 8)
 	{
@@ -691,7 +691,7 @@ static bool_t parse_ADDI(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_SUBI(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(src->eMode == AM_IMM
-	&& src->pImmediate->Flags & EXPRF_isCONSTANT
+	&& expr_IsConstant(src->pImmediate)
 	&& src->pImmediate->Value.Value >= 1
 	&& src->pImmediate->Value.Value <= 8)
 	{
@@ -713,15 +713,15 @@ static bool_t parse_ANDI(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 		if(dest->nDirectReg == T_68K_REG_CCR)
 		{
-			sect_OutputAbint16_t(0x023C);
-			sect_OutputExprWord(expr_CreateAndExpr(src->pImmediate, expr_CreateConstExpr(0xFF)));
+			sect_OutputConst16(0x023C);
+			sect_OutputExpr16(expr_CreateAndExpr(src->pImmediate, expr_CreateConstExpr(0xFF)));
 			return true;
 		}
 		else if(dest->nDirectReg == T_68K_REG_SR)
 		{
 			prj_Warn(MERROR_INSTRUCTION_PRIV);
-			sect_OutputAbint16_t(0x027C);
-			sect_OutputExprWord(src->pImmediate);
+			sect_OutputConst16(0x027C);
+			sect_OutputExpr16(src->pImmediate);
 			return true;
 		}
 		prj_Error(ERROR_DEST_OPERAND);
@@ -745,14 +745,14 @@ static bool_t parse_ArithmeticLogical(uint16_t ins, ESize sz, SAddrMode* src, SA
 
 		ins |= (uint16_t)(0x0000 | dest->nDirectReg << 9 | parse_GetSizeField(sz) << 6);
 		ins |= parse_GetEAField(src);
-		sect_OutputAbint16_t(ins);
+		sect_OutputConst16(ins);
 		return parse_OutputExtWords(src);
 	}
 	else if(src->eMode == AM_DREG)
 	{
 		ins |= (uint16_t)(0x0100 | src->nDirectReg << 9 | parse_GetSizeField(sz) << 6);
 		ins |= parse_GetEAField(dest);
-		sect_OutputAbint16_t(ins);
+		sect_OutputConst16(ins);
 		return parse_OutputExtWords(dest);
 	}
 
@@ -792,7 +792,7 @@ static bool_t parse_CMPA(ESize sz, SAddrMode* src, SAddrMode* dest)
 	else /*if(sz == SIZE_LONG)*/
 		ins |= 0x7 << 6;
 
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return parse_OutputExtWords(src);
 }
 
@@ -801,7 +801,7 @@ static bool_t parse_CMPI(ESize sz, SAddrMode* src, SAddrMode* dest)
 	uint16_t ins;
 
 	ins = (uint16_t)(0x0C00 | parse_GetSizeField(sz) << 6 | parse_GetEAField(dest));
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	
 	if(sz == SIZE_BYTE)
 	{
@@ -811,7 +811,7 @@ static bool_t parse_CMPI(ESize sz, SAddrMode* src, SAddrMode* dest)
 			prj_Error(ERROR_OPERAND_RANGE);
 			return true;
 		}
-		sect_OutputExprWord(expr_CreateAndExpr(expr, expr_CreateConstExpr(0xFF)));
+		sect_OutputExpr16(expr_CreateAndExpr(expr, expr_CreateConstExpr(0xFF)));
 	}
 	else if(sz == SIZE_WORD)
 	{
@@ -821,7 +821,7 @@ static bool_t parse_CMPI(ESize sz, SAddrMode* src, SAddrMode* dest)
 			prj_Error(ERROR_OPERAND_RANGE);
 			return true;
 		}
-		sect_OutputExprWord(expr);
+		sect_OutputExpr16(expr);
 	}
 	else if(sz == SIZE_WORD)
 	{
@@ -835,7 +835,7 @@ static bool_t parse_CMPM(ESize sz, SAddrMode* src, SAddrMode* dest)
 	uint16_t ins;
 
 	ins = (uint16_t)(0xB108 | dest->Outer.nBaseReg << 9 | src->Outer.nBaseReg | parse_GetSizeField(sz) << 6);
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return true;
 }
 
@@ -898,12 +898,12 @@ static bool_t parse_Shift(uint16_t ins, uint16_t memins, ESize sz, SAddrMode* sr
 				return true;
 			}
 			expr = expr_CreateOrExpr(expr_CreateConstExpr(ins), expr_CreateShlExpr(expr, expr_CreateConstExpr(9)));
-			sect_OutputExprWord(expr);
+			sect_OutputExpr16(expr);
 		}
 		else if(src->eMode == AM_DREG)
 		{
 			ins |= 0x0020 | src->nDirectReg << 9;
-			sect_OutputAbint16_t(ins);
+			sect_OutputConst16(ins);
 		}
 		return true;
 	}
@@ -921,7 +921,7 @@ static bool_t parse_Shift(uint16_t ins, uint16_t memins, ESize sz, SAddrMode* sr
 		}
 
 		memins |= parse_GetEAField(src);
-		sect_OutputAbint16_t(memins);
+		sect_OutputConst16(memins);
 		return parse_OutputExtWords(src);
 	}
 
@@ -979,7 +979,7 @@ static bool_t parse_Bcc(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 		{
 			expr = expr_CreateAndExpr(expr, expr_CreateConstExpr(0xFF));
 			expr = expr_CreateOrExpr(expr, expr_CreateConstExpr(ins));
-			sect_OutputExprWord(expr);
+			sect_OutputExpr16(expr);
 			return true;
 		}
 
@@ -991,8 +991,8 @@ static bool_t parse_Bcc(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 		SExpression* expr = expr_CheckRange(expr_CreatePcRelativeExpr(src->Outer.pDisp, 0), -32768, 32767);
 		if(expr != NULL)
 		{
-			sect_OutputAbint16_t(ins);
-			sect_OutputExprWord(expr);
+			sect_OutputConst16(ins);
+			sect_OutputExpr16(expr);
 			return true;
 		}
 
@@ -1010,7 +1010,7 @@ static bool_t parse_Bcc(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 		}
 
 		expr = expr_CreatePcRelativeExpr(src->Outer.pDisp, 0);
-		sect_OutputAbint16_t(ins | 0xFF);
+		sect_OutputConst16(ins | 0xFF);
 		sect_OutputExprLong(expr);
 		return true;
 	}
@@ -1104,7 +1104,7 @@ static bool_t parse_BitInstruction(uint16_t dins, uint16_t immins, ESize sz, SAd
 	if(src->eMode == AM_DREG)
 	{
 		dins |= src->nDirectReg << 9 | parse_GetEAField(dest);
-		sect_OutputAbint16_t(dins);
+		sect_OutputConst16(dins);
 		return parse_OutputExtWords(dest);
 	}
 	else if(src->eMode == AM_IMM)
@@ -1112,7 +1112,7 @@ static bool_t parse_BitInstruction(uint16_t dins, uint16_t immins, ESize sz, SAd
 		SExpression* expr;
 
 		immins |= parse_GetEAField(dest);
-		sect_OutputAbint16_t(immins);
+		sect_OutputConst16(immins);
 
 		if(dest->eMode == AM_DREG)
 			expr = expr_CheckRange(src->pImmediate, 0, 31);
@@ -1121,7 +1121,7 @@ static bool_t parse_BitInstruction(uint16_t dins, uint16_t immins, ESize sz, SAd
 
 		if(expr != NULL)
 		{
-			sect_OutputExprWord(expr);
+			sect_OutputExpr16(expr);
 			return parse_OutputExtWords(dest);
 		}
 		prj_Error(ERROR_OPERAND_RANGE);
@@ -1154,7 +1154,7 @@ static bool_t parse_BitfieldInstruction(uint16_t ins, uint16_t ext, ESize sz, SA
 	SExpression* expr = expr_CreateConstExpr(ext);
 
 	ins |= parse_GetEAField(src);
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 
 	if(src->nBFOffsetReg != -1)
 		expr = expr_CreateOrExpr(expr, expr_CreateConstExpr(0x0800 | src->nBFOffsetReg << 6));
@@ -1182,7 +1182,7 @@ static bool_t parse_BitfieldInstruction(uint16_t ins, uint16_t ext, ESize sz, SA
 		expr = expr_CreateOrExpr(expr, bf);
 	}
 
-	sect_OutputExprWord(expr);
+	sect_OutputExpr16(expr);
 	return parse_OutputExtWords(src);
 }
 
@@ -1241,7 +1241,7 @@ static bool_t parse_BKPT(ESize sz, SAddrMode* src, SAddrMode* dest)
 	}
 
 	expr = expr_CreateOrExpr(expr, expr_CreateConstExpr(0x4848));
-	sect_OutputExprWord(expr);
+	sect_OutputExpr16(expr);
 	return true;
 }
 
@@ -1254,8 +1254,8 @@ static bool_t parse_CALLM(ESize sz, SAddrMode* src, SAddrMode* dest)
 		return true;
 	}
 
-	sect_OutputAbint16_t(0x06C0 | (uint16_t)parse_GetEAField(dest));
-	sect_OutputExprWord(expr);
+	sect_OutputConst16(0x06C0 | (uint16_t)parse_GetEAField(dest));
+	sect_OutputExpr16(expr);
 	return parse_OutputExtWords(dest);
 }
 
@@ -1283,10 +1283,10 @@ static bool_t parse_CAS(ESize sz, SAddrMode* dc, SAddrMode* du)
 	}
 
 	ins = (uint16_t)(0x08C0 | (parse_GetSizeField(sz) + 1) << 9 | parse_GetEAField(&ea));
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 
 	ins = (uint16_t)(0x0000 | du->nDirectReg << 6 | dc->nDirectReg);
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 
 	return parse_OutputExtWords(&ea);
 }
@@ -1404,9 +1404,9 @@ static bool_t parse_CAS2(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 	if(!parse_ExpectIndirectRegister(&rn2))
 		return false;
 
-	sect_OutputAbint16_t(0x08FC | (uint16_t)(parse_GetSizeField(sz) + 1) << 9);
-	sect_OutputAbint16_t(rn1 << 12 | du1 << 6 | dc1);
-	sect_OutputAbint16_t(rn2 << 12 | du2 << 6 | dc2);
+	sect_OutputConst16(0x08FC | (uint16_t)(parse_GetSizeField(sz) + 1) << 9);
+	sect_OutputConst16(rn1 << 12 | du1 << 6 | dc1);
+	sect_OutputConst16(rn2 << 12 | du2 << 6 | dc2);
 
 	return true;
 }
@@ -1428,7 +1428,7 @@ static bool_t parse_CHK(ESize sz, SAddrMode* src, SAddrMode* dest)
 	else /*if(sz == SIZE_LONG)*/
 		ins |= 0x2 << 7;
 
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return parse_OutputExtWords(src);
 }
 
@@ -1437,10 +1437,10 @@ static bool_t parse_CHK2(ESize sz, SAddrMode* src, SAddrMode* dest)
 	uint16_t ins;
 
 	ins = (uint16_t)(0x00C0 | parse_GetSizeField(sz) << 9 | parse_GetEAField(src));
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 
 	ins = (uint16_t)(0x0800 | dest->nDirectReg << 12);
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 
 	return parse_OutputExtWords(src);
 }
@@ -1450,20 +1450,20 @@ static bool_t parse_CMP2(ESize sz, SAddrMode* src, SAddrMode* dest)
 	uint16_t ins;
 	
 	ins = (uint16_t)(0x00C0 | parse_GetSizeField(sz) << 9 | parse_GetEAField(src));
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 
 	ins = (uint16_t)(dest->nDirectReg << 12);
 	if(dest->eMode == AM_AREG)
 		ins |= 0x8000;
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return true;
 }
 
 static bool_t parse_DBcc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	code = (uint16_t)(0x50C8 | code << 8 | src->nDirectReg);
-	sect_OutputAbint16_t(code);
-	sect_OutputExprWord(expr_CreatePcRelativeExpr(dest->Outer.pDisp, 0));
+	sect_OutputConst16(code);
+	sect_OutputExpr16(expr_CreatePcRelativeExpr(dest->Outer.pDisp, 0));
 	return true;
 }
 
@@ -1578,14 +1578,14 @@ static bool_t parse_DIVxx(bool_t sign, bool_t l, ESize sz, SAddrMode* src, SAddr
 			return true;
 		}
 
-		sect_OutputAbint16_t((uint16_t)(0x4C40 | parse_GetEAField(src)));
-		sect_OutputAbint16_t((uint16_t)(sign << 11 | div64 << 10 | dq << 12 | dr));
+		sect_OutputConst16((uint16_t)(0x4C40 | parse_GetEAField(src)));
+		sect_OutputConst16((uint16_t)(sign << 11 | div64 << 10 | dq << 12 | dr));
 		return parse_OutputExtWords(src);
 	}
 	else
 	{
 		uint16_t ins = (uint16_t)(0x80C0 | sign << 8 | dest->nDirectReg << 9 | parse_GetEAField(src));
-		sect_OutputAbint16_t(ins);
+		sect_OutputConst16(ins);
 		return parse_OutputExtWords(src);
 	}
 }
@@ -1618,7 +1618,7 @@ static bool_t parse_EOR(ESize sz, SAddrMode* src, SAddrMode* dest)
 		return parse_IntegerOp(T_68K_EORI, sz, src, dest);
 
 	ins = (uint16_t)(0xB100 | src->nDirectReg << 9 | parse_GetEAField(dest) | parse_GetSizeField(sz) << 6);
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return parse_OutputExtWords(dest);
 }
 
@@ -1634,15 +1634,15 @@ static bool_t parse_EORI(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 		if(dest->nDirectReg == T_68K_REG_CCR)
 		{
-			sect_OutputAbint16_t(0x0A3C);
-			sect_OutputExprWord(expr_CreateAndExpr(src->pImmediate, expr_CreateConstExpr(0xFF)));
+			sect_OutputConst16(0x0A3C);
+			sect_OutputExpr16(expr_CreateAndExpr(src->pImmediate, expr_CreateConstExpr(0xFF)));
 			return true;
 		}
 		else if(dest->nDirectReg == T_68K_REG_SR)
 		{
 			prj_Warn(MERROR_INSTRUCTION_PRIV);
-			sect_OutputAbint16_t(0x0A7C);
-			sect_OutputExprWord(src->pImmediate);
+			sect_OutputConst16(0x0A7C);
+			sect_OutputExpr16(src->pImmediate);
 			return true;
 		}
 
@@ -1682,7 +1682,7 @@ static bool_t parse_EXG(ESize sz, SAddrMode* src, SAddrMode* dest)
 			ins = 0x09 << 3;
 	}
 
-	sect_OutputAbint16_t(ins | 0xC100 | rx << 9 | ry);
+	sect_OutputConst16(ins | 0xC100 | rx << 9 | ry);
 	return true;
 }
 
@@ -1694,26 +1694,26 @@ static bool_t parse_EXT(ESize sz, SAddrMode* src, SAddrMode* dest)
 	else
 		ins |= 0x3 << 6;
 
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return true;
 }
 
 static bool_t parse_EXTB(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x4800 | src->nDirectReg | 0x7 << 6));
+	sect_OutputConst16((uint16_t)(0x4800 | src->nDirectReg | 0x7 << 6));
 	return true;
 }
 
 static bool_t parse_ILLEGAL(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t(0x4AFC);
+	sect_OutputConst16(0x4AFC);
 	return true;
 }
 
 static bool_t parse_Jxx(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	ins |= parse_GetEAField(src);
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return parse_OutputExtWords(src);
 }
 
@@ -1729,7 +1729,7 @@ static bool_t parse_JSR(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_LEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x41C0 | dest->nDirectReg << 9 | parse_GetEAField(src)));
+	sect_OutputConst16((uint16_t)(0x41C0 | dest->nDirectReg << 9 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
 
@@ -1744,13 +1744,13 @@ static bool_t parse_LINK(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 	if(sz == SIZE_WORD)
 	{
-		sect_OutputAbint16_t((uint16_t)(0x4E50 | src->nDirectReg));
-		sect_OutputExprWord(dest->pImmediate);
+		sect_OutputConst16((uint16_t)(0x4E50 | src->nDirectReg));
+		sect_OutputExpr16(dest->pImmediate);
 		return true;
 	}
 	else /*if(sz == SIZE_LONG)*/
 	{
-		sect_OutputAbint16_t((uint16_t)(0x4808 | src->nDirectReg));
+		sect_OutputConst16((uint16_t)(0x4808 | src->nDirectReg));
 		sect_OutputExprLong(dest->pImmediate);
 		return true;
 	}
@@ -1774,7 +1774,7 @@ static bool_t parse_MOVEfromSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 			return true;
 		}
 
-		sect_OutputAbint16_t((uint16_t)(0x4E68 | dest->nDirectReg));
+		sect_OutputConst16((uint16_t)(0x4E68 | dest->nDirectReg));
 		return true;
 	}
 	else
@@ -1805,7 +1805,7 @@ static bool_t parse_MOVEfromSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 				return true;
 			}
 
-			sect_OutputAbint16_t((uint16_t)(0x42C0 | parse_GetEAField(dest)));
+			sect_OutputConst16((uint16_t)(0x42C0 | parse_GetEAField(dest)));
 			return true;
 		}
 		else if(src->nDirectReg == T_68K_REG_SR)
@@ -1819,7 +1819,7 @@ static bool_t parse_MOVEfromSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 				return true;
 			}
 
-			sect_OutputAbint16_t((uint16_t)(0x40C0 | parse_GetEAField(dest)));
+			sect_OutputConst16((uint16_t)(0x40C0 | parse_GetEAField(dest)));
 			return true;
 		}
 	}
@@ -1845,7 +1845,7 @@ static bool_t parse_MOVEtoSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 			return true;
 		}
 
-		sect_OutputAbint16_t((uint16_t)(0x4E60 | src->nDirectReg));
+		sect_OutputConst16((uint16_t)(0x4E60 | src->nDirectReg));
 		return true;
 	}
 	else
@@ -1870,7 +1870,7 @@ static bool_t parse_MOVEtoSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 				return true;
 			}
 
-			sect_OutputAbint16_t((uint16_t)(0x44C0 | parse_GetEAField(src)));
+			sect_OutputConst16((uint16_t)(0x44C0 | parse_GetEAField(src)));
 			return true;
 		}
 		else if(dest->nDirectReg == T_68K_REG_SR)
@@ -1883,7 +1883,7 @@ static bool_t parse_MOVEtoSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 			prj_Warn(MERROR_INSTRUCTION_PRIV);
 
-			sect_OutputAbint16_t((uint16_t)(0x46C0 | parse_GetEAField(src)));
+			sect_OutputConst16((uint16_t)(0x46C0 | parse_GetEAField(src)));
 			return true;
 		}
 	}
@@ -1900,7 +1900,7 @@ static bool_t parse_MOVE(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 	if(src->eMode == AM_IMM
 	&& dest->eMode == AM_DREG && sz == SIZE_LONG
-	&& (src->pImmediate->Flags & EXPRF_isCONSTANT)
+	&& expr_IsConstant(src->pImmediate)
 	&& src->pImmediate->Value.Value >= -128
 	&& src->pImmediate->Value.Value < 127)
 	{
@@ -1929,7 +1929,7 @@ static bool_t parse_MOVE(ESize sz, SAddrMode* src, SAddrMode* dest)
 	else /*if(sz == SIZE_LONG)*/
 		ins |= 0x2 << 12;
 
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	if(!parse_OutputExtWords(src))
 		return false;
 	return parse_OutputExtWords(dest);
@@ -1944,7 +1944,7 @@ static bool_t parse_MOVEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 	else /*if(sz == SIZE_LONG)*/
 		ins |= 0x2 << 12;
 
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	return parse_OutputExtWords(src);
 }
 
@@ -1956,8 +1956,8 @@ static bool_t parse_MOVE16(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 	if(src->eMode == AM_AINC && dest->eMode == AM_AINC)
 	{
-		sect_OutputAbint16_t((uint16_t)(0xF620 | src->Outer.nBaseReg));
-		sect_OutputAbint16_t((uint16_t)(0x8000 | dest->Outer.nBaseReg << 12));
+		sect_OutputConst16((uint16_t)(0xF620 | src->Outer.nBaseReg));
+		sect_OutputConst16((uint16_t)(0x8000 | dest->Outer.nBaseReg << 12));
 		return true;
 	}
 
@@ -1991,7 +1991,7 @@ static bool_t parse_MOVE16(ESize sz, SAddrMode* src, SAddrMode* dest)
 		return true;
 	}
 
-	sect_OutputAbint16_t(0xF600 | opmode << 3 | reg);
+	sect_OutputConst16(0xF600 | opmode << 3 | reg);
 	sect_OutputExprLong(line);
 	return true;
 }
@@ -2130,10 +2130,10 @@ static bool_t parse_MOVEM(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 	if(sz == SIZE_LONG)
 		ins |= 1 << 6;
 
-	sect_OutputAbint16_t(ins);
+	sect_OutputConst16(ins);
 	if(mode.eMode == AM_ADEC)
 		reglist = parse_SwapBits((uint16_t)reglist);
-	sect_OutputAbint16_t((uint16_t)reglist);
+	sect_OutputConst16((uint16_t)reglist);
 	return parse_OutputExtWords(&mode);
 }
 
@@ -2184,11 +2184,11 @@ static bool_t parse_MOVEP(ESize sz, SAddrMode* src, SAddrMode* dest)
 		return true;
 	}
 
-	sect_OutputAbint16_t(0x0008 | dr << 9 | opmode << 6 | ar);
+	sect_OutputConst16(0x0008 | dr << 9 | opmode << 6 | ar);
 	if(disp != NULL)
-		sect_OutputExprWord(disp);
+		sect_OutputExpr16(disp);
 	else
-		sect_OutputAbint16_t(0);
+		sect_OutputConst16(0);
 
 	return true;
 }
@@ -2204,7 +2204,7 @@ static bool_t parse_MOVEQ(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 	expr = expr_CreateAndExpr(expr, expr_CreateConstExpr(0xFF));
 	expr = expr_CreateOrExpr(expr, expr_CreateConstExpr(0x7000 | dest->nDirectReg << 9));
-	sect_OutputExprWord(expr);
+	sect_OutputExpr16(expr);
 	return true;
 }
 
@@ -2243,13 +2243,13 @@ static bool_t parse_MULx(uint16_t sign, ESize sz, SAddrMode* src, SAddrMode* des
 			mul64 = 0;
 		}
 
-		sect_OutputAbint16_t((uint16_t)(0x4C00 | parse_GetEAField(src)));
-		sect_OutputAbint16_t(0x0000 | sign << 11 | mul64 << 10 | dl << 12 | dh);
+		sect_OutputConst16((uint16_t)(0x4C00 | parse_GetEAField(src)));
+		sect_OutputConst16(0x0000 | sign << 11 | mul64 << 10 | dl << 12 | dh);
 		return parse_OutputExtWords(src);
 	}
 	else
 	{
-		sect_OutputAbint16_t((uint16_t)(0xC0C0 | sign << 8 | dest->nDirectReg << 9 | parse_GetEAField(src)));
+		sect_OutputConst16((uint16_t)(0xC0C0 | sign << 8 | dest->nDirectReg << 9 | parse_GetEAField(src)));
 		return parse_OutputExtWords(src);
 	}
 }
@@ -2267,31 +2267,31 @@ static bool_t parse_MULU(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_NBCD(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x4800 | parse_GetEAField(src)));
+	sect_OutputConst16((uint16_t)(0x4800 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
 
 static bool_t parse_NEG(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x4400 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
+	sect_OutputConst16((uint16_t)(0x4400 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
 	return parse_OutputExtWords(src);
 }
 
 static bool_t parse_NEGX(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x4000 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
+	sect_OutputConst16((uint16_t)(0x4000 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
 	return parse_OutputExtWords(src);
 }
 
 static bool_t parse_NOP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t(0x4E71);
+	sect_OutputConst16(0x4E71);
 	return true;
 }
 
 static bool_t parse_NOT(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x4600 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
+	sect_OutputConst16((uint16_t)(0x4600 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
 	return parse_OutputExtWords(src);
 }
 
@@ -2306,15 +2306,15 @@ static bool_t parse_ORI(ESize sz, SAddrMode* src, SAddrMode* dest)
 		}
 		if(dest->nDirectReg == T_68K_REG_CCR)
 		{
-			sect_OutputAbint16_t(0x003C);
-			sect_OutputExprWord(expr_CreateAndExpr(src->pImmediate, expr_CreateConstExpr(0xFF)));
+			sect_OutputConst16(0x003C);
+			sect_OutputExpr16(expr_CreateAndExpr(src->pImmediate, expr_CreateConstExpr(0xFF)));
 			return true;
 		}
 		else if(dest->nDirectReg == T_68K_REG_SR)
 		{
 			prj_Warn(MERROR_INSTRUCTION_PRIV);
-			sect_OutputAbint16_t(0x007C);
-			sect_OutputExprWord(src->pImmediate);
+			sect_OutputConst16(0x007C);
+			sect_OutputExpr16(src->pImmediate);
 			return true;
 		}
 		prj_Error(ERROR_DEST_OPERAND);
@@ -2363,8 +2363,8 @@ static bool_t parse_PackUnpack(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode
 		rm = 1;
 	}
 
-	sect_OutputAbint16_t(ins | dy << 9 | rm << 3 | dx);
-	sect_OutputExprWord(adj.pImmediate);
+	sect_OutputConst16(ins | dy << 9 | rm << 3 | dx);
+	sect_OutputExpr16(adj.pImmediate);
 	return true;
 }
 
@@ -2380,14 +2380,14 @@ static bool_t parse_UNPACK(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_PEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x4840 | parse_GetEAField(src)));
+	sect_OutputConst16((uint16_t)(0x4840 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
 
 static bool_t parse_RTD(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t(0x4E74);
-	sect_OutputExprWord(src->pImmediate);
+	sect_OutputConst16(0x4E74);
+	sect_OutputExpr16(src->pImmediate);
 	return true;
 }
 
@@ -2400,25 +2400,25 @@ static bool_t parse_RTM(ESize sz, SAddrMode* src, SAddrMode* dest)
 	else /* if(src->eMode == AM_AREG) */
 		reg = (uint16_t)src->nDirectReg + 8;
 
-	sect_OutputAbint16_t(0x06C0 | reg);
+	sect_OutputConst16(0x06C0 | reg);
 	return true;
 }
 
 static bool_t parse_RTR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t(0x4E77);
+	sect_OutputConst16(0x4E77);
 	return true;
 }
 
 static bool_t parse_RTS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t(0x4E75);
+	sect_OutputConst16(0x4E75);
 	return true;
 }
 
 static bool_t parse_Scc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x50C0 | code << 8 | parse_GetEAField(src)));
+	sect_OutputConst16((uint16_t)(0x50C0 | code << 8 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
 
@@ -2504,13 +2504,13 @@ static bool_t parse_SLE(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_SWAP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x4840 | src->nDirectReg));
+	sect_OutputConst16((uint16_t)(0x4840 | src->nDirectReg));
 	return true;
 }
 
 static bool_t parse_TAS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x4AC0 | parse_GetEAField(src)));
+	sect_OutputConst16((uint16_t)(0x4AC0 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
 
@@ -2525,7 +2525,7 @@ static bool_t parse_TRAP(ESize sz, SAddrMode* src, SAddrMode* dest)
 		return true;
 	}
 	expr = expr_CreateOrExpr(expr, expr_CreateConstExpr(0x4E40));
-	sect_OutputExprWord(expr);
+	sect_OutputExpr16(expr);
 	return true;
 }
 
@@ -2545,9 +2545,9 @@ static bool_t parse_TRAPcc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* d
 		return true;
 	}
 
-	sect_OutputAbint16_t(0x50F8 | opmode | code << 8);
+	sect_OutputConst16(0x50F8 | opmode | code << 8);
 	if(sz == SIZE_WORD)
-		sect_OutputExprWord(src->pImmediate);
+		sect_OutputExpr16(src->pImmediate);
 	else if(sz == SIZE_LONG)
 		sect_OutputExprLong(src->pImmediate);
 
@@ -2636,35 +2636,35 @@ static bool_t parse_TRAPLE(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_TRAPV(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t(0x4E76);
+	sect_OutputConst16(0x4E76);
 	return true;
 }
 
 static bool_t parse_UNLK(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	sect_OutputAbint16_t((uint16_t)(0x4E58 | src->nDirectReg));
+	sect_OutputConst16((uint16_t)(0x4E58 | src->nDirectReg));
 	return true;
 }
 
 static bool_t parse_RESET(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	prj_Warn(MERROR_INSTRUCTION_PRIV);
-	sect_OutputAbint16_t(0x4E70);
+	sect_OutputConst16(0x4E70);
 	return true;
 }
 
 static bool_t parse_RTE(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	prj_Warn(MERROR_INSTRUCTION_PRIV);
-	sect_OutputAbint16_t(0x4E73);
+	sect_OutputConst16(0x4E73);
 	return true;
 }
 
 static bool_t parse_STOP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	prj_Warn(MERROR_INSTRUCTION_PRIV);
-	sect_OutputAbint16_t(0x4E72);
-	sect_OutputExprWord(src->pImmediate);
+	sect_OutputConst16(0x4E72);
+	sect_OutputExpr16(src->pImmediate);
 	return true;
 }
 
@@ -2692,7 +2692,7 @@ static bool_t parse_Cache040(uint16_t ins, uint16_t scope, ESize sz, SAddrMode* 
 	else
 		reg = (uint16_t)dest->Outer.nBaseReg;
 
-	sect_OutputAbint16_t(ins | scope << 3 | cache << 6 | reg);
+	sect_OutputConst16(ins | scope << 3 | cache << 6 | reg);
 	return true;
 }
 
@@ -2845,8 +2845,8 @@ static bool_t parse_MOVEC(ESize sz, SAddrMode* src, SAddrMode* dest)
 		return true;
 	}
 
-	sect_OutputAbint16_t(0x4E7A | dr);
-	sect_OutputAbint16_t(reg << 12 | pReg->nValue);
+	sect_OutputConst16(0x4E7A | dr);
+	sect_OutputConst16(reg << 12 | pReg->nValue);
 	return true;
 }
 
@@ -2885,8 +2885,8 @@ static bool_t parse_MOVES(ESize sz, SAddrMode* src, SAddrMode* dest)
 		return true;
 	}
 
-	sect_OutputAbint16_t((uint16_t)(0x0E00 | parse_GetSizeField(sz) << 6 | parse_GetEAField(ea)));
-	sect_OutputAbint16_t(reg << 12 | dr << 11);
+	sect_OutputConst16((uint16_t)(0x0E00 | parse_GetSizeField(sz) << 6 | parse_GetEAField(ea)));
+	sect_OutputConst16(reg << 12 | dr << 11);
 	return parse_OutputExtWords(ea);
 }
 

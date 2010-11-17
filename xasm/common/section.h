@@ -57,12 +57,12 @@ extern bool_t	sect_SwitchTo_NAMEONLY(char* sectname);
 extern bool_t	sect_Init(void);
 extern void	sect_SkipBytes(int32_t count);
 extern void	sect_Align(int32_t align);
-extern void	sect_OutputExprByte(struct Expression* expr);
-extern void	sect_OutputExprWord(struct Expression* expr);
+extern void	sect_OutputExpr8(struct Expression* expr);
+extern void	sect_OutputExpr16(struct Expression* expr);
 extern void	sect_OutputExprLong(struct Expression* expr);
 extern void	sect_OutputBinaryFile(char* s);
-extern void	sect_OutputAbint8_t(uint8_t value);
-extern void	sect_OutputAbint16_t(uint16_t value);
-extern void	sect_OutputAbint32_t(uint32_t value);
+extern void	sect_OutputConst8(uint8_t value);
+extern void	sect_OutputConst16(uint16_t value);
+extern void	sect_OutputConst32(uint32_t value);
 
 #endif	/*INCLUDE_SECTION_H*/

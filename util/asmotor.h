@@ -48,16 +48,12 @@ extern int32_t fatan(int32_t a);
 extern int32_t fatan2(int32_t a, int32_t b);
 
 
-#ifdef	__GNUC__
-#define	strnicmp strncasecmp
-#define	stricmp strcasecmp
-#endif
-
 #if defined(__VBCC__) || defined(__GNUC__)
 extern char* _strdup(const char* pszString);
 extern char* _strupr(char* pszString);
 extern char* _strlwr(char* pszString);
 extern int _strnicmp(const char* pszString1, const char* pszString2, int nCount);
+extern int _stricmp(const char* pszString1, const char* pszString2, int nCount);
 #endif
 
 #if defined(_MSC_VER) || defined(__VBCC__) || defined(__GNUC__)

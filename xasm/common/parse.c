@@ -1046,7 +1046,7 @@ int32_t parse_ConstantExpression(void)
 
 	if((expr = parse_Expression()) != NULL)
 	{
-		if(expr->Flags & EXPRF_isCONSTANT)
+		if(expr_IsConstant(expr))
 		{
 			int32_t r = expr->Value.Value;
 			expr_Free(expr);
@@ -1773,13 +1773,13 @@ static bool_t parse_PseudoOp(void)
 				if((s = parse_StringExpressionRaw_Pri0()) != NULL)
 				{
 					while(*s)
-						sect_OutputAbint8_t(*s++);
+						sect_OutputConst8(*s++);
 				}
 				else if((expr = parse_Expression()) != NULL)
 				{
 					expr = expr_CheckRange(expr, -128, 255);
 					if(expr)
-						sect_OutputExprByte(expr);
+						sect_OutputExpr8(expr);
 					else
 						prj_Error(ERROR_EXPRESSION_N_BIT, 8);
 				}
@@ -1802,7 +1802,7 @@ static bool_t parse_PseudoOp(void)
 				{
 					expr = expr_CheckRange(expr, -32768, 65535);
 					if(expr)
-						sect_OutputExprWord(expr);
+						sect_OutputExpr16(expr);
 					else
 						prj_Error(ERROR_EXPRESSION_N_BIT, 16);
 				}
@@ -1923,7 +1923,7 @@ static bool_t parse_PseudoOp(void)
 			expr = parse_Expression();
 			if(expr)
 			{
-				if(expr->Flags&EXPRF_isCONSTANT)
+				if(expr_IsConstant(expr))
 				{
 					fstk_ShiftMacroArgs(expr->Value.Value);
 					expr_Free(expr);
