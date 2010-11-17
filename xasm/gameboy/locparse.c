@@ -616,7 +616,7 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 						}
 					}
 				}
-				expr_FreeExpression(pExpr);
+				expr_Free(pExpr);
 			}
 		}
 		else
@@ -630,7 +630,7 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 					pAddrMode->pExpr = pExpr;
 					return true;
 				}
-				expr_FreeExpression(pExpr);
+				expr_Free(pExpr);
 			}
 
 		}

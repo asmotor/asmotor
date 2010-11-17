@@ -106,7 +106,7 @@ extern SExpression* expr_CreateSymbolExpr(char* s);
 extern SExpression* expr_CreateBankExpr(char* s);
 
 extern SExpression* expr_DuplicateExpr(SExpression* expr);
-extern void expr_FreeExpression(SExpression* expr);
+extern void expr_Free(SExpression* expr);
 
 
 #endif	/*INCLUDE_EXPR_H*/

@@ -328,7 +328,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 	&& (pRegs->pDisp->Flags & EXPRF_isCONSTANT)
 	&& pRegs->pDisp->Value.Value == 0)
 	{
-		expr_FreeExpression(pRegs->pDisp);
+		expr_Free(pRegs->pDisp);
 		pRegs->pDisp = NULL;
 	}
 
@@ -336,7 +336,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 	&& (pRegs->pIndexScale->Flags & EXPRF_isCONSTANT)
 	&& pRegs->pIndexScale->Value.Value == 0)
 	{
-		expr_FreeExpression(pRegs->pIndexScale);
+		expr_Free(pRegs->pIndexScale);
 		pRegs->pIndexScale = NULL;
 	}
 

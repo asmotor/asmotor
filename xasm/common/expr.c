@@ -294,8 +294,8 @@ SExpression* expr_Create ## NAME ## Expr(SExpression* expr, SExpression* bound)	
 	{																		\
 		if(expr->Value.Value OP bound->Value.Value)							\
 		{																	\
-			expr_FreeExpression(expr);										\
-			expr_FreeExpression(bound);									\
+			expr_Free(expr);										\
+			expr_Free(bound);									\
 			return NULL;													\
 		}																	\
 	}																		\
@@ -321,7 +321,7 @@ SExpression* expr_CheckRange(SExpression* expr, int32_t low, int32_t high)
 	if(expr != NULL)
 		return expr_CreateHighLimitExpr(expr, high_expr);
 
-	expr_FreeExpression(high_expr);
+	expr_Free(high_expr);
 	return NULL;
 }
 
@@ -471,3 +471,30 @@ SExpression* expr_CreateSymbolExpr(char* s)
 	}
 }
 
+
+void expr_Free(SExpression* expr)
+{
+	if(expr == NULL)
+		return;
+
+	expr_Free(expr->pLeft);
+	expr_Free(expr->pRight);
+	free(expr);
+}
+
+
+SExpression* expr_DuplicateExpr(SExpression* expr)
+{
+	SExpression* r = (SExpression*)malloc(sizeof(SExpression));
+	
+	if(r != NULL)
+	{
+		*r = *expr;
+		if(r->pLeft != NULL)
+			r->pLeft = expr_DuplicateExpr(r->pLeft);
+		if(r->pRight != NULL)
+			r->pRight = expr_DuplicateExpr(r->pRight);
+	}
+
+	return r;
+}

@@ -22,7 +22,7 @@
 #include "lists.h"
 #include "expr.h"
 
-struct	Section;
+struct Section;
 
 typedef	enum
 {
@@ -33,17 +33,16 @@ typedef	enum
 	PATCH_BLONG,
 } EPatchType;
 
-struct Patch
+typedef struct Patch
 {
 	list_Data(struct Patch);
 	struct Section* pSection;
-	uint32_t		Offset;
+	uint32_t	Offset;
  	EPatchType	Type;
 	SExpression* pExpression;
-	char*	pszFile;
-	int		nLine;
-};
-typedef	struct Patch SPatch;
+	char*		pszFile;
+	int			nLine;
+} SPatch;
 
 #include "section.h"
 #include "symbol.h"

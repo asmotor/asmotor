@@ -243,7 +243,7 @@ void sect_OutputExprByte(SExpression* expr)
 	else if(expr->Flags & EXPRF_isCONSTANT)
 	{
 		sect_OutputAbint8_t((uint8_t)(expr->Value.Value));
-		expr_FreeExpression(expr);
+		expr_Free(expr);
 	}
 	else
 		prj_Error(ERROR_EXPR_CONST_RELOC);
@@ -350,7 +350,7 @@ void sect_OutputExprWord(SExpression* expr)
 	else if(expr->Flags & EXPRF_isCONSTANT)
 	{
 		sect_OutputAbint16_t((uint16_t)(expr->Value.Value));
-		expr_FreeExpression(expr);
+		expr_Free(expr);
 	}
 	else
 		prj_Error(ERROR_EXPR_CONST_RELOC);
@@ -461,7 +461,7 @@ void sect_OutputExprLong(SExpression* expr)
 	else if(expr->Flags & EXPRF_isCONSTANT)
 	{
 		sect_OutputAbint32_t(expr->Value.Value);
-		expr_FreeExpression(expr);
+		expr_Free(expr);
 	}
 	else
 		prj_Error(ERROR_EXPR_CONST_RELOC);

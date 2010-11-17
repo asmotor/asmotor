@@ -443,33 +443,6 @@ bool_t parse_ExpectComma(void)
  *	Expression parser
  */
 
-void	expr_FreeExpression(SExpression* expr)
-{
-	if(expr)
-	{
-		expr_FreeExpression(expr->pLeft);
-		expr_FreeExpression(expr->pRight);
-		free(expr);
-	}
-}
-
-
-SExpression* expr_DuplicateExpr(SExpression* expr)
-{
-	SExpression* r;
-	if((r = (SExpression*)malloc(sizeof(SExpression))) != NULL)
-	{
-		*r = *expr;
-		if(r->pLeft != NULL)
-			r->pLeft = expr_DuplicateExpr(r->pLeft);
-		if(r->pRight != NULL)
-			r->pRight = expr_DuplicateExpr(r->pRight);
-	}
-
-	return r;
-}
-
-
 static SExpression* parse_ExprPri0(void);
 
 static SExpression* parse_ExprPri9(void)
@@ -517,7 +490,7 @@ static SExpression* parse_ExprPri9(void)
 					return expr;
 				}
 
-				expr_FreeExpression(expr);
+				expr_Free(expr);
 			}
 
 			lex_Goto(&bookmark);
@@ -1076,7 +1049,7 @@ int32_t parse_ConstantExpression(void)
 		if(expr->Flags & EXPRF_isCONSTANT)
 		{
 			int32_t r = expr->Value.Value;
-			expr_FreeExpression(expr);
+			expr_Free(expr);
 			return r;
 		}
 
@@ -1953,7 +1926,7 @@ static bool_t parse_PseudoOp(void)
 				if(expr->Flags&EXPRF_isCONSTANT)
 				{
 					fstk_ShiftMacroArgs(expr->Value.Value);
-					expr_FreeExpression(expr);
+					expr_Free(expr);
 					return true;
 				}
 				else
