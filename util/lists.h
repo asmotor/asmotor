@@ -19,6 +19,8 @@
 #ifndef	INCLUDE_LISTS_H
 #define	INCLUDE_LISTS_H
 
+#include "types.h"
+
 #define	list_GetNext(e)	((e)->pNext)
 #define	list_GetPrev(e)	((e)->pPrev)
 #define	list_isLast(e)	(list_GetNext(e)==NULL?true:false)

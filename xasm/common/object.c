@@ -166,6 +166,9 @@ static int write_expr(FILE* f, SExpression* expr)
 			{
 				switch(expr->eOperator)
 				{
+					default:
+						internalerror("Unknown operator");
+						break;
 					case T_OP_SUB:
 						fputc(OBJ_OP_SUB, f);
 						++r;

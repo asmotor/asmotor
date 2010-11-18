@@ -6,7 +6,8 @@ localEnv.VariantDir(b, "../../util")
 libutil = localEnv.StaticLibrary(b + "/util", [
 	b + "/amitime.c",
 	b + "/strings.c",
-	b + "/math.c"
+	b + "/math.c",
+	b + "/mem.c"
 	])
 
 Return("libutil")
