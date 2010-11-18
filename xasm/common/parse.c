@@ -23,6 +23,7 @@
 
 #include "asmotor.h"
 #include "types.h"
+#include "mem.h"
 #include "expr.h"
 #include "project.h"
 #include "fstack.h"
@@ -250,28 +251,21 @@ static bool_t parse_CopyRept(char** newmacro, uint32_t* size)
 {
 	char* src = g_pFileContext->pLexBuffer->pBuffer;
 	int len = parse_GetReptLength(src);
+	int32_t	i;
 
 	if(len == 0)
 		return false;
 
 	*size = len;
 
-	if((*newmacro = (char*)malloc(len + 1)) != NULL)
+	*newmacro = (char*)mem_Alloc(len + 1);
+	(*newmacro)[len]=0;
+	for(i=0; i<len; i+=1)
 	{
-		int32_t	i;
-
-		(*newmacro)[len]=0;
-		for(i=0; i<len; i+=1)
-		{
-			(*newmacro)[i] = src[i];
-		}
-	}
-	else
-	{
-		internalerror("Out of memory!");
+		(*newmacro)[i] = src[i];
 	}
 
-	lex_SkipBytes(len+4);
+	lex_SkipBytes(len + 4);
 	return true;
 }
 
@@ -358,25 +352,18 @@ bool_t	parse_CopyMacro(char** dest, uint32_t* size)
 {
 	char* src = g_pFileContext->pLexBuffer->pBuffer;
 	int len = parse_GetMacroLength(src);
+	int32_t	i;
 
 	*size = len;
 
-	if((*dest = (char*)malloc(len + 1)) != NULL)
+	*dest = (char*)mem_Alloc(len + 1);
+	(*dest)[len] = 0;
+	for(i = 0; i < len; ++i)
 	{
-		int32_t	i;
-
-		(*dest)[len]=0;
-		for(i=0; i<len; i+=1)
-		{
-			(*dest)[i] = src[i];
-		}
-	}
-	else
-	{
-		internalerror("Out of memory!");
+		(*dest)[i] = src[i];
 	}
 
-	lex_SkipBytes(len+4);
+	lex_SkipBytes(len + 4);
 	return true;
 }
 
@@ -540,9 +527,9 @@ int32_t parse_StringCompare(char* s)
 	if((t = parse_StringExpression()) != NULL)
 	{
 		r = strcmp(s, t);
-		free(t);
+		mem_Free(t);
 	}
-	free(s);
+	mem_Free(s);
 
 	return r;
 }
@@ -573,17 +560,17 @@ static SExpression* parse_ExprPri8(void)
 							if(parse_ExpectChar(')'))
 								r = expr_Const(strcmp(s, t));
 
-							free(t);
+							mem_Free(t);
 						}
 					}
 
-					free(s);
+					mem_Free(s);
 					return r;
 				}
 				case T_FUNC_LENGTH:
 				{
 					SExpression* r = expr_Const((int32_t)strlen(s));
-					free(s);
+					mem_Free(s);
 					parse_GetToken();
 
 					return r;
@@ -608,10 +595,10 @@ static SExpression* parse_ExprPri8(void)
 
 								r = expr_Const(val);
 							}
-							free(needle);
+							mem_Free(needle);
 						}
 					}
-					free(s);
+					mem_Free(s);
 					return r;
 				}
 				case T_OP_LOGICEQU:
@@ -650,7 +637,7 @@ static SExpression* parse_ExprPri8(void)
 		}
 	}
 
-	free(s);
+	mem_Free(s);
 	lex_Goto(&bm);
 	return parse_ExprPri9();
 }
@@ -1096,7 +1083,7 @@ static char* parse_StringExpressionRaw_Pri2(void)
 			}
 
 			lex_Goto(&bm);
-			free(r);
+			mem_Free(r);
 			return NULL;
 		}
 		default:
@@ -1143,19 +1130,16 @@ static char* parse_StringExpressionRaw_Pri1(void)
 
 				if(parse_ExpectChar(')'))
 				{
-					char* r;
-					if((r = malloc(count + 1)) != NULL)
-					{
-						if(start + count >= len)
-							count = len - start;
+					char* r = mem_Alloc(count + 1);
+					
+					if(start + count >= len)
+						count = len - start;
 
-						strncpy(r, t + start, count);
-						r[count] = 0;
-						free(t);
-						t = r;
-					}
-					else
-						internalerror("Out of memory!");
+					strncpy(r, t + start, count);
+					r[count] = 0;
+					
+					mem_Free(t);
+					t = r;
 				}
 				break;
 			}
@@ -1206,13 +1190,12 @@ static char* parse_StringExpressionRaw_Pri0(void)
 		if((t2 = parse_StringExpressionRaw_Pri1()) == NULL)
 			return NULL;
 
-		if((r = malloc(strlen(t1) + strlen(t2) + 1)) != NULL)
-		{
-			strcpy(r, t1);
-			strcat(r, t2);
-		}
-		free(t2);
-		free(t1);
+		r = mem_Alloc(strlen(t1) + strlen(t2) + 1);
+		strcpy(r, t1);
+		strcat(r, t2);
+
+		mem_Free(t2);
+		mem_Free(t1);
 
 		return r;
 	}
@@ -1311,7 +1294,7 @@ static bool_t parse_Symbol(void)
 				if((r = parse_StringExpression()) != NULL)
 				{
 					sym_AddEQUS(name, r);
-					free(r);
+					mem_Free(r);
 					if(coloncount == 2)
 					{
 						sym_Export(name);
@@ -1497,7 +1480,7 @@ static bool_t parse_PseudoOp(void)
 				return true;
 
 			strcpy(r, name);
-			free(name);
+			mem_Free(name);
 
 			if(!parse_ExpectChar(','))
 				return sect_SwitchTo_NAMEONLY(r);
@@ -1559,7 +1542,7 @@ static bool_t parse_PseudoOp(void)
 			if((r = parse_StringExpression()) != NULL)
 			{
 				printf("%s", r);
-				free(r);
+				mem_Free(r);
 				return true;
 			}
 
@@ -1849,7 +1832,7 @@ static bool_t parse_PseudoOp(void)
 				while(*pEnd && !isspace(*pEnd))
 					++pEnd;
 
-				r = malloc(pEnd - pStart + 1);
+				r = mem_Alloc(pEnd - pStart + 1);
 				memcpy(r, pStart, pEnd - pStart);
 				r[pEnd - pStart] = 0;
 				lex_Goto(&mark);
@@ -1859,7 +1842,7 @@ static bool_t parse_PseudoOp(void)
 			if(r != NULL)
 			{
 				fstk_RunInclude(r);
-				free(r);
+				mem_Free(r);
 				return true;
 			}
 			else
@@ -1877,7 +1860,7 @@ static bool_t parse_PseudoOp(void)
 			if((r = parse_StringExpression()) != NULL)
 			{
 				sect_OutputBinaryFile(r);
-				free(r);
+				mem_Free(r);
 				return true;
 			}
 			return false;
@@ -1900,11 +1883,11 @@ static bool_t parse_PseudoOp(void)
 				else if(reptcount < 0)
 				{
 					prj_Error(ERROR_EXPR_POSITIVE);
-					free(reptblock);
+					mem_Free(reptblock);
 				}
 				else
 				{
-					free(reptblock);
+					mem_Free(reptblock);
 				}
 				return true;
 			}
@@ -1960,14 +1943,14 @@ static bool_t parse_PseudoOp(void)
 						if(strcmp(s1, s2) != 0)
 							parse_IfSkipToElse();
 
-						free(s1);
-						free(s2);
+						mem_Free(s1);
+						mem_Free(s2);
 						return true;
 					}
 					else
 						prj_Error(ERROR_EXPR_STRING);
 				}
-				free(s1);
+				mem_Free(s1);
 			}
 			else
 				prj_Error(ERROR_EXPR_STRING);
@@ -1993,14 +1976,14 @@ static bool_t parse_PseudoOp(void)
 						if(strcmp(s1, s2) == 0)
 							parse_IfSkipToElse();
 
-						free(s1);
-						free(s2);
+						mem_Free(s1);
+						mem_Free(s2);
 						return true;
 					}
 					else
 						prj_Error(ERROR_EXPR_STRING);
 				}
-				free(s1);
+				mem_Free(s1);
 			}
 			else
 				prj_Error(ERROR_EXPR_STRING);
@@ -2219,7 +2202,7 @@ bool_t parse_Misc(void)
 					}
 					lex_SetState(LEX_STATE_NORMAL);
 					fstk_RunMacro(s);
-					free(s);
+					mem_Free(s);
 					return true;
 				}
 				else

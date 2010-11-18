@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "asmotor.h"
+#include "mem.h"
 #include "xasm.h"
 #include "symbol.h"
 #include "fstack.h"
@@ -93,7 +94,7 @@ static char* __DATE__Callback(SSymbol* sym)
 
 	len = strftime(s, sizeof(s), "%Y-%m-%d", localtime(&t));
 
-	sym->Value.Macro.pData = realloc(sym->Value.Macro.pData, len + 1);
+	sym->Value.Macro.pData = mem_Realloc(sym->Value.Macro.pData, len + 1);
 	sym->Value.Macro.Size = len;
 	strcpy(sym->Value.Macro.pData, s);
 
@@ -108,7 +109,7 @@ static char* __TIME__Callback(SSymbol* sym)
 
 	len = strftime(s, sizeof(s), "%X", localtime(&t));
 
-	sym->Value.Macro.pData = realloc(sym->Value.Macro.pData, len + 1);
+	sym->Value.Macro.pData = mem_Realloc(sym->Value.Macro.pData, len + 1);
 	sym->Value.Macro.Size = len;
 	strcpy(sym->Value.Macro.pData, s);
 
@@ -124,7 +125,7 @@ static char* __AMIGADATE__Callback(SSymbol* sym)
 
 	len = sprintf(s, "%d.%d.%d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900);
 
-	sym->Value.Macro.pData = realloc(sym->Value.Macro.pData, len + 1);
+	sym->Value.Macro.pData = mem_Realloc(sym->Value.Macro.pData, len + 1);
 	sym->Value.Macro.Size = len;
 	strcpy(sym->Value.Macro.pData, s);
 
@@ -173,19 +174,15 @@ static SSymbol* sym_Create(char* s)
     hash = sym_CalcHash(s);
     phash = &g_pHashedSymbols[hash];
 
-    if((psym = (SSymbol*)malloc(sizeof(SSymbol))) != NULL)
-    {
-		memset(psym, 0, sizeof(SSymbol));
-		psym->Type = SYM_UNDEFINED;
-		psym->Flags = g_aDefaultSymbolFlags[SYM_UNDEFINED];
-	    strcpy(psym->Name, s);
-		list_Insert(*phash, psym);
+	psym = (SSymbol*)mem_Alloc(sizeof(SSymbol));
+	memset(psym, 0, sizeof(SSymbol));
+	
+	psym->Type = SYM_UNDEFINED;
+	psym->Flags = g_aDefaultSymbolFlags[SYM_UNDEFINED];
+	strcpy(psym->Name, s);
 
-		return psym;
-    }
-
-	internalerror("Out of memory");
-	return NULL;
+	list_Insert(*phash, psym);
+	return psym;
 }
 
 static SSymbol* sym_FindOrCreate(char* s, SSymbol* scope)
@@ -297,14 +294,10 @@ SSymbol* sym_AddMACRO(char* name, char* value, uint32_t size)
 		sym->Type = SYM_MACRO;
 		SetFlags(sym->Flags, SYM_MACRO);
 		sym->Value.Macro.Size = size;
-		if((sym->Value.Macro.pData = malloc(size)) != NULL)
-		{
-			memcpy(sym->Value.Macro.pData, value, size);
-			return sym;
-		}
-
-		internalerror("Out of memory");
-		return NULL;
+		
+		sym->Value.Macro.pData = mem_Alloc(size);
+		memcpy(sym->Value.Macro.pData, value, size);
+		return sym;
 	}
 
 	prj_Error(ERROR_MODIFY_SYMBOL);
@@ -486,9 +479,9 @@ bool_t	sym_Purge(char* name)
 		list_Remove(*ppsym, sym);
 		if(sym->Flags == SYMF_HASDATA)
 		{
-			free(sym->Value.Macro.pData);
+			mem_Free(sym->Value.Macro.pData);
 		}
-		free(sym);
+		mem_Free(sym);
 		return true;
 	}
 

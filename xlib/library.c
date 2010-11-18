@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "asmotor.h"
+#include "mem.h"
 #include "types.h"
 #include "libwrap.h"
 
@@ -119,14 +120,14 @@ SLibrary* lib_ReadLib0(FILE* f, int32_t size)
 		{
 			if(l==NULL)
 			{
-				if((l=(SLibrary* )malloc(sizeof(SLibrary)))==NULL)
+				if((l=(SLibrary* )mem_Alloc(sizeof(SLibrary)))==NULL)
 					fatalerror("Out of memory");
 
 				first=l;
 			}
 			else
 			{
-				if((l->pNext=(SLibrary* )malloc(sizeof(SLibrary)))==NULL)
+				if((l->pNext=(SLibrary* )mem_Alloc(sizeof(SLibrary)))==NULL)
 					fatalerror("Out of memory");
 				l=l->pNext;
 			}
@@ -135,7 +136,7 @@ SLibrary* lib_ReadLib0(FILE* f, int32_t size)
 			l->ulTime=file_ReadLong(f); size-=4;
 			l->ulDate=file_ReadLong(f); size-=4;
 			l->nByteLength = file_ReadLong(f); size-=4;
-			if((l->pData = (uint8_t* )malloc(l->nByteLength)) != NULL)
+			if((l->pData = (uint8_t* )mem_Alloc(l->nByteLength)) != NULL)
 			{
 				if(l->nByteLength != fread(l->pData, sizeof(uint8_t), l->nByteLength, f))
 					fatalerror("File read failed");
@@ -270,7 +271,7 @@ SLibrary* lib_AddReplace(SLibrary* lib, char* filename)
 
 		if((module=lib_Find(lib,filename))==NULL)
 		{
-			if((module = (SLibrary* )malloc(sizeof(SLibrary))) != NULL)
+			if((module = (SLibrary* )mem_Alloc(sizeof(SLibrary))) != NULL)
 			{
 				module->pNext=lib;
 				lib=module;
@@ -281,12 +282,12 @@ SLibrary* lib_AddReplace(SLibrary* lib, char* filename)
 		else
 		{
 			/* Module already exists */
-			free(module->pData);
+			mem_Free(module->pData);
 		}
 
 		module->nByteLength=file_Length(f);
 		strcpy(module->tName, truncname);
-		if((module->pData = (uint8_t* )malloc(module->nByteLength)) != NULL)
+		if((module->pData = (uint8_t* )mem_Alloc(module->nByteLength)) != NULL)
 		{
 			if(module->nByteLength != fread(module->pData, sizeof(uint8_t), module->nByteLength, f))
 				internalerror("File read failed");
@@ -317,11 +318,11 @@ SLibrary* lib_DeleteModule(SLibrary* lib, char* filename)
 			SLibrary* t = *pp;
 
 			if(t->pData)
-				free(t->pData);
+				mem_Free(t->pData);
 
 			*pp = t->pNext;
 
-			free(t);
+			mem_Free(t);
 			found = 1;
 		}
 		pp = &(*pp)->pNext;
@@ -344,10 +345,10 @@ void	lib_Free(SLibrary* lib)
 		SLibrary* l;
 
 		if(lib->pData)
-			free(lib->pData);
+			mem_Free(lib->pData);
 
 		l=lib;
 		lib=lib->pNext;
-		free(l);
+		mem_Free(l);
 	}
 }

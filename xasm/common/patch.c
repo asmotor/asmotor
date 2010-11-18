@@ -24,6 +24,7 @@
 
 #include "asmotor.h"
 #include "xasm.h"
+#include "mem.h"
 #include "patch.h"
 #include "tokens.h"
 #include "parse.h"
@@ -570,32 +571,24 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
 
 void patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType type)
 {
-	SPatch* patch;
-
-	if((patch = malloc(sizeof(SPatch))) != NULL)
+	SPatch* patch = mem_Alloc(sizeof(SPatch));
+	memset(patch, 0, sizeof(SPatch));
+	
+	if(sect->pPatches)
 	{
-		memset(patch, 0, sizeof(SPatch));
-		if(sect->pPatches)
-		{
-			list_InsertAfter(sect->pPatches, patch);
-		}
-		else
-		{
-			sect->pPatches = patch;
-		}
-
-		patch->pSection = sect;
-		patch->Offset = offset;
-		patch->Type = type;
-		patch->pExpression = expr;
-		patch->pszFile = _strdup(g_pFileContext->pName);
-		patch->nLine = g_pFileContext->LineNumber;
+		list_InsertAfter(sect->pPatches, patch);
 	}
 	else
 	{
-		internalerror("Out of memory");
+		sect->pPatches = patch;
 	}
 
+	patch->pSection = sect;
+	patch->Offset = offset;
+	patch->Type = type;
+	patch->pExpression = expr;
+	patch->pszFile = _strdup(g_pFileContext->pName);
+	patch->nLine = g_pFileContext->LineNumber;
 }
 
 void patch_BackPatch(void)
@@ -615,7 +608,7 @@ void patch_BackPatch(void)
 			if(patch_Evaluate(patch, patch->pExpression, &v))
 			{
 				list_Remove(sect->pPatches, patch);
-				free(patch->pszFile);
+				mem_Free(patch->pszFile);
 
 				switch(patch->Type)
 				{

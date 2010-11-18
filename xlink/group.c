@@ -30,7 +30,7 @@ static SMachineGroup* creategroup(char* name, uint32_t totalbanks)
 		ppgroup=&(*ppgroup)->pNext;
 	}
 
-	if((*ppgroup=(SMachineGroup*)malloc(sizeof(SMachineGroup)+sizeof(SMemoryPool* )*totalbanks))!=NULL)
+	if((*ppgroup=(SMachineGroup*)mem_Alloc(sizeof(SMachineGroup)+sizeof(SMemoryPool* )*totalbanks))!=NULL)
 	{
 		strcpy((*ppgroup)->Name, name);
 		(*ppgroup)->pNext=NULL;
@@ -48,7 +48,7 @@ static SMachineGroup* creategroup(char* name, uint32_t totalbanks)
 
 static	SMemoryPool* createpool(void)
 {
-	SMemoryPool* pool = (SMemoryPool* )malloc(sizeof(SMemoryPool));
+	SMemoryPool* pool = (SMemoryPool* )mem_Alloc(sizeof(SMemoryPool));
 
 	if(pool == NULL)
 		Error("Out of memory");
@@ -86,7 +86,7 @@ bool_t alloc_abs_from_pool(SMemoryPool* pool, uint32_t size, uint32_t org)
 
 		if(org >= pchunk->Org && org + size <= pchunk->Org + pchunk->Size)
 		{
-			SMemChunk* newchunk = (SMemChunk*)malloc(sizeof(SMemChunk));
+			SMemChunk* newchunk = (SMemChunk*)mem_Alloc(sizeof(SMemChunk));
 
 			if(newchunk == NULL)
 				Error("Out of memory");
@@ -183,7 +183,7 @@ static void init_memchunks(void)
 		{
 			SMemoryPool* pool = group->Pool[i];
 
-			if((pool->pFreeChunks = (SMemChunk*)malloc(sizeof(SMemChunk))) != NULL)
+			if((pool->pFreeChunks = (SMemChunk*)mem_Alloc(sizeof(SMemChunk))) != NULL)
 			{
 				pool->pFreeChunks->Org = pool->AddressingOffset;
 				pool->pFreeChunks->Size = pool->Size;

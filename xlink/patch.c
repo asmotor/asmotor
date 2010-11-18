@@ -83,13 +83,13 @@ static void CombinePatchStrings(char* pszOperator)
 
 	PopStrings(&pszLeft, &pszRight);
 
-	pszNewString = (char*)malloc(strlen(pszLeft) + strlen(pszRight) + strlen(pszOperator) + 5);
+	pszNewString = (char*)mem_Alloc(strlen(pszLeft) + strlen(pszRight) + strlen(pszOperator) + 5);
 	sprintf(pszNewString, "(%s)%s(%s)", pszLeft, pszOperator, pszRight);
 
 	PushString(pszNewString);
 
-	free(pszLeft);
-	free(pszRight);
+	mem_Free(pszLeft);
+	mem_Free(pszRight);
 }
 
 
@@ -102,13 +102,13 @@ static void CombinePatchFunctionStrings(char* pszFunc)
 
 	PopStrings(&pszLeft, &pszRight);
 
-	pszNewString = (char*)malloc(strlen(pszLeft) + strlen(pszRight) + strlen(pszFunc) + 4);
+	pszNewString = (char*)mem_Alloc(strlen(pszLeft) + strlen(pszRight) + strlen(pszFunc) + 4);
 	sprintf(pszNewString, "%s(%s,%s)", pszFunc, pszLeft, pszRight);
 
 	PushString(pszNewString);
 
-	free(pszLeft);
-	free(pszRight);
+	mem_Free(pszLeft);
+	mem_Free(pszRight);
 }
 
 
@@ -119,12 +119,12 @@ static void CombinePatchFunctionString(char* pszFunc)
 
 	pszLeft = PopString();
 
-	pszNewString = (char*)malloc(strlen(pszLeft) + strlen(pszFunc) + 3);
+	pszNewString = (char*)mem_Alloc(strlen(pszLeft) + strlen(pszFunc) + 3);
 	sprintf(pszNewString, "%s(%s)", pszFunc, pszLeft);
 
 	PushString(pszNewString);
 
-	free(pszLeft);
+	mem_Free(pszLeft);
 }
 
 
@@ -203,14 +203,14 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 			{
 				PopStrings(&pszLeft, &pszRight);
 				PushString(pszLeft);
-				free(pszRight);
+				mem_Free(pszRight);
 				break;
 			}
 			case OBJ_FUNC_HIGHLIMIT:
 			{
 				PopStrings(&pszLeft, &pszRight);
 				PushString(pszLeft);
-				free(pszRight);
+				mem_Free(pszRight);
 				break;
 			}
 			case OBJ_FUNC_FDIV:
@@ -282,7 +282,7 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 
 				pszName = sect_GetSymbolName(sect, d);
 
-				pszNew = malloc(strlen(pszName) + 7);
+				pszNew = mem_Alloc(strlen(pszName) + 7);
 				sprintf(pszNew, "BANK(%s)", pszName); 
 
 				PushString(pszNew);

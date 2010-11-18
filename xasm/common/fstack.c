@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "asmotor.h"
+#include "mem.h"
 #include "xasm.h"
 #include "fstack.h"
 #include "project.h"
@@ -113,7 +114,7 @@ int32_t fstk_GetMacroArgCount(void)
 
 void fstk_AddMacroArg(char* s)
 {
-	if((g_ppszNewMacroArgs = (char**)realloc(g_ppszNewMacroArgs, sizeof(char*) * (g_nTotalNewMacroArgs+1))) != NULL)
+	if((g_ppszNewMacroArgs = (char**)mem_Realloc(g_ppszNewMacroArgs, sizeof(char*) * (g_nTotalNewMacroArgs+1))) != NULL)
 	{
 		if((g_ppszNewMacroArgs[g_nTotalNewMacroArgs++] = _strdup(s)) != NULL)
 		{
@@ -140,7 +141,7 @@ void fstk_ShiftMacroArgs(int32_t count)
 		{
 			uint32_t i;
 
-			free(g_pMacroContext->BlockInfo.Macro.Args[0]);
+			mem_Free(g_pMacroContext->BlockInfo.Macro.Args[0]);
 			i = 1;
 			while(i < g_pMacroContext->BlockInfo.Macro.ArgCount)
 			{
@@ -148,7 +149,7 @@ void fstk_ShiftMacroArgs(int32_t count)
 				i += 1;
 			}
 			g_pMacroContext->BlockInfo.Macro.ArgCount -= 1;
-			g_pMacroContext->BlockInfo.Macro.Args = realloc(g_pMacroContext->BlockInfo.Macro.Args, g_pMacroContext->BlockInfo.Macro.ArgCount * sizeof(char*));
+			g_pMacroContext->BlockInfo.Macro.Args = mem_Realloc(g_pMacroContext->BlockInfo.Macro.Args, g_pMacroContext->BlockInfo.Macro.ArgCount * sizeof(char*));
 			count -= 1;
 		}
 	}
@@ -169,7 +170,7 @@ char* fstk_BuildPath(char* path, char* file)
 	if(s == path)
 		return NULL;
 
-	r = malloc(s + 1 - path + strlen(file) + 1);
+	r = mem_Alloc(s + 1 - path + strlen(file) + 1);
 	memcpy(r, path, s + 1 - path);
 	strcpy(r + (s + 1 - path), file);
 
@@ -207,34 +208,27 @@ void fstk_FindFile(char** s)
 			*s = pszFile;
 			return;
 		}
-		free(pszFile);
+		mem_Free(pszFile);
 	}
 
 	for(count = 0; count < g_nTotalIncludePaths; count += 1)
 	{
-		char* fname;
-
-		if((fname = malloc(strlen(g_aIncludePaths[count]) + strlen(*s) + 1)) != NULL)
+		char* fname = mem_Alloc(strlen(g_aIncludePaths[count]) + strlen(*s) + 1);
+		FILE* f;
+		
+		strcpy(fname, g_aIncludePaths[count]);
+		strcat(fname, *s);
+		if((f = fopen(fname, "rt")) != NULL)
 		{
-			FILE* f;
-			strcpy(fname, g_aIncludePaths[count]);
-			strcat(fname, *s);
-			if((f = fopen(fname, "rt")) != NULL)
-			{
-				fclose(f);
-				free(*s);
-				*s=fname;
-				return;
-			}
+			fclose(f);
+			mem_Free(*s);
+			*s = fname;
+			return;
 		}
-		else
-		{
-			internalerror("Out of memory!");
-		}
-		free(fname);
+		mem_Free(fname);
 	}
-	free(*s);
-	*s=NULL;
+	mem_Free(*s);
+	*s = NULL;
 }
 
 void fstk_Dump(void)
@@ -295,7 +289,7 @@ bool_t fstk_RunNextBuffer(void)
 
 		list_Remove(g_pFileContext, g_pFileContext);
 		lex_FreeBuffer(oldcontext->pLexBuffer);
-		free(oldcontext->pName);
+		mem_Free(oldcontext->pName);
 
 		switch(oldcontext->Type)
 		{
@@ -307,11 +301,11 @@ bool_t fstk_RunNextBuffer(void)
 				}
 				else
 				{
-					free(oldcontext->BlockInfo.Rept.pOriginalBuffer);
+					mem_Free(oldcontext->BlockInfo.Rept.pOriginalBuffer);
 					lex_SetBuffer(g_pFileContext->pLexBuffer);
 				}
-				free(oldcontext->RunID);
-				free(oldcontext);
+				mem_Free(oldcontext->RunID);
+				mem_Free(oldcontext);
 				break;
 			}
 			case CONTEXT_MACRO:
@@ -320,17 +314,17 @@ bool_t fstk_RunNextBuffer(void)
 
 				for(i = 0; i < oldcontext->BlockInfo.Macro.ArgCount; i += 1)
 				{
-					free(oldcontext->BlockInfo.Macro.Args[i]);
+					mem_Free(oldcontext->BlockInfo.Macro.Args[i]);
 				}
-				free(oldcontext->RunID);
-				free(oldcontext->BlockInfo.Macro.Args);
-				free(oldcontext);
+				mem_Free(oldcontext->RunID);
+				mem_Free(oldcontext->BlockInfo.Macro.Args);
+				mem_Free(oldcontext);
 				lex_SetBuffer(g_pFileContext->pLexBuffer);
 				break;
 			}
 			default:
 			{
-				free(oldcontext);
+				mem_Free(oldcontext);
 				lex_SetBuffer(g_pFileContext->pLexBuffer);
 				break;
 			}
@@ -344,126 +338,111 @@ void fstk_AddIncludePath(char* s)
 	if(g_nTotalIncludePaths == MAXINCLUDEPATHS)
 	{
 		prj_Fail(ERROR_INCLUDE_LIMIT);
+		return;
 	}
-	else
-	{
-		int len = (int)strlen(s);
-		bool_t addslash = false;
-		if(s[len - 1] != '\\' && s[len - 1] != '/')
-		{
-			addslash = true;
-			++len;
-		}
 
-		g_aIncludePaths[g_nTotalIncludePaths] = malloc(len + 1);
-		memcpy(g_aIncludePaths[g_nTotalIncludePaths], s, len);
-		if(addslash)
-			g_aIncludePaths[g_nTotalIncludePaths][len - 1] = '/';
-		g_aIncludePaths[g_nTotalIncludePaths][len] = 0;
-		++g_nTotalIncludePaths;
+	int len = (int)strlen(s);
+	bool_t addslash = false;
+	if(s[len - 1] != '\\' && s[len - 1] != '/')
+	{
+		addslash = true;
+		++len;
 	}
+
+	g_aIncludePaths[g_nTotalIncludePaths] = mem_Alloc(len + 1);
+	memcpy(g_aIncludePaths[g_nTotalIncludePaths], s, len);
+	if(addslash)
+		g_aIncludePaths[g_nTotalIncludePaths][len - 1] = '/';
+	g_aIncludePaths[g_nTotalIncludePaths][len] = 0;
+	++g_nTotalIncludePaths;
 }
 
-void	fstk_RunInclude(char* s)
+void fstk_RunInclude(char* s)
 {
-	SFileStack* newcontext;
+	SFileStack* newcontext = mem_Alloc(sizeof(SFileStack));
 
-	if((newcontext = malloc(sizeof(SFileStack))) != NULL)
+	memset(newcontext, 0, sizeof(SFileStack));
+	newcontext->Type = CONTEXT_FILE;
+
+	if((newcontext->pName = _strdup(s)) != NULL)
 	{
-		memset(newcontext, 0, sizeof(SFileStack));
-		newcontext->Type=CONTEXT_FILE;
+		FILE* f;
 
-		if((newcontext->pName = _strdup(s)) != NULL)
-		{
-			FILE* f;
+	    fstk_FindFile(&newcontext->pName);
 
-		    fstk_FindFile(&newcontext->pName);
-
-		    if(newcontext->pName != NULL
-			&&(f=fopen(newcontext->pName, "rt")) != NULL)
-		    {
-				if((newcontext->pLexBuffer = lex_CreateFileBuffer(f)) != NULL)
-				{
-					lex_SetBuffer(newcontext->pLexBuffer);
-					lex_SetState(LEX_STATE_NORMAL);
-					newcontext->LineNumber = 0;
-					fstk_SetNewContext(newcontext);
-					return;
-				}
-				fclose(f);
-		    }
-			else
-			{
-				prj_Fail(ERROR_NO_FILE);
-			}
-		}
-	}
-
-	internalerror("Out of memory");
-}
-
-void fstk_RunRept(char* buffer, uint32_t size, uint32_t count)
-{
-	SFileStack* newcontext;
-
-	if((newcontext = malloc(sizeof(SFileStack))) != NULL)
-	{
-		memset(newcontext, 0, sizeof(SFileStack));
-		newcontext->Type = CONTEXT_REPT;
-
-		if((newcontext->pName = _strdup("REPT")) != NULL)
-		{
-			if((newcontext->pLexBuffer = lex_CreateMemoryBuffer(buffer,size)) != NULL)
+	    if(newcontext->pName != NULL
+		&&(f = fopen(newcontext->pName, "rt")) != NULL)
+	    {
+			if((newcontext->pLexBuffer = lex_CreateFileBuffer(f)) != NULL)
 			{
 				lex_SetBuffer(newcontext->pLexBuffer);
 				lex_SetState(LEX_STATE_NORMAL);
 				newcontext->LineNumber = 0;
-				newcontext->BlockInfo.Rept.pOriginalBuffer = buffer;
-				newcontext->BlockInfo.Rept.OriginalSize = size;
-				newcontext->BlockInfo.Rept.RemainingRuns = count-1;
-				newcontext->RunID = fstk_CreateNewRunID();
 				fstk_SetNewContext(newcontext);
 				return;
 			}
+			fclose(f);
+	    }
+		else
+		{
+			prj_Fail(ERROR_NO_FILE);
 		}
 	}
-
-	internalerror("Out of memory");
 }
 
-void	fstk_RunMacro(char* symname)
+void fstk_RunRept(char* buffer, uint32_t size, uint32_t count)
+{
+	SFileStack* newcontext = mem_Alloc(sizeof(SFileStack));
+
+	memset(newcontext, 0, sizeof(SFileStack));
+	newcontext->Type = CONTEXT_REPT;
+
+	if((newcontext->pName = _strdup("REPT")) != NULL)
+	{
+		if((newcontext->pLexBuffer = lex_CreateMemoryBuffer(buffer,size)) != NULL)
+		{
+			lex_SetBuffer(newcontext->pLexBuffer);
+			lex_SetState(LEX_STATE_NORMAL);
+			newcontext->LineNumber = 0;
+			newcontext->BlockInfo.Rept.pOriginalBuffer = buffer;
+			newcontext->BlockInfo.Rept.OriginalSize = size;
+			newcontext->BlockInfo.Rept.RemainingRuns = count-1;
+			newcontext->RunID = fstk_CreateNewRunID();
+			fstk_SetNewContext(newcontext);
+			return;
+		}
+	}
+}
+
+void fstk_RunMacro(char* symname)
 {
 	SSymbol	*sym;
 
 	if((sym = sym_FindSymbol(symname)) != NULL)
 	{
-		SFileStack* newcontext;
-		if((newcontext = malloc(sizeof(SFileStack))) != NULL)
-		{
-			memset(newcontext, 0, sizeof(SFileStack));
-			newcontext->Type = CONTEXT_MACRO;
+		SFileStack* newcontext = mem_Alloc(sizeof(SFileStack));
 
-			if((newcontext->pName = _strdup(symname)) != NULL)
-			{
-				if((newcontext->pLexBuffer = lex_CreateMemoryBuffer(sym->Value.Macro.pData, sym->Value.Macro.Size)) != NULL)
-				{
-					lex_SetBuffer(newcontext->pLexBuffer);
-					lex_SetState(LEX_STATE_NORMAL);
-					newcontext->LineNumber = -1;
-					newcontext->BlockInfo.Macro.Arg0 = g_pszNewMacroArg0;
-					newcontext->BlockInfo.Macro.Args = g_ppszNewMacroArgs;
-					newcontext->BlockInfo.Macro.ArgCount = g_nTotalNewMacroArgs;
-					newcontext->RunID = fstk_CreateNewRunID();
-					g_nTotalNewMacroArgs = 0;
-					g_ppszNewMacroArgs = NULL;
-					g_pszNewMacroArg0 = NULL;
-					g_pMacroContext = newcontext;
-					fstk_SetNewContext(newcontext);
-					return;
-				}
-			}
+		memset(newcontext, 0, sizeof(SFileStack));
+		newcontext->Type = CONTEXT_MACRO;
+
+		if((newcontext->pName = _strdup(symname)) != NULL)
+		{
+			newcontext->pLexBuffer = lex_CreateMemoryBuffer(sym->Value.Macro.pData, sym->Value.Macro.Size);
+
+			lex_SetBuffer(newcontext->pLexBuffer);
+			lex_SetState(LEX_STATE_NORMAL);
+			newcontext->LineNumber = -1;
+			newcontext->BlockInfo.Macro.Arg0 = g_pszNewMacroArg0;
+			newcontext->BlockInfo.Macro.Args = g_ppszNewMacroArgs;
+			newcontext->BlockInfo.Macro.ArgCount = g_nTotalNewMacroArgs;
+			newcontext->RunID = fstk_CreateNewRunID();
+			g_nTotalNewMacroArgs = 0;
+			g_ppszNewMacroArgs = NULL;
+			g_pszNewMacroArg0 = NULL;
+			g_pMacroContext = newcontext;
+			fstk_SetNewContext(newcontext);
+			return;
 		}
-		internalerror("Out of memory");
 	}
 	else
 	{
@@ -480,35 +459,32 @@ bool_t fstk_Init(char* s)
 
     sym_AddEQUS("__FILE", s);
 
-	if((g_pFileContext = malloc(sizeof(SFileStack))) != NULL)
+	g_pFileContext = mem_Alloc(sizeof(SFileStack));
+	
+	memset(g_pFileContext, 0, sizeof(SFileStack));
+	g_pFileContext->Type = CONTEXT_FILE;
+
+	if((g_pFileContext->pName = _strdup(s)) != NULL)
 	{
-		memset(g_pFileContext, 0, sizeof(SFileStack));
-		g_pFileContext->Type = CONTEXT_FILE;
+		FILE* f;
 
-		if((g_pFileContext->pName = _strdup(s)) != NULL)
+	    fstk_FindFile(&g_pFileContext->pName);
+
+	    if(g_pFileContext->pName != NULL
+		&&(f = fopen(g_pFileContext->pName, "rt")) != NULL)
+	    {
+			g_pFileContext->pLexBuffer = lex_CreateFileBuffer(f);
+			fclose(f);
+			lex_SetBuffer(g_pFileContext->pLexBuffer);
+			lex_SetState(LEX_STATE_NORMAL);
+			g_pFileContext->LineNumber = 1;
+			return true;
+	    }
+		else
 		{
-			FILE* f;
-
-		    fstk_FindFile(&g_pFileContext->pName);
-
-		    if(g_pFileContext->pName != NULL
-			&&(f = fopen(g_pFileContext->pName, "rt")) != NULL)
-		    {
-				g_pFileContext->pLexBuffer = lex_CreateFileBuffer(f);
-				fclose(f);
-				lex_SetBuffer(g_pFileContext->pLexBuffer);
-				lex_SetState(LEX_STATE_NORMAL);
-				g_pFileContext->LineNumber = 1;
-				return true;
-		    }
-			else
-			{
-				prj_Fail(ERROR_NO_FILE);
-			}
+			prj_Fail(ERROR_NO_FILE);
 		}
 	}
-
-	internalerror("Out of memory");
 	return false;
 }
 

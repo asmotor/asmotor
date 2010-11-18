@@ -53,8 +53,11 @@ void* mem_Alloc(size_t nSize)
 
 void* mem_Realloc(void* pMem, size_t nSize)
 {
-	SMemoryChunk* pChunk = (SMemoryChunk*)((char*)pMem - HEADERSIZE);
-	list_Remove(s_pMemory, pChunk);
+	SMemoryChunk* pChunk = pMem == NULL ? NULL : (SMemoryChunk*)((char*)pMem - HEADERSIZE);
+	if(pChunk)
+	{
+		list_Remove(s_pMemory, pChunk);
+	}
 	
 	return CheckMemPointer(realloc(pChunk, nSize));
 }
@@ -62,6 +65,9 @@ void* mem_Realloc(void* pMem, size_t nSize)
 
 void mem_Free(void* pMem)
 {
+	if(!pMem)
+		return;
+		
 	SMemoryChunk* pChunk = (SMemoryChunk*)((char*)pMem - HEADERSIZE);
 	
 	list_Remove(s_pMemory, pChunk);

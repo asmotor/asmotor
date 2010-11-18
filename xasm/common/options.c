@@ -22,6 +22,7 @@
 
 #include "asmotor.h"
 #include "xasm.h"
+#include "mem.h"
 #include "options.h"
 #include "lexer.h"
 #include "globlex.h"
@@ -47,17 +48,10 @@ static void opt_Update(void)
 
 static SOptions* opt_Alloc(void)
 {
-	SOptions* nopt;
-
-	if((nopt = (SOptions*)malloc(sizeof(SOptions))) != NULL)
-	{
-		memset(nopt, 0, sizeof(SOptions));
-		nopt->pMachine = locopt_Alloc();
-		return nopt;
-	}
-
-	internalerror("Out of memory");
-	return NULL;
+	SOptions* nopt = (SOptions*)mem_Alloc(sizeof(SOptions));
+	memset(nopt, 0, sizeof(SOptions));
+	nopt->pMachine = locopt_Alloc();
+	return nopt;
 }
 
 static void opt_Copy(SOptions* pDest, SOptions* pSrc)
@@ -85,7 +79,7 @@ void	opt_Pop(void)
 		SOptions* nopt = g_pOptions;
 
 		list_Remove(g_pOptions, g_pOptions);
-		free(nopt);
+		mem_Free(nopt);
 		opt_Update();
 	}
 	else
@@ -203,6 +197,6 @@ void opt_Close(void)
 	{
 		SOptions* t = g_pOptions;
 		list_Remove(g_pOptions, g_pOptions);
-		free(t);
+		mem_Free(t);
 	}
 }

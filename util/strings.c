@@ -3,12 +3,13 @@
 
 #include <ctype.h>
 #include <string.h>
-#include <stdlib.h>
+
+#include "mem.h"
 
 char* _strdup(const char* pszString)
 {
 	int l = strlen(pszString);
-	char* r = malloc(l + 1);
+	char* r = mem_Alloc(l + 1);
 	memcpy(r, pszString, l + 1);
 	return r;
 }

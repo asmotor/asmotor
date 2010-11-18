@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include "xasm.h"
+#include "mem.h"
 #include "options.h"
 #include "lexer.h"
 #include "locopt.h"
@@ -30,7 +31,7 @@ uint32_t GameboyConstID;
 
 SMachineOptions* locopt_Alloc(void)
 {
-	return malloc(sizeof(SMachineOptions));
+	return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)

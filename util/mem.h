@@ -19,8 +19,10 @@
 #if !defined(MEM_H_INCLUDED_)
 #define MEM_H_INCLUDED_
 
+#include <stdlib.h>
+
 extern void* mem_Alloc(size_t nSize);
 extern void* mem_Realloc(void* pMem, size_t nSize);
-extern void mem_Free(void* pMem)
+extern void mem_Free(void* pMem);
 
 #endif

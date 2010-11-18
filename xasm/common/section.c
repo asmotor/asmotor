@@ -23,6 +23,7 @@
 
 #include "asmotor.h"
 #include "xasm.h"
+#include "mem.h"
 #include "section.h"
 #include "symbol.h"
 #include "project.h"
@@ -68,35 +69,28 @@ static EGroupType sect_GetCurrentType(void)
 	return -1;
 }
 
-static	SSection* sect_Create(char* name)
+static SSection* sect_Create(char* name)
 {
-	SSection* sect;
-
-	if((sect = malloc(sizeof(SSection))) != NULL)
+	SSection* sect = mem_Alloc(sizeof(SSection));
+	memset(sect, 0, sizeof(SSection));
+	
+	sect->FreeSpace = g_pConfiguration->nMaxSectionSize;
+	if(pSectionList)
 	{
-		memset(sect, 0, sizeof(SSection));
-		sect->FreeSpace = g_pConfiguration->nMaxSectionSize;
-		if(pSectionList)
-		{
-			SSection* list = pSectionList;
-			while(list->pNext)
-				list = list_GetNext(list);
-			list_InsertAfter(list, sect);
-		}
-		else
-		{
-			pSectionList=sect;
-		}
-		strcpy(sect->Name, name);
-		return sect;
+		SSection* list = pSectionList;
+		while(list->pNext)
+			list = list_GetNext(list);
+		list_InsertAfter(list, sect);
 	}
 	else
 	{
-		internalerror("Out of memory");
+		pSectionList = sect;
 	}
+	strcpy(sect->Name, name);
+	return sect;
 }
 
-static	SSection* sect_Find(char* name, SSymbol* group)
+static SSection* sect_Find(char* name, SSymbol* group)
 {
 	SSection* sect;
 
@@ -135,7 +129,7 @@ static	void	sect_GrowCurrent(int32_t count)
 		int32_t	allocate;
 
 		allocate=(count+pCurrentSection->UsedSpace+CHUNKSIZE-1)&(~(CHUNKSIZE-1));
-		if((pCurrentSection->pData=realloc(pCurrentSection->pData,allocate))!=NULL)
+		if((pCurrentSection->pData=mem_Realloc(pCurrentSection->pData,allocate))!=NULL)
 		{
 			pCurrentSection->AllocatedSpace=allocate;
 		}

@@ -22,6 +22,7 @@
 #include <ctype.h>
 
 #include "asmotor.h"
+#include "mem.h"
 #include "lists.h"
 #include "lexer.h"
 #include "fstack.h"
@@ -98,11 +99,7 @@ static SFloatingChars* lex_GetPointerToFloatingChar(int32_t charnumber)
 
 		if(g_pFloatingChars == NULL)
 		{
-			if((g_pFloatingChars = malloc(sizeof(SFloatingChars))) == NULL)
-			{
-				internalerror("Out of memory");
-				return NULL;
-			}
+			g_pFloatingChars = mem_Alloc(sizeof(SFloatingChars));
 			memset(g_pFloatingChars, 0, sizeof(SFloatingChars));
 		}
 
@@ -123,18 +120,11 @@ static SFloatingChars* lex_GetPointerToFloatingChar(int32_t charnumber)
 				}
 				else
 				{
-					SFloatingChars* newchars;
+					SFloatingChars* newchars = mem_Alloc(sizeof(SFloatingChars));
 
-					if((newchars = malloc(sizeof(SFloatingChars))) != NULL)
-					{
-						memset(newchars, 0, sizeof(SFloatingChars));
-						list_InsertAfter(chars, newchars);
-						chars = newchars;
-					}
-					else
-					{
-						internalerror("Out of memory");
-					}
+					memset(newchars, 0, sizeof(SFloatingChars));
+					list_InsertAfter(chars, newchars);
+					chars = newchars;
 				}
 			}
 		}
@@ -421,13 +411,13 @@ void	lex_FreeBuffer(SLexBuffer* buf)
 	{
 		if(buf->pBufferStart)
 		{
-			free(buf->pBufferStart-SAFETYMARGIN);
+			mem_Free(buf->pBufferStart-SAFETYMARGIN);
 		}
 		else
 		{
 			internalerror("buf->pBufferStart not initialized");
 		}
-		free(buf);
+		mem_Free(buf);
 	}
 	else
 	{
@@ -437,116 +427,94 @@ void	lex_FreeBuffer(SLexBuffer* buf)
 
 SLexBuffer* lex_CreateMemoryBuffer(char* mem, size_t size)
 {
-	SLexBuffer* pBuffer;
-
-	if((pBuffer = (SLexBuffer* )malloc(sizeof(SLexBuffer))) != NULL)
-	{
-		memset(pBuffer, 0, sizeof(SLexBuffer));
-		if((pBuffer->pBuffer = pBuffer->pBufferStart = (char*)malloc(size + 1 + SAFETYMARGIN)) != NULL)
-		{
-			pBuffer->pBuffer += SAFETYMARGIN;
-			pBuffer->pBufferStart += SAFETYMARGIN;
-			memcpy(pBuffer->pBuffer, mem, size);
-			pBuffer->nBufferSize = size;
-			pBuffer->bAtLineStart = true;
-			pBuffer->pBuffer[size] = 0;
-			pBuffer->State = LEX_STATE_NORMAL;
-			return pBuffer;
-		}
-	}
-	internalerror("Out of memory!");
-	return NULL;
+	SLexBuffer* pBuffer = (SLexBuffer* )mem_Alloc(sizeof(SLexBuffer));
+	memset(pBuffer, 0, sizeof(SLexBuffer));
+	
+	pBuffer->pBuffer = pBuffer->pBufferStart = (char*)mem_Alloc(size + 1 + SAFETYMARGIN);
+	
+	pBuffer->pBuffer += SAFETYMARGIN;
+	pBuffer->pBufferStart += SAFETYMARGIN;
+	memcpy(pBuffer->pBuffer, mem, size);
+	pBuffer->nBufferSize = size;
+	pBuffer->bAtLineStart = true;
+	pBuffer->pBuffer[size] = 0;
+	pBuffer->State = LEX_STATE_NORMAL;
+	return pBuffer;
 }
 
 SLexBuffer* lex_CreateFileBuffer(FILE* f)
 {
-	SLexBuffer* pBuffer;
+    size_t size;
+	char strterm = 0;
+	char* pFile;
+	char* mem;
+	char* dest;
+	bool_t bWasSpace = true;
+	
+	SLexBuffer* pBuffer = (SLexBuffer*)mem_Alloc(sizeof(SLexBuffer));
+	memset(pBuffer, 0, sizeof(SLexBuffer));
 
-	if((pBuffer = (SLexBuffer*)malloc(sizeof(SLexBuffer))) != NULL)
+	fseek(f, 0, SEEK_END);
+	size = ftell(f);
+	fseek(f, 0, SEEK_SET);
+
+	pFile = (char*)mem_Alloc(size);
+	size = fread(pFile, sizeof(uint8_t), size, f);
+
+	pBuffer->pBuffer = pBuffer->pBufferStart = (char*)mem_Alloc(size + 2 + SAFETYMARGIN) + SAFETYMARGIN;
+	dest = pBuffer->pBuffer;
+
+	mem = pFile;
+
+	while((size_t)(mem - pFile) < size)
 	{
-	    size_t size;
-		char strterm = 0;
-		char* pFile;
-
-		memset(pBuffer, 0, sizeof(SLexBuffer));
-
-		fseek(f, 0, SEEK_END);
-		size = ftell(f);
-		fseek(f, 0, SEEK_SET);
-
-		if((pFile = (char*)malloc(size)) != NULL)
+		if(*mem == '"' || *mem == '\'')
 		{
-			size = fread(pFile, sizeof(uint8_t), size, f);
-
-			if((pBuffer->pBuffer = pBuffer->pBufferStart = (char*)malloc(size + 2 + SAFETYMARGIN)) != NULL)
+			strterm = *mem;
+			*dest++ = *mem++;
+			while(*mem && *mem != strterm)
 			{
-				char* mem;
-				char* dest;
-				bool_t bWasSpace = true;
+				if(*mem == '\\')
+					*dest++ = *mem++;
 
-				pBuffer->pBuffer += SAFETYMARGIN;
-				pBuffer->pBufferStart += SAFETYMARGIN;
-				dest = pBuffer->pBuffer;
-
-				mem = pFile;
-
-				while((size_t)(mem - pFile) < size)
-				{
-					if(*mem == '"' || *mem == '\'')
-					{
-						strterm = *mem;
-						*dest++ = *mem++;
-						while(*mem && *mem != strterm)
-						{
-							if(*mem == '\\')
-								*dest++ = *mem++;
-
-							*dest++ = *mem++;
-						}
-						*dest++ = *mem++;
-						bWasSpace = false;
-					}
-					else if((mem[0]==10 && mem[1]==13) || (mem[0]==13 && mem[1]==10))
-					{
-						*dest++ = '\n';
-						mem += 2;
-						bWasSpace = true;
-					}
-					else if(mem[0] == 10 || mem[0] == 13)
-					{
-						*dest++ = '\n';
-						mem += 1;
-						bWasSpace = true;
-					}
-					else if(*mem==';' || (bWasSpace && mem[0] == '*'))
-					{
-						++mem;
-						while(*mem && *mem != 13 && *mem != 10)
-							++mem;
-						bWasSpace = false;
-					}
-					else
-					{
-						bWasSpace = isspace((uint8_t)*mem);
-						*dest++ = *mem++;
-					}
-				}
-
-				*dest++ = '\n';
-				*dest++ = 0;
-				pBuffer->nBufferSize = dest - pBuffer->pBufferStart;
-				pBuffer->bAtLineStart = true;
-
-				free(pFile);
-				return pBuffer;
+				*dest++ = *mem++;
 			}
-			free(pFile);
+			*dest++ = *mem++;
+			bWasSpace = false;
 		}
-		free(pBuffer);
+		else if((mem[0]==10 && mem[1]==13) || (mem[0]==13 && mem[1]==10))
+		{
+			*dest++ = '\n';
+			mem += 2;
+			bWasSpace = true;
+		}
+		else if(mem[0] == 10 || mem[0] == 13)
+		{
+			*dest++ = '\n';
+			mem += 1;
+			bWasSpace = true;
+		}
+		else if(*mem==';' || (bWasSpace && mem[0] == '*'))
+		{
+			++mem;
+			while(*mem && *mem != 13 && *mem != 10)
+				++mem;
+			bWasSpace = false;
+		}
+		else
+		{
+			bWasSpace = isspace((uint8_t)*mem);
+			*dest++ = *mem++;
+		}
 	}
 
-	internalerror("Out of memory!");
-	return NULL;
+	*dest++ = '\n';
+	*dest++ = 0;
+	pBuffer->nBufferSize = dest - pBuffer->pBufferStart;
+	pBuffer->bAtLineStart = true;
+
+	mem_Free(pFile);
+	return pBuffer;
 }
 
 uint32_t lex_FloatAlloc(SLexFloat* tok)
@@ -662,8 +630,8 @@ void lex_RemoveString(char* pszName, int nToken)
 		&& _stricmp(pToken->pszName, pszName) == 0)
 		{
 			list_Remove(*pHash, pToken);
-			free(pToken->pszName);
-			free(pToken);
+			mem_Free(pToken->pszName);
+			mem_Free(pToken);
 			return;
 		}
 		pToken = list_GetNext(pToken);
@@ -688,33 +656,28 @@ void lex_AddString(char* pszName, int nToken)
 
 	/*printf("%s has hashvalue %d\n", lex->tzName, hash);*/
 
-	if((pNew = (SLexString*)malloc(sizeof(SLexString))) != NULL)
+	pNew = (SLexString*)mem_Alloc(sizeof(SLexString));
+	memset(pNew, 0, sizeof(SLexString));
+	
+	if((pNew->pszName = (char*)_strdup(pszName)) != NULL)
 	{
-		memset(pNew, 0, sizeof(SLexString));
-		if((pNew->pszName = (char*)_strdup(pszName)) != NULL)
+		pNew->NameLength = (int32_t)strlen(pszName);
+		pNew->Token = nToken;
+
+		_strupr(pNew->pszName);
+
+		if(pNew->NameLength > g_nLexTokenMaxLength)
+			g_nLexTokenMaxLength = pNew->NameLength;
+
+		if(pPrev)
 		{
-			pNew->NameLength = (int32_t)strlen(pszName);
-			pNew->Token = nToken;
-
-			_strupr(pNew->pszName);
-
-			if(pNew->NameLength > g_nLexTokenMaxLength)
-				g_nLexTokenMaxLength = pNew->NameLength;
-
-			if(pPrev)
-			{
-				list_InsertAfter(pPrev, pNew);
-			}
-			else
-			{
-				*pHash = pNew;
-			}
-
+			list_InsertAfter(pPrev, pNew);
 		}
 		else
 		{
-			internalerror("Out of memory");
+			*pHash = pNew;
 		}
+
 	}
 	else
 	{

@@ -31,6 +31,7 @@
 #include "group.h"
 #include "assign.h"
 #include "smart.h"
+#include "mem.h"
 
 #include <stdio.h>
 #include <stdlib.h>

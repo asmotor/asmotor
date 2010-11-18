@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "xasm.h"
+#include "mem.h"
 #include "options.h"
 #include "localasm.h"
 #include "locopt.h"
@@ -37,7 +38,7 @@ void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc)
 
 struct MachineOptions* locopt_Alloc(void)
 {
-	return malloc(sizeof(SMachineOptions));
+	return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void locopt_Open(void)

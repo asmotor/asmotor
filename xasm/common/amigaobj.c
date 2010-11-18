@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "asmotor.h"
+#include "mem.h"
 
 #include "types.h"
 
@@ -194,7 +195,7 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 {
 	if(pSect->pGroup->Value.GroupType == GROUP_TEXT)
 	{
-		SPatch** pPatches = malloc(sizeof(SPatch*) * nSections);
+		SPatch** pPatches = mem_Alloc(sizeof(SPatch*) * nSections);
 		SPatch* pImportPatches = NULL;
 		SPatch* patch;
 		long hunkpos;
@@ -327,7 +328,7 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 		if(bLink)
 			ami_WriteExtHunk(f, pSect, pImportPatches, hunkpos);
 
-		free(pPatches);
+		mem_Free(pPatches);
 	}
 	else /*if(pSect->pGroup->Flags & GROUP_BSS)*/
 	{

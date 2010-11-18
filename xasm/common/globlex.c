@@ -21,6 +21,7 @@
 
 #include "asmotor.h"
 #include "xasm.h"
+#include "mem.h"
 #include "lexer.h"
 #include "options.h"
 #include "fstack.h"
