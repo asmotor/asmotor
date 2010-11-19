@@ -21,11 +21,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\util\amitime.c" />
     <ClCompile Include="..\..\util\math.c" />
+    <ClCompile Include="..\..\util\mem.c" />
     <ClCompile Include="..\..\util\strings.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\util\amitime.h" />
     <ClInclude Include="..\..\util\asmotor.h" />
+    <ClInclude Include="..\..\util\lists.h" />
+    <ClInclude Include="..\..\util\mem.h" />
     <ClInclude Include="..\..\util\types.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

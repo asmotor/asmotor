@@ -57,17 +57,17 @@ INLINE EExprType expr_GetType(SExpression* pExpr)
 
 INLINE bool_t expr_IsOperator(SExpression* pExpr, EToken eOperator)
 {
-	return pExpr->eType == EXPR_OPERATOR && pExpr->eOperator == eOperator;
+	return pExpr != NULL && pExpr->eType == EXPR_OPERATOR && pExpr->eOperator == eOperator;
 }
 
 INLINE bool_t expr_IsConstant(SExpression* pExpr)
 {
-	return pExpr->nFlags & EXPRF_CONSTANT;
+	return pExpr != NULL && pExpr->nFlags & EXPRF_CONSTANT;
 }
 
 INLINE bool_t expr_IsRelocatable(SExpression* pExpr)
 {
-	return pExpr->nFlags & EXPRF_RELOC;
+	return pExpr != NULL && pExpr->nFlags & EXPRF_RELOC;
 }
 
 extern SExpression* expr_CheckRange(SExpression* pExpr, int32_t nLow, int32_t nHigh);

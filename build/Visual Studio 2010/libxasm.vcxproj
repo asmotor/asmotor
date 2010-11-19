@@ -41,7 +41,6 @@
     <ClInclude Include="..\..\xasm\common\fstack.h" />
     <ClInclude Include="..\..\xasm\common\globlex.h" />
     <ClInclude Include="..\..\xasm\common\lexer.h" />
-    <ClInclude Include="..\..\xasm\common\lists.h" />
     <ClInclude Include="..\..\xasm\common\object.h" />
     <ClInclude Include="..\..\xasm\common\options.h" />
     <ClInclude Include="..\..\xasm\common\parse.h" />

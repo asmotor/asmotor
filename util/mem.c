@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "memory.h"
+#include "mem.h"
 #include "lists.h"
 
 #define HEADERSIZE sizeof(SMemoryChunk)
@@ -32,6 +32,7 @@ typedef struct MemoryChunk
 
 static SMemoryChunk* s_pMemory;
 
+
 static void* CheckMemPointer(SMemoryChunk* pChunk)
 {
 	if(!pChunk)
@@ -44,6 +45,7 @@ static void* CheckMemPointer(SMemoryChunk* pChunk)
 	
 	return (char*)pChunk + HEADERSIZE;
 }
+
 
 void* mem_Alloc(size_t nSize)
 {
@@ -65,12 +67,12 @@ void* mem_Realloc(void* pMem, size_t nSize)
 
 void mem_Free(void* pMem)
 {
-	if(!pMem)
-		return;
-		
-	SMemoryChunk* pChunk = (SMemoryChunk*)((char*)pMem - HEADERSIZE);
+	if(pMem != NULL)
+	{
+		SMemoryChunk* pChunk = (SMemoryChunk*)((char*)pMem - HEADERSIZE);
 	
-	list_Remove(s_pMemory, pChunk);
+		list_Remove(s_pMemory, pChunk);
 	
-	free(pChunk);
+		free(pChunk);
+	}
 }

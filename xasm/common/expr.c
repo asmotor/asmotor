@@ -57,38 +57,51 @@
 #define T_FUNC_LowLimit T_FUNC_LOWLIMIT
 #define T_FUNC_HighLimit T_FUNC_HIGHLIMIT
 
-static void parse_VerifyPointers(SExpression* left, SExpression* right)
+static bool_t expr_VerifyPointers(SExpression* pLeft, SExpression* pRight)
 {
-	if(left != NULL && right != NULL )
-		return;
+	if(pLeft != NULL && pRight != NULL )
+		return true;
 
 	prj_Fail(ERROR_INVALID_EXPRESSION);
+	expr_Free(pLeft);
+	expr_Free(pRight);
+	return false;
 }
 
-SExpression* expr_Abs(SExpression* right)
+static bool_t expr_VerifyPointer(SExpression* pExpr)
 {
-	SExpression* pSign = expr_Shr(expr_Clone(right), expr_Const(31));
-	return expr_Sub(expr_Xor(right, expr_Clone(pSign)), pSign);
+	if(pExpr != NULL)
+		return true;
+
+	prj_Fail(ERROR_INVALID_EXPRESSION);
+	return false;
+}
+
+SExpression* expr_Abs(SExpression* pRight)
+{
+	SExpression* pSign = expr_Shr(expr_Clone(pRight), expr_Const(31));
+	return expr_Sub(expr_Xor(pRight, expr_Clone(pSign)), pSign);
 }
 
 
-SExpression* expr_Bit(SExpression* right)
+SExpression* expr_Bit(SExpression* pRight)
 {
 	SExpression* expr;
-
-	parse_VerifyPointers(right, right);
-
-	expr = (SExpression*)mem_Alloc(sizeof(SExpression));
-
 	int b = 0;
-	uint32_t v = right->Value.Value;
+	uint32_t v;
 
-	if(expr_IsConstant(right) && (v & -(int32_t)v) != v)
+	if(!expr_VerifyPointer(pRight))
+		return NULL;
+
+	v = pRight->Value.Value;
+
+	if(expr_IsConstant(pRight) && (v & -(int32_t)v) != v)
 	{
 		prj_Error(ERROR_EXPR_TWO_POWER);
 		return NULL;
 	}
 
+	b = 0;
 	if(v != 0)
 	{
 		while(v != 1)
@@ -98,24 +111,30 @@ SExpression* expr_Bit(SExpression* right)
 		}
 	}
 
-	expr->pRight = right;
+	expr = (SExpression*)mem_Alloc(sizeof(SExpression));
+	expr->pRight = pRight;
 	expr->pLeft = NULL;
 	expr->Value.Value = b;
-	expr->nFlags = right->nFlags;
+	expr->nFlags = pRight->nFlags;
 	expr->eType = EXPR_OPERATOR;
 	expr->eOperator = T_OP_BIT;
 	return expr;
 }
 
-SExpression* expr_PcRelative(SExpression* in, int nAdjust)
+SExpression* expr_PcRelative(SExpression* pExpr, int nAdjust)
 {
-	SExpression* expr = (SExpression*)mem_Alloc(sizeof(SExpression));
+	SExpression* expr;
+	
+	if(!expr_VerifyPointer(pExpr))
+		return NULL;
+
+	expr = (SExpression*)mem_Alloc(sizeof(SExpression));
 
 	expr->Value.Value = 0;
 	expr->eType = EXPR_PCREL;
 	expr->nFlags = EXPRF_RELOC;
 	expr->pLeft = expr_Const(nAdjust);
-	expr->pRight = in;
+	expr->pRight = pExpr;
 	return expr;
 }
 
@@ -167,38 +186,40 @@ SExpression* expr_Const(int32_t nValue)
 	return pExpr;
 }
 
-static SExpression* parse_MergeExpressions(SExpression* left, SExpression* right)
+static SExpression* parse_MergeExpressions(SExpression* pLeft, SExpression* pRight)
 {
 	SExpression* expr;
 
-	parse_VerifyPointers(left, right);
+	if(!expr_VerifyPointers(pLeft, pRight))
+		return NULL;
 
 	expr = (SExpression*)mem_Alloc(sizeof(SExpression));
 
 	expr->Value.Value = 0;
 	expr->eType = 0;
-	expr->nFlags = left->nFlags & right->nFlags;
-	expr->pLeft = left;
-	expr->pRight = right;
+	expr->nFlags = pLeft->nFlags & pRight->nFlags;
+	expr->pLeft = pLeft;
+	expr->pRight = pRight;
 	return expr;
 }
 
 #define CREATEEXPRDIV(NAME,OP)															\
 SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
-{																						\
-	int32_t val;																			\
-	parse_VerifyPointers(left, right);													\
-	if(right->Value.Value == 0)															\
-	{																					\
-		prj_Fail(ERROR_ZERO_DIVIDE);													\
-		return NULL;																	\
-	}																					\
-	val = left->Value.Value OP right->Value.Value;									\
-	left = parse_MergeExpressions(left, right);										\
-	left->eType = EXPR_OPERATOR;														\
-	left->eOperator = T_OP_ ## NAME;													\
-	left->Value.Value = val;														\
-	return left;																	\
+{													\
+	int32_t val;									\
+	if(!expr_VerifyPointers(left, right))			\
+		return NULL;								\
+	if(right->Value.Value == 0)						\
+	{												\
+		prj_Fail(ERROR_ZERO_DIVIDE);				\
+		return NULL;								\
+	}												\
+	val = left->Value.Value OP right->Value.Value;	\
+	left = parse_MergeExpressions(left, right);		\
+	left->eType = EXPR_OPERATOR;						\
+	left->eOperator = T_OP_ ## NAME;					\
+	left->Value.Value = val;							\
+	return left;									\
 }
 
 CREATEEXPRDIV(Div, /)
@@ -208,7 +229,8 @@ SExpression* expr_BooleanNot(SExpression* right)
 {
 	SExpression* expr;
 
-	parse_VerifyPointers(right, right);
+	if(!expr_VerifyPointer(right))
+		return NULL;
 
 	expr = (SExpression*)mem_Alloc(sizeof(SExpression));
 
@@ -223,15 +245,16 @@ SExpression* expr_BooleanNot(SExpression* right)
 
 #define CREATEEXPR(NAME,OP) \
 SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
-{																					\
-	int32_t val;																		\
-	parse_VerifyPointers(left, right);												\
-	val = left->Value.Value OP right->Value.Value;									\
-	left = parse_MergeExpressions(left, right);										\
-	left->eType = EXPR_OPERATOR;														\
-	left->eOperator = T_OP_ ## NAME;													\
-	left->Value.Value = val;														\
-	return left;																	\
+{													\
+	int32_t val;									\
+	if(!expr_VerifyPointers(left, right))			\
+		return NULL;								\
+	val = left->Value.Value OP right->Value.Value;	\
+	left = parse_MergeExpressions(left, right);		\
+	left->eType = EXPR_OPERATOR;						\
+	left->eOperator = T_OP_ ## NAME;					\
+	left->Value.Value = val;							\
+	return left;									\
 }
 
 CREATEEXPR(Sub, -)
@@ -251,56 +274,53 @@ CREATEEXPR(LessThan, <)
 CREATEEXPR(Equal, ==)
 CREATEEXPR(NotEqual, !=)
 
-#define CREATELIMIT(NAME,OP)												\
+#define CREATELIMIT(NAME,OP)	\
 SExpression* expr_ ## NAME(SExpression* expr, SExpression* bound)	\
-{																			\
-	int32_t val;															\
-	parse_VerifyPointers(expr, bound);										\
-	val = expr->Value.Value;													\
-	if(expr_IsConstant(expr) && expr_IsConstant(bound))						\
-	{																		\
-		if(expr->Value.Value OP bound->Value.Value)							\
-		{																	\
-			expr_Free(expr);												\
-			expr_Free(bound);												\
-			return NULL;													\
-		}																	\
-	}																		\
-	expr = parse_MergeExpressions(expr, bound);								\
-	expr->eType = EXPR_OPERATOR;												\
-	expr->eOperator = T_FUNC_ ## NAME;										\
-	expr->Value.Value = val;													\
-	return expr;															\
+{														\
+	int32_t val;										\
+	if(!expr_VerifyPointers(expr, bound))				\
+		return NULL;									\
+	val = expr->Value.Value;								\
+	if(expr_IsConstant(expr) && expr_IsConstant(bound))	\
+	{													\
+		if(expr->Value.Value OP bound->Value.Value)		\
+		{												\
+			expr_Free(expr);							\
+			expr_Free(bound);							\
+			return NULL;								\
+		}												\
+	}													\
+	expr = parse_MergeExpressions(expr, bound);			\
+	expr->eType = EXPR_OPERATOR;							\
+	expr->eOperator = T_FUNC_ ## NAME;					\
+	expr->Value.Value = val;								\
+	return expr;										\
 }
 
 CREATELIMIT(LowLimit,<)
 CREATELIMIT(HighLimit,>)
 
-SExpression* expr_CheckRange(SExpression* expr, int32_t low, int32_t high)
+SExpression* expr_CheckRange(SExpression* pExpr, int32_t nLow, int32_t nHigh)
 {
-	SExpression* low_expr;
-	SExpression* high_expr;
+	SExpression* pLowExpr = expr_Const(nLow);
+	SExpression* pHighExpr = expr_Const(nHigh);
 
-	low_expr = expr_Const(low);
-	high_expr = expr_Const(high);
+	pExpr = expr_LowLimit(pExpr, pLowExpr);
+	if(pExpr != NULL)
+		return expr_HighLimit(pExpr, pHighExpr);
 
-	expr = expr_LowLimit(expr, low_expr);
-	if(expr != NULL)
-		return expr_HighLimit(expr, high_expr);
-
-	expr_Free(high_expr);
+	expr_Free(pHighExpr);
 	return NULL;
 }
 
 SExpression* expr_Fdiv(SExpression* left, SExpression* right)
 {
-	int32_t val;
-
-	parse_VerifyPointers(left, right);
+	if(!expr_VerifyPointers(left, right))
+		return NULL;
 
 	if(right->Value.Value != 0)
 	{
-		val = fdiv(left->Value.Value, right->Value.Value);
+		int32_t val = fdiv(left->Value.Value, right->Value.Value);
 
 		left = parse_MergeExpressions(left, right);
 		left->eType = EXPR_OPERATOR;
@@ -309,18 +329,17 @@ SExpression* expr_Fdiv(SExpression* left, SExpression* right)
 		left->nFlags &= ~EXPRF_RELOC;
 		return left;
 	}
-	else
-	{
-		prj_Fail(ERROR_ZERO_DIVIDE);
-		return NULL;
-	}
+
+	prj_Fail(ERROR_ZERO_DIVIDE);
+	return NULL;
 }
 
 SExpression* expr_Fmul(SExpression* left, SExpression* right)
 {
 	int32_t val;
 
-	parse_VerifyPointers(left, right);
+	if(!expr_VerifyPointers(left, right))
+		return NULL;
 
 	val = fmul(left->Value.Value, right->Value.Value);
 
@@ -336,7 +355,8 @@ SExpression* expr_Atan2(SExpression* left, SExpression* right)
 {
 	int32_t val;
 
-	parse_VerifyPointers(left, right);
+	if(!expr_VerifyPointers(left, right))
+		return NULL;
 
 	val = fatan2(left->Value.Value, right->Value.Value);
 
@@ -352,13 +372,14 @@ SExpression* expr_Atan2(SExpression* left, SExpression* right)
 SExpression* expr_ ## NAME(SExpression* right)				\
 {															\
 	SExpression* expr;										\
-	parse_VerifyPointers(right, right);						\
+	if(expr_VerifyPointer(right))							\
+		return NULL;										\
 	expr = (SExpression*)mem_Alloc(sizeof(SExpression));	\
 	expr->pRight = right;									\
 	expr->pLeft = NULL;										\
 	expr->Value.Value = FUNC(right->Value.Value);			\
-	expr->nFlags = right->nFlags & ~EXPRF_RELOC;			\
-	expr->eType = EXPR_OPERATOR;							\
+	expr->nFlags = right->nFlags & ~EXPRF_RELOC;				\
+	expr->eType = EXPR_OPERATOR;								\
 	expr->eOperator = T_FUNC_ ## NAME;						\
 	return expr;											\
 }
@@ -410,9 +431,8 @@ SExpression* expr_Symbol(char* s)
 		expr->eType = EXPR_SYMBOL;
 		return expr;
 	}
-	else
-		prj_Fail(ERROR_SYMBOL_IN_EXPR);
 
+	prj_Fail(ERROR_SYMBOL_IN_EXPR);
 	return NULL;
 }
 

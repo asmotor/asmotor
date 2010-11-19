@@ -335,14 +335,17 @@ bool_t fstk_RunNextBuffer(void)
 
 void fstk_AddIncludePath(char* s)
 {
+	int len;
+	bool_t addslash;
+
 	if(g_nTotalIncludePaths == MAXINCLUDEPATHS)
 	{
 		prj_Fail(ERROR_INCLUDE_LIMIT);
 		return;
 	}
 
-	int len = (int)strlen(s);
-	bool_t addslash = false;
+	len = (int)strlen(s);
+	addslash = false;
 	if(s[len - 1] != '\\' && s[len - 1] != '/')
 	{
 		addslash = true;

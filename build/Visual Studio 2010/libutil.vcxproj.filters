@@ -4,10 +4,13 @@
     <ClCompile Include="..\..\util\amitime.c" />
     <ClCompile Include="..\..\util\strings.c" />
     <ClCompile Include="..\..\util\math.c" />
+    <ClCompile Include="..\..\util\mem.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\util\amitime.h" />
     <ClInclude Include="..\..\util\asmotor.h" />
     <ClInclude Include="..\..\util\types.h" />
+    <ClInclude Include="..\..\util\lists.h" />
+    <ClInclude Include="..\..\util\mem.h" />
   </ItemGroup>
 </Project>
