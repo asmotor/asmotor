@@ -27,33 +27,21 @@ static SMachineGroup* creategroup(char* name, uint32_t totalbanks)
 	ppgroup = &pMachineGroups;
 	while(*ppgroup)
 	{
-		ppgroup=&(*ppgroup)->pNext;
+		ppgroup = &(*ppgroup)->pNext;
 	}
 
-	if((*ppgroup=(SMachineGroup*)mem_Alloc(sizeof(SMachineGroup)+sizeof(SMemoryPool* )*totalbanks))!=NULL)
-	{
-		strcpy((*ppgroup)->Name, name);
-		(*ppgroup)->pNext=NULL;
-		(*ppgroup)->TotalPools=totalbanks;
+	*ppgroup = (SMachineGroup*)mem_Alloc(sizeof(SMachineGroup) + sizeof(SMemoryPool*) * totalbanks);
+	strcpy((*ppgroup)->Name, name);
+	(*ppgroup)->pNext = NULL;
+	(*ppgroup)->TotalPools = totalbanks;
 
-		return* ppgroup;
-	}
-	else
-	{
-		Error("Out of memory");
-	}
-
-	return NULL;
+	return* ppgroup;
 }
 
-static	SMemoryPool* createpool(void)
+static SMemoryPool* createpool(void)
 {
-	SMemoryPool* pool = (SMemoryPool* )mem_Alloc(sizeof(SMemoryPool));
-
-	if(pool == NULL)
-		Error("Out of memory");
-
-	pool->pFreeChunks=NULL;
+	SMemoryPool* pool = (SMemoryPool*)mem_Alloc(sizeof(SMemoryPool));
+	pool->pFreeChunks = NULL;
 	return pool;
 }
 
@@ -65,9 +53,9 @@ bool_t alloc_from_pool(SMemoryPool* pool, uint32_t size, uint32_t* org)
 	{
 		if(pchunk->Size >= size)
 		{
-			*org=pchunk->Org;
-			pchunk->Org+=size;
-			pchunk->Size-=size;
+			*org = pchunk->Org;
+			pchunk->Org += size;
+			pchunk->Size -= size;
 
 			return true;
 		}
@@ -87,9 +75,6 @@ bool_t alloc_abs_from_pool(SMemoryPool* pool, uint32_t size, uint32_t org)
 		if(org >= pchunk->Org && org + size <= pchunk->Org + pchunk->Size)
 		{
 			SMemChunk* newchunk = (SMemChunk*)mem_Alloc(sizeof(SMemChunk));
-
-			if(newchunk == NULL)
-				Error("Out of memory");
 
 			newchunk->pNext = pchunk->pNext;
 			pchunk->pNext = newchunk;

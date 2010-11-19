@@ -27,7 +27,7 @@ SSection* sect_CreateNew(void)
 	while(*ppsect)
 		ppsect = &(*ppsect)->pNext;
 
-	*ppsect = (SSection*)malloc(sizeof(SSection));
+	*ppsect = (SSection*)mem_Alloc(sizeof(SSection));
 	if(*ppsect == NULL)
 		Error("Out of memory");
 

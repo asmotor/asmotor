@@ -106,7 +106,7 @@ static SGroups* read_groups(FILE* f)
 
 	totalgroups=fgetll(f);
 
-	if((pGroups=malloc(sizeof(SGroups)+totalgroups*sizeof(SGroup)))!=NULL)
+	if((pGroups=mem_Alloc(sizeof(SGroups)+totalgroups*sizeof(SGroup)))!=NULL)
 	{
 		uint32_t	i;
 
@@ -149,7 +149,7 @@ static	uint32_t	read_symbols(FILE* f, SSymbol* *pdestsym)
 
 	totalsymbols=fgetll(f);
 
-	if((sym=malloc(totalsymbols*sizeof(SSymbol)))!=NULL)
+	if((sym=mem_Alloc(totalsymbols*sizeof(SSymbol)))!=NULL)
 	{
 		uint32_t	i;
 
@@ -179,7 +179,7 @@ static	SPatches* read_patches(FILE* f)
 
 	totalpatches=fgetll(f);
 
-	if((patches=malloc(sizeof(SPatches)+totalpatches*sizeof(SPatch)))!=NULL)
+	if((patches=mem_Alloc(sizeof(SPatches)+totalpatches*sizeof(SPatch)))!=NULL)
 	{
 		int	i;
 
@@ -190,7 +190,7 @@ static	SPatches* read_patches(FILE* f)
 			patches->Patches[i].Offset=fgetll(f);
 			patches->Patches[i].Type=fgetll(f);
 			patches->Patches[i].ExprSize=fgetll(f);
-			if((patches->Patches[i].pExpr=malloc(patches->Patches[i].ExprSize))!=NULL)
+			if((patches->Patches[i].pExpr=mem_Alloc(patches->Patches[i].ExprSize))!=NULL)
 			{
 				if(patches->Patches[i].ExprSize != fread(patches->Patches[i].pExpr, 1, patches->Patches[i].ExprSize, f))
 					Error("File read failed");
@@ -269,7 +269,7 @@ static	void	read_sections(SGroups* groups, FILE* f)
 
 		if(section->GroupID >= 0 && groups->Groups[section->GroupID].Type == GROUP_TEXT)
 		{
-			if((section->pData = malloc(section->Size)) != NULL)
+			if((section->pData = mem_Alloc(section->Size)) != NULL)
 			{
 				if(section->Size != fread(section->pData, 1, section->Size, f))
 					Error("File read failed");

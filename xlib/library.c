@@ -114,38 +114,32 @@ SLibrary* lib_ReadLib0(FILE* f, int32_t size)
 		SLibrary* l = NULL;
 		SLibrary* first = NULL;
 
-		file_ReadLong(f);	size-=4;	//	Skip count
+		file_ReadLong(f);
+		size -= 4;	//	Skip count
 
 		while(size>0)
 		{
-			if(l==NULL)
+			if(l == NULL)
 			{
-				if((l=(SLibrary* )mem_Alloc(sizeof(SLibrary)))==NULL)
-					fatalerror("Out of memory");
-
-				first=l;
+				first = l = (SLibrary*)mem_Alloc(sizeof(SLibrary));
 			}
 			else
 			{
-				if((l->pNext=(SLibrary* )mem_Alloc(sizeof(SLibrary)))==NULL)
-					fatalerror("Out of memory");
-				l=l->pNext;
+				l->pNext = (SLibrary*)mem_Alloc(sizeof(SLibrary));
+				l = l->pNext;
 			}
 
-			size-=file_ReadASCIIz(l->tName, f);
-			l->ulTime=file_ReadLong(f); size-=4;
-			l->ulDate=file_ReadLong(f); size-=4;
+			size -= file_ReadASCIIz(l->tName, f);
+			l->ulTime = file_ReadLong(f); size-=4;
+			l->ulDate = file_ReadLong(f); size-=4;
 			l->nByteLength = file_ReadLong(f); size-=4;
-			if((l->pData = (uint8_t* )mem_Alloc(l->nByteLength)) != NULL)
-			{
-				if(l->nByteLength != fread(l->pData, sizeof(uint8_t), l->nByteLength, f))
-					fatalerror("File read failed");
-				size -= l->nByteLength;
-			}
-			else
-				fatalerror("Out of memory");
+			
+			l->pData = (uint8_t*)mem_Alloc(l->nByteLength);
+			if(l->nByteLength != fread(l->pData, sizeof(uint8_t), l->nByteLength, f))
+				fatalerror("File read failed");
+			size -= l->nByteLength;
 
-			l->pNext=NULL;
+			l->pNext = NULL;
 		}
 		return first;
 	}
@@ -155,15 +149,15 @@ SLibrary* lib_ReadLib0(FILE* f, int32_t size)
 
 SLibrary* lib_Read(char* filename)
 {
-	FILE		*f;
+	FILE* f;
 
 	if((f = fopen(filename,"rb")) != NULL)
 	{
-		int32_t		size;
-		char		ID[5];
+		int32_t size;
+		char ID[5];
 
-		size=file_Length(f);
-		if(size==0)
+		size = file_Length(f);
+		if(size == 0)
 		{
 			fclose(f);
 			return NULL;
@@ -171,10 +165,10 @@ SLibrary* lib_Read(char* filename)
 
 		if(4 != fread(ID, sizeof(char), 4, f))
 			internalerror("File read failed");
-		ID[4]=0;
-		size-=4;
+		ID[4] = 0;
+		size -= 4;
 
-		if(strcmp(ID,"XLB0")==0)
+		if(strcmp(ID, "XLB0") == 0)
 		{
 			SLibrary* r;
 
@@ -269,15 +263,11 @@ SLibrary* lib_AddReplace(SLibrary* lib, char* filename)
 
 		TruncateFileName(truncname, filename);
 
-		if((module=lib_Find(lib,filename))==NULL)
+		if((module = lib_Find(lib,filename)) == NULL)
 		{
-			if((module = (SLibrary* )mem_Alloc(sizeof(SLibrary))) != NULL)
-			{
-				module->pNext=lib;
-				lib=module;
-			}
-			else
-				fatalerror("Out of memory");
+			module = (SLibrary*)mem_Alloc(sizeof(SLibrary));
+			module->pNext = lib;
+			lib = module;
 		}
 		else
 		{
@@ -285,13 +275,12 @@ SLibrary* lib_AddReplace(SLibrary* lib, char* filename)
 			mem_Free(module->pData);
 		}
 
-		module->nByteLength=file_Length(f);
+		module->nByteLength = file_Length(f);
 		strcpy(module->tName, truncname);
-		if((module->pData = (uint8_t* )mem_Alloc(module->nByteLength)) != NULL)
-		{
-			if(module->nByteLength != fread(module->pData, sizeof(uint8_t), module->nByteLength, f))
-				internalerror("File read failed");
-		}
+		module->pData = (uint8_t*)mem_Alloc(module->nByteLength);
+	
+		if(module->nByteLength != fread(module->pData, sizeof(uint8_t), module->nByteLength, f))
+			internalerror("File read failed");
 
 		/*printf("Added module '%s'\n", truncname);*/
 

@@ -33,7 +33,7 @@ void output_WriteRomImage(void)
 	SSection* pSect;
 	uint32_t fsize = 0;
 
-	data = (char*)malloc(WRITE_BLOCK_SIZE);
+	data = (char*)mem_Alloc(WRITE_BLOCK_SIZE);
 	memset(data, 0, WRITE_BLOCK_SIZE);
 	if(data == NULL)
 		Error("Out of memory");
@@ -73,5 +73,5 @@ void output_WriteRomImage(void)
 	}
 
 	fclose(f);
-	free(data);
+	mem_Free(data);
 }
