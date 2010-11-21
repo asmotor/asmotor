@@ -5,6 +5,7 @@ localEnv = env.Clone();
 localEnv.VariantDir(b, "../../util")
 libutil = localEnv.StaticLibrary(b + "/util", [
 	b + "/amitime.c",
+	b + "/str.c",
 	b + "/strings.c",
 	b + "/math.c",
 	b + "/mem.c"
