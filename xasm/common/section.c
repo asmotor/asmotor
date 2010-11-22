@@ -461,40 +461,38 @@ void sect_OutputExprLong(SExpression* expr)
 		prj_Error(ERROR_EXPR_CONST_RELOC);
 }
 
-void sect_OutputBinaryFile(char* s)
+void sect_OutputBinaryFile(string* pFile)
 {
 	FILE* f;
 
-	fstk_FindFile(&s);
-
-	if( s!=NULL
-	&&	(f=fopen(s,"rb"))!=NULL )
+	if((pFile = fstk_FindFile(pFile)) != NULL
+	&& (f = fopen(str_String(pFile), "rb")) != NULL)
 	{
-		uint32_t	size;
+		uint32_t size;
 
 		fseek(f, 0, SEEK_END);
-		size=ftell(f);
+		size = ftell(f);
 		fseek(f, 0, SEEK_SET);
 
 		if(sect_CheckAvailableSpace(size))
 		{
-			pCurrentSection->FreeSpace-=size;
-			pCurrentSection->UsedSpace+=size;
+			pCurrentSection->FreeSpace -= size;
+			pCurrentSection->UsedSpace += size;
 			switch(sect_GetCurrentType())
 			{
-				case	GROUP_TEXT:
+				case GROUP_TEXT:
 				{
 					size_t read;
 
-					read = fread((char*)&(pCurrentSection->pData[pCurrentSection->PC]), sizeof(uint8_t), size, f);
-					pCurrentSection->PC+=size;
-					if(read!=size)
+					read = fread(&pCurrentSection->pData[pCurrentSection->PC], sizeof(uint8_t), size, f);
+					pCurrentSection->PC += size;
+					if(read != size)
 					{
 						prj_Fail(ERROR_READ);
 					}
 					break;
 				}
-				case	GROUP_BSS:
+				case GROUP_BSS:
 				{
 					prj_Error(ERROR_SECTION_DATA);
 					break;
@@ -513,6 +511,8 @@ void sect_OutputBinaryFile(char* s)
 	{
 		prj_Fail(ERROR_NO_FILE);
 	}
+	
+	str_Free(pFile);
 }
 
 void sect_Align(int32_t align)

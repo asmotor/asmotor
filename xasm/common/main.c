@@ -175,7 +175,7 @@ extern int xasm_Main(int argc, char* argv[])
 
 	if(argc == 1)
 	{
-		char* source = argv[argn];
+		string* source = str_Create(argv[argn]);
 		if(fstk_Init(source))
 		{
 			bool_t b = parse_Do();
@@ -248,6 +248,7 @@ extern int xasm_Main(int argc, char* argv[])
 			}
 			fstk_Cleanup();
 		}
+		str_Free(source);
 	}
 
 	opt_Close();

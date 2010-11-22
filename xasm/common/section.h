@@ -19,6 +19,7 @@
 #ifndef	INCLUDE_SECTION_H
 #define	INCLUDE_SECTION_H
 
+#include "str.h"
 #include "lists.h"
 #include "xasm.h"
 
@@ -49,18 +50,18 @@ typedef	struct Section SSection;
 extern	SSection* pCurrentSection;
 extern	SSection* pSectionList;
 
-extern bool_t	sect_SwitchTo(char* sectname, struct Symbol* group);
-extern bool_t	sect_SwitchTo_ORG(char* sectname, struct Symbol* group, int32_t org);
-extern bool_t	sect_SwitchTo_BANK(char* sectname, struct Symbol* group, int32_t bank);
-extern bool_t	sect_SwitchTo_ORG_BANK(char* sectname, struct Symbol* group, int32_t org, int32_t bank);
-extern bool_t	sect_SwitchTo_NAMEONLY(char* sectname);
-extern bool_t	sect_Init(void);
+extern bool_t sect_SwitchTo(char* sectname, struct Symbol* group);
+extern bool_t sect_SwitchTo_ORG(char* sectname, struct Symbol* group, int32_t org);
+extern bool_t sect_SwitchTo_BANK(char* sectname, struct Symbol* group, int32_t bank);
+extern bool_t sect_SwitchTo_ORG_BANK(char* sectname, struct Symbol* group, int32_t org, int32_t bank);
+extern bool_t sect_SwitchTo_NAMEONLY(char* sectname);
+extern bool_t sect_Init(void);
 extern void	sect_SkipBytes(int32_t count);
 extern void	sect_Align(int32_t align);
 extern void	sect_OutputExpr8(struct Expression* expr);
 extern void	sect_OutputExpr16(struct Expression* expr);
 extern void	sect_OutputExprLong(struct Expression* expr);
-extern void	sect_OutputBinaryFile(char* s);
+extern void	sect_OutputBinaryFile(string* pFile);
 extern void	sect_OutputConst8(uint8_t value);
 extern void	sect_OutputConst16(uint16_t value);
 extern void	sect_OutputConst32(uint32_t value);

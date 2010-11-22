@@ -21,6 +21,7 @@
 
 #include "lists.h"
 #include "expr.h"
+#include "str.h"
 
 struct Section;
 
@@ -40,7 +41,7 @@ typedef struct Patch
 	uint32_t	Offset;
  	EPatchType	Type;
 	SExpression* pExpression;
-	char*		pszFile;
+	string*		pFile;
 	int			nLine;
 } SPatch;
 

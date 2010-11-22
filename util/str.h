@@ -29,8 +29,11 @@ typedef struct
 } string;
 
 extern string* str_Create(char* pszData);
+extern string* str_CreateLength(char* pszData, int nLength);
+extern string* str_Empty();
 extern void str_Free(string* pString);
 extern string* str_Concat(string* pString1, string* pString2);
+extern string* str_Slice(string* pString1, int nIndex, int nLength);
 
 INLINE string* str_Copy(string* pString)
 {
@@ -46,6 +49,11 @@ INLINE int str_Length(string* pString)
 INLINE char* str_String(string* pString)
 {
 	return pString->szData;
+}
+
+INLINE char str_CharAt(string* pString, int nIndex)
+{
+	return pString->szData[nIndex];
 }
 
 #endif

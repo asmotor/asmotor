@@ -1340,7 +1340,7 @@ static bool_t parse_Symbol(void)
 				uint32_t reptsize;
 				char* reptblock;
 				int32_t lineno = g_pFileContext->LineNumber;
-				char* pszfile = g_pFileContext->pName;
+				char* pszfile = str_String(g_pFileContext->pName);
 
 				if(parse_CopyMacro(&reptblock, &reptsize))
 				{
@@ -1839,9 +1839,12 @@ static bool_t parse_PseudoOp(void)
 				lex_SkipBytes((uint32_t)(pEnd - mark.Buffer.pBuffer));
 				parse_GetToken();
 			}
+			
 			if(r != NULL)
 			{
-				fstk_RunInclude(r);
+				string* pFile = str_Create(r);
+				fstk_RunInclude(pFile);
+				str_Free(pFile);
 				mem_Free(r);
 				return true;
 			}
@@ -1859,8 +1862,10 @@ static bool_t parse_PseudoOp(void)
 			parse_GetToken();
 			if((r = parse_StringExpression()) != NULL)
 			{
-				sect_OutputBinaryFile(r);
+				string* pFile = str_Create(r);
+				sect_OutputBinaryFile(pFile);
 				mem_Free(r);
+				str_Free(pFile);
 				return true;
 			}
 			return false;

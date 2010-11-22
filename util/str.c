@@ -20,6 +20,8 @@
 #include "mem.h"
 #include "str.h"
 
+static string* s_pEmptyString = NULL;
+
 INLINE string* str_Alloc(int nLength)
 {
 	string* pString = mem_Alloc(sizeof(string) + nLength + 1);
@@ -34,6 +36,25 @@ string* str_Create(char* pszData)
 	string* pString = str_Alloc(nLength);
 	memcpy(pString->szData, pszData, nLength + 1);
 	return pString;
+}
+
+string* str_CreateLength(char* pszData, int nLength)
+{
+	string* pString = str_Alloc(nLength);
+	memcpy(pString->szData, pszData, nLength);
+	pString->szData[nLength] = 0;
+	return pString;
+}
+
+string* str_Empty()
+{
+	if(s_pEmptyString == NULL)
+	{
+		s_pEmptyString = str_Alloc(0);
+		s_pEmptyString->szData[0] = 0;
+		return s_pEmptyString;
+	}
+	return str_Copy(s_pEmptyString);
 }
 
 void str_Free(string* pString)
@@ -52,3 +73,18 @@ string* str_Concat(string* pString1, string* pString2)
 	memcpy(&pString->szData[nLength1], str_String(pString2), nLength2 + 1);
 	return pString;
 }
+
+string* str_Slice(string* pString, int nIndex, int nLength)
+{
+	if(nIndex < 0)
+		nIndex = str_Length(pString) + nIndex;
+		
+	if(nIndex >= str_Length(pString))
+		return str_Empty();
+
+	if(nIndex + nLength > str_Length(pString))
+		nLength = str_Length(pString) - nIndex;
+
+	return str_CreateLength(str_String(pString) + nIndex, nLength);
+}
+

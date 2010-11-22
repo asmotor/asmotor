@@ -587,7 +587,7 @@ void patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType
 	patch->Offset = offset;
 	patch->Type = type;
 	patch->pExpression = expr;
-	patch->pszFile = _strdup(g_pFileContext->pName);
+	patch->pFile = str_Copy(g_pFileContext->pName);
 	patch->nLine = g_pFileContext->LineNumber;
 }
 
@@ -608,7 +608,7 @@ void patch_BackPatch(void)
 			if(patch_Evaluate(patch, patch->pExpression, &v))
 			{
 				list_Remove(sect->pPatches, patch);
-				mem_Free(patch->pszFile);
+				str_Free(patch->pFile);
 
 				switch(patch->Type)
 				{

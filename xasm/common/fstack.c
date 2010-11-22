@@ -41,7 +41,7 @@
 
 SFileStack*	g_pFileContext;
 
-static char* g_aIncludePaths[MAXINCLUDEPATHS];
+static string* g_aIncludePaths[MAXINCLUDEPATHS];
 static uint32_t g_nTotalIncludePaths = 0;
 static SFileStack* g_pMacroContext;
 static char* g_pszCurrentRunId;
@@ -159,28 +159,29 @@ void fstk_ShiftMacroArgs(int32_t count)
 	}
 }
 
-char* fstk_BuildPath(char* path, char* file)
+static string* fstk_BuildPath(string* pPath, string* pFile)
 {
-	char* s = path + strlen(path) - 1;
-	char* r;
+	char* pSlash = str_String(pPath) + str_Length(pPath) - 1;
+	string* p;
+	string* r;
 
-	while(s > path && *s != '/' && *s != '\\')
-		--s;
+	while(pSlash > str_String(pPath) && *pSlash != '/' && *pSlash != '\\')
+		--pSlash;
 
-	if(s == path)
+	if(pSlash == str_String(pPath))
 		return NULL;
 
-	r = mem_Alloc(s + 1 - path + strlen(file) + 1);
-	memcpy(r, path, s + 1 - path);
-	strcpy(r + (s + 1 - path), file);
+	p = str_Slice(pPath, 0, pSlash + 1 - str_String(pPath));
+	r = str_Concat(p, pFile);
+	str_Free(p);
 
 	return r;
 }
 
-bool_t fstk_FileExists(char* pszFile)
+static bool_t fstk_FileExists(string* pFile)
 {
 	FILE* f;
-	if((f = fopen(pszFile, "rb")) != NULL)
+	if((f = fopen(str_String(pFile), "rb")) != NULL)
 	{
 		fclose(f);
 		return true;
@@ -189,46 +190,37 @@ bool_t fstk_FileExists(char* pszFile)
 	return false;
 }
 
-void fstk_FindFile(char** s)
+string* fstk_FindFile(string* pFile)
 {
-	char* pszFile;
+	string* pResult;
 	uint32_t count;
 
-	if(fstk_FileExists(*s))
-	{
-		*s = _strdup(*s);
-		return;
-	}
+	if(fstk_FileExists(pFile))
+		return str_Copy(pFile);
 
-	pszFile = fstk_BuildPath(g_pFileContext->pName, *s);
-	if(pszFile != NULL)
+	pResult = fstk_BuildPath(g_pFileContext->pName, pFile);
+	if(pResult != NULL)
 	{
-		if(fstk_FileExists(pszFile))
-		{
-			*s = pszFile;
-			return;
-		}
-		mem_Free(pszFile);
+		if(fstk_FileExists(pResult))
+			return pResult;
+
+		str_Free(pResult);
 	}
 
 	for(count = 0; count < g_nTotalIncludePaths; count += 1)
 	{
-		char* fname = mem_Alloc(strlen(g_aIncludePaths[count]) + strlen(*s) + 1);
 		FILE* f;
+		pResult = str_Concat(g_aIncludePaths[count], pFile);
 		
-		strcpy(fname, g_aIncludePaths[count]);
-		strcat(fname, *s);
-		if((f = fopen(fname, "rt")) != NULL)
+		if((f = fopen(str_String(pResult), "rt")) != NULL)
 		{
 			fclose(f);
-			mem_Free(*s);
-			*s = fname;
-			return;
+			return pResult;
 		}
-		mem_Free(fname);
+		str_Free(pResult);
 	}
-	mem_Free(*s);
-	*s = NULL;
+	
+	return NULL;
 }
 
 void fstk_Dump(void)
@@ -249,7 +241,7 @@ void fstk_Dump(void)
 
 	while(stack)
 	{
-		printf("%s(%d)", stack->pName, stack->LineNumber);
+		printf("%s(%d)", str_String(stack->pName), stack->LineNumber);
 		stack = list_GetPrev(stack);
 		if(stack)
 		{
@@ -333,63 +325,55 @@ bool_t fstk_RunNextBuffer(void)
 	}
 }
 
-void fstk_AddIncludePath(char* s)
+void fstk_AddIncludePath(string* pFile)
 {
-	int len;
-	bool_t addslash;
-
+	char ch;
+	
 	if(g_nTotalIncludePaths == MAXINCLUDEPATHS)
 	{
 		prj_Fail(ERROR_INCLUDE_LIMIT);
 		return;
 	}
 
-	len = (int)strlen(s);
-	addslash = false;
-	if(s[len - 1] != '\\' && s[len - 1] != '/')
+	ch = str_CharAt(pFile, str_Length(pFile) - 1);
+	if(ch != '\\' && ch != '/')
 	{
-		addslash = true;
-		++len;
+		string* pSlash = str_Create("/");
+		g_aIncludePaths[g_nTotalIncludePaths++] = str_Concat(pFile, pSlash);
+		str_Free(pSlash);
 	}
-
-	g_aIncludePaths[g_nTotalIncludePaths] = mem_Alloc(len + 1);
-	memcpy(g_aIncludePaths[g_nTotalIncludePaths], s, len);
-	if(addslash)
-		g_aIncludePaths[g_nTotalIncludePaths][len - 1] = '/';
-	g_aIncludePaths[g_nTotalIncludePaths][len] = 0;
-	++g_nTotalIncludePaths;
+	else
+	{
+		g_aIncludePaths[g_nTotalIncludePaths++] = str_Copy(pFile);
+	}
 }
 
-void fstk_RunInclude(char* s)
+void fstk_RunInclude(string* pFile)
 {
+	FILE* f;
 	SFileStack* newcontext = mem_Alloc(sizeof(SFileStack));
 
 	memset(newcontext, 0, sizeof(SFileStack));
 	newcontext->Type = CONTEXT_FILE;
 
-	if((newcontext->pName = _strdup(s)) != NULL)
-	{
-		FILE* f;
+	newcontext->pName = fstk_FindFile(pFile);
 
-	    fstk_FindFile(&newcontext->pName);
-
-	    if(newcontext->pName != NULL
-		&&(f = fopen(newcontext->pName, "rt")) != NULL)
-	    {
-			if((newcontext->pLexBuffer = lex_CreateFileBuffer(f)) != NULL)
-			{
-				lex_SetBuffer(newcontext->pLexBuffer);
-				lex_SetState(LEX_STATE_NORMAL);
-				newcontext->LineNumber = 0;
-				fstk_SetNewContext(newcontext);
-				return;
-			}
-			fclose(f);
-	    }
-		else
+    if(newcontext->pName != NULL
+	&&(f = fopen(str_String(newcontext->pName), "rt")) != NULL)
+    {
+		if((newcontext->pLexBuffer = lex_CreateFileBuffer(f)) != NULL)
 		{
-			prj_Fail(ERROR_NO_FILE);
+			lex_SetBuffer(newcontext->pLexBuffer);
+			lex_SetState(LEX_STATE_NORMAL);
+			newcontext->LineNumber = 0;
+			fstk_SetNewContext(newcontext);
+			return;
 		}
+		fclose(f);
+    }
+	else
+	{
+		prj_Fail(ERROR_NO_FILE);
 	}
 }
 
@@ -400,20 +384,18 @@ void fstk_RunRept(char* buffer, uint32_t size, uint32_t count)
 	memset(newcontext, 0, sizeof(SFileStack));
 	newcontext->Type = CONTEXT_REPT;
 
-	if((newcontext->pName = _strdup("REPT")) != NULL)
+	newcontext->pName = str_Create("REPT");
+
+	if((newcontext->pLexBuffer = lex_CreateMemoryBuffer(buffer,size)) != NULL)
 	{
-		if((newcontext->pLexBuffer = lex_CreateMemoryBuffer(buffer,size)) != NULL)
-		{
-			lex_SetBuffer(newcontext->pLexBuffer);
-			lex_SetState(LEX_STATE_NORMAL);
-			newcontext->LineNumber = 0;
-			newcontext->BlockInfo.Rept.pOriginalBuffer = buffer;
-			newcontext->BlockInfo.Rept.OriginalSize = size;
-			newcontext->BlockInfo.Rept.RemainingRuns = count-1;
-			newcontext->RunID = fstk_CreateNewRunID();
-			fstk_SetNewContext(newcontext);
-			return;
-		}
+		lex_SetBuffer(newcontext->pLexBuffer);
+		lex_SetState(LEX_STATE_NORMAL);
+		newcontext->LineNumber = 0;
+		newcontext->BlockInfo.Rept.pOriginalBuffer = buffer;
+		newcontext->BlockInfo.Rept.OriginalSize = size;
+		newcontext->BlockInfo.Rept.RemainingRuns = count-1;
+		newcontext->RunID = fstk_CreateNewRunID();
+		fstk_SetNewContext(newcontext);
 	}
 }
 
@@ -428,24 +410,21 @@ void fstk_RunMacro(char* symname)
 		memset(newcontext, 0, sizeof(SFileStack));
 		newcontext->Type = CONTEXT_MACRO;
 
-		if((newcontext->pName = _strdup(symname)) != NULL)
-		{
-			newcontext->pLexBuffer = lex_CreateMemoryBuffer(sym->Value.Macro.pData, sym->Value.Macro.Size);
+		newcontext->pName = str_Create(symname);
+		newcontext->pLexBuffer = lex_CreateMemoryBuffer(sym->Value.Macro.pData, sym->Value.Macro.Size);
 
-			lex_SetBuffer(newcontext->pLexBuffer);
-			lex_SetState(LEX_STATE_NORMAL);
-			newcontext->LineNumber = -1;
-			newcontext->BlockInfo.Macro.Arg0 = g_pszNewMacroArg0;
-			newcontext->BlockInfo.Macro.Args = g_ppszNewMacroArgs;
-			newcontext->BlockInfo.Macro.ArgCount = g_nTotalNewMacroArgs;
-			newcontext->RunID = fstk_CreateNewRunID();
-			g_nTotalNewMacroArgs = 0;
-			g_ppszNewMacroArgs = NULL;
-			g_pszNewMacroArg0 = NULL;
-			g_pMacroContext = newcontext;
-			fstk_SetNewContext(newcontext);
-			return;
-		}
+		lex_SetBuffer(newcontext->pLexBuffer);
+		lex_SetState(LEX_STATE_NORMAL);
+		newcontext->LineNumber = -1;
+		newcontext->BlockInfo.Macro.Arg0 = g_pszNewMacroArg0;
+		newcontext->BlockInfo.Macro.Args = g_ppszNewMacroArgs;
+		newcontext->BlockInfo.Macro.ArgCount = g_nTotalNewMacroArgs;
+		newcontext->RunID = fstk_CreateNewRunID();
+		g_nTotalNewMacroArgs = 0;
+		g_ppszNewMacroArgs = NULL;
+		g_pszNewMacroArg0 = NULL;
+		g_pMacroContext = newcontext;
+		fstk_SetNewContext(newcontext);
 	}
 	else
 	{
@@ -453,41 +432,33 @@ void fstk_RunMacro(char* symname)
 	}
 }
 
-bool_t fstk_Init(char* s)
+bool_t fstk_Init(string* pFile)
 {
+	FILE* f;
+
 	g_nTotalNewMacroArgs = 0;
 	g_ppszNewMacroArgs = NULL;
 	g_pMacroContext = NULL;
 	g_pszCurrentRunId = NULL;
 
-    sym_AddEQUS("__FILE", s);
+    sym_AddEQUS("__FILE", str_String(pFile));
 
 	g_pFileContext = mem_Alloc(sizeof(SFileStack));
-	
 	memset(g_pFileContext, 0, sizeof(SFileStack));
 	g_pFileContext->Type = CONTEXT_FILE;
 
-	if((g_pFileContext->pName = _strdup(s)) != NULL)
-	{
-		FILE* f;
+    if((g_pFileContext->pName = fstk_FindFile(pFile)) != NULL
+	&& (f = fopen(str_String(g_pFileContext->pName), "rt")) != NULL)
+    {
+		g_pFileContext->pLexBuffer = lex_CreateFileBuffer(f);
+		fclose(f);
+		lex_SetBuffer(g_pFileContext->pLexBuffer);
+		lex_SetState(LEX_STATE_NORMAL);
+		g_pFileContext->LineNumber = 1;
+		return true;
+    }
 
-	    fstk_FindFile(&g_pFileContext->pName);
-
-	    if(g_pFileContext->pName != NULL
-		&&(f = fopen(g_pFileContext->pName, "rt")) != NULL)
-	    {
-			g_pFileContext->pLexBuffer = lex_CreateFileBuffer(f);
-			fclose(f);
-			lex_SetBuffer(g_pFileContext->pLexBuffer);
-			lex_SetState(LEX_STATE_NORMAL);
-			g_pFileContext->LineNumber = 1;
-			return true;
-	    }
-		else
-		{
-			prj_Fail(ERROR_NO_FILE);
-		}
-	}
+	prj_Fail(ERROR_NO_FILE);
 	return false;
 }
 

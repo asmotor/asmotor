@@ -20,6 +20,7 @@
 #define	INCLUDE_FSTACK_H
 
 #include "lists.h"
+#include "str.h"
 
 struct LexBuffer;
 
@@ -33,7 +34,7 @@ typedef	enum
 struct FileStack
 {
 	list_Data(struct FileStack);
-	char*			pName;
+	string*			pName;
 	struct LexBuffer* pLexBuffer;
 	int32_t			LineNumber;
 	EContextType	Type;
@@ -59,12 +60,12 @@ struct FileStack
 typedef struct FileStack SFileStack;
 
 extern void fstk_RunMacro(char* symname);
-extern void fstk_RunInclude(char* s);
+extern void fstk_RunInclude(string* pFile);
 extern bool_t fstk_RunNextBuffer(void);
-extern bool_t fstk_Init(char* s);
+extern bool_t fstk_Init(string* pFile);
 extern void fstk_Cleanup(void);
 extern void fstk_Dump(void);
-extern void fstk_FindFile(char* *s);
+extern string* fstk_FindFile(string* pFile);
 extern void fstk_RunRept(char* buffer, uint32_t size, uint32_t count);
 extern char* fstk_GetMacroArgValue(char ch);
 extern char* fstk_GetMacroRunID(void);
@@ -72,7 +73,7 @@ extern void fstk_AddMacroArg(char* s);
 extern void fstk_SetMacroArg0(char* s);
 extern void fstk_ShiftMacroArgs(int32_t count);
 extern int32_t fstk_GetMacroArgCount(void);
-extern void fstk_AddIncludePath(char* s);
+extern void fstk_AddIncludePath(string* pFile);
 
 extern SFileStack* g_pFileContext;
 

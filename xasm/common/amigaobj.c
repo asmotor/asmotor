@@ -29,6 +29,7 @@
 #include "symbol.h"
 #include "patch.h"
 #include "project.h"
+#include "amigaobj.h"
 
 #define	HUNK_UNIT	0x3E7
 #define	HUNK_NAME	0x3E8
@@ -365,7 +366,7 @@ void ami_WriteSectionNames(FILE* f, bool_t bDebugInfo)
 	fputml(0, f);
 }
 
-bool_t ami_WriteObject(char* pszDestFilename, char* pszSourceFilename, bool_t bDebugInfo)
+bool_t ami_WriteObject(char* pszDestFilename, string* pSourceFilename, bool_t bDebugInfo)
 {
 	FILE* f;
 	SSection* pSect;
@@ -385,7 +386,7 @@ bool_t ami_WriteObject(char* pszDestFilename, char* pszSourceFilename, bool_t bD
 	}
 
 	fputml(HUNK_UNIT, f);
-	fputstr(pszSourceFilename, f, 0);
+	fputstr(str_String(pSourceFilename), f, 0);
 
 	pSect = pSectionList;
 	while(pSect != NULL)

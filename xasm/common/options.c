@@ -106,7 +106,9 @@ void	opt_Parse(char* s)
 		}
 		case 'i':
 		{
-			fstk_AddIncludePath(&s[1]);
+			string* pPath = str_Create(&s[1]);
+			fstk_AddIncludePath(pPath);
+			str_Free(pPath);
 			break;
 		}
 		case 'e':
