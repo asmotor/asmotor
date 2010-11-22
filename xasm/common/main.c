@@ -95,7 +95,7 @@ extern int xasm_Main(int argc, char* argv[])
 	int	rcode;
 	clock_t	StartClock;
 	clock_t EndClock;
-	char* outname = NULL;
+	string* pOutname = NULL;
 	bool_t debuginfo = false;
 	bool_t verbose = false;
 
@@ -153,7 +153,7 @@ extern int xasm_Main(int argc, char* argv[])
 				}
 				break;
 			case 'o':
-				outname = &argv[argn][2];
+				pOutname = str_Create(&argv[argn][2]);
 				break;
 			case 'i':
 			case 'e':
@@ -211,26 +211,26 @@ extern int xasm_Main(int argc, char* argv[])
 					}
 				}
 
-				if(outname != NULL)
+				if(pOutname != NULL)
 				{
 					switch(format)
 					{
 						case 'x':
-							wr = obj_Write(outname);
+							wr = obj_Write(str_String(pOutname));
 							break;
 						case 'b':
-							wr = bin_Write(outname);
+							wr = bin_Write(str_String(pOutname));
 							break;
 						case 'g':
-							wr = ami_WriteExecutable(outname, debuginfo);
+							wr = ami_WriteExecutable(pOutname, debuginfo);
 							break;
 						case 'h':
-							wr = ami_WriteObject(outname, source, debuginfo);
+							wr = ami_WriteObject(pOutname, source, debuginfo);
 							break;
 					}
 					if(!wr)
 					{
-						remove(outname);
+						remove(str_String(pOutname));
 					}
 				}
 			}
@@ -251,6 +251,7 @@ extern int xasm_Main(int argc, char* argv[])
 		str_Free(source);
 	}
 
+	str_Free(pOutname);
 	opt_Close();
 
 	return rcode;

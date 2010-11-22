@@ -366,14 +366,14 @@ void ami_WriteSectionNames(FILE* f, bool_t bDebugInfo)
 	fputml(0, f);
 }
 
-bool_t ami_WriteObject(char* pszDestFilename, string* pSourceFilename, bool_t bDebugInfo)
+bool_t ami_WriteObject(string* pDestFilename, string* pSourceFilename, bool_t bDebugInfo)
 {
 	FILE* f;
 	SSection* pSect;
 	uint32_t nSections;
 	bool_t r = true;
 
-	f = fopen(pszDestFilename, "wb");
+	f = fopen(str_String(pDestFilename), "wb");
 	if(f == NULL)
 		return false;
 
@@ -406,14 +406,14 @@ bool_t ami_WriteObject(char* pszDestFilename, string* pSourceFilename, bool_t bD
 	return r;
 }
 
-bool_t ami_WriteExecutable(char* pszDestFilename, bool_t bDebugInfo)
+bool_t ami_WriteExecutable(string* pDestFilename, bool_t bDebugInfo)
 {
 	FILE* f;
 	SSection* pSect;
 	uint32_t nSections;
 	bool_t r = true;
 
-	f = fopen(pszDestFilename, "wb");
+	f = fopen(str_String(pDestFilename), "wb");
 	if(f == NULL)
 		return false;
 
