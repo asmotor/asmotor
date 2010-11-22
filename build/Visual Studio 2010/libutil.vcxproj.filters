@@ -5,6 +5,7 @@
     <ClCompile Include="..\..\util\strings.c" />
     <ClCompile Include="..\..\util\math.c" />
     <ClCompile Include="..\..\util\mem.c" />
+    <ClCompile Include="..\..\util\str.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\util\amitime.h" />
@@ -12,5 +13,6 @@
     <ClInclude Include="..\..\util\types.h" />
     <ClInclude Include="..\..\util\lists.h" />
     <ClInclude Include="..\..\util\mem.h" />
+    <ClInclude Include="..\..\util\str.h" />
   </ItemGroup>
 </Project>

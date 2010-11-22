@@ -36,7 +36,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <string.h>
 
 extern	void	Error(char* fmt, ...);
 

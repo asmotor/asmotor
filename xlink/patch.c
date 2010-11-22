@@ -18,7 +18,9 @@
 
 #include "asmotor.h"
 #include "xlink.h"
+
 #include <math.h>
+#include <string.h>
 
 #define	STACKSIZE	256
 
@@ -243,7 +245,7 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 			case OBJ_CONSTANT:
 			{
 				uint32_t d;
-				char s[16];
+				char* s = mem_Alloc(16);
 
 				d  = (*expr++);
 				d |= (*expr++) << 8;
@@ -251,13 +253,15 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 				d |= (*expr++) << 24;
 
 				sprintf(s, "%u", d);
-				PushString(_strdup(s));
+				PushString(s);
 
 				size -= 4;
 				break;
 			}
 			case OBJ_SYMBOL:
 			{
+				char* sym;
+				char* s;
 				uint32_t d;
 
 				d  = (*expr++);
@@ -265,7 +269,10 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 				d |= (*expr++) << 16;
 				d |= (*expr++) << 24;
 
-				PushString(_strdup(sect_GetSymbolName(sect, d)));
+				sym = sect_GetSymbolName(sect, d);
+				s = mem_Alloc(strlen(sym) + 1);
+				strcpy(s, sym);
+				PushString(s);
 				size -= 4;
 				break;
 			}

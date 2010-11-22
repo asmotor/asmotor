@@ -17,6 +17,8 @@
 */
 
 #include <string.h>
+
+#include "asmotor.h"
 #include "mem.h"
 #include "str.h"
 

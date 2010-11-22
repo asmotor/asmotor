@@ -60,6 +60,8 @@
 
 #include "xlink.h"
 
+#include <string.h>
+
 #define	MAKE_ID(a,b,c,d)	(a)|((b)<<8)|((c)<<16)|((d)<<24)
 
 static	uint32_t	FileID=0;

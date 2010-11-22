@@ -18,6 +18,8 @@
 
 #include "xlink.h"
 
+#include <string.h>
+
 SMachineGroup* pMachineGroups = NULL;
 
 static SMachineGroup* creategroup(char* name, uint32_t totalbanks)

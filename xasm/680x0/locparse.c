@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "xasm.h"
 #include "asmotor.h"

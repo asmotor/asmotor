@@ -17,6 +17,7 @@
 */
 
 #include "xlink.h"
+#include <memory.h>
 
 #define WRITE_BLOCK_SIZE 65536
 static char* g_pszOutputFilename = NULL;

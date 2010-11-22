@@ -62,11 +62,9 @@ static char* fstk_CreateNewRunID(void)
 	static uint32_t runid = 0;
 
 	sprintf(s, "_%u", runid++);
-	if((r = _strdup(s)) != NULL)
-		return r;
-
-	internalerror("Out of memory");
-	return NULL;
+	r = mem_Alloc(strlen(s) + 1);
+	strcpy(r, s);
+	return r;
 }
 
 static void fstk_SetNewContext(SFileStack* newcontext)
@@ -114,23 +112,17 @@ int32_t fstk_GetMacroArgCount(void)
 
 void fstk_AddMacroArg(char* s)
 {
-	if((g_ppszNewMacroArgs = (char**)mem_Realloc(g_ppszNewMacroArgs, sizeof(char*) * (g_nTotalNewMacroArgs+1))) != NULL)
-	{
-		if((g_ppszNewMacroArgs[g_nTotalNewMacroArgs++] = _strdup(s)) != NULL)
-		{
-			return;
-		}
-	}
+	char* r = mem_Alloc(strlen(s) + 1);
+	strcpy(r, s);
 
-	internalerror("Out of memory");
+	g_ppszNewMacroArgs = (char**)mem_Realloc(g_ppszNewMacroArgs, sizeof(char*) * (g_nTotalNewMacroArgs+1));
+	g_ppszNewMacroArgs[g_nTotalNewMacroArgs++] = r;
 }
 
 void fstk_SetMacroArg0(char* s)
 {
-	if((g_pszNewMacroArg0 = _strdup(s)) != NULL)
-		return;
-
-	internalerror("Out of memory");
+	g_pszNewMacroArg0 = mem_Alloc(strlen(s) + 1);
+	strcpy(g_pszNewMacroArg0, s);
 }
 
 void fstk_ShiftMacroArgs(int32_t count)

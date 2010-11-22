@@ -17,9 +17,9 @@
 */
 
 #include <stdlib.h>
-#include <string.h>
 #include <memory.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "asmotor.h"
 #include "mem.h"
@@ -659,29 +659,24 @@ void lex_AddString(char* pszName, int nToken)
 	pNew = (SLexString*)mem_Alloc(sizeof(SLexString));
 	memset(pNew, 0, sizeof(SLexString));
 	
-	if((pNew->pszName = (char*)_strdup(pszName)) != NULL)
+	pNew->pszName = (char*)mem_Alloc(strlen(pszName) + 1);
+	strcpy(pNew->pszName, pszName);
+
+	pNew->NameLength = (int32_t)strlen(pszName);
+	pNew->Token = nToken;
+
+	_strupr(pNew->pszName);
+
+	if(pNew->NameLength > g_nLexTokenMaxLength)
+		g_nLexTokenMaxLength = pNew->NameLength;
+
+	if(pPrev)
 	{
-		pNew->NameLength = (int32_t)strlen(pszName);
-		pNew->Token = nToken;
-
-		_strupr(pNew->pszName);
-
-		if(pNew->NameLength > g_nLexTokenMaxLength)
-			g_nLexTokenMaxLength = pNew->NameLength;
-
-		if(pPrev)
-		{
-			list_InsertAfter(pPrev, pNew);
-		}
-		else
-		{
-			*pHash = pNew;
-		}
-
+		list_InsertAfter(pPrev, pNew);
 	}
 	else
 	{
-		internalerror("Out of memory");
+		*pHash = pNew;
 	}
 }
 

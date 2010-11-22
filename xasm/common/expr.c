@@ -372,7 +372,7 @@ SExpression* expr_Atan2(SExpression* left, SExpression* right)
 SExpression* expr_ ## NAME(SExpression* right)				\
 {															\
 	SExpression* expr;										\
-	if(expr_VerifyPointer(right))							\
+	if(!expr_VerifyPointer(right))							\
 		return NULL;										\
 	expr = (SExpression*)mem_Alloc(sizeof(SExpression));	\
 	expr->pRight = right;									\

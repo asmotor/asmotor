@@ -17,6 +17,7 @@
 */
 
 #include <string.h>
+
 #include "xasm.h"
 #include "lexer.h"
 #include "localasm.h"

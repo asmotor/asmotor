@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "asmotor.h"
 #include "mem.h"
 #include "lists.h"
 
@@ -27,13 +28,13 @@
 typedef struct MemoryChunk
 {
 	list_Data(struct MemoryChunk);
-	size_t	nSize;
+	size_t nSize;
 } SMemoryChunk;
 
 static SMemoryChunk* s_pMemory;
 
 
-static void* CheckMemPointer(SMemoryChunk* pChunk)
+static void* CheckMemPointer(SMemoryChunk* pChunk, size_t nSize)
 {
 	if(!pChunk)
 	{
@@ -41,6 +42,7 @@ static void* CheckMemPointer(SMemoryChunk* pChunk)
 		exit(EXIT_FAILURE);
 	}
 	
+	pChunk->nSize = nSize;
 	list_Insert(s_pMemory, pChunk);
 	
 	return (char*)pChunk + HEADERSIZE;
@@ -49,19 +51,28 @@ static void* CheckMemPointer(SMemoryChunk* pChunk)
 
 void* mem_Alloc(size_t nSize)
 {
-	return CheckMemPointer(malloc(nSize + HEADERSIZE));
+	return CheckMemPointer(malloc(nSize + HEADERSIZE), nSize);
 }
 
 
 void* mem_Realloc(void* pMem, size_t nSize)
 {
-	SMemoryChunk* pChunk = pMem == NULL ? NULL : (SMemoryChunk*)((char*)pMem - HEADERSIZE);
-	if(pChunk)
+	if(pMem == NULL)
 	{
-		list_Remove(s_pMemory, pChunk);
+		return mem_Alloc(nSize);
 	}
+	else if(nSize == 0)
+	{
+		mem_Free(pMem);
+		return NULL;
+	}
+	else
+	{
+		SMemoryChunk* pChunk = (SMemoryChunk*)((char*)pMem - HEADERSIZE);
+		list_Remove(s_pMemory, pChunk);
 	
-	return CheckMemPointer(realloc(pChunk, nSize));
+		return CheckMemPointer(realloc(pChunk, nSize), nSize);
+	}
 }
 
 
@@ -70,8 +81,12 @@ void mem_Free(void* pMem)
 	if(pMem != NULL)
 	{
 		SMemoryChunk* pChunk = (SMemoryChunk*)((char*)pMem - HEADERSIZE);
-	
+
+		if(pChunk->nSize == 0)
+			internalerror("Chunk not allocated");
+
 		list_Remove(s_pMemory, pChunk);
+		pChunk->nSize = 0;
 	
 		free(pChunk);
 	}

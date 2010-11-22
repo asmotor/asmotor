@@ -16,6 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <string.h>
+
 #include "xlink.h"
 
 SSection* pSections = NULL;

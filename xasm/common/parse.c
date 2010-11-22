@@ -17,9 +17,9 @@
 */
 
 #include <math.h>
-#include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "asmotor.h"
 #include "types.h"
@@ -1059,13 +1059,10 @@ static char* parse_StringExpressionRaw_Pri2(void)
 	{
 		case T_STRING:
 		{
-			char* r;
-
-			if((r = _strdup(g_CurrentToken.Value.aString)) != NULL)
-			{
-				parse_GetToken();
-				return r;
-			}
+			char* r = mem_Alloc(strlen(g_CurrentToken.Value.aString) + 1);
+			strcpy(r, g_CurrentToken.Value.aString);
+			parse_GetToken();
+			return r;
 
 			internalerror("Out of memory");
 			break;
@@ -2170,51 +2167,44 @@ bool_t parse_Misc(void)
 		{
 			if(sym_isMacro(g_CurrentToken.Value.aString))
 			{
-				char* s;
+				char* s = mem_Alloc(strlen(g_CurrentToken.Value.aString) + 1);
+				strcpy(s, g_CurrentToken.Value.aString);
 
-				if((s = _strdup(g_CurrentToken.Value.aString)) != NULL)
+				lex_SetState(LEX_STATE_MACROARG0);
+				parse_GetToken();
+				while(g_CurrentToken.ID.Token != '\n')
 				{
-					lex_SetState(LEX_STATE_MACROARG0);
-					parse_GetToken();
-					while(g_CurrentToken.ID.Token != '\n')
+					if(g_CurrentToken.ID.Token == T_STRING)
 					{
-						if(g_CurrentToken.ID.Token == T_STRING)
+						fstk_AddMacroArg(g_CurrentToken.Value.aString);
+						parse_GetToken();
+						if(g_CurrentToken.ID.Token == ',')
 						{
-							fstk_AddMacroArg(g_CurrentToken.Value.aString);
-							parse_GetToken();
-							if(g_CurrentToken.ID.Token == ',')
-							{
-								parse_GetToken();
-							}
-							else if(g_CurrentToken.ID.Token != '\n')
-							{
-								prj_Error(ERROR_CHAR_EXPECTED, ',');
-								lex_SetState(LEX_STATE_NORMAL);
-								parse_GetToken();
-								return false;
-							}
-						}
-						else if(g_CurrentToken.ID.Token == T_MACROARG0)
-						{
-							fstk_SetMacroArg0(g_CurrentToken.Value.aString);
 							parse_GetToken();
 						}
-						else
+						else if(g_CurrentToken.ID.Token != '\n')
 						{
-							internalerror("Must be T_STRING");
+							prj_Error(ERROR_CHAR_EXPECTED, ',');
+							lex_SetState(LEX_STATE_NORMAL);
+							parse_GetToken();
 							return false;
 						}
 					}
-					lex_SetState(LEX_STATE_NORMAL);
-					fstk_RunMacro(s);
-					mem_Free(s);
-					return true;
+					else if(g_CurrentToken.ID.Token == T_MACROARG0)
+					{
+						fstk_SetMacroArg0(g_CurrentToken.Value.aString);
+						parse_GetToken();
+					}
+					else
+					{
+						internalerror("Must be T_STRING");
+						return false;
+					}
 				}
-				else
-				{
-					internalerror("Out of memory");
-					return false;
-				}
+				lex_SetState(LEX_STATE_NORMAL);
+				fstk_RunMacro(s);
+				mem_Free(s);
+				return true;
 			}
 			else
 			{

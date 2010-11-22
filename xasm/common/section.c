@@ -18,8 +18,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <memory.h>
+#include <string.h>
 
 #include "asmotor.h"
 #include "xasm.h"

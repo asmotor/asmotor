@@ -21,11 +21,11 @@
 
 #include "libwrap.h"
 
-extern	SLibrary* lib_Read(char* filename);
-extern	bool_t		lib_Write(SLibrary* lib, char* filename);
-extern	SLibrary* lib_AddReplace(SLibrary* lib, char* filename);
-extern	void		lib_Free(SLibrary* lib);
-extern	SLibrary* lib_DeleteModule(SLibrary* lib, char* filename);
-extern	SLibrary* lib_Find(SLibrary* lib, char* filename);
+extern SLibrary* lib_Read(char* filename);
+extern bool_t lib_Write(SLibrary* lib, char* filename);
+extern SLibrary* lib_AddReplace(SLibrary* lib, char* filename);
+extern void lib_Free(SLibrary* lib);
+extern SLibrary* lib_DeleteModule(SLibrary* lib, char* filename);
+extern SLibrary* lib_Find(SLibrary* lib, char* filename);
 
 #endif

@@ -274,11 +274,10 @@ SSymbol* sym_AddEQUS(char* name, char* value)
 		}
 
 		sym->Value.Macro.Size = strlen(value);
-		if((sym->Value.Macro.pData = _strdup(value)) != NULL)
-			return sym;
+		sym->Value.Macro.pData = mem_Alloc(strlen(value) + 1);
+		strcpy(sym->Value.Macro.pData, value);
 
-		internalerror("Out of memory");
-		return NULL;
+		return sym;
 	}
 
 	prj_Error(ERROR_MODIFY_SYMBOL);
