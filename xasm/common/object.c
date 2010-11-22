@@ -365,7 +365,7 @@ static	void	write_patch(FILE* f, SPatch* patch)
 
 //	Public routines
 
-bool_t obj_Write(char* pszName)
+bool_t obj_Write(string* pName)
 {
 	FILE* f;
 	int i;
@@ -376,7 +376,7 @@ bool_t obj_Write(char* pszName)
 	long pos2;
 	SSection* sect;
 
-	if((f = fopen(pszName,"wb")) == NULL)
+	if((f = fopen(str_String(pName),"wb")) == NULL)
 		return false;
 
 

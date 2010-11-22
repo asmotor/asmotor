@@ -216,10 +216,10 @@ extern int xasm_Main(int argc, char* argv[])
 					switch(format)
 					{
 						case 'x':
-							wr = obj_Write(str_String(pOutname));
+							wr = obj_Write(pOutname);
 							break;
 						case 'b':
-							wr = bin_Write(str_String(pOutname));
+							wr = bin_Write(pOutname);
 							break;
 						case 'g':
 							wr = ami_WriteExecutable(pOutname, debuginfo);

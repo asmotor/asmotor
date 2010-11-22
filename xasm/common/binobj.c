@@ -24,7 +24,7 @@
 #include "symbol.h"
 #include "patch.h"
 
-bool_t bin_Write(char* name)
+bool_t bin_Write(string* pName)
 {
 	FILE* f;
 
@@ -89,7 +89,7 @@ bool_t bin_Write(char* name)
 
 	patch_BackPatch();
 
-	if((f = fopen(name,"wb")) != NULL)
+	if((f = fopen(str_String(pName),"wb")) != NULL)
 	{
 		sect = pSectionList;
 		nAddress = sect->Org;
