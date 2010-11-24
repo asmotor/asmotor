@@ -141,13 +141,16 @@ SExpression* expr_PcRelative(SExpression* pExpr, int nAdjust)
 
 SExpression* expr_Pc()
 {
+	string* pName;
 	SExpression* expr = (SExpression*)mem_Alloc(sizeof(SExpression));
 
 	char sym[MAXSYMNAMELENGTH + 20];
 	SSymbol* pSym;
 
 	sprintf(sym, "$%s%u", pCurrentSection->Name, pCurrentSection->PC);
-	pSym = sym_AddLabel(sym);
+	pName = str_Create(sym);
+	pSym = sym_AddLabel(str_String(pName));
+	str_Free(pName);
 
 	if(pSym->Flags & SYMF_CONSTANT)
 	{
@@ -394,25 +397,33 @@ CREATETRANSEXPR(Atan,fatan)
 SExpression* expr_Bank(char* s)
 {
 	SExpression* expr;
+	string* pName;
 
 	if(!g_pConfiguration->bSupportBanks)
 		internalerror("Banks not supported");
 
+	pName = str_Create(s);
+	
 	expr = (SExpression*)mem_Alloc(sizeof(SExpression));
 
 	expr->pRight = NULL;
 	expr->pLeft = NULL;
-	expr->Value.pSymbol = sym_FindSymbol(s);
+	expr->Value.pSymbol = sym_FindSymbol(str_String(pName));
 	expr->Value.pSymbol->Flags |= SYMF_REFERENCED;
 	expr->nFlags = EXPRF_RELOC;
 	expr->eType = EXPR_OPERATOR;
 	expr->eOperator = T_FUNC_BANK;
+	
+	str_Free(pName);
+	
 	return expr;
 }
 
 SExpression* expr_Symbol(char* s)
 {
-	SSymbol* sym = sym_FindSymbol(s);
+	string* pName = str_Create(s);
+	SSymbol* sym = sym_FindSymbol(str_String(pName));
+	str_Free(pName);
 
 	if(sym->Flags & SYMF_EXPR)
 	{
@@ -420,7 +431,7 @@ SExpression* expr_Symbol(char* s)
 		
 		sym->Flags |= SYMF_REFERENCED;
 		if(sym->Flags & SYMF_CONSTANT)
-			return expr_Const(sym_GetConstant(s));
+			return expr_Const(sym_GetValueField(sym));
 
 		expr = (SExpression*)mem_Alloc(sizeof(SExpression));
 

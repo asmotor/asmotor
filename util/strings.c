@@ -71,7 +71,7 @@ int _strnicmp(const char* pszString1, const char* pszString2, int nCount)
 	if(nCount == 0)
 		return 0;
 
-	return l1 - l2;
+	return *pszString1 - *pszString2;
 }
 
 int _stricmp(const char* pszString1, const char* pszString2)
@@ -88,7 +88,7 @@ int _stricmp(const char* pszString1, const char* pszString2)
 			return l1 - l2;
 	}
 
-	return l1 - l2;
+	return *pszString1 - *pszString2;
 }
 #endif
 

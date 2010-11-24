@@ -30,14 +30,16 @@ typedef struct
 
 extern string* str_Create(char* pszData);
 extern string* str_CreateLength(char* pszData, int nLength);
-extern string* str_Empty();
+extern string* str_Empty(void);
 extern void str_Free(string* pString);
 extern string* str_Concat(string* pString1, string* pString2);
 extern string* str_Slice(string* pString1, int nIndex, int nLength);
+extern bool_t str_Equal(string* pString1, string* pString2);
 
 INLINE string* str_Copy(string* pString)
 {
-	++pString->nRefCount;
+	if(pString != NULL)
+		++pString->nRefCount;
 	return pString;
 }
 
@@ -55,5 +57,21 @@ INLINE char str_CharAt(string* pString, int nIndex)
 {
 	return pString->szData[nIndex];
 }
+
+INLINE void str_Assign(string** ppDest, string* pSrc)
+{
+	str_Free(*ppDest);
+	*ppDest = str_Copy(pSrc);
+}
+
+INLINE void str_Move(string** ppDest, string** ppSrc)
+{
+	str_Free(*ppDest);
+	*ppDest = *ppSrc;
+	*ppSrc = NULL;
+}
+
+#define STR_ASSIGN(p,str) 	str_Assign(&p, str)
+#define STR_MOVE(p,str) 	str_Move(&p, &str)
 
 #endif

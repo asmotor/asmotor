@@ -59,14 +59,14 @@ struct FileStack
 };
 typedef struct FileStack SFileStack;
 
-extern void fstk_RunMacro(char* symname);
+extern void fstk_RunMacro(string* pName);
 extern void fstk_RunInclude(string* pFile);
+extern void fstk_RunRept(char* buffer, uint32_t size, uint32_t count);
 extern bool_t fstk_RunNextBuffer(void);
 extern bool_t fstk_Init(string* pFile);
 extern void fstk_Cleanup(void);
 extern void fstk_Dump(void);
 extern string* fstk_FindFile(string* pFile);
-extern void fstk_RunRept(char* buffer, uint32_t size, uint32_t count);
 extern char* fstk_GetMacroArgValue(char ch);
 extern char* fstk_GetMacroRunID(void);
 extern void fstk_AddMacroArg(char* s);

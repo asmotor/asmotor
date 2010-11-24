@@ -23,6 +23,7 @@
 
 #include "xasm.h"
 #include "lists.h"
+#include "str.h"
 
 #define	HASHSIZE	1024
 
@@ -61,14 +62,14 @@ typedef	enum
 struct Symbol
 {
 	list_Data(struct Symbol);
-	char		Name[MAXSYMNAMELENGTH + 1];
+	string*		pName;
 	ESymbolType	Type;
-	uint32_t		Flags;
-	struct Symbol* pScope;
-	struct Section* pSection;
+	uint32_t	Flags;
+	struct Symbol*	pScope;
+	struct Section*	pSection;
 	union
 	{
-		int32_t 	(*Integer)(struct Symbol*);
+		int32_t (*Integer)(struct Symbol*);
 		char*	(*String)(struct Symbol*);
 	} Callback;
 	union
@@ -82,24 +83,27 @@ struct Symbol
 		} Macro;
 	} Value;
 
-	uint32_t		ID;	/*	Used by object output routines */
+	uint32_t ID;	/*	Used by object output routines */
 };
 
 typedef	struct	Symbol	SSymbol;
 
 
+extern bool_t	sym_Init(void);
 
+extern int32_t sym_GetValueField(SSymbol* sym);
 
+extern SSymbol* sym_AddLabel(char* name);
 extern SSymbol* sym_AddEQUS(char* name, char* value);
 extern SSymbol* sym_AddEQU(char* name, int32_t value);
 extern SSymbol* sym_AddSET(char* name, int32_t value);
 extern SSymbol* sym_AddGROUP(char* name, EGroupType value);
 extern SSymbol* sym_AddMACRO(char* name, char* value, uint32_t size);
+
 extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
 extern SSymbol*	sym_Export(char* name);
+
 extern int32_t	sym_GetConstant(char* name);
-extern bool_t		sym_Init(void);
-extern SSymbol* sym_AddLabel(char* name);
 extern bool_t		sym_isString(char* name);
 extern bool_t		sym_isMacro(char* name);
 extern char*	sym_GetStringValue(char* name);

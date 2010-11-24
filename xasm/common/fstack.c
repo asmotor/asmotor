@@ -391,18 +391,18 @@ void fstk_RunRept(char* buffer, uint32_t size, uint32_t count)
 	}
 }
 
-void fstk_RunMacro(char* symname)
+void fstk_RunMacro(string* pName)
 {
 	SSymbol	*sym;
 
-	if((sym = sym_FindSymbol(symname)) != NULL)
+	if((sym = sym_FindSymbol(str_String(pName))) != NULL)
 	{
 		SFileStack* newcontext = mem_Alloc(sizeof(SFileStack));
 
 		memset(newcontext, 0, sizeof(SFileStack));
 		newcontext->Type = CONTEXT_MACRO;
 
-		newcontext->pName = str_Create(symname);
+		newcontext->pName = str_Copy(pName);
 		newcontext->pLexBuffer = lex_CreateMemoryBuffer(sym->Value.Macro.pData, sym->Value.Macro.Size);
 
 		lex_SetBuffer(newcontext->pLexBuffer);
@@ -427,13 +427,16 @@ void fstk_RunMacro(char* symname)
 bool_t fstk_Init(string* pFile)
 {
 	FILE* f;
+	string* pName;
 
 	g_nTotalNewMacroArgs = 0;
 	g_ppszNewMacroArgs = NULL;
 	g_pMacroContext = NULL;
 	g_pszCurrentRunId = NULL;
 
-    sym_AddEQUS("__FILE", str_String(pFile));
+	pName = str_Create("__FILE");
+    sym_AddEQUS(str_String(pName), str_String(pFile));
+	str_Free(pName);
 
 	g_pFileContext = mem_Alloc(sizeof(SFileStack));
 	memset(g_pFileContext, 0, sizeof(SFileStack));

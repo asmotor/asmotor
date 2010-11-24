@@ -61,7 +61,7 @@ string* str_Empty()
 
 void str_Free(string* pString)
 {
-	if(--pString->nRefCount == 0)
+	if(pString != NULL && --pString->nRefCount == 0)
 		mem_Free(pString);
 }
 
@@ -90,3 +90,19 @@ string* str_Slice(string* pString, int nIndex, int nLength)
 	return str_CreateLength(str_String(pString) + nIndex, nLength);
 }
 
+bool_t str_Equal(string* pString1, string* pString2)
+{
+	int i;
+	int len = str_Length(pString1);
+	
+	if(len != str_Length(pString2))
+		return false;
+		
+	for(i = 0; i < len; ++i)
+	{
+		if(str_CharAt(pString1, i) != str_CharAt(pString2, i))
+			return false;
+	}
+
+	return true;
+}

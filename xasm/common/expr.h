@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_EXPR_H
-#define	INCLUDE_EXPR_H
+#ifndef	XASM_COMMON_INCLUDE_EXPR_H_INCLUDED_
+#define	XASM_COMMON_INCLUDE_EXPR_H_INCLUDED_
 
 #include "asmotor.h"
 #include "tokens.h"
@@ -37,15 +37,15 @@ typedef	enum
 
 typedef struct Expression
 {
-	struct Expression*	pLeft;
-	struct Expression*	pRight;
+	struct Expression* pLeft;
+	struct Expression* pRight;
 	EExprType	eType;
 	uint32_t	nFlags;
 	EToken		eOperator;
 	union
 	{
 		int32_t	Value;
-		struct Symbol*	pSymbol;
+		struct Symbol* pSymbol;
 	} Value;
 } SExpression;
 

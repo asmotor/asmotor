@@ -27,6 +27,7 @@
 #include "fstack.h"
 #include "project.h"
 #include "symbol.h"
+#include "strbuf.h"
 
 
 bool_t g_bDontExpandStrings;
@@ -36,118 +37,118 @@ uint32_t BinaryConstID;
 
 static SLexInitString staticstrings[] =
 {
-    "||",	T_OP_LOGICOR,
-    "&&",	T_OP_LOGICAND,
-    "==",	T_OP_LOGICEQU,
-    ">",	T_OP_LOGICGT,
-    "<",	T_OP_LOGICLT,
-    ">=",	T_OP_LOGICGE,
-    "<=",	T_OP_LOGICLE,
-    "~=",	T_OP_LOGICNE,
-    "~!",	T_OP_LOGICNOT,
-    "|",	T_OP_OR,
-    "!",	T_OP_OR,
-    "^",	T_OP_XOR,
-    "&",	T_OP_AND,
-    "<<",	T_OP_SHL,
-    ">>",	T_OP_SHR,
-    "+",	T_OP_ADD,
-    "-",	T_OP_SUB,
-    "*",	T_OP_MUL,
-    "/",	T_OP_DIV,
-    "~/",	T_OP_MOD,
-    "~",	T_OP_NOT,
+	{"||",	T_OP_LOGICOR},
+	{"&&",	T_OP_LOGICAND},
+	{"==",	T_OP_LOGICEQU},
+	{">",	T_OP_LOGICGT},
+	{"<",	T_OP_LOGICLT},
+	{">=",	T_OP_LOGICGE},
+	{"<=",	T_OP_LOGICLE},
+	{"~=",	T_OP_LOGICNE},
+	{"~!",	T_OP_LOGICNOT},
+	{"|",	T_OP_OR},
+	{"!",	T_OP_OR},
+	{"^",	T_OP_XOR},
+	{"&",	T_OP_AND},
+	{"<<",	T_OP_SHL},
+	{">>",	T_OP_SHR},
+	{"+",	T_OP_ADD},
+	{"-",	T_OP_SUB},
+	{"*",	T_OP_MUL},
+	{"/",	T_OP_DIV},
+	{"~/",	T_OP_MOD},
+	{"~",	T_OP_NOT},
 
-    "def",	T_FUNC_DEF,
+	{"def",	T_FUNC_DEF},
 
-    "//",	T_FUNC_FDIV,
-    "**",	T_FUNC_FMUL,
+	{"//",	T_FUNC_FDIV},
+	{"**",	T_FUNC_FMUL},
 
-    "sin",	T_FUNC_SIN,
-    "cos",	T_FUNC_COS,
-    "tan",	T_FUNC_TAN,
-    "asin",	T_FUNC_ASIN,
-    "acos",	T_FUNC_ACOS,
-    "atan",	T_FUNC_ATAN,
-    "atan2",T_FUNC_ATAN2,
+	{"sin",	T_FUNC_SIN},
+	{"cos",	T_FUNC_COS},
+	{"tan",	T_FUNC_TAN},
+	{"asin",	T_FUNC_ASIN},
+	{"acos",	T_FUNC_ACOS},
+	{"atan",	T_FUNC_ATAN},
+	{"atan2",	T_FUNC_ATAN2},
 
-    "compareto",	T_FUNC_COMPARETO,
-    "indexof",	T_FUNC_INDEXOF,
-    "slice",	T_FUNC_SLICE,
-    "length",	T_FUNC_LENGTH,
-    "toupper",	T_FUNC_TOUPPER,
-    "tolower",	T_FUNC_TOLOWER,
+	{"compareto",	T_FUNC_COMPARETO},
+	{"indexof",	T_FUNC_INDEXOF},
+	{"slice",	T_FUNC_SLICE},
+	{"length",	T_FUNC_LENGTH},
+	{"toupper",	T_FUNC_TOUPPER},
+	{"tolower",	T_FUNC_TOLOWER},
 
-    "printt",	T_POP_PRINTT,
-    "printv",	T_POP_PRINTV,
-    "printf",	T_POP_PRINTF,
-    "export",	T_POP_EXPORT,
-    "xdef",		T_POP_EXPORT,
-    "import",	T_POP_IMPORT,
-    "xref",		T_POP_IMPORT,
-    "global",	T_POP_GLOBAL,
+	{"printt",	T_POP_PRINTT},
+	{"printv",	T_POP_PRINTV},
+	{"printf",	T_POP_PRINTF},
+	{"export",	T_POP_EXPORT},
+	{"xdef",	T_POP_EXPORT},
+	{"import",	T_POP_IMPORT},
+	{"xref",	T_POP_IMPORT},
+	{"global",	T_POP_GLOBAL},
 
-    "rsreset",	T_POP_RSRESET,
-    "rsset",	T_POP_RSSET,
+	{"rsreset",	T_POP_RSRESET},
+	{"rsset",	T_POP_RSSET},
 
-    "set",		T_POP_SET,
-    "=",		T_POP_SET,
+	{"set",		T_POP_SET},
+	{"=",		T_POP_SET},
 
-    "section",	T_POP_SECTION,
-    "group",	T_POP_GROUP,
-    "text",		T_GROUP_TEXT,
-    "ram",		T_GROUP_BSS,
+	{"section",	T_POP_SECTION},
+	{"group",	T_POP_GROUP},
+	{"text",	T_GROUP_TEXT},
+	{"ram",		T_GROUP_BSS},
 
-    "equ",		T_POP_EQU,
-    "equs",		T_POP_EQUS,
+	{"equ",		T_POP_EQU},
+	{"equs",	T_POP_EQUS},
 
-	"purge",	T_POP_PURGE,
+	{"purge",	T_POP_PURGE},
 
-    "fail",		T_POP_FAIL,
-    "warn",		T_POP_WARN,
+	{"fail",	T_POP_FAIL},
+	{"warn",	T_POP_WARN},
 
-    "include",	T_POP_INCLUDE,
-	"incbin",	T_POP_INCBIN,
+	{"include",	T_POP_INCLUDE},
+	{"incbin",	T_POP_INCBIN},
 
-    "rept",		T_POP_REPT,
-    "endr",		T_POP_ENDR,		/*	Not needed but we have it here just to protect the name */
-	"rexit",	T_POP_REXIT,
+	{"rept",	T_POP_REPT},
+	{"endr",	T_POP_ENDR},	/*	Not needed but we have it here just to protect the name */
+	{"rexit",	T_POP_REXIT},
 
-    "if",		T_POP_IF,
-    "ifc",		T_POP_IFC,
-    "ifd",		T_POP_IFD,
-    "ifnc",		T_POP_IFNC,
-    "ifnd",		T_POP_IFND,
-    "ifne",		T_POP_IF,
-    "ifeq",		T_POP_IFEQ,
-    "ifgt",		T_POP_IFGT,
-    "ifge",		T_POP_IFGE,
-    "iflt",		T_POP_IFLT,
-    "ifle",		T_POP_IFLE,
-    "else",		T_POP_ELSE,
-    "endc",		T_POP_ENDC,
+	{"if",		T_POP_IF},
+	{"ifc",		T_POP_IFC},
+	{"ifd",		T_POP_IFD},
+	{"ifnc",	T_POP_IFNC},
+	{"ifnd",	T_POP_IFND},
+	{"ifne",	T_POP_IF},
+	{"ifeq",	T_POP_IFEQ},
+	{"ifgt",	T_POP_IFGT},
+	{"ifge",	T_POP_IFGE},
+	{"iflt",	T_POP_IFLT},
+	{"ifle",	T_POP_IFLE},
+	{"else",	T_POP_ELSE},
+	{"endc",	T_POP_ENDC},
 
-    "macro",	T_POP_MACRO,
-    "endm",		T_POP_ENDM,		/*	Not needed but we have it here just to protect the name */
-	"shift",	T_POP_SHIFT,
-	"mexit",	T_POP_MEXIT,
+	{"macro",	T_POP_MACRO},
+	{"endm",	T_POP_ENDM},	/*	Not needed but we have it here just to protect the name */
+	{"shift",	T_POP_SHIFT},
+	{"mexit",	T_POP_MEXIT},
 
-	"pushs",	T_POP_PUSHS,
-	"pops",		T_POP_POPS,
-	"pusho",	T_POP_PUSHO,
-	"popo",		T_POP_POPO,
+	{"pushs",	T_POP_PUSHS},
+	{"pops",	T_POP_POPS},
+	{"pusho",	T_POP_PUSHO},
+	{"popo",	T_POP_POPO},
 
-	"opt",		T_POP_OPT,
+	{"opt",		T_POP_OPT},
 
-	"lowlimit",		T_FUNC_LOWLIMIT,
-	"highlimit",	T_FUNC_HIGHLIMIT,
+	{"lowlimit",	T_FUNC_LOWLIMIT},
+	{"highlimit",	T_FUNC_HIGHLIMIT},
 
-	"even",		T_POP_EVEN,
-	"cnop",		T_POP_CNOP,
+	{"even",	T_POP_EVEN},
+	{"cnop",	T_POP_CNOP},
 
-	"end",		T_POP_END,
+	{"end",	T_POP_END},
 
-    NULL, 0
+	{NULL, 0}
 };
 
 static int32_t binary2bin(char ch)
@@ -210,7 +211,7 @@ static int32_t ascii2bin(char* s, size_t len)
 
 static bool_t ParseNumber(char* s, uint32_t size)
 {
-    g_CurrentToken.Value.nInteger = ascii2bin(s, size);
+	g_CurrentToken.Value.nInteger = ascii2bin(s, size);
     return true;
 }
 
@@ -237,72 +238,70 @@ static bool_t ParseDecimal(char* s, uint32_t size)
 	}
 
 	g_CurrentToken.TokenLength -= size;
-    g_CurrentToken.Value.nInteger = integer;
+	g_CurrentToken.Value.nInteger = integer;
     return true;
 }
 
 static bool_t ParseSymbol(char* src, uint32_t size)
 {
-	char dest[MAXSYMNAMELENGTH+1];
-	int copied = 0;
-	int size_backup = size;
+	stringbuffer* pBuffer = strbuf_Create();
+	string* pString;
+	int i;
 
-	while(size && copied < MAXSYMNAMELENGTH)
+	for(i = 0; i < size; ++i)
 	{
-		if(*src == '\\')
+		char ch = *src++;
+		
+		if(ch == '\\')
 		{
-			char* marg;
-
-			++src;
-			--size;
-
-			if(*src == '@')
-				marg = fstk_GetMacroRunID();
-			else if(*src >= '0' && *src <= '9')
-				marg = fstk_GetMacroArgValue(*src);
-			else
+			if(i + 1 < size)
 			{
-				prj_Fail(ERROR_ID_MALFORMED);
-				return false;
+				char* marg = NULL;
+
+				ch = *src++;
+				++i;
+				
+				if(ch == '@')
+					marg = fstk_GetMacroRunID();
+				else if(ch >= '0' && ch <= '9')
+					marg = fstk_GetMacroArgValue(ch);
+					
+				if(marg)
+				{
+					strbuf_AppendStringZero(pBuffer, marg);
+					continue;
+				}
 			}
 
-			++src;
-			--size;
+			prj_Fail(ERROR_ID_MALFORMED);
+			strbuf_Free(pBuffer);
+			return false;
+		}
 
-			if(marg)
-			{
-				while(*marg)
-					dest[copied++] = *marg++;
-			}
-		}
-		else
-		{
-			dest[copied++] = *src++;
-			size -= 1;
-		}
+		strbuf_AppendChar(pBuffer, ch);
 	}
 
-	if(copied > MAXSYMNAMELENGTH)
-		internalerror("Symbolname too long");
-
-	dest[copied] = 0;
-
-	if(g_bDontExpandStrings == 0 && sym_isString(dest))
+	pString = strbuf_String(pBuffer);
+	strbuf_Free(pBuffer);
+	
+	if(g_bDontExpandStrings == 0 && sym_isString(str_String(pString)))
 	{
 		char* s;
 
-		lex_SkipBytes(size_backup);
-		lex_UnputString(s = sym_GetStringValue(dest));
+		lex_SkipBytes(size);
+		lex_UnputString(s = sym_GetStringValue(str_String(pString)));
 
 		while(*s)
 		{
 			if(*s++ == '\n')
 				g_pFileContext->LineNumber -= 1;
 		}
+		str_Free(pString);
 		return false;
 	}
 
-	strcpy(g_CurrentToken.Value.aString, dest);
+	strcpy(g_CurrentToken.Value.aString, str_String(pString));
+	str_Free(pString);
 	return true;
 }
 

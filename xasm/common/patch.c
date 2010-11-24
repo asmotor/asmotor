@@ -556,7 +556,7 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
 				return true;
 			}
 			if(expr->Value.pSymbol->Type == SYM_UNDEFINED)
-				prj_Error(ERROR_SYMBOL_UNDEFINED, expr->Value.pSymbol->Name);
+				prj_Error(ERROR_SYMBOL_UNDEFINED, str_String(expr->Value.pSymbol->pName));
 			return false;
 		default:
 			internalerror("Unknown expression");

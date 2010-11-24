@@ -419,11 +419,6 @@ bool_t parse_ExpectChar(char ch)
 	}
 }
 
-bool_t parse_ExpectComma(void)
-{
-	return parse_ExpectChar(',');
-}
-
 
 
 /*
@@ -2167,8 +2162,7 @@ bool_t parse_Misc(void)
 		{
 			if(sym_isMacro(g_CurrentToken.Value.aString))
 			{
-				char* s = mem_Alloc(strlen(g_CurrentToken.Value.aString) + 1);
-				strcpy(s, g_CurrentToken.Value.aString);
+				string* s = str_Create(g_CurrentToken.Value.aString);
 
 				lex_SetState(LEX_STATE_MACROARG0);
 				parse_GetToken();
@@ -2203,7 +2197,7 @@ bool_t parse_Misc(void)
 				}
 				lex_SetState(LEX_STATE_NORMAL);
 				fstk_RunMacro(s);
-				mem_Free(s);
+				str_Free(s);
 				return true;
 			}
 			else

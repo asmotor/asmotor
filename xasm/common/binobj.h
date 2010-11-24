@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_BINOBJ_H
-#define	INCLUDE_BINOBJ_H
+#ifndef	XASM_COMMON_INCLUDE_BINOBJ_H_INCLUDED_
+#define	XASM_COMMON_INCLUDE_BINOBJ_H_INCLUDED_
 
 extern bool_t bin_Write(string* pName);
 

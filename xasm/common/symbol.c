@@ -156,7 +156,7 @@ static SSymbol* sym_Find(char* s, SSymbol* scope)
 
     while(psym)
     {
-		if(strcmp(psym->Name, s) == 0 && psym->pScope == scope)
+		if(strcmp(str_String(psym->pName), s) == 0 && psym->pScope == scope)
 			return psym;
 
 		psym = list_GetNext(psym);
@@ -179,7 +179,7 @@ static SSymbol* sym_Create(char* s)
 	
 	psym->Type = SYM_UNDEFINED;
 	psym->Flags = g_aDefaultSymbolFlags[SYM_UNDEFINED];
-	strcpy(psym->Name, s);
+	psym->pName = str_Create(s);
 
 	list_Insert(*phash, psym);
 	return psym;
@@ -212,18 +212,19 @@ static bool_t sym_isType(SSymbol* sym, ESymbolType type)
 	return sym->Type == type || sym->Type == SYM_UNDEFINED;
 }
 
-static int32_t sym_GetValueField(SSymbol* sym)
+
+
+
+
+/*	Public routines */
+
+int32_t sym_GetValueField(SSymbol* sym)
 {
 	if(sym->Callback.Integer)
 		return sym->Callback.Integer(sym);
 
 	return sym->Value.Value;
 }
-
-
-
-
-/*	Public routines */
 
 int32_t sym_GetConstant(char* name)
 {

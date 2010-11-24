@@ -102,7 +102,7 @@ static uint32_t calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, uint
 			if(expr->Value.pSymbol->ID == -1)
 			{
 				expr->Value.pSymbol->ID = ID++;
-				fputasciiz(expr->Value.pSymbol->Name, f);
+				fputasciiz(str_String(expr->Value.pSymbol->pName), f);
 				if(expr->Value.pSymbol->pSection==sect)
 				{
 					if(expr->Value.pSymbol->Flags&SYMF_LOCALEXPORT)
@@ -392,7 +392,7 @@ bool_t obj_Write(string* pName)
 			if(sym->Type == SYM_GROUP)
 			{
 				sym->ID = groupcount++;
-				fputasciiz(sym->Name, f);
+				fputasciiz(str_String(sym->pName), f);
 				fputll(sym->Value.GroupType, f);
 			}
 			sym = list_GetNext(sym);
@@ -429,7 +429,7 @@ bool_t obj_Write(string* pName)
 			&& (sym->Flags & SYMF_EXPORT))
 			{
 				++equsetcount;
-				fputasciiz(sym->Name, f);
+				fputasciiz(str_String(sym->pName), f);
 				fputll(0, f);	/* EXPORT */
 				fputll(sym->Value.Value, f);
 			}
@@ -500,7 +500,7 @@ bool_t obj_Write(string* pName)
 				{
 					sym->ID = ID++;
 
-					fputasciiz(sym->Name, f);
+					fputasciiz(str_String(sym->pName), f);
 					if(sym->Flags & SYMF_EXPORT)
 						fputll(0, f);	//	EXPORT
 					else if(sym->Flags & SYMF_LOCALEXPORT)

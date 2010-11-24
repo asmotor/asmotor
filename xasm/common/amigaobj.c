@@ -91,7 +91,7 @@ void ami_WriteSymbolHunk(FILE* f, SSection* pSect, bool_t bSkipExt)
 			{
 				if(!((sym->Flags & SYMF_EXPORT) && bSkipExt))
 				{
-					fputstr(sym->Name, f, 0);
+					fputstr(str_String(sym->pName), f, 0);
 					fputml(sym->Value.Value, f);
 					++count;
 				}
@@ -126,7 +126,7 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 			long loccount = 0;
 			SPatch* patch;
 
-			fputstr(pSym->Name, f, EXT_REF32);
+			fputstr(str_String(pSym->pName), f, EXT_REF32);
 			symcountpos = ftell(f);
 			fputml(0, f);
 
@@ -177,7 +177,7 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 			if((sym->Flags & (SYMF_RELOC | SYMF_EXPORT)) == (SYMF_RELOC | SYMF_EXPORT)
 			&& sym->pSection == pSect)
 			{
-				fputstr(sym->Name, f, EXT_DEF);
+				fputstr(str_String(sym->pName), f, EXT_DEF);
 				fputml(sym->Value.Value, f);
 				++count;
 			}

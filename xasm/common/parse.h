@@ -16,16 +16,20 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_PARSE_H
-#define	INCLUDE_PARSE_H
+#ifndef	XASM_COMMON_PARSE_H_INCLUDED_
+#define	XASM_COMMON_PARSE_H_INCLUDED_
 
 #include "expr.h"
 
-extern	bool_t	parse_Do(void);
-extern	void	parse_GetToken(void);
-extern	SExpression* parse_Expression(void);
-extern	int32_t	parse_ConstantExpression(void);
+extern bool_t	parse_Do(void);
+extern void		parse_GetToken(void);
+extern SExpression* parse_Expression(void);
+extern int32_t	parse_ConstantExpression(void);
 extern bool_t	parse_ExpectChar(char ch);
-extern bool_t parse_ExpectComma(void);
 
-#endif	/*INCLUDE_PARSE_H*/
+INLINE bool_t parse_ExpectComma(void)
+{
+	return parse_ExpectChar(',');
+}
+
+#endif	/*XASM_COMMON_PARSE_H_INCLUDED_*/
