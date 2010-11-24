@@ -698,6 +698,7 @@ static SExpression* parse_ExprPri7(void)
 		case T_FUNC_DEF:
 		{
 			SExpression* t1;
+			string* pName;
 
 			parse_GetToken();
 
@@ -710,7 +711,9 @@ static SExpression* parse_ExprPri7(void)
 				return NULL;
 			}
 
-			t1 = expr_Const(sym_isDefined(g_CurrentToken.Value.aString));
+			pName = str_Create(g_CurrentToken.Value.aString);
+			t1 = expr_Const(sym_IsDefined(pName));
+			str_Free(pName);
 			parse_GetToken();
 
 			if(!parse_ExpectChar(')'))
@@ -1451,6 +1454,7 @@ static bool_t parse_PseudoOp(void)
 			char* name;
 			char r[MAXSYMNAMELENGTH+1];
 			SSymbol* sym;
+			string* pGroup;
 
 			parse_GetToken();
 			if((name = parse_StringExpression()) == NULL)
@@ -1468,7 +1472,10 @@ static bool_t parse_PseudoOp(void)
 				return false;
 			}
 
-			sym = sym_FindSymbol(g_CurrentToken.Value.aString);
+			pGroup = str_Create(g_CurrentToken.Value.aString);
+			sym = sym_FindSymbol(pGroup);
+			str_Free(pGroup);
+			
 			if(sym->Type != SYM_GROUP)
 			{
 				prj_Error(ERROR_IDENTIFIER_GROUP);
@@ -1982,7 +1989,8 @@ static bool_t parse_PseudoOp(void)
 
 			if(g_CurrentToken.ID.Token == T_ID)
 			{
-				if(sym_isDefined(g_CurrentToken.Value.aString))
+				string* pName = str_Create(g_CurrentToken.Value.aString);
+				if(sym_IsDefined(pName))
 				{
 					parse_GetToken();
 				}
@@ -1992,6 +2000,7 @@ static bool_t parse_PseudoOp(void)
 					/* will continue parsing just after ELSE or just at ENDC keyword */
 					parse_IfSkipToElse();
 				}
+				str_Free(pName);
 				return true;
 			}
 			prj_Error(ERROR_EXPECT_IDENTIFIER);
@@ -2004,7 +2013,8 @@ static bool_t parse_PseudoOp(void)
 
 			if(g_CurrentToken.ID.Token == T_ID)
 			{
-				if(!sym_isDefined(g_CurrentToken.Value.aString))
+				string* pName = str_Create(g_CurrentToken.Value.aString);
+				if(!sym_IsDefined(pName))
 				{
 					parse_GetToken();
 				}
@@ -2014,6 +2024,7 @@ static bool_t parse_PseudoOp(void)
 					/* will continue parsing just after ELSE or just at ENDC keyword */
 					parse_IfSkipToElse();
 				}
+				str_Free(pName);
 				return true;
 			}
 			prj_Error(ERROR_EXPECT_IDENTIFIER);

@@ -408,7 +408,7 @@ SExpression* expr_Bank(char* s)
 
 	expr->pRight = NULL;
 	expr->pLeft = NULL;
-	expr->Value.pSymbol = sym_FindSymbol(str_String(pName));
+	expr->Value.pSymbol = sym_FindSymbol(pName);
 	expr->Value.pSymbol->Flags |= SYMF_REFERENCED;
 	expr->nFlags = EXPRF_RELOC;
 	expr->eType = EXPR_OPERATOR;
@@ -422,7 +422,7 @@ SExpression* expr_Bank(char* s)
 SExpression* expr_Symbol(char* s)
 {
 	string* pName = str_Create(s);
-	SSymbol* sym = sym_FindSymbol(str_String(pName));
+	SSymbol* sym = sym_FindSymbol(pName);
 	str_Free(pName);
 
 	if(sym->Flags & SYMF_EXPR)

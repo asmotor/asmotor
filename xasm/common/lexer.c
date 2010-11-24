@@ -229,6 +229,8 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t b
 		}
 		else if(ch=='{')
 		{
+			bool_t bSymDefined;
+			string* pSymName;
 			char sym[MAXSYMNAMELENGTH];
 			int i = 0;
 
@@ -286,7 +288,11 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t b
 			}
 
 			sym[i] = 0;
-			if(!bAllowUndefinedSymbols && !sym_isDefined(sym))
+			pSymName = str_Create(sym);
+			bSymDefined = sym_IsDefined(pSymName);
+			str_Free(pSymName);
+			
+			if(!bAllowUndefinedSymbols && !bSymDefined)
 			{
 				return NULL;
 			}

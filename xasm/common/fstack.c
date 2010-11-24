@@ -395,7 +395,7 @@ void fstk_RunMacro(string* pName)
 {
 	SSymbol	*sym;
 
-	if((sym = sym_FindSymbol(str_String(pName))) != NULL)
+	if((sym = sym_FindSymbol(pName)) != NULL)
 	{
 		SFileStack* newcontext = mem_Alloc(sizeof(SFileStack));
 

@@ -237,9 +237,9 @@ int32_t sym_GetConstant(char* name)
 	return 0;
 }
 
-SSymbol* sym_FindSymbol(char* name)
+SSymbol* sym_FindSymbol(string* name)
 {
-	return sym_FindOrCreate(name, sym_GetScope(name));
+	return sym_FindOrCreate(str_String(name), sym_GetScope(str_String(name)));
 }
 
 SSymbol* sym_CreateGROUP(string* pName, EGroupType value)
@@ -509,15 +509,11 @@ bool_t sym_isMacro(char* name)
 	return false;
 }
 
-bool_t sym_isDefined(char* name)
+bool_t sym_IsDefined(string* pName)
 {
-	SSymbol* sym;
+	SSymbol* sym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
 
-	if((sym = sym_Find(name, sym_GetScope(name))) != NULL)
-		return sym->Type != SYM_UNDEFINED;
-
-
-	return false;
+	return sym != NULL && sym->Type != SYM_UNDEFINED;
 }
 
 static char* sym_GetStringValueBySymbol(SSymbol* sym)

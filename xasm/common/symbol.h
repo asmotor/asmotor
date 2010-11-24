@@ -98,7 +98,7 @@ extern SSymbol* sym_CreateSET(string* pName, int32_t value);
 extern SSymbol* sym_CreateGROUP(string* pName, EGroupType value);
 extern SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size);
 
-extern SSymbol* sym_FindSymbol(char* name);
+extern SSymbol* sym_FindSymbol(string* name);
 
 extern bool_t	sym_Purge(string* pName);
 
@@ -111,7 +111,7 @@ extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
 extern char*	sym_GetStringValue(char* name);
 extern int32_t	sym_GetConstant(char* name);
 
-extern bool_t	sym_isDefined(char* name);
+extern bool_t	sym_IsDefined(string* pName);
 extern bool_t	sym_isString(char* name);
 extern bool_t	sym_isMacro(char* name);
 
