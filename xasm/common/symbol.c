@@ -242,9 +242,9 @@ SSymbol* sym_FindSymbol(char* name)
 	return sym_FindOrCreate(name, sym_GetScope(name));
 }
 
-SSymbol* sym_AddGROUP(char* name, EGroupType value)
+SSymbol* sym_CreateGROUP(string* pName, EGroupType value)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	if((sym->Flags & SYMF_MODIFY) && sym_isType(sym,SYM_GROUP))
 	{

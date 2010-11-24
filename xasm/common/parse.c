@@ -1309,11 +1309,11 @@ static bool_t parse_Symbol(void)
 				switch(g_CurrentToken.ID.Token)
 				{
 					case T_GROUP_TEXT:
-						sym_AddGROUP(str_String(pName), GROUP_TEXT);
+						sym_CreateGROUP(pName, GROUP_TEXT);
 						r = true;
 						break;
 					case T_GROUP_BSS:
-						sym_AddGROUP(str_String(pName), GROUP_BSS);
+						sym_CreateGROUP(pName, GROUP_BSS);
 						r = true;
 						break;
 					default:

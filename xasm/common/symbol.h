@@ -94,8 +94,8 @@ extern bool_t	sym_Init(void);
 extern SSymbol* sym_CreateLabel(string* pName);
 extern SSymbol* sym_CreateEQUS(string* pName, char* value);
 extern SSymbol* sym_CreateEQU(string* pName, int32_t value);
-extern SSymbol* sym_CreateSET(string* name, int32_t value);
-extern SSymbol* sym_AddGROUP(char* name, EGroupType value);
+extern SSymbol* sym_CreateSET(string* pName, int32_t value);
+extern SSymbol* sym_CreateGROUP(string* pName, EGroupType value);
 extern SSymbol* sym_AddMACRO(char* name, char* value, uint32_t size);
 
 extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);

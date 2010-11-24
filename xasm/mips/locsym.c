@@ -21,7 +21,17 @@
 
 void locsym_Init(void)
 {
-	sym_AddGROUP("CODE", GROUP_TEXT);
-	sym_AddGROUP("DATA", GROUP_TEXT);
-	sym_AddGROUP("BSS", GROUP_BSS);
+	string* pName;
+	
+	pName = str_Create("CODE");
+	sym_CreateGROUP(pName, GROUP_TEXT);
+	str_Free(pName);
+
+	pName = str_Create("DATA");
+	sym_CreateGROUP(pName, GROUP_TEXT);
+	str_Free(pName);
+
+	pName = str_Create("BSS");
+	sym_CreateGROUP(pName, GROUP_BSS);
+	str_Free(pName);
 }

@@ -22,10 +22,29 @@
 
 void locsym_Init(void)
 {
-	sym_AddGROUP("CODE", GROUP_TEXT);
-	sym_AddGROUP("DATA", GROUP_TEXT)->Flags |= SYMF_DATA;
-	sym_AddGROUP("BSS", GROUP_BSS);
-	sym_AddGROUP("CODE_C", GROUP_TEXT)->Flags |= SYMF_CHIP;
-	sym_AddGROUP("DATA_C", GROUP_TEXT)->Flags |= SYMF_DATA | SYMF_CHIP;
-	sym_AddGROUP("BSS_C", GROUP_BSS)->Flags |= SYMF_CHIP;
+	string* pName;
+	
+	pName = str_Create("CODE");
+	sym_CreateGROUP(pName, GROUP_TEXT);
+	str_Free(pName);
+	
+	pName = str_Create("DATA");
+	sym_CreateGROUP(pName, GROUP_TEXT)->Flags |= SYMF_DATA;
+	str_Free(pName);
+	
+	pName = str_Create("BSS");
+	sym_CreateGROUP(pName, GROUP_BSS);
+	str_Free(pName);
+	
+	pName = str_Create("CODE_C");
+	sym_CreateGROUP(pName, GROUP_TEXT)->Flags |= SYMF_CHIP;
+	str_Free(pName);
+	
+	pName = str_Create("DATA_C");
+	sym_CreateGROUP(pName, GROUP_TEXT)->Flags |= SYMF_DATA | SYMF_CHIP;
+	str_Free(pName);
+	
+	pName = str_Create("BSS_C");
+	sym_CreateGROUP(pName, GROUP_BSS)->Flags |= SYMF_CHIP;
+	str_Free(pName);
 }
