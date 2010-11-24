@@ -113,10 +113,9 @@ extern int32_t	sym_GetValue(SSymbol* pSym);
 extern int32_t	sym_GetValueByName(string* pName);
 
 extern bool_t	sym_IsDefined(string* pName);
-extern bool_t	sym_isString(char* name);
-extern bool_t	sym_isMacro(char* name);
+extern bool_t	sym_IsString(string* pName);
+extern bool_t	sym_IsMacro(string* pName);
 
-
-extern	SSymbol* g_pHashedSymbols[HASHSIZE];
+extern SSymbol* g_pHashedSymbols[HASHSIZE];
 
 #endif	/*INCLUDE_SYMBOL_H*/

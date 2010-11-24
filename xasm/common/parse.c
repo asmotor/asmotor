@@ -2160,7 +2160,11 @@ bool_t parse_Misc(void)
 	{
 		case T_ID:
 		{
-			if(sym_isMacro(g_CurrentToken.Value.aString))
+			string* pName = str_Create(g_CurrentToken.Value.aString);
+			bool_t bIsMacro = sym_IsMacro(pName);
+			str_Free(pName);
+			
+			if(bIsMacro)
 			{
 				string* s = str_Create(g_CurrentToken.Value.aString);
 

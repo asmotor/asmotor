@@ -285,7 +285,7 @@ static bool_t ParseSymbol(char* src, uint32_t size)
 	pString = strbuf_String(pBuffer);
 	strbuf_Free(pBuffer);
 	
-	if(g_bDontExpandStrings == 0 && sym_isString(str_String(pString)))
+	if(g_bDontExpandStrings == 0 && sym_IsString(pString))
 	{
 		string* pValue = sym_GetStringValueByName(pString);
 		int len = str_Length(pValue);

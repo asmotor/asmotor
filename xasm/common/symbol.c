@@ -489,31 +489,25 @@ bool_t sym_Purge(string* pName)
 	return false;
 }
 
-bool_t sym_isString(char* name)
+bool_t sym_IsString(string* pName)
 {
-	SSymbol* sym;
+	SSymbol* pSym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
 
-	if((sym = sym_Find(name,sym_GetScope(name))) != NULL)
-		return sym->Type == SYM_EQUS;
-
-	return false;
+	return pSym != NULL && pSym->Type == SYM_EQUS;
 }
 
-bool_t sym_isMacro(char* name)
+bool_t sym_IsMacro(string* pName)
 {
-	SSymbol* sym;
+	SSymbol* pSym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
 
-	if((sym = sym_Find(name, sym_GetScope(name))) != NULL)
-		return sym->Type == SYM_MACRO;
-
-	return false;
+	return pSym != NULL && pSym->Type == SYM_MACRO;
 }
 
 bool_t sym_IsDefined(string* pName)
 {
-	SSymbol* sym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
 
-	return sym != NULL && sym->Type != SYM_UNDEFINED;
+	return pSym != NULL && pSym->Type != SYM_UNDEFINED;
 }
 
 string* sym_GetStringValue(SSymbol* pSym)
