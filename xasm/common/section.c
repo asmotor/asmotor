@@ -61,7 +61,7 @@ static EGroupType sect_GetCurrentType(void)
 	if(pCurrentSection->pGroup == NULL)
 		internalerror("No GROUP defined for SECTION");
 
-	if(pCurrentSection->pGroup->Type == SYM_GROUP)
+	if(pCurrentSection->pGroup->eType == SYM_GROUP)
 		return pCurrentSection->pGroup->Value.GroupType;
 	else
 		internalerror("SECTION's GROUP symbol is not of type SYM_GROUP");

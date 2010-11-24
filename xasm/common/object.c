@@ -121,7 +121,7 @@ static uint32_t calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, uint
 						fputll(expr->Value.pSymbol->Value.Value, f);
 					}
 				}
-				else if((expr->Value.pSymbol->Type==SYM_IMPORT) || (expr->Value.pSymbol->Type==SYM_GLOBAL))
+				else if(expr->Value.pSymbol->eType == SYM_IMPORT || expr->Value.pSymbol->eType == SYM_GLOBAL)
 				{
 					fputll(1, f);	//	IMPORT
 				}
@@ -389,7 +389,7 @@ bool_t obj_Write(string* pName)
 
 		while(sym)
 		{
-			if(sym->Type == SYM_GROUP)
+			if(sym->eType == SYM_GROUP)
 			{
 				sym->ID = groupcount++;
 				fputasciiz(str_String(sym->pName), f);
@@ -425,7 +425,7 @@ bool_t obj_Write(string* pName)
 			
 		for(sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym))
 		{
-			if((sym->Type == SYM_EQU ||	sym->Type == SYM_SET)
+			if((sym->eType == SYM_EQU || sym->eType == SYM_SET)
 			&& (sym->Flags & SYMF_EXPORT))
 			{
 				++equsetcount;
@@ -492,7 +492,7 @@ bool_t obj_Write(string* pName)
 
 			for(sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym))
 			{
-				if(sym->Type != SYM_GROUP)
+				if(sym->eType != SYM_GROUP)
 					sym->ID = (uint32_t)-1;
 
 				if(sym->pSection == sect

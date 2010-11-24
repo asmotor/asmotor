@@ -1477,7 +1477,7 @@ static bool_t parse_PseudoOp(void)
 			sym = sym_FindSymbol(pGroup);
 			str_Free(pGroup);
 			
-			if(sym->Type != SYM_GROUP)
+			if(sym->eType != SYM_GROUP)
 			{
 				prj_Error(ERROR_IDENTIFIER_GROUP);
 				return true;

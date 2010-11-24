@@ -227,7 +227,7 @@ bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pE
 	if(expr_GetType(pExpr) == EXPR_SYMBOL)
 	{
 		SSymbol* pSym = pExpr->Value.pSymbol;
-		if(pSym->Type == SYM_IMPORT || pSym->Type == SYM_GLOBAL)
+		if(pSym->eType == SYM_IMPORT || pSym->eType == SYM_GLOBAL)
 		{
 			if(*ppSym != NULL)
 				return false;
@@ -555,7 +555,7 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
 				*v = expr->Value.pSymbol->Value.Value;
 				return true;
 			}
-			if(expr->Value.pSymbol->Type == SYM_UNDEFINED)
+			if(expr->Value.pSymbol->eType == SYM_UNDEFINED)
 				prj_Error(ERROR_SYMBOL_UNDEFINED, str_String(expr->Value.pSymbol->pName));
 			return false;
 		default:

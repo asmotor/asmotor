@@ -63,7 +63,7 @@ typedef struct Symbol
 {
 	list_Data(struct Symbol);
 	string*		pName;
-	ESymbolType	Type;
+	ESymbolType	eType;
 	uint32_t	Flags;
 	struct Symbol*	pScope;
 	struct Section*	pSection;
