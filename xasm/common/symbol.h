@@ -108,7 +108,8 @@ extern SSymbol* sym_Global(string* pName);
 
 extern int32_t	sym_GetValueField(SSymbol* sym);
 extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
-extern char*	sym_GetStringValue(char* name);
+extern string*	sym_GetStringValue(SSymbol* pSym);
+extern string*	sym_GetStringValueByName(string* pName);
 extern int32_t	sym_GetConstant(char* name);
 
 extern bool_t	sym_IsDefined(string* pName);

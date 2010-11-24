@@ -68,8 +68,6 @@ SSymbol* p__AMIGADATE__Symbol;
 
 /*	Private routines */
 
-static char* sym_GetStringValueBySymbol(SSymbol* sym);
-
 static int32_t __NARG__Callback(SSymbol* sym)
 {
 	return fstk_GetMacroArgCount();
@@ -397,9 +395,13 @@ char* sym_ConvertSymbolValueToString(char* dst, char* sym)
 		}
 		case SYM_EQUS:
 		{
-			strcpy(dst, sym_GetStringValueBySymbol(psym));
-			return dst + strlen(dst);
-			break;
+			string* pValue = sym_GetStringValue(psym);
+			int len = str_Length(pValue);
+			
+			strcpy(dst, str_String(pValue));
+			str_Free(pValue);
+			
+			return dst + len;
 		}
 		case SYM_LABEL:
 		case SYM_MACRO:
@@ -516,27 +518,25 @@ bool_t sym_IsDefined(string* pName)
 	return sym != NULL && sym->Type != SYM_UNDEFINED;
 }
 
-static char* sym_GetStringValueBySymbol(SSymbol* sym)
+string* sym_GetStringValue(SSymbol* pSym)
 {
-	if(sym->Type == SYM_EQUS)
+	if(pSym->Type == SYM_EQUS)
 	{
-		if(sym->Callback.String)
-			sym->Callback.String(sym);
-		return sym->Value.Macro.pData;
+		if(pSym->Callback.String)
+			pSym->Callback.String(pSym);
+		return str_Create(pSym->Value.Macro.pData);
 	}
 
 	prj_Fail(ERROR_SYMBOL_EQUS);
 	return NULL;
 }
 
-char* sym_GetStringValue(char* name)
+string* sym_GetStringValueByName(string* pName)
 {
-	SSymbol* sym;
+	SSymbol* pSym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
 
-	if((sym = sym_Find(name, sym_GetScope(name))) != NULL)
-	{
-		return sym_GetStringValueBySymbol(sym);
-	}
+	if(pSym != NULL)
+		return sym_GetStringValue(pSym);
 
 	return NULL;
 }

@@ -247,6 +247,7 @@ static bool_t ParseSymbol(char* src, uint32_t size)
 	stringbuffer* pBuffer = strbuf_Create();
 	string* pString;
 	int i;
+	bool_t r;
 
 	for(i = 0; i < size; ++i)
 	{
@@ -286,23 +287,30 @@ static bool_t ParseSymbol(char* src, uint32_t size)
 	
 	if(g_bDontExpandStrings == 0 && sym_isString(str_String(pString)))
 	{
-		char* s;
+		string* pValue = sym_GetStringValueByName(pString);
+		int len = str_Length(pValue);
+		int i;
 
 		lex_SkipBytes(size);
-		lex_UnputString(s = sym_GetStringValue(str_String(pString)));
+		lex_UnputString(str_String(pValue));
 
-		while(*s)
+		for(i = 0; i < len; ++i)
 		{
-			if(*s++ == '\n')
+			if(str_CharAt(pValue, i) == '\n')
 				g_pFileContext->LineNumber -= 1;
 		}
-		str_Free(pString);
-		return false;
+		
+		r = false;
+		str_Free(pValue);
 	}
-
-	strcpy(g_CurrentToken.Value.aString, str_String(pString));
+	else
+	{
+		strcpy(g_CurrentToken.Value.aString, str_String(pString));
+		r = true;
+	}
+	
 	str_Free(pString);
-	return true;
+	return r;
 }
 
 bool_t ParseMacroArg(char* src, uint32_t size)
