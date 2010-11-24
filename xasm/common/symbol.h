@@ -98,10 +98,16 @@ extern SSymbol* sym_CreateSET(string* pName, int32_t value);
 extern SSymbol* sym_CreateGROUP(string* pName, EGroupType value);
 extern SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size);
 
-extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
-extern SSymbol*	sym_Export(char* name);
+extern SSymbol* sym_FindSymbol(char* name);
+
+extern bool_t	sym_Purge(string* pName);
+
+extern SSymbol*	sym_Export(string* pName);
+extern SSymbol* sym_Import(string* pName);
+extern SSymbol* sym_Global(string* pName);
 
 extern int32_t	sym_GetValueField(SSymbol* sym);
+extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
 extern char*	sym_GetStringValue(char* name);
 extern int32_t	sym_GetConstant(char* name);
 
@@ -109,10 +115,6 @@ extern bool_t	sym_isDefined(char* name);
 extern bool_t	sym_isString(char* name);
 extern bool_t	sym_isMacro(char* name);
 
-extern SSymbol* sym_FindSymbol(char* name);
-extern SSymbol* sym_Import(char* name);
-extern SSymbol* sym_Global(char* name);
-extern bool_t	sym_Purge(char* name);
 
 extern	SSymbol* g_pHashedSymbols[HASHSIZE];
 

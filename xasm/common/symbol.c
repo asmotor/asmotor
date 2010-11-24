@@ -416,9 +416,9 @@ char* sym_ConvertSymbolValueToString(char* dst, char* sym)
 	}
 }
 
-SSymbol* sym_Export(char* name)
+SSymbol* sym_Export(string* pName)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	if(sym->Flags & SYMF_EXPORTABLE)
 		sym->Flags |= SYMF_EXPORT;
@@ -428,9 +428,9 @@ SSymbol* sym_Export(char* name)
 	return sym;
 }
 
-SSymbol* sym_Import(char* name)
+SSymbol* sym_Import(string* pName)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	if(sym->Type == SYM_UNDEFINED)
 	{
@@ -444,9 +444,9 @@ SSymbol* sym_Import(char* name)
 	return NULL;
 }
 
-SSymbol* sym_Global(char* name)
+SSymbol* sym_Global(string* pName)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	if(sym->Type == SYM_UNDEFINED)
 	{
@@ -467,14 +467,14 @@ SSymbol* sym_Global(char* name)
 	return NULL;
 }
 
-bool_t	sym_Purge(char* name)
+bool_t sym_Purge(string* pName)
 {
     SSymbol** ppsym;
 	SSymbol* sym;
 
-    ppsym = &g_pHashedSymbols[sym_CalcHash(name)];
+    ppsym = &g_pHashedSymbols[sym_CalcHash(str_String(pName))];
 
-	if((sym = sym_Find(name, sym_GetScope(name))) != NULL)
+	if((sym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)))) != NULL)
 	{
 		list_Remove(*ppsym, sym);
 		if(sym->Flags == SYMF_HASDATA)

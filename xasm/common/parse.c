@@ -1216,7 +1216,7 @@ static void parse_RS(string* pName, int32_t size, int coloncount)
 	str_Free(pRS);
 
 	if(coloncount == 2)
-		sym_Export(str_String(pName));
+		sym_Export(pName);
 }
 
 
@@ -1244,9 +1244,7 @@ static bool_t parse_Symbol(void)
 			default:
 				sym_CreateLabel(pName);
 				if(coloncount == 2)
-				{
-					sym_Export(str_String(pName));
-				}
+					sym_Export(pName);
 				r = true;
 				break;
 			case T_POP_RB:
@@ -1268,18 +1266,14 @@ static bool_t parse_Symbol(void)
 				parse_GetToken();
 				sym_CreateEQU(pName, parse_ConstantExpression());
 				if(coloncount == 2)
-				{
-					sym_Export(str_String(pName));
-				}
+					sym_Export(pName);
 				r = true;
 				break;
 			case T_POP_SET:
 				parse_GetToken();
 				sym_CreateSET(pName, parse_ConstantExpression());
 				if(coloncount == 2)
-				{
-					sym_Export(str_String(pName));
-				}
+					sym_Export(pName);
 				r = true;
 				break;
 			case T_POP_EQUS:
@@ -1292,9 +1286,7 @@ static bool_t parse_Symbol(void)
 					sym_CreateEQUS(pName, pExpr);
 					mem_Free(pExpr);
 					if(coloncount == 2)
-					{
-						sym_Export(str_String(pName));
-					}
+						sym_Export(pName);
 					r = true;
 				}
 				else
@@ -1322,9 +1314,7 @@ static bool_t parse_Symbol(void)
 						break;
 				}
 				if(coloncount == 2)
-				{
-					sym_Export(str_String(pName));
-				}
+					sym_Export(pName);
 				break;
 			}
 			case T_POP_MACRO:
@@ -1351,36 +1341,40 @@ static bool_t parse_Symbol(void)
 	return r;
 }
 
-static bool_t parse_Import(char* pszSym)
+static bool_t parse_Import(string* pName)
 {
-	return sym_Import(pszSym) != NULL;
+	return sym_Import(pName) != NULL;
 }
 
-static bool_t parse_Export(char* pszSym)
+static bool_t parse_Export(string* pName)
 {
-	return sym_Export(pszSym) != NULL;
+	return sym_Export(pName) != NULL;
 }
 
-static bool_t parse_Global(char* pszSym)
+static bool_t parse_Global(string* pName)
 {
-	return sym_Global(pszSym) != NULL;
+	return sym_Global(pName) != NULL;
 }
 
-static bool_t parse_SymbolOp(bool_t (*pOp)(char* pszSymbol))
+static bool_t parse_SymbolOp(bool_t (*pOp)(string* pName))
 {
 	bool_t r = false;
 
 	parse_GetToken();
 	if(g_CurrentToken.ID.Token == T_ID)
 	{
-		pOp(g_CurrentToken.Value.aString);
+		string* pName = str_Create(g_CurrentToken.Value.aString);
+		pOp(pName);
+		str_Free(pName);
 		parse_GetToken();
 		while(g_CurrentToken.ID.Token == ',')
 		{
 			parse_GetToken();
 			if(g_CurrentToken.ID.Token == T_ID)
 			{
-				pOp(g_CurrentToken.Value.aString);
+				pName = str_Create(g_CurrentToken.Value.aString);
+				pOp(pName);
+				str_Free(pName);
 				r = true;
 				parse_GetToken();
 			}
