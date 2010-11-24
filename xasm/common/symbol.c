@@ -216,20 +216,20 @@ static bool_t sym_isType(SSymbol* sym, ESymbolType type)
 
 /*	Public routines */
 
-int32_t sym_GetValueField(SSymbol* sym)
+int32_t sym_GetValue(SSymbol* pSym)
 {
-	if(sym->Callback.Integer)
-		return sym->Callback.Integer(sym);
+	if(pSym->Callback.Integer)
+		return pSym->Callback.Integer(pSym);
 
-	return sym->Value.Value;
+	return pSym->Value.Value;
 }
 
-int32_t sym_GetConstant(char* name)
+int32_t sym_GetValueByName(string* pName)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* pSym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
-	if(sym->Flags & SYMF_CONSTANT)
-		return sym_GetValueField(sym);
+	if(pSym->Flags & SYMF_CONSTANT)
+		return sym_GetValue(pSym);
 
 	prj_Fail(ERROR_SYMBOL_CONSTANT);
 	return 0;
@@ -380,22 +380,20 @@ SSymbol* sym_CreateLabel(string* pName)
 
 char* sym_ConvertSymbolValueToString(char* dst, char* sym)
 {
-	SSymbol* psym;
+	SSymbol* pSym = sym_FindOrCreate(sym, sym_GetScope(sym));
 
-	psym = sym_FindOrCreate(sym, sym_GetScope(sym));
-
-	switch(psym->Type)
+	switch(pSym->Type)
 	{
 		case SYM_EQU:
 		case SYM_SET:
 		{
-			sprintf(dst, "$%X", sym_GetValueField(psym));
+			sprintf(dst, "$%X", sym_GetValue(pSym));
 			return dst + strlen(dst);
 			break;
 		}
 		case SYM_EQUS:
 		{
-			string* pValue = sym_GetStringValue(psym);
+			string* pValue = sym_GetStringValue(pSym);
 			int len = str_Length(pValue);
 			
 			strcpy(dst, str_String(pValue));

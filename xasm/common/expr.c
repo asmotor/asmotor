@@ -422,25 +422,29 @@ SExpression* expr_Bank(char* s)
 SExpression* expr_Symbol(char* s)
 {
 	string* pName = str_Create(s);
-	SSymbol* sym = sym_FindSymbol(pName);
+	SSymbol* pSym = sym_FindSymbol(pName);
 	str_Free(pName);
 
-	if(sym->Flags & SYMF_EXPR)
+	if(pSym->Flags & SYMF_EXPR)
 	{
-		SExpression* expr;
+		pSym->Flags |= SYMF_REFERENCED;
 		
-		sym->Flags |= SYMF_REFERENCED;
-		if(sym->Flags & SYMF_CONSTANT)
-			return expr_Const(sym_GetValueField(sym));
+		if(pSym->Flags & SYMF_CONSTANT)
+		{
+			return expr_Const(sym_GetValue(pSym));
+		}
+		else
+		{
+			SExpression* pExpr = (SExpression*)mem_Alloc(sizeof(SExpression));
 
-		expr = (SExpression*)mem_Alloc(sizeof(SExpression));
-
-		expr->pRight = NULL;
-		expr->pLeft = NULL;
-		expr->Value.pSymbol = sym;
-		expr->nFlags = EXPRF_RELOC;
-		expr->eType = EXPR_SYMBOL;
-		return expr;
+			pExpr->pRight = NULL;
+			pExpr->pLeft = NULL;
+			pExpr->Value.pSymbol = pSym;
+			pExpr->nFlags = EXPRF_RELOC;
+			pExpr->eType = EXPR_SYMBOL;
+			
+			return pExpr;
+		}
 	}
 
 	prj_Fail(ERROR_SYMBOL_IN_EXPR);

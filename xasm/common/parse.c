@@ -1211,7 +1211,7 @@ static char* parse_StringExpression(void)
 static void parse_RS(string* pName, int32_t size, int coloncount)
 {
 	string* pRS = str_Create("__RS");
-	int32_t nRS = sym_GetConstant(str_String(pRS));
+	int32_t nRS = sym_GetValueByName(pRS);
 	
 	sym_CreateSET(pName, nRS);
 	sym_CreateSET(pRS, nRS + size);
@@ -1226,7 +1226,8 @@ static void parse_RS(string* pName, int32_t size, int coloncount)
 static void parse_RS_Skip(int32_t size)
 {
 	string* pRS = str_Create("__RS");
-	sym_CreateSET(pRS, sym_GetConstant(str_String(pRS)) + size);
+	sym_CreateSET(pRS, sym_GetValueByName(pRS) + size);
+	str_Free(pRS);
 }
 
 
