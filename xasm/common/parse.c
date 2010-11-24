@@ -1260,7 +1260,7 @@ static bool_t parse_Symbol(void)
 				break;
 			case T_POP_EQU:
 				parse_GetToken();
-				sym_AddEQU(str_String(pName), parse_ConstantExpression());
+				sym_CreateEQU(pName, parse_ConstantExpression());
 				if(coloncount == 2)
 				{
 					sym_Export(str_String(pName));

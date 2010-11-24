@@ -304,9 +304,9 @@ SSymbol* sym_AddMACRO(char* name, char* value, uint32_t size)
 	return NULL;
 }
 
-SSymbol* sym_AddEQU(char* name, int32_t value)
+SSymbol* sym_CreateEQU(string* pName, int32_t value)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	if((sym->Flags & SYMF_MODIFY)
 	&& (sym_isType(sym, SYM_EQU) || sym->Type == SYM_GLOBAL))
@@ -552,10 +552,16 @@ bool_t sym_Init(void)
 	pCurrentScope = NULL;
 
 	locsym_Init();
-	p__NARG__Symbol = sym_AddEQU("__NARG", 0);
+	
+	pName = str_Create("__NARG");
+	p__NARG__Symbol = sym_CreateEQU(pName, 0);
 	p__NARG__Symbol->Callback.Integer = __NARG__Callback;
-	p__LINE__Symbol = sym_AddEQU("__LINE", 0);
+	str_Free(pName);
+	
+	pName = str_Create("__LINE");
+	p__LINE__Symbol = sym_CreateEQU(pName, 0);
 	p__LINE__Symbol->Callback.Integer = __LINE__Callback;
+	str_Free(pName);
 
 	pName = str_Create("__DATE");
 	p__DATE__Symbol = sym_CreateEQUS(pName, 0);
@@ -575,7 +581,9 @@ bool_t sym_Init(void)
 		str_Free(pName);
 	}
 
-	sym_AddEQU("__ASMOTOR", 0);
+	pName = str_Create("__ASMOTOR");
+	sym_CreateEQU(pName, 0);
+	str_Free(pName);
 
 	return true;
 }
