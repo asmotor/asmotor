@@ -91,9 +91,7 @@ typedef	struct	Symbol	SSymbol;
 
 extern bool_t	sym_Init(void);
 
-extern int32_t sym_GetValueField(SSymbol* sym);
-
-extern SSymbol* sym_AddLabel(char* name);
+extern SSymbol* sym_CreateLabel(string* name);
 extern SSymbol* sym_AddEQUS(char* name, char* value);
 extern SSymbol* sym_AddEQU(char* name, int32_t value);
 extern SSymbol* sym_AddSET(char* name, int32_t value);
@@ -103,15 +101,18 @@ extern SSymbol* sym_AddMACRO(char* name, char* value, uint32_t size);
 extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
 extern SSymbol*	sym_Export(char* name);
 
-extern int32_t	sym_GetConstant(char* name);
-extern bool_t		sym_isString(char* name);
-extern bool_t		sym_isMacro(char* name);
+extern int32_t	sym_GetValueField(SSymbol* sym);
 extern char*	sym_GetStringValue(char* name);
-extern bool_t		sym_isDefined(char* name);
+extern int32_t	sym_GetConstant(char* name);
+
+extern bool_t	sym_isDefined(char* name);
+extern bool_t	sym_isString(char* name);
+extern bool_t	sym_isMacro(char* name);
+
 extern SSymbol* sym_FindSymbol(char* name);
 extern SSymbol* sym_Import(char* name);
 extern SSymbol* sym_Global(char* name);
-extern bool_t		sym_Purge(char* name);
+extern bool_t	sym_Purge(char* name);
 
 extern	SSymbol* g_pHashedSymbols[HASHSIZE];
 

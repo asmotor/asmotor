@@ -149,7 +149,7 @@ SExpression* expr_Pc()
 
 	sprintf(sym, "$%s%u", pCurrentSection->Name, pCurrentSection->PC);
 	pName = str_Create(sym);
-	pSym = sym_AddLabel(str_String(pName));
+	pSym = sym_CreateLabel(pName);
 	str_Free(pName);
 
 	if(pSym->Flags & SYMF_CONSTANT)

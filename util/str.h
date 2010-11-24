@@ -55,6 +55,8 @@ INLINE char* str_String(string* pString)
 
 INLINE char str_CharAt(string* pString, int nIndex)
 {
+	if(nIndex < 0)
+		nIndex = str_Length(pString) + nIndex;
 	return pString->szData[nIndex];
 }
 

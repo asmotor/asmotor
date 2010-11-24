@@ -340,9 +340,9 @@ SSymbol* sym_AddSET(char* name, int32_t value)
 	return NULL;
 }
 
-SSymbol* sym_AddLabel(char* name)
+SSymbol* sym_CreateLabel(string* pName)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	if((sym->Flags & SYMF_MODIFY)
 	&& (sym_isType(sym, SYM_LABEL) || sym->Type == SYM_GLOBAL))
@@ -352,7 +352,7 @@ SSymbol* sym_AddLabel(char* name)
 
 		if(pCurrentSection)
 		{
-			if(name[0] != '.' && name[strlen(name) - 1] != '$')
+			if(str_CharAt(pName, 0) != '.' && str_CharAt(pName, -1) != '$')
 				pCurrentScope = sym;
 
 			if((pCurrentSection->Flags & SECTF_ORGFIXED) == 0)

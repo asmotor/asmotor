@@ -1223,75 +1223,73 @@ static void parse_RS_Skip(int32_t size)
 
 static bool_t parse_Symbol(void)
 {
-	if(g_CurrentToken.ID.Token==T_LABEL)
+	bool_t r = false;
+	
+	if(g_CurrentToken.ID.Token == T_LABEL)
 	{
+		string* pName = str_Create(g_CurrentToken.Value.aString);
 		uint32_t coloncount;
-		char name[MAXSYMNAMELENGTH+1];
 
-		strcpy(name, g_CurrentToken.Value.aString);
 		parse_GetToken();
-
 		coloncount = parse_ColonCount();
 
 		switch(g_CurrentToken.ID.Token)
 		{
+			default:
+				sym_CreateLabel(pName);
+				if(coloncount == 2)
+				{
+					sym_Export(str_String(pName));
+				}
+				r = true;
+				break;
 			case T_POP_RB:
-			{
 				parse_GetToken();
-				parse_RS(name, parse_ConstantExpression(), coloncount);
-
-				return true;
-			}
+				parse_RS(str_String(pName), parse_ConstantExpression(), coloncount);
+				r = true;
+				break;
 			case T_POP_RW:
-			{
 				parse_GetToken();
-				parse_RS(name, parse_ConstantExpression() * 2, coloncount);
-
-				return true;
-			}
+				parse_RS(str_String(pName), parse_ConstantExpression() * 2, coloncount);
+				r = true;
+				break;
 			case T_POP_RL:
-			{
 				parse_GetToken();
-				parse_RS(name, parse_ConstantExpression() * 4, coloncount);
-
-				return true;
-			}
+				parse_RS(str_String(pName), parse_ConstantExpression() * 4, coloncount);
+				r = true;
+				break;
 			case T_POP_EQU:
-			{
 				parse_GetToken();
-				sym_AddEQU(name, parse_ConstantExpression());
+				sym_AddEQU(str_String(pName), parse_ConstantExpression());
 				if(coloncount == 2)
 				{
-					sym_Export(name);
+					sym_Export(str_String(pName));
 				}
-				return true;
+				r = true;
 				break;
-			}
 			case T_POP_SET:
-			{
 				parse_GetToken();
-				sym_AddSET(name, parse_ConstantExpression());
+				sym_AddSET(str_String(pName), parse_ConstantExpression());
 				if(coloncount == 2)
 				{
-					sym_Export(name);
+					sym_Export(str_String(pName));
 				}
-				return true;
+				r = true;
 				break;
-			}
 			case T_POP_EQUS:
 			{
-				char* r;
+				char* pExpr;
 
 				parse_GetToken();
-				if((r = parse_StringExpression()) != NULL)
+				if((pExpr = parse_StringExpression()) != NULL)
 				{
-					sym_AddEQUS(name, r);
-					mem_Free(r);
+					sym_AddEQUS(str_String(pName), pExpr);
+					mem_Free(pExpr);
 					if(coloncount == 2)
 					{
-						sym_Export(name);
+						sym_Export(str_String(pName));
 					}
-					return true;
+					r = true;
 				}
 				else
 				{
@@ -1305,26 +1303,22 @@ static bool_t parse_Symbol(void)
 				switch(g_CurrentToken.ID.Token)
 				{
 					case T_GROUP_TEXT:
-					{
-						sym_AddGROUP(name, GROUP_TEXT);
+						sym_AddGROUP(str_String(pName), GROUP_TEXT);
+						r = true;
 						break;
-					}
 					case T_GROUP_BSS:
-					{
-						sym_AddGROUP(name, GROUP_BSS);
+						sym_AddGROUP(str_String(pName), GROUP_BSS);
+						r = true;
 						break;
-					}
 					default:
-					{
 						prj_Error(ERROR_EXPECT_TEXT_BSS);
-						return false;
-					}
+						r = false;
+						break;
 				}
 				if(coloncount == 2)
 				{
-					sym_Export(name);
+					sym_Export(str_String(pName));
 				}
-				return true;
 				break;
 			}
 			case T_POP_MACRO:
@@ -1336,28 +1330,19 @@ static bool_t parse_Symbol(void)
 
 				if(parse_CopyMacro(&reptblock, &reptsize))
 				{
-					sym_AddMACRO(name, reptblock, reptsize);
+					sym_AddMACRO(str_String(pName), reptblock, reptsize);
 					parse_GetToken();
-					return true;
+					r = true;
 				}
-				prj_Fail(ERROR_NEED_ENDM, pszfile, lineno);
-				return false;
-				break;
-			}
-			default:
-			{
-				sym_AddLabel(name);
-				if(coloncount == 2)
-				{
-					sym_Export(name);
-				}
-				return true;
+				else
+					prj_Fail(ERROR_NEED_ENDM, pszfile, lineno);
 				break;
 			}
 		}
+		str_Free(pName);
 	}
 
-	return false;
+	return r;
 }
 
 static bool_t parse_Import(char* pszSym)
