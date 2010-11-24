@@ -378,9 +378,9 @@ SSymbol* sym_CreateLabel(string* pName)
 	return NULL;
 }
 
-char* sym_ConvertSymbolValueToString(char* dst, char* sym)
+char* sym_GetValueAsStringByName(char* dst, string* pName)
 {
-	SSymbol* pSym = sym_FindOrCreate(sym, sym_GetScope(sym));
+	SSymbol* pSym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	switch(pSym->Type)
 	{

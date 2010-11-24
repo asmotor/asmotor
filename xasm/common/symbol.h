@@ -59,7 +59,7 @@ typedef	enum
 #define SYMF_DATA 0x40000000
 #define SYMF_CHIP 0x20000000
 
-struct Symbol
+typedef struct Symbol
 {
 	list_Data(struct Symbol);
 	string*		pName;
@@ -84,9 +84,7 @@ struct Symbol
 	} Value;
 
 	uint32_t ID;	/*	Used by object output routines */
-};
-
-typedef	struct	Symbol	SSymbol;
+} SSymbol;
 
 
 extern bool_t	sym_Init(void);
@@ -106,7 +104,7 @@ extern SSymbol*	sym_Export(string* pName);
 extern SSymbol* sym_Import(string* pName);
 extern SSymbol* sym_Global(string* pName);
 
-extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
+extern char*	sym_GetValueAsStringByName(char* pDest, string* pSym);
 extern string*	sym_GetStringValue(SSymbol* pSym);
 extern string*	sym_GetStringValueByName(string* pName);
 extern int32_t	sym_GetValue(SSymbol* pSym);

@@ -290,14 +290,16 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t b
 			sym[i] = 0;
 			pSymName = str_Create(sym);
 			bSymDefined = sym_IsDefined(pSymName);
-			str_Free(pSymName);
 			
 			if(!bAllowUndefinedSymbols && !bSymDefined)
 			{
+				str_Free(pSymName);
 				return NULL;
 			}
 
-			dst = sym_ConvertSymbolValueToString(dst, sym);
+			dst = sym_GetValueAsStringByName(dst, pSymName);
+			str_Free(pSymName);
+			
 			if(*src == '}')
 			{
 				if(strchr(stopchar, *src++) != NULL)
