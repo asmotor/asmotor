@@ -76,11 +76,7 @@ typedef struct Symbol
 	{
 		int32_t		Value;
 		EGroupType	GroupType;
-		struct
-		{
-			size_t	Size;
-			char*	pData;
-		} Macro;
+		string*		pMacro;
 	} Value;
 
 	uint32_t ID;	/*	Used by object output routines */

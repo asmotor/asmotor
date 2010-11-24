@@ -92,11 +92,10 @@ static string* Callback__DATE(SSymbol* pSym)
 
 	len = strftime(s, sizeof(s), "%Y-%m-%d", localtime(&t));
 
-	pSym->Value.Macro.pData = mem_Realloc(pSym->Value.Macro.pData, len + 1);
-	pSym->Value.Macro.Size = len;
-	strcpy(pSym->Value.Macro.pData, s);
+	str_Free(pSym->Value.pMacro);
+	pSym->Value.pMacro = str_CreateLength(s, len);
 
-	return str_Create(pSym->Value.Macro.pData);
+	return str_Copy(pSym->Value.pMacro);
 }
 
 
@@ -108,11 +107,10 @@ static string* Callback__TIME(SSymbol* pSym)
 
 	len = strftime(s, sizeof(s), "%X", localtime(&t));
 
-	pSym->Value.Macro.pData = mem_Realloc(pSym->Value.Macro.pData, len + 1);
-	pSym->Value.Macro.Size = len;
-	strcpy(pSym->Value.Macro.pData, s);
+	str_Free(pSym->Value.pMacro);
+	pSym->Value.pMacro = str_CreateLength(s, len);
 
-	return str_Create(pSym->Value.Macro.pData);
+	return str_Copy(pSym->Value.pMacro);
 }
 
 
@@ -125,11 +123,10 @@ static string* Callback__AMIGADATE(SSymbol* pSym)
 
 	len = sprintf(s, "%d.%d.%d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900);
 
-	pSym->Value.Macro.pData = mem_Realloc(pSym->Value.Macro.pData, len + 1);
-	pSym->Value.Macro.Size = len;
-	strcpy(pSym->Value.Macro.pData, s);
+	str_Free(pSym->Value.pMacro);
+	pSym->Value.pMacro = str_CreateLength(s, len);
 
-	return str_Create(pSym->Value.Macro.pData);
+	return str_Copy(pSym->Value.pMacro);
 }
 
 
@@ -276,17 +273,7 @@ SSymbol* sym_CreateEQUS(string* pName, char* value)
 		pSym->Type = SYM_EQUS;
 		SetFlags(pSym->Flags, SYM_EQUS);
 
-		if(value == NULL)
-		{
-			pSym->Value.Macro.Size = 0;
-			pSym->Value.Macro.pData = NULL;
-			return pSym;
-		}
-
-		pSym->Value.Macro.Size = strlen(value);
-		pSym->Value.Macro.pData = mem_Alloc(strlen(value) + 1);
-		strcpy(pSym->Value.Macro.pData, value);
-
+		pSym->Value.pMacro = value == NULL ? NULL : str_Create(value);
 		return pSym;
 	}
 
@@ -303,10 +290,8 @@ SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size)
 	{
 		pSym->Type = SYM_MACRO;
 		SetFlags(pSym->Flags, SYM_MACRO);
-		pSym->Value.Macro.Size = size;
+		pSym->Value.pMacro = str_CreateLength(value, size);
 		
-		pSym->Value.Macro.pData = mem_Alloc(size);
-		memcpy(pSym->Value.Macro.pData, value, size);
 		return pSym;
 	}
 
@@ -328,6 +313,7 @@ SSymbol* sym_CreateEQU(string* pName, int32_t value)
 		pSym->Type = SYM_EQU;
 		SetFlags(pSym->Flags, SYM_EQU);
 		pSym->Value.Value = value;
+		
 		return pSym;
 	}
 
@@ -345,6 +331,7 @@ SSymbol* sym_CreateSET(string* pName, int32_t value)
 		pSym->Type = SYM_SET;
 		SetFlags(pSym->Flags, SYM_SET);
 		pSym->Value.Value = value;
+
 		return pSym;
 	}
 
@@ -495,12 +482,12 @@ bool_t sym_Purge(string* pName)
 	if(pSym != NULL)
 	{
 		list_Remove(*ppSym, pSym);
+		
 		if(pSym->Flags == SYMF_HASDATA)
-		{
-			mem_Free(pSym->Value.Macro.pData);
-		}
+			str_Free(pSym->Value.pMacro);
 		str_Free(pSym->pName);
 		mem_Free(pSym);
+		
 		return true;
 	}
 
@@ -539,7 +526,8 @@ string* sym_GetStringValue(SSymbol* pSym)
 	{
 		if(pSym->Callback.String)
 			return pSym->Callback.String(pSym);
-		return str_Create(pSym->Value.Macro.pData);
+			
+		return str_Copy(pSym->Value.pMacro);
 	}
 
 	prj_Fail(ERROR_SYMBOL_EQUS);

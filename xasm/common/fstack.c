@@ -403,7 +403,7 @@ void fstk_RunMacro(string* pName)
 		newcontext->Type = CONTEXT_MACRO;
 
 		newcontext->pName = str_Copy(pName);
-		newcontext->pLexBuffer = lex_CreateMemoryBuffer(sym->Value.Macro.pData, sym->Value.Macro.Size);
+		newcontext->pLexBuffer = lex_CreateMemoryBuffer(str_String(sym->Value.pMacro), str_Length(sym->Value.pMacro));
 
 		lex_SetBuffer(newcontext->pLexBuffer);
 		lex_SetState(LEX_STATE_NORMAL);
