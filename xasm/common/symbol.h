@@ -70,7 +70,7 @@ typedef struct Symbol
 	union
 	{
 		int32_t (*Integer)(struct Symbol*);
-		char*	(*String)(struct Symbol*);
+		string*	(*String)(struct Symbol*);
 	} Callback;
 	union
 	{

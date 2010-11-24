@@ -29,18 +29,21 @@
 #include "project.h"
 #include "section.h"
 
+
+/* ----------------------------------------------------------------------- */
+
+
 extern void locsym_Init(void);
 
 
+/* ----------------------------------------------------------------------- */
 
-/*	Private defines */
 
 #define	SetFlags(flags,type)	(flags)=((flags)&(SYMF_EXPORT|SYMF_REFERENCED))|g_aDefaultSymbolFlags[type]
 
 
+/* ----------------------------------------------------------------------- */
 
-
-/*	Private data */
 
 static uint32_t g_aDefaultSymbolFlags[] =
 {
@@ -56,24 +59,20 @@ static uint32_t g_aDefaultSymbolFlags[] =
 };
 
 SSymbol* g_pHashedSymbols[HASHSIZE];
+
 SSymbol* pCurrentScope;
-SSymbol* p__NARG__Symbol;
-SSymbol* p__LINE__Symbol;
-SSymbol* p__DATE__Symbol;
-SSymbol* p__TIME__Symbol;
-SSymbol* p__AMIGADATE__Symbol;
 
 
+/* ----------------------------------------------------------------------- */
 
 
-/*	Private routines */
-
-static int32_t __NARG__Callback(SSymbol* pSym)
+static int32_t Callback__NARG(SSymbol* pSym)
 {
 	return fstk_GetMacroArgCount();
 }
 
-static int32_t __LINE__Callback(SSymbol* pSym)
+
+static int32_t Callback__LINE(SSymbol* pSym)
 {
 	SFileStack* p = g_pFileContext;
 	while(list_GetNext(p))
@@ -84,7 +83,8 @@ static int32_t __LINE__Callback(SSymbol* pSym)
 	return p->LineNumber;
 }
 
-static char* __DATE__Callback(SSymbol* pSym)
+
+static string* Callback__DATE(SSymbol* pSym)
 {
 	char s[16];
 	time_t t = time(NULL);
@@ -96,10 +96,11 @@ static char* __DATE__Callback(SSymbol* pSym)
 	pSym->Value.Macro.Size = len;
 	strcpy(pSym->Value.Macro.pData, s);
 
-	return pSym->Value.Macro.pData;
+	return str_Create(pSym->Value.Macro.pData);
 }
 
-static char* __TIME__Callback(SSymbol* pSym)
+
+static string* Callback__TIME(SSymbol* pSym)
 {
 	char s[16];
 	time_t t = time(NULL);
@@ -111,10 +112,11 @@ static char* __TIME__Callback(SSymbol* pSym)
 	pSym->Value.Macro.Size = len;
 	strcpy(pSym->Value.Macro.pData, s);
 
-	return pSym->Value.Macro.pData;
+	return str_Create(pSym->Value.Macro.pData);
 }
 
-static char* __AMIGADATE__Callback(SSymbol* pSym)
+
+static string* Callback__AMIGADATE(SSymbol* pSym)
 {
 	char s[16];
 	time_t t = time(NULL);
@@ -127,8 +129,12 @@ static char* __AMIGADATE__Callback(SSymbol* pSym)
 	pSym->Value.Macro.Size = len;
 	strcpy(pSym->Value.Macro.pData, s);
 
-	return pSym->Value.Macro.pData;
+	return str_Create(pSym->Value.Macro.pData);
 }
+
+
+/* ----------------------------------------------------------------------- */
+
 
 static uint32_t sym_CalcHash(string* pName)
 {
@@ -150,6 +156,7 @@ static uint32_t sym_CalcHash(string* pName)
 	return hash & (HASHSIZE - 1);
 }
 
+
 static SSymbol* sym_Find(string* pName, SSymbol* pScope)
 {
     SSymbol* pSym = g_pHashedSymbols[sym_CalcHash(pName)];
@@ -164,6 +171,7 @@ static SSymbol* sym_Find(string* pName, SSymbol* pScope)
 
 	return NULL;
 }
+
 
 static SSymbol* sym_Create(string* pName)
 {
@@ -180,6 +188,7 @@ static SSymbol* sym_Create(string* pName)
 	return pSym;
 }
 
+
 static SSymbol* sym_GetScope(string* pName)
 {
 	if(str_CharAt(pName, 0) == '.' || str_CharAt(pName, -1) == '$')
@@ -187,6 +196,7 @@ static SSymbol* sym_GetScope(string* pName)
 
 	return NULL;
 }
+
 
 static SSymbol* sym_FindOrCreate(string* pName)
 {
@@ -203,16 +213,15 @@ static SSymbol* sym_FindOrCreate(string* pName)
 	return pSym;
 }
 
+
 static bool_t sym_isType(SSymbol* sym, ESymbolType type)
 {
 	return sym->Type == type || sym->Type == SYM_UNDEFINED;
 }
 
 
+/* ----------------------------------------------------------------------- */
 
-
-
-/*	Public routines */
 
 int32_t sym_GetValue(SSymbol* pSym)
 {
@@ -221,6 +230,7 @@ int32_t sym_GetValue(SSymbol* pSym)
 
 	return pSym->Value.Value;
 }
+
 
 int32_t sym_GetValueByName(string* pName)
 {
@@ -233,10 +243,12 @@ int32_t sym_GetValueByName(string* pName)
 	return 0;
 }
 
+
 SSymbol* sym_FindSymbol(string* pName)
 {
 	return sym_FindOrCreate(pName);
 }
+
 
 SSymbol* sym_CreateGROUP(string* pName, EGroupType value)
 {
@@ -253,6 +265,7 @@ SSymbol* sym_CreateGROUP(string* pName, EGroupType value)
 	prj_Error(ERROR_MODIFY_SYMBOL);
 	return NULL;
 }
+
 
 SSymbol* sym_CreateEQUS(string* pName, char* value)
 {
@@ -281,6 +294,7 @@ SSymbol* sym_CreateEQUS(string* pName, char* value)
 	return NULL;
 }
 
+
 SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
@@ -299,6 +313,7 @@ SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size)
 	prj_Error(ERROR_MODIFY_SYMBOL);
 	return NULL;
 }
+
 
 SSymbol* sym_CreateEQU(string* pName, int32_t value)
 {
@@ -320,6 +335,7 @@ SSymbol* sym_CreateEQU(string* pName, int32_t value)
 	return NULL;
 }
 
+
 SSymbol* sym_CreateSET(string* pName, int32_t value)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
@@ -335,6 +351,7 @@ SSymbol* sym_CreateSET(string* pName, int32_t value)
 	prj_Error(ERROR_MODIFY_SYMBOL);
 	return NULL;
 }
+
 
 SSymbol* sym_CreateLabel(string* pName)
 {
@@ -376,6 +393,7 @@ SSymbol* sym_CreateLabel(string* pName)
 	return NULL;
 }
 
+
 char* sym_GetValueAsStringByName(char* dst, string* pName)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
@@ -414,6 +432,7 @@ char* sym_GetValueAsStringByName(char* dst, string* pName)
 	}
 }
 
+
 SSymbol* sym_Export(string* pName)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
@@ -425,6 +444,7 @@ SSymbol* sym_Export(string* pName)
 
 	return pSym;
 }
+
 
 SSymbol* sym_Import(string* pName)
 {
@@ -441,6 +461,7 @@ SSymbol* sym_Import(string* pName)
 	prj_Error(ERROR_IMPORT_DEFINED);
 	return NULL;
 }
+
 
 SSymbol* sym_Global(string* pName)
 {
@@ -465,6 +486,7 @@ SSymbol* sym_Global(string* pName)
 	return NULL;
 }
 
+
 bool_t sym_Purge(string* pName)
 {
     SSymbol** ppSym = &g_pHashedSymbols[sym_CalcHash(pName)];
@@ -486,12 +508,14 @@ bool_t sym_Purge(string* pName)
 	return false;
 }
 
+
 bool_t sym_IsString(string* pName)
 {
 	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
 	return pSym != NULL && pSym->Type == SYM_EQUS;
 }
+
 
 bool_t sym_IsMacro(string* pName)
 {
@@ -500,6 +524,7 @@ bool_t sym_IsMacro(string* pName)
 	return pSym != NULL && pSym->Type == SYM_MACRO;
 }
 
+
 bool_t sym_IsDefined(string* pName)
 {
 	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
@@ -507,18 +532,20 @@ bool_t sym_IsDefined(string* pName)
 	return pSym != NULL && pSym->Type != SYM_UNDEFINED;
 }
 
+
 string* sym_GetStringValue(SSymbol* pSym)
 {
 	if(pSym->Type == SYM_EQUS)
 	{
 		if(pSym->Callback.String)
-			pSym->Callback.String(pSym);
+			return pSym->Callback.String(pSym);
 		return str_Create(pSym->Value.Macro.pData);
 	}
 
 	prj_Fail(ERROR_SYMBOL_EQUS);
 	return NULL;
 }
+
 
 string* sym_GetStringValueByName(string* pName)
 {
@@ -530,39 +557,41 @@ string* sym_GetStringValueByName(string* pName)
 	return NULL;
 }
 
+
 bool_t sym_Init(void)
 {
 	string* pName;
+	SSymbol* pSym;
 	
 	pCurrentScope = NULL;
 
 	locsym_Init();
 	
 	pName = str_Create("__NARG");
-	p__NARG__Symbol = sym_CreateEQU(pName, 0);
-	p__NARG__Symbol->Callback.Integer = __NARG__Callback;
+	pSym = sym_CreateEQU(pName, 0);
+	pSym->Callback.Integer = Callback__NARG;
 	str_Free(pName);
 	
 	pName = str_Create("__LINE");
-	p__LINE__Symbol = sym_CreateEQU(pName, 0);
-	p__LINE__Symbol->Callback.Integer = __LINE__Callback;
+	pSym = sym_CreateEQU(pName, 0);
+	pSym->Callback.Integer = Callback__LINE;
 	str_Free(pName);
 
 	pName = str_Create("__DATE");
-	p__DATE__Symbol = sym_CreateEQUS(pName, 0);
-	p__DATE__Symbol->Callback.String = __DATE__Callback;
+	pSym = sym_CreateEQUS(pName, 0);
+	pSym->Callback.String = Callback__DATE;
 	str_Free(pName);
 	
 	pName = str_Create("__TIME");
-	p__TIME__Symbol = sym_CreateEQUS(pName, 0);
-	p__TIME__Symbol->Callback.String = __TIME__Callback;
+	pSym = sym_CreateEQUS(pName, 0);
+	pSym->Callback.String = Callback__TIME;
 	str_Free(pName);
 
 	if(g_pConfiguration->bSupportAmiga)
 	{
 		pName = str_Create("__AMIGADATE");
-		p__AMIGADATE__Symbol = sym_CreateEQUS(pName, 0);
-		p__AMIGADATE__Symbol->Callback.String = __AMIGADATE__Callback;
+		pSym = sym_CreateEQUS(pName, 0);
+		pSym->Callback.String = Callback__AMIGADATE;
 		str_Free(pName);
 	}
 
