@@ -96,7 +96,7 @@ extern SSymbol* sym_CreateEQUS(string* pName, char* value);
 extern SSymbol* sym_CreateEQU(string* pName, int32_t value);
 extern SSymbol* sym_CreateSET(string* pName, int32_t value);
 extern SSymbol* sym_CreateGROUP(string* pName, EGroupType value);
-extern SSymbol* sym_AddMACRO(char* name, char* value, uint32_t size);
+extern SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size);
 
 extern char*	sym_ConvertSymbolValueToString(char* dst, char* sym);
 extern SSymbol*	sym_Export(char* name);

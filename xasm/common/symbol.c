@@ -285,9 +285,9 @@ SSymbol* sym_CreateEQUS(string* pName, char* value)
 	return NULL;
 }
 
-SSymbol* sym_AddMACRO(char* name, char* value, uint32_t size)
+SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	if((sym->Flags & SYMF_MODIFY) && sym_isType(sym, SYM_MACRO))
 	{

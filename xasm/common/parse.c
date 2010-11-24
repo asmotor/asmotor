@@ -1336,7 +1336,7 @@ static bool_t parse_Symbol(void)
 
 				if(parse_CopyMacro(&reptblock, &reptsize))
 				{
-					sym_AddMACRO(str_String(pName), reptblock, reptsize);
+					sym_CreateMACRO(pName, reptblock, reptsize);
 					parse_GetToken();
 					r = true;
 				}
