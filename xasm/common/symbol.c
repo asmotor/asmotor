@@ -44,15 +44,15 @@ extern void locsym_Init(void);
 
 static uint32_t g_aDefaultSymbolFlags[] =
 {
-	SYMF_RELOC|SYMF_EXPORTABLE|SYMF_EXPR,		/*	SYM_LABEL		*/
-	SYMF_CONSTANT|SYMF_EXPORTABLE|SYMF_EXPR,	/*	SYM_EQU			*/
-	SYMF_CONSTANT|SYMF_EXPR|SYMF_MODIFY,		/*	SYM_SET			*/
-	SYMF_HASDATA,								/*	SYM_EQUS		*/
-	SYMF_HASDATA,								/*	SYM_MACRO		*/
-	SYMF_EXPR|SYMF_RELOC,						/*	SYM_IMPORT		*/
-	SYMF_EXPORT,								/*	SYM_GROUP		*/
-	SYMF_EXPR|SYMF_MODIFY|SYMF_RELOC,			/*	SYM_GLOBAL		*/
-	SYMF_MODIFY|SYMF_EXPR|SYMF_EXPORTABLE		/*	SYM_UNDEFINED	*/
+	SYMF_RELOC | SYMF_EXPORTABLE | SYMF_EXPR,		/*	SYM_LABEL		*/
+	SYMF_CONSTANT | SYMF_EXPORTABLE | SYMF_EXPR,	/*	SYM_EQU			*/
+	SYMF_CONSTANT | SYMF_EXPR | SYMF_MODIFY,		/*	SYM_SET			*/
+	SYMF_HASDATA,									/*	SYM_EQUS		*/
+	SYMF_HASDATA,									/*	SYM_MACRO		*/
+	SYMF_EXPR | SYMF_RELOC,							/*	SYM_IMPORT		*/
+	SYMF_EXPORT,									/*	SYM_GROUP		*/
+	SYMF_EXPR | SYMF_MODIFY | SYMF_RELOC,			/*	SYM_GLOBAL		*/
+	SYMF_MODIFY | SYMF_EXPR | SYMF_EXPORTABLE		/*	SYM_UNDEFINED	*/
 };
 
 SSymbol* g_pHashedSymbols[HASHSIZE];
@@ -68,12 +68,12 @@ SSymbol* p__AMIGADATE__Symbol;
 
 /*	Private routines */
 
-static int32_t __NARG__Callback(SSymbol* sym)
+static int32_t __NARG__Callback(SSymbol* pSym)
 {
 	return fstk_GetMacroArgCount();
 }
 
-static int32_t __LINE__Callback(SSymbol* sym)
+static int32_t __LINE__Callback(SSymbol* pSym)
 {
 	SFileStack* p = g_pFileContext;
 	while(list_GetNext(p))
@@ -84,7 +84,7 @@ static int32_t __LINE__Callback(SSymbol* sym)
 	return p->LineNumber;
 }
 
-static char* __DATE__Callback(SSymbol* sym)
+static char* __DATE__Callback(SSymbol* pSym)
 {
 	char s[16];
 	time_t t = time(NULL);
@@ -92,14 +92,14 @@ static char* __DATE__Callback(SSymbol* sym)
 
 	len = strftime(s, sizeof(s), "%Y-%m-%d", localtime(&t));
 
-	sym->Value.Macro.pData = mem_Realloc(sym->Value.Macro.pData, len + 1);
-	sym->Value.Macro.Size = len;
-	strcpy(sym->Value.Macro.pData, s);
+	pSym->Value.Macro.pData = mem_Realloc(pSym->Value.Macro.pData, len + 1);
+	pSym->Value.Macro.Size = len;
+	strcpy(pSym->Value.Macro.pData, s);
 
-	return sym->Value.Macro.pData;
+	return pSym->Value.Macro.pData;
 }
 
-static char* __TIME__Callback(SSymbol* sym)
+static char* __TIME__Callback(SSymbol* pSym)
 {
 	char s[16];
 	time_t t = time(NULL);
@@ -107,14 +107,14 @@ static char* __TIME__Callback(SSymbol* sym)
 
 	len = strftime(s, sizeof(s), "%X", localtime(&t));
 
-	sym->Value.Macro.pData = mem_Realloc(sym->Value.Macro.pData, len + 1);
-	sym->Value.Macro.Size = len;
-	strcpy(sym->Value.Macro.pData, s);
+	pSym->Value.Macro.pData = mem_Realloc(pSym->Value.Macro.pData, len + 1);
+	pSym->Value.Macro.Size = len;
+	strcpy(pSym->Value.Macro.pData, s);
 
-	return sym->Value.Macro.pData;
+	return pSym->Value.Macro.pData;
 }
 
-static char* __AMIGADATE__Callback(SSymbol* sym)
+static char* __AMIGADATE__Callback(SSymbol* pSym)
 {
 	char s[16];
 	time_t t = time(NULL);
@@ -123,20 +123,22 @@ static char* __AMIGADATE__Callback(SSymbol* sym)
 
 	len = sprintf(s, "%d.%d.%d", tm->tm_mday, tm->tm_mon + 1, tm->tm_year + 1900);
 
-	sym->Value.Macro.pData = mem_Realloc(sym->Value.Macro.pData, len + 1);
-	sym->Value.Macro.Size = len;
-	strcpy(sym->Value.Macro.pData, s);
+	pSym->Value.Macro.pData = mem_Realloc(pSym->Value.Macro.pData, len + 1);
+	pSym->Value.Macro.Size = len;
+	strcpy(pSym->Value.Macro.pData, s);
 
-	return sym->Value.Macro.pData;
+	return pSym->Value.Macro.pData;
 }
 
-static uint32_t sym_CalcHash(char* s)
+static uint32_t sym_CalcHash(string* pName)
 {
 	uint32_t hash = 0;
+	int i;
+	int len = str_Length(pName);
 
-	while(*s != 0)
+	for(i = 0; i < len; ++i)
 	{
-		hash += *s++;
+		hash += str_CharAt(pName, i);
 		hash += hash << 10;
 		hash ^= hash >> 6;
 	}
@@ -148,61 +150,57 @@ static uint32_t sym_CalcHash(char* s)
 	return hash & (HASHSIZE - 1);
 }
 
-static SSymbol* sym_Find(char* s, SSymbol* scope)
+static SSymbol* sym_Find(string* pName, SSymbol* pScope)
 {
-    SSymbol* psym = g_pHashedSymbols[sym_CalcHash(s)];
+    SSymbol* pSym = g_pHashedSymbols[sym_CalcHash(pName)];
 
-    while(psym)
+    while(pSym)
     {
-		if(strcmp(str_String(psym->pName), s) == 0 && psym->pScope == scope)
-			return psym;
+		if(strcmp(str_String(pSym->pName), str_String(pName)) == 0 && pSym->pScope == pScope)
+			return pSym;
 
-		psym = list_GetNext(psym);
+		pSym = list_GetNext(pSym);
     }
 
 	return NULL;
 }
 
-static SSymbol* sym_Create(char* s)
+static SSymbol* sym_Create(string* pName)
 {
-    SSymbol** phash;
-	SSymbol* psym;
-    uint32_t hash;
-
-    hash = sym_CalcHash(s);
-    phash = &g_pHashedSymbols[hash];
-
-	psym = (SSymbol*)mem_Alloc(sizeof(SSymbol));
-	memset(psym, 0, sizeof(SSymbol));
+    SSymbol** ppHash = &g_pHashedSymbols[sym_CalcHash(pName)];
+	SSymbol* pSym = (SSymbol*)mem_Alloc(sizeof(SSymbol));
 	
-	psym->Type = SYM_UNDEFINED;
-	psym->Flags = g_aDefaultSymbolFlags[SYM_UNDEFINED];
-	psym->pName = str_Create(s);
+	memset(pSym, 0, sizeof(SSymbol));
+	
+	pSym->Type = SYM_UNDEFINED;
+	pSym->Flags = g_aDefaultSymbolFlags[SYM_UNDEFINED];
+	pSym->pName = str_Copy(pName);
 
-	list_Insert(*phash, psym);
-	return psym;
+	list_Insert(*ppHash, pSym);
+	return pSym;
 }
 
-static SSymbol* sym_FindOrCreate(char* s, SSymbol* scope)
+static SSymbol* sym_GetScope(string* pName)
 {
-	SSymbol* sym;
-
-	if((sym = sym_Find(s,scope)) == NULL)
-	{
-		sym = sym_Create(s);
-		sym->pScope = scope;
-		return sym;
-	}
-
-	return sym;
-}
-
-static SSymbol* sym_GetScope(char* s)
-{
-	if(*s == '.' || s[strlen(s) - 1] == '$')
+	if(str_CharAt(pName, 0) == '.' || str_CharAt(pName, -1) == '$')
 		return pCurrentScope;
 
 	return NULL;
+}
+
+static SSymbol* sym_FindOrCreate(string* pName)
+{
+	SSymbol* pScope = sym_GetScope(pName);
+	SSymbol* pSym = sym_Find(pName, pScope);
+
+	if(pSym == NULL)
+	{
+		pSym = sym_Create(pName);
+		pSym->pScope = pScope;
+		return pSym;
+	}
+
+	return pSym;
 }
 
 static bool_t sym_isType(SSymbol* sym, ESymbolType type)
@@ -226,7 +224,7 @@ int32_t sym_GetValue(SSymbol* pSym)
 
 int32_t sym_GetValueByName(string* pName)
 {
-	SSymbol* pSym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
 	if(pSym->Flags & SYMF_CONSTANT)
 		return sym_GetValue(pSym);
@@ -235,14 +233,14 @@ int32_t sym_GetValueByName(string* pName)
 	return 0;
 }
 
-SSymbol* sym_FindSymbol(string* name)
+SSymbol* sym_FindSymbol(string* pName)
 {
-	return sym_FindOrCreate(str_String(name), sym_GetScope(str_String(name)));
+	return sym_FindOrCreate(pName);
 }
 
 SSymbol* sym_CreateGROUP(string* pName, EGroupType value)
 {
-	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* sym = sym_FindOrCreate(pName);
 
 	if((sym->Flags & SYMF_MODIFY) && sym_isType(sym,SYM_GROUP))
 	{
@@ -258,25 +256,25 @@ SSymbol* sym_CreateGROUP(string* pName, EGroupType value)
 
 SSymbol* sym_CreateEQUS(string* pName, char* value)
 {
-	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((sym->Flags & SYMF_MODIFY) && sym_isType(sym, SYM_EQUS))
+	if((pSym->Flags & SYMF_MODIFY) && sym_isType(pSym, SYM_EQUS))
 	{
-		sym->Type = SYM_EQUS;
-		SetFlags(sym->Flags, SYM_EQUS);
+		pSym->Type = SYM_EQUS;
+		SetFlags(pSym->Flags, SYM_EQUS);
 
 		if(value == NULL)
 		{
-			sym->Value.Macro.Size = 0;
-			sym->Value.Macro.pData = NULL;
-			return sym;
+			pSym->Value.Macro.Size = 0;
+			pSym->Value.Macro.pData = NULL;
+			return pSym;
 		}
 
-		sym->Value.Macro.Size = strlen(value);
-		sym->Value.Macro.pData = mem_Alloc(strlen(value) + 1);
-		strcpy(sym->Value.Macro.pData, value);
+		pSym->Value.Macro.Size = strlen(value);
+		pSym->Value.Macro.pData = mem_Alloc(strlen(value) + 1);
+		strcpy(pSym->Value.Macro.pData, value);
 
-		return sym;
+		return pSym;
 	}
 
 	prj_Error(ERROR_MODIFY_SYMBOL);
@@ -285,17 +283,17 @@ SSymbol* sym_CreateEQUS(string* pName, char* value)
 
 SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size)
 {
-	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((sym->Flags & SYMF_MODIFY) && sym_isType(sym, SYM_MACRO))
+	if((pSym->Flags & SYMF_MODIFY) && sym_isType(pSym, SYM_MACRO))
 	{
-		sym->Type = SYM_MACRO;
-		SetFlags(sym->Flags, SYM_MACRO);
-		sym->Value.Macro.Size = size;
+		pSym->Type = SYM_MACRO;
+		SetFlags(pSym->Flags, SYM_MACRO);
+		pSym->Value.Macro.Size = size;
 		
-		sym->Value.Macro.pData = mem_Alloc(size);
-		memcpy(sym->Value.Macro.pData, value, size);
-		return sym;
+		pSym->Value.Macro.pData = mem_Alloc(size);
+		memcpy(pSym->Value.Macro.pData, value, size);
+		return pSym;
 	}
 
 	prj_Error(ERROR_MODIFY_SYMBOL);
@@ -304,18 +302,18 @@ SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size)
 
 SSymbol* sym_CreateEQU(string* pName, int32_t value)
 {
-	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((sym->Flags & SYMF_MODIFY)
-	&& (sym_isType(sym, SYM_EQU) || sym->Type == SYM_GLOBAL))
+	if((pSym->Flags & SYMF_MODIFY)
+	&& (sym_isType(pSym, SYM_EQU) || pSym->Type == SYM_GLOBAL))
 	{
-		if(sym->Type == SYM_GLOBAL)
-			sym->Flags |= SYMF_EXPORT;
+		if(pSym->Type == SYM_GLOBAL)
+			pSym->Flags |= SYMF_EXPORT;
 
-		sym->Type = SYM_EQU;
-		SetFlags(sym->Flags, SYM_EQU);
-		sym->Value.Value = value;
-		return sym;
+		pSym->Type = SYM_EQU;
+		SetFlags(pSym->Flags, SYM_EQU);
+		pSym->Value.Value = value;
+		return pSym;
 	}
 
 	prj_Error(ERROR_MODIFY_SYMBOL);
@@ -324,14 +322,14 @@ SSymbol* sym_CreateEQU(string* pName, int32_t value)
 
 SSymbol* sym_CreateSET(string* pName, int32_t value)
 {
-	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((sym->Flags & SYMF_MODIFY) && sym_isType(sym, SYM_SET))
+	if((pSym->Flags & SYMF_MODIFY) && sym_isType(pSym, SYM_SET))
 	{
-		sym->Type = SYM_SET;
-		SetFlags(sym->Flags, SYM_SET);
-		sym->Value.Value = value;
-		return sym;
+		pSym->Type = SYM_SET;
+		SetFlags(pSym->Flags, SYM_SET);
+		pSym->Value.Value = value;
+		return pSym;
 	}
 
 	prj_Error(ERROR_MODIFY_SYMBOL);
@@ -340,33 +338,33 @@ SSymbol* sym_CreateSET(string* pName, int32_t value)
 
 SSymbol* sym_CreateLabel(string* pName)
 {
-	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((sym->Flags & SYMF_MODIFY)
-	&& (sym_isType(sym, SYM_LABEL) || sym->Type == SYM_GLOBAL))
+	if((pSym->Flags & SYMF_MODIFY)
+	&& (sym_isType(pSym, SYM_LABEL) || pSym->Type == SYM_GLOBAL))
 	{
-		if(sym->Type == SYM_GLOBAL)
-			sym->Flags |= SYMF_EXPORT;
+		if(pSym->Type == SYM_GLOBAL)
+			pSym->Flags |= SYMF_EXPORT;
 
 		if(pCurrentSection)
 		{
 			if(str_CharAt(pName, 0) != '.' && str_CharAt(pName, -1) != '$')
-				pCurrentScope = sym;
+				pCurrentScope = pSym;
 
 			if((pCurrentSection->Flags & SECTF_ORGFIXED) == 0)
 			{
-				sym->Type = SYM_LABEL;
-				SetFlags(sym->Flags, SYM_LABEL);
-				sym->pSection = pCurrentSection;
-				sym->Value.Value = pCurrentSection->PC;
-				return sym;
+				pSym->Type = SYM_LABEL;
+				SetFlags(pSym->Flags, SYM_LABEL);
+				pSym->pSection = pCurrentSection;
+				pSym->Value.Value = pCurrentSection->PC;
+				return pSym;
 			}
 			else
 			{
-				sym->Type = SYM_EQU;
-				SetFlags(sym->Flags, SYM_EQU);
-				sym->Value.Value = pCurrentSection->PC + pCurrentSection->Org;
-				return sym;
+				pSym->Type = SYM_EQU;
+				SetFlags(pSym->Flags, SYM_EQU);
+				pSym->Value.Value = pCurrentSection->PC + pCurrentSection->Org;
+				return pSym;
 			}
 		}
 		else
@@ -380,7 +378,7 @@ SSymbol* sym_CreateLabel(string* pName)
 
 char* sym_GetValueAsStringByName(char* dst, string* pName)
 {
-	SSymbol* pSym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
 	switch(pSym->Type)
 	{
@@ -418,26 +416,26 @@ char* sym_GetValueAsStringByName(char* dst, string* pName)
 
 SSymbol* sym_Export(string* pName)
 {
-	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if(sym->Flags & SYMF_EXPORTABLE)
-		sym->Flags |= SYMF_EXPORT;
+	if(pSym->Flags & SYMF_EXPORTABLE)
+		pSym->Flags |= SYMF_EXPORT;
 	else
 		prj_Error(ERROR_SYMBOL_EXPORT);
 
-	return sym;
+	return pSym;
 }
 
 SSymbol* sym_Import(string* pName)
 {
-	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if(sym->Type == SYM_UNDEFINED)
+	if(pSym->Type == SYM_UNDEFINED)
 	{
-		sym->Type = SYM_IMPORT;
-		SetFlags(sym->Flags, SYM_IMPORT);
-		sym->Value.Value = 0;
-		return sym;
+		pSym->Type = SYM_IMPORT;
+		SetFlags(pSym->Flags, SYM_IMPORT);
+		pSym->Value.Value = 0;
+		return pSym;
 	}
 
 	prj_Error(ERROR_IMPORT_DEFINED);
@@ -446,21 +444,21 @@ SSymbol* sym_Import(string* pName)
 
 SSymbol* sym_Global(string* pName)
 {
-	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if(sym->Type == SYM_UNDEFINED)
+	if(pSym->Type == SYM_UNDEFINED)
 	{
-		/*	Symbol has not yet been defined, we'll leave this till later */
-		sym->Type = SYM_GLOBAL;
-		SetFlags(sym->Flags, SYM_GLOBAL);
-		sym->Value.Value = 0;
-		return sym;
+		/* Symbol has not yet been defined, we'll leave this till later */
+		pSym->Type = SYM_GLOBAL;
+		SetFlags(pSym->Flags, SYM_GLOBAL);
+		pSym->Value.Value = 0;
+		return pSym;
 	}
 
-	if(sym->Flags & SYMF_EXPORTABLE)
+	if(pSym->Flags & SYMF_EXPORTABLE)
 	{
-		sym->Flags |= SYMF_EXPORT;
-		return sym;
+		pSym->Flags |= SYMF_EXPORT;
+		return pSym;
 	}
 
 	prj_Error(ERROR_SYMBOL_EXPORT);
@@ -469,19 +467,18 @@ SSymbol* sym_Global(string* pName)
 
 bool_t sym_Purge(string* pName)
 {
-    SSymbol** ppsym;
-	SSymbol* sym;
+    SSymbol** ppSym = &g_pHashedSymbols[sym_CalcHash(pName)];
+	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
-    ppsym = &g_pHashedSymbols[sym_CalcHash(str_String(pName))];
-
-	if((sym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)))) != NULL)
+	if(pSym != NULL)
 	{
-		list_Remove(*ppsym, sym);
-		if(sym->Flags == SYMF_HASDATA)
+		list_Remove(*ppSym, pSym);
+		if(pSym->Flags == SYMF_HASDATA)
 		{
-			mem_Free(sym->Value.Macro.pData);
+			mem_Free(pSym->Value.Macro.pData);
 		}
-		mem_Free(sym);
+		str_Free(pSym->pName);
+		mem_Free(pSym);
 		return true;
 	}
 
@@ -491,21 +488,21 @@ bool_t sym_Purge(string* pName)
 
 bool_t sym_IsString(string* pName)
 {
-	SSymbol* pSym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
 	return pSym != NULL && pSym->Type == SYM_EQUS;
 }
 
 bool_t sym_IsMacro(string* pName)
 {
-	SSymbol* pSym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
 	return pSym != NULL && pSym->Type == SYM_MACRO;
 }
 
 bool_t sym_IsDefined(string* pName)
 {
-	SSymbol* pSym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
 	return pSym != NULL && pSym->Type != SYM_UNDEFINED;
 }
@@ -525,7 +522,7 @@ string* sym_GetStringValue(SSymbol* pSym)
 
 string* sym_GetStringValueByName(string* pName)
 {
-	SSymbol* pSym = sym_Find(str_String(pName), sym_GetScope(str_String(pName)));
+	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
 	if(pSym != NULL)
 		return sym_GetStringValue(pSym);
