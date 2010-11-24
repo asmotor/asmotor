@@ -324,9 +324,9 @@ SSymbol* sym_CreateEQU(string* pName, int32_t value)
 	return NULL;
 }
 
-SSymbol* sym_AddSET(char* name, int32_t value)
+SSymbol* sym_CreateSET(string* pName, int32_t value)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	if((sym->Flags & SYMF_MODIFY) && sym_isType(sym, SYM_SET))
 	{

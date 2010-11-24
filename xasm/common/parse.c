@@ -1205,19 +1205,25 @@ static char* parse_StringExpression(void)
 	return s;
 }
 
-static void parse_RS(char* pszName, int32_t size, int coloncount)
+static void parse_RS(string* pName, int32_t size, int coloncount)
 {
-	sym_AddSET(pszName, sym_GetConstant("__RS"));
-	sym_AddSET("__RS", sym_GetConstant("__RS") + size);
+	string* pRS = str_Create("__RS");
+	int32_t nRS = sym_GetConstant(str_String(pRS));
+	
+	sym_CreateSET(pName, nRS);
+	sym_CreateSET(pRS, nRS + size);
+	
+	str_Free(pRS);
 
 	if(coloncount == 2)
-		sym_Export(pszName);
+		sym_Export(str_String(pName));
 }
 
 
 static void parse_RS_Skip(int32_t size)
 {
-	sym_AddSET("__RS", sym_GetConstant("__RS") + size);
+	string* pRS = str_Create("__RS");
+	sym_CreateSET(pRS, sym_GetConstant(str_String(pRS)) + size);
 }
 
 
@@ -1245,17 +1251,17 @@ static bool_t parse_Symbol(void)
 				break;
 			case T_POP_RB:
 				parse_GetToken();
-				parse_RS(str_String(pName), parse_ConstantExpression(), coloncount);
+				parse_RS(pName, parse_ConstantExpression(), coloncount);
 				r = true;
 				break;
 			case T_POP_RW:
 				parse_GetToken();
-				parse_RS(str_String(pName), parse_ConstantExpression() * 2, coloncount);
+				parse_RS(pName, parse_ConstantExpression() * 2, coloncount);
 				r = true;
 				break;
 			case T_POP_RL:
 				parse_GetToken();
-				parse_RS(str_String(pName), parse_ConstantExpression() * 4, coloncount);
+				parse_RS(pName, parse_ConstantExpression() * 4, coloncount);
 				r = true;
 				break;
 			case T_POP_EQU:
@@ -1269,7 +1275,7 @@ static bool_t parse_Symbol(void)
 				break;
 			case T_POP_SET:
 				parse_GetToken();
-				sym_AddSET(str_String(pName), parse_ConstantExpression());
+				sym_CreateSET(pName, parse_ConstantExpression());
 				if(coloncount == 2)
 				{
 					sym_Export(str_String(pName));
@@ -1572,18 +1578,21 @@ static bool_t parse_PseudoOp(void)
 		}
 		case T_POP_RSRESET:
 		{
+			string* pRS = str_Create("__RS");
 			parse_GetToken();
-			sym_AddSET("__RS", 0);
+			sym_CreateSET(pRS, 0);
+			str_Free(pRS);
 			return true;
-			break;
 		}
 		case T_POP_RSSET:
 		{
+			string* pRS = str_Create("__RS");
 			int32_t val;
 
 			parse_GetToken();
 			val = parse_ConstantExpression();
-			sym_AddSET("__RS", val);
+			sym_CreateSET(pRS, val);
+			str_Free(pRS);
 			return true;
 		}
 		case T_POP_RB:
