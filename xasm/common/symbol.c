@@ -258,9 +258,9 @@ SSymbol* sym_AddGROUP(char* name, EGroupType value)
 	return NULL;
 }
 
-SSymbol* sym_AddEQUS(char* name, char* value)
+SSymbol* sym_CreateEQUS(string* pName, char* value)
 {
-	SSymbol* sym = sym_FindOrCreate(name, sym_GetScope(name));
+	SSymbol* sym = sym_FindOrCreate(str_String(pName), sym_GetScope(str_String(pName)));
 
 	if((sym->Flags & SYMF_MODIFY) && sym_isType(sym, SYM_EQUS))
 	{
@@ -547,6 +547,8 @@ char* sym_GetStringValue(char* name)
 
 bool_t sym_Init(void)
 {
+	string* pName;
+	
 	pCurrentScope = NULL;
 
 	locsym_Init();
@@ -554,15 +556,23 @@ bool_t sym_Init(void)
 	p__NARG__Symbol->Callback.Integer = __NARG__Callback;
 	p__LINE__Symbol = sym_AddEQU("__LINE", 0);
 	p__LINE__Symbol->Callback.Integer = __LINE__Callback;
-	p__DATE__Symbol = sym_AddEQUS("__DATE", 0);
+
+	pName = str_Create("__DATE");
+	p__DATE__Symbol = sym_CreateEQUS(pName, 0);
 	p__DATE__Symbol->Callback.String = __DATE__Callback;
-	p__TIME__Symbol = sym_AddEQUS("__TIME", 0);
+	str_Free(pName);
+	
+	pName = str_Create("__TIME");
+	p__TIME__Symbol = sym_CreateEQUS(pName, 0);
 	p__TIME__Symbol->Callback.String = __TIME__Callback;
+	str_Free(pName);
 
 	if(g_pConfiguration->bSupportAmiga)
 	{
-		p__AMIGADATE__Symbol = sym_AddEQUS("__AMIGADATE", 0);
+		pName = str_Create("__AMIGADATE");
+		p__AMIGADATE__Symbol = sym_CreateEQUS(pName, 0);
 		p__AMIGADATE__Symbol->Callback.String = __AMIGADATE__Callback;
+		str_Free(pName);
 	}
 
 	sym_AddEQU("__ASMOTOR", 0);

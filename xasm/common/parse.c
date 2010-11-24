@@ -1283,7 +1283,7 @@ static bool_t parse_Symbol(void)
 				parse_GetToken();
 				if((pExpr = parse_StringExpression()) != NULL)
 				{
-					sym_AddEQUS(str_String(pName), pExpr);
+					sym_CreateEQUS(pName, pExpr);
 					mem_Free(pExpr);
 					if(coloncount == 2)
 					{
