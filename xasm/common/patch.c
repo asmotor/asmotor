@@ -284,12 +284,12 @@ bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 		SSymbol* pSym = pExpr->Value.pSymbol;
 		if(pSym->pSection == pSection)
 		{
-			if((pSym->Flags & SYMF_CONSTANT) && (pSection->Flags & SECTF_ORGFIXED))
+			if((pSym->nFlags & SYMF_CONSTANT) && (pSection->Flags & SECTF_ORGFIXED))
 			{
 				*pOffset = pSym->Value.Value - pSection->Org;
 				return true;
 			}
-			else if((pSym->Flags & SYMF_RELOC) && (pSection->Flags == 0))
+			else if((pSym->nFlags & SYMF_RELOC) && (pSection->Flags == 0))
 			{
 				*pOffset = pSym->Value.Value;
 				return true;
@@ -550,13 +550,15 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
 			*v = expr->Value.Value;
 			return true;
 		case EXPR_SYMBOL:
-			if(expr->Value.pSymbol->Flags & SYMF_CONSTANT)
+			if(expr->Value.pSymbol->nFlags & SYMF_CONSTANT)
 			{
 				*v = expr->Value.pSymbol->Value.Value;
 				return true;
 			}
-			if(expr->Value.pSymbol->eType == SYM_UNDEFINED)
+			else if(expr->Value.pSymbol->eType == SYM_UNDEFINED)
+			{
 				prj_Error(ERROR_SYMBOL_UNDEFINED, str_String(expr->Value.pSymbol->pName));
+			}
 			return false;
 		default:
 			internalerror("Unknown expression");

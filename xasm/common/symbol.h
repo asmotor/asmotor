@@ -64,13 +64,13 @@ typedef struct Symbol
 	list_Data(struct Symbol);
 	string*		pName;
 	ESymbolType	eType;
-	uint32_t	Flags;
+	uint32_t	nFlags;
 	struct Symbol*	pScope;
 	struct Section*	pSection;
 	union
 	{
-		int32_t (*Integer)(struct Symbol*);
-		string*	(*String)(struct Symbol*);
+		int32_t (*fpInteger)(struct Symbol*);
+		string*	(*fpString)(struct Symbol*);
 	} Callback;
 	union
 	{

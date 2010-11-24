@@ -29,7 +29,7 @@ void locsym_Init(void)
 	str_Free(pName);
 	
 	pName = str_Create("DATA");
-	sym_CreateGROUP(pName, GROUP_TEXT)->Flags |= SYMF_DATA;
+	sym_CreateGROUP(pName, GROUP_TEXT)->nFlags |= SYMF_DATA;
 	str_Free(pName);
 	
 	pName = str_Create("BSS");
@@ -37,14 +37,14 @@ void locsym_Init(void)
 	str_Free(pName);
 	
 	pName = str_Create("CODE_C");
-	sym_CreateGROUP(pName, GROUP_TEXT)->Flags |= SYMF_CHIP;
+	sym_CreateGROUP(pName, GROUP_TEXT)->nFlags |= SYMF_CHIP;
 	str_Free(pName);
 	
 	pName = str_Create("DATA_C");
-	sym_CreateGROUP(pName, GROUP_TEXT)->Flags |= SYMF_DATA | SYMF_CHIP;
+	sym_CreateGROUP(pName, GROUP_TEXT)->nFlags |= SYMF_DATA | SYMF_CHIP;
 	str_Free(pName);
 	
 	pName = str_Create("BSS_C");
-	sym_CreateGROUP(pName, GROUP_BSS)->Flags |= SYMF_CHIP;
+	sym_CreateGROUP(pName, GROUP_BSS)->nFlags |= SYMF_CHIP;
 	str_Free(pName);
 }

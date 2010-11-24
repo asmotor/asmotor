@@ -177,7 +177,7 @@ static SSymbol* sym_Create(string* pName)
 	memset(pSym, 0, sizeof(SSymbol));
 	
 	pSym->eType = SYM_UNDEFINED;
-	pSym->Flags = s_aDefaultSymbolFlags[SYM_UNDEFINED];
+	pSym->nFlags = s_aDefaultSymbolFlags[SYM_UNDEFINED];
 	pSym->pName = str_Copy(pName);
 
 	list_Insert(*ppHash, pSym);
@@ -221,8 +221,8 @@ static bool_t sym_isType(SSymbol* sym, ESymbolType type)
 
 int32_t sym_GetValue(SSymbol* pSym)
 {
-	if(pSym->Callback.Integer)
-		return pSym->Callback.Integer(pSym);
+	if(pSym->Callback.fpInteger)
+		return pSym->Callback.fpInteger(pSym);
 
 	return pSym->Value.Value;
 }
@@ -232,7 +232,7 @@ int32_t sym_GetValueByName(string* pName)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if(pSym->Flags & SYMF_CONSTANT)
+	if(pSym->nFlags & SYMF_CONSTANT)
 		return sym_GetValue(pSym);
 
 	prj_Fail(ERROR_SYMBOL_CONSTANT);
@@ -250,10 +250,10 @@ SSymbol* sym_CreateGROUP(string* pName, EGroupType value)
 {
 	SSymbol* sym = sym_FindOrCreate(pName);
 
-	if((sym->Flags & SYMF_MODIFY) && sym_isType(sym,SYM_GROUP))
+	if((sym->nFlags & SYMF_MODIFY) && sym_isType(sym, SYM_GROUP))
 	{
 		sym->eType = SYM_GROUP;
-		SET_FLAGS(sym->Flags, SYM_GROUP);
+		SET_FLAGS(sym->nFlags, SYM_GROUP);
 		sym->Value.GroupType = value;
 		return sym;
 	}
@@ -267,10 +267,10 @@ SSymbol* sym_CreateEQUS(string* pName, char* value)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((pSym->Flags & SYMF_MODIFY) && sym_isType(pSym, SYM_EQUS))
+	if((pSym->nFlags & SYMF_MODIFY) && sym_isType(pSym, SYM_EQUS))
 	{
 		pSym->eType = SYM_EQUS;
-		SET_FLAGS(pSym->Flags, SYM_EQUS);
+		SET_FLAGS(pSym->nFlags, SYM_EQUS);
 
 		pSym->Value.pMacro = value == NULL ? NULL : str_Create(value);
 		return pSym;
@@ -285,10 +285,10 @@ SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((pSym->Flags & SYMF_MODIFY) && sym_isType(pSym, SYM_MACRO))
+	if((pSym->nFlags & SYMF_MODIFY) && sym_isType(pSym, SYM_MACRO))
 	{
 		pSym->eType = SYM_MACRO;
-		SET_FLAGS(pSym->Flags, SYM_MACRO);
+		SET_FLAGS(pSym->nFlags, SYM_MACRO);
 		pSym->Value.pMacro = str_CreateLength(value, size);
 		
 		return pSym;
@@ -303,14 +303,14 @@ SSymbol* sym_CreateEQU(string* pName, int32_t value)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((pSym->Flags & SYMF_MODIFY)
+	if((pSym->nFlags & SYMF_MODIFY)
 	&& (sym_isType(pSym, SYM_EQU) || pSym->eType == SYM_GLOBAL))
 	{
 		if(pSym->eType == SYM_GLOBAL)
-			pSym->Flags |= SYMF_EXPORT;
+			pSym->nFlags |= SYMF_EXPORT;
 
 		pSym->eType = SYM_EQU;
-		SET_FLAGS(pSym->Flags, SYM_EQU);
+		SET_FLAGS(pSym->nFlags, SYM_EQU);
 		pSym->Value.Value = value;
 		
 		return pSym;
@@ -325,10 +325,10 @@ SSymbol* sym_CreateSET(string* pName, int32_t value)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((pSym->Flags & SYMF_MODIFY) && sym_isType(pSym, SYM_SET))
+	if((pSym->nFlags & SYMF_MODIFY) && sym_isType(pSym, SYM_SET))
 	{
 		pSym->eType = SYM_SET;
-		SET_FLAGS(pSym->Flags, SYM_SET);
+		SET_FLAGS(pSym->nFlags, SYM_SET);
 		pSym->Value.Value = value;
 
 		return pSym;
@@ -343,11 +343,11 @@ SSymbol* sym_CreateLabel(string* pName)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if((pSym->Flags & SYMF_MODIFY)
+	if((pSym->nFlags & SYMF_MODIFY)
 	&& (sym_isType(pSym, SYM_LABEL) || pSym->eType == SYM_GLOBAL))
 	{
 		if(pSym->eType == SYM_GLOBAL)
-			pSym->Flags |= SYMF_EXPORT;
+			pSym->nFlags |= SYMF_EXPORT;
 
 		if(pCurrentSection)
 		{
@@ -357,7 +357,7 @@ SSymbol* sym_CreateLabel(string* pName)
 			if((pCurrentSection->Flags & SECTF_ORGFIXED) == 0)
 			{
 				pSym->eType = SYM_LABEL;
-				SET_FLAGS(pSym->Flags, SYM_LABEL);
+				SET_FLAGS(pSym->nFlags, SYM_LABEL);
 				pSym->pSection = pCurrentSection;
 				pSym->Value.Value = pCurrentSection->PC;
 				return pSym;
@@ -365,7 +365,7 @@ SSymbol* sym_CreateLabel(string* pName)
 			else
 			{
 				pSym->eType = SYM_EQU;
-				SET_FLAGS(pSym->Flags, SYM_EQU);
+				SET_FLAGS(pSym->nFlags, SYM_EQU);
 				pSym->Value.Value = pCurrentSection->PC + pCurrentSection->Org;
 				return pSym;
 			}
@@ -423,8 +423,8 @@ SSymbol* sym_Export(string* pName)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
 
-	if(pSym->Flags & SYMF_EXPORTABLE)
-		pSym->Flags |= SYMF_EXPORT;
+	if(pSym->nFlags & SYMF_EXPORTABLE)
+		pSym->nFlags |= SYMF_EXPORT;
 	else
 		prj_Error(ERROR_SYMBOL_EXPORT);
 
@@ -439,7 +439,7 @@ SSymbol* sym_Import(string* pName)
 	if(pSym->eType == SYM_UNDEFINED)
 	{
 		pSym->eType = SYM_IMPORT;
-		SET_FLAGS(pSym->Flags, SYM_IMPORT);
+		SET_FLAGS(pSym->nFlags, SYM_IMPORT);
 		pSym->Value.Value = 0;
 		return pSym;
 	}
@@ -457,14 +457,14 @@ SSymbol* sym_Global(string* pName)
 	{
 		/* Symbol has not yet been defined, we'll leave this till later */
 		pSym->eType = SYM_GLOBAL;
-		SET_FLAGS(pSym->Flags, SYM_GLOBAL);
+		SET_FLAGS(pSym->nFlags, SYM_GLOBAL);
 		pSym->Value.Value = 0;
 		return pSym;
 	}
 
-	if(pSym->Flags & SYMF_EXPORTABLE)
+	if(pSym->nFlags & SYMF_EXPORTABLE)
 	{
-		pSym->Flags |= SYMF_EXPORT;
+		pSym->nFlags |= SYMF_EXPORT;
 		return pSym;
 	}
 
@@ -482,7 +482,7 @@ bool_t sym_Purge(string* pName)
 	{
 		list_Remove(*ppSym, pSym);
 		
-		if(pSym->Flags == SYMF_HASDATA)
+		if(pSym->nFlags == SYMF_HASDATA)
 			str_Free(pSym->Value.pMacro);
 		str_Free(pSym->pName);
 		mem_Free(pSym);
@@ -523,8 +523,8 @@ string* sym_GetStringValue(SSymbol* pSym)
 {
 	if(pSym->eType == SYM_EQUS)
 	{
-		if(pSym->Callback.String)
-			return pSym->Callback.String(pSym);
+		if(pSym->Callback.fpString)
+			return pSym->Callback.fpString(pSym);
 			
 		return str_Copy(pSym->Value.pMacro);
 	}
@@ -556,29 +556,29 @@ bool_t sym_Init(void)
 	
 	pName = str_Create("__NARG");
 	pSym = sym_CreateEQU(pName, 0);
-	pSym->Callback.Integer = Callback__NARG;
+	pSym->Callback.fpInteger = Callback__NARG;
 	str_Free(pName);
 	
 	pName = str_Create("__LINE");
 	pSym = sym_CreateEQU(pName, 0);
-	pSym->Callback.Integer = Callback__LINE;
+	pSym->Callback.fpInteger = Callback__LINE;
 	str_Free(pName);
 
 	pName = str_Create("__DATE");
 	pSym = sym_CreateEQUS(pName, 0);
-	pSym->Callback.String = Callback__DATE;
+	pSym->Callback.fpString = Callback__DATE;
 	str_Free(pName);
 	
 	pName = str_Create("__TIME");
 	pSym = sym_CreateEQUS(pName, 0);
-	pSym->Callback.String = Callback__TIME;
+	pSym->Callback.fpString = Callback__TIME;
 	str_Free(pName);
 
 	if(g_pConfiguration->bSupportAmiga)
 	{
 		pName = str_Create("__AMIGADATE");
 		pSym = sym_CreateEQUS(pName, 0);
-		pSym->Callback.String = Callback__AMIGADATE;
+		pSym->Callback.fpString = Callback__AMIGADATE;
 		str_Free(pName);
 	}
 

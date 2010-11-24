@@ -105,12 +105,12 @@ static uint32_t calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, uint
 				fputasciiz(str_String(expr->Value.pSymbol->pName), f);
 				if(expr->Value.pSymbol->pSection==sect)
 				{
-					if(expr->Value.pSymbol->Flags&SYMF_LOCALEXPORT)
+					if(expr->Value.pSymbol->nFlags & SYMF_LOCALEXPORT)
 					{
 						fputll(3, f);	//	LOCALEXPORT
 						fputll(expr->Value.pSymbol->Value.Value, f);
 					}
-					else if(expr->Value.pSymbol->Flags&SYMF_EXPORT)
+					else if(expr->Value.pSymbol->nFlags & SYMF_EXPORT)
 					{
 						fputll(0, f);	//	EXPORT
 						fputll(expr->Value.pSymbol->Value.Value, f);
@@ -143,10 +143,10 @@ static void fix_local_exports(SSection* sect, SExpression* expr)
 		fix_local_exports(sect, expr->pRight);
 
 		if((expr_GetType(expr) == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr_IsOperator(expr, T_FUNC_BANK)))
-		&& (expr->Value.pSymbol->Flags & SYMF_EXPORTABLE)
+		&& (expr->Value.pSymbol->nFlags & SYMF_EXPORTABLE)
 		&& expr->Value.pSymbol->pSection != sect)
 		{
-			expr->Value.pSymbol->Flags |= SYMF_LOCALEXPORT;
+			expr->Value.pSymbol->nFlags |= SYMF_LOCALEXPORT;
 		}
 	}
 }
@@ -426,7 +426,7 @@ bool_t obj_Write(string* pName)
 		for(sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym))
 		{
 			if((sym->eType == SYM_EQU || sym->eType == SYM_SET)
-			&& (sym->Flags & SYMF_EXPORT))
+			&& (sym->nFlags & SYMF_EXPORT))
 			{
 				++equsetcount;
 				fputasciiz(str_String(sym->pName), f);
@@ -496,14 +496,14 @@ bool_t obj_Write(string* pName)
 					sym->ID = (uint32_t)-1;
 
 				if(sym->pSection == sect
-				&& (sym->Flags & (SYMF_EXPORT | SYMF_LOCALEXPORT)))
+				&& (sym->nFlags & (SYMF_EXPORT | SYMF_LOCALEXPORT)))
 				{
 					sym->ID = ID++;
 
 					fputasciiz(str_String(sym->pName), f);
-					if(sym->Flags & SYMF_EXPORT)
+					if(sym->nFlags & SYMF_EXPORT)
 						fputll(0, f);	//	EXPORT
-					else if(sym->Flags & SYMF_LOCALEXPORT)
+					else if(sym->nFlags & SYMF_LOCALEXPORT)
 						fputll(3, f);	//	LOCALEXPORT
 					fputll(sym->Value.Value, f);
 				}

@@ -152,7 +152,7 @@ SExpression* expr_Pc()
 	pSym = sym_CreateLabel(pName);
 	str_Free(pName);
 
-	if(pSym->Flags & SYMF_CONSTANT)
+	if(pSym->nFlags & SYMF_CONSTANT)
 	{
 		expr->Value.Value = pSym->Value.Value;
 		expr->eType = EXPR_CONSTANT;
@@ -409,7 +409,7 @@ SExpression* expr_Bank(char* s)
 	expr->pRight = NULL;
 	expr->pLeft = NULL;
 	expr->Value.pSymbol = sym_FindSymbol(pName);
-	expr->Value.pSymbol->Flags |= SYMF_REFERENCED;
+	expr->Value.pSymbol->nFlags |= SYMF_REFERENCED;
 	expr->nFlags = EXPRF_RELOC;
 	expr->eType = EXPR_OPERATOR;
 	expr->eOperator = T_FUNC_BANK;
@@ -425,11 +425,11 @@ SExpression* expr_Symbol(char* s)
 	SSymbol* pSym = sym_FindSymbol(pName);
 	str_Free(pName);
 
-	if(pSym->Flags & SYMF_EXPR)
+	if(pSym->nFlags & SYMF_EXPR)
 	{
-		pSym->Flags |= SYMF_REFERENCED;
+		pSym->nFlags |= SYMF_REFERENCED;
 		
-		if(pSym->Flags & SYMF_CONSTANT)
+		if(pSym->nFlags & SYMF_CONSTANT)
 		{
 			return expr_Const(sym_GetValue(pSym));
 		}

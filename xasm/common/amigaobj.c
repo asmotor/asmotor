@@ -86,10 +86,10 @@ void ami_WriteSymbolHunk(FILE* f, SSection* pSect, bool_t bSkipExt)
 		SSymbol* sym = g_pHashedSymbols[i];
 		while(sym)
 		{
-			if((sym->Flags & SYMF_RELOC) != 0
+			if((sym->nFlags & SYMF_RELOC) != 0
 			&& sym->pSection == pSect)
 			{
-				if(!((sym->Flags & SYMF_EXPORT) && bSkipExt))
+				if(!((sym->nFlags & SYMF_EXPORT) && bSkipExt))
 				{
 					fputstr(str_String(sym->pName), f, 0);
 					fputml(sym->Value.Value, f);
@@ -174,7 +174,7 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 		SSymbol* sym = g_pHashedSymbols[i];
 		while(sym)
 		{
-			if((sym->Flags & (SYMF_RELOC | SYMF_EXPORT)) == (SYMF_RELOC | SYMF_EXPORT)
+			if((sym->nFlags & (SYMF_RELOC | SYMF_EXPORT)) == (SYMF_RELOC | SYMF_EXPORT)
 			&& sym->pSection == pSect)
 			{
 				fputstr(str_String(sym->pName), f, EXT_DEF);
@@ -207,12 +207,12 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 		for(i = 0; i < nSections; ++i)
 			pPatches[i] = NULL;
 
-		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_DATA))
+		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->nFlags & SYMF_DATA))
 			hunktype = HUNK_DATA;
 		else
 			hunktype = HUNK_CODE;
 
-		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_CHIP))
+		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->nFlags & SYMF_CHIP))
 			hunktype |= HUNKF_CHIP;
 
 		fputml(hunktype, f);
@@ -334,7 +334,7 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 	else /*if(pSect->pGroup->Flags & GROUP_BSS)*/
 	{
 		uint32_t hunktype = HUNK_BSS;
-		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_CHIP))
+		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->nFlags & SYMF_CHIP))
 			hunktype |= HUNKF_CHIP;
 		fputml(hunktype, f);
 		fputml((pSect->UsedSpace + 3) / 4, f);
@@ -436,7 +436,7 @@ bool_t ami_WriteExecutable(string* pDestFilename, bool_t bDebugInfo)
 	while(pSect != NULL)
 	{
 		uint32_t size = (pSect->UsedSpace + 3) / 4;
-		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->Flags & SYMF_CHIP))
+		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->nFlags & SYMF_CHIP))
 			size |= HUNKF_CHIP;
 		fputml(size, f);
 		pSect = list_GetNext(pSect);

@@ -77,10 +77,10 @@ bool_t bin_Write(string* pName)
 		SSymbol* sym = g_pHashedSymbols[i];
 		while(sym)
 		{
-			if(sym->Flags & SYMF_RELOC)
+			if(sym->nFlags & SYMF_RELOC)
 			{
-				sym->Flags &= ~SYMF_RELOC;
-				sym->Flags |= SYMF_CONSTANT;
+				sym->nFlags &= ~SYMF_RELOC;
+				sym->nFlags |= SYMF_CONSTANT;
 				sym->Value.Value += sym->pSection->Org;
 			}
 			sym = list_GetNext(sym);
