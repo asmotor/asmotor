@@ -1287,8 +1287,10 @@ static bool_t parse_Symbol(void)
 				parse_GetToken();
 				if((pExpr = parse_StringExpression()) != NULL)
 				{
-					sym_CreateEQUS(pName, pExpr);
+					string* pValue = str_Create(pExpr);
+					sym_CreateEQUS(pName, pValue);
 					mem_Free(pExpr);
+					str_Free(pValue);
 					if(coloncount == 2)
 						sym_Export(pName);
 					r = true;

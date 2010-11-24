@@ -263,7 +263,7 @@ SSymbol* sym_CreateGROUP(string* pName, EGroupType value)
 }
 
 
-SSymbol* sym_CreateEQUS(string* pName, char* value)
+SSymbol* sym_CreateEQUS(string* pName, string* pValue)
 {
 	SSymbol* pSym = sym_FindOrCreate(pName);
 
@@ -272,7 +272,7 @@ SSymbol* sym_CreateEQUS(string* pName, char* value)
 		pSym->eType = SYM_EQUS;
 		SET_FLAGS(pSym->nFlags, SYM_EQUS);
 
-		pSym->Value.pMacro = value == NULL ? NULL : str_Create(value);
+		pSym->Value.pMacro = str_Copy(pValue);
 		return pSym;
 	}
 

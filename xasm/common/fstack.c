@@ -435,7 +435,7 @@ bool_t fstk_Init(string* pFile)
 	g_pszCurrentRunId = NULL;
 
 	pName = str_Create("__FILE");
-    sym_CreateEQUS(pName, str_String(pFile));
+    sym_CreateEQUS(pName, pFile);
 	str_Free(pName);
 
 	g_pFileContext = mem_Alloc(sizeof(SFileStack));
