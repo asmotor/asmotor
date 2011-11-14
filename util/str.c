@@ -106,3 +106,18 @@ bool_t str_Equal(string* pString1, string* pString2)
 
 	return true;
 }
+
+string* str_Replace(string* pString, char search, char replace)
+{
+	int i;
+	int len = str_Length(pString);
+	
+	pString = str_CreateLength(pString->szData, len);
+	for(i = 0; i < len; ++i)
+	{
+		if(str_CharAt(pString, i) == search)
+			str_Set(pString, i, replace);
+	}
+	
+	return pString;
+}

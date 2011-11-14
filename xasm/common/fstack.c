@@ -50,7 +50,13 @@ static char** g_ppszNewMacroArgs;
 static char* g_pszNewMacroArg0;
 static uint32_t g_nTotalNewMacroArgs;
 
-
+#if defined(WIN32)
+#	define PATH_SEPARATOR '\\'
+#	define PATH_REPLACE '/'
+#else
+#	define PATH_SEPARATOR '/'
+#	define PATH_REPLACE '\\'
+#endif
 
 
 /* Private routines */
@@ -151,6 +157,11 @@ void fstk_ShiftMacroArgs(int32_t count)
 	}
 }
 
+static string* fstk_FixSeparators(string* pFile)
+{
+	return str_Replace(pFile, PATH_REPLACE, PATH_SEPARATOR);
+}
+
 static string* fstk_BuildPath(string* pPath, string* pFile)
 {
 	char* pSlash = str_String(pPath) + str_Length(pPath) - 1;
@@ -161,18 +172,21 @@ static string* fstk_BuildPath(string* pPath, string* pFile)
 		--pSlash;
 
 	if(pSlash == str_String(pPath))
-		return NULL;
+		return str_Copy(pFile);
 
 	p = str_Slice(pPath, 0, pSlash + 1 - str_String(pPath));
 	r = str_Concat(p, pFile);
 	str_Free(p);
-
-	return r;
+	
+	p = fstk_FixSeparators(r);
+	str_Free(r);
+	return p;
 }
 
 static bool_t fstk_FileExists(string* pFile)
 {
 	FILE* f;
+
 	if((f = fopen(str_String(pFile), "rb")) != NULL)
 	{
 		fclose(f);
@@ -187,30 +201,42 @@ string* fstk_FindFile(string* pFile)
 	string* pResult;
 	uint32_t count;
 
-	if(fstk_FileExists(pFile))
-		return str_Copy(pFile);
+	pFile = fstk_FixSeparators(pFile);
 
-	pResult = fstk_BuildPath(g_pFileContext->pName, pFile);
-	if(pResult != NULL)
+	if(g_pFileContext->pName == NULL)
 	{
-		if(fstk_FileExists(pResult))
-			return pResult;
+		if(fstk_FileExists(pFile))
+			return pFile;
+	}
+	else
+	{
+		pResult = fstk_BuildPath(g_pFileContext->pName, pFile);
+		if(pResult != NULL)
+		{
+			if(fstk_FileExists(pResult))
+			{
+				str_Free(pFile);
+				return pResult;
+			}
 
-		str_Free(pResult);
+			str_Free(pResult);
+		}
 	}
 
 	for(count = 0; count < g_nTotalIncludePaths; count += 1)
 	{
-		FILE* f;
 		pResult = str_Concat(g_aIncludePaths[count], pFile);
 		
-		if((f = fopen(str_String(pResult), "rt")) != NULL)
+		if(fstk_FileExists(pResult))
 		{
-			fclose(f);
+			str_Free(pFile);
 			return pResult;
 		}
+
 		str_Free(pResult);
 	}
+	
+	str_Free(pFile);
 	
 	return NULL;
 }

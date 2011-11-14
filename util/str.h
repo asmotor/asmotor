@@ -35,6 +35,7 @@ extern void str_Free(string* pString);
 extern string* str_Concat(string* pString1, string* pString2);
 extern string* str_Slice(string* pString1, int nIndex, int nLength);
 extern bool_t str_Equal(string* pString1, string* pString2);
+extern string* str_Replace(string* pString, char search, char replace);
 
 INLINE string* str_Copy(string* pString)
 {
@@ -58,6 +59,13 @@ INLINE char str_CharAt(string* pString, int nIndex)
 	if(nIndex < 0)
 		nIndex = str_Length(pString) + nIndex;
 	return pString->szData[nIndex];
+}
+
+INLINE void str_Set(string* pString, int nIndex, char ch)
+{
+	if(nIndex < 0)
+		nIndex = str_Length(pString) + nIndex;
+	pString->szData[nIndex] = ch;
 }
 
 INLINE void str_Assign(string** ppDest, string* pSrc)

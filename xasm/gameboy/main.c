@@ -8,7 +8,7 @@ static SConfiguration s_sConfiguration =
 	"1.0",
 	0x4000,
 	ASM_LITTLE_ENDIAN,
-	false,
+	true,
 	false,
 
 	"rb", "rw", "rl",
