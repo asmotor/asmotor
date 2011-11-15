@@ -1,4 +1,4 @@
-	SECTION	"Test",CODE[$1000]
+	SECTION	"Test",CODE
 
 	jr	nz,.skip
 	nop

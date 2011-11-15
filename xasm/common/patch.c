@@ -282,7 +282,12 @@ bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 	if(expr_GetType(pExpr) == EXPR_SYMBOL)
 	{
 		SSymbol* pSym = pExpr->Value.pSymbol;
-		if(pSym->pSection == pSection)
+		if((pSym->eType == SYM_EQU) && (pSection->Flags & SECTF_ORGFIXED))
+		{
+			*pOffset = pSym->Value.Value - pSection->Org;
+			return true;
+		}
+		else if(pSym->pSection == pSection)
 		{
 			if((pSym->nFlags & SYMF_CONSTANT) && (pSection->Flags & SECTF_ORGFIXED))
 			{

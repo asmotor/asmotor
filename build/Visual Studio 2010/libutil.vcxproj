@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\util\math.c" />
     <ClCompile Include="..\..\util\mem.c" />
     <ClCompile Include="..\..\util\str.c" />
+    <ClCompile Include="..\..\util\strbuf.c" />
     <ClCompile Include="..\..\util\strings.c" />
   </ItemGroup>
   <ItemGroup>
@@ -31,6 +32,7 @@
     <ClInclude Include="..\..\util\lists.h" />
     <ClInclude Include="..\..\util\mem.h" />
     <ClInclude Include="..\..\util\str.h" />
+    <ClInclude Include="..\..\util\strbuf.h" />
     <ClInclude Include="..\..\util\types.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -122,6 +124,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4100;4200;4206</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
