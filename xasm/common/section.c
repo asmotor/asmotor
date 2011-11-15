@@ -522,7 +522,7 @@ void sect_Align(int32_t align)
 	sect_SkipBytes(t - pCurrentSection->PC);
 }
 
-void	sect_SkipBytes(int32_t count)
+void sect_SkipBytes(int32_t count)
 {
 	if(sect_CheckAvailableSpace(count))
 	{

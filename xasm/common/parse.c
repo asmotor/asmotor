@@ -1757,7 +1757,7 @@ static bool_t parse_PseudoOp(void)
 						prj_Error(ERROR_EXPRESSION_N_BIT, 8);
 				}
 				else
-					prj_Error(ERROR_INVALID_EXPRESSION);
+					sect_SkipBytes(1); //prj_Error(ERROR_INVALID_EXPRESSION);
 			} while(g_CurrentToken.ID.Token == ',');
 
 			return true;
@@ -1780,7 +1780,7 @@ static bool_t parse_PseudoOp(void)
 						prj_Error(ERROR_EXPRESSION_N_BIT, 16);
 				}
 				else
-					prj_Error(ERROR_INVALID_EXPRESSION);
+					sect_SkipBytes(2); // prj_Error(ERROR_INVALID_EXPRESSION);
 			} while(g_CurrentToken.ID.Token == ',');
 
 			return true;
@@ -1797,7 +1797,7 @@ static bool_t parse_PseudoOp(void)
 				if(expr)
 					sect_OutputExprLong(expr);
 				else
-					prj_Error(ERROR_INVALID_EXPRESSION);
+					sect_SkipBytes(4); //prj_Error(ERROR_INVALID_EXPRESSION);
 			} while(g_CurrentToken.ID.Token == ',');
 
 			return true;
