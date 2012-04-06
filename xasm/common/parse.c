@@ -498,11 +498,14 @@ static SExpression* parse_ExprPri9(void)
 		}
 		default:
 		{
-			if(g_CurrentToken.TokenLength > 0 && g_CurrentToken.ID.Token >= T_FIRST_TOKEN)
+			if(g_pOptions->bAllowReservedIdentifierLabels)
 			{
-				SExpression* expr = expr_Symbol(g_CurrentToken.Value.aString);
-				parse_GetToken();
-				return expr;
+				if(g_CurrentToken.TokenLength > 0 && g_CurrentToken.ID.Token >= T_FIRST_TOKEN)
+				{
+					SExpression* expr = expr_Symbol(g_CurrentToken.Value.aString);
+					parse_GetToken();
+					return expr;
+				}
 			}
 			return NULL;
 		}
@@ -897,8 +900,21 @@ static SExpression* parse_ExprPri3(void)
 		{
 			case T_OP_ADD:
 			{
+				SExpression* t2;
+				SLexBookmark mark;
+
+				lex_Bookmark(&mark);
 				parse_GetToken();
-				t1 = expr_Add(t1, parse_ExprPri4());
+				t2 = parse_ExprPri4();
+				if(t2 != NULL)
+				{
+					t1 = expr_Add(t1, t2);
+				}
+				else
+				{
+					lex_Goto(&mark);
+					return t1;
+				}
 				break;
 			}
 			case T_OP_SUB:

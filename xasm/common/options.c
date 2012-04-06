@@ -183,12 +183,12 @@ void opt_Open(void)
 {
 	g_pOptions = opt_Alloc();
 
-	g_pOptions->Flags = 0;
 	g_pOptions->Endian = g_pConfiguration->eDefaultEndianness;
 	g_pOptions->BinaryChar[0] = '0';
 	g_pOptions->BinaryChar[1] = '1';
 	g_pOptions->UninitChar = -1;
 	g_pOptions->nTotalDisabledWarnings = 0;
+	g_pOptions->bAllowReservedIdentifierLabels = true;
 	locopt_Open();
 	opt_Update();
 }

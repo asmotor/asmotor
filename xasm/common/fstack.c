@@ -259,16 +259,13 @@ void fstk_Dump(void)
 
 	while(stack)
 	{
-		printf("%s(%d)", str_String(stack->pName), stack->LineNumber);
+		if(stack != NULL && stack->pName != NULL)
+		{
+			printf("%s(%d)", str_String(stack->pName), stack->LineNumber);
+		}
 		stack = list_GetPrev(stack);
-		if(stack)
-		{
-			printf("->");
-		}
-		else
-		{
-			printf(": ");
-		}
+
+		printf(stack != NULL ? "->" : ": ");
 	}
 }
 

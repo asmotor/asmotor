@@ -47,6 +47,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motormips", "motormips.vcxp
 		{B8E60034-A4C8-42E5-8FD6-4C64713EC864} = {B8E60034-A4C8-42E5-8FD6-4C64713EC864}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motor0x10c", "motor0x10c.vcxproj", "{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -127,6 +129,14 @@ Global
 		{7FD0E175-0ED5-434E-91A7-6C8EB6E3CF13}.Release|Win32.Build.0 = Release|Win32
 		{7FD0E175-0ED5-434E-91A7-6C8EB6E3CF13}.Release|x64.ActiveCfg = Release|x64
 		{7FD0E175-0ED5-434E-91A7-6C8EB6E3CF13}.Release|x64.Build.0 = Release|x64
+		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Debug|Win32.Build.0 = Debug|Win32
+		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Debug|x64.ActiveCfg = Debug|x64
+		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Debug|x64.Build.0 = Debug|x64
+		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Release|Win32.ActiveCfg = Release|Win32
+		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Release|Win32.Build.0 = Release|Win32
+		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Release|x64.ActiveCfg = Release|x64
+		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

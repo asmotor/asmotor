@@ -30,13 +30,13 @@ struct MachineOptions;
 struct Options
 {
 	list_Data(struct Options);
-	uint32_t	Flags;
 	EEndian	Endian;
 	char	BinaryChar[2];
 	int		UninitChar;
 	int		nTotalDisabledWarnings;
 	uint16_t	aDisabledWarnings[MAXDISABLEDWARNINGS];
 	struct MachineOptions*	pMachine;
+	bool_t	bAllowReservedIdentifierLabels;
 };
 typedef	struct Options SOptions;
 

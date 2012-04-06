@@ -88,7 +88,7 @@ typedef enum
 
 
 extern void	prj_Warn(int n, ...);
-extern void	prj_Error(int n, ...);
-extern void	prj_Fail(int n, ...);
+extern bool_t prj_Error(int n, ...);
+extern bool_t prj_Fail(int n, ...);
 
 #endif	/*INCLUDE_PROJECT_H*/

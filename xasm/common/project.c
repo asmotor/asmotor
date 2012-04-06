@@ -138,7 +138,7 @@ void prj_Warn(int n, ...)
 	++g_nTotalWarnings;
 }
 
-void prj_Error(int n, ...)
+bool_t prj_Error(int n, ...)
 {
 	va_list	args;
 
@@ -149,7 +149,7 @@ void prj_Error(int n, ...)
 	++g_nTotalErrors;
 }
 
-void prj_Fail(int n, ...)
+bool_t prj_Fail(int n, ...)
 {
 	va_list	args;
 

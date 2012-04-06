@@ -22,7 +22,6 @@ Start:
 
 John:
 	nop
-	if	0
 	move	sr,d5
 	tst.b	#$12
 
@@ -43,8 +42,8 @@ John:
 	;muls.l	Symbol,d1:d1
 	move.l	#1,d3
 	moveq	#-63,d5
-	movep	(a2),d5
-	movep.l	d3,10(a3)
+	;movep	(a2),d5
+	;movep.l	d3,10(a3)
 	;move16	(a0)+,(a2)+
 	;move16	(a0),Symbol
 	;move16	Symbol,(a2)+
@@ -168,7 +167,6 @@ Symbol:
 	sub.w	d1,(a0)
 	swap	d5
 
-	if	0
 	tas		d5
 
 	trap	#7
@@ -181,6 +179,3 @@ Symbol:
 
 	pack	-(a2),-(a3),#$2020
 	unpack	-(a2),-(a3),#$2020
-	endc
-
-	endc
