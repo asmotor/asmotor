@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <string.h>
+#include <assert.h>
 
 #include "asmotor.h"
 #include "xasm.h"
@@ -122,16 +123,18 @@ static SSection* sect_Find(char* name, SSymbol* group)
 	return NULL;
 }
 
-static	void	sect_GrowCurrent(int32_t count)
+static void sect_GrowCurrent(int32_t count)
 {
-	if(count+pCurrentSection->UsedSpace > pCurrentSection->AllocatedSpace)
+	assert(g_pConfiguration->eMinimumWordSize <= count);
+
+	if(count + pCurrentSection->UsedSpace > pCurrentSection->AllocatedSpace)
 	{
 		int32_t	allocate;
 
-		allocate=(count+pCurrentSection->UsedSpace+CHUNKSIZE-1)&(~(CHUNKSIZE-1));
-		if((pCurrentSection->pData=mem_Realloc(pCurrentSection->pData,allocate))!=NULL)
+		allocate = (count + pCurrentSection->UsedSpace + CHUNKSIZE - 1) & -CHUNKSIZE;
+		if((pCurrentSection->pData = mem_Realloc(pCurrentSection->pData,allocate)) != NULL)
 		{
-			pCurrentSection->AllocatedSpace=allocate;
+			pCurrentSection->AllocatedSpace = allocate;
 		}
 		else
 		{
@@ -142,9 +145,11 @@ static	void	sect_GrowCurrent(int32_t count)
 
 static bool_t sect_CheckAvailableSpace(uint32_t count)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= count);
+
 	if(pCurrentSection)
 	{
-		if(count<=pCurrentSection->FreeSpace)
+		if(count <= pCurrentSection->FreeSpace)
 		{
 			if(sect_GetCurrentType()==GROUP_TEXT)
 			{
@@ -172,6 +177,8 @@ static bool_t sect_CheckAvailableSpace(uint32_t count)
 
 void sect_OutputConst8(uint8_t value)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT);
+
 	if(sect_CheckAvailableSpace(1))
 	{
 		switch(sect_GetCurrentType())
@@ -179,8 +186,8 @@ void sect_OutputConst8(uint8_t value)
 			case GROUP_TEXT:
 			{
 				pCurrentSection->FreeSpace -= 1;
-				pCurrentSection->UsedSpace += 1;
-				pCurrentSection->pData[pCurrentSection->PC++] = value;
+				pCurrentSection->pData[pCurrentSection->UsedSpace++] = value;
+				pCurrentSection->PC += 1;
 				break;
 			}
 			case GROUP_BSS:
@@ -200,16 +207,18 @@ void sect_OutputConst8(uint8_t value)
 
 void sect_OutputReloc8(SExpression* expr)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT);
+
 	if(sect_CheckAvailableSpace(1))
 	{
 		switch(sect_GetCurrentType())
 		{
 			case GROUP_TEXT:
 			{
-				patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_BYTE);
+				patch_Create(pCurrentSection, pCurrentSection->UsedSpace, expr, PATCH_BYTE);
 				pCurrentSection->PC += 1;
-				pCurrentSection->FreeSpace -= 1;
 				pCurrentSection->UsedSpace += 1;
+				pCurrentSection->FreeSpace -= 1;
 				break;
 			}
 			case GROUP_BSS:
@@ -230,6 +239,8 @@ void sect_OutputReloc8(SExpression* expr)
 
 void sect_OutputExpr8(SExpression* expr)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT);
+
 	if(expr == NULL)
 		prj_Error(ERROR_EXPR_BAD);
 	else if(expr_IsRelocatable(expr))
@@ -245,10 +256,10 @@ void sect_OutputExpr8(SExpression* expr)
 
 void sect_OutputConst16(uint16_t value)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT);
+
 	if(sect_CheckAvailableSpace(2))
 	{
-		pCurrentSection->FreeSpace -= 2;
-		pCurrentSection->UsedSpace += 2;
 		switch(sect_GetCurrentType())
 		{
 			case GROUP_TEXT:
@@ -257,14 +268,14 @@ void sect_OutputConst16(uint16_t value)
 				{
 					case ASM_LITTLE_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value);
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value>>8);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value>>8);
 						break;
 					}
 					case ASM_BIG_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value>>8);
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value>>8);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value);
 						break;
 					}
 					default:
@@ -273,6 +284,8 @@ void sect_OutputConst16(uint16_t value)
 						break;
 					}
 				}
+				pCurrentSection->FreeSpace -= 2;
+				pCurrentSection->PC += 2 / g_pConfiguration->eMinimumWordSize;
 				break;
 			}
 			case GROUP_BSS:
@@ -291,33 +304,18 @@ void sect_OutputConst16(uint16_t value)
 
 void sect_OutputReloc16(SExpression* expr)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT);
+
 	if(sect_CheckAvailableSpace(2))
 	{
 		switch(sect_GetCurrentType())
 		{
 			case GROUP_TEXT:
 			{
+				patch_Create(pCurrentSection, pCurrentSection->UsedSpace, expr, g_pOptions->Endian == ASM_LITTLE_ENDIAN ? PATCH_LWORD : PATCH_BWORD);
 				pCurrentSection->FreeSpace -= 2;
 				pCurrentSection->UsedSpace += 2;
-				switch(g_pOptions->Endian)
-				{
-					case ASM_LITTLE_ENDIAN:
-					{
-						patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_LWORD);
-						break;
-					}
-					case ASM_BIG_ENDIAN:
-					{
-						patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_BWORD);
-						break;
-					}
-					default:
-					{
-						internalerror("Unknown endianness");
-						break;
-					}
-				}
-				pCurrentSection->PC += 2;
+				pCurrentSection->PC += 2 / g_pConfiguration->eMinimumWordSize;
 				break;
 			}
 			case GROUP_BSS:
@@ -337,6 +335,8 @@ void sect_OutputReloc16(SExpression* expr)
 
 void sect_OutputExpr16(SExpression* expr)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT);
+
 	if(expr == NULL)
 		prj_Error(ERROR_EXPR_BAD);
 	else if(expr_IsRelocatable(expr))
@@ -352,30 +352,30 @@ void sect_OutputExpr16(SExpression* expr)
 
 void sect_OutputConst32(uint32_t value)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT);
+
 	if(sect_CheckAvailableSpace(4))
 	{
 		switch(sect_GetCurrentType())
 		{
 			case GROUP_TEXT:
 			{
-				pCurrentSection->FreeSpace -= 4;
-				pCurrentSection->UsedSpace += 4;
 				switch(g_pOptions->Endian)
 				{
 					case ASM_LITTLE_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value);
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 8);
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 16);
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 24);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value >> 8);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value >> 16);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value >> 24);
 						break;
 					}
 					case ASM_BIG_ENDIAN:
 					{
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 24);
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 16);
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value >> 8);
-						pCurrentSection->pData[pCurrentSection->PC++] = (uint8_t)(value);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value >> 24);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value >> 16);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value >> 8);
+						pCurrentSection->pData[pCurrentSection->UsedSpace++] = (uint8_t)(value);
 						break;
 					}
 					default:
@@ -384,6 +384,8 @@ void sect_OutputConst32(uint32_t value)
 						break;
 					}
 				}
+				pCurrentSection->FreeSpace -= 4;
+				pCurrentSection->PC += 4 / g_pConfiguration->eMinimumWordSize;
 				break;
 			}
 			case GROUP_BSS:
@@ -400,41 +402,26 @@ void sect_OutputConst32(uint32_t value)
 	}
 }
 
-void sect_OutputRelLong(SExpression* expr)
+void sect_OutputRel32(SExpression* expr)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT);
+
 	if(sect_CheckAvailableSpace(4))
 	{
 		switch(sect_GetCurrentType())
 		{
 			case GROUP_TEXT:
 			{
+				patch_Create(pCurrentSection, pCurrentSection->UsedSpace, expr, g_pOptions->Endian == ASM_LITTLE_ENDIAN ? PATCH_LLONG : PATCH_BLONG);
 				pCurrentSection->FreeSpace -= 4;
+				pCurrentSection->PC += 4 / g_pConfiguration->eMinimumWordSize;
 				pCurrentSection->UsedSpace += 4;
-				switch(g_pOptions->Endian)
-				{
-					case ASM_LITTLE_ENDIAN:
-					{
-						patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_LLONG);
-						break;
-					}
-					case ASM_BIG_ENDIAN:
-					{
-						patch_Create(pCurrentSection, pCurrentSection->PC, expr, PATCH_BLONG);
-						break;
-					}
-					default:
-					{
-						internalerror("Unknown endianness");
-						break;
-					}
-				}
-				pCurrentSection->PC += 4;
 				break;
 			}
 			case GROUP_BSS:
 			{
 				prj_Error(ERROR_SECTION_DATA);
-				sect_SkipBytes(1);
+				sect_SkipBytes(4);
 				break;
 			}
 			default:
@@ -446,12 +433,14 @@ void sect_OutputRelLong(SExpression* expr)
 	}
 }
 
-void sect_OutputExprLong(SExpression* expr)
+void sect_OutputExpr32(SExpression* expr)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT);
+
 	if(expr == NULL)
 		prj_Error(ERROR_EXPR_BAD);
 	else if(expr_IsRelocatable(expr))
-		sect_OutputRelLong(expr);
+		sect_OutputRel32(expr);
 	else if(expr_IsConstant(expr))
 	{
 		sect_OutputConst32(expr->Value.Value);
@@ -463,6 +452,11 @@ void sect_OutputExprLong(SExpression* expr)
 
 void sect_OutputBinaryFile(string* pFile)
 {
+	/* TODO: Handle minimum word size.
+	 * Pad file if necessary.
+	 * Read words and output in chosen endianness 
+	 */
+
 	FILE* f;
 
 	if((pFile = fstk_FindFile(pFile)) != NULL
@@ -476,16 +470,16 @@ void sect_OutputBinaryFile(string* pFile)
 
 		if(sect_CheckAvailableSpace(size))
 		{
-			pCurrentSection->FreeSpace -= size;
-			pCurrentSection->UsedSpace += size;
 			switch(sect_GetCurrentType())
 			{
 				case GROUP_TEXT:
 				{
 					size_t read;
 
-					read = fread(&pCurrentSection->pData[pCurrentSection->PC], sizeof(uint8_t), size, f);
-					pCurrentSection->PC += size;
+					read = fread(&pCurrentSection->pData[pCurrentSection->UsedSpace], sizeof(uint8_t), size, f);
+					pCurrentSection->FreeSpace -= size;
+					pCurrentSection->UsedSpace += size;
+					pCurrentSection->PC += size / g_pConfiguration->eMinimumWordSize;
 					if(read != size)
 					{
 						prj_Fail(ERROR_READ);
@@ -517,13 +511,18 @@ void sect_OutputBinaryFile(string* pFile)
 
 void sect_Align(int32_t align)
 {
-	int32_t t = pCurrentSection->PC + align - 1;
+	int32_t t;
+	assert(g_pConfiguration->eMinimumWordSize <= align);
+
+	t = pCurrentSection->UsedSpace + align - 1;
 	t -= t % align;
-	sect_SkipBytes(t - pCurrentSection->PC);
+	sect_SkipBytes(t - pCurrentSection->UsedSpace);
 }
 
 void sect_SkipBytes(int32_t count)
 {
+	assert(g_pConfiguration->eMinimumWordSize <= count);
+
 	if(sect_CheckAvailableSpace(count))
 	{
 		//printf("*DEBUG* skipping %d bytes\n", count);
@@ -543,7 +542,7 @@ void sect_SkipBytes(int32_t count)
 			{
 				pCurrentSection->FreeSpace -= count;
 				pCurrentSection->UsedSpace += count;
-				pCurrentSection->PC += count;
+				pCurrentSection->PC += count / g_pConfiguration->eMinimumWordSize;
 				break;
 			}
 			default:
@@ -581,12 +580,11 @@ bool_t	sect_SwitchTo_ORG(char* sectname, SSymbol* group, int32_t org)
 {
 	SSection* sect;
 
-	sect=sect_Find(sectname,group);
-	if(sect)
+	if((sect = sect_Find(sectname, group)) != NULL)
 	{
-		if(sect->Flags==SECTF_ORGFIXED && sect->Org==org)
+		if(sect->Flags == SECTF_ORGFIXED && sect->BasePC == org)
 		{
-			pCurrentSection=sect;
+			pCurrentSection = sect;
 			return true;
 		}
 		else
@@ -597,15 +595,15 @@ bool_t	sect_SwitchTo_ORG(char* sectname, SSymbol* group, int32_t org)
 	}
 	else
 	{
-		sect=sect_Create(sectname);
-		if(sect)
+		if((sect = sect_Create(sectname)) != NULL)
 		{
-			sect->pGroup=group;
-			sect->Flags=SECTF_ORGFIXED;
-			sect->Org=org;
+			sect->pGroup = group;
+			sect->Flags = SECTF_ORGFIXED;
+			sect->BasePC = org;
+			sect->Position = org * g_pConfiguration->eMinimumWordSize;
 		}
-		pCurrentSection=sect;
-		return sect!=NULL;
+		pCurrentSection = sect;
+		return sect != NULL;
 	}
 }
 
@@ -647,12 +645,11 @@ bool_t sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, int32_t org, int32
 	if(!g_pConfiguration->bSupportBanks)
 		internalerror("Banks not supported");
 
-	sect = sect_Find(sectname,group);
-	if(sect)
+	if(sect = sect_Find(sectname, group))
 	{
-		if(sect->Flags== (SECTF_BANKFIXED | SECTF_ORGFIXED)
+		if(sect->Flags == (SECTF_BANKFIXED | SECTF_ORGFIXED)
 		&& sect->Bank == bank
-		&& sect->Org == org)
+		&& sect->BasePC == org)
 		{
 			pCurrentSection = sect;
 			return true;
@@ -662,24 +659,22 @@ bool_t sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, int32_t org, int32
 		return false;
 	}
 
-	sect=sect_Create(sectname);
-	if(sect)
+	if(sect = sect_Create(sectname))
 	{
 		sect->pGroup = group;
 		sect->Flags = SECTF_BANKFIXED | SECTF_ORGFIXED;
 		sect->Bank = bank;
-		sect->Org = org;
+		sect->BasePC = org;
+		sect->Position = org * g_pConfiguration->eMinimumWordSize;
 	}
-	pCurrentSection=sect;
-	return sect!=NULL;
+
+	pCurrentSection = sect;
+	return sect != NULL;
 }
 
-bool_t	sect_SwitchTo_NAMEONLY(char* sectname)
+bool_t sect_SwitchTo_NAMEONLY(char* sectname)
 {
-	SSection* sect;
-
-	sect=pCurrentSection=sect_Find(sectname,NULL);
-	if(sect)
+	if(pCurrentSection = sect_Find(sectname,NULL))
 	{
 		return true;
 	}
@@ -690,9 +685,9 @@ bool_t	sect_SwitchTo_NAMEONLY(char* sectname)
 	}
 }
 
-bool_t	sect_Init(void)
+bool_t sect_Init(void)
 {
-	pCurrentSection=NULL;
-	pSectionList=NULL;
+	pCurrentSection = NULL;
+	pSectionList = NULL;
 	return true;
 }

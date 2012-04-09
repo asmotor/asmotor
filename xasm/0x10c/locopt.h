@@ -21,7 +21,7 @@
 
 typedef struct MachineOptions
 {
-	int	nDummy;
+	int	bOptimize;
 } SMachineOptions;
 
 #endif

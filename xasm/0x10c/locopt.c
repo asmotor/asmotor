@@ -54,10 +54,29 @@ bool_t locopt_Parse(char* s)
 	if(s == NULL || strlen(s) == 0)
 		return false;
 
+	switch(s[0])
+	{
+		case 'o':
+			if(strlen(&s[1]) == 1)
+			{
+				switch(s[1] - '0')
+				{
+					case 0:
+						g_pOptions->pMachine->bOptimize = false;
+						return true;
+					case 1:
+						g_pOptions->pMachine->bOptimize = true;
+						return true;
+				}
+			}
+			break;
+	}
+
 	prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
 	return false;
 }
 
 void locopt_PrintOptions(void)
 {
+	printf("    -mo<X>  Optimization level, 0 or 1\n");
 }

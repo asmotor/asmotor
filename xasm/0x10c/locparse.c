@@ -16,6 +16,12 @@ You should have received a copy of the GNU General Public License
 along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+Thoughts on the ISA:
+
+1) Destination literal on add, sub, xor etc - leave the operation undefined, this wil lgive you more room for extensions later.
+*/
+
 #include "xasm.h"
 #include "expr.h"
 #include "parse.h"
@@ -24,6 +30,7 @@ along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 #include "lexer.h"
 #include "localasm.h"
 #include "options.h"
+#include "locopt.h"
 
 static SExpression* parse_CheckSU16(SExpression* pExpr)
 {
@@ -77,12 +84,12 @@ typedef enum
 	ADDR_PC,
 	ADDR_O,
 	ADDR_ADDRESS_IND,
-	ADDR_ADDRESS,
+	ADDR_LITERAL,
 	ADDR_LITERAL_00,
 } EAddrMode;
 
 #define ADDRF_ALL 0xFFFFFFFF
-#define ADDRF_ADDRESS (1UL << ADDR_ADDRESS)
+#define ADDRF_LITERAL (1UL << ADDR_LITERAL)
 
 typedef struct
 {
@@ -229,12 +236,27 @@ static bool_t parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes)
 
 static void parse_OptimizeAddressingMode(SAddrMode* pMode)
 {
-	if(pMode->eMode == ADDR_ADDRESS && (pMode->pAddress->nFlags & EXPRF_CONSTANT))
+	if(g_pOptions->pMachine->bOptimize)
 	{
-		uint16_t v = (uint16_t)pMode->pAddress->Value.Value;
-		if(v <= 0x1F)
+		/* Optimize literals <= 0x1F */
+		if(pMode->eMode == ADDR_LITERAL
+		&& (pMode->pAddress->nFlags & EXPRF_CONSTANT))
 		{
-			pMode->eMode = (EAddrMode)(v + ADDR_LITERAL_00);
+			uint16_t v = (uint16_t)pMode->pAddress->Value.Value;
+			if(v <= 0x1F)
+			{
+				pMode->eMode = (EAddrMode)(v + ADDR_LITERAL_00);
+				expr_Free(pMode->pAddress);
+				pMode->pAddress = NULL;
+			}
+		}
+
+		/* Optimize [reg+0] to [reg] */
+		if(pMode->eMode >= ADDR_A_OFFSET_IND && pMode->eMode <= ADDR_J_OFFSET_IND
+		&& (pMode->pAddress->nFlags & EXPRF_CONSTANT)
+		&& pMode->pAddress->Value.Value == 0)
+		{
+			pMode->eMode = pMode->eMode - ADDR_A_OFFSET_IND + ADDR_A_IND;
 			expr_Free(pMode->pAddress);
 			pMode->pAddress = NULL;
 		}
@@ -295,9 +317,9 @@ static bool_t parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes)
 			else
 			{
 				SExpression* pAddress = parse_Expression();
-				if(pAddress != NULL && (nAllowedModes & ADDRF_ADDRESS))
+				if(pAddress != NULL && (nAllowedModes & ADDRF_LITERAL))
 				{
-					pMode->eMode = ADDR_ADDRESS;
+					pMode->eMode = ADDR_LITERAL;
 					pMode->pAddress = pAddress;
 					parse_OptimizeAddressingMode(pMode);
 					return true;
@@ -310,14 +332,12 @@ static bool_t parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes)
 	return false;
 }
 
-
-
-typedef bool_t (*pParserFunc)(SAddrMode* pMode1, SAddrMode* pMode2, int nData);
+typedef bool_t (*ParserFunc)(SAddrMode* pMode1, SAddrMode* pMode2, int nData);
 
 typedef struct
 {
 	int nData;
-	pParserFunc fpParser;
+	ParserFunc fpParser;
 	uint32_t nAllowedModes1;
 	uint32_t nAllowedModes2;
 } SParser;
@@ -333,9 +353,46 @@ static bool_t parse_Basic(SAddrMode* pMode1, SAddrMode* pMode2, int nData)
 	return true;
 }
 
+static bool_t parse_ADD_SUB(SAddrMode* pMode1, SAddrMode* pMode2, int nData, ParserFunc negatedParser)
+{
+	/* Optimize FUNC dest,-$1F */
+	if(g_pOptions->pMachine->bOptimize)
+	{
+		if(pMode2->eMode == ADDR_LITERAL
+		&& (pMode2->pAddress->nFlags & EXPRF_CONSTANT)
+		&& (pMode2->pAddress->Value.Value & 0xFFFF) >= 0xFFE1)
+		{
+			int v = -pMode2->pAddress->Value.Value & 0x1F;
+			expr_Free(pMode2->pAddress);
+			pMode2->eMode = v + ADDR_LITERAL_00;
+			return negatedParser(pMode1, pMode2, nData);
+		}
+	}
+
+	sect_OutputConst16((uint16_t)((pMode2->eMode << 10) | (pMode1->eMode << 4) | nData));
+	if(pMode1->pAddress != NULL)
+		sect_OutputExpr16(pMode1->pAddress);
+	if(pMode2->pAddress != NULL)
+		sect_OutputExpr16(pMode2->pAddress);
+
+	return true;
+}
+
+static bool_t parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, int nData);
+
+static bool_t parse_ADD(SAddrMode* pMode1, SAddrMode* pMode2, int nData)
+{
+	return parse_ADD_SUB(pMode1, pMode2, 0x2, parse_SUB);
+}
+
+static bool_t parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, int nData)
+{
+	return parse_ADD_SUB(pMode1, pMode2, 0x3, parse_ADD);
+}
+
 static bool_t parse_JSR(SAddrMode* pMode1, SAddrMode* pMode2, int nData)
 {
-	sect_OutputConst16((uint16_t)((nData << 10) | (pMode1->eMode << 4)));
+	sect_OutputConst16((uint16_t)((nData << 4) | (pMode1->eMode << 10)));
 	if(pMode1->pAddress != NULL)
 		sect_OutputExpr16(pMode1->pAddress);
 
@@ -345,7 +402,7 @@ static bool_t parse_JSR(SAddrMode* pMode1, SAddrMode* pMode2, int nData)
 
 static SParser g_Parsers[T_0X10C_XOR - T_0X10C_ADD + 1] =
 {
-	{ 0x2, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_ADD
+	{ 0x2, parse_ADD, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_ADD
 	{ 0x9, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_AND
 	{ 0xA, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_BOR
 	{ 0x5, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_DIV
@@ -353,13 +410,13 @@ static SParser g_Parsers[T_0X10C_XOR - T_0X10C_ADD + 1] =
 	{ 0xC, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_IFE
 	{ 0xE, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_IFG
 	{ 0xD, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_IFN
-	{ 0x1, parse_JSR, ADDRF_ADDRESS, 0 },		// T_0X10C_JSR
+	{ 0x1, parse_JSR, ADDRF_ALL, 0 },			// T_0X10C_JSR
 	{ 0x6, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_MOD
 	{ 0x4, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_MUL
 	{ 0x1, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_SET
 	{ 0x7, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_SHL
 	{ 0x8, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_SHR
-	{ 0x3, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_SUB
+	{ 0x3, parse_SUB, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_SUB
 	{ 0xB, parse_Basic, ADDRF_ALL, ADDRF_ALL },	// T_0X10C_XOR
 };
 

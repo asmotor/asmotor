@@ -58,7 +58,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 				{
 					if(mode->pImmediate)
 					{
-						sect_OutputExprLong(mode->pImmediate);
+						sect_OutputExpr32(mode->pImmediate);
 						return true;
 					}
 					return false;
@@ -79,7 +79,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 		{
 			if(mode->Outer.pDisp)
 			{
-				sect_OutputExprLong(mode->Outer.pDisp);
+				sect_OutputExpr32(mode->Outer.pDisp);
 				return true;
 			}
 			internalerror("no long");
@@ -212,7 +212,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 							sect_OutputExpr16(mode->Outer.pDisp);
 							break;
 						case SIZE_LONG:
-							sect_OutputExprLong(mode->Outer.pDisp);
+							sect_OutputExpr32(mode->Outer.pDisp);
 							break;
 					}
 				}
@@ -309,7 +309,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 							sect_OutputExpr16(mode->Inner.pDisp);
 							break;
 						case SIZE_LONG:
-							sect_OutputExprLong(mode->Inner.pDisp);
+							sect_OutputExpr32(mode->Inner.pDisp);
 							break;
 					}
 				}
@@ -323,7 +323,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 							sect_OutputExpr16(mode->Outer.pDisp);
 							break;
 						case SIZE_LONG:
-							sect_OutputExprLong(mode->Outer.pDisp);
+							sect_OutputExpr32(mode->Outer.pDisp);
 							break;
 					}
 				}
@@ -420,7 +420,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 							sect_OutputExpr16(mode->Inner.pDisp);
 							break;
 						case SIZE_LONG:
-							sect_OutputExprLong(mode->Inner.pDisp);
+							sect_OutputExpr32(mode->Inner.pDisp);
 							break;
 					}
 				}
@@ -434,7 +434,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 							sect_OutputExpr16(mode->Outer.pDisp);
 							break;
 						case SIZE_LONG:
-							sect_OutputExprLong(mode->Outer.pDisp);
+							sect_OutputExpr32(mode->Outer.pDisp);
 							break;
 					}
 				}
@@ -669,7 +669,7 @@ static bool_t parse_ArithmeticLogicalI(uint16_t ins, ESize sz, SAddrMode* src, S
 	{
 		ins |= 0x2 << 6;
 		sect_OutputConst16(ins);
-		sect_OutputExprLong(src->pImmediate);
+		sect_OutputExpr32(src->pImmediate);
 	}
 
 	return parse_OutputExtWords(dest);
@@ -825,7 +825,7 @@ static bool_t parse_CMPI(ESize sz, SAddrMode* src, SAddrMode* dest)
 	}
 	else if(sz == SIZE_WORD)
 	{
-		sect_OutputExprLong(src->pImmediate);
+		sect_OutputExpr32(src->pImmediate);
 	}
 	return parse_OutputExtWords(dest);
 }
@@ -1011,7 +1011,7 @@ static bool_t parse_Bcc(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 
 		expr = expr_PcRelative(src->Outer.pDisp, 0);
 		sect_OutputConst16(ins | 0xFF);
-		sect_OutputExprLong(expr);
+		sect_OutputExpr32(expr);
 		return true;
 	}
 
@@ -1751,7 +1751,7 @@ static bool_t parse_LINK(ESize sz, SAddrMode* src, SAddrMode* dest)
 	else /*if(sz == SIZE_LONG)*/
 	{
 		sect_OutputConst16((uint16_t)(0x4808 | src->nDirectReg));
-		sect_OutputExprLong(dest->pImmediate);
+		sect_OutputExpr32(dest->pImmediate);
 		return true;
 	}
 }
@@ -1992,7 +1992,7 @@ static bool_t parse_MOVE16(ESize sz, SAddrMode* src, SAddrMode* dest)
 	}
 
 	sect_OutputConst16(0xF600 | opmode << 3 | reg);
-	sect_OutputExprLong(line);
+	sect_OutputExpr32(line);
 	return true;
 }
 
@@ -2549,7 +2549,7 @@ static bool_t parse_TRAPcc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* d
 	if(sz == SIZE_WORD)
 		sect_OutputExpr16(src->pImmediate);
 	else if(sz == SIZE_LONG)
-		sect_OutputExprLong(src->pImmediate);
+		sect_OutputExpr32(src->pImmediate);
 
 	return true;
 }

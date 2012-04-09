@@ -20,7 +20,11 @@
  * xLink - OBJECT.C
  * Copyright 1996-1998 Carsten Sorensen (csorensen@ea.com)
  *
- *	char	ID[4]="XOB\0";
+ *	char	ID[4]="XOB\1";
+ *	[>=v1] char	MinimumWordSize ; Used for address calculations.
+ *							; 1 - A CPU address points to a byte in memory
+ *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
+ *							; 4 - A CPU address points to a 32 bit word in memory (CPU address 0x1000 is the 0x4000th byte)
  *	uint32_t	NumberOfGroups
  *	REPT	NumberOfGroups
  *			ASCIIZ	Name
@@ -31,7 +35,8 @@
  *			int32_t	GroupID	; -1 = exported EQU symbols
  *			ASCIIZ	Name
  *			int32_t	Bank	; -1 = not bankfixed
- *			int32_t	Org		; -1 = not orgfixed
+ *			int32_t	Position; -1 = not fixed
+ *			[>=v1] int32_t	BasePC	; -1 = not fixed
  *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
@@ -64,7 +69,8 @@
 
 #define	MAKE_ID(a,b,c,d)	(a)|((b)<<8)|((c)<<16)|((d)<<24)
 
-static	uint32_t	FileID=0;
+static uint32_t	FileID = 0;
+static uint32_t s_nMinimumWordSize = 0;
 
 static	uint32_t	fgetll(FILE* f)
 {
@@ -209,7 +215,7 @@ static	SPatches* read_patches(FILE* f)
 	return NULL;
 }
 
-static	void	read_sections(SGroups* groups, FILE* f)
+static void read_sections(SGroups* groups, FILE* f, int version)
 {
 /*
  *	uint32_t	NumberOfSections
@@ -217,7 +223,8 @@ static	void	read_sections(SGroups* groups, FILE* f)
  *			int32_t	GroupID	; -1 = exported EQU symbols
  *			ASCIIZ	Name
  *			int32_t	Bank	; -1 = not bankfixed
- *			int32_t	Org		; -1 = not orgfixed
+ *			int32_t	Position; -1 = not fixed
+ *			[>=v1] int32_t	BasePC	; -1 = not fixed
  *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
@@ -257,7 +264,11 @@ static	void	read_sections(SGroups* groups, FILE* f)
 		section->GroupID = fgetll(f);
 		fgetasciiz(section->Name, MAXSYMNAMELENGTH, f);
 		section->Bank = fgetll(f);
-		section->Org = fgetll(f);
+		section->Position = fgetll(f);
+		if(version >= 1)
+			section->BasePC = fgetll(f);
+		else
+			section->BasePC = section->Position;
 
 		if(groups->Groups[section->GroupID].Type == GROUP_TEXT
 		&& strcmp(groups->Groups[section->GroupID].Name, "HOME") == 0)
@@ -287,7 +298,14 @@ static	void	readchunk(FILE* f);
 
 static	void	read_xob0(FILE* f)
 {
-	read_sections(read_groups(f), f);
+	s_nMinimumWordSize = 1;
+	read_sections(read_groups(f), f, 0);
+}
+
+static void read_xob1(FILE* f)
+{
+	s_nMinimumWordSize = fgetc(f);
+	read_sections(read_groups(f), f, 1);
 }
 
 static	void	read_xlb0(FILE* f)
@@ -320,6 +338,11 @@ static	void	readchunk(FILE* f)
 		case	MAKE_ID('X','O','B',0):
 		{
 			read_xob0(f);
+			break;
+		}
+		case	MAKE_ID('X','O','B',1):
+		{
+			read_xob1(f);
 			break;
 		}
 		case	MAKE_ID('X','L','B',0):

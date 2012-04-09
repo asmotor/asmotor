@@ -147,6 +147,7 @@ bool_t prj_Error(int n, ...)
 	va_end(args);
 
 	++g_nTotalErrors;
+	return false;
 }
 
 bool_t prj_Fail(int n, ...)

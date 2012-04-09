@@ -104,7 +104,8 @@ void group_Alloc(SSection* sect)
 	{
 		//	This is a special exported EQU symbol section
 
-		sect->Org = 0;
+		sect->Position = 0;
+		sect->BasePC = 0;
 		sect->Bank = 0;
 		sect->ImageOffset = -1;
 		sect->Assigned = true;
@@ -127,23 +128,24 @@ void group_Alloc(SSection* sect)
 
 				if(sect->Bank == -1 || sect->Bank == pool->BankId)
 				{
-					if(sect->Org == -1)
+					if(sect->Position == -1)
 					{
-						uint32_t org;
+						uint32_t position;
 
-						if(alloc_from_pool(pool, sect->Size, &org))
+						if(alloc_from_pool(pool, sect->Size, &position))
 						{
-							sect->Org = org;
+							sect->Position = position;
+							sect->BasePC = position / sect->MinimumWordSize;
 							sect->Bank = pool->BankId;
-							sect->ImageOffset = pool->ImageOffset == -1 ? -1 : pool->ImageOffset + sect->Org - pool->AddressingOffset;
+							sect->ImageOffset = pool->ImageOffset == -1 ? -1 : pool->ImageOffset + sect->Position - pool->AddressingOffset;
 							sect->Assigned = true;
 							return;
 						}
 					}
-					else if(alloc_abs_from_pool(pool, sect->Size, sect->Org))
+					else if(alloc_abs_from_pool(pool, sect->Size, sect->Position))
 					{
 						sect->Bank = pool->BankId;
-						sect->ImageOffset = pool->ImageOffset == -1 ? -1 : pool->ImageOffset + sect->Org - pool->AddressingOffset;
+						sect->ImageOffset = pool->ImageOffset == -1 ? -1 : pool->ImageOffset + sect->Position - pool->AddressingOffset;
 						sect->Assigned = true;
 						return;
 					}

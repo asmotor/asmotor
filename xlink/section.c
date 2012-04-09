@@ -50,7 +50,7 @@ static void resolve_symbol(SSection* sect, SSymbol* sym)
 		case SYM_LOCAL:
 		{
 			sym->Resolved = true;
-			sym->Value += sect->Org;
+			sym->Value += sect->BasePC;
 			sym->pSection = sect;
 			break;
 		}

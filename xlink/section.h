@@ -27,11 +27,14 @@ typedef	struct	_SSection
 
 	int32_t	GroupID;
 
-	//	Before assigned Bank and Org reflect the programmers wish.
-	//	After, they point to where this section actually is
+	/* Before assigned Bank, Position and BasePC reflect the programmer's wish.
+	 * After, they point to where this section actually is
+	 */
 	int32_t	Bank;
-	int32_t	Org;
+	int32_t	Position;
+	int32_t	BasePC;
 	int32_t	ImageOffset;
+	int32_t MinimumWordSize;
 
 	char	Name[MAXSYMNAMELENGTH];
 

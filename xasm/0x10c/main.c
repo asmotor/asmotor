@@ -10,10 +10,11 @@ static SConfiguration s_sConfiguration =
 	ASM_BIG_ENDIAN,
 	false,
 	false,
+	MINSIZE_16BIT,
 
-	"rb", "rw", "rl",
-	"db", "dw", "dl",
-	"ds", NULL, NULL
+	NULL, "rw", "rl",
+	NULL, "dw", "dl",
+	NULL, "dw", NULL
 };
 
 SConfiguration* g_pConfiguration = &s_sConfiguration;

@@ -45,11 +45,18 @@ extern struct MachineOptions* locopt_Alloc(void);
 extern void locopt_Free(struct MachineOptions* pOptions);
 extern void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc);
 
-typedef	enum Endian
+typedef	enum
 {
-	ASM_LITTLE_ENDIAN = 0,
-	ASM_BIG_ENDIAN = 1
+	ASM_LITTLE_ENDIAN,
+	ASM_BIG_ENDIAN
 } EEndian;
+
+typedef enum
+{
+	MINSIZE_8BIT = 1,
+	MINSIZE_16BIT = 2,
+	MINSIZE_32BIT = 4,
+} EMinimumWordSize;
 
 typedef struct Configuration
 {
@@ -59,6 +66,7 @@ typedef struct Configuration
 	EEndian eDefaultEndianness;
 	bool_t bSupportBanks;
 	bool_t bSupportAmiga;
+	EMinimumWordSize eMinimumWordSize;
 	char* pszNameRB;
 	char* pszNameRW;
 	char* pszNameRL;

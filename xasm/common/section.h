@@ -37,8 +37,9 @@ struct Section
 	uint32_t	UsedSpace;		/*	How many bytes are used in the section */
 	uint32_t	FreeSpace;		/*	How many bytes are free */
 	uint32_t	AllocatedSpace;	/*	How big a chunk of memory pData is pointing to */
-	int32_t	Org;
-	int32_t	Bank;
+	int32_t		Position;
+	int32_t		BasePC;
+	int32_t		Bank;
 	struct Patch* pPatches;
 	uint8_t* pData;
 };
@@ -60,7 +61,7 @@ extern void	sect_SkipBytes(int32_t count);
 extern void	sect_Align(int32_t align);
 extern void	sect_OutputExpr8(struct Expression* expr);
 extern void	sect_OutputExpr16(struct Expression* expr);
-extern void	sect_OutputExprLong(struct Expression* expr);
+extern void	sect_OutputExpr32(struct Expression* expr);
 extern void	sect_OutputBinaryFile(string* pFile);
 extern void	sect_OutputConst8(uint8_t value);
 extern void	sect_OutputConst16(uint16_t value);

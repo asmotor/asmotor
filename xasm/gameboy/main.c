@@ -10,6 +10,7 @@ static SConfiguration s_sConfiguration =
 	ASM_LITTLE_ENDIAN,
 	true,
 	false,
+	MINSIZE_8BIT,
 
 	"rb", "rw", "rl",
 	"db", "dw", "dl",

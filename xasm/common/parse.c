@@ -1811,7 +1811,7 @@ static bool_t parse_PseudoOp(void)
 				parse_GetToken();
 				expr = parse_Expression();
 				if(expr)
-					sect_OutputExprLong(expr);
+					sect_OutputExpr32(expr);
 				else
 					sect_SkipBytes(4); //prj_Error(ERROR_INVALID_EXPRESSION);
 			} while(g_CurrentToken.ID.Token == ',');

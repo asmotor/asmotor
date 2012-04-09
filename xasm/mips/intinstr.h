@@ -161,7 +161,7 @@ static bool_t parse_IntegerInstructionRRI(void)
 		{
 			pExpr = expr_Or(pExpr, expr_Const((rs << 21) | (rt << 16) | pIns->nIns));
 		
-			sect_OutputExprLong(pExpr);
+			sect_OutputExpr32(pExpr);
 		}
 		return true;
 	}
@@ -255,7 +255,7 @@ static bool_t parse_Branch(void)
 		
 			pExpr = expr_Or(pExpr, expr_Const(pIns->nIns | (rs << 21) | (rt << 16)));
 		
-			sect_OutputExprLong(pExpr);
+			sect_OutputExpr32(pExpr);
 		}
 		else
 			prj_Error(ERROR_OPERAND_RANGE);
@@ -312,7 +312,7 @@ static bool_t parse_Shift(void)
 			pExpr = expr_Shl(pExpr, expr_Const(6));
 			pExpr = expr_Or(pExpr, expr_Const(ins | (rt << 16) | (rd << 11)));
 		
-			sect_OutputExprLong(pExpr);
+			sect_OutputExpr32(pExpr);
 		}
 		else
 			prj_Error(ERROR_OPERAND_RANGE);
@@ -379,7 +379,7 @@ static bool_t parse_LoadStore(void)
 		if(parse_ExpectChar(')'))
 		{
 			pExpr = expr_Or(pExpr, expr_Const(ins | (base << 21) | (rt << 16)));
-			sect_OutputExprLong(pExpr);
+			sect_OutputExpr32(pExpr);
 			return true;
 		}
 	}
@@ -523,7 +523,7 @@ static bool_t parse_IntegerInstructionRSRTCode(void)
 				
 				pExpr = expr_Shl(pExpr, expr_Const(6));
 				pExpr = expr_Or(pExpr, expr_Const(ins | (rs << 21) | (rt << 16)));
-				sect_OutputExprLong(pExpr);
+				sect_OutputExpr32(pExpr);
 			}
 			else
 			{
@@ -574,7 +574,7 @@ static bool_t parse_IntegerInstructionRI(void)
 		if(pExpr != NULL)
 		{
 			pExpr = expr_Or(pExpr, expr_Const(pIns->nIns | (rs << 21)));
-			sect_OutputExprLong(pExpr);
+			sect_OutputExpr32(pExpr);
 			return true;
 		}
 	}
@@ -763,7 +763,7 @@ static bool_t parse_IntegerJumpAbs(void)
 			pExpr = expr_And(pExpr, expr_Const(0x03FFFFFF));
 			pExpr = expr_Or(pExpr, expr_Const(ins));
 		
-			sect_OutputExprLong(pExpr);
+			sect_OutputExpr32(pExpr);
 			return true;
 		}
 	}
@@ -786,7 +786,7 @@ static bool_t parse_LUI(void)
 				if(pExpr != NULL)
 				{
 					pExpr = expr_Or(pExpr, expr_Const((15 << 26) | (rd << 16)));
-					sect_OutputExprLong(pExpr);
+					sect_OutputExpr32(pExpr);
 				}
 			}
 		}

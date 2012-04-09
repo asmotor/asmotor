@@ -48,7 +48,7 @@ bool_t bin_Write(string* pName)
 		return false;
 	}
 
-	nAddress = sect->Org;
+	nAddress = sect->Position;
 	do
 	{
 		nAddress += (sect->UsedSpace + 7) & ~7;
@@ -57,17 +57,18 @@ bool_t bin_Write(string* pName)
 		{
 			if(sect->Flags & SECTF_ORGFIXED)
 			{
-				if(sect->Org < nAddress)
+				if(sect->Position < nAddress)
 				{
-					prj_Error(ERROR_SECTION_ORG, sect->Name, sect->Org);
+					prj_Error(ERROR_SECTION_ORG, sect->Name, sect->BasePC);
 					return false;
 				}
-				nAddress = sect->Org;
+				nAddress = sect->Position;
 			}
 			else
 			{
 				sect->Flags |= SECTF_ORGFIXED;
-				sect->Org = nAddress;
+				sect->Position = nAddress;
+				sect->BasePC = nAddress / g_pConfiguration->eMinimumWordSize;
 			}
 		}
 	} while(sect != NULL);
@@ -81,7 +82,7 @@ bool_t bin_Write(string* pName)
 			{
 				sym->nFlags &= ~SYMF_RELOC;
 				sym->nFlags |= SYMF_CONSTANT;
-				sym->Value.Value += sym->pSection->Org;
+				sym->Value.Value += sym->pSection->BasePC;
 			}
 			sym = list_GetNext(sym);
 		}
@@ -92,11 +93,11 @@ bool_t bin_Write(string* pName)
 	if((f = fopen(str_String(pName),"wb")) != NULL)
 	{
 		sect = pSectionList;
-		nAddress = sect->Org;
+		nAddress = sect->Position;
 
 		while(sect)
 		{
-			while(nAddress < sect->Org)
+			while(nAddress < sect->Position)
 			{
 				++nAddress;
 				fputc(0, f);

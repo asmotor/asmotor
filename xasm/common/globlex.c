@@ -246,7 +246,7 @@ static bool_t ParseSymbol(char* src, uint32_t size)
 {
 	stringbuffer* pBuffer = strbuf_Create();
 	string* pString;
-	int i;
+	uint32_t i;
 	bool_t r;
 
 	for(i = 0; i < size; ++i)
@@ -335,31 +335,31 @@ enum
     T_LEX_MACROUNIQUE
 };
 
-SLexFloat tMacroArgToken=
+static SLexFloat s_sMacroArgToken=
 {
     ParseMacroArg,
     T_LEX_MACROARG
 };
 
-SLexFloat tMacroUniqueToken=
+static SLexFloat s_sMacroUniqueToken=
 {
     ParseUniqueArg,
     T_LEX_MACROUNIQUE
 };
 
-SLexFloat tDecimal =
+static SLexFloat s_sDecimal =
 {
     ParseDecimal,
     T_NUMBER
 };
 
-SLexFloat tNumberToken=
+static SLexFloat s_sNumberToken=
 {
     ParseNumber,
     T_NUMBER
 };
 
-SLexFloat tIDToken=
+static SLexFloat s_sIDToken=
 {
     ParseSymbol,
     T_ID
@@ -367,45 +367,54 @@ SLexFloat tIDToken=
 
 void globlex_Init(void)
 {
-	uint32_t	id;
+	uint32_t id;
 
-	g_bDontExpandStrings=false;
+	g_bDontExpandStrings = false;
 
 	lex_Init();
 
 	lex_AddStrings(staticstrings);
 
-	lex_AddString("__RSB", T_POP_RB);
-	lex_AddString("__RSW", T_POP_RW);
-	lex_AddString("__RSL", T_POP_RL);
+	if(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
+		lex_AddString("__RSB", T_POP_RB);
+	if(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
+		lex_AddString("__RSW", T_POP_RW);
+	if(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
+		lex_AddString("__RSL", T_POP_RL);
 	
-	if(g_pConfiguration->pszNameRB)
+	if(g_pConfiguration->pszNameRB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
 		lex_AddString(g_pConfiguration->pszNameRB, T_POP_RB);
-	if(g_pConfiguration->pszNameRW)
+	if(g_pConfiguration->pszNameRW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
 		lex_AddString(g_pConfiguration->pszNameRW, T_POP_RW);
-	if(g_pConfiguration->pszNameRL)
+	if(g_pConfiguration->pszNameRL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
 		lex_AddString(g_pConfiguration->pszNameRL, T_POP_RL);
 
-	lex_AddString("__DSB", T_POP_DSB);
-	lex_AddString("__DSW", T_POP_DSW);
-	lex_AddString("__DSL", T_POP_DSL);
+	if(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
+		lex_AddString("__DSB", T_POP_DSB);
+	if(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
+		lex_AddString("__DSW", T_POP_DSW);
+	if(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
+		lex_AddString("__DSL", T_POP_DSL);
 	
-	if(g_pConfiguration->pszNameDSB)
+	if(g_pConfiguration->pszNameDSB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
 		lex_AddString(g_pConfiguration->pszNameDSB, T_POP_DSB);
-	if(g_pConfiguration->pszNameDSW)
+	if(g_pConfiguration->pszNameDSW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
 		lex_AddString(g_pConfiguration->pszNameDSW, T_POP_DSW);
-	if(g_pConfiguration->pszNameDSL)
+	if(g_pConfiguration->pszNameDSL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
 		lex_AddString(g_pConfiguration->pszNameDSL, T_POP_DSL);
 
-	lex_AddString("__DCB", T_POP_DB);
-	lex_AddString("__DCW", T_POP_DW);
-	lex_AddString("__DCL", T_POP_DL);
+	if(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
+		lex_AddString("__DCB", T_POP_DB);
+	if(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
+		lex_AddString("__DCW", T_POP_DW);
+	if(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
+		lex_AddString("__DCL", T_POP_DL);
 	
-	if(g_pConfiguration->pszNameDB)
+	if(g_pConfiguration->pszNameDB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
 		lex_AddString(g_pConfiguration->pszNameDB, T_POP_DB);
-	if(g_pConfiguration->pszNameDW)
+	if(g_pConfiguration->pszNameDW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
 		lex_AddString(g_pConfiguration->pszNameDW, T_POP_DW);
-	if(g_pConfiguration->pszNameDL)
+	if(g_pConfiguration->pszNameDL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
 		lex_AddString(g_pConfiguration->pszNameDL, T_POP_DL);
 
 	if(g_pConfiguration->bSupportBanks)
@@ -413,7 +422,7 @@ void globlex_Init(void)
 
 	/* Local ID */
 
-    id = lex_FloatAlloc(&tIDToken);
+    id = lex_FloatAlloc(&s_sIDToken);
     lex_FloatAddRange(id, '.', '.', 1);
     lex_FloatAddRange(id, 'a', 'z', 2);
     lex_FloatAddRange(id, 'A', 'Z', 2);
@@ -428,7 +437,7 @@ void globlex_Init(void)
     lex_FloatAddRangeAndBeyond(id, '@', '@', 3);
     lex_FloatAddRangeAndBeyond(id, '#', '#', 3);
 
-    id = lex_FloatAlloc(&tIDToken);
+    id = lex_FloatAlloc(&s_sIDToken);
     lex_FloatAddRangeAndBeyond(id, '0', '9', 1);
     lex_FloatAddRangeAndBeyond(id, '\\', '\\', 1);
     lex_FloatAddRangeAndBeyond(id, '@', '@', 2);
@@ -436,23 +445,23 @@ void globlex_Init(void)
 
     /* Macro arguments */
 
-    id = lex_FloatAlloc(&tMacroArgToken);
+    id = lex_FloatAlloc(&s_sMacroArgToken);
     lex_FloatAddRange(id, '\\', '\\', 1);
     lex_FloatAddRange(id, '0', '9', 2);
-    id = lex_FloatAlloc(&tMacroUniqueToken);
+    id = lex_FloatAlloc(&s_sMacroUniqueToken);
     lex_FloatAddRange(id, '\\', '\\', 1);
     lex_FloatAddRange(id, '@', '@', 2);
 
 	/* Decimal constants */
 
-    id = lex_FloatAlloc(&tDecimal);
+    id = lex_FloatAlloc(&s_sDecimal);
     lex_FloatAddRange(id, '0', '9', 1);
     lex_FloatAddRangeAndBeyond(id, '0', '9', 2);
     lex_FloatAddRangeAndBeyond(id, '.', '.', 2);
 
 	/* Hex constants*/
 
-    id = lex_FloatAlloc(&tNumberToken);
+    id = lex_FloatAlloc(&s_sNumberToken);
     lex_FloatAddRange(id, '$', '$', 1);
     lex_FloatAddRangeAndBeyond(id, '0', '9', 2);
     lex_FloatAddRangeAndBeyond(id, 'A', 'F', 2);
@@ -460,13 +469,13 @@ void globlex_Init(void)
 
 	/*      Binary constants*/
 
-    BinaryConstID = id = lex_FloatAlloc(&tNumberToken);
+    BinaryConstID = id = lex_FloatAlloc(&s_sNumberToken);
     lex_FloatAddRange(id, '%', '%', 1);
     lex_FloatAddRangeAndBeyond(id, '0', '1', 2);
 
     /* ID's */
 
-    id = lex_FloatAlloc(&tIDToken);
+    id = lex_FloatAlloc(&s_sIDToken);
     lex_FloatAddRange(id, 'a', 'z', 1);
     lex_FloatAddRange(id, 'A', 'Z', 1);
     lex_FloatAddRange(id, '_', '_', 1);

@@ -16,7 +16,11 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*	char	ID[4]="XOB\0";
+/*	char	ID[4]="XOB\1";
+ *	char	MinimumWordSize ; Used for address calculations.
+ *							; 1 - A CPU address points to a byte in memory
+ *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
+ *							; 4 - A CPU address points to a 32 bit word in memory (CPU address 0x1000 is the 0x4000th byte)
  *	uint32_t	NumberOfGroups
  *	REPT	NumberOfGroups
  *			ASCIIZ	Name
@@ -27,7 +31,8 @@
  *			int32_t	GroupID	; -1 = exported EQU symbols
  *			ASCIIZ	Name
  *			int32_t	Bank	; -1 = not bankfixed
- *			int32_t	Org		; -1 = not orgfixed
+ *			int32_t	Position; -1 = not fixed
+ *			int32_t	BasePC	; -1 = not fixed
  *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
@@ -380,7 +385,8 @@ bool_t obj_Write(string* pName)
 		return false;
 
 
-	fwrite("XOB\0", 1, 4, f);
+	fwrite("XOB\1", 1, 4, f);
+	fputc(g_pConfiguration->eMinimumWordSize, f);
 	fputll(0, f);
 
 	for(i = 0; i < HASHSIZE; ++i)
@@ -400,7 +406,7 @@ bool_t obj_Write(string* pName)
 	}
 
 	pos = ftell(f);
-	fseek(f, 4, SEEK_SET);
+	fseek(f, 5, SEEK_SET);
 	fputll(groupcount, f);
 	fseek(f, pos, SEEK_SET);
 
@@ -477,7 +483,8 @@ bool_t obj_Write(string* pName)
 		else
 			fputll(-1, f);
 
-		fputll((sect->Flags & SECTF_ORGFIXED) ? sect->Org : -1, f);
+		fputll(sect->Flags & SECTF_ORGFIXED ? sect->Position : -1, f);
+		fputll(sect->Flags & SECTF_ORGFIXED ? sect->BasePC : -1, f);
 
 		//	Reset symbol IDs
 

@@ -234,8 +234,7 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 				bool_t foundsect = false;
 				while(fsect != NULL)
 				{
-					uint32_t offset;
-					if(patch_GetSectionOffset(&offset, patch->pExpression, fsect))
+					if(patch_IsRelativeToSection(patch->pExpression, fsect))
 					{
 						if(patch->pPrev)
 							patch->pPrev = patch->pNext;
@@ -311,7 +310,7 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 					{
 						uint32_t value;
 						size_t fpos;
-						patch_GetSectionOffset(&value, patch->pExpression, fsect);
+						patch_GetSectionPcOffset(&value, patch->pExpression, fsect);
 						fpos = ftell(f);
 						fseek(f, (long)(patch->Offset + hunkpos), SEEK_SET);
 						fputml(value, f);

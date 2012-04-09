@@ -366,7 +366,7 @@ SSymbol* sym_CreateLabel(string* pName)
 			{
 				pSym->eType = SYM_EQU;
 				SET_FLAGS(pSym->nFlags, SYM_EQU);
-				pSym->Value.Value = pCurrentSection->PC + pCurrentSection->Org;
+				pSym->Value.Value = pCurrentSection->PC + pCurrentSection->BasePC;
 				return pSym;
 			}
 		}

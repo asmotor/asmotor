@@ -267,15 +267,20 @@ bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pE
 	return false;
 }
 
+bool_t patch_IsRelativeToSection(SExpression* pExpr, SSection* pSection)
+{
+	uint32_t nOffset;
+	return patch_GetSectionPcOffset(&nOffset, pExpr, pSection);
+}
 
-bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* pSection)
+bool_t patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection* pSection)
 {
 	if(pExpr == NULL)
 		return false;
 
 	if(expr_GetType(pExpr) == EXPR_CONSTANT && (pSection->Flags & SECTF_ORGFIXED))
 	{
-		*pOffset = pExpr->Value.Value - pSection->Org;
+		*pOffset = pExpr->Value.Value - pSection->BasePC;
 		return true;
 	}
 	
@@ -284,14 +289,14 @@ bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 		SSymbol* pSym = pExpr->Value.pSymbol;
 		if((pSym->eType == SYM_EQU) && (pSection->Flags & SECTF_ORGFIXED))
 		{
-			*pOffset = pSym->Value.Value - pSection->Org;
+			*pOffset = pSym->Value.Value - pSection->BasePC;
 			return true;
 		}
 		else if(pSym->pSection == pSection)
 		{
 			if((pSym->nFlags & SYMF_CONSTANT) && (pSection->Flags & SECTF_ORGFIXED))
 			{
-				*pOffset = pSym->Value.Value - pSection->Org;
+				*pOffset = pSym->Value.Value - pSection->BasePC;
 				return true;
 			}
 			else if((pSym->nFlags & SYMF_RELOC) && (pSection->Flags == 0))
@@ -306,7 +311,7 @@ bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 	if(expr_IsOperator(pExpr, T_OP_ADD) || expr_IsOperator(pExpr, T_OP_SUB))
 	{
 		uint32_t offset;
-		if(patch_GetSectionOffset(&offset, pExpr->pLeft, pSection))
+		if(patch_GetSectionPcOffset(&offset, pExpr->pLeft, pSection))
 		{
 			if(expr_IsConstant(pExpr->pRight))
 			{
@@ -318,7 +323,7 @@ bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 			}
 		}
 
-		if(patch_GetSectionOffset(&offset, pExpr->pRight, pSection))
+		if(patch_GetSectionPcOffset(&offset, pExpr->pRight, pSection))
 		{
 			if(expr_IsConstant(pExpr->pLeft))
 			{
@@ -335,13 +340,13 @@ bool_t patch_GetSectionOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 }
 
 
-SSection* patch_GetExpressionSectionAndOffset(SPatch* pPatch, SExpression* pExpr, uint32_t* pOffset)
+SSection* patch_GetExpressionSectionAndPcOffset(SPatch* pPatch, SExpression* pExpr, uint32_t* pOffset)
 {
 	SSection* pSection = pSectionList;
 
 	while(pSection)
 	{
-		if(patch_GetSectionOffset(pOffset, pExpr, pSection))
+		if(patch_GetSectionPcOffset(pOffset, pExpr, pSection))
 			return pSection;
 
 		pSection = list_GetNext(pSection);
@@ -354,7 +359,7 @@ SSection* patch_GetExpressionSectionAndOffset(SPatch* pPatch, SExpression* pExpr
 static bool_t patch_EvaluatePcRel(SPatch* patch, SExpression* expr, int32_t* v)
 {
 	uint32_t offset;
-	if(patch_GetSectionOffset(&offset, expr->pRight, patch->pSection))
+	if(patch_GetSectionPcOffset(&offset, expr->pRight, patch->pSection))
 	{
 		int32_t v1;
 		if(patch_Evaluate(patch, expr->pLeft, &v1))
@@ -375,8 +380,8 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
 		{
 			uint32_t l, r;
 
-			SSection* pLeftSect = patch_GetExpressionSectionAndOffset(patch, expr->pLeft, &l);
-			SSection* pRightSect = patch_GetExpressionSectionAndOffset(patch, expr->pRight, &r);
+			SSection* pLeftSect = patch_GetExpressionSectionAndPcOffset(patch, expr->pLeft, &l);
+			SSection* pRightSect = patch_GetExpressionSectionAndPcOffset(patch, expr->pRight, &r);
 
 			if(pLeftSect && pRightSect && pLeftSect == pRightSect)
 			{
