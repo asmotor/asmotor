@@ -9,6 +9,8 @@ AddOption('--prefix',
 
 env = Environment(PREFIX = GetOption('prefix'))
 
+env.Replace(CXX = "llvm-g++")
+env.Replace(CC = "llvm-gcc")
 env.Append(CPPFLAGS = "-O3 -std=c99 -pedantic -Wall")
 env.Append(LIBS = ["m"])
 env.Append(CPPPATH = ["#/../../util", "#/../../xasm/common"])
@@ -19,11 +21,12 @@ motorgb = SConscript("SConscript.gameboy", ["env", "libxasm", "libutil"])
 motor6502 = SConscript("SConscript.6502", ["env", "libxasm", "libutil"])
 motor68k = SConscript("SConscript.680x0", ["env", "libxasm", "libutil"])
 motormips = SConscript("SConscript.mips", ["env", "libxasm", "libutil"])
+motor0x10c = SConscript("SConscript.0x10c", ["env", "libxasm", "libutil"])
 xgbfix = SConscript("SConscript.xgbfix", ["env", "libutil"])
 xlib = SConscript("SConscript.xlib", ["env", "libutil"])
 xlink = SConscript("SConscript.xlink", ["env", "libutil"])
 
-install_bin = [motorgb, motor6502, motor68k, motormips, xgbfix, xlib, xlink]
+install_bin = [motorgb, motor6502, motor68k, motormips, motor0x10c, xgbfix, xlib, xlink]
 
 if 'debian' in COMMAND_LINE_TARGETS:
 	SConscript("SConscript.debian", ["env", "install_bin"])

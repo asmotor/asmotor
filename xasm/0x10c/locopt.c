@@ -29,8 +29,6 @@
 #include "project.h"
 #include "loclexer.h"
 
-static int s_nPreviousInstructionSet = 0;
-
 void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc)
 {
 	*pDest = *pSrc;

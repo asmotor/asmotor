@@ -7,7 +7,7 @@ b = "build_6502"
 localEnv = env.Clone()
 
 localEnv.VariantDir(b, "../../xasm/6502")
-motorgb = localEnv.Program(b + "/motor6502", LIBS = [libxasm, libutil, "m"], source = [
+motor6502 = localEnv.Program(b + "/motor6502", LIBS = [libxasm, libutil, "m"], source = [
 	b + "/locerror.c",
 	b + "/loclexer.c",
 	b + "/locopt.c",
@@ -16,4 +16,4 @@ motorgb = localEnv.Program(b + "/motor6502", LIBS = [libxasm, libutil, "m"], sou
 	b + "/main.c"
 	])
 
-Return("motorgb")
+Return("motor6502")
