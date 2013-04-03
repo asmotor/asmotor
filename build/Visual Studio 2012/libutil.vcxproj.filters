@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\util\amitime.c" />
+    <ClCompile Include="..\..\util\strings.c" />
+    <ClCompile Include="..\..\util\math.c" />
+    <ClCompile Include="..\..\util\mem.c" />
+    <ClCompile Include="..\..\util\str.c" />
+    <ClCompile Include="..\..\util\strbuf.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\util\amitime.h" />
+    <ClInclude Include="..\..\util\asmotor.h" />
+    <ClInclude Include="..\..\util\types.h" />
+    <ClInclude Include="..\..\util\lists.h" />
+    <ClInclude Include="..\..\util\mem.h" />
+    <ClInclude Include="..\..\util\str.h" />
+    <ClInclude Include="..\..\util\strbuf.h" />
+  </ItemGroup>
+</Project>
