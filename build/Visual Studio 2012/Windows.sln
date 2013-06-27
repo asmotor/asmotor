@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libxasm", "libxasm.vcxproj", "{B8E60034-A4C8-42E5-8FD6-4C64713EC864}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4FD9FF05-9906-4B86-9B75-5911E9B0CA20} = {4FD9FF05-9906-4B86-9B75-5911E9B0CA20}
@@ -52,6 +52,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motor0x10c", "motor0x10c.vc
 		{4FD9FF05-9906-4B86-9B75-5911E9B0CA20} = {4FD9FF05-9906-4B86-9B75-5911E9B0CA20}
 		{B8E60034-A4C8-42E5-8FD6-4C64713EC864} = {B8E60034-A4C8-42E5-8FD6-4C64713EC864}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motorschip", "motorschip.vcxproj", "{33B65635-C3D2-4C00-B680-1603FCB0B1AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -141,6 +143,14 @@ Global
 		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Release|Win32.Build.0 = Release|Win32
 		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Release|x64.ActiveCfg = Release|x64
 		{ADD2C55A-3B68-4D4F-A6B9-7E42AB79B973}.Release|x64.Build.0 = Release|x64
+		{33B65635-C3D2-4C00-B680-1603FCB0B1AC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{33B65635-C3D2-4C00-B680-1603FCB0B1AC}.Debug|Win32.Build.0 = Debug|Win32
+		{33B65635-C3D2-4C00-B680-1603FCB0B1AC}.Debug|x64.ActiveCfg = Debug|x64
+		{33B65635-C3D2-4C00-B680-1603FCB0B1AC}.Debug|x64.Build.0 = Debug|x64
+		{33B65635-C3D2-4C00-B680-1603FCB0B1AC}.Release|Win32.ActiveCfg = Release|Win32
+		{33B65635-C3D2-4C00-B680-1603FCB0B1AC}.Release|Win32.Build.0 = Release|Win32
+		{33B65635-C3D2-4C00-B680-1603FCB0B1AC}.Release|x64.ActiveCfg = Release|x64
+		{33B65635-C3D2-4C00-B680-1603FCB0B1AC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
