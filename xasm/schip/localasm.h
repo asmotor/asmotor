@@ -27,14 +27,62 @@ typedef enum
 
 typedef	enum
 {
-	T_CHIP_ADD = 6000,
+	/* reg */
+	T_CHIP_BCD = 6000,
+	T_CHIP_LDF,
+	T_CHIP_LDF10,
+	T_CHIP_SHL,
+	T_CHIP_SKNP,
+	T_CHIP_SKP,
+	T_CHIP_SHR,
+	T_CHIP_WKP,
+
+	/* reg, reg */
+	T_CHIP_AND,
+	T_CHIP_OR,
+	T_CHIP_SUB,
+	T_CHIP_SUBN,
+	T_CHIP_XOR,
+
+	/* reg, reg, i4 */
+	T_CHIP_DRW,
+
+	/* reg|i|dt|st, reg|dt|i8|i12 */
+	T_CHIP_LD,
+
+	/* (i)|reg, reg|(i) */
+	T_CHIP_LDM,
+
+	/* reg|i, reg|i8 */
+	T_CHIP_ADD,
+
+	/* reg, reg|i8 */
+	T_CHIP_SE,
+	T_CHIP_SNE,
+
+	/* reg, i8 */
+	T_CHIP_RND,
+
+	/* i4 */
+	T_CHIP_SCRD,
+
+	/* i12|v0+i12 */
+	T_CHIP_JP,
+
+	/* i12 */
+	T_CHIP_CALL,
 
 	/* No parameter: */
-	
+	T_CHIP_CLS,
+	T_CHIP_EXIT,
+	T_CHIP_LO,
+	T_CHIP_HI,
 	T_CHIP_RET,
+	T_CHIP_SCRR,
+	T_CHIP_SCRL,
 
-	T_MIPS_INTEGER_NO_PARAMETER_FIRST = T_CHIP_RET,
-	T_MIPS_INTEGER_NO_PARAMETER_LAST = T_CHIP_RET,
+	T_CHIP_INSTR_FIRST = T_CHIP_BCD,
+	T_CHIP_INSTR_LAST = T_CHIP_SCRL,
 
 	/* Registers */
 
@@ -54,6 +102,10 @@ typedef	enum
 	T_CHIP_REG_V13,
 	T_CHIP_REG_V14,
 	T_CHIP_REG_V15,
+	T_CHIP_REG_DT,
+	T_CHIP_REG_ST,
+	T_CHIP_REG_I,
+	T_CHIP_REG_I_IND,
 
 }	eTargetToken;
 

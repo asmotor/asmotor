@@ -25,27 +25,13 @@
 #include "section.h"
 
 
-SExpression* parse_ExpressionS16(void)
+SExpression* parse_ExpressionU12(void)
 {
 	SExpression* pExpr = parse_Expression();
 	if(pExpr == NULL)
 		return NULL;
 		
-	pExpr = expr_CheckRange(pExpr, -32768, 32767);
-	if(pExpr == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
-	
-	return expr_And(pExpr, expr_Const(0xFFFF));
-}
-
-
-SExpression* parse_ExpressionU16(void)
-{
-	SExpression* pExpr = parse_Expression();
-	if(pExpr == NULL)
-		return NULL;
-		
-	pExpr = expr_CheckRange(pExpr, 0, 65535);
+	pExpr = expr_CheckRange(pExpr, 0, 4095);
 	if(pExpr == NULL)
 		prj_Error(ERROR_OPERAND_RANGE);
 	return pExpr;
