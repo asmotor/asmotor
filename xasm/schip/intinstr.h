@@ -51,17 +51,17 @@ static int parse_GetRegister(void)
 
 static bool_t parse_AddressMode(SAddressMode* pMode)
 {
-	if((pMode->nRegister = (char)parse_GetRegister()) != -1)
+	if((pMode->nRegister = (uint8_t)parse_GetRegister()) != 0xFF)
 	{
 		pMode->nMode = MODE_REG;
-		if(g_CurrentToken.ID.Token == T_OP_ADD)
+		if(g_CurrentToken.ID.Token != T_OP_ADD)
+			return true;
+
+		parse_GetToken();
+		if((pMode->pExpr = parse_ExpressionU12()) != NULL)
 		{
-			parse_GetToken();
-			if((pMode->pExpr = parse_ExpressionU12()) != NULL)
-			{
-				pMode->nMode = MODE_IMM_V0;
-				return true;
-			}
+			pMode->nMode = MODE_IMM_V0;
+			return true;
 		}
 	}
 	else if(g_CurrentToken.ID.TargetToken == T_CHIP_REG_I)
@@ -152,7 +152,7 @@ static bool_t parse_ModeRegImm(SAddressMode* pMode1, SAddressMode* pMode2, SAddr
 {
 	sect_OutputExpr16(
 		expr_Or(
-			expr_Const(nOpcode | (pMode1->nMode << 8)),
+			expr_Const(nOpcode | (pMode1->nRegister << 8)),
 			expr_And(
 				expr_CheckRange(pMode2->pExpr, -128, 255),
 				expr_Const(255)
@@ -312,6 +312,8 @@ bool_t parse_IntegerInstruction(void)
 		SAddressMode mode2 = {0, 0, NULL};
 		SAddressMode mode3 = {0, 0, NULL};
 
+		parse_GetToken();
+
 		if(pInstr->nMode1 != 0 && parse_AddressMode(&mode1))
 		{
 			if((pInstr->nMode1 & mode1.nMode) == 0)
@@ -331,10 +333,6 @@ bool_t parse_IntegerInstruction(void)
 		}
 
 		r = pInstr->fpParser(&mode1, &mode2, &mode3, pInstr->nOpcode);
-
-		expr_Free(mode1.pExpr);
-		expr_Free(mode2.pExpr);
-		expr_Free(mode3.pExpr);
 
 		return r;
 	}
