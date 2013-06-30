@@ -23,5 +23,8 @@
     <None Include="..\..\xasm\schip\test\minimal.chp">
       <Filter>test</Filter>
     </None>
+    <None Include="..\..\xasm\schip\test\test.chp">
+      <Filter>test</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\xasm\schip\test\minimal.chp" />
+    <None Include="..\..\xasm\schip\test\test.chp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{33B65635-C3D2-4C00-B680-1603FCB0B1AC}</ProjectGuid>
@@ -117,7 +118,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libutil.lib;libxasm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Msvcrtd.lib;libutil.lib;libxasm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PlatformName)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
