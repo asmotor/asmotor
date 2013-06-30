@@ -1,0 +1,74 @@
+	SECTION	"Code",CODE[$200]
+
+CODE_COLLISION_EXPECT_0 = 0
+
+ASSERT:	MACRO
+	ld		v0,\3
+	se		\1,\2
+	jp		ShowError
+	ENDM
+
+	cls
+	high
+
+	call	DrawFrame
+	call	TestCollision
+
+End:
+	jp		End
+
+TestCollision:
+	ld		v0,1
+	ld		v1,1
+	drw		v0,v1,1
+	ASSERT	vf,0,CODE_COLLISION_EXPECT_0
+	ret
+
+; Shows the error code in v0 and halts execution
+ShowError:
+	ld		i,.digits
+	bcd		v0
+	ldm		v2,(i)
+	ld		v3,10
+	ld		v4,10
+	ldf10	v0
+	drw		v3,v4,10
+	add		v3,9
+	ldf10	v1
+	drw		v3,v4,10
+	add		v3,9
+	ldf10	v2
+	drw		v3,v4,10
+	jp		End
+
+.digits
+	DSB		4
+
+DrawFrame:
+	ld		i,SpriteDot
+	ld		v0,0
+	ld		v1,0
+	call	.loop_x
+	ld		v0,0
+	ld		v1,63
+	call	.loop_x
+	ld		v0,0
+	ld		v1,0
+	call	.loop_y
+	ld		v0,127
+	ld		v1,0
+.loop_y
+	drw		v0,v1,1
+	add		v1,1
+	se		v1,64
+	jp		.loop_y
+	ret
+.loop_x
+	drw		v0,v1,1
+	add		v0,1
+	se		v0,128
+	jp		.loop_x
+	ret
+
+SpriteDot:
+	DB	$80
