@@ -296,7 +296,7 @@ bool_t fstk_RunNextBuffer(void)
 
 		list_Remove(g_pFileContext, g_pFileContext);
 		lex_FreeBuffer(oldcontext->pLexBuffer);
-		mem_Free(oldcontext->pName);
+		str_Free(oldcontext->pName);
 
 		switch(oldcontext->Type)
 		{
