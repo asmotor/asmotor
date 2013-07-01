@@ -145,7 +145,7 @@ static void sect_GrowCurrent(int32_t count)
 
 static bool_t sect_CheckAvailableSpace(uint32_t count)
 {
-	assert(g_pConfiguration->eMinimumWordSize <= count);
+	assert(g_pConfiguration->eMinimumWordSize <= (int)count);
 
 	if(pCurrentSection)
 	{

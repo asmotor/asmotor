@@ -251,20 +251,20 @@ void ValidateChecksum(FILE* f)
 			ch = 0;
 
 		if(i < 0x0134L)
-			nCalcChecksum += ch;
+			nCalcChecksum += (unsigned short)ch;
 		else if(i < 0x014DL)
 		{
-			nCalcCompChecksum += ch;
-			nCalcChecksum += ch;
+			nCalcCompChecksum += (unsigned char)ch;
+			nCalcChecksum += (unsigned short)ch;
 		}
 		else if(i == 0x014DL)
-			nCartCompChecksum = ch;
+			nCartCompChecksum = (unsigned char)ch;
 		else if(i == 0x014EL)
-			nCartChecksum = ch << 8;
+			nCartChecksum = (unsigned short)ch << 8;
 		else if(i == 0x014FL)
-			nCartChecksum |= ch;
+			nCartChecksum |= (unsigned short)ch;
 		else
-			nCalcChecksum += ch;
+			nCalcChecksum += (unsigned short)ch;
 	}
 
 	nCalcCompChecksum = 0xE7 - nCalcCompChecksum;
