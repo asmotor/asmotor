@@ -54,6 +54,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motor0x10c", "motor0x10c.vc
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "motorschip", "motorschip.vcxproj", "{33B65635-C3D2-4C00-B680-1603FCB0B1AC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FD9FF05-9906-4B86-9B75-5911E9B0CA20} = {4FD9FF05-9906-4B86-9B75-5911E9B0CA20}
+		{B8E60034-A4C8-42E5-8FD6-4C64713EC864} = {B8E60034-A4C8-42E5-8FD6-4C64713EC864}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
