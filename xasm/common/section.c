@@ -645,7 +645,7 @@ bool_t sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, int32_t org, int32
 	if(!g_pConfiguration->bSupportBanks)
 		internalerror("Banks not supported");
 
-	if(sect = sect_Find(sectname, group))
+	if((sect = sect_Find(sectname, group)) != NULL)
 	{
 		if(sect->Flags == (SECTF_BANKFIXED | SECTF_ORGFIXED)
 		&& sect->Bank == bank
@@ -659,7 +659,7 @@ bool_t sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, int32_t org, int32
 		return false;
 	}
 
-	if(sect = sect_Create(sectname))
+	if((sect = sect_Create(sectname)) != NULL)
 	{
 		sect->pGroup = group;
 		sect->Flags = SECTF_BANKFIXED | SECTF_ORGFIXED;
@@ -674,7 +674,7 @@ bool_t sect_SwitchTo_ORG_BANK(char* sectname, SSymbol* group, int32_t org, int32
 
 bool_t sect_SwitchTo_NAMEONLY(char* sectname)
 {
-	if(pCurrentSection = sect_Find(sectname,NULL))
+	if((pCurrentSection = sect_Find(sectname, NULL)) != NULL)
 	{
 		return true;
 	}

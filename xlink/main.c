@@ -68,7 +68,7 @@ int	main(int argc, char* argv[])
 
 	while(argn < argc && (argv[argn][0] == '-' || argv[argn][0] == '/'))
 	{
-		switch(tolower(argv[argn][1]))
+		switch(tolower((unsigned char)argv[argn][1]))
 		{
 			case '?':
 			case 'h':
@@ -115,7 +115,7 @@ int	main(int argc, char* argv[])
 				/* Target */
 				if(argv[argn][2] != 0 && target_defined == 0)
 				{
-					switch(tolower(argv[argn][2]))
+					switch(tolower((unsigned char)argv[argn][2]))
 					{
 						case 'g':
 						{
