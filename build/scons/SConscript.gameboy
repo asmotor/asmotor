@@ -6,7 +6,7 @@ b = "build_gameboy"
 
 localEnv = env.Clone()
 
-localEnv.VariantDir(b, "../../xasm/gameboy")
+localEnv.VariantDir(b, "../../xasm/gameboy", duplicate = 0)
 motorgb = localEnv.Program(b + "/motorgb", LIBS = [libxasm, libutil, "m"], source = [
 	b + "/locerror.c",
 	b + "/loclexer.c",

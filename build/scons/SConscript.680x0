@@ -6,7 +6,7 @@ b = "build_680x0"
 
 localEnv = env.Clone()
 
-localEnv.VariantDir(b, "../../xasm/680x0")
+localEnv.VariantDir(b, "../../xasm/680x0", duplicate = 0)
 motor68k = localEnv.Program(b + "/motor68k", LIBS = [libxasm, libutil, "m"], source = [
 	b + "/locerror.c",
 	b + "/loclexer.c",

@@ -5,7 +5,7 @@ b = "build_xgbfix"
 
 localEnv = env.Clone()
 
-localEnv.VariantDir(b, "../../xgbfix")
+localEnv.VariantDir(b, "../../xgbfix", duplicate = 0)
 xgbfix = localEnv.Program(b + "/xgbfix", LIBS = [libutil, "m"], source = [
 	b + "/main.c"
 	])
