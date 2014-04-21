@@ -20,5 +20,6 @@
 #define	XASM_COMMON_INCLUDE_BINOBJ_H_INCLUDED_
 
 extern bool_t bin_Write(string* pName);
+extern bool_t bin_WriteVerilog(string* pName);
 
 #endif
