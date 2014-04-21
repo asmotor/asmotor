@@ -161,7 +161,7 @@ static uint32_t lex_CalcHash(char* s)
 
     while(*s)
     {
-		HASH(r, toupper(*s));
+		HASH(r, toupper((unsigned char)*s));
 		++s;
     }
 
@@ -717,7 +717,7 @@ static uint32_t lex_LexStateNormal()
 		SLexFloat* pFloatToken;
 		unsigned char* s;
 
-		while(isspace(g_pCurrentBuffer->pBuffer[0]) &&	g_pCurrentBuffer->pBuffer[0] != '\n')
+		while(isspace((unsigned char)g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n')
 		{
 			bLineStart = 0;
 			g_pCurrentBuffer->pBuffer += 1;
@@ -922,7 +922,7 @@ uint32_t	lex_GetNextToken(void)
 				int i = 0;
 
 				g_pCurrentBuffer->pBuffer += 1;
-				while(!isspace(g_pCurrentBuffer->pBuffer[0]))
+				while(!isspace((unsigned char)g_pCurrentBuffer->pBuffer[0]))
 				{
 					g_CurrentToken.Value.aString[i++] = g_pCurrentBuffer->pBuffer[0];
 					g_pCurrentBuffer->pBuffer += 1;
@@ -939,7 +939,7 @@ uint32_t	lex_GetNextToken(void)
 			char* newbuf;
 			uint32_t index;
 
-			while(isspace(g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n')
+			while(isspace((unsigned char)g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n')
 			{
 				linestart = 0;
 				g_pCurrentBuffer->pBuffer += 1;

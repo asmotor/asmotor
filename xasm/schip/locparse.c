@@ -16,23 +16,44 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(MEM_H_INCLUDED_)
-#define MEM_H_INCLUDED_
-
-#include <stdlib.h>
-
-#if defined(_DEBUG)
-extern void* mem_AllocImpl(size_t nSize, char* pszFile, int nLine);
-extern void* mem_ReallocImpl(void* pMem, size_t nSize, char* pszFile, int nLine);
-#define mem_Alloc(size) mem_AllocImpl(size, __FILE__, __LINE__)
-#define mem_Realloc(mem, size) mem_ReallocImpl(mem, size, __FILE__, __LINE__)
-#else
-extern void* mem_Alloc(size_t nSize);
-extern void* mem_Realloc(void* pMem, size_t nSize);
-#endif
-
-extern void mem_Free(void* pMem);
+#include "xasm.h"
+#include "expr.h"
+#include "parse.h"
+#include "project.h"
+#include "localasm.h"
+#include "lexer.h"
+#include "section.h"
 
 
+SExpression* parse_ExpressionU12(void)
+{
+	SExpression* pExpr = parse_Expression();
+	if(pExpr == NULL)
+		return NULL;
+		
+	pExpr = expr_CheckRange(pExpr, 0, 4095);
+	if(pExpr == NULL)
+		prj_Error(ERROR_OPERAND_RANGE);
+	return pExpr;
+}
 
-#endif
+
+
+#include "intinstr.h"
+
+SExpression* parse_TargetFunction(void)
+{
+	switch(g_CurrentToken.ID.TargetToken)
+	{
+		default:
+			return NULL;
+	}
+}
+
+bool_t parse_TargetSpecific(void)
+{
+	if(parse_IntegerInstruction())
+		return true;
+
+	return false;
+}

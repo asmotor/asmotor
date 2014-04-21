@@ -16,23 +16,18 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(MEM_H_INCLUDED_)
-#define MEM_H_INCLUDED_
+#include "../common/xasm.h"
 
-#include <stdlib.h>
+static char* g_pszLocalError[]=
+{
+	"Result of operation is undefined",
+	"Register expected"
+};
 
-#if defined(_DEBUG)
-extern void* mem_AllocImpl(size_t nSize, char* pszFile, int nLine);
-extern void* mem_ReallocImpl(void* pMem, size_t nSize, char* pszFile, int nLine);
-#define mem_Alloc(size) mem_AllocImpl(size, __FILE__, __LINE__)
-#define mem_Realloc(mem, size) mem_ReallocImpl(mem, size, __FILE__, __LINE__)
-#else
-extern void* mem_Alloc(size_t nSize);
-extern void* mem_Realloc(void* pMem, size_t nSize);
-#endif
+char* loc_GetError(int n)
+{
+	if(n < 1000)
+		return NULL;
 
-extern void mem_Free(void* pMem);
-
-
-
-#endif
+	return g_pszLocalError[n - 1000];
+}

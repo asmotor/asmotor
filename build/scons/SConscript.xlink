@@ -5,7 +5,7 @@ b = "build_xlink"
 
 localEnv = env.Clone()
 
-localEnv.VariantDir(b, "../../xlink")
+localEnv.VariantDir(b, "../../xlink", duplicate = 0)
 xlink = localEnv.Program(b + "/xlink", LIBS = [libutil, "m"], source = [
 	b + "/assign.c",
 	b + "/group.c",

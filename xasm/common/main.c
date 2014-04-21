@@ -20,6 +20,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(_DEBUG)
+#include <crtdbg.h>
+#endif
+
 #include "asmotor.h"
 #include "amitime.h"
 #include "amigaobj.h"
@@ -100,6 +104,7 @@ extern int xasm_Main(int argc, char* argv[])
 	bool_t verbose = false;
 
 #if defined(_DEBUG)
+	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG)| _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
 	atexit(getchar);
 #endif
 

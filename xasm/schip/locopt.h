@@ -16,23 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(MEM_H_INCLUDED_)
-#define MEM_H_INCLUDED_
+#ifndef SCHIP_LOCOPT_H_
+#define SCHIP_LOCOPT_H_
 
-#include <stdlib.h>
-
-#if defined(_DEBUG)
-extern void* mem_AllocImpl(size_t nSize, char* pszFile, int nLine);
-extern void* mem_ReallocImpl(void* pMem, size_t nSize, char* pszFile, int nLine);
-#define mem_Alloc(size) mem_AllocImpl(size, __FILE__, __LINE__)
-#define mem_Realloc(mem, size) mem_ReallocImpl(mem, size, __FILE__, __LINE__)
-#else
-extern void* mem_Alloc(size_t nSize);
-extern void* mem_Realloc(void* pMem, size_t nSize);
-#endif
-
-extern void mem_Free(void* pMem);
-
-
+typedef struct MachineOptions
+{
+	int	nCpu;
+} SMachineOptions;
 
 #endif

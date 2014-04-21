@@ -1835,7 +1835,7 @@ static bool_t parse_PseudoOp(void)
 					++pStart;
 
 				pEnd = pStart;
-				while(*pEnd && !isspace(*pEnd))
+				while(*pEnd && !isspace((unsigned char)*pEnd))
 					++pEnd;
 
 				r = mem_Alloc(pEnd - pStart + 1);

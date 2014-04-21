@@ -2,12 +2,12 @@ Import("env")
 Import("libxasm")
 Import("libutil")
 
-b = "build_680x0"
+b = "build_0x10c"
 
 localEnv = env.Clone()
 
-localEnv.VariantDir(b, "../../xasm/680x0", duplicate = 0)
-motor68k = localEnv.Program(b + "/motor68k", LIBS = [libxasm, libutil, "m"], source = [
+localEnv.VariantDir(b, "../../xasm/0x10c", duplicate = 0)
+motor0x10c = localEnv.Program(b + "/motor0x10c", LIBS = [libxasm, libutil, "m"], source = [
 	b + "/locerror.c",
 	b + "/loclexer.c",
 	b + "/locopt.c",
@@ -16,4 +16,4 @@ motor68k = localEnv.Program(b + "/motor68k", LIBS = [libxasm, libutil, "m"], sou
 	b + "/main.c"
 	])
 
-Return("motor68k")
+Return("motor0x10c")

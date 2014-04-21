@@ -29,12 +29,20 @@ typedef struct MemoryChunk
 {
 	list_Data(struct MemoryChunk);
 	size_t nSize;
+#if defined(_DEBUG)
+	char* pszFile;
+	int nLine;
+#endif
 } SMemoryChunk;
 
 static SMemoryChunk* s_pMemory;
 
 
+#if defined(_DEBUG)
+static void* CheckMemPointer(SMemoryChunk* pChunk, size_t nSize, char* pszFile, int nLine)
+#else
 static void* CheckMemPointer(SMemoryChunk* pChunk, size_t nSize)
+#endif
 {
 	if(!pChunk)
 	{
@@ -43,23 +51,41 @@ static void* CheckMemPointer(SMemoryChunk* pChunk, size_t nSize)
 	}
 	
 	pChunk->nSize = nSize;
+#if defined(_DEBUG)
+	pChunk->pszFile = pszFile;
+	pChunk->nLine = nLine;
+#endif
 	list_Insert(s_pMemory, pChunk);
 	
 	return (char*)pChunk + HEADERSIZE;
 }
 
 
+#if defined(_DEBUG)
+void* mem_AllocImpl(size_t nSize, char *pszFile, int nLine)
+{
+	return CheckMemPointer(malloc(nSize + HEADERSIZE), nSize, pszFile, nLine);
+}
+#else
 void* mem_Alloc(size_t nSize)
 {
 	return CheckMemPointer(malloc(nSize + HEADERSIZE), nSize);
 }
+#endif
 
-
+#if defined(_DEBUG)
+void* mem_ReallocImpl(void* pMem, size_t nSize, char* pszFile, int nLine)
+#else
 void* mem_Realloc(void* pMem, size_t nSize)
+#endif
 {
 	if(pMem == NULL)
 	{
+#if defined(_DEBUG)
+		return mem_AllocImpl(nSize, pszFile, nLine);
+#else
 		return mem_Alloc(nSize);
+#endif
 	}
 	else if(nSize == 0)
 	{
@@ -71,7 +97,11 @@ void* mem_Realloc(void* pMem, size_t nSize)
 		SMemoryChunk* pChunk = (SMemoryChunk*)((char*)pMem - HEADERSIZE);
 		list_Remove(s_pMemory, pChunk);
 	
-		return CheckMemPointer(realloc(pChunk, nSize), nSize);
+#if defined(_DEBUG)
+		return CheckMemPointer(realloc(pChunk, nSize + HEADERSIZE), nSize, pszFile, nLine);
+#else
+		return CheckMemPointer(realloc(pChunk, nSize + HEADERSIZE), nSize);
+#endif
 	}
 }
 

@@ -37,7 +37,7 @@ char* _strupr(char* pszString)
 	char* r = pszString;
 	while(*r)
 	{
-		*r = toupper(*r);
+		*r = toupper((unsigned char)*r);
 		++r;
 	}
 	return pszString;
@@ -48,7 +48,7 @@ char* _strlwr(char* pszString)
 	char* r = pszString;
 	while(*r)
 	{
-		*r = tolower(*r);
+		*r = tolower((unsigned char)*r);
 		++r;
 	}
 	return pszString;
@@ -61,8 +61,8 @@ int _strnicmp(const char* pszString1, const char* pszString2, int nCount)
 
 	while(*pszString1 && *pszString2 && nCount-- > 0)
 	{
-		l1 = tolower(*pszString1++);
-		l2 = tolower(*pszString2++);
+		l1 = tolower((unsigned char)*pszString1++);
+		l2 = tolower((unsigned char)*pszString2++);
 
 		if(l1 != l2)
 			return l1 - l2;
@@ -81,8 +81,8 @@ int _stricmp(const char* pszString1, const char* pszString2)
 
 	while(*pszString1 && *pszString2)
 	{
-		l1 = tolower(*pszString1++);
-		l2 = tolower(*pszString2++);
+		l1 = tolower((unsigned char)*pszString1++);
+		l2 = tolower((unsigned char)*pszString2++);
 
 		if(l1 != l2)
 			return l1 - l2;

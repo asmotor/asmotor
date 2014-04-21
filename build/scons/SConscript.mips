@@ -6,7 +6,7 @@ b = "build_mips"
 
 localEnv = env.Clone()
 
-localEnv.VariantDir(b, "../../xasm/mips")
+localEnv.VariantDir(b, "../../xasm/mips", duplicate = 0)
 motormips = localEnv.Program(b + "/motormips", LIBS = [libxasm, libutil, "m"], source = [
 	b + "/locerror.c",
 	b + "/loclexer.c",
