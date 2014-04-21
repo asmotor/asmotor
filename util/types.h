@@ -31,13 +31,15 @@ typedef	signed int		int32_t;
 typedef signed long long int64_t;
 #endif
 
-
+#if defined(__cplusplus)
+typedef bool bool_t;
+#else
 typedef	enum
 {
 	false = 0,
 	true = 1
 }	bool_t;
-
+#endif
 
 #ifndef	NULL
 #	define	NULL	0L
