@@ -143,13 +143,13 @@ bool_t bin_WriteVerilog(string* pName)
 			while(nAddress < sect->Position)
 			{
 				++nAddress;
-				fprintf(f, "00000000\n");
+				fprintf(f, "00\n");
 			}
 
 			for(i = 0; i < sect->UsedSpace; ++i)
 			{
 				uint8_t b = sect->pData[i];
-				fprintf(f, "%d%d%d%d%d%d%d%d\n", (b>>7)&1, (b>>6)&1, (b>>5)&1, (b>>4)&1, (b>>3)&1, (b>>2)&1, (b>>1)&1, (b>>0)&1);
+				fprintf(f, "%02X\n", b);
 			}
 			nAddress += sect->UsedSpace;
 
