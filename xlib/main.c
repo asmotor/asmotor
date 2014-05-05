@@ -106,7 +106,7 @@ int	main(int argc, char* argv[])
 
 						while(l)
 						{
-							printf("%10ld %s\n", l->nByteLength, l->tName);
+							printf("%10ld %s\n", (long)l->nByteLength, l->tName);
 							l=l->pNext;
 						}
 					}

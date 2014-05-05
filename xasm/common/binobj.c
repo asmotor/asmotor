@@ -24,10 +24,8 @@
 #include "symbol.h"
 #include "patch.h"
 
-bool_t bin_Write(string* pName)
+bool_t bin_CommonPatch()
 {
-	FILE* f;
-
 	SSection* sect;
 	int32_t nAddress;
 	int i;
@@ -90,10 +88,20 @@ bool_t bin_Write(string* pName)
 
 	patch_BackPatch();
 
+	return true;
+}
+
+bool_t bin_Write(string* pName)
+{
+	FILE* f;
+
+	if(!bin_CommonPatch())
+		return false;
+
 	if((f = fopen(str_String(pName),"wb")) != NULL)
 	{
-		sect = pSectionList;
-		nAddress = sect->Position;
+		SSection* sect = pSectionList;
+		int32_t nAddress = sect->Position;
 
 		while(sect)
 		{
@@ -104,6 +112,45 @@ bool_t bin_Write(string* pName)
 			}
 
 			fwrite(sect->pData, 1, sect->UsedSpace, f);
+			nAddress += sect->UsedSpace;
+
+			sect = list_GetNext(sect);
+		}
+
+		fclose(f);
+		return true;
+	}
+
+	return false;
+}
+
+bool_t bin_WriteVerilog(string* pName)
+{
+	FILE* f;
+
+	if(!bin_CommonPatch())
+		return false;
+
+	if((f = fopen(str_String(pName),"wt")) != NULL)
+	{
+		SSection* sect = pSectionList;
+		int32_t nAddress = sect->Position;
+
+		while(sect)
+		{
+			int i;
+
+			while(nAddress < sect->Position)
+			{
+				++nAddress;
+				fprintf(f, "00000000\n");
+			}
+
+			for(i = 0; i < sect->UsedSpace; ++i)
+			{
+				uint8_t b = sect->pData[i];
+				fprintf(f, "%d%d%d%d%d%d%d%d\n", (b>>7)&1, (b>>6)&1, (b>>5)&1, (b>>4)&1, (b>>3)&1, (b>>2)&1, (b>>1)&1, (b>>0)&1);
+			}
 			nAddress += sect->UsedSpace;
 
 			sect = list_GetNext(sect);

@@ -64,6 +64,7 @@ void PrintUsage(void)
 		"    -f<f>   Output format, one of\n"
 		"                x - xobj (default)\n"
 		"                b - binary file \n",
+		"                v - verilog readmemb file \n",
 		g_pConfiguration->pszExecutable, g_pConfiguration->pszBackendVersion, g_pConfiguration->pszExecutable);
 
 	if(g_pConfiguration->bSupportAmiga)
@@ -142,6 +143,7 @@ extern int xasm_Main(int argc, char* argv[])
 					{
 						case 'x':
 						case 'b':
+						case 'v':
 							format = argv[argn][2];
 							break;
 						case 'g':
@@ -225,6 +227,9 @@ extern int xasm_Main(int argc, char* argv[])
 							break;
 						case 'b':
 							wr = bin_Write(pOutname);
+							break;
+						case 'v':
+							wr = bin_WriteVerilog(pOutname);
 							break;
 						case 'g':
 							wr = ami_WriteExecutable(pOutname, debuginfo);
