@@ -1,4 +1,8 @@
+<<<<<<< .merge_file_a05564
 *.tlog
 *.lastbuildstate
 *.idb
+=======
+build/Visual Studio 2012/Win32/
+>>>>>>> .merge_file_a02860
 build/Visual Studio 2012/Windows.sdf
