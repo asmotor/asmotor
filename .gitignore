@@ -1,0 +1,4 @@
+*.tlog
+*.lastbuildstate
+*.idb
+build/Visual Studio 2012/Windows.sdf
