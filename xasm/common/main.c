@@ -56,15 +56,15 @@ uint32_t g_nTotalWarnings = 0;
 void PrintUsage(void)
 {
     printf(
-		"%s v%s, ASMotor v" ASMOTOR_VERSION ")\n\nUsage: %s [options] asmfile\n"
+		"%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
    		"Options:\n"
    		"    -b<AS>  Change the two characters used for binary constants\n"
 		"            (default is 01)\n"
    		"    -e(l|b) Change endianness (CAUTION!)\n"
 		"    -f<f>   Output format, one of\n"
 		"                x - xobj (default)\n"
-		"                b - binary file \n",
-		"                v - verilog readmemb file \n",
+		"                b - binary file\n",
+		"                v - verilog readmemb file\n",
 		g_pConfiguration->pszExecutable, g_pConfiguration->pszBackendVersion, g_pConfiguration->pszExecutable);
 
 	if(g_pConfiguration->bSupportAmiga)

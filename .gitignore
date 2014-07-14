@@ -6,3 +6,15 @@
 build/Visual Studio 2012/Win32/
 >>>>>>> .merge_file_a02860
 build/Visual Studio 2012/Windows.sdf
+*.o
+build/scons/build_0x10c
+build/scons/build_6502
+build/scons/build_680x0
+build/scons/build_gameboy
+build/scons/build_mips
+build/scons/build_util
+build/scons/build_xasm
+build/scons/build_xgbfix
+build/scons/build_xlib
+build/scons/build_xlink
+.sconsign.dblite
