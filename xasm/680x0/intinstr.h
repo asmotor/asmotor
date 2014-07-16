@@ -1267,7 +1267,7 @@ static bool_t parse_CAS(ESize sz, SAddrMode* dc, SAddrMode* du)
 	if(g_pOptions->pMachine->nCpu == CPUF_68060
 	&& sz != SIZE_BYTE)
 	{
-		prj_Error(MERROR_INSTRUCTION_CPU);
+		prj_Warn(MERROR_MISALIGNED_FAIL_68060);
 		return true;
 	}
 
@@ -1404,6 +1404,12 @@ static bool_t parse_CAS2(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 	if(!parse_ExpectIndirectRegister(&rn2))
 		return false;
 
+	if(g_pOptions->pMachine->nCpu == CPUF_68060)
+	{
+		prj_Error(MERROR_INSTRUCTION_CPU);
+		return true;
+	}
+
 	sect_OutputConst16(0x08FC | (uint16_t)(parse_GetSizeField(sz) + 1) << 9);
 	sect_OutputConst16(rn1 << 12 | du1 << 6 | dc1);
 	sect_OutputConst16(rn2 << 12 | du2 << 6 | dc2);
@@ -1436,6 +1442,12 @@ static bool_t parse_CHK2(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	uint16_t ins;
 
+	if(g_pOptions->pMachine->nCpu == CPUF_68060)
+	{
+		prj_Error(MERROR_INSTRUCTION_CPU);
+		return true;
+	}
+
 	ins = (uint16_t)(0x00C0 | parse_GetSizeField(sz) << 9 | parse_GetEAField(src));
 	sect_OutputConst16(ins);
 
@@ -1449,6 +1461,12 @@ static bool_t parse_CMP2(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	uint16_t ins;
 	
+	if(g_pOptions->pMachine->nCpu == CPUF_68060)
+	{
+		prj_Error(MERROR_INSTRUCTION_CPU);
+		return true;
+	}
+
 	ins = (uint16_t)(0x00C0 | parse_GetSizeField(sz) << 9 | parse_GetEAField(src));
 	sect_OutputConst16(ins);
 
@@ -2143,6 +2161,12 @@ static bool_t parse_MOVEP(ESize sz, SAddrMode* src, SAddrMode* dest)
 	uint16_t ar;
 	uint16_t opmode;
 	SExpression* disp;
+
+	if(g_pOptions->pMachine->nCpu == CPUF_68060)
+	{
+		prj_Error(MERROR_INSTRUCTION_CPU);
+		return true;
+	}
 
 	if(src->eMode == AM_AIND)
 	{

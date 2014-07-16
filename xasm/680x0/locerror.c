@@ -29,7 +29,8 @@ static char* g_pszLocalError[]=
 	"Invalid instruction for selected CPU",
 	"Bitfield expected",
 	"Instruction is privileged",
-	"MOVEM instruction skipped due to empty register list"
+	"MOVEM instruction skipped due to empty register list",
+	"CAS misaligned word or long access is unimplemented on 68060"
 };
 
 char* loc_GetError(int n)

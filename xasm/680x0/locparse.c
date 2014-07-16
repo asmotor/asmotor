@@ -33,6 +33,7 @@
 #include "loccpu.h"
 #include "addrmode.h"
 #include "intinstr.h"
+#include "fpuinstr.h"
 #include "pseudoop.h"
 
 SExpression* parse_TargetFunction(void)
@@ -60,6 +61,8 @@ SExpression* parse_TargetFunction(void)
 bool_t parse_TargetSpecific(void)
 {
 	if(parse_IntegerInstruction())
+		return true;
+	else if(parse_FpuInstruction())
 		return true;
 	else if(parse_PseudoOp())
 		return false;
