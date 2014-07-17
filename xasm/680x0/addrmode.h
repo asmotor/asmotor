@@ -40,16 +40,21 @@ typedef enum
 	AM_PREINDPCXD020 = 0x00100000,	// ([bd,PC,Xn],od)
 	AM_POSTINDPCXD020= 0x00200000,	// ([bd,PC],Xn,od)
 	AM_SYSREG        = 0x01000000,	// CCR
+	AM_FPUREG        = 0x02000000,	// FPU
 	AM_BITFIELD      = 0x20000000,	// {offset:width}
 	AM_EMPTY         = 0x40000000
 } EAddrMode;
 
 typedef enum
 {
-	SIZE_DEFAULT = 0x0,
-	SIZE_BYTE    = 0x1,
-	SIZE_WORD    = 0x2,
-	SIZE_LONG    = 0x4
+	SIZE_DEFAULT  = 0x00,
+	SIZE_BYTE     = 0x01,
+	SIZE_WORD     = 0x02,
+	SIZE_LONG     = 0x04,
+	SIZE_SINGLE   = 0x08,
+	SIZE_DOUBLE   = 0x10,
+	SIZE_EXTENDED = 0x20,
+	SIZE_PACKED   = 0x40,
 } ESize;
 
 typedef struct
@@ -143,6 +148,26 @@ static ESize parse_GetSizeSpec(ESize eDefault)
 		{
 			parse_GetToken();
 			return SIZE_LONG;
+		}
+		else if(_strnicmp(g_CurrentToken.Value.aString,".s",2) == 0)
+		{
+			parse_GetToken();
+			return SIZE_SINGLE;
+		}
+		else if(_strnicmp(g_CurrentToken.Value.aString,".d",2) == 0)
+		{
+			parse_GetToken();
+			return SIZE_DOUBLE;
+		}
+		else if(_strnicmp(g_CurrentToken.Value.aString,".x",2) == 0)
+		{
+			parse_GetToken();
+			return SIZE_EXTENDED;
+		}
+		else if(_strnicmp(g_CurrentToken.Value.aString,".p",2) == 0)
+		{
+			parse_GetToken();
+			return SIZE_PACKED;
 		}
 	}
 
@@ -643,6 +668,15 @@ static bool_t parse_GetAddrMode(SAddrMode* pMode)
 	{
 		pMode->eMode = AM_AINC;
 		pMode->Outer.nBaseReg = g_CurrentToken.ID.TargetToken - T_68K_REG_A0_INC;
+		parse_GetToken();
+		return true;
+	}
+
+	if(g_CurrentToken.ID.TargetToken >= T_FPUREG_0
+	&& g_CurrentToken.ID.TargetToken <= T_FPUREG_7)
+	{
+		pMode->eMode = AM_FPUREG;
+		pMode->Outer.nBaseReg = g_CurrentToken.ID.TargetToken - T_FPUREG_0;
 		parse_GetToken();
 		return true;
 	}

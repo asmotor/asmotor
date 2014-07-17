@@ -41,6 +41,7 @@ SMachineOptions* locopt_Alloc(void)
 void locopt_Open(void)
 {
 	g_pOptions->pMachine->nCpu = CPUF_68000;
+	g_pOptions->pMachine->nFpu = 0;
 }
 
 void locopt_Update(void)
@@ -76,6 +77,33 @@ bool_t locopt_Parse(char* s)
 						return true;
 					case 6:
 						g_pOptions->pMachine->nCpu = CPUF_68060;
+						return true;
+					default:
+						prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+						return false;
+				}
+			}
+			else
+			{
+				prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+				return false;
+			}
+			break;
+		case 'f':
+			if(strlen(&s[1]) == 1)
+			{
+				switch(s[1])
+				{
+					case '1':
+					case '2':
+					case 'x':
+						g_pOptions->pMachine->nCpu = FPUF_6888X;
+						return true;
+					case '4':
+						g_pOptions->pMachine->nCpu = FPUF_68040;
+						return true;
+					case '6':
+						g_pOptions->pMachine->nCpu = FPUF_68060;
 						return true;
 					default:
 						prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);

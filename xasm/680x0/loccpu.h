@@ -28,4 +28,10 @@
 
 #define CPUF_ALL 0x3F
 
+#define FPUF_6888X 0x01
+#define FPUF_68040 0x02
+#define FPUF_68060 0x04
+
+#define FPUF_ALL 0x07
+
 #endif

@@ -47,6 +47,18 @@ static bool_t parse_PseudoOp()
 			g_pOptions->pMachine->nCpu = CPUF_68060;
 			parse_GetToken();
 			return true;
+		case T_68K_FPU6888X:
+			g_pOptions->pMachine->nFpu = FPUF_6888X;
+			parse_GetToken();
+			return true;
+		case T_68K_FPU68040:
+			g_pOptions->pMachine->nFpu = FPUF_68040;
+			parse_GetToken();
+			return true;
+		case T_68K_FPU68060:
+			g_pOptions->pMachine->nFpu = FPUF_68060;
+			parse_GetToken();
+			return true;
 	}
 
 	return false;

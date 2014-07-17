@@ -22,6 +22,7 @@
 typedef struct MachineOptions
 {
 	int	nCpu;
+    int nFpu;
 } SMachineOptions;
 
 #endif

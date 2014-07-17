@@ -292,9 +292,17 @@ static SLexInitString localstrings[]=
 	{ "mc68040",	T_68K_MC68040	},
 	{ "mc68060",	T_68K_MC68060	},
 
+	{ "fpu68881",	T_68K_FPU6888X	},
+	{ "fpu68882",	T_68K_FPU6888X	},
+	{ "fpu6888x",	T_68K_FPU6888X	},
+	{ "fpu68040",	T_68K_FPU68040	},
+	{ "fpu68060",	T_68K_FPU68060	},
+
 	{ "regmask",	T_68K_REGMASK	},
 	
 	{ "fabs",	T_FPU_FABS		},
+	{ "fsabs",	T_FPU_FSABS		},
+	{ "fdabs",	T_FPU_FDABS		},
 	{ "facos",	T_FPU_FACOS		},
 	{ "fadd",	T_FPU_FADD		},
 	{ "fasin",	T_FPU_FASIN		},
@@ -486,6 +494,15 @@ static SLexInitString localstrings[]=
 	{ "ftst",		T_FPU_FTST		},
 	{ "ftwotox",	T_FPU_FTWOTOX	},
 	
+	{ "fp0",	T_FPUREG_0 },
+	{ "fp1",	T_FPUREG_1 },
+	{ "fp2",	T_FPUREG_2 },
+	{ "fp3",	T_FPUREG_3 },
+	{ "fp4",	T_FPUREG_4 },
+	{ "fp5",	T_FPUREG_5 },
+	{ "fp6",	T_FPUREG_6 },
+	{ "fp7",	T_FPUREG_7 },
+
 	{ NULL, 0 }
 };
 
