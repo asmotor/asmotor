@@ -30,7 +30,9 @@ static char* g_pszLocalError[]=
 	"Bitfield expected",
 	"Instruction is privileged",
 	"MOVEM instruction skipped due to empty register list",
-	"CAS misaligned word or long access is unimplemented on 68060"
+	"CAS misaligned word or long access is unimplemented on 68060",
+	"FPU register expected",
+	"Instruction not supported by selected FPU"
 };
 
 char* loc_GetError(int n)

@@ -4078,16 +4078,10 @@ static SInstruction sIntegerInstructions[] =
 
 };
 
-static bool_t parse_IntegerOp(int op, ESize inssz, SAddrMode* src, SAddrMode* dest)
+static bool_t parse_OpCore(SInstruction* pIns, ESize inssz, SAddrMode* src, SAddrMode* dest)
 {
-	SInstruction* pIns;
 	EAddrMode allowsrc;
 	EAddrMode allowdest;
-
-	if(op >= T_68K_INTEGER_FIRST)
-		op -= T_68K_INTEGER_FIRST;
-
-	pIns = &sIntegerInstructions[op];
 
 	allowsrc = pIns->nAllowSrc;
 	if(g_pOptions->pMachine->nCpu >= CPUF_68020)
@@ -4112,6 +4106,12 @@ static bool_t parse_IntegerOp(int op, ESize inssz, SAddrMode* src, SAddrMode* de
 	}
 
 	return pIns->pHandler(inssz, src, dest);
+}
+
+bool_t parse_IntegerOp(int op, ESize inssz, SAddrMode* src, SAddrMode* dest)
+{
+	SInstruction* pIns = &sIntegerInstructions[op];
+	return parse_OpCore(pIns, inssz, src, dest);
 }
 
 bool_t parse_GetBitfield(SAddrMode* pMode)
@@ -4165,29 +4165,11 @@ bool_t parse_GetBitfield(SAddrMode* pMode)
 	return false;
 }
 
-bool_t parse_IntegerInstruction(void)
+bool_t parse_CommonCpuFpu(int op, SInstruction* pIns)
 {
-	int op;
-	SInstruction* pIns;
 	ESize inssz;
 	SAddrMode src;
 	SAddrMode dest;
-
-	if(g_CurrentToken.ID.TargetToken < T_68K_INTEGER_FIRST
-	|| g_CurrentToken.ID.TargetToken > T_68K_INTEGER_LAST)
-	{
-		return false;
-	}
-
-	op = g_CurrentToken.ID.TargetToken - T_68K_INTEGER_FIRST;
-	parse_GetToken();
-
-	pIns = &sIntegerInstructions[op];
-	if((pIns->nCPU & g_pOptions->pMachine->nCpu) == 0)
-	{
-		prj_Error(MERROR_INSTRUCTION_CPU);
-		return true;
-	}
 
 	if(pIns->nAllowSize == SIZE_DEFAULT)
 	{
@@ -4253,7 +4235,32 @@ bool_t parse_IntegerInstruction(void)
 		prj_Error(MERROR_INSTRUCTION_SIZE);
 	}
 
-	return parse_IntegerOp(op, inssz, &src, &dest);
+	return parse_OpCore(pIns, inssz, &src, &dest);
+
+}
+
+bool_t parse_IntegerInstruction(void)
+{
+	int op;
+	SInstruction* pIns;
+
+	if(g_CurrentToken.ID.TargetToken < T_68K_INTEGER_FIRST
+	|| g_CurrentToken.ID.TargetToken > T_68K_INTEGER_LAST)
+	{
+		return false;
+	}
+
+	op = g_CurrentToken.ID.TargetToken - T_68K_INTEGER_FIRST;
+	parse_GetToken();
+
+	pIns = &sIntegerInstructions[op];
+	if((pIns->nCPU & g_pOptions->pMachine->nCpu) == 0)
+	{
+		prj_Error(MERROR_INSTRUCTION_CPU);
+		return true;
+	}
+
+	return parse_CommonCpuFpu(op, pIns);
 }
 
 #endif
