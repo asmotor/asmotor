@@ -83,6 +83,7 @@ static SLexInitString localstrings[]=
 //      "c"             ,       T_MODE_C
 
 	{ "[hl]",	T_MODE_HL_IND	},
+	{ "(hl)",	T_MODE_HL_IND	},
 	{ "[hl+]",	T_MODE_HL_INDINC	},
 	{ "[hl-]",	T_MODE_HL_INDDEC	},
 	{ "hl",		T_MODE_HL		},
@@ -93,6 +94,8 @@ static SLexInitString localstrings[]=
 	{ "de",		T_MODE_DE		},
 	{ "[sp]",	T_MODE_SP_IND	},
 	{ "sp",		T_MODE_SP		},
+	{ "ix",		T_MODE_IX		},
+	{ "iy",		T_MODE_IY		},
 	{ "a",		T_MODE_A		},
 	{ "b",		T_MODE_B		},
 	{ "[$ff00+c]",T_MODE_C_IND	},

@@ -23,7 +23,8 @@ static char* g_pszLocalError[]=
 	"Register A expected",
 	"Register SP expected",
 	"Consider using %s instead",
-	"Expression must be in the $FF00-$FFFF range"
+	"Expression must be in the $FF00-$FFFF range",
+    "Instruction not supported by selected CPU"
 };
 
 char* loc_GetError(int n)
