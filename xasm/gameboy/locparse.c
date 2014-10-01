@@ -23,6 +23,7 @@
 #include "project.h"
 #include "lexer.h"
 #include "localasm.h"
+#include "locopt.h"
 
 typedef enum
 {
@@ -81,6 +82,8 @@ typedef struct _AddrMode
 
 typedef struct _Opcode
 {
+	unsigned char nCPU;
+	unsigned char nPrefix;
 	unsigned char nOpcode;
 	int nAddrMode1;
 	int nAddrMode2;
@@ -105,6 +108,11 @@ extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
 #define MODE_IMM		0x1000
 #define MODE_IMM_IND	0x2000
 #define MODE_F			0x4000
+#define MODE_REG_AF_SEC	0x8000
+#define MODE_REG_AF		0x10000
+#define MODE_REG_DE		0x20000
+
+#define MODE_GROUP_EX (MODE_REG_SP_IND | MODE_REG_HL | MODE_REG_AF | MODE_REG_AF_SEC | MODE_REG_DE)
 
 static SExpression* parse_CreateExpressionNBit(SExpression* pExpr, int nLowLimit, int nHighLimit, int nBits)
 {
@@ -448,54 +456,79 @@ static bool_t parse_Stop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAd
 
 SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 {
-	{ 0x08, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* ADC */
-	{ 0x00, MODE_REG_A | MODE_REG_HL | MODE_REG_SP, MODE_GROUP_D | MODE_IMM | MODE_GROUP_SS, parse_Add },	/* ADD */
-	{ 0x20, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* AND */
-	{ 0x40, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* BIT */
-	{ 0xCD, MODE_F | MODE_IMM, MODE_IMM | MODE_NONE, parse_Call },	/* CALL */
-	{ 0x3F, 0, 0, parse_Implied },							/* CCF */
-	{ 0x2F, 0, 0, parse_Implied },							/* CPL */
-	{ 0x38, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* CP */
-	{ 0x27, 0, 0, parse_Implied },							/* DAA */
-	{ 0x01, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* DEC */
-	{ 0xF3, 0, 0, parse_Implied },							/* DI */
-	{ 0xFB, 0, 0, parse_Implied },							/* EI */
-	{ 0x76, 0, 0, parse_Implied },							/* HALT */
-	{ 0x00, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* INC */
-	{ 0xC3, MODE_F | MODE_IMM | MODE_REG_HL_IND, MODE_IMM | MODE_NONE, parse_Jp },	/* JP */
-	{ 0x00, MODE_F | MODE_IMM, MODE_IMM | MODE_NONE, parse_Jr },	/* JR */
-	{ 0x00,
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x08, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* ADC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_REG_A | MODE_REG_HL | MODE_REG_SP, MODE_GROUP_D | MODE_IMM | MODE_GROUP_SS, parse_Add },	/* ADD */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* AND */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x40, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* BIT */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xCD, MODE_F | MODE_IMM, MODE_IMM | MODE_NONE, parse_Call },	/* CALL */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x3F, 0, 0, parse_Implied },							/* CCF */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* CP */
+	{ CPUF_Z80, 0xED, 0xA9, 0, 0, parse_Implied },	/* CPD */
+	{ CPUF_Z80, 0xED, 0xB9, 0, 0, parse_Implied },	/* CPDR */
+	{ CPUF_Z80, 0xED, 0xA1, 0, 0, parse_Implied },	/* CPI */
+	{ CPUF_Z80, 0xED, 0xB1, 0, 0, parse_Implied },	/* CPIR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x2F, 0, 0, parse_Implied },							/* CPL */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x27, 0, 0, parse_Implied },							/* DAA */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x01, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* DEC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xF3, 0, 0, parse_Implied },							/* DI */
+	{ CPUF_Z80, 0x00, 0x10, MODE_IMM, 0, parse_Djnz },	/* DJNZ */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xFB, 0, 0, parse_Implied },							/* EI */
+	{ CPUF_Z80, 0x00, 0x00, MODE_GROUP_EX, MODE_GROUP_EX, parse_Ex },	/* EX */
+	{ CPUF_Z80, 0x00, 0xD9, 0, 0, parse_Implied },	/* EXX */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x76, 0, 0, parse_Implied },							/* HALT */
+	{ CPUF_Z80, 0xED, 0x46, MODE_IMM, 0, parse_Im },	/* IM */
+	{ CPUF_Z80, 0xED, 0x40, MODE_GROUP_D, MODE_IMM | MODE_REG_C_IND, parse_In },	/* IN */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* INC */
+	{ CPUF_Z80, 0xED, 0xAA, 0, 0, parse_Implied },							/* IND */
+	{ CPUF_Z80, 0xED, 0xBA, 0, 0, parse_Implied },							/* INDR */
+	{ CPUF_Z80, 0xED, 0xA2, 0, 0, parse_Implied },							/* INI */
+	{ CPUF_Z80, 0xED, 0xB2, 0, 0, parse_Implied },							/* INIR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC3, MODE_F | MODE_IMM | MODE_REG_HL_IND, MODE_IMM | MODE_NONE, parse_Jp },	/* JP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_F | MODE_IMM, MODE_IMM | MODE_NONE, parse_Jr },	/* JR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00,
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND,
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_REG_SP_IND_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM, parse_Ld },	/* LD */
-	{ 0x32, MODE_REG_A | MODE_REG_HL_IND, MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDD */
-	{ 0x22, MODE_REG_A | MODE_REG_HL_IND, MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDI */
-	{ 0xE0, MODE_IMM_IND | MODE_REG_A, MODE_IMM_IND | MODE_REG_A, parse_Ldh },	/* LDH */
-	{ 0x00, 0, 0, parse_Implied },	/* LDH */
-	{ 0x30, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* OR */
-	{ 0xC1, MODE_GROUP_TT, 0, parse_Pop },	/* POP */
-	{ 0xC5, MODE_GROUP_TT, 0, parse_Pop },	/* PUSH */
-	{ 0x80, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* RES */
-	{ 0xC0, MODE_NONE | MODE_F, 0, parse_Ret },	/* RET */
-	{ 0xD9, 0, 0, parse_Implied },	/* RETI */
-	{ 0x07, 0, 0, parse_Implied },	/* RLCA */
-	{ 0x00, MODE_GROUP_D, 0, parse_Rlc },	/* RLC */
-	{ 0x17, 0, 0, parse_Implied },	/* RLA */
-	{ 0x10, MODE_GROUP_D, 0, parse_Rl },	/* RL */
-	{ 0x08, MODE_GROUP_D, 0, parse_Rrc },	/* RRC */
-	{ 0x0F, 0, 0, parse_Implied },	/* RRCA */
-	{ 0x1F, 0, 0, parse_Implied },	/* RRA */
-	{ 0x18, MODE_GROUP_D, 0, parse_Rr },	/* RR */
-	{ 0xC7, MODE_IMM, 0, parse_Rst },	/* RST */
-	{ 0x18, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* SBC */
-	{ 0x37, 0, 0, parse_Implied },	/* SCF */
-	{ 0xC0, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* SET */
-	{ 0x20, MODE_GROUP_D, 0, parse_Rotate },	/* SLA */
-	{ 0x28, MODE_GROUP_D, 0, parse_Rotate },	/* SRA */
-	{ 0x38, MODE_GROUP_D, 0, parse_Rotate },	/* SRL */
-	{ 0x10, 0, 0, parse_Stop },	/* STOP */
-	{ 0x10, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* SUB */
-	{ 0x30, MODE_GROUP_D, 0, parse_Rotate },	/* SWAP */
-	{ 0x28, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* XOR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x32, MODE_REG_A | MODE_REG_HL_IND, MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDD */
+	{ CPUF_Z80, 0xED, 0xB8, 0, 0, parse_Implied },	/* LDDR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x22, MODE_REG_A | MODE_REG_HL_IND, MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDI */
+	{ CPUF_Z80, 0xED, 0xB0, 0, 0, parse_Implied },	/* LDIR */
+	{ CPUF_GB, 0x00, 0xE0, MODE_IMM_IND | MODE_REG_A, MODE_IMM_IND | MODE_REG_A, parse_Ldh },	/* LDH */
+	{ CPUF_Z80, 0xED, 0x44, 0, 0, parse_Implied },	/* NEG */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, 0, 0, parse_Implied },	/* NOP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x30, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* OR */
+	{ CPUF_Z80, 0xED, 0xBB, 0, 0, parse_Implied },	/* OTDR */
+	{ CPUF_Z80, 0xED, 0xB3, 0, 0, parse_Implied },	/* OTIR */
+	{ CPUF_Z80, 0xED, 0x41, MODE_IMM | MODE_REG_C_IND, MODE_GROUP_D, parse_In },	/* OUT */
+	{ CPUF_Z80, 0xED, 0xAB, 0, 0, parse_Implied },	/* OUTD */
+	{ CPUF_Z80, 0xED, 0xA3, 0, 0, parse_Implied },	/* OUTI */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC1, MODE_GROUP_TT, 0, parse_Pop },	/* POP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC5, MODE_GROUP_TT, 0, parse_Pop },	/* PUSH */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x80, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* RES */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_NONE | MODE_F, 0, parse_Ret },	/* RET */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xD9, 0, 0, parse_Reti },	/* RETI */
+	{ CPUF_Z80, 0xED, 0x45, 0, 0, parse_Reti },	/* RETN */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x10, MODE_GROUP_D, 0, parse_Rl },	/* RL */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x17, 0, 0, parse_Implied },	/* RLA */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_D, 0, parse_Rlc },	/* RLC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x07, 0, 0, parse_Implied },	/* RLCA */
+	{ CPUF_Z80, 0xED, 0x6F, 0, 0, parse_Implied },	/* RLD */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x18, MODE_GROUP_D, 0, parse_Rr },	/* RR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x1F, 0, 0, parse_Implied },	/* RRA */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x08, MODE_GROUP_D, 0, parse_Rrc },	/* RRC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x0F, 0, 0, parse_Implied },	/* RRCA */
+	{ CPUF_Z80, 0xED, 0x67, 0, 0, parse_Implied },	/* RRD */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC7, MODE_IMM, 0, parse_Rst },	/* RST */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x18, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* SBC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x37, 0, 0, parse_Implied },	/* SCF */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* SET */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_GROUP_D, 0, parse_Rotate },	/* SLA */
+	{ CPUF_Z80, 0x00, 0x30, MODE_GROUP_D, 0, parse_Rotate },	/* SLL */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_GROUP_D, 0, parse_Rotate },	/* SRA */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_GROUP_D, 0, parse_Rotate },	/* SRL */
+	{ CPUF_GB, 0x00, 0x10, 0, 0, parse_Stop },	/* STOP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x10, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* SUB */
+	{ CPUF_GB, 0x00, 0x30, MODE_GROUP_D, 0, parse_Rotate },	/* SWAP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* XOR */
 };
 
 

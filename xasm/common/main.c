@@ -63,8 +63,8 @@ void PrintUsage(void)
    		"    -e(l|b) Change endianness (CAUTION!)\n"
 		"    -f<f>   Output format, one of\n"
 		"                x - xobj (default)\n"
-		"                b - binary file\n",
-		"                v - verilog readmemb file\n",
+		"                b - binary file\n"
+		"                v - verilog readmemh file\n",
 		g_pConfiguration->pszExecutable, g_pConfiguration->pszBackendVersion, g_pConfiguration->pszExecutable);
 
 	if(g_pConfiguration->bSupportAmiga)

@@ -41,10 +41,11 @@ void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
 
 void locopt_Open(void)
 {
-	g_pOptions->pMachine->GameboyChar[0]='0';
-	g_pOptions->pMachine->GameboyChar[1]='1';
-	g_pOptions->pMachine->GameboyChar[2]='2';
-	g_pOptions->pMachine->GameboyChar[3]='3';
+	g_pOptions->pMachine->GameboyChar[0] = '0';
+	g_pOptions->pMachine->GameboyChar[1] = '1';
+	g_pOptions->pMachine->GameboyChar[2] = '2';
+	g_pOptions->pMachine->GameboyChar[3] = '3';
+	g_pOptions->pMachine->nCpu = CPUF_GB;
 }
 
 void locopt_Update(void)
@@ -73,12 +74,26 @@ bool_t locopt_Parse(char* s)
 				g_pOptions->pMachine->GameboyChar[3]=s[4];
 				return true;
 			}
-			else
+
+			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+		case 'c':
+			if(strlen(&s[1]) == 1)
 			{
-				prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-				return false;
+				switch(s[1])
+				{
+					case 'g':
+						g_pOptions->pMachine->nCpu = CPUF_GB;
+						return true;
+					case 'z':
+						g_pOptions->pMachine->nCpu = CPUF_Z80;
+						return true;
+					default:
+						break;
+				}
 			}
-			break;
+			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
 		default:
 			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
 			return false;
@@ -87,6 +102,9 @@ bool_t locopt_Parse(char* s)
 
 void locopt_PrintOptions(void)
 {
-	printf("\t-mg<ASCI>\tChange the four characters used for Gameboy graphics\n"
-			"\t\t\tconstants (default is 0123)\n");
+	printf("    -mg<ASCI> Change the four characters used for Gameboy graphics\n"
+		   "              constants (default is 0123)\n");
+	printf("    -mc<x>    Change CPU type:\n"
+		   "                  g - Gameboy\n"
+		   "                  z - Z80\n");
 }
