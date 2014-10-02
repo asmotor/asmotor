@@ -416,6 +416,18 @@ static bool_t parse_Jp(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 		sect_OutputConst8(0xE9);
 		return true;
 	}
+	else if(IS_Z80 && (pAddrMode1->nMode & MODE_REG_IX_IND) && pAddrMode2->nMode == 0)
+	{
+		sect_OutputConst8(0xDD);
+		sect_OutputConst8(0xE9);
+		return true;
+	}
+	else if(IS_Z80 && (pAddrMode1->nMode & MODE_REG_IY_IND) && pAddrMode2->nMode == 0)
+	{
+		sect_OutputConst8(0xFD);
+		sect_OutputConst8(0xE9);
+		return true;
+	}
 
 	return parse_Call(pOpcode, pAddrMode1, pAddrMode2);
 }
@@ -794,7 +806,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_Z80, 0xED, 0xBA, 0, 0, parse_Implied },							/* INDR */
 	{ CPUF_Z80, 0xED, 0xA2, 0, 0, parse_Implied },							/* INI */
 	{ CPUF_Z80, 0xED, 0xB2, 0, 0, parse_Implied },							/* INIR */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0xC3, MODE_CC_Z80 | MODE_IMM | MODE_REG_HL_IND, MODE_IMM | MODE_NONE, parse_Jp },	/* JP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC3, MODE_CC_Z80 | MODE_IMM | MODE_REG_HL_IND | MODE_REG_IX_IND | MODE_REG_IY_IND, MODE_IMM | MODE_NONE, parse_Jp },	/* JP */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_CC_Z80 | MODE_IMM, MODE_IMM | MODE_NONE, parse_Jr },	/* JR */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, 
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND,
