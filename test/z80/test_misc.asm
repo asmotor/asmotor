@@ -7,3 +7,7 @@ Start:
 	di
 	djnz	Start
 	ei
+	halt
+	im		0
+	im		1
+	im		2

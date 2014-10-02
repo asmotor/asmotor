@@ -169,7 +169,7 @@ static SAddrMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
 	{ MODE_REG_IY | MODE_GROUP_SSIY, NULL, -1, -1, -1, REGSSIY_IY, -1, -1, -1 },	// IY
 	{ MODE_REG_C_IND, NULL, -1, -1, -1, -1, -1, -1, -1 },	// (C)
 	{ MODE_REG_SP_IND, NULL, -1, -1, -1, -1, -1, -1, -1 },	// (SP)
-	{ MODE_REG_BC_IND | MODE_GROUP_RR, NULL, -1, -1, -1, -1, REGRR_BC_IND, -1, -1 },	// (BC)
+	{ MODE_REG_BC_IND | MODE_REG_C_IND | MODE_GROUP_RR, NULL, -1, -1, -1, -1, REGRR_BC_IND, -1, -1 },	// (BC)
 	{ MODE_REG_DE_IND | MODE_GROUP_RR, NULL, -1, -1, -1, -1, REGRR_DE_IND, -1, -1 },	// (DE)
 	{ MODE_REG_HL_INDDEC | MODE_GROUP_RR, NULL, -1, -1, -1, -1, REGRR_HL_INDDEC, -1, -1 },	// (HL-)
 	{ MODE_REG_HL_INDINC | MODE_GROUP_RR, NULL, -1, -1, -1, -1, REGRR_HL_INDINC, -1, -1 },	// (HL+)
@@ -209,6 +209,11 @@ static SExpression* parse_CreateExpression16U(SExpression* pExpr)
 static SExpression* parse_CreateExpression8SU(SExpression* pExpr)
 {
 	return parse_CreateExpressionNBit(pExpr, -128, 255, 8);
+}
+
+static SExpression* parse_CreateExpression8U(SExpression* pExpr)
+{
+	return parse_CreateExpressionNBit(pExpr, 0, 255, 8);
 }
 
 static SExpression* parse_CreateExpression8S(SExpression* pExpr)
@@ -711,13 +716,45 @@ static bool_t parse_Ex(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 
 static bool_t parse_Im(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	if(!expr_IsConstant(pAddrMode1->pExpr))
+	{
+		prj_Error(ERROR_EXPR_CONST);
+		return true;
+	}
+
+	sect_OutputConst8(0xED);
+	switch(pAddrMode1->pExpr->Value.Value)
+	{
+		case 0:
+			sect_OutputConst8(0x46);
+			return true;
+		case 1:
+			sect_OutputConst8(0x56);
+			return true;
+		case 2:
+			sect_OutputConst8(0x5E);
+			return true;
+		default:
+			prj_Error(ERROR_OPERAND_RANGE);
+			return true;
+	}
+
 	prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
 	return true;
 }
 
 static bool_t parse_In(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
+	if(pAddrMode2->nMode & MODE_REG_C_IND)
+	{
+		sect_OutputConst8(0xED);
+		sect_OutputConst8(0x40 | (pAddrMode1->eRegD << 3));
+		return true;
+	}
+
+	sect_OutputConst8(0xDB);
+	sect_OutputExpr8(parse_CreateExpression8U(pAddrMode2->pExpr));
+
 	return true;
 }
 
@@ -751,7 +788,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_Z80, 0x00, 0xD9, 0, 0, parse_Implied },	/* EXX */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x76, 0, 0, parse_Implied },							/* HALT */
 	{ CPUF_Z80, 0xED, 0x46, MODE_IMM, 0, parse_Im },	/* IM */
-	{ CPUF_Z80, 0xED, 0x40, MODE_GROUP_D, MODE_IMM | MODE_REG_C_IND, parse_In },	/* IN */
+	{ CPUF_Z80, 0xED, 0x40, MODE_GROUP_D, MODE_IMM_IND | MODE_REG_C_IND, parse_In },	/* IN */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* INC */
 	{ CPUF_Z80, 0xED, 0xAA, 0, 0, parse_Implied },							/* IND */
 	{ CPUF_Z80, 0xED, 0xBA, 0, 0, parse_Implied },							/* INDR */
