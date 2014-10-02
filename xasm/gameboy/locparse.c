@@ -109,7 +109,7 @@ typedef struct _AddrMode
 
 typedef struct _Opcode
 {
-	unsigned char nCPU;
+	unsigned char nCpu;
 	unsigned char nPrefix;
 	unsigned char nOpcode;
 	int nAddrMode1;
@@ -184,7 +184,7 @@ static SAddrMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
 	{ MODE_CC_Z80, NULL, -1, -1, -1, -1, -1, -1, CC_M }	// M
 };
 
-#define MODE_GROUP_EX (MODE_REG_SP_IND | MODE_REG_HL | MODE_REG_AF | MODE_REG_AF_SEC | MODE_REG_DE)
+#define MODE_GROUP_EX (MODE_REG_SP_IND | MODE_REG_HL | MODE_REG_AF | MODE_REG_AF_SEC | MODE_REG_DE | MODE_REG_IX | MODE_REG_IY)
 #define MODE_GROUP_IX_IND_DISP (MODE_REG_IX_IND | MODE_REG_IX_IND_DISP)
 #define MODE_GROUP_IY_IND_DISP (MODE_REG_IY_IND | MODE_REG_IY_IND_DISP)
 #define MODE_GROUP_I_IND_DISP (MODE_GROUP_IX_IND_DISP | MODE_GROUP_IY_IND_DISP)
@@ -668,9 +668,44 @@ static bool_t parse_Djnz(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAd
 	return true;
 }
 
+#define EX_MATCH_MODE1(o1,o2) ((pAddrMode1->nMode & (o1)) && (pAddrMode2->nMode & (o2)))
+#define EX_MATCH_MODE(o1,o2) (EX_MATCH_MODE1(o1,o2) || EX_MATCH_MODE1(o2,o1))
+
 static bool_t parse_Ex(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
+	if(!IS_Z80)
+	{
+		prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
+		return true;
+	}
+
+	if(EX_MATCH_MODE(MODE_REG_SP_IND, MODE_REG_HL))
+	{
+		sect_OutputConst8(0xE3);
+	}
+	else if(EX_MATCH_MODE(MODE_REG_SP_IND, MODE_REG_IX))
+	{
+		sect_OutputConst8(0xDD);
+		sect_OutputConst8(0xE3);
+	}
+	else if(EX_MATCH_MODE(MODE_REG_SP_IND, MODE_REG_IY))
+	{
+		sect_OutputConst8(0xFD);
+		sect_OutputConst8(0xE3);
+	}
+	else if(EX_MATCH_MODE(MODE_REG_AF, MODE_REG_AF_SEC))
+	{
+		sect_OutputConst8(0x08);
+	}
+	else if(EX_MATCH_MODE(MODE_REG_DE, MODE_REG_HL))
+	{
+		sect_OutputConst8(0xEB);
+	}
+	else
+	{
+		prj_Error(ERROR_SECOND_OPERAND);
+	}
+
 	return true;
 }
 
@@ -922,7 +957,12 @@ bool_t parse_TargetSpecific(void)
 			if((addrMode2.nMode & pOpcode->nAddrMode2)
 			|| (addrMode2.nMode == 0 && ((pOpcode->nAddrMode2 == 0) || (pOpcode->nAddrMode2 & MODE_NONE))))
 			{
-				return pOpcode->pParser(pOpcode, &addrMode1, &addrMode2);
+				if(g_pOptions->pMachine->nCpu & pOpcode->nCpu)
+				{
+					return pOpcode->pParser(pOpcode, &addrMode1, &addrMode2);
+				}
+				else
+					prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
 			}
 			else
 				prj_Error(ERROR_SECOND_OPERAND);
