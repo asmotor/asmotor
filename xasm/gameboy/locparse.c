@@ -789,7 +789,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x76, 0, 0, parse_Implied },							/* HALT */
 	{ CPUF_Z80, 0xED, 0x46, MODE_IMM, 0, parse_Im },	/* IM */
 	{ CPUF_Z80, 0xED, 0x40, MODE_GROUP_D, MODE_IMM_IND | MODE_REG_C_IND, parse_In },	/* IN */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_SS | MODE_GROUP_D, 0, parse_Dec },			/* INC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP | MODE_REG_IX | MODE_REG_IY, 0, parse_Dec },			/* INC */
 	{ CPUF_Z80, 0xED, 0xAA, 0, 0, parse_Implied },							/* IND */
 	{ CPUF_Z80, 0xED, 0xBA, 0, 0, parse_Implied },							/* INDR */
 	{ CPUF_Z80, 0xED, 0xA2, 0, 0, parse_Implied },							/* INI */
