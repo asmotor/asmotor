@@ -239,7 +239,7 @@ static bool_t parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 				sect_OutputConst8((uint8_t)(0x86 | pOpcode->nOpcode));
 
 				if(pAddrMode2->pExpr != NULL)
-					sect_OutputExpr8(parse_CreateExpression8SU(pAddrMode2->pExpr));
+					sect_OutputExpr8(parse_CreateExpression8S(pAddrMode2->pExpr));
 				else
 					sect_OutputConst8(0);
 
@@ -333,10 +333,31 @@ static bool_t parse_Add(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Bit(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	sect_OutputConst8(0xCB);
+	int nOpcode = pOpcode->nOpcode | pAddrMode2->eRegD;
+
+	if(pAddrMode2->nMode & MODE_GROUP_I_IND_DISP)
+	{
+		if(IS_Z80)
+		{
+			sect_OutputConst8(pAddrMode2->nMode & MODE_GROUP_IX_IND_DISP ? 0xDD : 0xFD);
+			sect_OutputConst8(0xCB);
+			sect_OutputExpr8(parse_CreateExpression8S(pAddrMode2->pExpr));
+			nOpcode = pOpcode->nOpcode | 6;
+		}
+		else
+		{
+			prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
+			return true;
+		}
+	}
+	else
+	{
+		sect_OutputConst8(0xCB);
+	}	
+
 	sect_OutputExpr8(
 		expr_Or(
-			expr_Const(pOpcode->nOpcode | pAddrMode2->eRegD),
+			expr_Const(nOpcode),
 			expr_Shl(
 			parse_CreateExpression3U(pAddrMode1->pExpr),
 				expr_Const(3))
@@ -634,8 +655,8 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 {
 	{ CPUF_GB | CPUF_Z80, 0xED, 0x08, MODE_REG_A | MODE_REG_HL, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_SS, parse_Adc },	/* ADC */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_REG_A | MODE_REG_HL | MODE_REG_SP | MODE_REG_IX | MODE_REG_IY, MODE_GROUP_D | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_SSIX | MODE_GROUP_SSIY | MODE_GROUP_I_IND_DISP, parse_Add },	/* ADD */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* AND */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x40, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* BIT */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, parse_Alu },	/* AND */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x40, MODE_IMM, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, parse_Bit },				/* BIT */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xCD, MODE_CC | MODE_IMM, MODE_IMM | MODE_NONE, parse_Call },	/* CALL */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x3F, 0, 0, parse_Implied },							/* CCF */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* CP */
