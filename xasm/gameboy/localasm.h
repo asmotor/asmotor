@@ -115,23 +115,6 @@ typedef	enum
 	T_CC_PO,	// Z80 only
 	T_CC_Z,
 
-	T_MODE_AF,
-	T_MODE_AF_ALT,
-	T_MODE_SP_IND,
-	T_MODE_C_IND,
-
-	T_MODE_BC_IND,
-	T_MODE_DE_IND,
-	T_MODE_HL_INDINC,	// GB only
-	T_MODE_HL_INDDEC,	// GB only
-
-	T_MODE_BC,
-	T_MODE_DE,
-	T_MODE_HL,
-	T_MODE_SP,
-	T_MODE_IX,	// Z80 only
-	T_MODE_IY,	// Z80 only
-
 	T_MODE_B,
 	T_MODE_C,
 	T_MODE_D,
@@ -140,6 +123,26 @@ typedef	enum
 	T_MODE_L,
 	T_MODE_HL_IND,
 	T_MODE_A,
+
+	T_MODE_BC,
+	T_MODE_DE,
+	T_MODE_HL,
+	T_MODE_SP,
+	T_MODE_IX,	// Z80 only
+	T_MODE_IY,	// Z80 only
+
+	T_MODE_C_IND,
+	T_MODE_SP_IND,
+	T_MODE_BC_IND,
+	T_MODE_DE_IND,
+
+	T_MODE_HL_INDINC,	// GB only
+	T_MODE_HL_INDDEC,	// GB only
+
+	T_MODE_AF,
+	T_MODE_AF_ALT,
+
+
 }	eTargetToken;
 
 #endif	//LOCALASM_H
