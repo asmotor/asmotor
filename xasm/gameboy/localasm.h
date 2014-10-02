@@ -106,15 +106,6 @@ typedef	enum
 	T_Z80_SWAP,	// GB only
 	T_Z80_XOR,
 
-//      "c"             ,       T_MODE_C
-	T_CC_M,		// Z80 only
-	T_CC_NC,
-	T_CC_NZ,
-	T_CC_P,		// Z80 only
-	T_CC_PE,	// Z80 only
-	T_CC_PO,	// Z80 only
-	T_CC_Z,
-
 	T_MODE_B,
 	T_MODE_C,
 	T_MODE_D,
@@ -141,6 +132,15 @@ typedef	enum
 
 	T_MODE_AF,
 	T_MODE_AF_ALT,
+
+	T_CC_NZ,
+	T_CC_Z,
+	T_CC_NC,
+	//T_CC_C,		// handled by C register token
+	T_CC_PO,	// Z80 only
+	T_CC_PE,	// Z80 only
+	T_CC_P,		// Z80 only
+	T_CC_M,		// Z80 only
 
 
 }	eTargetToken;

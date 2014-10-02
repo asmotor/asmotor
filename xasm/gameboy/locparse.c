@@ -84,7 +84,11 @@ typedef enum
 	CC_NZ = 0,
 	CC_Z,
 	CC_NC,
-	CC_C
+	CC_C,
+	CC_PO,	// Z80 only
+	CC_PE,	// Z80 only
+	CC_P,	// Z80 only
+	CC_M,	// Z80 only
 } EModeF;
 
 
@@ -144,12 +148,13 @@ extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
 #define MODE_GROUP_TT			0x04000000
 #define MODE_IMM				0x08000000
 #define MODE_IMM_IND			0x10000000
-#define MODE_CC					0x20000000
+#define MODE_CC_GB				0x20000000
+#define MODE_CC_Z80				0x40000000
 
-static SAddrMode s_AddressModes[T_MODE_AF_ALT - T_MODE_B + 1] =
+static SAddrMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
 {
 	{ MODE_GROUP_D, NULL, REGD_B, -1, -1, -1, -1, -1, -1 },	// B
-	{ MODE_GROUP_D | MODE_CC, NULL, REGD_C, -1, -1, -1, -1, -1, CC_C },	// C
+	{ MODE_GROUP_D | MODE_CC_GB | MODE_CC_Z80, NULL, REGD_C, -1, -1, -1, -1, -1, CC_C },	// C
 	{ MODE_GROUP_D, NULL, REGD_D, -1, -1, -1, -1, -1, -1 },	// D
 	{ MODE_GROUP_D, NULL, REGD_E, -1, -1, -1, -1, -1, -1 },	// E
 	{ MODE_GROUP_D, NULL, REGD_H, -1, -1, -1, -1, -1, -1 },	// H
@@ -169,7 +174,14 @@ static SAddrMode s_AddressModes[T_MODE_AF_ALT - T_MODE_B + 1] =
 	{ MODE_REG_HL_INDDEC | MODE_GROUP_RR, NULL, -1, -1, -1, -1, REGRR_HL_INDDEC, -1, -1 },	// (HL-)
 	{ MODE_REG_HL_INDINC | MODE_GROUP_RR, NULL, -1, -1, -1, -1, REGRR_HL_INDINC, -1, -1 },	// (HL+)
 	{ MODE_REG_AF | MODE_GROUP_TT, NULL, -1, -1, -1, -1, -1, REGTT_AF, -1 },	// AF
-	{ MODE_REG_AF_SEC, NULL, -1, -1, -1, -1, -1, -1, -1 }	// AF'
+	{ MODE_REG_AF_SEC, NULL, -1, -1, -1, -1, -1, -1, -1 },	// AF'
+	{ MODE_CC_GB | MODE_CC_Z80, NULL, -1, -1, -1, -1, -1, -1, CC_NZ },	// NZ
+	{ MODE_CC_GB | MODE_CC_Z80, NULL, -1, -1, -1, -1, -1, -1, CC_Z },	// Z
+	{ MODE_CC_GB | MODE_CC_Z80, NULL, -1, -1, -1, -1, -1, -1, CC_NC },	// NC
+	{ MODE_CC_Z80, NULL, -1, -1, -1, -1, -1, -1, CC_PO },	// PO
+	{ MODE_CC_Z80, NULL, -1, -1, -1, -1, -1, -1, CC_PE },	// PO
+	{ MODE_CC_Z80, NULL, -1, -1, -1, -1, -1, -1, CC_P },	// P
+	{ MODE_CC_Z80, NULL, -1, -1, -1, -1, -1, -1, CC_M }	// M
 };
 
 #define MODE_GROUP_EX (MODE_REG_SP_IND | MODE_REG_HL | MODE_REG_AF | MODE_REG_AF_SEC | MODE_REG_DE)
@@ -374,13 +386,20 @@ static bool_t parse_Call(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAd
 		sect_OutputConst8(pOpcode->nOpcode);
 		sect_OutputExpr16(parse_CreateExpression16U(pAddrMode1->pExpr));
 	}
-	else if((pAddrMode1->nMode & MODE_CC) && (pAddrMode2->nMode & MODE_IMM))
+	else if((pAddrMode1->nMode & MODE_CC_Z80) && (pAddrMode2->nMode & MODE_IMM))
 	{
+		if(IS_GB && !(pAddrMode1->nMode & MODE_CC_GB))
+		{
+			prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
+			return true;
+		}
 		sect_OutputConst8((uint8_t)((pOpcode->nOpcode & ~0x19) | (pAddrMode1->eModeF << 3)));
 		sect_OutputExpr16(parse_CreateExpression16U(pAddrMode2->pExpr));
 	}
 	else
+	{
 		prj_Error(ERROR_OPERAND);
+	}
 
 	return true;
 }
@@ -418,7 +437,7 @@ static bool_t parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 		sect_OutputConst8(0x18);
 		sect_OutputExpr8(parse_CreateExpressionPCRel(pAddrMode1->pExpr));
 	}
-	else if((pAddrMode1->nMode & MODE_CC) && (pAddrMode2->nMode & MODE_IMM))
+	else if((pAddrMode1->nMode & MODE_CC_GB) && (pAddrMode2->nMode & MODE_IMM))
 	{
 		sect_OutputConst8((uint8_t)(0x20 | (pAddrMode1->eModeF << 3)));
 		sect_OutputExpr8(parse_CreateExpressionPCRel(pAddrMode2->pExpr));
@@ -589,7 +608,7 @@ static bool_t parse_Rlc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Ret(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	if(pAddrMode1->nMode & MODE_CC)
+	if(pAddrMode1->nMode & MODE_CC_GB)
 		sect_OutputConst8((uint8_t)(0xC0 | (pAddrMode1->eModeF << 3)));
 	else
 		sect_OutputConst8(0xC9);
@@ -657,7 +676,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_REG_A | MODE_REG_HL | MODE_REG_SP | MODE_REG_IX | MODE_REG_IY, MODE_GROUP_D | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_SSIX | MODE_GROUP_SSIY | MODE_GROUP_I_IND_DISP, parse_Add },	/* ADD */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, parse_Alu },	/* AND */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x40, MODE_IMM, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, parse_Bit },				/* BIT */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0xCD, MODE_CC | MODE_IMM, MODE_IMM | MODE_NONE, parse_Call },	/* CALL */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xCD, MODE_CC_Z80 | MODE_IMM, MODE_IMM | MODE_NONE, parse_Call },	/* CALL */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x3F, 0, 0, parse_Implied },							/* CCF */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_REG_A, MODE_GROUP_D | MODE_IMM, parse_Alu },	/* CP */
 	{ CPUF_Z80, 0xED, 0xA9, 0, 0, parse_Implied },	/* CPD */
@@ -680,8 +699,8 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_Z80, 0xED, 0xBA, 0, 0, parse_Implied },							/* INDR */
 	{ CPUF_Z80, 0xED, 0xA2, 0, 0, parse_Implied },							/* INI */
 	{ CPUF_Z80, 0xED, 0xB2, 0, 0, parse_Implied },							/* INIR */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0xC3, MODE_CC | MODE_IMM | MODE_REG_HL_IND, MODE_IMM | MODE_NONE, parse_Jp },	/* JP */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_CC | MODE_IMM, MODE_IMM | MODE_NONE, parse_Jr },	/* JR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC3, MODE_CC_Z80 | MODE_IMM | MODE_REG_HL_IND, MODE_IMM | MODE_NONE, parse_Jp },	/* JP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_CC_Z80 | MODE_IMM, MODE_IMM | MODE_NONE, parse_Jr },	/* JR */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, 
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND,
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_REG_SP_IND_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM, parse_Ld },	/* LD */
@@ -701,7 +720,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC1, MODE_GROUP_TT, 0, parse_Pop },	/* POP */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC5, MODE_GROUP_TT, 0, parse_Pop },	/* PUSH */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x80, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* RES */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_NONE | MODE_CC, 0, parse_Ret },	/* RET */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_NONE | MODE_CC_Z80, 0, parse_Ret },	/* RET */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xD9, 0, 0, parse_Reti },	/* RETI */
 	{ CPUF_Z80, 0xED, 0x45, 0, 0, parse_Reti },	/* RETN */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x10, MODE_GROUP_D, 0, parse_Rl },	/* RL */
@@ -732,19 +751,9 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 {
 	if(g_CurrentToken.ID.TargetToken >= T_MODE_B
-	&& g_CurrentToken.ID.TargetToken <= T_MODE_AF_ALT)
+	&& g_CurrentToken.ID.TargetToken <= T_CC_M)
 	{
 		*pAddrMode = s_AddressModes[g_CurrentToken.ID.TargetToken - T_MODE_B];
-		parse_GetToken();
-		return true;
-	}
-
-	if(g_CurrentToken.ID.TargetToken >= T_CC_NZ
-	&& g_CurrentToken.ID.TargetToken <= T_CC_NC)
-	{
-		pAddrMode->nMode |= MODE_CC;
-		pAddrMode->eModeF = g_CurrentToken.ID.TargetToken - T_CC_NZ + CC_NZ;
-
 		parse_GetToken();
 		return true;
 	}
