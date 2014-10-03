@@ -935,13 +935,11 @@ uint32_t	lex_GetNextToken(void)
 		}
 		case LEX_STATE_MACROARGS:
 		{
-			bool_t  linestart = g_pCurrentBuffer->bAtLineStart;
 			char* newbuf;
 			uint32_t index;
 
 			while(isspace((unsigned char)g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n')
 			{
-				linestart = 0;
 				g_pCurrentBuffer->pBuffer += 1;
 			}
 

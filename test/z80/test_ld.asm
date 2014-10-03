@@ -33,7 +33,6 @@ Data:	EQU	$1234
 	ld		a,i     
 	ld		a,$42     
 	ld		a,r     
-	ENDC
 
 	ld		b,(hl)  
 	ld		b,(ix+1)
@@ -43,19 +42,24 @@ Data:	EQU	$1234
 	ld		bc,(Data)
 	ld		bc,Data 
 
-	END
 	ld		c,(hl)  
 	ld		c,(ix+1)
 	ld		c,(iy+2)
-	ld		c,r     
-	ld		c,n     
+	ld		c,l 
+	ld		c,$87     
+
+	ENDC
+
 	ld		d,(hl)  
 	ld		d,(ix+1)
 	ld		d,(iy+2)
-	ld		d,r     
-	ld		d,n     
+	ld		d,l
+	ld		d,$87     
 	ld		de,(Data) 
 	ld		de,Data
+
+	END
+
 	ld		e,(hl)  
 	ld		e,(ix+1)
 	ld		e,(iy+2)
