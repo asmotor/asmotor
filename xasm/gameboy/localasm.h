@@ -133,6 +133,9 @@ typedef	enum
 	T_MODE_AF,
 	T_MODE_AF_ALT,
 
+	T_MODE_I,
+	T_MODE_R,
+
 	T_CC_NZ,
 	T_CC_Z,
 	T_CC_NC,
