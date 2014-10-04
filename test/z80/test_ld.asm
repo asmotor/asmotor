@@ -2,7 +2,6 @@
 
 Data:	EQU	$1234
 
-	IF	0
 	ld		(bc),a  
 	ld		(de),a  
 	ld		(hl),b
@@ -48,8 +47,6 @@ Data:	EQU	$1234
 	ld		c,l 
 	ld		c,$87     
 
-	ENDC
-
 	ld		d,(hl)  
 	ld		d,(ix+1)
 	ld		d,(iy+2)
@@ -58,30 +55,32 @@ Data:	EQU	$1234
 	ld		de,(Data) 
 	ld		de,Data
 
-	END
-
 	ld		e,(hl)  
 	ld		e,(ix+1)
 	ld		e,(iy+2)
-	ld		e,r     
+	ld		e,l
 	ld		e,$42
+
 	ld		h,(hl)  
 	ld		h,(ix+1)
 	ld		h,(iy+2)
-	ld		h,r     
+	ld		h,l
 	ld		h,$87
 	ld		hl,(Data) 
 	ld		hl,Data
+
 	ld		i,a     
 	ld		ix,(Data) 
 	ld		ix,Data
 	ld		iy,(Data) 
 	ld		iy,Data
+
 	ld		l,(hl)  
 	ld		l,(ix+1)
 	ld		l,(iy+2)
-	ld		l,r     
-	ld		l,n     
+	ld		l,b
+	ld		l,$42     
+
 	ld		r,a     
 	ld		sp,(Data) 
 	ld		sp,hl   

@@ -544,17 +544,17 @@ static bool_t parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 			sect_OutputExpr16(parse_CreateExpression16U(pAddrMode1->pExpr));
 		}
 	}
-	else if(IS_GB && (pAddrMode1->nMode & MODE_GROUP_RR) && (pAddrMode2->nMode & MODE_REG_A))
+	else if((pAddrMode1->nMode & MODE_REG_SP) && (pAddrMode2->nMode & MODE_REG_HL))
+	{
+		sect_OutputConst8(0xF9);
+	}
+	else if((IS_GB || pAddrMode1->eRegRR <= REGRR_DE_IND) && (pAddrMode1->nMode & MODE_GROUP_RR) && (pAddrMode2->nMode & MODE_REG_A))
 	{
 		sect_OutputConst8((uint8_t)(0x02 | (pAddrMode1->eRegRR << 4)));
 	}
 	else if(IS_GB && (pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_REG_C_IND))
 	{
 		sect_OutputConst8(0xF2);
-	}
-	else if(IS_GB && (pAddrMode1->nMode & MODE_REG_SP) && (pAddrMode2->nMode & MODE_REG_HL))
-	{
-		sect_OutputConst8(0xF9);
 	}
 	else if(IS_GB && (pAddrMode1->nMode & MODE_REG_HL) && (pAddrMode2->nMode & MODE_REG_SP_IND_DISP))
 	{
@@ -597,11 +597,28 @@ static bool_t parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 		}
 		sect_OutputExpr16(parse_CreateExpression16U(pAddrMode1->pExpr));
 	}
+	else if(IS_Z80 && (pAddrMode1->nMode & MODE_REG_SP) && (pAddrMode2->nMode & (MODE_REG_IX | MODE_REG_IY)))
+	{
+		sect_OutputConst8(pAddrMode2->nMode & MODE_REG_IX ? 0xDD : 0xFD);
+		sect_OutputConst8(0xF9);
+	}
 	else if(IS_Z80 && (pAddrMode1->nMode & MODE_IMM_IND) && (pAddrMode2->nMode & (MODE_REG_IX | MODE_REG_IY)))
 	{
 		sect_OutputConst8(pAddrMode2->nMode & MODE_REG_IX ? 0xDD : 0xFD);
 		sect_OutputConst8(0x22);
 		sect_OutputExpr16(parse_CreateExpression16U(pAddrMode1->pExpr));
+	}
+	else if(IS_Z80 && (pAddrMode1->nMode & (MODE_REG_IX | MODE_REG_IY)) && (pAddrMode2->nMode & MODE_IMM_IND))
+	{
+		sect_OutputConst8(pAddrMode1->nMode & MODE_REG_IX ? 0xDD : 0xFD);
+		sect_OutputConst8(0x2A);
+		sect_OutputExpr16(parse_CreateExpression16U(pAddrMode2->pExpr));
+	}
+	else if(IS_Z80 && (pAddrMode1->nMode & (MODE_REG_IX | MODE_REG_IY)) && (pAddrMode2->nMode & MODE_IMM))
+	{
+		sect_OutputConst8(pAddrMode1->nMode & MODE_REG_IX ? 0xDD : 0xFD);
+		sect_OutputConst8(0x21);
+		sect_OutputExpr16(parse_CreateExpression16U(pAddrMode2->pExpr));
 	}
 	else if(IS_Z80 && (pAddrMode1->nMode & MODE_GROUP_I_IND_DISP) && (pAddrMode2->nMode & MODE_GROUP_D))
 	{
@@ -626,6 +643,11 @@ static bool_t parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 	{
 		sect_OutputConst8(0xED);
 		sect_OutputConst8(0x57 | (pAddrMode2->eRegCtrl << 3));
+	}
+	else if(IS_Z80 && (pAddrMode1->nMode & MODE_REG_CONTROL) && (pAddrMode2->nMode & MODE_REG_A))
+	{
+		sect_OutputConst8(0xED);
+		sect_OutputConst8(0x47 | (pAddrMode1->eRegCtrl << 3));
 	}
 	else if(IS_Z80 && (pAddrMode1->nMode & MODE_GROUP_SS) && (pAddrMode2->nMode & MODE_IMM_IND))
 	{
@@ -888,7 +910,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC3, MODE_CC_Z80 | MODE_IMM | MODE_REG_HL_IND | MODE_REG_IX_IND | MODE_REG_IY_IND, MODE_IMM | MODE_NONE, parse_Jp },	/* JP */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_CC_GB | MODE_IMM, MODE_IMM | MODE_NONE, parse_Jr },	/* JR */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, 
-		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND | MODE_GROUP_I_IND_DISP,
+		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_REG_IX | MODE_REG_IY | MODE_REG_CONTROL | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND | MODE_GROUP_I_IND_DISP,
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_REG_IX | MODE_REG_IY | MODE_REG_CONTROL | MODE_REG_SP_IND_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_I_IND_DISP, parse_Ld },	/* LD */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x32, MODE_REG_A | MODE_REG_HL_IND, MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDD */
 	{ CPUF_Z80, 0xED, 0xB8, 0, 0, parse_Implied },	/* LDDR */
