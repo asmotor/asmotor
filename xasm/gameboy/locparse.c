@@ -862,19 +862,29 @@ static bool_t parse_Im(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 	return true;
 }
 
-static bool_t parse_In(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool_t parse_InOut(SOpcode* pOpcode, SAddrMode* pAddrMode, ERegD eReg)
 {
-	if(pAddrMode2->nMode & MODE_REG_C_IND)
+	if(pAddrMode->nMode & MODE_REG_C_IND)
 	{
-		sect_OutputConst8(0xED);
-		sect_OutputConst8(0x40 | (pAddrMode1->eRegD << 3));
+		sect_OutputConst8(pOpcode->nPrefix);
+		sect_OutputConst8(pOpcode->nOpcode | (eReg << 3));
 		return true;
 	}
 
-	sect_OutputConst8(0xDB);
-	sect_OutputExpr8(parse_CreateExpression8U(pAddrMode2->pExpr));
+	sect_OutputConst8(0xDB ^ ((pOpcode->nOpcode & 1) << 3));
+	sect_OutputExpr8(parse_CreateExpression8U(pAddrMode->pExpr));
 
 	return true;
+}
+
+static bool_t parse_In(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+{
+	return parse_InOut(pOpcode, pAddrMode2, pAddrMode1->eRegD);
+}
+
+static bool_t parse_Out(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+{
+	return parse_InOut(pOpcode, pAddrMode1, pAddrMode2->eRegD);
 }
 
 static bool_t parse_Reti(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
@@ -928,7 +938,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x30, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, parse_Alu },	/* OR */
 	{ CPUF_Z80, 0xED, 0xBB, 0, 0, parse_Implied },	/* OTDR */
 	{ CPUF_Z80, 0xED, 0xB3, 0, 0, parse_Implied },	/* OTIR */
-	{ CPUF_Z80, 0xED, 0x41, MODE_IMM | MODE_REG_C_IND, MODE_GROUP_D, parse_In },	/* OUT */
+	{ CPUF_Z80, 0xED, 0x41, MODE_IMM_IND | MODE_REG_C_IND, MODE_GROUP_D, parse_Out },	/* OUT */
 	{ CPUF_Z80, 0xED, 0xAB, 0, 0, parse_Implied },	/* OUTD */
 	{ CPUF_Z80, 0xED, 0xA3, 0, 0, parse_Implied },	/* OUTI */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC1, MODE_GROUP_TT, 0, parse_Pop },	/* POP */

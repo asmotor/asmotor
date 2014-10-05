@@ -21,5 +21,3 @@ Start:
 	ldir
 	neg
 	nop
-	otdr
-	otir
