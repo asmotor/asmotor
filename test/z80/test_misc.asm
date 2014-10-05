@@ -15,3 +15,7 @@ Start:
 	indr
 	ini
 	inir
+	ldd
+	lddr
+	ldi
+	ldir
