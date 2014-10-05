@@ -17,3 +17,4 @@ Start:
 	ldir
 	neg
 	nop
+	scf
