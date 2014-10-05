@@ -173,8 +173,8 @@ static SAddrMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
 	{ MODE_REG_DE | MODE_GROUP_SS | MODE_GROUP_SSIX | MODE_GROUP_SSIY | MODE_GROUP_TT, NULL, -1, REGSS_DE, REGSSIX_DE, REGSSIY_DE, -1, REGTT_DE, -1, -1 },	// DE
 	{ MODE_REG_HL | MODE_GROUP_SS | MODE_GROUP_TT, NULL, -1, REGSS_HL, -1, -1, -1, REGTT_HL, -1, -1 },	// HL
 	{ MODE_REG_SP | MODE_GROUP_SS | MODE_GROUP_SSIX | MODE_GROUP_SSIY, NULL, -1, REGSS_SP, REGSSIX_SP, REGSSIY_SP, -1, -1, -1, -1 },	// SP
-	{ MODE_REG_IX | MODE_GROUP_SSIX, NULL, -1, -1, REGSSIX_IX, -1, -1, -1, -1, -1 },	// IX
-	{ MODE_REG_IY | MODE_GROUP_SSIY, NULL, -1, -1, -1, REGSSIY_IY, -1, -1, -1, -1 },	// IY
+	{ MODE_REG_IX | MODE_GROUP_SSIX, NULL, -1, -1, REGSSIX_IX, -1, -1, REGTT_HL, -1, -1 },	// IX
+	{ MODE_REG_IY | MODE_GROUP_SSIY, NULL, -1, -1, -1, REGSSIY_IY, -1, REGTT_HL, -1, -1 },	// IY
 	{ MODE_REG_C_IND, NULL, -1, -1, -1, -1, -1, -1, -1, -1 },	// (C)
 	{ MODE_REG_SP_IND, NULL, -1, -1, -1, -1, -1, -1, -1, -1 },	// (SP)
 	{ MODE_REG_BC_IND | MODE_REG_C_IND | MODE_GROUP_RR, NULL, -1, -1, -1, -1, REGRR_BC_IND, -1, -1, -1 },	// (BC)
@@ -713,6 +713,9 @@ static bool_t parse_Ldh(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Pop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	if(pAddrMode1->nMode & (MODE_REG_IX | MODE_REG_IY))
+		sect_OutputConst8(pAddrMode1->nMode & MODE_REG_IX ? 0xDD : 0xFD);
+
 	sect_OutputConst8((uint8_t)(pOpcode->nOpcode | (pAddrMode1->eRegTT << 4)));
 	return true;
 }
@@ -941,8 +944,8 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_Z80, 0xED, 0x41, MODE_IMM_IND | MODE_REG_C_IND, MODE_GROUP_D, parse_Out },	/* OUT */
 	{ CPUF_Z80, 0xED, 0xAB, 0, 0, parse_Implied },	/* OUTD */
 	{ CPUF_Z80, 0xED, 0xA3, 0, 0, parse_Implied },	/* OUTI */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0xC1, MODE_GROUP_TT, 0, parse_Pop },	/* POP */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0xC5, MODE_GROUP_TT, 0, parse_Pop },	/* PUSH */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC1, MODE_GROUP_TT | MODE_REG_IX | MODE_REG_IY, 0, parse_Pop },	/* POP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC5, MODE_GROUP_TT | MODE_REG_IX | MODE_REG_IY, 0, parse_Pop },	/* PUSH */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x80, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* RES */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_NONE | MODE_CC_Z80, 0, parse_Ret },	/* RET */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xD9, 0, 0, parse_Reti },	/* RETI */

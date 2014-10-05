@@ -11,10 +11,6 @@ Start:
 	im		0
 	im		1
 	im		2
-	ind
-	indr
-	ini
-	inir
 	ldd
 	lddr
 	ldi
