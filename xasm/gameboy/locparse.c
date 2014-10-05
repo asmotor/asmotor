@@ -723,7 +723,15 @@ static bool_t parse_Pop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Rotate(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	sect_OutputConst8(0xCB);
+	if(pAddrMode1->nMode & MODE_GROUP_I_IND_DISP)
+	{
+		sect_OutputConst8(pAddrMode1->nMode & MODE_REG_IX_IND_DISP ? 0xDD : 0xFD);
+		sect_OutputConst8(0xCB);
+		sect_OutputExpr8(parse_CreateExpression8S(pAddrMode1->pExpr));
+	}
+	else
+		sect_OutputConst8(0xCB);
+
 	sect_OutputConst8((uint8_t)(pOpcode->nOpcode | pAddrMode1->eRegD));
 	return true;
 }
@@ -955,14 +963,14 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_NONE | MODE_CC_Z80, 0, parse_Ret },	/* RET */
 	{ CPUF_GB | CPUF_Z80, 0xED, 0x4D, 0, 0, parse_Reti },	/* RETI */
 	{ CPUF_Z80, 0xED, 0x45, 0, 0, parse_Implied },	/* RETN */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x10, MODE_GROUP_D, 0, parse_Rl },	/* RL */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x10, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, parse_Rl },	/* RL */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x17, 0, 0, parse_Implied },	/* RLA */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_D, 0, parse_Rlc },	/* RLC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, parse_Rlc },	/* RLC */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x07, 0, 0, parse_Implied },	/* RLCA */
 	{ CPUF_Z80, 0xED, 0x6F, 0, 0, parse_Implied },	/* RLD */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x18, MODE_GROUP_D, 0, parse_Rr },	/* RR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x18, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, parse_Rr },	/* RR */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x1F, 0, 0, parse_Implied },	/* RRA */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x08, MODE_GROUP_D, 0, parse_Rrc },	/* RRC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x08, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, parse_Rrc },	/* RRC */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x0F, 0, 0, parse_Implied },	/* RRCA */
 	{ CPUF_Z80, 0xED, 0x67, 0, 0, parse_Implied },	/* RRD */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC7, MODE_IMM, 0, parse_Rst },	/* RST */
