@@ -19,3 +19,5 @@ Start:
 	lddr
 	ldi
 	ldir
+	neg
+	nop
