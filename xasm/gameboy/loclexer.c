@@ -65,6 +65,8 @@ static SLexInitString localstrings[]=
 	{ "neg",	T_Z80_NEG	},
 	{ "nop",	T_Z80_NOP	},
 	{ "or",		T_Z80_OR	},
+	{ "otdr",	T_Z80_OTDR	},
+	{ "otir",	T_Z80_OTIR	},
 	{ "pop",	T_Z80_POP	},
 	{ "push",	T_Z80_PUSH	},
 	{ "res",	T_Z80_RES	},
