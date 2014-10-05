@@ -984,7 +984,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC7, MODE_IMM, 0, parse_Rst },	/* RST */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x18, MODE_REG_A | MODE_REG_HL, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_SS, parse_Sbc },	/* SBC */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x37, 0, 0, parse_Implied },	/* SCF */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_IMM, MODE_GROUP_D, parse_Bit },				/* SET */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_IMM, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, parse_Bit },				/* SET */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_GROUP_D, 0, parse_Rotate },	/* SLA */
 	{ CPUF_Z80, 0x00, 0x30, MODE_GROUP_D, 0, parse_Rotate },	/* SLL */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_GROUP_D, 0, parse_Rotate },	/* SRA */

@@ -23,3 +23,15 @@
 	res		0,h
 	res		0,l
 	res		0,a
+
+	set		0,(hl)
+	set		7,(hl)
+	set		1,(ix+2)
+	set		2,(iy-3)
+	set		0,b
+	set		0,c
+	set		0,d
+	set		0,e
+	set		0,h
+	set		0,l
+	set		0,a
