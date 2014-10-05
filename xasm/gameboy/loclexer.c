@@ -94,6 +94,7 @@ static SLexInitString localstrings[]=
 // "set"        ,       T_POP_SET,
 
 	{ "sla",	T_Z80_SLA	},
+	{ "sll",	T_Z80_SLL	},
 	{ "sra",	T_Z80_SRA	},
 	{ "srl",	T_Z80_SRL	},
 	{ "stop",	T_Z80_STOP	},
