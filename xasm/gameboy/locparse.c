@@ -969,6 +969,34 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 			{
 				if(parse_ExpectChar(endToken))
 				{
+					if(endToken != ']')
+					{
+						// This could possibly be an immediate expression
+						SExpression* pImmExpr;
+						SLexBookmark indirectEnd;
+
+						lex_Bookmark(&indirectEnd);
+						lex_Goto(&bm);
+
+						pImmExpr = parse_Expression();
+						if(pImmExpr != NULL)
+						{
+							SLexBookmark immEnd;
+							lex_Bookmark(&immEnd);
+							if(lex_CompareBookmarks(&immEnd, &indirectEnd))
+							{
+								// If the immediate expression is longer than the indirect expression, accept this instead
+								expr_Free(pExpr);
+								pAddrMode->nMode |= MODE_IMM;
+								pAddrMode->pExpr = pImmExpr;
+
+								return true;
+							}
+							expr_Free(pImmExpr);
+						}
+					}
+
+
 					pAddrMode->nMode |= MODE_IMM_IND;
 					pAddrMode->pExpr = pExpr;
 					return true;

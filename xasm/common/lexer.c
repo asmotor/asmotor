@@ -337,6 +337,16 @@ void lex_Goto(SLexBookmark* pBookmark)
 	g_CurrentToken = pBookmark->Token;
 }
 
+int lex_CompareBookmarks(SLexBookmark* pBookmark1, SLexBookmark* pBookmark2)
+{
+	if(pBookmark1->Buffer.pBuffer < pBookmark2->Buffer.pBuffer)
+		return -1;
+	if(pBookmark1->Buffer.pBuffer > pBookmark2->Buffer.pBuffer)
+		return 1;
+	return 0;
+}
+
+
 void lex_SkipBytes(uint32_t count)
 {
 	if(g_pCurrentBuffer)
