@@ -130,13 +130,14 @@ extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
 #define MODE_REG_IY_IND_DISP	0x00040000
 #define MODE_GROUP_D			0x00080000
 #define MODE_GROUP_SS			0x00100000
-#define MODE_GROUP_RR			0x00200000
-#define MODE_GROUP_HL			0x00400000
-#define MODE_IMM				0x00800000
-#define MODE_IMM_IND			0x01000000
-#define MODE_CC_GB				0x02000000
-#define MODE_CC_Z80				0x04000000
-#define MODE_REG_CONTROL		0x08000000
+#define MODE_GROUP_SS_AF		0x00200000
+#define MODE_GROUP_RR			0x00400000
+#define MODE_GROUP_HL			0x00800000
+#define MODE_IMM				0x01000000
+#define MODE_IMM_IND			0x02000000
+#define MODE_CC_GB				0x04000000
+#define MODE_CC_Z80				0x08000000
+#define MODE_REG_CONTROL		0x10000000
 
 static SAddrMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
 {
@@ -148,19 +149,20 @@ static SAddrMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
 	{ MODE_GROUP_D, NULL, CPUF_Z80 | CPUF_GB, REGD_L, -1, -1, -1, -1, -1 },	// L
 	{ MODE_REG_HL_IND | MODE_GROUP_D, NULL, CPUF_Z80 | CPUF_GB, REGD_HL_IND, -1, -1, -1, -1, -1 }, // (HL)
 	{ MODE_REG_A | MODE_GROUP_D, NULL, CPUF_Z80 | CPUF_GB, REGD_A, -1, -1, -1, -1, -1 }, // A
-	{ MODE_GROUP_SS, NULL, CPUF_Z80 | CPUF_GB, -1, REGSS_BC, -1, -1, -1, -1 },	// BC
-	{ MODE_REG_DE | MODE_GROUP_SS, NULL, CPUF_Z80 | CPUF_GB, -1, REGSS_DE, -1, -1, -1, -1 },	// DE
-	{ MODE_REG_HL | MODE_GROUP_SS | MODE_GROUP_HL, NULL, CPUF_Z80 | CPUF_GB, -1, REGSS_HL, -1, REGHL_HL, -1, -1 },	// HL
+	{ MODE_GROUP_SS | MODE_GROUP_SS_AF, NULL, CPUF_Z80 | CPUF_GB, -1, REGSS_BC, -1, -1, -1, -1 },	// BC
+	{ MODE_REG_DE | MODE_GROUP_SS | MODE_GROUP_SS_AF, NULL, CPUF_Z80 | CPUF_GB, -1, REGSS_DE, -1, -1, -1, -1 },	// DE
+	{ MODE_REG_HL | MODE_GROUP_SS | MODE_GROUP_SS_AF | MODE_GROUP_HL, NULL, CPUF_Z80 | CPUF_GB, -1, REGSS_HL, -1, REGHL_HL, -1, -1 },	// HL
 	{ MODE_REG_SP | MODE_GROUP_SS, NULL, CPUF_Z80 | CPUF_GB, -1, REGSS_SP, -1, -1, -1, -1 },	// SP
 	{ MODE_GROUP_HL, NULL, CPUF_Z80, -1, REGSS_HL, -1, REGHL_IX, -1, -1 },	// IX
 	{ MODE_GROUP_HL, NULL, CPUF_Z80, -1, REGSS_HL, -1, REGHL_IY, -1, -1 },	// IY
 	{ MODE_REG_C_IND, NULL, CPUF_Z80 | CPUF_GB, -1, -1, -1, -1, -1, -1 },	// (C)
+	{ MODE_REG_C_IND, NULL, CPUF_GB, -1, -1, -1, -1, -1, -1 },	// ($FF00+C)
 	{ MODE_REG_SP_IND, NULL, CPUF_Z80 | CPUF_GB, -1, -1, -1, -1, -1, -1 },	// (SP)
 	{ MODE_REG_BC_IND | MODE_REG_C_IND | MODE_GROUP_RR, NULL, CPUF_Z80 | CPUF_GB, -1, -1, REGRR_BC_IND, -1, -1, -1 },	// (BC)
 	{ MODE_REG_DE_IND | MODE_GROUP_RR, NULL, CPUF_Z80 | CPUF_GB, -1, -1, REGRR_DE_IND, -1, -1, -1 },	// (DE)
 	{ MODE_REG_HL_INDDEC | MODE_GROUP_RR, NULL, CPUF_GB, -1, -1, REGRR_HL_INDDEC, -1, -1, -1 },	// (HL-)
 	{ MODE_REG_HL_INDINC | MODE_GROUP_RR, NULL, CPUF_GB, -1, -1, REGRR_HL_INDINC, -1, -1, -1 },	// (HL+)
-	{ MODE_REG_AF | MODE_GROUP_SS, NULL, CPUF_Z80 | CPUF_GB, -1, REGSS_AF, -1, -1, -1, -1 },	// AF
+	{ MODE_REG_AF | MODE_GROUP_SS_AF, NULL, CPUF_Z80 | CPUF_GB, -1, REGSS_AF, -1, -1, -1, -1 },	// AF
 	{ MODE_REG_AF_SEC, NULL, CPUF_Z80, -1, -1, -1, -1, -1, -1 },	// AF'
 	{ MODE_REG_CONTROL, NULL, CPUF_Z80, -1, -1, -1, -1, -1, CTRL_I },	// I
 	{ MODE_REG_CONTROL, NULL, CPUF_Z80, -1, -1, -1, -1, -1, CTRL_R },	// R
@@ -610,7 +612,6 @@ static bool_t parse_Ldd(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 	return true;
 }
 
-
 static bool_t parse_Ldh(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_IMM_IND))
@@ -629,6 +630,13 @@ static bool_t parse_Ldh(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 	return true;
 }
 
+static bool_t parse_Ldhl(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+{
+	sect_OutputConst8(pOpcode->nOpcode);
+	sect_OutputExpr8(parse_CreateExpression8S(pAddrMode2->pExpr));
+
+	return true;
+}
 
 static bool_t parse_Pop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
@@ -852,6 +860,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x22, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDI */
 	{ CPUF_Z80, 0xED, 0xB0, 0, 0, parse_Implied },	/* LDIR */
 	{ CPUF_GB, 0x00, 0xE0, MODE_IMM_IND | MODE_REG_A, MODE_IMM_IND | MODE_REG_A, parse_Ldh },	/* LDH */
+	{ CPUF_GB, 0x00, 0xF8, MODE_REG_SP, MODE_IMM, parse_Ldhl },	/* LDHL */
 	{ CPUF_Z80, 0xED, 0x44, 0, 0, parse_Implied },	/* NEG */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, 0, 0, parse_Implied },	/* NOP */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x30, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, parse_Alu },	/* OR */
@@ -860,8 +869,8 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_Z80, 0xED, 0x41, MODE_IMM_IND | MODE_REG_C_IND, MODE_GROUP_D, parse_Out },	/* OUT */
 	{ CPUF_Z80, 0xED, 0xAB, 0, 0, parse_Implied },	/* OUTD */
 	{ CPUF_Z80, 0xED, 0xA3, 0, 0, parse_Implied },	/* OUTI */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0xC1, MODE_REG_AF | MODE_GROUP_SS | MODE_GROUP_HL, 0, parse_Pop },	/* POP */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0xC5, MODE_REG_AF | MODE_GROUP_SS | MODE_GROUP_HL, 0, parse_Pop },	/* PUSH */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC1, MODE_GROUP_SS_AF | MODE_GROUP_HL, 0, parse_Pop },	/* POP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0xC5, MODE_GROUP_SS_AF | MODE_GROUP_HL, 0, parse_Pop },	/* PUSH */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x80, MODE_IMM, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, parse_Bit },				/* RES */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_NONE | MODE_CC_Z80, 0, parse_Ret },	/* RET */
 	{ CPUF_GB | CPUF_Z80, 0xED, 0x4D, 0, 0, parse_Reti },	/* RETI */
@@ -898,7 +907,7 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 	{
 		*pAddrMode = s_AddressModes[g_CurrentToken.ID.TargetToken - T_MODE_B];
 		parse_GetToken();
-		return pAddrMode->nCpu & g_pOptions->pMachine->nCpu ? true : false;
+		return true;
 	}
 
 	if(g_CurrentToken.ID.Token == '[' || g_CurrentToken.ID.Token == '(')
@@ -1005,7 +1014,9 @@ bool_t parse_TargetSpecific(void)
 		parse_GetToken();
 
 		addrMode1.nMode = 0;
+		addrMode1.nCpu = CPUF_Z80 | CPUF_GB;
 		addrMode2.nMode = 0;
+		addrMode2.nCpu = CPUF_Z80 | CPUF_GB;
 
 		if(pOpcode->nAddrMode1 != 0)
 		{
@@ -1042,7 +1053,9 @@ bool_t parse_TargetSpecific(void)
 			if((addrMode2.nMode & pOpcode->nAddrMode2)
 			|| (addrMode2.nMode == 0 && ((pOpcode->nAddrMode2 == 0) || (pOpcode->nAddrMode2 & MODE_NONE))))
 			{
-				if(g_pOptions->pMachine->nCpu & pOpcode->nCpu)
+				if((g_pOptions->pMachine->nCpu & pOpcode->nCpu)
+				&& (g_pOptions->pMachine->nCpu & addrMode1.nCpu)
+				&& (g_pOptions->pMachine->nCpu & addrMode2.nCpu))
 				{
 					return pOpcode->pParser(pOpcode, &addrMode1, &addrMode2);
 				}

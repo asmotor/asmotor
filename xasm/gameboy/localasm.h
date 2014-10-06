@@ -65,6 +65,7 @@ typedef	enum
 	T_Z80_LDI,
 	T_Z80_LDIR,	// Z80 only
 	T_Z80_LDH,	// GB only
+	T_Z80_LDHL,	// GB only
 	T_Z80_NEG,	// Z80 only
 	T_Z80_NOP,
 	T_Z80_OR,
@@ -123,6 +124,7 @@ typedef	enum
 	T_MODE_IY,	// Z80 only
 
 	T_MODE_C_IND,
+	T_MODE_GB_C_IND,
 	T_MODE_SP_IND,
 	T_MODE_BC_IND,
 	T_MODE_DE_IND,
