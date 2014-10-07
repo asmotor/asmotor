@@ -1,7 +1,5 @@
 	SECTION	"allcodes",CODE[0]
 
-	DS	$150
-
 	adc	a,[hl]
 	adc	a,0
 	adc	a,a
@@ -11,6 +9,7 @@
 	adc	a,e
 	adc	a,h
 	adc	a,l
+
 	add	a,[hl]
 	add	a,0
 	add	a,a
@@ -25,6 +24,7 @@ B0_0023:	add	hl,de
 B0_0039:	add	hl,hl
 B0_004F:	add	hl,sp
 	add	sp,+$d
+
 	and	a,[hl]
 	and	a,0
 	and	a,a
@@ -34,6 +34,7 @@ B0_004F:	add	hl,sp
 	and	a,e
 	and	a,h
 	and	a,l
+
 	bit	0,[hl]
 	bit	0,a
 	bit	0,b
@@ -42,6 +43,7 @@ B0_004F:	add	hl,sp
 	bit	0,e
 	bit	0,h
 	bit	0,l
+
 	bit	1,[hl]
 	bit	1,a
 	bit	1,b
@@ -50,6 +52,7 @@ B0_004F:	add	hl,sp
 	bit	1,e
 	bit	1,h
 	bit	1,l
+
 	bit	2,[hl]
 	bit	2,a
 	bit	2,b
@@ -98,12 +101,15 @@ B0_004F:	add	hl,sp
 	bit	7,e
 	bit	7,h
 	bit	7,l
+
 	call	$100	;B0_0100
 	call	c,$100	;B0_0100
 	call	nc,$100	;B0_0100
 	call	nz,$100	;B0_0100
 	call	z,$100	;B0_0100
+
 	ccf
+
 	cp	a,[hl]
 	cp	a,0
 	cp	a,a
@@ -113,8 +119,10 @@ B0_004F:	add	hl,sp
 	cp	a,e
 	cp	a,h
 	cp	a,l
+
 	cpl
 	daa
+
 	dec	[hl]
 	dec	a
 	dec	b
@@ -127,9 +135,11 @@ B0_004F:	add	hl,sp
 	dec	hl
 	dec	l
 	dec	sp
+
 	di
 	ei
 	halt
+
 	inc	[hl]
 	inc	a
 	inc	b
@@ -142,22 +152,26 @@ B0_004F:	add	hl,sp
 	inc	hl
 	inc	l
 	inc	sp
+
 	jp	[hl]
 	jp	B0_0100
 	jp	c,B0_0100
 	jp	nc,B0_0100
 	jp	nz,B0_0100
 	jp	z,B0_0100
+
 .rellabel	jr	.rellabel
 	jr	c,.rellabel
 	jr	nc,.rellabel
 	jr	nz,.rellabel
 	jr	z,.rellabel
+
 	ld	[$FF00+c],a
 	ld	[$100],sp
 	ld	[$100],a
 	ld	[$100],sp
 	ld	[$FF00],a
+
 	ld	[bc],a
 	ld	[de],a
 	ld	[hl],0
@@ -233,7 +247,7 @@ B0_004F:	add	hl,sp
 	ld	h,h
 	ld	h,l
 B0_002D:	ld	hl,$100
-	ld	hl,[sp+$d]
+	ld	hl,sp+$d
 	ld	l,[hl]
 	ld	l,0
 	ld	l,a
@@ -249,9 +263,11 @@ B0_0043:	ld	sp,$100
 	ldd	[hl],a
 	ldi	a,[hl]
 	ldi	[hl],a
-	ldh	[$1ffe],a
+	ldh	[$ff1e],a
 	ldh	a,[$fffe]
+
 	nop
+
 	or	a,[hl]
 	or	a,0
 	or	a,a
@@ -262,14 +278,17 @@ B0_0043:	ld	sp,$100
 	or	a,h
 	or	a,l
 	or	[hl]
+
 	pop	af
 	pop	bc
 	pop	de
 	pop	hl
+
 	push	af
 	push	bc
 	push	de
 	push	hl
+
 	res	0,[hl]
 	res	0,a
 	res	0,b
@@ -334,13 +353,16 @@ B0_0043:	ld	sp,$100
 	res	7,e
 	res	7,h
 	res	7,l
+
 	ret
 B0_0100:	ret	c
 	ret	nc
 	ret	nz
 	ret	z
+
 	reti
 	reti
+
 	rl	[hl]
 	rl	a
 	rl	b
@@ -349,7 +371,9 @@ B0_0100:	ret	c
 	rl	e
 	rl	h
 	rl	l
+
 	rla
+
 	rlc	[hl]
 	rlc	a
 	rlc	b
@@ -358,7 +382,9 @@ B0_0100:	ret	c
 	rlc	e
 	rlc	h
 	rlc	l
+
 	rlca
+
 	rr	[hl]
 	rr	a
 	rr	b
@@ -367,7 +393,9 @@ B0_0100:	ret	c
 	rr	e
 	rr	h
 	rr	l
+
 	rra
+
 	rrc	[hl]
 	rrc	a
 	rrc	b
@@ -376,7 +404,9 @@ B0_0100:	ret	c
 	rrc	e
 	rrc	h
 	rrc	l
+
 	rrca
+
 	rst	$10
 	rst	$18
 	rst	$20
@@ -385,6 +415,7 @@ B0_0100:	ret	c
 	rst	$38
 	rst	0
 	rst	8
+
 	sbc	a,[hl]
 	sbc	a,0
 	sbc	a,a
@@ -394,7 +425,9 @@ B0_0100:	ret	c
 	sbc	a,e
 	sbc	a,h
 	sbc	a,l
+
 	scf
+
 	set	0,[hl]
 	set	0,a
 	set	0,b
@@ -459,6 +492,7 @@ B0_0100:	ret	c
 	set	7,e
 	set	7,h
 	set	7,l
+
 	sla	[hl]
 	sla	a
 	sla	b
@@ -467,6 +501,7 @@ B0_0100:	ret	c
 	sla	e
 	sla	h
 	sla	l
+
 	sra	[hl]
 	sra	a
 	sra	b
@@ -475,6 +510,7 @@ B0_0100:	ret	c
 	sra	e
 	sra	h
 	sra	l
+
 	srl	[hl]
 	srl	a
 	srl	b
@@ -483,7 +519,9 @@ B0_0100:	ret	c
 	srl	e
 	srl	h
 	srl	l
+
 	stop
+
 	sub	a,[hl]
 	sub	a,0
 	sub	a,a
@@ -493,6 +531,7 @@ B0_0100:	ret	c
 	sub	a,e
 	sub	a,h
 	sub	a,l
+
 	swap	[hl]
 	swap	a
 	swap	b
@@ -501,6 +540,7 @@ B0_0100:	ret	c
 	swap	e
 	swap	h
 	swap	l
+
 	xor	a,[hl]
 	xor	a,0
 	xor	a,a
