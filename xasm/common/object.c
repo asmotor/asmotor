@@ -422,6 +422,7 @@ bool_t obj_Write(string* pName)
 	fputc(0, f);		//	Name
 	fputll(-1, f);	//	Bank
 	fputll(-1, f);	//	Org
+	fputll(-1, f);	//	BasePC
 	pos = ftell(f);
 	fputll(0, f);		//	Number of symbols
 

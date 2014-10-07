@@ -98,5 +98,6 @@ extern SLexBuffer* lex_CreateMemoryBuffer(char* mem, size_t size);
 extern void	lex_RewindBytes(uint32_t count);
 extern void lex_Bookmark(SLexBookmark* pBookmark);
 extern void	lex_Goto(SLexBookmark* pBookmark);
+extern int	lex_CompareBookmarks(SLexBookmark* pBookmark1, SLexBookmark* pBookmark2);
 
 #endif	/*INCLUDE_LEXER_H*/

@@ -34,7 +34,7 @@ INLINE string* str_Alloc(int nLength)
 
 string* str_Create(char* pszData)
 {
-	int nLength = strlen(pszData);
+	int nLength = (int)strlen(pszData);
 	string* pString = str_Alloc(nLength);
 	memcpy(pString->szData, pszData, nLength + 1);
 	return pString;

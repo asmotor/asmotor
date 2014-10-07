@@ -780,9 +780,6 @@ static bool_t parse_Im(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 			prj_Error(ERROR_OPERAND_RANGE);
 			return true;
 	}
-
-	prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
-	return true;
 }
 
 static bool_t parse_InOut(SOpcode* pOpcode, SAddrMode* pAddrMode, ERegD eReg)

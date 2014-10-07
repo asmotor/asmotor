@@ -258,6 +258,7 @@ static void read_sections(SGroups* groups, FILE* f, int version)
 	{
 		SSection* section = sect_CreateNew();
 
+        section->MinimumWordSize = s_nMinimumWordSize;
 		section->pGroups = groups;
 		section->FileID = FileID;
 
