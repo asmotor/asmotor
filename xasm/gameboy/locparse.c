@@ -125,7 +125,7 @@ extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
 #define MODE_REG_SP_IND			0x00002000
 #define MODE_REG_IX_IND			0x00004000
 #define MODE_REG_IY_IND			0x00008000
-#define MODE_REG_SP_IND_DISP	0x00010000
+#define MODE_REG_SP_DISP		0x00010000
 #define MODE_REG_IX_IND_DISP	0x00020000
 #define MODE_REG_IY_IND_DISP	0x00040000
 #define MODE_GROUP_D			0x00080000
@@ -237,7 +237,7 @@ static void parse_OutputIXIY(SAddrMode* pAddrMode, uint8_t nOpcode)
 	sect_OutputConst8(pAddrMode->nMode & MODE_GROUP_IX_IND_DISP ? 0xDD : 0xFD);
 	sect_OutputConst8(nOpcode);
 	if(pAddrMode->pExpr != NULL)
-		sect_OutputExpr8(parse_CreateExpression8S(pAddrMode->pExpr));
+		sect_OutputExpr8(pAddrMode->pExpr);
 	else
 		sect_OutputConst8(0);
 }
@@ -523,7 +523,7 @@ static bool_t parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 	{
 		sect_OutputConst8(0xF2);
 	}
-	else if(IS_GB && (pAddrMode1->nMode & MODE_REG_HL) && (pAddrMode2->nMode & MODE_REG_SP_IND_DISP))
+	else if(IS_GB && (pAddrMode1->nMode & MODE_REG_HL) && (pAddrMode2->nMode & MODE_REG_SP_DISP))
 	{
 		sect_OutputConst8(0xF8);
 		sect_OutputExpr8(pAddrMode2->pExpr);
@@ -851,7 +851,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_CC_GB | MODE_IMM, MODE_IMM | MODE_NONE, parse_Jr },	/* JR */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, 
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_HL | MODE_REG_CONTROL | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND | MODE_GROUP_I_IND_DISP,
-		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_HL | MODE_REG_CONTROL | MODE_REG_SP_IND_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_I_IND_DISP, parse_Ld },	/* LD */
+		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_HL | MODE_REG_CONTROL | MODE_REG_SP_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_I_IND_DISP, parse_Ld },	/* LD */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x32, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDD */
 	{ CPUF_Z80, 0xED, 0xB8, 0, 0, parse_Implied },	/* LDDR */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x22, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, parse_Ldd },	/* LDI */
@@ -902,8 +902,22 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 	if(g_CurrentToken.ID.TargetToken >= T_MODE_B
 	&& g_CurrentToken.ID.TargetToken <= T_CC_M)
 	{
-		*pAddrMode = s_AddressModes[g_CurrentToken.ID.TargetToken - T_MODE_B];
+		int mode = g_CurrentToken.ID.TargetToken;
+
 		parse_GetToken();
+
+		if(mode == T_MODE_SP && (g_CurrentToken.ID.Token == T_OP_ADD || g_CurrentToken.ID.Token == T_OP_SUB))
+		{
+			SExpression* pExpr = parse_CreateExpression8S(parse_Expression());
+			if(pExpr != NULL)
+			{
+				pAddrMode->nMode = MODE_REG_SP_DISP;
+				pAddrMode->pExpr = pExpr;
+				return true;
+			}
+		}
+
+		*pAddrMode = s_AddressModes[mode - T_MODE_B];
 		return true;
 	}
 
@@ -914,8 +928,7 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 		lex_Bookmark(&bm);
 
 		parse_GetToken();
-		if(g_CurrentToken.ID.TargetToken == T_MODE_SP
-		|| g_CurrentToken.ID.TargetToken == T_MODE_IX
+		if(g_CurrentToken.ID.TargetToken == T_MODE_IX
 		|| g_CurrentToken.ID.TargetToken == T_MODE_IY)
 		{
 			int regToken = g_CurrentToken.ID.TargetToken;
@@ -927,22 +940,14 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 			{
 				SExpression* pExpr;
 
-				pExpr = parse_Expression();
-				if(pExpr != NULL)
+				pExpr = parse_CreateExpression8S(parse_Expression());
+				if(pExpr != NULL && parse_ExpectChar(endToken))
 				{
-					pExpr = parse_CreateExpression8S(pExpr);
-					if(pExpr != NULL)
-					{
-						if(parse_ExpectChar(endToken))
-						{
-							pAddrMode->nMode |=
-								regToken == T_MODE_SP ? MODE_REG_SP_IND_DISP :
-								regToken == T_MODE_IX ? MODE_REG_IX_IND_DISP :
-								/*regToken == T_MODE_IY ? */ MODE_REG_IY_IND_DISP;
-							pAddrMode->pExpr = pExpr;
-							return true;
-						}
-					}
+					pAddrMode->nMode |=
+						regToken == T_MODE_IX ? MODE_REG_IX_IND_DISP :
+						/*regToken == T_MODE_IY ? */ MODE_REG_IY_IND_DISP;
+					pAddrMode->pExpr = pExpr;
+					return true;
 				}
 				expr_Free(pExpr);
 			}
@@ -951,7 +956,6 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 				if(parse_ExpectChar(endToken))
 				{
 					pAddrMode->nMode |=
-						regToken == T_MODE_SP ? MODE_REG_SP_IND :
 						regToken == T_MODE_IX ? MODE_REG_IX_IND :
 						/*regToken == T_MODE_IY ? */ MODE_REG_IY_IND;
 					pAddrMode->pExpr = NULL;
