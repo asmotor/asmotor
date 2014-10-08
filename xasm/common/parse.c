@@ -469,7 +469,7 @@ static SExpression* parse_ExprPri9(void)
 				if(g_CurrentToken.ID.Token == ')')
 				{
 					parse_GetToken();
-					return expr;
+					return expr_Parens(expr);
 				}
 
 				expr_Free(expr);

@@ -167,6 +167,10 @@ static int write_expr(FILE* f, SExpression* expr)
 
 		switch(expr_GetType(expr))
 		{
+			case EXPR_PARENS:
+			{
+				return write_expr(f, expr->pRight);
+			}
 			case EXPR_OPERATOR:
 			{
 				switch(expr->eOperator)

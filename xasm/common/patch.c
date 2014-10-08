@@ -278,6 +278,11 @@ bool_t patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection*
 	if(pExpr == NULL)
 		return false;
 
+	if(expr_GetType(pExpr) == EXPR_PARENS)
+	{
+		return patch_GetSectionPcOffset(pOffset, pExpr->pRight, pSection);
+	}
+
 	if(expr_GetType(pExpr) == EXPR_CONSTANT && (pSection->Flags & SECTF_ORGFIXED))
 	{
 		*pOffset = pExpr->Value.Value - pSection->BasePC;
@@ -552,6 +557,8 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
 
 	switch(expr_GetType(expr))
 	{
+		case EXPR_PARENS:
+			return patch_Evaluate(patch, expr->pRight, v);
 		case EXPR_PCREL:
 			return patch_EvaluatePcRel(patch, expr, v);
 		case EXPR_OPERATOR:
@@ -683,6 +690,13 @@ void patch_OptimizeExpression(SExpression* pExpr)
 
 	if(pExpr->pRight != NULL)
 		patch_OptimizeExpression(pExpr->pRight);
+
+	if(expr_GetType(pExpr) == EXPR_PARENS)
+	{
+		SExpression* pToFree = pExpr->pRight;
+		*pExpr = *(pExpr->pRight);
+		mem_Free(pToFree);
+	}
 
 	if(expr_IsConstant(pExpr))
 	{

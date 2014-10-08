@@ -925,9 +925,10 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 	{
 		char endToken = g_CurrentToken.ID.Token == '[' ? ']' : ')';
 		SLexBookmark bm;
-		lex_Bookmark(&bm);
 
+		lex_Bookmark(&bm);
 		parse_GetToken();
+
 		if(g_CurrentToken.ID.TargetToken == T_MODE_IX
 		|| g_CurrentToken.ID.TargetToken == T_MODE_IY)
 		{
@@ -938,12 +939,11 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 			if(g_CurrentToken.ID.Token == T_OP_ADD
 			|| g_CurrentToken.ID.Token == T_OP_SUB)
 			{
-				SExpression* pExpr;
+				SExpression* pExpr = parse_CreateExpression8S(parse_Expression());
 
-				pExpr = parse_CreateExpression8S(parse_Expression());
 				if(pExpr != NULL && parse_ExpectChar(endToken))
 				{
-					pAddrMode->nMode |=
+					pAddrMode->nMode =
 						regToken == T_MODE_IX ? MODE_REG_IX_IND_DISP :
 						/*regToken == T_MODE_IY ? */ MODE_REG_IY_IND_DISP;
 					pAddrMode->pExpr = pExpr;
@@ -951,79 +951,58 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 				}
 				expr_Free(pExpr);
 			}
-			else
+			else if(parse_ExpectChar(endToken))
 			{
-				if(parse_ExpectChar(endToken))
-				{
-					pAddrMode->nMode |=
-						regToken == T_MODE_IX ? MODE_REG_IX_IND :
-						/*regToken == T_MODE_IY ? */ MODE_REG_IY_IND;
-					pAddrMode->pExpr = NULL;
-					return true;
-				}
+				pAddrMode->nMode =
+					regToken == T_MODE_IX ? MODE_REG_IX_IND :
+					/*regToken == T_MODE_IY ? */ MODE_REG_IY_IND;
+				pAddrMode->pExpr = NULL;
+				return true;
 			}
-		}
-		else
-		{
-			SExpression* pExpr = parse_Expression();
-			if(pExpr != NULL)
-			{
-				if(parse_ExpectChar(endToken))
-				{
-					if(endToken != ']')
-					{
-						// This could possibly be an immediate expression
-						SExpression* pImmExpr;
-						SLexBookmark indirectEnd;
-
-						lex_Bookmark(&indirectEnd);
-						lex_Goto(&bm);
-
-						pImmExpr = parse_Expression();
-						if(pImmExpr != NULL)
-						{
-							SLexBookmark immEnd;
-							lex_Bookmark(&immEnd);
-							if(lex_CompareBookmarks(&immEnd, &indirectEnd))
-							{
-								// If the immediate expression is longer than the indirect expression, accept this instead
-								expr_Free(pExpr);
-								pAddrMode->nMode |= MODE_IMM;
-								pAddrMode->pExpr = pImmExpr;
-
-								return true;
-							}
-							expr_Free(pImmExpr);
-						}
-					}
-
-
-					pAddrMode->nMode |= MODE_IMM_IND;
-					pAddrMode->pExpr = pExpr;
-					return true;
-				}
-				expr_Free(pExpr);
-			}
-
 		}
 		lex_Goto(&bm);
 	}
 
-	/* Try expression */
+	if(g_CurrentToken.ID.Token == '[')
 	{
 		SExpression* pExpr;
+
+		parse_GetToken();
+		
+		pExpr = parse_Expression();
+
+		if(pExpr != NULL && parse_ExpectChar(']'))
+		{
+			pAddrMode->nMode = MODE_IMM_IND;
+			pAddrMode->pExpr = pExpr;
+			return true;
+		}
+
+		return false;
+	}
+
+	/* Try expression */
+	{
 		SLexBookmark bm;
+		SExpression* pExpr;
 
 		lex_Bookmark(&bm);
 		pExpr = parse_Expression();
+
 		if(pExpr != NULL)
 		{
-			pAddrMode->nMode |= MODE_IMM;
-			pAddrMode->pExpr = pExpr;
+			if(expr_GetType(pExpr) == EXPR_PARENS)
+			{
+				pAddrMode->nMode = MODE_IMM_IND;
+				pAddrMode->pExpr = pExpr;
+				return true;
+			}
 
+			pAddrMode->nMode = MODE_IMM;
+			pAddrMode->pExpr = pExpr;
 			return true;
 		}
-		
+
 		lex_Goto(&bm);
 	}
 
