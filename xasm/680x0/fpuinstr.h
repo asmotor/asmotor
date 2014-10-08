@@ -79,6 +79,8 @@ static SInstruction s_FpuInstructions[] =
 
 bool_t parse_FpuInstruction(void)
 {
+	return false;
+	/*
 	int op;
 	SInstruction* pIns;
 
@@ -99,6 +101,7 @@ bool_t parse_FpuInstruction(void)
 	}
 
 	return parse_CommonCpuFpu(op, pIns);
+	*/
 }
 
 #endif
