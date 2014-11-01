@@ -31,4 +31,5 @@ fi
 DIR=asmotor-`cat version`-src
 mv source $DIR
 $TAR -cvjf $DIR.tar.bz2 $DIR
+$TAR -cvjf $DIR.tgz $DIR
 rm -rf $DIR
