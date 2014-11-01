@@ -6,7 +6,7 @@ Data:	EQU	$1234
 	ld		(de),a  
 	ld		(hl),b
 	ld		(hl),l
-	ld		(hl),$42
+	ld		(hl),($21)*2
 	ld		(ix+1),b
 	ld		(ix+2),a
 	ld		(ix+3),$42

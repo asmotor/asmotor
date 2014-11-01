@@ -19,7 +19,7 @@ int32_t d2f(double a)
 
 int32_t imuldiv(int32_t a, int32_t b, int32_t c)
 {
-	return (int64_t)a * b / c;
+	return (int32_t)((int64_t)a * b / c);
 }
 
 int32_t fmul(int32_t a, int32_t b)

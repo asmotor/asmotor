@@ -1,7 +1,7 @@
 #!/bin/sh
-MYASM="../../../../build/scons/build_gameboy/motorgb -i../minios/include/"
-MYLINK="../../../../build/scons/build_xlink/xlink"
-MYFIX="../../../../build/scons/build_xgbfix/xgbfix"
+MYASM="../../../build/scons/build_gameboy/motorgb -i../minios/include/"
+MYLINK="../../../build/scons/build_xlink/xlink"
+MYFIX="../../../build/scons/build_xgbfix/xgbfix"
 
 $MYASM -omain.obj main.asm
 $MYASM -ouser.obj user.asm

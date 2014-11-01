@@ -8,3 +8,7 @@
 	in		l,(c)
 	in		a,(c)
 	in		a,($FF)
+	ind
+	indr
+	ini
+	inir

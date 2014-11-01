@@ -29,7 +29,8 @@ typedef	enum
 	EXPR_OPERATOR,
 	EXPR_PCREL,
 	EXPR_CONSTANT,
-	EXPR_SYMBOL
+	EXPR_SYMBOL,
+	EXPR_PARENS
 } EExprType;
 
 #define EXPRF_CONSTANT	0x01
@@ -110,6 +111,8 @@ extern SExpression* expr_Atan2(SExpression* pLeft, SExpression* pRight);
 
 extern SExpression* expr_Fmul(SExpression* pLeft, SExpression* pRight);
 extern SExpression* expr_Fdiv(SExpression* pLeft, SExpression* pRight);
+
+extern SExpression* expr_Parens(SExpression* pExpr);
 
 extern SExpression* expr_PcRelative(SExpression* pExpr, int nAdjust);
 

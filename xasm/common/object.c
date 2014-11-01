@@ -167,6 +167,10 @@ static int write_expr(FILE* f, SExpression* expr)
 
 		switch(expr_GetType(expr))
 		{
+			case EXPR_PARENS:
+			{
+				return write_expr(f, expr->pRight);
+			}
 			case EXPR_OPERATOR:
 			{
 				switch(expr->eOperator)
@@ -422,6 +426,7 @@ bool_t obj_Write(string* pName)
 	fputc(0, f);		//	Name
 	fputll(-1, f);	//	Bank
 	fputll(-1, f);	//	Org
+	fputll(-1, f);	//	BasePC
 	pos = ftell(f);
 	fputll(0, f);		//	Number of symbols
 

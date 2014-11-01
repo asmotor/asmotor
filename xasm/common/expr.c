@@ -77,6 +77,23 @@ static bool_t expr_VerifyPointer(SExpression* pExpr)
 	return false;
 }
 
+SExpression* expr_Parens(SExpression* pExpr)
+{
+	SExpression* expr;
+
+	if(!expr_VerifyPointer(pExpr))
+		return NULL;
+
+	expr = (SExpression*)mem_Alloc(sizeof(SExpression));
+	expr->pRight = pExpr;
+	expr->pLeft = NULL;
+	expr->Value.Value = pExpr->Value.Value;
+	expr->nFlags = pExpr->nFlags;
+	expr->eType = EXPR_PARENS;
+	expr->eOperator = 0;
+	return expr;
+}
+
 SExpression* expr_Abs(SExpression* pRight)
 {
 	SExpression* pSign = expr_Shr(expr_Clone(pRight), expr_Const(31));

@@ -19,3 +19,11 @@ build/scons/build_xlib
 build/scons/build_xlink
 .sconsign.dblite
 asmotor.sublime-workspace
+*.obj
+*.lib
+*.xcuserstate
+*.xcscheme
+xcschememanagement.plist
+WorkspaceSettings.xcsettings
+Breakpoints_v2.xcbkptlist
+gbfade.gb

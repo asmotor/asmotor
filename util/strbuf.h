@@ -46,7 +46,7 @@ INLINE void strbuf_AppendStringZero(stringbuffer* pBuffer, char* pszString)
 	if(pszString == NULL)
 		return;
 		
-	strbuf_AppendChars(pBuffer, pszString, strlen(pszString));
+	strbuf_AppendChars(pBuffer, pszString, (int)strlen(pszString));
 }
 
 #endif

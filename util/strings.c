@@ -26,7 +26,7 @@
 
 char* _strdup(const char* pszString)
 {
-	int l = strlen(pszString);
+	int l = (int)strlen(pszString);
 	char* r = mem_Alloc(l + 1);
 	memcpy(r, pszString, l + 1);
 	return r;
