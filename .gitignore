@@ -28,3 +28,4 @@ WorkspaceSettings.xcsettings
 Breakpoints_v2.xcbkptlist
 gbfade.gb
 *.output
+build/Visual Studio 2012/Windows.opensdf
