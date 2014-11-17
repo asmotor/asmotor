@@ -106,6 +106,7 @@ typedef	enum
 	T_CHIP_REG_ST,
 	T_CHIP_REG_I,
 	T_CHIP_REG_I_IND,
+	T_CHIP_REG_RPL,
 
 }	eTargetToken;
 

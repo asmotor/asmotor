@@ -26,6 +26,7 @@
 #define MODE_ST		0x10
 #define MODE_I_IND	0x20
 #define MODE_IMM_V0	0x40
+#define MODE_RPL	0x80
 
 typedef struct
 {
@@ -68,6 +69,12 @@ static bool_t parse_AddressMode(SAddressMode* pMode)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_I;
+		return true;
+	}
+	else if(g_CurrentToken.ID.TargetToken == T_CHIP_REG_RPL)
+	{
+		parse_GetToken();
+		pMode->nMode = MODE_RPL;
 		return true;
 	}
 	else if(g_CurrentToken.ID.TargetToken == T_CHIP_REG_DT)
@@ -195,6 +202,12 @@ static bool_t parse_LDM(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode
 	if(pMode1->nMode == MODE_I_IND && pMode2->nMode == MODE_REG)
 		return parse_ModeReg(pMode2, NULL, NULL, 0xF055);
 
+	if(pMode1->nMode == MODE_REG && pMode2->nMode == MODE_RPL)
+		return parse_ModeReg(pMode1, NULL, NULL, 0xF085);
+
+	if(pMode1->nMode == MODE_RPL && pMode2->nMode == MODE_REG)
+		return parse_ModeReg(pMode2, NULL, NULL, 0xF075);
+
 	return prj_Error(ERROR_OPERAND);
 }
 
@@ -277,7 +290,7 @@ SInstruction g_Parsers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] =
 
 	{ MODE_REG | MODE_I | MODE_DT | MODE_ST, MODE_REG | MODE_IMM | MODE_DT, 0, 0, parse_LD},	// LD
 
-	{ MODE_REG | MODE_I_IND, MODE_REG | MODE_I_IND, 0, 0, parse_LDM},	// LDM
+	{ MODE_REG | MODE_I_IND | MODE_RPL, MODE_REG | MODE_I_IND | MODE_RPL, 0, 0, parse_LDM},	// LDM
 
 	{ MODE_REG | MODE_I, MODE_REG | MODE_IMM, 0, 0, parse_ADD},	// ADD
 

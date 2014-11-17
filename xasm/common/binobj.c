@@ -105,13 +105,17 @@ bool_t bin_Write(string* pName)
 
 		while(sect)
 		{
-			while(nAddress < sect->Position)
+			if(sect->pData)
 			{
-				++nAddress;
-				fputc(0, f);
+				while(nAddress < sect->Position)
+				{
+					++nAddress;
+					fputc(0, f);
+				}
+
+				fwrite(sect->pData, 1, sect->UsedSpace, f);
 			}
 
-			fwrite(sect->pData, 1, sect->UsedSpace, f);
 			nAddress += sect->UsedSpace;
 
 			sect = list_GetNext(sect);

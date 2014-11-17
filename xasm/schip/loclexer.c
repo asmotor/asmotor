@@ -82,6 +82,7 @@ static SLexInitString localstrings[]=
 	"st", T_CHIP_REG_ST,
 	"i", T_CHIP_REG_I,
 	"(i)", T_CHIP_REG_I_IND,
+	"rpl", T_CHIP_REG_RPL,
 
 	NULL, 0
 };
