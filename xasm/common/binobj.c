@@ -152,7 +152,7 @@ bool_t bin_WriteVerilog(string* pName)
 
 			for(i = 0; i < sect->UsedSpace; ++i)
 			{
-				uint8_t b = sect->pData[i];
+				uint8_t b = sect->pData ? sect->pData[i] : 0;
 				fprintf(f, "%02X\n", b);
 			}
 			nAddress += sect->UsedSpace;
