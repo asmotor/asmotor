@@ -21,6 +21,9 @@
 
 typedef	enum
 {
+    T_LEFT_PARENS = '(',
+    T_AT = '@',
+
 	T_FIRST_TOKEN = 300,
 	T_STRING = T_FIRST_TOKEN,
 	T_LABEL,

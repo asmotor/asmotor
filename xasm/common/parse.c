@@ -455,7 +455,7 @@ static SExpression* parse_ExprPri9(void)
 			return expr_Const(val);
 			break;
 		}
-		case '(':
+		case T_LEFT_PARENS:
 		{
 			SExpression* expr;
 			SLexBookmark bookmark;
@@ -490,7 +490,7 @@ static SExpression* parse_ExprPri9(void)
 			// fall through to @
 		}
 		case T_OP_MUL:
-		case '@':
+		case T_AT:
 		{
 			SExpression* expr = expr_Pc();
 			parse_GetToken();

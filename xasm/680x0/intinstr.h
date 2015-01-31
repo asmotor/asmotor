@@ -23,7 +23,7 @@
 
 #include "loccpu.h"
 
-static bool_t parse_IntegerOp(int op, ESize inssz, SAddrMode* src, SAddrMode* dest);
+static bool_t parse_IntegerOp(eTargetToken op, ESize inssz, SAddrMode* src, SAddrMode* dest);
 
 static bool_t parse_OutputExtWords(SAddrMode* mode)
 {
@@ -4108,9 +4108,9 @@ static bool_t parse_OpCore(SInstruction* pIns, ESize inssz, SAddrMode* src, SAdd
 	return pIns->pHandler(inssz, src, dest);
 }
 
-bool_t parse_IntegerOp(int op, ESize inssz, SAddrMode* src, SAddrMode* dest)
+bool_t parse_IntegerOp(eTargetToken op, ESize inssz, SAddrMode* src, SAddrMode* dest)
 {
-	SInstruction* pIns = &sIntegerInstructions[op];
+	SInstruction* pIns = &sIntegerInstructions[op - T_68K_INTEGER_FIRST];
 	return parse_OpCore(pIns, inssz, src, dest);
 }
 
