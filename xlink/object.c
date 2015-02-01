@@ -110,22 +110,21 @@ static SGroups* read_groups(FILE* f)
  */
 
 	SGroups* pGroups;
-	uint32_t	totalgroups;
+	uint32_t totalgroups;
 
-	totalgroups=fgetll(f);
+	totalgroups = fgetll(f);
 
-	if((pGroups=mem_Alloc(sizeof(SGroups)+totalgroups*sizeof(SGroup)))!=NULL)
+	if((pGroups = mem_Alloc(sizeof(SGroups)+totalgroups*sizeof(SGroup))) != NULL)
 	{
-		uint32_t	i;
+		uint32_t i;
 
-		pGroups->TotalGroups=totalgroups;
+		pGroups->TotalGroups = totalgroups;
 
-		for(i=0; i<totalgroups; i+=1)
+		for(i = 0; i < totalgroups; i += 1)
 		{
 			fgetasciiz(pGroups->Groups[i].Name, MAXSYMNAMELENGTH, f);
-			pGroups->Groups[i].Type=fgetll(f);
+			pGroups->Groups[i].Type = fgetll(f);
 		}
-
 	}
 	else
 	{

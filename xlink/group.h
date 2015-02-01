@@ -19,33 +19,34 @@
 #ifndef	GROUP_H
 #define	GROUP_H
 
-typedef	struct _SMemChunk
+typedef	struct SMemChunk_
 {
-	uint32_t	Org;
-	uint32_t	Size;
-	struct _SMemChunk* pNext;
-}	SMemChunk;
+	uint32_t Org;
+	uint32_t Size;
+	struct SMemChunk_* pNext;
+} SMemChunk;
 
-typedef	struct _SMemoryPool
+typedef	struct SMemoryPool_
 {
-	int32_t	ImageOffset;		//	This pool's position in the ROM image, -1 if not written
-	uint32_t	AddressingOffset;	//	Where the CPU sees this pool in its address space
-	int32_t	BankId;				//	What the CPU calls this bank
-	uint32_t	Size;
-	uint32_t	Available;
-	SMemChunk*	pFreeChunks;
-}	SMemoryPool;
+	int32_t	 ImageOffset;		//	This pool's position in the ROM image, -1 if not written
+	uint32_t AddressingOffset;	//	Where the CPU sees this pool in its address space
+	int32_t  BankId;			//	What the CPU calls this bank
+	uint32_t Size;
+	uint32_t Available;
+	SMemChunk* pFreeChunks;
+} SMemoryPool;
 
-typedef	struct _SMachineGroup
+typedef	struct SMachineGroup_
 {
 	char					Name[MAXSYMNAMELENGTH];
 	int32_t					TotalPools;
-	struct _SMachineGroup*	pNext;
+	struct SMachineGroup_*	pNext;
 	SMemoryPool*			Pool[];
-}	SMachineGroup;
+} SMachineGroup;
 
 extern void	group_SetupGameboy(void);
-extern void	group_SetupSmallGameboy(void);
+extern void group_SetupSmallGameboy(void);
+extern void	group_SetupAmigaExecutable(void);
 extern void	group_Alloc(SSection* sect);
 
 #endif

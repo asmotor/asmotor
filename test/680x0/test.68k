@@ -1,6 +1,14 @@
-	SECTION "Hejsa",CODE
+
+	SECTION "Hejsa",CODE[0]
 
 Start:
+	MC68020
+
+	callm	#87,Symbol
+	rtm		a5
+
+	MC68040
+
 	bra.b	12$
 	move.l	#John-10,d0
 	lea	John+54(PC),a0
@@ -30,7 +38,7 @@ John:
 	or.b	#87,d0
 	or.w	d0,(a1)
 
-	not	123(a0)
+	not		123(a0)
 	nop
 	negx	d3
 	neg.l	(a2,d4.w*4)
@@ -39,14 +47,14 @@ John:
 	muls	#20,d0
 	mulu.l	Symbol,d0:d1
 	muls.l	Symbol,d1
-	;muls.l	Symbol,d1:d1
+	muls.l	Symbol,d1:d1
 	move.l	#1,d3
 	moveq	#-63,d5
-	;movep	(a2),d5
-	;movep.l	d3,10(a3)
-	;move16	(a0)+,(a2)+
-	;move16	(a0),Symbol
-	;move16	Symbol,(a2)+
+	movep	(a2),d5
+	movep.l	d3,10(a3)
+	move16	(a0)+,(a2)+
+	move16	(a0),Symbol
+	move16	Symbol,(a2)+
 	move	(a5),ccr
 	move	ccr,d0
 	move.l	Symbol(PC),a3
@@ -82,7 +90,6 @@ John:
 	chk		Symbol(PC),d6
 	cas2	d0:d1,d2:d3,(a0):(a1)
 	cas		d1,d2,Symbol
-	;callm	#87,Symbol
 	bkpt	#3
 	bfins	d5,(a1,d2.w){d3:4}
 	bfffo	(a1,d2.w){d3:4},d5
@@ -143,7 +150,6 @@ Symbol:
 
 	pea		Symbol(PC)
 	rtd		#64
-	rtm		a5
 	rtr
 	rts
 

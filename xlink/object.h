@@ -21,21 +21,25 @@
 
 typedef	enum
 {
-	GROUP_TEXT=0,
-	GROUP_BSS=1
-}	EGroupType;
+	GROUP_TEXT = 0,
+	GROUP_BSS = 1,
+    GROUP_DATA = 0x40000000,
+    GROUP_TEXT_CHIP = 0x20000000,
+    GROUP_BSS_CHIP = 0x20000001,
+    GROUP_DATA_CHIP = 0x60000000,
+} EGroupType;
 
 typedef	struct
 {
-	char		Name[MAXSYMNAMELENGTH];
-	EGroupType	Type;
-}	SGroup;
+	char       Name[MAXSYMNAMELENGTH];
+	EGroupType Type;
+} SGroup;
 
 typedef	struct
 {
-	uint32_t	TotalGroups;
-	SGroup	Groups[];
-}	SGroups;
+	uint32_t TotalGroups;
+	SGroup   Groups[];
+} SGroups;
 
 extern	void	obj_Read(char* name);
 

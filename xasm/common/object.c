@@ -403,7 +403,7 @@ bool_t obj_Write(string* pName)
 			{
 				sym->ID = groupcount++;
 				fputasciiz(str_String(sym->pName), f);
-				fputll(sym->Value.GroupType, f);
+				fputll((sym->Value.GroupType) | (sym->nFlags & (SYMF_CHIP | SYMF_DATA)), f);
 			}
 			sym = list_GetNext(sym);
 		}

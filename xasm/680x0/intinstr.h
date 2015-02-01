@@ -705,20 +705,26 @@ static bool_t parse_ANDI(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(dest->eMode == AM_SYSREG)
 	{
-		if(sz != SIZE_WORD)
-		{
-			prj_Error(MERROR_INSTRUCTION_SIZE);
-			return true;
-		}
-
 		if(dest->nDirectReg == T_68K_REG_CCR)
 		{
+			if(sz != SIZE_BYTE)
+			{
+				prj_Error(MERROR_INSTRUCTION_SIZE);
+				return true;
+			}
+
 			sect_OutputConst16(0x023C);
 			sect_OutputExpr16(expr_And(src->pImmediate, expr_Const(0xFF)));
 			return true;
 		}
 		else if(dest->nDirectReg == T_68K_REG_SR)
 		{
+			if(sz != SIZE_WORD)
+			{
+				prj_Error(MERROR_INSTRUCTION_SIZE);
+				return true;
+			}
+
 			prj_Warn(MERROR_INSTRUCTION_PRIV);
 			sect_OutputConst16(0x027C);
 			sect_OutputExpr16(src->pImmediate);
@@ -1644,20 +1650,26 @@ static bool_t parse_EORI(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(dest->eMode == AM_SYSREG)
 	{
-		if(sz != SIZE_WORD)
-		{
-			prj_Error(MERROR_INSTRUCTION_SIZE);
-			return true;
-		}
-
 		if(dest->nDirectReg == T_68K_REG_CCR)
 		{
+			if(sz != SIZE_BYTE)
+			{
+				prj_Error(MERROR_INSTRUCTION_SIZE);
+				return true;
+			}
+
 			sect_OutputConst16(0x0A3C);
 			sect_OutputExpr16(expr_And(src->pImmediate, expr_Const(0xFF)));
 			return true;
 		}
 		else if(dest->nDirectReg == T_68K_REG_SR)
 		{
+			if(sz != SIZE_WORD)
+			{
+				prj_Error(MERROR_INSTRUCTION_SIZE);
+				return true;
+			}
+
 			prj_Warn(MERROR_INSTRUCTION_PRIV);
 			sect_OutputConst16(0x0A7C);
 			sect_OutputExpr16(src->pImmediate);
@@ -2323,19 +2335,24 @@ static bool_t parse_ORI(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(dest->eMode == AM_SYSREG)
 	{
-		if(sz != SIZE_WORD)
-		{
-			prj_Error(MERROR_INSTRUCTION_SIZE);
-			return true;
-		}
 		if(dest->nDirectReg == T_68K_REG_CCR)
 		{
+			if(sz != SIZE_BYTE)
+			{
+				prj_Error(MERROR_INSTRUCTION_SIZE);
+				return true;
+			}
 			sect_OutputConst16(0x003C);
 			sect_OutputExpr16(expr_And(src->pImmediate, expr_Const(0xFF)));
 			return true;
 		}
 		else if(dest->nDirectReg == T_68K_REG_SR)
 		{
+			if(sz != SIZE_WORD)
+			{
+				prj_Error(MERROR_INSTRUCTION_SIZE);
+				return true;
+			}
 			prj_Warn(MERROR_INSTRUCTION_PRIV);
 			sect_OutputConst16(0x007C);
 			sect_OutputExpr16(src->pImmediate);

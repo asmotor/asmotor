@@ -269,18 +269,18 @@ void	group_SetupSmallGameboy(void)
 	
 	//	Create HOME group
 
-	group=creategroup("HOME", 1);
+	group = creategroup("HOME", 1);
 	group->Pool[0]=codepool;
 
 	//	Create CODE group
 
-	group=creategroup("CODE", 256);
+	group = creategroup("CODE", 256);
 	for(i = 0; i < 256; ++i)
 		group->Pool[i] = codepool;
 
 	//	Create DATA group
 
-	group=creategroup("DATA", 256);
+	group = creategroup("DATA", 256);
 	for(i = 0; i < 256; ++i)
 		group->Pool[i] = codepool;
 
@@ -291,4 +291,56 @@ void	group_SetupSmallGameboy(void)
 	//	initialise memory chunks
 
 	init_memchunks();
+}
+
+
+void group_SetupAmigaExecutable(void)
+{
+	SMachineGroup* group;
+	SMemoryPool* codepool;
+	SMemoryPool* chippool;
+
+	codepool = createpool();
+	codepool->ImageOffset = 0;
+	codepool->BankId = 0;
+	codepool->Size = codepool->Available = 0x3FFFFFFF;
+	codepool->AddressingOffset = 0;
+
+	chippool = createpool();
+	chippool->ImageOffset = 0x40000000;
+	chippool->BankId = 1;
+	chippool->Size = chippool->Available = 0x3FFFFFFF;
+	chippool->AddressingOffset = 0;
+
+	//	Create CODE group
+	group = creategroup("CODE", 1);
+	group->Pool[0] = codepool;
+
+	//	Create CODE_C group
+	group = creategroup("CODE_C", 1);
+	group->Pool[0] = chippool;
+
+	//	Create DATA group
+	group = creategroup("DATA", 1);
+	group->Pool[0] = codepool;
+
+	//	Create DATA_C group
+	group = creategroup("DATA_C", 1);
+	group->Pool[0] = chippool;
+
+	//	Create BSS group
+	group = creategroup("BSS", 1);
+	group->Pool[0] = createpool();
+	group->Pool[0]->ImageOffset = -1;
+	group->Pool[0]->BankId = 0;
+	group->Pool[0]->Size = group->Pool[0]->Available = 0x3FFFFFFF;
+	group->Pool[0]->AddressingOffset = 0;
+
+	//	Create BSS_C group
+	group = creategroup("BSS_C", 1);
+	group->Pool[0] = createpool();
+	group->Pool[0]->ImageOffset = -1;
+	group->Pool[0]->BankId = 1;
+	group->Pool[0]->Size = group->Pool[0]->Available = 0x3FFFFFFF;
+	group->Pool[0]->AddressingOffset = 0;
 }
