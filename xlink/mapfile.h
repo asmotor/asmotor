@@ -19,6 +19,6 @@
 #ifndef	MAPFILE_H
 #define	MAPFILE_H
 
-extern	void	map_SetFilename(char* name);
+extern void map_SetFilename(char* name);
 
 #endif

@@ -19,44 +19,41 @@
 #ifndef	SECTION_H
 #define	SECTION_H
 
-typedef	struct	_SSection
+typedef	struct Section_
 {
-	SGroups* pGroups;
+	uint32_t fileId;
 
-	uint32_t	FileID;
+	Group* group;
 
-	int32_t	GroupID;
+	// Before they are assigned, bank, byteLocation and basePC reflect the programmer's wish.
+	// After, they point to where this section actually is
+	int32_t	cpuByteLocation; // Where the CPU sees this section, in bytes
+	int32_t	cpuBank;
+	int32_t	cpuLocation;
+	int32_t	imageLocation;
+	int32_t minimumWordSize;
 
-	/* Before assigned Bank, Position and BasePC reflect the programmer's wish.
-	 * After, they point to where this section actually is
-	 */
-	int32_t	Bank;
-	int32_t	Position;
-	int32_t	BasePC;
-	int32_t	ImageOffset;
-	int32_t MinimumWordSize;
+	char name[MAXSYMNAMELENGTH];
 
-	char	Name[MAXSYMNAMELENGTH];
+	uint32_t totalSymbols;
+	Symbol* symbols;
 
-	uint32_t	TotalSymbols;
-	SSymbol* pSymbols;
+	uint32_t size;
+	uint8_t* data;
 
-	uint32_t	Size;
+	Patches* patches;
 
-	uint8_t*	pData;
-	SPatches*	pPatches;
+	bool_t used;
+	bool_t assigned;
 
-	bool_t	Used;
-	bool_t	Assigned;
+	struct Section_* nextSection;
+} Section;
 
-	struct _SSection* pNext;
-}	SSection;
+extern Section* g_sections;
 
-extern SSection* pSections;
-
-extern SSection* sect_CreateNew(void);
-extern int32_t sect_GetSymbolValue(SSection* sect, int32_t symbolid);
-extern int32_t sect_GetSymbolBank(SSection* sect, int32_t symbolid);
-extern char* sect_GetSymbolName(SSection* sect, int32_t symbolid);
+extern Section* sect_CreateNew(void);
+extern int32_t sect_GetSymbolValue(Section* section, int32_t symbolId);
+extern int32_t sect_GetSymbolBank(Section* section, int32_t symbolId);
+extern char* sect_GetSymbolName(Section* section, int32_t symbolId);
 
 #endif

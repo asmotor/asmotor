@@ -19,60 +19,64 @@
 #include "xlink.h"
 #include <memory.h>
 
-#define WRITE_BLOCK_SIZE 65536
-static char* g_pszOutputFilename = NULL;
+#define WRITE_BLOCK_SIZE 16384
 
-void output_SetFilename(char* name)
+static void writeRepeatedBytes(FILE* fileHandle, void* data, uint32_t offset, int bytes)
 {
-	g_pszOutputFilename = name;
+	fseek(fileHandle, offset, SEEK_SET);
+	while (bytes > 0)
+	{
+		uint32_t towrite = bytes > WRITE_BLOCK_SIZE ? WRITE_BLOCK_SIZE : bytes;
+		if (towrite != fwrite(data, 1, towrite, fileHandle))
+			Error("Disk possibly full");
+		bytes -= towrite;
+	}
 }
 
-void output_WriteRomImage(void)
+static void* allocEmptyBytes()
 {
-	char* data;
-	FILE* f;
-	SSection* pSect;
-	uint32_t fsize = 0;
-
-	data = (char*)mem_Alloc(WRITE_BLOCK_SIZE);
-	memset(data, 0, WRITE_BLOCK_SIZE);
-	if(data == NULL)
+	void* data = (char*)mem_Alloc(WRITE_BLOCK_SIZE);
+	if (data == NULL)
 		Error("Out of memory");
 
-	f = fopen(g_pszOutputFilename, "wb");
-	if(f == NULL)
-		Error("Unable to open \"%s\" for writing", g_pszOutputFilename);
+	memset(data, 0, WRITE_BLOCK_SIZE);
 
-	for(pSect = pSections; pSect != NULL; pSect = pSect->pNext)
+	return data;
+}
+
+
+void output_WriteImage(char* outputFilename)
+{
+	char* emptyBytes = allocEmptyBytes();
+
+	FILE* fileHandle;
+	uint32_t currentFileSize = 0;
+
+	fileHandle = fopen(outputFilename, "wb");
+	if (fileHandle == NULL)
+		Error("Unable to open \"%s\" for writing", outputFilename);
+
+	for (Section* section = g_sections; section != NULL; section = section->nextSection)
 	{
 		//	This is a special exported EQU symbol section
-		if(pSect->GroupID == -1)
+		if (section->group == NULL)
 			continue;
 
-		if(pSect->Used && pSect->Assigned && pSect->ImageOffset != -1)
+		if (section->used && section->assigned && section->imageLocation != -1)
 		{
-			uint32_t offset = pSect->ImageOffset;
-			uint32_t nSectEnd = offset + pSect->Size;
+			uint32_t startOffset = section->imageLocation;
+			uint32_t endOffset = startOffset + section->size;
 
-			if(offset > fsize)
-			{
-				uint32_t totaltowrite = offset - fsize;
-				fseek(f, fsize, SEEK_SET);
-				while(totaltowrite > 0)
-				{
-					uint32_t towrite = totaltowrite > WRITE_BLOCK_SIZE ? WRITE_BLOCK_SIZE : totaltowrite;
-					if(towrite != fwrite(data, 1, towrite, f))
-						Error("Disk possibly full");
-					totaltowrite -= towrite;
-				}
-			}
-			fseek(f, pSect->ImageOffset, SEEK_SET);
-			fwrite(pSect->pData, 1, pSect->Size, f);
-			if(nSectEnd > fsize)
-				fsize = nSectEnd;
+			if(startOffset > currentFileSize)
+				writeRepeatedBytes(fileHandle, emptyBytes, startOffset, startOffset - currentFileSize);
+
+			fseek(fileHandle, section->imageLocation, SEEK_SET);
+			fwrite(section->data, 1, section->size, fileHandle);
+			if (endOffset > currentFileSize)
+				currentFileSize = endOffset;
 		}
 	}
 
-	fclose(f);
-	mem_Free(data);
+	fclose(fileHandle);
+	mem_Free(emptyBytes);
 }

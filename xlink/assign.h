@@ -19,6 +19,6 @@
 #ifndef	ASSIGN_H
 #define	ASSIGN_H
 
-extern	void	assign_Process(void);
+extern void assign_Process(void);
 
 #endif

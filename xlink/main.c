@@ -28,7 +28,7 @@ void Error(char* fmt, ...)
 	va_start(list, fmt);
 	vsprintf(temp, fmt, list);
 
-	printf("*ERROR* : %s\n", temp);
+	printf("ERROR: %s\n", temp);
 	va_end(list);
 	exit(EXIT_FAILURE);
 }
@@ -46,8 +46,9 @@ void PrintUsage(void)
 			"\t-o<output>\tWrite output to file <output>\n"
     		"\t-s<symbol>\tPerform smart linking starting with <symbol>\n"
 			"\t-t\t\tOutput target\n"
-			"\t    -tg\t\tGameboy ROM image(default)\n"
-			"\t    -ts\t\tGameboy small mode (32kB)\n"
+			"\t    -ta\t\tAmiga executable\n"
+			"\t    -tg\t\tGameboy ROM image\n"
+			"\t    -ts\t\tGameboy small mode (32 KiB)\n"
 			"\t    -tm<mach>\tUse file <mach>\n"
     		"\t-z<hx>\t\tSet the byte value (hex format) used for uninitialised\n"
 			"\t\t\tdata (default is ? for random)\n"
@@ -60,15 +61,16 @@ void PrintUsage(void)
 int	main(int argc, char* argv[])
 {
 	int argn = 1;
-	int target_defined = 0;
+	int targetDefined = 0;
+	char* outputFilename = NULL;
 	char* smartlink = NULL;
 
-	if(argc == 1)
+	if (argc == 1)
 		PrintUsage();
 
-	while(argn < argc && (argv[argn][0] == '-' || argv[argn][0] == '/'))
+	while (argn < argc && (argv[argn][0] == '-' || argv[argn][0] == '/'))
 	{
-		switch(tolower((unsigned char)argv[argn][1]))
+		switch (tolower((unsigned char)argv[argn][1]))
 		{
 			case '?':
 			case 'h':
@@ -77,7 +79,7 @@ int	main(int argc, char* argv[])
 				break;
 			case 'm':
 				/* MapFile */
-				if(argv[argn][2] != 0)
+				if (argv[argn][2] != 0)
 				{
 					map_SetFilename(&argv[argn][2]);
 					++argn;
@@ -89,9 +91,9 @@ int	main(int argc, char* argv[])
 				break;
 			case 'o':
 				/* Output filename */
-				if(argv[argn][2] != 0)
+				if (argv[argn][2] != 0)
 				{
-					output_SetFilename(&argv[argn][2]);
+					outputFilename = &argv[argn][2];
 					++argn;
 				}
 				else
@@ -101,7 +103,7 @@ int	main(int argc, char* argv[])
 				break;
 			case 's':
 				/* Smart linking */
-				if(argv[argn][2] != 0)
+				if (argv[argn][2] != 0)
 				{
 					smartlink = &argv[argn][2];
 					++argn;
@@ -113,15 +115,23 @@ int	main(int argc, char* argv[])
 				break;
 			case 't':
 				/* Target */
-				if(argv[argn][2] != 0 && target_defined == 0)
+				if(argv[argn][2] != 0 && !targetDefined)
 				{
 					switch(tolower((unsigned char)argv[argn][2]))
 					{
+						case 'a':
+						{
+							/* Amiga executable */
+							group_SetupAmigaExecutable();
+							targetDefined = 1;
+							++argn;
+							break;
+						}
 						case 'g':
 						{
 							/* Gameboy ROM image */
 							group_SetupGameboy();
-							target_defined = 1;
+							targetDefined = 1;
 							++argn;
 							break;
 						}
@@ -129,18 +139,20 @@ int	main(int argc, char* argv[])
 						{
 							/* Gameboy small mode ROM image */
 							group_SetupSmallGameboy();
-							target_defined = 1;
+							targetDefined = 1;
 							++argn;
 							break;
 						}
+#if 0
 						case 'm':
 						{
 							/* Use machine def file */
-							target_defined = 1;
+							targetDefined = 1;
 							Error("option \"tm\" not implemented yet");
 							++argn;
 							break;
 						}
+#endif
 					}
 				}
 				else
@@ -159,6 +171,10 @@ int	main(int argc, char* argv[])
 		}
 	}
 
+	if (!targetDefined) {
+		Error("No target format defined");
+	}
+
 	while(argn < argc && argv[argn])
 	{
 		obj_Read(argv[argn]);
@@ -168,7 +184,9 @@ int	main(int argc, char* argv[])
 	smart_Process(smartlink);
 	assign_Process();
 	patch_Process();
-	output_WriteRomImage();
+
+	if (outputFilename)
+		output_WriteImage(outputFilename);
 
 	return EXIT_SUCCESS;
 }

@@ -22,25 +22,43 @@
 typedef	enum
 {
 	GROUP_TEXT = 0,
-	GROUP_BSS = 1,
-    GROUP_DATA = 0x40000000,
-    GROUP_TEXT_CHIP = 0x20000000,
-    GROUP_BSS_CHIP = 0x20000001,
-    GROUP_DATA_CHIP = 0x60000000,
-} EGroupType;
+	GROUP_BSS = 1
+} GroupType;
+
+typedef enum
+{
+    GROUP_FLAG_CHIP = 0x20000000,
+    GROUP_FLAG_DATA = 0x40000000,
+} GroupFlags;
 
 typedef	struct
 {
-	char       Name[MAXSYMNAMELENGTH];
-	EGroupType Type;
-} SGroup;
+	char name[MAXSYMNAMELENGTH];
+	GroupType  type;
+    GroupFlags flags;
+} Group;
 
 typedef	struct
 {
-	uint32_t TotalGroups;
-	SGroup   Groups[];
-} SGroups;
+	uint32_t totalGroups;
+	Group groups[];
+} Groups;
 
-extern	void	obj_Read(char* name);
+static inline bool_t group_isText(Group* group)
+{
+    return group != NULL && group->type == GROUP_TEXT;
+}
+
+static inline char* group_Name(Group* group)
+{
+    return group != NULL ? group->name : NULL;
+}
+
+static inline Group* groups_GetGroup(Groups* groups, int groupId)
+{
+    return groupId >= 0 && groupId < groups->totalGroups ? &groups->groups[groupId] : NULL;
+}
+
+extern void obj_Read(char* fileName);
 
 #endif

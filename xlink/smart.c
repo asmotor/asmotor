@@ -18,24 +18,21 @@
 
 #include "xlink.h"
 
-void	smart_Process(char* name)
+void smart_Process(char* name)
 {
-	if(name)
+	if (name != NULL)
 	{
 		Error("smart linking not supported yet");
 	}
 	else
 	{
-		//	Link in all sections
+		// Link in all sections
+		Section* section = g_sections;
 
-		SSection* sect;
-
-		sect=pSections;
-
-		while(sect)
+		while (section != NULL)
 		{
-			sect->Used=true;
-			sect=sect->pNext;
+			section->used = true;
+			section = section->nextSection;
 		}
 	}
 }

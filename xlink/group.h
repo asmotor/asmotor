@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sørensen
+/*  Copyright 2008 Carsten SÃ¸rensen
 
     This file is part of ASMotor.
 
@@ -19,34 +19,10 @@
 #ifndef	GROUP_H
 #define	GROUP_H
 
-typedef	struct SMemChunk_
-{
-	uint32_t Org;
-	uint32_t Size;
-	struct SMemChunk_* pNext;
-} SMemChunk;
-
-typedef	struct SMemoryPool_
-{
-	int32_t	 ImageOffset;		//	This pool's position in the ROM image, -1 if not written
-	uint32_t AddressingOffset;	//	Where the CPU sees this pool in its address space
-	int32_t  BankId;			//	What the CPU calls this bank
-	uint32_t Size;
-	uint32_t Available;
-	SMemChunk* pFreeChunks;
-} SMemoryPool;
-
-typedef	struct SMachineGroup_
-{
-	char					Name[MAXSYMNAMELENGTH];
-	int32_t					TotalPools;
-	struct SMachineGroup_*	pNext;
-	SMemoryPool*			Pool[];
-} SMachineGroup;
-
 extern void	group_SetupGameboy(void);
 extern void group_SetupSmallGameboy(void);
 extern void	group_SetupAmigaExecutable(void);
-extern void	group_Alloc(SSection* sect);
+extern bool_t group_AllocateMemory(char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
+extern bool_t group_AllocateAbsolute(char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 
 #endif

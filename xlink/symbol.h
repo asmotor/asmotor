@@ -26,15 +26,16 @@ typedef	enum
 	SYM_LOCAL,
 	SYM_LOCALEXPORT,
 	SYM_LOCALIMPORT
-}	ESymbolType;
+} SymbolType;
 
 typedef	struct
 {
-	char		Name[MAXSYMNAMELENGTH];
-	ESymbolType	Type;
-	int32_t		Value;
-	bool_t		Resolved;
-	struct	_SSection* pSection;
-}	SSymbol;
+	char       name[MAXSYMNAMELENGTH];
+	SymbolType type;
+	int32_t    value;
+	bool_t     resolved;
+
+	struct Section_* section;
+} Symbol;
 
 #endif

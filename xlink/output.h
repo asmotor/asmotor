@@ -19,7 +19,6 @@
 #ifndef	OUTPUT_H
 #define	OUTPUT_H
 
-extern void output_SetFilename(char* name);
-extern void output_WriteRomImage(void);
+extern void output_WriteImage(char* name);
 
 #endif

@@ -24,284 +24,297 @@
 
 #define	STACKSIZE	256
 
-static char* g_StringStack[STACKSIZE];
-static int32_t g_Stack[STACKSIZE];
-static int32_t g_nStackIndex;
+static char* s_stringStack[STACKSIZE];
+static int32_t s_stack[STACKSIZE];
+static int32_t s_stackIndex;
 
-static void PushString(char *pszValue)
+static void pushString(char* stringValue)
 {
-	if(g_nStackIndex >= STACKSIZE)
+	if (s_stackIndex >= STACKSIZE)
 		Error("patch too complex");
 
-	g_StringStack[g_nStackIndex++] = pszValue;
+	s_stringStack[s_stackIndex++] = stringValue;
 }
 
-static void push(int32_t value)
-{
-	if(g_nStackIndex >= STACKSIZE)
-		Error("patch too complex");
 
-	g_Stack[g_nStackIndex++] = value;
+static void pushStringCopy(char* stringValue)
+{
+	char* copy = mem_Alloc(strlen(stringValue) + 1);
+	strcpy(copy, stringValue);
+	pushString(copy);
 }
 
-static int32_t pop(void)
-{
-	if(g_nStackIndex > 0)
-		return g_Stack[--g_nStackIndex];
 
-	Error("mangled patch");
-	return 0;
+static void pushIntAsString(uint32_t intValue)
+{
+	char* value = mem_Alloc(16);
+
+	sprintf(value, "%u", intValue);
+	pushString(value);
 }
 
-static char* PopString(void)
+
+static char* popString(void)
 {
-	if(g_nStackIndex > 0)
-		return g_StringStack[--g_nStackIndex];
+	if(s_stackIndex > 0)
+		return s_stringStack[--s_stackIndex];
 
 	Error("mangled patch");
 	return NULL;
 }
 
 
-static void	pop2(int32_t* pLeft, int32_t* pRight)
+static void pushInt(int32_t value)
 {
-	*pRight = pop();
-	*pLeft = pop();
+	if (s_stackIndex >= STACKSIZE)
+		Error("patch too complex");
+
+	s_stack[s_stackIndex++] = value;
+}
+
+static int32_t popInt(void)
+{
+	if (s_stackIndex > 0)
+		return s_stack[--s_stackIndex];
+
+	Error("mangled patch");
+	return 0;
 }
 
 
-static void	PopStrings(char** ppszLeft, char** ppszRight)
+static void	popInt2(int32_t* outLeft, int32_t* outRight)
 {
-	*ppszRight = PopString();
-	*ppszLeft = PopString();
+	*outRight = popInt();
+	*outLeft = popInt();
 }
 
 
-static void CombinePatchStrings(char* pszOperator)
+static void	popString2(char** outLeft, char** outRight)
 {
-	char* pszLeft;
-	char* pszRight;
-	char* pszNewString;
+	*outRight = popString();
+	*outLeft = popString();
+}
 
-	PopStrings(&pszLeft, &pszRight);
 
-	pszNewString = (char*)mem_Alloc(strlen(pszLeft) + strlen(pszRight) + strlen(pszOperator) + 5);
-	sprintf(pszNewString, "(%s)%s(%s)", pszLeft, pszOperator, pszRight);
+static void combinePatchStrings(char* operator)
+{
+	char* left;
+	char* right;
+	char* result;
 
-	PushString(pszNewString);
+	popString2(&left, &right);
 
-	mem_Free(pszLeft);
-	mem_Free(pszRight);
+	result = (char*)mem_Alloc(strlen(left) + strlen(right) + strlen(operator) + 5);
+	sprintf(result, "(%s)%s(%s)", left, operator, right);
+
+	pushString(result);
+
+	mem_Free(left);
+	mem_Free(right);
 }
 
 
 
-static void CombinePatchFunctionStrings(char* pszFunc)
+static void combinePatchFunctionStrings(char* function)
 {
-	char* pszLeft;
-	char* pszRight;
-	char* pszNewString;
+	char* left;
+	char* right;
+	char* result;
 
-	PopStrings(&pszLeft, &pszRight);
+	popString2(&left, &right);
 
-	pszNewString = (char*)mem_Alloc(strlen(pszLeft) + strlen(pszRight) + strlen(pszFunc) + 4);
-	sprintf(pszNewString, "%s(%s,%s)", pszFunc, pszLeft, pszRight);
+	result = (char*)mem_Alloc(strlen(left) + strlen(right) + strlen(function) + 4);
+	sprintf(result, "%s(%s,%s)", function, left, right);
 
-	PushString(pszNewString);
+	pushString(result);
 
-	mem_Free(pszLeft);
-	mem_Free(pszRight);
+	mem_Free(left);
+	mem_Free(right);
 }
 
 
-static void CombinePatchFunctionString(char* pszFunc)
+static void combinePatchFunctionString(char* function)
 {
-	char* pszLeft;
-	char* pszNewString;
+	char* left;
+	char* result;
 
-	pszLeft = PopString();
+	left = popString();
 
-	pszNewString = (char*)mem_Alloc(strlen(pszLeft) + strlen(pszFunc) + 3);
-	sprintf(pszNewString, "%s(%s)", pszFunc, pszLeft);
+	result = (char*)mem_Alloc(strlen(left) + strlen(function) + 3);
+	sprintf(result, "%s(%s)", function, left);
 
-	PushString(pszNewString);
+	pushString(result);
 
-	mem_Free(pszLeft);
+	mem_Free(left);
 }
 
 
-char* GetPatchString(SPatch* patch, SSection* sect)
+static char* makePatchString(Patch* patch, Section* section)
 {
-	int32_t size = patch->ExprSize;
-	uint8_t* expr = patch->pExpr;
+	int32_t size = patch->expressionSize;
+	uint8_t* expression = patch->expression;
 
-	g_nStackIndex = 0;
+	s_stackIndex = 0;
 
-	while(size-- > 0)
+	while (size-- > 0)
 	{
-		char* pszLeft;
-		char* pszRight;
+		char* left;
+		char* right;
 
-		switch(*expr++)
+		switch (*expression++)
 		{
 			case OBJ_OP_SUB:
-				CombinePatchStrings("-");
+				combinePatchStrings("-");
 				break;
 			case OBJ_OP_ADD:
-				CombinePatchStrings("+");
+				combinePatchStrings("+");
 				break;
 			case OBJ_OP_XOR:
-				CombinePatchStrings("^");
+				combinePatchStrings("^");
 				break;
 			case OBJ_OP_OR:
-				CombinePatchStrings("|");
+				combinePatchStrings("|");
 				break;
 			case OBJ_OP_AND:
-				CombinePatchStrings("&");
+				combinePatchStrings("&");
 				break;
 			case OBJ_OP_SHL:
-				CombinePatchStrings("<<");
+				combinePatchStrings("<<");
 				break;
 			case OBJ_OP_SHR:
-				CombinePatchStrings(">>");
+				combinePatchStrings(">>");
 				break;
 			case OBJ_OP_MUL:
-				CombinePatchStrings("*");
+				combinePatchStrings("*");
 				break;
 			case OBJ_OP_DIV:
-				CombinePatchStrings("/");
+				combinePatchStrings("/");
 				break;
 			case OBJ_OP_MOD:
-				CombinePatchStrings("%");
+				combinePatchStrings("%");
 				break;
 			case OBJ_OP_LOGICOR:
-				CombinePatchStrings("||");
+				combinePatchStrings("||");
 				break;
 			case OBJ_OP_LOGICAND:
-				CombinePatchStrings("&&");
+				combinePatchStrings("&&");
 				break;
 			case OBJ_OP_LOGICNOT:
-				CombinePatchFunctionString("!");
+				combinePatchFunctionString("!");
 				break;
 			case OBJ_OP_LOGICGE:
-				CombinePatchStrings(">=");
+				combinePatchStrings(">=");
 				break;
 			case OBJ_OP_LOGICGT:
-				CombinePatchStrings(">");
+				combinePatchStrings(">");
 				break;
 			case OBJ_OP_LOGICLE:
-				CombinePatchStrings("<=");
+				combinePatchStrings("<=");
 				break;
 			case OBJ_OP_LOGICLT:
-				CombinePatchStrings("<");
+				combinePatchStrings("<");
 				break;
 			case OBJ_OP_LOGICEQU:
-				CombinePatchStrings("==");
+				combinePatchStrings("==");
 				break;
 			case OBJ_OP_LOGICNE:
-				CombinePatchStrings("!=");
+				combinePatchStrings("!=");
 				break;
 			case OBJ_FUNC_LOWLIMIT:
 			{
-				PopStrings(&pszLeft, &pszRight);
-				PushString(pszLeft);
-				mem_Free(pszRight);
+				popString2(&left, &right);
+				pushString(left);
+				mem_Free(right);
 				break;
 			}
 			case OBJ_FUNC_HIGHLIMIT:
 			{
-				PopStrings(&pszLeft, &pszRight);
-				PushString(pszLeft);
-				mem_Free(pszRight);
+				popString2(&left, &right);
+				pushString(left);
+				mem_Free(right);
 				break;
 			}
 			case OBJ_FUNC_FDIV:
-				CombinePatchFunctionStrings("FDIV");
+				combinePatchFunctionStrings("FDIV");
 				break;
 			case OBJ_FUNC_FMUL:
-				CombinePatchFunctionStrings("FMUL");
+				combinePatchFunctionStrings("FMUL");
 				break;
 			case OBJ_FUNC_ATAN2:
-				CombinePatchFunctionStrings("ATAN2");
+				combinePatchFunctionStrings("ATAN2");
 				break;
 			case OBJ_FUNC_SIN:
-				CombinePatchFunctionString("SIN");
+				combinePatchFunctionString("SIN");
 				break;
 			case OBJ_FUNC_COS:
-				CombinePatchFunctionString("COS");
+				combinePatchFunctionString("COS");
 				break;
 			case OBJ_FUNC_TAN:
-				CombinePatchFunctionString("TAN");
+				combinePatchFunctionString("TAN");
 				break;
 			case OBJ_FUNC_ASIN:
-				CombinePatchFunctionString("ASIN");
+				combinePatchFunctionString("ASIN");
 				break;
 			case OBJ_FUNC_ACOS:
-				CombinePatchFunctionString("ACOS");
+				combinePatchFunctionString("ACOS");
 				break;
 			case OBJ_FUNC_ATAN:
-				CombinePatchFunctionString("ATAN");
+				combinePatchFunctionString("ATAN");
 				break;
 			case OBJ_CONSTANT:
 			{
-				uint32_t d;
-				char* s = mem_Alloc(16);
+				uint32_t value;
 
-				d  = (*expr++);
-				d |= (*expr++) << 8;
-				d |= (*expr++) << 16;
-				d |= (*expr++) << 24;
+				value  = (*expression++);
+				value |= (*expression++) << 8;
+				value |= (*expression++) << 16;
+				value |= (*expression++) << 24;
 
-				sprintf(s, "%u", d);
-				PushString(s);
+				pushIntAsString(value);
 
 				size -= 4;
 				break;
 			}
 			case OBJ_SYMBOL:
 			{
-				char* sym;
-				char* s;
-				uint32_t d;
+				uint32_t symbolId;
 
-				d  = (*expr++);
-				d |= (*expr++) << 8;
-				d |= (*expr++) << 16;
-				d |= (*expr++) << 24;
+				symbolId  = (*expression++);
+				symbolId |= (*expression++) << 8;
+				symbolId |= (*expression++) << 16;
+				symbolId |= (*expression++) << 24;
 
-				sym = sect_GetSymbolName(sect, d);
-				s = mem_Alloc(strlen(sym) + 1);
-				strcpy(s, sym);
-				PushString(s);
+				pushStringCopy(sect_GetSymbolName(section, symbolId));
+
 				size -= 4;
 				break;
 			}
 			case OBJ_FUNC_BANK:
 			{
-				char* pszName;
-				char* pszNew;
-				uint32_t d;
+				char* symbolName;
+				char* copy;
+				uint32_t symbolId;
 
-				d  = (*expr++);
-				d |= (*expr++) << 8;
-				d |= (*expr++) << 16;
-				d |= (*expr++) << 24;
+				symbolId  = (*expression++);
+				symbolId |= (*expression++) << 8;
+				symbolId |= (*expression++) << 16;
+				symbolId |= (*expression++) << 24;
 
-				pszName = sect_GetSymbolName(sect, d);
+				symbolName = sect_GetSymbolName(section, symbolId);
 
-				pszNew = mem_Alloc(strlen(pszName) + 7);
-				sprintf(pszNew, "BANK(%s)", pszName); 
+				copy = mem_Alloc(strlen(symbolName) + 7);
+				sprintf(copy, "BANK(%s)", symbolName); 
 
-				PushString(pszNew);
+				pushString(copy);
 
 				size -= 4;
 				break;
 			}
 			case OBJ_PCREL:
 			{
-				CombinePatchStrings("+");
-				PushString("*");
-				CombinePatchStrings("-");
+				combinePatchStrings("+");
+				pushString("*");
+				combinePatchStrings("-");
 				break;
 			}
 			default:
@@ -310,248 +323,252 @@ char* GetPatchString(SPatch* patch, SSection* sect)
 		}
 	}
 
-	return PopString();
+	return popString();
 }
 
 
-
-int32_t calc_patch(SPatch* patch, SSection* sect)
+int32_t calculatePatchValue(Patch* patch, Section* section)
 {
-	int32_t size = patch->ExprSize;
-	uint8_t* expr = patch->pExpr;
+	int32_t size = patch->expressionSize;
+	uint8_t* expression = patch->expression;
 
-	g_nStackIndex = 0;
+	s_stackIndex = 0;
 
-	while(size > 0)
+	while (size > 0)
 	{
 		int32_t left, right;
 
 		--size;
 
-		switch(*expr++)
+		switch(*expression++)
 		{
 			case OBJ_OP_SUB:
 			{
-				pop2(&left, &right);
-				push(left - right);
+				popInt2(&left, &right);
+				pushInt(left - right);
 				break;
 			}
 			case OBJ_OP_ADD:
 			{
-				pop2(&left, &right);
-				push(left + right);
+				popInt2(&left, &right);
+				pushInt(left + right);
 				break;
 			}
 			case OBJ_OP_XOR:
 			{
-				pop2(&left, &right);
-				push(left ^ right);
+				popInt2(&left, &right);
+				pushInt(left ^ right);
 				break;
 			}
 			case OBJ_OP_OR:
 			{
-				pop2(&left, &right);
-				push(left | right);
+				popInt2(&left, &right);
+				pushInt(left | right);
 				break;
 			}
 			case OBJ_OP_AND:
 			{
-				pop2(&left, &right);
-				push(left & right);
+				popInt2(&left, &right);
+				pushInt(left & right);
 				break;
 			}
 			case OBJ_OP_SHL:
 			{
-				pop2(&left, &right);
-				push(left << right);
+				popInt2(&left, &right);
+				pushInt(left << right);
 				break;
 			}
 			case OBJ_OP_SHR:
 			{
-				pop2(&left, &right);
-				push(left >> right);
+				popInt2(&left, &right);
+				pushInt(left >> right);
 				break;
 			}
 			case OBJ_OP_MUL:
 			{
-				pop2(&left, &right);
-				push(left * right);
+				popInt2(&left, &right);
+				pushInt(left * right);
 				break;
 			}
 			case OBJ_OP_DIV:
 			{
-				pop2(&left, &right);
-				push(left / right);
+				popInt2(&left, &right);
+				pushInt(left / right);
 				break;
 			}
 			case OBJ_OP_MOD:
 			{
-				pop2(&left, &right);
-				push(left % right);
+				popInt2(&left, &right);
+				pushInt(left % right);
 				break;
 			}
 			case OBJ_OP_LOGICOR:
 			{
-				pop2(&left, &right);
-				push(left || right ? 1 : 0);
+				popInt2(&left, &right);
+				pushInt(left || right ? 1 : 0);
 				break;
 			}
 			case OBJ_OP_LOGICAND:
 			{
-				pop2(&left, &right);
-				push(left && right ? 1 : 0);
+				popInt2(&left, &right);
+				pushInt(left && right ? 1 : 0);
 				break;
 			}
 			case OBJ_OP_LOGICNOT:
 			{
-				push(pop() ? 0 : 1);
+				pushInt(popInt() ? 0 : 1);
 				break;
 			}
 			case OBJ_OP_LOGICGE:
 			{
-				pop2(&left, &right);
-				push(left >= right ? 1 : 0);
+				popInt2(&left, &right);
+				pushInt(left >= right ? 1 : 0);
 				break;
 			}
 			case OBJ_OP_LOGICGT:
 			{
-				pop2(&left, &right);
-				push(left > right ? 1 : 0);
+				popInt2(&left, &right);
+				pushInt(left > right ? 1 : 0);
 				break;
 			}
 			case OBJ_OP_LOGICLE:
 			{
-				pop2(&left, &right);
-				push(left <= right ? 1 : 0);
+				popInt2(&left, &right);
+				pushInt(left <= right ? 1 : 0);
 				break;
 			}
 			case OBJ_OP_LOGICLT:
 			{
-				pop2(&left, &right);
-				push(left < right ? 1 : 0);
+				popInt2(&left, &right);
+				pushInt(left < right ? 1 : 0);
 				break;
 			}
 			case OBJ_OP_LOGICEQU:
 			{
-				pop2(&left, &right);
-				push(left == right ? 1 : 0);
+				popInt2(&left, &right);
+				pushInt(left == right ? 1 : 0);
 				break;
 			}
 			case OBJ_OP_LOGICNE:
 			{
-				pop2(&left, &right);
-				push(left != right ? 1 : 0);
+				popInt2(&left, &right);
+				pushInt(left != right ? 1 : 0);
 				break;
 			}
 			case OBJ_FUNC_LOWLIMIT:
 			{
-				pop2(&left, &right);
-				if(left >= right)
-					push(left);
+				popInt2(&left, &right);
+
+				if (left >= right)
+					pushInt(left);
 				else
-					Error("Expression \"%s\" at offset %d in section \"%s\" out of range", GetPatchString(patch, sect), patch->Offset, sect->Name);
+					Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
+
 				break;
 			}
 			case OBJ_FUNC_HIGHLIMIT:
 			{
-				pop2(&left, &right);
-				if(left <= right)
-					push(left);
+				popInt2(&left, &right);
+
+				if (left <= right)
+					pushInt(left);
 				else
-					Error("Expression \"%s\" at offset %d in section \"%s\" out of range", GetPatchString(patch, sect), patch->Offset, sect->Name);
+					Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
+
 				break;
 			}
 			case OBJ_FUNC_FDIV:
 			{
-				pop2(&left, &right);
-				push(imuldiv(left, 65536, right));
+				popInt2(&left, &right);
+				pushInt(imuldiv(left, 65536, right));
 				break;
 			}
 			case OBJ_FUNC_FMUL:
 			{
-				pop2(&left, &right);
-				push(imuldiv(left, right, 65536));
+				popInt2(&left, &right);
+				pushInt(imuldiv(left, right, 65536));
 				break;
 			}
 			case OBJ_FUNC_ATAN2:
 			{
-				pop2(&left, &right);
-				push(fatan2(left, right));
+				popInt2(&left, &right);
+				pushInt(fatan2(left, right));
 				break;
 			}
 			case OBJ_FUNC_SIN:
 			{
-				push(fsin(pop()));
+				pushInt(fsin(popInt()));
 				break;
 			}
 			case OBJ_FUNC_COS:
 			{
-				push(fcos(pop()));
+				pushInt(fcos(popInt()));
 				break;
 			}
 			case OBJ_FUNC_TAN:
 			{
-				push(ftan(pop()));
+				pushInt(ftan(popInt()));
 				break;
 			}
 			case OBJ_FUNC_ASIN:
 			{
-				push(fasin(pop()));
+				pushInt(fasin(popInt()));
 				break;
 			}
 			case OBJ_FUNC_ACOS:
 			{
-				push(facos(pop()));
+				pushInt(facos(popInt()));
 				break;
 			}
 			case OBJ_FUNC_ATAN:
 			{
-				push(fatan(pop()));
+				pushInt(fatan(popInt()));
 				break;
 			}
 			case OBJ_CONSTANT:
 			{
-				uint32_t d;
+				uint32_t value;
 
-				d  = (*expr++);
-				d |= (*expr++) << 8;
-				d |= (*expr++) << 16;
-				d |= (*expr++) << 24;
+				value  = (*expression++);
+				value |= (*expression++) << 8;
+				value |= (*expression++) << 16;
+				value |= (*expression++) << 24;
 
-				push(d);
+				pushInt(value);
+
 				size -= 4;
 				break;
 			}
 			case OBJ_SYMBOL:
 			{
-				uint32_t d;
+				uint32_t symbolId;
 
-				d  = (*expr++);
-				d |= (*expr++) << 8;
-				d |= (*expr++) << 16;
-				d |= (*expr++) << 24;
+				symbolId  = (*expression++);
+				symbolId |= (*expression++) << 8;
+				symbolId |= (*expression++) << 16;
+				symbolId |= (*expression++) << 24;
 
-				push(sect_GetSymbolValue(sect, d));
+				pushInt(sect_GetSymbolValue(section, symbolId));
 				size -= 4;
 				break;
 			}
 			case OBJ_FUNC_BANK:
 			{
-				uint32_t d;
+				uint32_t symbolId;
 
-				d  = (*expr++);
-				d |= (*expr++) << 8;
-				d |= (*expr++) << 16;
-				d |= (*expr++) << 24;
+				symbolId  = (*expression++);
+				symbolId |= (*expression++) << 8;
+				symbolId |= (*expression++) << 16;
+				symbolId |= (*expression++) << 24;
 
-				push(sect_GetSymbolBank(sect, d));
+				pushInt(sect_GetSymbolBank(section, symbolId));
 				size -= 4;
 				break;
 			}
 			case OBJ_PCREL:
 			{
-				pop2(&left, &right);
-				push(left + right - (patch->Offset + sect->ImageOffset));
+				popInt2(&left, &right);
+				pushInt(left + right - (patch->offset + section->imageLocation));
 				break;
 			}
 			default:
@@ -560,38 +577,38 @@ int32_t calc_patch(SPatch* patch, SSection* sect)
 		}
 	}
 
-	return pop();
+	return popInt();
 }
 
-static void do_section(SSection* sect)
+static void patchSection(Section* section)
 {
-	SPatches* patches = sect->pPatches;
+	Patches* patches = section->patches;
 
-	if(patches != NULL)
+	if (patches != NULL)
 	{
+		Patch* patch = patches->patches;
 		uint32_t i;
 
-		for(i = 0; i < patches->TotalPatches; ++i)
+		for (i = patches->totalPatches; i > 0; --i, ++patch)
 		{
-			SPatch* patch = &patches->Patches[i];
-			int32_t value = calc_patch(patch, sect);
+			int32_t value = calculatePatchValue(patch, section);
 
-			switch(patch->Type)
+			switch (patch->type)
 			{
 				case PATCH_BYTE:
 				{
-					if(value >= -128 && value <= 255)
-						sect->pData[patch->Offset] = (uint8_t)value;
+					if (value >= -128 && value <= 255)
+						section->data[patch->offset] = (uint8_t)value;
 					else
-						Error("Expression \"%s\" at offset %d in section \"%s\" out of range", GetPatchString(patch, sect), patch->Offset, sect->Name);
+						Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
 					break;
 				}
 				case PATCH_LWORD:
 				{
-					if(value >= -32768 && value <= 65535)
+					if (value >= -32768 && value <= 65535)
 					{
-						sect->pData[patch->Offset + 0] = (uint8_t)value;
-						sect->pData[patch->Offset + 1] = (uint8_t)(value >> 8);
+						section->data[patch->offset + 0] = (uint8_t)value;
+						section->data[patch->offset + 1] = (uint8_t)(value >> 8);
 					}
 					else
 					{
@@ -599,12 +616,12 @@ static void do_section(SSection* sect)
 					}
 					break;
 				}
-				case	PATCH_BWORD:
+				case PATCH_BWORD:
 				{
-					if(value>=-32768 && value<=65535)
+					if (value>=-32768 && value<=65535)
 					{
-						sect->pData[patch->Offset+0] = (uint8_t)(value>>8);
-						sect->pData[patch->Offset+1] = (uint8_t)value;
+						section->data[patch->offset+0] = (uint8_t)(value>>8);
+						section->data[patch->offset+1] = (uint8_t)value;
 					}
 					else
 					{
@@ -612,20 +629,20 @@ static void do_section(SSection* sect)
 					}
 					break;
 				}
-				case	PATCH_LLONG:
+				case PATCH_LLONG:
 				{
-					sect->pData[patch->Offset+0] = (uint8_t)value;
-					sect->pData[patch->Offset+1] = (uint8_t)(value>>8);
-					sect->pData[patch->Offset+2] = (uint8_t)(value>>16);
-					sect->pData[patch->Offset+3] = (uint8_t)(value>>24);
+					section->data[patch->offset+0] = (uint8_t)value;
+					section->data[patch->offset+1] = (uint8_t)(value>>8);
+					section->data[patch->offset+2] = (uint8_t)(value>>16);
+					section->data[patch->offset+3] = (uint8_t)(value>>24);
 					break;
 				}
-				case	PATCH_BLONG:
+				case PATCH_BLONG:
 				{
-					sect->pData[patch->Offset+0] = (uint8_t)(value>>24);
-					sect->pData[patch->Offset+1] = (uint8_t)(value>>16);
-					sect->pData[patch->Offset+2] = (uint8_t)(value>>8);
-					sect->pData[patch->Offset+3] = (uint8_t)value;
+					section->data[patch->offset+0] = (uint8_t)(value>>24);
+					section->data[patch->offset+1] = (uint8_t)(value>>16);
+					section->data[patch->offset+2] = (uint8_t)(value>>8);
+					section->data[patch->offset+3] = (uint8_t)value;
 					break;
 				}
 				default:
@@ -638,18 +655,28 @@ static void do_section(SSection* sect)
 }
 
 
-void	patch_Process(void)
+void patch_Process(void)
 {
-	SSection* sect;
+	Section* section = g_sections;
 
-	sect=pSections;
-
-	while(sect)
+	while (section != NULL)
 	{
-		if(sect->Used)
-		{
-			do_section(sect);
-		}
-		sect=sect->pNext;
+		if (section->used)
+			patchSection(section);
+
+		section = section->nextSection;
 	}
 }
+
+
+Patches* patch_Alloc(uint32_t totalPatches)
+{
+	Patches* patches = mem_Alloc(sizeof(Patches) + totalPatches * sizeof(Patch));
+	if (patches != NULL)
+	{
+		patches->totalPatches = totalPatches;
+	}
+
+	return patches;
+}
+

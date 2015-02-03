@@ -18,6 +18,6 @@
 
 #include "xlink.h"
 
-void	map_SetFilename(char* name)
+void map_SetFilename(char* name)
 {
 }

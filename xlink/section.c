@@ -20,61 +20,63 @@
 
 #include "xlink.h"
 
-SSection* pSections = NULL;
+Section* g_sections = NULL;
 
-SSection* sect_CreateNew(void)
+Section* sect_CreateNew(void)
 {
-	SSection** ppsect = &pSections;
+	Section** section = &g_sections;
 
-	while(*ppsect)
-		ppsect = &(*ppsect)->pNext;
+	while (*section != NULL)
+		section = &(*section)->nextSection;
 
-	*ppsect = (SSection*)mem_Alloc(sizeof(SSection));
-	if(*ppsect == NULL)
+	*section = (Section*)mem_Alloc(sizeof(Section));
+	if (*section == NULL)
 		Error("Out of memory");
 
-	(*ppsect)->pNext = NULL;
-	(*ppsect)->Used = false;
-	(*ppsect)->Assigned = false;
-	(*ppsect)->pPatches = NULL;
+	(*section)->nextSection = NULL;
+	(*section)->used = false;
+	(*section)->assigned = false;
+	(*section)->patches = NULL;
 
-	return *ppsect;
+	return *section;
 }
 
-static void resolve_symbol(SSection* sect, SSymbol* sym)
+
+static void resolveSymbol(Section* section, Symbol* symbol)
 {
-	switch(sym->Type)
+	switch (symbol->type)
 	{
 		case SYM_LOCALEXPORT:
 		case SYM_EXPORT:
 		case SYM_LOCAL:
 		{
-			sym->Resolved = true;
-			sym->Value += sect->BasePC;
-			sym->pSection = sect;
+			symbol->resolved = true;
+			symbol->value += section->cpuLocation;
+			symbol->section = section;
 			break;
 		}
+
 		case SYM_IMPORT:
 		{
-			SSection* filesect;
+			Section* definingSection;
 			
-			for(filesect = pSections; filesect != NULL; filesect = filesect->pNext)
+			for (definingSection = g_sections; definingSection != NULL; definingSection = definingSection->nextSection)
 			{
-				if(filesect->Used)
+				if (definingSection->used)
 				{
 					uint32_t i;
-					SSymbol* filesym = filesect->pSymbols;
+					Symbol* exportedSymbol = definingSection->symbols;
 
-					for(i = 0; i < filesect->TotalSymbols; ++i, ++filesym)
+					for (i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol)
 					{
-						if(filesym->Type == SYM_EXPORT && strcmp(filesym->Name, sym->Name) == 0)
+						if (exportedSymbol->type == SYM_EXPORT && strcmp(exportedSymbol->name, symbol->name) == 0)
 						{
-							if(!filesym->Resolved)
-								resolve_symbol(filesect, filesym);
+							if (!exportedSymbol->resolved)
+								resolveSymbol(definingSection, exportedSymbol);
 
-							sym->Resolved = true;
-							sym->Value = filesym->Value;
-							sym->pSection = filesect;
+							symbol->resolved = true;
+							symbol->value = exportedSymbol->value;
+							symbol->section = definingSection;
 
 							return;
 						}
@@ -82,31 +84,32 @@ static void resolve_symbol(SSection* sect, SSymbol* sym)
 				}
 			}
 
-			Error("unresolved symbol \"%s\"", sym->Name);
+			Error("Unresolved symbol \"%s\"", symbol->name);
 			break;
 		}
+
 		case SYM_LOCALIMPORT:
 		{
-			SSection* filesect;
+			Section* definingSection;
 
-			for(filesect = pSections; filesect != NULL; filesect = filesect->pNext)
+			for (definingSection = g_sections; definingSection != NULL; definingSection = definingSection->nextSection)
 			{
-				if(filesect->Used && filesect->FileID == sect->FileID)
+				if (definingSection->used && definingSection->fileId == section->fileId)
 				{
 					uint32_t i;
-					SSymbol* filesym = filesect->pSymbols;
+					Symbol* exportedSymbol = definingSection->symbols;
 
-					for(i = 0; i < filesect->TotalSymbols; ++i, ++filesym)
+					for (i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol)
 					{
-						if((filesym->Type == SYM_LOCALEXPORT || filesym->Type == SYM_EXPORT)
-						&&	strcmp(filesym->Name, sym->Name) == 0)
+						if ((exportedSymbol->type == SYM_LOCALEXPORT || exportedSymbol->type == SYM_EXPORT)
+						&&	strcmp(exportedSymbol->name, symbol->name) == 0)
 						{
-							if(!filesym->Resolved)
-								resolve_symbol(filesect, filesym);
+							if (!exportedSymbol->resolved)
+								resolveSymbol(definingSection, exportedSymbol);
 
-							sym->Resolved = true;
-							sym->Value = filesym->Value;
-							sym->pSection = filesect;
+							symbol->resolved = true;
+							symbol->value = exportedSymbol->value;
+							symbol->section = definingSection;
 
 							return;
 						}
@@ -114,40 +117,44 @@ static void resolve_symbol(SSection* sect, SSymbol* sym)
 				}
 			}
 
-			Error("unresolved symbol \"%s\"", sym->Name);
+			Error("Unresolved symbol \"%s\"", symbol->name);
 			break;
 		}
+
 		default:
 		{
-			Error("unhandled symbol type");
+			Error("Unhandled symbol type");
 			break;
 		}
 	}
 }
 
-int32_t sect_GetSymbolValue(SSection* sect, int32_t symbolid)
+
+int32_t sect_GetSymbolValue(Section* section, int32_t symbolId)
 {
-	SSymbol* sym = &sect->pSymbols[symbolid];
+	Symbol* symbol = &section->symbols[symbolId];
 
-	if(!sym->Resolved)
-		resolve_symbol(sect, sym);
+	if (!symbol->resolved)
+		resolveSymbol(section, symbol);
 
-	return sym->Value;
+	return symbol->value;
 }
 
-char* sect_GetSymbolName(SSection* sect, int32_t symbolid)
-{
-	SSymbol* sym = &sect->pSymbols[symbolid];
 
-	return sym->Name;
+char* sect_GetSymbolName(Section* section, int32_t symbolId)
+{
+	Symbol* symbol = &section->symbols[symbolId];
+
+	return symbol->name;
 }
 
-int32_t sect_GetSymbolBank(SSection* sect, int32_t symbolid)
+
+int32_t sect_GetSymbolBank(Section* section, int32_t symbolId)
 {
-	SSymbol* sym = &sect->pSymbols[symbolid];
+	Symbol* symbol = &section->symbols[symbolId];
 
-	if(!sym->Resolved)
-		resolve_symbol(sect, sym);
+	if (!symbol->resolved)
+		resolveSymbol(section, symbol);
 
-	return sym->pSection->Bank;
+	return symbol->section->cpuBank;
 }

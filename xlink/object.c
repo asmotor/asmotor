@@ -67,146 +67,158 @@
 
 #include <string.h>
 
-#define	MAKE_ID(a,b,c,d)	(a)|((b)<<8)|((c)<<16)|((d)<<24)
+#define	MAKE_ID(a,b,c,d)  (a)|((b)<<8)|((c)<<16)|((d)<<24)
 
-static uint32_t	FileID = 0;
-static uint32_t s_nMinimumWordSize = 0;
+static uint32_t	s_fileId = 0;
+static uint32_t s_minimumWordSize = 0;
 
-static	uint32_t	fgetll(FILE* f)
+static uint32_t fgetll(FILE* fileHandle)
 {
-	uint32_t	r;
+	uint32_t r;
 
-	r =fgetc(f);
-	r|=fgetc(f)<<8;
-	r|=fgetc(f)<<16;
-	r|=fgetc(f)<<24;
+	r  = fgetc(fileHandle);
+	r |= fgetc(fileHandle) << 8;
+	r |= fgetc(fileHandle) << 16;
+	r |= fgetc(fileHandle) << 24;
 
 	return r;
 }
 
-static	void	fgetasciiz(char* s, int size, FILE* f)
+static void fgetasciiz(char* destination, int maxLength, FILE* fileHandle)
 {
-	if(size > 0)
+	if (maxLength > 0)
 	{
 		char ch;
 
 		do
 		{
-			ch = *s++ = (char)fgetc(f);
-			--size;
-		} while(size != 0 && ch);
+			ch = *destination++ = (char)fgetc(fileHandle);
+			--maxLength;
+		} while (maxLength != 0 && ch);
 	}
 }
 
 
-static SGroups* read_groups(FILE* f)
+static void readGroup(FILE* fileHandle, Group* group)
 {
-/*
- *	uint32_t	NumberOfGroups
- *	REPT	NumberOfGroups
- *			ASCIIZ	Name
- *			uint32_t	Type
- *	ENDR
- */
+	uint32_t flags;
+	uint32_t type;
 
-	SGroups* pGroups;
-	uint32_t totalgroups;
+	fgetasciiz(group->name, MAXSYMNAMELENGTH, fileHandle);
 
-	totalgroups = fgetll(f);
+	type = fgetll(fileHandle);
+	flags = type & (GROUP_FLAG_DATA | GROUP_FLAG_CHIP);
+	type &= ~flags;
 
-	if((pGroups = mem_Alloc(sizeof(SGroups)+totalgroups*sizeof(SGroup))) != NULL)
+	group->flags = flags;
+	group->type = type;
+
+}
+
+
+static Groups* allocateGroups(uint32_t totalGroups)
+{
+	Groups* groups = mem_Alloc(sizeof(Groups) + totalGroups * sizeof(Group));
+
+	if (groups != NULL)
+	{
+		groups->totalGroups = totalGroups;
+	}
+
+	return groups;
+}
+
+
+static Groups* readGroups(FILE* fileHandle)
+{
+	Groups* groups;
+	uint32_t totalGroups;
+
+	totalGroups = fgetll(fileHandle);
+
+	if ((groups = allocateGroups(totalGroups)) != NULL)
 	{
 		uint32_t i;
+		Group* group = groups->groups;
 
-		pGroups->TotalGroups = totalgroups;
-
-		for(i = 0; i < totalgroups; i += 1)
-		{
-			fgetasciiz(pGroups->Groups[i].Name, MAXSYMNAMELENGTH, f);
-			pGroups->Groups[i].Type = fgetll(f);
-		}
+		for(i = 0; i < totalGroups; i += 1)
+			readGroup(fileHandle, group++);
 	}
 	else
 	{
 		Error("Out of memory");
 	}
 
-	return pGroups;
+	return groups;
 }
 
-static	uint32_t	read_symbols(FILE* f, SSymbol* *pdestsym)
+
+static void readSymbol(FILE* fileHandle, Symbol* symbol)
 {
-/*
- *			uint32_t	NumberOfSymbols
- *			REPT	NumberOfSymbols
- *					ASCIIZ	Name
- *					uint32_t	Type	;0=EXPORT
- *									;1=IMPORT
- *									;2=LOCAL
- *									;3=LOCALEXPORT
- *									;4=LOCALIMPORT
- *					IF Type==EXPORT or LOCAL or LOCALEXPORT
- *						int32_t	Value
- *					ENDC
- *			ENDR
- */
+	fgetasciiz(symbol->name, MAXSYMNAMELENGTH, fileHandle);
 
-	uint32_t	totalsymbols;
-	SSymbol* sym;
+	symbol->type = fgetll(fileHandle);
 
-	totalsymbols=fgetll(f);
+	if (symbol->type != SYM_IMPORT && symbol->type != SYM_LOCALIMPORT)
+		symbol->value = fgetll(fileHandle);
 
-	if((sym=mem_Alloc(totalsymbols*sizeof(SSymbol)))!=NULL)
+	symbol->resolved = false;
+}
+
+
+static uint32_t readSymbols(FILE* fileHandle, Symbol** outputSymbols)
+{
+	uint32_t totalSymbols = fgetll(fileHandle);
+	Symbol* symbol;
+
+	if ((symbol = mem_Alloc(totalSymbols * sizeof(Symbol))) != NULL)
 	{
 		uint32_t	i;
 
-		for(i=0; i<totalsymbols; i+=1)
-		{
-			fgetasciiz(sym[i].Name, MAXSYMNAMELENGTH, f);
-			sym[i].Type=fgetll(f);
-			if((sym[i].Type!=SYM_IMPORT) && (sym[i].Type!=SYM_LOCALIMPORT))
-			{
-				sym[i].Value=fgetll(f);
-			}
-			sym[i].Resolved=false;
-		}
+		*outputSymbols = symbol;
 
-		*pdestsym=sym;
-		return totalsymbols;
+		for (i = 0; i < totalSymbols; i += 1)
+			readSymbol(fileHandle, symbol++);
+
+		return totalSymbols;
 	}
 
 	Error("Out of memory");
 	return 0;
 }
 
-static	SPatches* read_patches(FILE* f)
+
+static void readPatch(FILE* fileHandle, Patch* patch)
 {
-	SPatches* patches;
-	int			totalpatches;
+	patch->offset = fgetll(fileHandle);
+	patch->type = fgetll(fileHandle);
+	patch->expressionSize = fgetll(fileHandle);
 
-	totalpatches=fgetll(f);
-
-	if((patches=mem_Alloc(sizeof(SPatches)+totalpatches*sizeof(SPatch)))!=NULL)
+	if ((patch->expression = mem_Alloc(patch->expressionSize)) != NULL)
 	{
+		if (patch->expressionSize != fread(patch->expression, 1, patch->expressionSize, fileHandle))
+			Error("File read failed");
+	}
+	else
+	{
+		Error("Out of memory");
+	}
+}
+
+
+static Patches* readPatches(FILE* fileHandle)
+{
+	Patches* patches;
+	int totalPatches = fgetll(fileHandle);
+
+	if ((patches = patch_Alloc(totalPatches)) != NULL)
+	{
+		Patch* patch = patches->patches;
 		int	i;
 
-		patches->TotalPatches=totalpatches;
+		for (i = 0; i < totalPatches; i += 1)
+			readPatch(fileHandle, patch++);
 
-		for(i=0; i<totalpatches; i+=1)
-		{
-			patches->Patches[i].Offset=fgetll(f);
-			patches->Patches[i].Type=fgetll(f);
-			patches->Patches[i].ExprSize=fgetll(f);
-			if((patches->Patches[i].pExpr=mem_Alloc(patches->Patches[i].ExprSize))!=NULL)
-			{
-				if(patches->Patches[i].ExprSize != fread(patches->Patches[i].pExpr, 1, patches->Patches[i].ExprSize, f))
-					Error("File read failed");
-			}
-			else
-			{
-				Error("Out of memory");
-			}
-		}
 		return patches;
 	}
 
@@ -214,176 +226,148 @@ static	SPatches* read_patches(FILE* f)
 	return NULL;
 }
 
-static void read_sections(SGroups* groups, FILE* f, int version)
+
+static void readSection(FILE* fileHandle, Section* section, Groups* groups, int version)
 {
-/*
- *	uint32_t	NumberOfSections
- *	REPT	NumberOfSections
- *			int32_t	GroupID	; -1 = exported EQU symbols
- *			ASCIIZ	Name
- *			int32_t	Bank	; -1 = not bankfixed
- *			int32_t	Position; -1 = not fixed
- *			[>=v1] int32_t	BasePC	; -1 = not fixed
- *			uint32_t	NumberOfSymbols
- *			REPT	NumberOfSymbols
- *					ASCIIZ	Name
- *					uint32_t	Type	;0=EXPORT
- *									;1=IMPORT
- *									;2=LOCAL
- *									;3=LOCALEXPORT
- *									;4=LOCALIMPORT
- *					IF Type==EXPORT or LOCAL or LOCALEXPORT
- *						int32_t	Value
- *					ENDC
- *			ENDR
- *			uint32_t	Size
- *			IF	SectionCanContainData
- *					uint8_t	Data[Size]
- *					uint32_t	NumberOfPatches
- *					REPT	NumberOfPatches
- *							uint32_t	Offset
- *							uint32_t	Type
- *							uint32_t	ExprSize
- *							uint8_t	Expr[ExprSize]
- *					ENDR
- *			ENDC
- *	ENDR
- */
+	section->group = groups_GetGroup(groups, fgetll(fileHandle));
+	fgetasciiz(section->name, MAXSYMNAMELENGTH, fileHandle);
+	section->cpuBank = fgetll(fileHandle);
+	section->cpuByteLocation = fgetll(fileHandle);
+	if (version >= 1)
+		section->cpuLocation = fgetll(fileHandle);
+	else
+		section->cpuLocation = section->cpuByteLocation;
 
-	uint32_t	totalsections;
+	section->totalSymbols = readSymbols(fileHandle, &section->symbols);
 
-	totalsections=fgetll(f);
-	while(totalsections--)
+	section->size = fgetll(fileHandle);
+	if (group_isText(section->group))
 	{
-		SSection* section = sect_CreateNew();
-
-        section->MinimumWordSize = s_nMinimumWordSize;
-		section->pGroups = groups;
-		section->FileID = FileID;
-
-		section->GroupID = fgetll(f);
-		fgetasciiz(section->Name, MAXSYMNAMELENGTH, f);
-		section->Bank = fgetll(f);
-		section->Position = fgetll(f);
-		if(version >= 1)
-			section->BasePC = fgetll(f);
-		else
-			section->BasePC = section->Position;
-
-		if(groups->Groups[section->GroupID].Type == GROUP_TEXT
-		&& strcmp(groups->Groups[section->GroupID].Name, "HOME") == 0)
+		if ((section->data = mem_Alloc(section->size)) != NULL)
 		{
-			section->Bank = 0;
-		}
-
-		section->TotalSymbols=read_symbols(f, &section->pSymbols);
-
-		section->Size=fgetll(f);
-
-		if(section->GroupID >= 0 && groups->Groups[section->GroupID].Type == GROUP_TEXT)
-		{
-			if((section->pData = mem_Alloc(section->Size)) != NULL)
-			{
-				if(section->Size != fread(section->pData, 1, section->Size, f))
-					Error("File read failed");
-				section->pPatches = read_patches(f);
-			}
+			if (section->size != fread(section->data, 1, section->size, fileHandle))
+				Error("File read failed");
+			section->patches = readPatches(fileHandle);
 		}
 	}
-
-	FileID+=1;
 }
 
-static	void	readchunk(FILE* f);
-
-static	void	read_xob0(FILE* f)
+static void readSections(Groups* groups, FILE* fileHandle, int version)
 {
-	s_nMinimumWordSize = 1;
-	read_sections(read_groups(f), f, 0);
+	uint32_t totalsections;
+
+	totalsections = fgetll(fileHandle);
+	while(totalsections--)
+	{
+		Section* section = sect_CreateNew();
+
+	    section->minimumWordSize = s_minimumWordSize;
+		section->fileId = s_fileId;
+
+		readSection(fileHandle, section, groups, version);
+
+		if (group_isText(section->group) 
+		&& strcmp(section->group->name, "HOME") == 0)
+		{
+			section->cpuBank = 0;
+		}
+
+	}
+
+	s_fileId += 1;
 }
 
-static void read_xob1(FILE* f)
+
+static void	readXOB0(FILE* fileHandle)
 {
-	s_nMinimumWordSize = fgetc(f);
-	read_sections(read_groups(f), f, 1);
+	s_minimumWordSize = 1;
+	readSections(readGroups(fileHandle), fileHandle, 0);
 }
 
-static	void	read_xlb0(FILE* f)
-{
-	uint32_t	count;
 
-	count=fgetll(f);
+static void readXOB1(FILE* fileHandle)
+{
+	s_minimumWordSize = fgetc(fileHandle);
+	readSections(readGroups(fileHandle), fileHandle, 1);
+}
+
+
+static void readChunk(FILE* fileHandle);
+
+
+static void	readXLB0(FILE* fileHandle)
+{
+	uint32_t count = fgetll(fileHandle);
 
 	while(count--)
 	{
-		while(fgetc(f)){}	//	Skip name
-		fgetll(f);		//	Skip time
-		fgetll(f);		//	Skip date
-		fgetll(f);		//	Skip length
+		while (fgetc(fileHandle)) {}  // Skip name
+		fgetll(fileHandle);           // Skip time
+		fgetll(fileHandle);           // Skip date
+		fgetll(fileHandle);           // Skip length
 
-		//read_sections(read_groups(f), f);
-		readchunk(f);
+		readChunk(fileHandle);
 	}
 }
 
 
-static	void	readchunk(FILE* f)
+static void readChunk(FILE* fileHandle)
 {
-	uint32_t	id;
+	uint32_t id = fgetll(fileHandle);
 
-	id=fgetll(f);
-
-	switch(id)
+	switch (id)
 	{
-		case	MAKE_ID('X','O','B',0):
+		case MAKE_ID('X','O','B',0):
 		{
-			read_xob0(f);
+			readXOB0(fileHandle);
 			break;
 		}
-		case	MAKE_ID('X','O','B',1):
+
+		case MAKE_ID('X','O','B',1):
 		{
-			read_xob1(f);
+			readXOB1(fileHandle);
 			break;
 		}
-		case	MAKE_ID('X','L','B',0):
+
+		case MAKE_ID('X','L','B',0):
 		{
-			read_xlb0(f);
+			readXLB0(fileHandle);
 			break;
 		}
 	}
 }
 
-static	long	filesize(FILE* f)
-{
-	long	pos,
-			r;
 
-	pos=ftell(f);
-	fseek(f, 0, SEEK_END);
-	r=ftell(f);
-	fseek(f, pos, SEEK_SET);
+static size_t fsize(FILE* fileHandle)
+{
+	size_t pos;
+	size_t r;
+
+	pos = ftell(fileHandle);
+	fseek(fileHandle, 0, SEEK_END);
+
+	r = ftell(fileHandle);
+	fseek(fileHandle, pos, SEEK_SET);
 
 	return r;
 }
 
-void	obj_Read(char* s)
+
+void obj_Read(char* fileName)
 {
-	FILE* f;
+	FILE* fileHandle;
 
-	if((f=fopen(s,"rb"))!=NULL)
+	if ((fileHandle = fopen(fileName, "rb")) != NULL)
 	{
-		long	size;
+		size_t size = fsize(fileHandle);
 
-		size=filesize(f);
+		while (ftell(fileHandle) < size)
+			readChunk(fileHandle);
 
-		while(ftell(f)<size)
-		{
-			readchunk(f);
-		}
-		fclose(f);
+		fclose(fileHandle);
 	}
 	else
 	{
-		Error("File \"%s\" not found", s);
+		Error("File \"%s\" not found", fileName);
 	}
 }

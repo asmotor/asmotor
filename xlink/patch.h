@@ -26,7 +26,7 @@ typedef	enum
 	PATCH_BWORD,
 	PATCH_LLONG,
 	PATCH_BLONG,
-}	EPatchType;
+} PatchType;
 
 typedef	enum
 {
@@ -64,22 +64,24 @@ typedef	enum
 	OBJ_SYMBOL,
 	OBJ_PCREL,
 	OBJ_FUNC_BANK,
-}	EExprOperator;
+} ExpressionOperator;
 
 typedef	struct
 {
-	uint32_t		Offset;
-	EPatchType	Type;
-	uint32_t		ExprSize;
-	uint8_t*		pExpr;
-}	SPatch;
+	uint32_t  offset;
+	PatchType type;
+	
+	uint32_t  expressionSize;
+	uint8_t*  expression;
+} Patch;
 
 typedef	struct
 {
-	uint32_t	TotalPatches;
-	SPatch	Patches[];
-}	SPatches;
+	uint32_t totalPatches;
+	Patch patches[];
+} Patches;
 
-extern	void	patch_Process(void);
+extern void patch_Process(void);
+extern Patches* patch_Alloc(uint32_t totalPatches);
 
 #endif
