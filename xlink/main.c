@@ -20,6 +20,14 @@
 #include "asmotor.h"
 #include <stdarg.h>
 
+
+typedef enum
+{
+	TARGET_BINARY,
+	TARGET_EXECUTABLE
+} TargetType;
+
+
 void Error(char* fmt, ...)
 {
 	va_list	list;
@@ -35,7 +43,6 @@ void Error(char* fmt, ...)
 	exit(EXIT_FAILURE);
 }
 
-/*	Help text */
 
 static void printUsage(void)
 {
@@ -57,11 +64,12 @@ static void printUsage(void)
 }
 
 
-
 int	main(int argc, char* argv[])
 {
 	int argn = 1;
-	int targetDefined = 0;
+	bool_t targetDefined = false;
+	bool_t targetType;
+
 	char* outputFilename = NULL;
 	char* smartlink = NULL;
 
@@ -123,7 +131,8 @@ int	main(int argc, char* argv[])
 						{
 							/* Amiga executable */
 							group_SetupAmigaExecutable();
-							targetDefined = 1;
+							targetDefined = true;
+							targetType = TARGET_EXECUTABLE;
 							++argn;
 							break;
 						}
@@ -131,7 +140,8 @@ int	main(int argc, char* argv[])
 						{
 							/* Gameboy ROM image */
 							group_SetupGameboy();
-							targetDefined = 1;
+							targetDefined = true;
+							targetType = TARGET_BINARY;
 							++argn;
 							break;
 						}
@@ -139,7 +149,8 @@ int	main(int argc, char* argv[])
 						{
 							/* Gameboy small mode ROM image */
 							group_SetupSmallGameboy();
-							targetDefined = 1;
+							targetDefined = true;
+							targetType = TARGET_BINARY;
 							++argn;
 							break;
 						}
@@ -179,7 +190,10 @@ int	main(int argc, char* argv[])
 	}
 
 	smart_Process(smartlink);
-	assign_Process();
+
+	if (targetType == TARGET_BINARY)
+		assign_Process();
+
 	patch_Process();
 
 	if (outputFilename)

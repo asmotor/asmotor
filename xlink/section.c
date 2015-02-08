@@ -51,8 +51,11 @@ static void resolveSymbol(Section* section, Symbol* symbol)
 		case SYM_LOCAL:
 		{
 			symbol->resolved = true;
-			symbol->value += section->cpuLocation;
 			symbol->section = section;
+
+			if (section->cpuLocation != -1)
+				symbol->value += section->cpuLocation;
+
 			break;
 		}
 
@@ -130,14 +133,20 @@ static void resolveSymbol(Section* section, Symbol* symbol)
 }
 
 
-int32_t sect_GetSymbolValue(Section* section, int32_t symbolId)
+bool_t sect_GetConstantSymbolValue(Section* section, int32_t symbolId, int32_t* outValue)
 {
 	Symbol* symbol = &section->symbols[symbolId];
 
 	if (!symbol->resolved)
 		resolveSymbol(section, symbol);
 
-	return symbol->value;
+	if (symbol->section->cpuLocation != -1)
+	{
+		*outValue = symbol->value;
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -149,12 +158,20 @@ char* sect_GetSymbolName(Section* section, int32_t symbolId)
 }
 
 
-int32_t sect_GetSymbolBank(Section* section, int32_t symbolId)
+bool_t sect_GetConstantSymbolBank(Section* section, int32_t symbolId, int32_t* outValue)
 {
+	int32_t bank;
 	Symbol* symbol = &section->symbols[symbolId];
 
 	if (!symbol->resolved)
 		resolveSymbol(section, symbol);
 
-	return symbol->section->cpuBank;
+	bank = symbol->section->cpuBank;
+	if (bank != -1)
+	{
+		*outValue = bank;
+		return true;
+	}
+
+	return false;
 }

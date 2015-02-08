@@ -52,8 +52,8 @@ typedef	struct Section_
 extern Section* g_sections;
 
 extern Section* sect_CreateNew(void);
-extern int32_t sect_GetSymbolValue(Section* section, int32_t symbolId);
-extern int32_t sect_GetSymbolBank(Section* section, int32_t symbolId);
+extern bool_t sect_GetConstantSymbolValue(Section* section, int32_t symbolId, int32_t* outValue);
+extern bool_t sect_GetConstantSymbolBank(Section* section, int32_t symbolId, int32_t* outValue);
 extern char* sect_GetSymbolName(Section* section, int32_t symbolId);
 
 #endif

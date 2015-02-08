@@ -26,6 +26,7 @@ typedef	enum
 	PATCH_BWORD,
 	PATCH_LLONG,
 	PATCH_BLONG,
+	PATCH_NONE
 } PatchType;
 
 typedef	enum

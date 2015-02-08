@@ -328,7 +328,7 @@ static char* makePatchString(Patch* patch, Section* section)
 }
 
 
-int32_t calculatePatchValue(Patch* patch, Section* section)
+bool_t calculateConstantPatchValue(Patch* patch, Section* section, int32_t* outValue)
 {
 	int32_t size = patch->expressionSize;
 	uint8_t* expression = patch->expression;
@@ -543,26 +543,34 @@ int32_t calculatePatchValue(Patch* patch, Section* section)
 			case OBJ_SYMBOL:
 			{
 				uint32_t symbolId;
+				int32_t value;
 
 				symbolId  = (*expression++);
 				symbolId |= (*expression++) << 8;
 				symbolId |= (*expression++) << 16;
 				symbolId |= (*expression++) << 24;
 
-				pushInt(sect_GetSymbolValue(section, symbolId));
+				if (!sect_GetConstantSymbolValue(section, symbolId, &value))
+					return false;
+
+				pushInt(value);
 				size -= 4;
 				break;
 			}
 			case OBJ_FUNC_BANK:
 			{
 				uint32_t symbolId;
+				int32_t bank;
 
 				symbolId  = (*expression++);
 				symbolId |= (*expression++) << 8;
 				symbolId |= (*expression++) << 16;
 				symbolId |= (*expression++) << 24;
 
-				pushInt(sect_GetSymbolBank(section, symbolId));
+				if (!sect_GetConstantSymbolBank(section, symbolId, &bank))
+					return false;
+
+				pushInt(bank);
 				size -= 4;
 				break;
 			}
@@ -580,7 +588,8 @@ int32_t calculatePatchValue(Patch* patch, Section* section)
 		}
 	}
 
-	return popInt();
+	*outValue = popInt();
+	return s_stackIndex == 0;
 }
 
 static void patchSection(Section* section)
@@ -594,65 +603,77 @@ static void patchSection(Section* section)
 
 		for (i = patches->totalPatches; i > 0; --i, ++patch)
 		{
-			int32_t value = calculatePatchValue(patch, section);
-
-			switch (patch->type)
+			int32_t value;
+			if (calculateConstantPatchValue(patch, section, &value))
 			{
-				case PATCH_BYTE:
+				switch (patch->type)
 				{
-					if (value >= -128 && value <= 255)
-						section->data[patch->offset] = (uint8_t)value;
-					else
-						Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
-					break;
-				}
-				case PATCH_LWORD:
-				{
-					if (value >= -32768 && value <= 65535)
+					case PATCH_BYTE:
+					{
+						if (value >= -128 && value <= 255)
+							section->data[patch->offset] = (uint8_t)value;
+						else
+							Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
+						break;
+					}
+					case PATCH_LWORD:
+					{
+						if (value >= -32768 && value <= 65535)
+						{
+							section->data[patch->offset + 0] = (uint8_t)value;
+							section->data[patch->offset + 1] = (uint8_t)(value >> 8);
+						}
+						else
+						{
+							Error("patch out of range");
+						}
+						break;
+					}
+					case PATCH_BWORD:
+					{
+						if (value >= -32768 && value <= 65535)
+						{
+							section->data[patch->offset + 0] = (uint8_t)(value >> 8);
+							section->data[patch->offset + 1] = (uint8_t)value;
+						}
+						else
+						{
+							Error("patch out of range");
+						}
+						break;
+					}
+					case PATCH_LLONG:
 					{
 						section->data[patch->offset + 0] = (uint8_t)value;
 						section->data[patch->offset + 1] = (uint8_t)(value >> 8);
+						section->data[patch->offset + 2] = (uint8_t)(value >> 16);
+						section->data[patch->offset + 3] = (uint8_t)(value >> 24);
+						break;
 					}
-					else
+					case PATCH_BLONG:
 					{
-						Error("patch out of range");
+						section->data[patch->offset + 0] = (uint8_t)(value >> 24);
+						section->data[patch->offset + 1] = (uint8_t)(value >> 16);
+						section->data[patch->offset + 2] = (uint8_t)(value >> 8);
+						section->data[patch->offset + 3] = (uint8_t)value;
+						break;
 					}
-					break;
-				}
-				case PATCH_BWORD:
-				{
-					if (value >= -32768 && value <= 65535)
+					case PATCH_NONE:
 					{
-						section->data[patch->offset + 0] = (uint8_t)(value >> 8);
-						section->data[patch->offset + 1] = (uint8_t)value;
+						break;
 					}
-					else
+					default:
 					{
-						Error("patch out of range");
+						Error("unhandled patch type");
+						break;
 					}
-					break;
 				}
-				case PATCH_LLONG:
-				{
-					section->data[patch->offset + 0] = (uint8_t)value;
-					section->data[patch->offset + 1] = (uint8_t)(value >> 8);
-					section->data[patch->offset + 2] = (uint8_t)(value >> 16);
-					section->data[patch->offset + 3] = (uint8_t)(value >> 24);
-					break;
-				}
-				case PATCH_BLONG:
-				{
-					section->data[patch->offset + 0] = (uint8_t)(value >> 24);
-					section->data[patch->offset + 1] = (uint8_t)(value >> 16);
-					section->data[patch->offset + 2] = (uint8_t)(value >> 8);
-					section->data[patch->offset + 3] = (uint8_t)value;
-					break;
-				}
-				default:
-				{
-					Error("unhandled patch type");
-					break;
-				}
+				mem_Free(patch->expression);
+
+				patch->offset = 0;
+				patch->type = PATCH_NONE;
+				patch->expression = NULL;
+				patch->expressionSize = 0;
 			}
 		}
 	}
