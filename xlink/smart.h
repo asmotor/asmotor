@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sørensen
+/*  Copyright 2008-2015 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -19,7 +19,7 @@
 #ifndef	SMART_H
 #define	SMART_H
 
-extern	void	smart_Process(char* name);
+extern void smart_Process(char* name);
 
 #endif
 

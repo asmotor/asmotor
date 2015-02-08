@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sørensen
+/*  Copyright 2008-2015 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -23,35 +23,35 @@
 void Error(char* fmt, ...)
 {
 	va_list	list;
-	char temp[256];
 
 	va_start(list, fmt);
-	vsprintf(temp, fmt, list);
 
-	printf("ERROR: %s\n", temp);
+	printf("ERROR: ");
+	vprintf(fmt, list);
+	printf("\n");
+
 	va_end(list);
+
 	exit(EXIT_FAILURE);
 }
 
 /*	Help text */
 
-void PrintUsage(void)
+static void printUsage(void)
 {
-    printf(	"motorlink v" LINK_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n"
+    printf(	"xlink v" LINK_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n"
 			"\n"
 			"Usage: motorlink [options] file1 file2 ... filen\n"
     		"Options: (a forward slash (/) can be used instead of the dash (-))\n"
 			"\t-h\t\tThis text\n"
-			"\t-m<mapfile>\tWrite a mapfile\n"
+//			"\t-m<mapfile>\tWrite a mapfile\n"
 			"\t-o<output>\tWrite output to file <output>\n"
-    		"\t-s<symbol>\tPerform smart linking starting with <symbol>\n"
+//			"\t-s<symbol>\tPerform smart linking starting with <symbol>\n"
 			"\t-t\t\tOutput target\n"
 			"\t    -ta\t\tAmiga executable\n"
 			"\t    -tg\t\tGameboy ROM image\n"
 			"\t    -ts\t\tGameboy small mode (32 KiB)\n"
-			"\t    -tm<mach>\tUse file <mach>\n"
-    		"\t-z<hx>\t\tSet the byte value (hex format) used for uninitialised\n"
-			"\t\t\tdata (default is ? for random)\n"
+//			"\t    -tm<mach>\tUse file <mach>\n"
 			);
     exit(EXIT_SUCCESS);
 }
@@ -66,7 +66,7 @@ int	main(int argc, char* argv[])
 	char* smartlink = NULL;
 
 	if (argc == 1)
-		PrintUsage();
+		printUsage();
 
 	while (argn < argc && (argv[argn][0] == '-' || argv[argn][0] == '/'))
 	{
@@ -75,7 +75,7 @@ int	main(int argc, char* argv[])
 			case '?':
 			case 'h':
 				++argn;
-				PrintUsage();
+				printUsage();
 				break;
 			case 'm':
 				/* MapFile */
@@ -161,9 +161,6 @@ int	main(int argc, char* argv[])
 				}
 
 				break;
-			case 'z':
-				/* Fill byte */
-				break;
 			default:
 				printf("Unknown option \"%s\", ignored\n", argv[argn]);
 				++argn;
@@ -171,14 +168,14 @@ int	main(int argc, char* argv[])
 		}
 	}
 
-	if (!targetDefined) {
+	if (!targetDefined)
+	{
 		Error("No target format defined");
 	}
 
-	while(argn < argc && argv[argn])
+	while (argn < argc && argv[argn])
 	{
-		obj_Read(argv[argn]);
-		++argn;
+		obj_Read(argv[argn++]);
 	}
 
 	smart_Process(smartlink);

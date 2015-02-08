@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sørensen
+/*  Copyright 2008-2015 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -27,6 +27,7 @@
 static char* s_stringStack[STACKSIZE];
 static int32_t s_stack[STACKSIZE];
 static int32_t s_stackIndex;
+
 
 static void pushString(char* stringValue)
 {
@@ -161,7 +162,7 @@ static char* makePatchString(Patch* patch, Section* section)
 		char* left;
 		char* right;
 
-		switch (*expression++)
+		switch ((ExpressionOperator)*expression++)
 		{
 			case OBJ_OP_SUB:
 				combinePatchStrings("-");
@@ -340,7 +341,7 @@ int32_t calculatePatchValue(Patch* patch, Section* section)
 
 		--size;
 
-		switch(*expression++)
+		switch ((ExpressionOperator)*expression++)
 		{
 			case OBJ_OP_SUB:
 			{
@@ -572,8 +573,10 @@ int32_t calculatePatchValue(Patch* patch, Section* section)
 				break;
 			}
 			default:
+			{
 				Error("Unknown patch operator");
 				break;
+			}
 		}
 	}
 
@@ -618,10 +621,10 @@ static void patchSection(Section* section)
 				}
 				case PATCH_BWORD:
 				{
-					if (value>=-32768 && value<=65535)
+					if (value >= -32768 && value <= 65535)
 					{
-						section->data[patch->offset+0] = (uint8_t)(value>>8);
-						section->data[patch->offset+1] = (uint8_t)value;
+						section->data[patch->offset + 0] = (uint8_t)(value >> 8);
+						section->data[patch->offset + 1] = (uint8_t)value;
 					}
 					else
 					{
@@ -631,23 +634,24 @@ static void patchSection(Section* section)
 				}
 				case PATCH_LLONG:
 				{
-					section->data[patch->offset+0] = (uint8_t)value;
-					section->data[patch->offset+1] = (uint8_t)(value>>8);
-					section->data[patch->offset+2] = (uint8_t)(value>>16);
-					section->data[patch->offset+3] = (uint8_t)(value>>24);
+					section->data[patch->offset + 0] = (uint8_t)value;
+					section->data[patch->offset + 1] = (uint8_t)(value >> 8);
+					section->data[patch->offset + 2] = (uint8_t)(value >> 16);
+					section->data[patch->offset + 3] = (uint8_t)(value >> 24);
 					break;
 				}
 				case PATCH_BLONG:
 				{
-					section->data[patch->offset+0] = (uint8_t)(value>>24);
-					section->data[patch->offset+1] = (uint8_t)(value>>16);
-					section->data[patch->offset+2] = (uint8_t)(value>>8);
-					section->data[patch->offset+3] = (uint8_t)value;
+					section->data[patch->offset + 0] = (uint8_t)(value >> 24);
+					section->data[patch->offset + 1] = (uint8_t)(value >> 16);
+					section->data[patch->offset + 2] = (uint8_t)(value >> 8);
+					section->data[patch->offset + 3] = (uint8_t)value;
 					break;
 				}
 				default:
 				{
 					Error("unhandled patch type");
+					break;
 				}
 			}
 		}

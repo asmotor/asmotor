@@ -18,7 +18,7 @@ long_description    ASMotor is a portable and generic assembler engine and \
                     It can be used as either a cross or native development \
                     system. The assembler syntax is based on the A68k style \
                     macro language. Currently supported CPUs are the 680x0 \
-                    family, 6502, MIPS32 and Gameboy.
+                    family, 6502, MIPS32, SChip/Chip-8, Z80 and Gameboy.
 
 homepage            http://code.google.com/p/asmotor/
 master_sites        googlecode
