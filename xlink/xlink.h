@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_H
-#define	XLINK_H
+#ifndef	XLINK_H_INCLUDED_
+#define	XLINK_H_INCLUDED_
 
 #define	MAXSYMNAMELENGTH	256
 
@@ -31,6 +31,7 @@
 #include "group.h"
 #include "assign.h"
 #include "smart.h"
+#include "reloc.h"
 #include "mem.h"
 
 #include <stdio.h>

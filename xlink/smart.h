@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	SMART_H
-#define	SMART_H
+#ifndef	XLINK_SMART_H_INCLUDED_
+#define	XLINK_SMART_H_INCLUDED_
 
 extern void smart_Process(char* name);
 

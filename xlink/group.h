@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	GROUP_H
-#define	GROUP_H
+#ifndef	XLINK_GROUP_H_INCLUDED_
+#define	XLINK_GROUP_H_INCLUDED_
 
 extern void	group_SetupGameboy(void);
 extern void group_SetupSmallGameboy(void);

@@ -16,12 +16,13 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	SECTION_H
-#define	SECTION_H
+#ifndef	XLINK_SECTION_H_INCLUDED_
+#define	XLINK_SECTION_H_INCLUDED_
 
 typedef	struct Section_
 {
 	uint32_t fileId;
+    uint32_t sectionId;
 
 	Group* group;
 
@@ -42,6 +43,8 @@ typedef	struct Section_
 	uint8_t* data;
 
 	Patches* patches;
+
+    struct Relocs_* relocs;
 
 	bool_t used;
 	bool_t assigned;

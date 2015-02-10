@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	PATCH_H
-#define	PATCH_H
+#ifndef	XLINK_PATCH_H_INCLUDED_
+#define	XLINK_PATCH_H_INCLUDED_
 
 typedef	enum
 {

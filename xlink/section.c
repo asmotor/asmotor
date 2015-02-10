@@ -22,6 +22,8 @@
 
 Section* g_sections = NULL;
 
+static uint32_t s_sectionId = 0;
+
 Section* sect_CreateNew(void)
 {
 	Section** section = &g_sections;
@@ -33,10 +35,12 @@ Section* sect_CreateNew(void)
 	if (*section == NULL)
 		Error("Out of memory");
 
+	(*section)->sectionId = s_sectionId++;
 	(*section)->nextSection = NULL;
 	(*section)->used = false;
 	(*section)->assigned = false;
 	(*section)->patches = NULL;
+	(*section)->relocs = NULL;
 
 	return *section;
 }

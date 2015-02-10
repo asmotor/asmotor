@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	OBJECT_H
-#define	OBJECT_H
+#ifndef	XLINK_OBJECT_H_INCLUDED_
+#define	XLINK_OBJECT_H_INCLUDED_
 
 typedef	enum
 {

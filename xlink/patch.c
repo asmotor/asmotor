@@ -682,14 +682,12 @@ static void patchSection(Section* section)
 
 void patch_Process(void)
 {
-	Section* section = g_sections;
+	Section* section;
 
-	while (section != NULL)
+	for (section = g_sections; section != NULL; section = section->nextSection)
 	{
 		if (section->used)
 			patchSection(section);
-
-		section = section->nextSection;
 	}
 }
 

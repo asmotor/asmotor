@@ -14,6 +14,7 @@ xlink = localEnv.Program(b + "/xlink", LIBS = [libutil, "m"], source = [
 	b + "/object.c",
 	b + "/output.c",
 	b + "/patch.c",
+	b + "/reloc.c",
 	b + "/section.c",
 	b + "/smart.c"
 	])

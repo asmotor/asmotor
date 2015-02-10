@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	SYMBOL_H
-#define	SYMBOL_H
+#ifndef	XLINK_SYMBOL_H_INCLUDED_
+#define	XLINK_SYMBOL_H_INCLUDED_
 
 typedef	enum
 {

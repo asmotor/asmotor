@@ -68,7 +68,7 @@ int	main(int argc, char* argv[])
 {
 	int argn = 1;
 	bool_t targetDefined = false;
-	bool_t targetType;
+	TargetType targetType;
 
 	char* outputFilename = NULL;
 	char* smartlink = NULL;
@@ -193,6 +193,8 @@ int	main(int argc, char* argv[])
 
 	if (targetType == TARGET_BINARY)
 		assign_Process();
+	else // if (targetType == TARGET_EXECUTABLE)
+		reloc_Process();
 
 	patch_Process();
 
