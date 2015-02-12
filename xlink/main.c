@@ -24,7 +24,7 @@
 typedef enum
 {
 	TARGET_BINARY,
-	TARGET_EXECUTABLE
+	TARGET_AMIGA_EXECUTABLE
 } TargetType;
 
 
@@ -132,7 +132,7 @@ int	main(int argc, char* argv[])
 							/* Amiga executable */
 							group_SetupAmigaExecutable();
 							targetDefined = true;
-							targetType = TARGET_EXECUTABLE;
+							targetType = TARGET_AMIGA_EXECUTABLE;
 							++argn;
 							break;
 						}
@@ -193,13 +193,21 @@ int	main(int argc, char* argv[])
 
 	if (targetType == TARGET_BINARY)
 		assign_Process();
-	else // if (targetType == TARGET_EXECUTABLE)
-		reloc_Process();
 
-	patch_Process();
+	patch_Process(targetType != TARGET_BINARY);
 
-	if (outputFilename)
-		output_WriteImage(outputFilename);
+	if (outputFilename != NULL)
+	{
+		switch (targetType)
+		{
+			case TARGET_BINARY:
+				image_WriteBinary(outputFilename);
+				break;
+			case TARGET_AMIGA_EXECUTABLE:
+				amiga_WriteExecutable(outputFilename, false);
+				break;
+		}
+	}
 
 	return EXIT_SUCCESS;
 }

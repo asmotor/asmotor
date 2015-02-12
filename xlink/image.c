@@ -45,7 +45,7 @@ static void* allocEmptyBytes()
 }
 
 
-void output_WriteImage(char* outputFilename)
+extern void image_WriteBinary(char* outputFilename)
 {
 	char* emptyBytes = allocEmptyBytes();
 

@@ -16,9 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_OUTPUT_H_INCLUDED_
-#define	XLINK_OUTPUT_H_INCLUDED_
+#ifndef	XLINK_IMAGE_H_INCLUDED_
+#define	XLINK_IMAGE_H_INCLUDED_
 
-extern void output_WriteImage(char* name);
+extern void image_WriteBinary(char* name);
 
 #endif

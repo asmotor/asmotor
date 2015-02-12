@@ -16,22 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xlink.h"
+#ifndef XLINK_AMIGA_H_INCLUDED_
+#define XLINK_AMIGA_H_INCLUDED_
 
-static void relocSection(Section* section)
-{
+extern void amiga_WriteExecutable(char* filename, bool_t debugInfo);
 
-}
-
-
-void reloc_Process(void)
-{
-    Section* section;
-
-    for (section = g_sections; section != NULL; section = section->nextSection)
-    {
-        if (section->used)
-            relocSection(section);
-    }
-
-}
+#endif

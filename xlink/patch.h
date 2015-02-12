@@ -26,7 +26,8 @@ typedef	enum
 	PATCH_BWORD,
 	PATCH_LLONG,
 	PATCH_BLONG,
-	PATCH_NONE
+	PATCH_NONE,
+	PATCH_RELOC
 } PatchType;
 
 typedef	enum
@@ -69,9 +70,11 @@ typedef	enum
 
 typedef	struct
 {
-	uint32_t  offset;
 	PatchType type;
-	
+
+	struct Section_* offsetSection;
+	uint32_t  offset;
+
 	uint32_t  expressionSize;
 	uint8_t*  expression;
 } Patch;
@@ -82,7 +85,7 @@ typedef	struct
 	Patch patches[];
 } Patches;
 
-extern void patch_Process(void);
+extern void patch_Process(bool_t allowReloc);
 extern Patches* patch_Alloc(uint32_t totalPatches);
 
 #endif

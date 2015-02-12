@@ -45,6 +45,11 @@ Section* sect_CreateNew(void)
 	return *section;
 }
 
+uint32_t sect_TotalSections(void)
+{
+	return s_sectionId;
+}
+
 
 static void resolveSymbol(Section* section, Symbol* symbol)
 {
@@ -137,8 +142,11 @@ static void resolveSymbol(Section* section, Symbol* symbol)
 }
 
 
-bool_t sect_GetConstantSymbolValue(Section* section, int32_t symbolId, int32_t* outValue)
+bool_t sect_GetSymbolValue(Section* section, int32_t symbolId, int32_t* outValue, Section** outSection)
 {
+	if (symbolId < 0 || symbolId >= section->totalSymbols)
+		return false;
+	
 	Symbol* symbol = &section->symbols[symbolId];
 
 	if (!symbol->resolved)
@@ -147,7 +155,13 @@ bool_t sect_GetConstantSymbolValue(Section* section, int32_t symbolId, int32_t* 
 	if (symbol->section->cpuLocation != -1)
 	{
 		*outValue = symbol->value;
+		*outSection = NULL;
 		return true;
+	}
+	else
+	{
+		*outValue = symbol->value;
+		*outSection = symbol->section;
 	}
 
 	return false;
@@ -178,4 +192,17 @@ bool_t sect_GetConstantSymbolBank(Section* section, int32_t symbolId, int32_t* o
 	}
 
 	return false;
+}
+
+
+void sect_ForEachUsedSection(void (*function)(Section*))
+{
+    Section* section;
+
+    for (section = g_sections; section != NULL; section = section->nextSection)
+    {
+        if (section->used)
+            function(section);
+    }
+
 }

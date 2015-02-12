@@ -23,7 +23,7 @@
 
 #include "types.h"
 #include "object.h"
-#include "output.h"
+#include "image.h"
 #include "mapfile.h"
 #include "symbol.h"
 #include "patch.h"
@@ -31,7 +31,7 @@
 #include "group.h"
 #include "assign.h"
 #include "smart.h"
-#include "reloc.h"
+#include "amiga.h"
 #include "mem.h"
 
 #include <stdio.h>

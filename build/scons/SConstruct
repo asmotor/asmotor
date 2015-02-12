@@ -12,6 +12,7 @@ env = Environment(PREFIX = GetOption('prefix'))
 #env.Replace(CXX = "llvm-g++")
 #env.Replace(CC = "llvm-gcc")
 env.Append(CPPFLAGS = "-O3 -std=c99 -pedantic -Wall")
+#env.Append(CPPFLAGS = "-g -std=c99 -pedantic -Wall")
 env.Append(LIBS = ["m"])
 env.Append(CPPPATH = ["#/../../util", "#/../../xasm/common"])
 

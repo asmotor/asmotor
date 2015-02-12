@@ -7,14 +7,14 @@ localEnv = env.Clone()
 
 localEnv.VariantDir(b, "../../xlink", duplicate = 0)
 xlink = localEnv.Program(b + "/xlink", LIBS = [libutil, "m"], source = [
+	b + "/amiga.c",
 	b + "/assign.c",
 	b + "/group.c",
+	b + "/image.c",
 	b + "/main.c",
 	b + "/mapfile.c",
 	b + "/object.c",
-	b + "/output.c",
 	b + "/patch.c",
-	b + "/reloc.c",
 	b + "/section.c",
 	b + "/smart.c"
 	])
