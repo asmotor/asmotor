@@ -580,9 +580,7 @@ bool_t calculatePatchValue(Patch* patch, Section* section, int32_t* outValue, Se
 				symbolId |= (*expression++) << 16;
 				symbolId |= (*expression++) << 24;
 
-				if (!sect_GetSymbolValue(section, symbolId, &symbolValue, &symbolSection))
-					return false;
-
+				sect_GetSymbolValue(section, symbolId, &symbolValue, &symbolSection);
 				pushSectionInt(symbolSection, symbolValue);
 				size -= 4;
 				break;

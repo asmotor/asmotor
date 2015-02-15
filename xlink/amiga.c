@@ -218,9 +218,9 @@ static void writeReloc32(FILE* fileHandle, Section* section, uint32_t totalSecti
                 writeInt32(fileHandle, offset->offsets[i]);
         }
         writeInt32(fileHandle, 0);
-    }
 
-    freeOffsets(offsets, totalSections);
+        freeOffsets(offsets, totalSections);
+    }
 }
 
 

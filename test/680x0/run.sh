@@ -15,7 +15,7 @@ function testlink {
 	echo Test linking $1
 	../../build/scons/build_680x0/motor68k -o$1.obj $1 >$1.out 2>&1
 	../../build/scons/build_xlink/xlink -ta -o$1.bin $1.obj >>$1.out 2>&1
-    od -t x1 $1.bin | sed 's/  */ /g' | sed -e '$a\' >$1.r
+	od -t x1 $1.bin | sed 's/  */ /g' | sed -e '$a\' >$1.r
 	cat $1.r $1.out >$1.output 2>/dev/null
 	rm $.bin $1.r $1.out 2>/dev/null
 	diff $1.output $1.answer
