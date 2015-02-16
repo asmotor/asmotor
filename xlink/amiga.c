@@ -211,11 +211,14 @@ static void writeReloc32(FILE* fileHandle, Section* section, uint32_t totalSecti
         for (uint32_t sectionId = 0; sectionId < totalSections; ++sectionId)
         {
             Offsets* offset = offsets[sectionId];
-            writeInt32(fileHandle, offset->total);
-            writeInt32(fileHandle, sectionId);
+            if (offset->total > 0)
+            {
+                writeInt32(fileHandle, offset->total);
+                writeInt32(fileHandle, sectionId);
 
-            for (uint32_t i = 0; i < offset->total; ++i)
-                writeInt32(fileHandle, offset->offsets[i]);
+                for (uint32_t i = 0; i < offset->total; ++i)
+                    writeInt32(fileHandle, offset->offsets[i]);
+            }
         }
         writeInt32(fileHandle, 0);
 
