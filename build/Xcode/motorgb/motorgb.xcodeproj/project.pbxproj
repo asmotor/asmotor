@@ -357,6 +357,7 @@
 				CA5B1F1319E4630E00699767 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

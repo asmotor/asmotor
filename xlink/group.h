@@ -21,7 +21,7 @@
 
 extern void	group_SetupGameboy(void);
 extern void group_SetupSmallGameboy(void);
-extern void	group_SetupAmigaExecutable(void);
+extern void	group_SetupAmiga(void);
 extern bool_t group_AllocateMemory(char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 extern bool_t group_AllocateAbsolute(char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 

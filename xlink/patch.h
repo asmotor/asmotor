@@ -72,7 +72,9 @@ typedef	struct
 {
 	PatchType type;
 
-	struct Section_* offsetSection;
+	struct Symbol_*  valueSymbol;
+	struct Section_* valueSection;
+
 	uint32_t  offset;
 
 	uint32_t  expressionSize;
@@ -85,7 +87,7 @@ typedef	struct
 	Patch patches[];
 } Patches;
 
-extern void patch_Process(bool_t allowReloc);
+extern void patch_Process(bool_t allowReloc, bool_t useSectionRelativeReloc);
 extern Patches* patch_Alloc(uint32_t totalPatches);
 
 #endif

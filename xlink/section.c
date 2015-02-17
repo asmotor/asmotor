@@ -142,18 +142,26 @@ static void resolveSymbol(Section* section, Symbol* symbol)
 }
 
 
-void sect_GetSymbolValue(Section* section, int32_t symbolId, int32_t* outValue, Section** outSection)
+Symbol* sect_GetSymbol(Section* section, int32_t symbolId)
 {
 	if (symbolId < 0 || symbolId >= section->totalSymbols)
 	{
 		Error("Symbol ID out of range");
-		return;
+		return NULL;
 	}
 	
 	Symbol* symbol = &section->symbols[symbolId];
 
 	if (!symbol->resolved)
 		resolveSymbol(section, symbol);
+
+	return symbol;
+}
+
+
+void sect_GetSymbolValue(Section* section, int32_t symbolId, int32_t* outValue, Section** outSection)
+{
+	Symbol* symbol = sect_GetSymbol(section, symbolId);
 
 	*outValue = symbol->value;
 	if (symbol->section->cpuLocation != -1)

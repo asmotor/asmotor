@@ -191,7 +191,8 @@ static uint32_t readSymbols(FILE* fileHandle, Symbol** outputSymbols)
 static void readPatch(FILE* fileHandle, Patch* patch)
 {
 	patch->offset = fgetll(fileHandle);
-	patch->offsetSection = NULL;
+	patch->valueSymbol = NULL;
+	patch->valueSection = NULL;
 	patch->type = fgetll(fileHandle);
 	patch->expressionSize = fgetll(fileHandle);
 

@@ -12,11 +12,12 @@
 		CA5B1F5D19E4678E00699767 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CA5B1F4B19E4678E00699767 /* main.c */; };
 		CA5B1F5E19E4678E00699767 /* mapfile.c in Sources */ = {isa = PBXBuildFile; fileRef = CA5B1F4C19E4678E00699767 /* mapfile.c */; };
 		CA5B1F5F19E4678E00699767 /* object.c in Sources */ = {isa = PBXBuildFile; fileRef = CA5B1F4E19E4678E00699767 /* object.c */; };
-		CA5B1F6019E4678E00699767 /* output.c in Sources */ = {isa = PBXBuildFile; fileRef = CA5B1F5019E4678E00699767 /* output.c */; };
 		CA5B1F6119E4678E00699767 /* patch.c in Sources */ = {isa = PBXBuildFile; fileRef = CA5B1F5219E4678E00699767 /* patch.c */; };
 		CA5B1F6219E4678E00699767 /* section.c in Sources */ = {isa = PBXBuildFile; fileRef = CA5B1F5519E4678E00699767 /* section.c */; };
 		CA5B1F6319E4678E00699767 /* smart.c in Sources */ = {isa = PBXBuildFile; fileRef = CA5B1F5719E4678E00699767 /* smart.c */; };
 		CA5B1F6C19E467E900699767 /* libutil.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B1F6919E467C900699767 /* libutil.a */; };
+		CAFDD0E31A93F57B00EB40ED /* amiga.c in Sources */ = {isa = PBXBuildFile; fileRef = CAFDD0DF1A93F57B00EB40ED /* amiga.c */; };
+		CAFDD0E41A93F57B00EB40ED /* image.c in Sources */ = {isa = PBXBuildFile; fileRef = CAFDD0E11A93F57B00EB40ED /* image.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,11 +60,8 @@
 		CA5B1F4D19E4678E00699767 /* mapfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mapfile.h; path = ../../../xlink/mapfile.h; sourceTree = "<group>"; };
 		CA5B1F4E19E4678E00699767 /* object.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = object.c; path = ../../../xlink/object.c; sourceTree = "<group>"; };
 		CA5B1F4F19E4678E00699767 /* object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = object.h; path = ../../../xlink/object.h; sourceTree = "<group>"; };
-		CA5B1F5019E4678E00699767 /* output.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = output.c; path = ../../../xlink/output.c; sourceTree = "<group>"; };
-		CA5B1F5119E4678E00699767 /* output.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = output.h; path = ../../../xlink/output.h; sourceTree = "<group>"; };
 		CA5B1F5219E4678E00699767 /* patch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = patch.c; path = ../../../xlink/patch.c; sourceTree = "<group>"; };
 		CA5B1F5319E4678E00699767 /* patch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = patch.h; path = ../../../xlink/patch.h; sourceTree = "<group>"; };
-		CA5B1F5419E4678E00699767 /* SConstruct */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = SConstruct; path = ../../../xlink/SConstruct; sourceTree = "<group>"; };
 		CA5B1F5519E4678E00699767 /* section.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = section.c; path = ../../../xlink/section.c; sourceTree = "<group>"; };
 		CA5B1F5619E4678E00699767 /* section.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = section.h; path = ../../../xlink/section.h; sourceTree = "<group>"; };
 		CA5B1F5719E4678E00699767 /* smart.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = smart.c; path = ../../../xlink/smart.c; sourceTree = "<group>"; };
@@ -71,6 +69,10 @@
 		CA5B1F5919E4678E00699767 /* symbol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = symbol.h; path = ../../../xlink/symbol.h; sourceTree = "<group>"; };
 		CA5B1F5A19E4678E00699767 /* xlink.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xlink.h; path = ../../../xlink/xlink.h; sourceTree = "<group>"; };
 		CA5B1F6419E467C900699767 /* util.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = util.xcodeproj; path = ../util/util.xcodeproj; sourceTree = "<group>"; };
+		CAFDD0DF1A93F57B00EB40ED /* amiga.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = amiga.c; path = ../../../xlink/amiga.c; sourceTree = "<group>"; };
+		CAFDD0E01A93F57B00EB40ED /* amiga.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = amiga.h; path = ../../../xlink/amiga.h; sourceTree = "<group>"; };
+		CAFDD0E11A93F57B00EB40ED /* image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = image.c; path = ../../../xlink/image.c; sourceTree = "<group>"; };
+		CAFDD0E21A93F57B00EB40ED /* image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = image.h; path = ../../../xlink/image.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +91,10 @@
 			isa = PBXGroup;
 			children = (
 				CA5B1F6419E467C900699767 /* util.xcodeproj */,
+				CAFDD0DF1A93F57B00EB40ED /* amiga.c */,
+				CAFDD0E01A93F57B00EB40ED /* amiga.h */,
+				CAFDD0E11A93F57B00EB40ED /* image.c */,
+				CAFDD0E21A93F57B00EB40ED /* image.h */,
 				CA5B1F4719E4678E00699767 /* assign.c */,
 				CA5B1F4819E4678E00699767 /* assign.h */,
 				CA5B1F4919E4678E00699767 /* group.c */,
@@ -98,11 +104,8 @@
 				CA5B1F4D19E4678E00699767 /* mapfile.h */,
 				CA5B1F4E19E4678E00699767 /* object.c */,
 				CA5B1F4F19E4678E00699767 /* object.h */,
-				CA5B1F5019E4678E00699767 /* output.c */,
-				CA5B1F5119E4678E00699767 /* output.h */,
 				CA5B1F5219E4678E00699767 /* patch.c */,
 				CA5B1F5319E4678E00699767 /* patch.h */,
-				CA5B1F5419E4678E00699767 /* SConstruct */,
 				CA5B1F5519E4678E00699767 /* section.c */,
 				CA5B1F5619E4678E00699767 /* section.h */,
 				CA5B1F5719E4678E00699767 /* smart.c */,
@@ -203,12 +206,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA5B1F6119E4678E00699767 /* patch.c in Sources */,
-				CA5B1F6019E4678E00699767 /* output.c in Sources */,
+				CAFDD0E41A93F57B00EB40ED /* image.c in Sources */,
 				CA5B1F5E19E4678E00699767 /* mapfile.c in Sources */,
 				CA5B1F5B19E4678E00699767 /* assign.c in Sources */,
 				CA5B1F5F19E4678E00699767 /* object.c in Sources */,
 				CA5B1F5C19E4678E00699767 /* group.c in Sources */,
 				CA5B1F6319E4678E00699767 /* smart.c in Sources */,
+				CAFDD0E31A93F57B00EB40ED /* amiga.c in Sources */,
 				CA5B1F5D19E4678E00699767 /* main.c in Sources */,
 				CA5B1F6219E4678E00699767 /* section.c in Sources */,
 			);

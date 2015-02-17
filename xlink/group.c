@@ -305,7 +305,7 @@ void	group_SetupSmallGameboy(void)
 }
 
 
-void group_SetupAmigaExecutable(void)
+void group_SetupAmiga(void)
 {
 	MemoryGroup* group;
 	MemoryPool* codepool;

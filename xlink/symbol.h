@@ -28,7 +28,7 @@ typedef	enum
 	SYM_LOCALIMPORT
 } SymbolType;
 
-typedef	struct
+typedef	struct Symbol_
 {
 	char       name[MAXSYMNAMELENGTH];
 	SymbolType type;
@@ -37,5 +37,19 @@ typedef	struct
 
 	struct Section_* section;
 } Symbol;
+
+static inline bool_t symbol_IsLocal(Symbol* symbol)
+{
+    switch (symbol->type)
+    {
+        case SYM_LOCAL:
+        case SYM_LOCALEXPORT:
+        case SYM_LOCALIMPORT:
+            return true;
+        case SYM_EXPORT:
+        case SYM_IMPORT:
+            return false;
+    }
+}
 
 #endif

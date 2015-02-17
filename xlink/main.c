@@ -24,7 +24,8 @@
 typedef enum
 {
 	TARGET_BINARY,
-	TARGET_AMIGA_EXECUTABLE
+	TARGET_AMIGA_EXECUTABLE,
+	TARGET_AMIGA_LINK_OBJECT
 } TargetType;
 
 
@@ -56,6 +57,7 @@ static void printUsage(void)
 //			"\t-s<symbol>\tPerform smart linking starting with <symbol>\n"
 			"\t-t\t\tOutput target\n"
 			"\t    -ta\t\tAmiga executable\n"
+			"\t    -tb\t\tAmiga link object\n"
 			"\t    -tg\t\tGameboy ROM image\n"
 			"\t    -ts\t\tGameboy small mode (32 KiB)\n"
 //			"\t    -tm<mach>\tUse file <mach>\n"
@@ -130,9 +132,18 @@ int	main(int argc, char* argv[])
 						case 'a':
 						{
 							/* Amiga executable */
-							group_SetupAmigaExecutable();
+							group_SetupAmiga();
 							targetDefined = true;
 							targetType = TARGET_AMIGA_EXECUTABLE;
+							++argn;
+							break;
+						}
+						case 'b':
+						{
+							/* Amiga link object */
+							group_SetupAmiga();
+							targetDefined = true;
+							targetType = TARGET_AMIGA_LINK_OBJECT;
 							++argn;
 							break;
 						}
@@ -194,7 +205,7 @@ int	main(int argc, char* argv[])
 	if (targetType == TARGET_BINARY)
 		assign_Process();
 
-	patch_Process(targetType != TARGET_BINARY);
+	patch_Process(targetType != TARGET_BINARY, targetType != TARGET_BINARY);
 
 	if (outputFilename != NULL)
 	{
@@ -205,6 +216,9 @@ int	main(int argc, char* argv[])
 				break;
 			case TARGET_AMIGA_EXECUTABLE:
 				amiga_WriteExecutable(outputFilename, false);
+				break;
+			case TARGET_AMIGA_LINK_OBJECT:
+				amiga_WriteLinkObject(outputFilename, false);
 				break;
 		}
 	}
