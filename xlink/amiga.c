@@ -58,18 +58,23 @@ static void writeBuffer(FILE* fileHandle, void* buffer, int bufferSize)
 }
 
 
+static uint32_t longSize(uint32_t size)
+{
+    return (size + 3) / 4;
+}
+
 static void writeString(FILE* fileHandle, char* string, uint32_t extFlags)
 {
     int stringLength = (int)strlen(string);
 
-    writeInt32(fileHandle, ((stringLength + 3) / 4) | extFlags);
+    writeInt32(fileHandle, longSize(stringLength) | extFlags);
     writeBuffer(fileHandle, string, stringLength);
 }
 
 
 static uint32_t sectionSize(Section* section)
 {
-    uint32_t size = (section->size + 3) / 4;
+    uint32_t size = longSize(section->size);
     if (section->group->flags & GROUP_FLAG_CHIP)
         size |= HUNKF_CHIP;
 
@@ -265,7 +270,7 @@ static void writeSection(FILE* fileHandle, Section* section, bool_t debugInfo, u
         writeHunkName(fileHandle, section->name);
 
     writeInt32(fileHandle, hunkType(section));
-    writeInt32(fileHandle, sectionSize(section));
+    writeInt32(fileHandle, longSize(section->size));
 
     if (section->group->type == GROUP_TEXT)
     {

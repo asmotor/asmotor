@@ -212,9 +212,6 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 		else
 			hunktype = HUNK_CODE;
 
-		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->nFlags & SYMF_CHIP))
-			hunktype |= HUNKF_CHIP;
-
 		fputml(hunktype, f);
 		fputml((pSect->UsedSpace + 3) / 4, f);
 		hunkpos = ftell(f);
@@ -333,8 +330,6 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 	else /*if(pSect->pGroup->Flags & GROUP_BSS)*/
 	{
 		uint32_t hunktype = HUNK_BSS;
-		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->nFlags & SYMF_CHIP))
-			hunktype |= HUNKF_CHIP;
 		fputml(hunktype, f);
 		fputml((pSect->UsedSpace + 3) / 4, f);
 
