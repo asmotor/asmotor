@@ -51,7 +51,7 @@ uint32_t sect_TotalSections(void)
 }
 
 
-static void resolveSymbol(Section* section, Symbol* symbol)
+static void resolveSymbol(Section* section, Symbol* symbol, bool_t allowImports)
 {
 	switch (symbol->type)
 	{
@@ -84,7 +84,7 @@ static void resolveSymbol(Section* section, Symbol* symbol)
 						if (exportedSymbol->type == SYM_EXPORT && strcmp(exportedSymbol->name, symbol->name) == 0)
 						{
 							if (!exportedSymbol->resolved)
-								resolveSymbol(definingSection, exportedSymbol);
+								resolveSymbol(definingSection, exportedSymbol, allowImports);
 
 							symbol->resolved = true;
 							symbol->value = exportedSymbol->value;
@@ -96,7 +96,9 @@ static void resolveSymbol(Section* section, Symbol* symbol)
 				}
 			}
 
-			Error("Unresolved symbol \"%s\"", symbol->name);
+            if (!allowImports)
+                Error("Unresolved symbol \"%s\"", symbol->name);
+            
 			break;
 		}
 
@@ -117,7 +119,7 @@ static void resolveSymbol(Section* section, Symbol* symbol)
 						&&	strcmp(exportedSymbol->name, symbol->name) == 0)
 						{
 							if (!exportedSymbol->resolved)
-								resolveSymbol(definingSection, exportedSymbol);
+								resolveSymbol(definingSection, exportedSymbol, allowImports);
 
 							symbol->resolved = true;
 							symbol->value = exportedSymbol->value;
@@ -142,7 +144,7 @@ static void resolveSymbol(Section* section, Symbol* symbol)
 }
 
 
-Symbol* sect_GetSymbol(Section* section, int32_t symbolId)
+Symbol* sect_GetSymbol(Section* section, int32_t symbolId, bool_t allowImports)
 {
 	if (symbolId < 0 || symbolId >= section->totalSymbols)
 	{
@@ -153,7 +155,7 @@ Symbol* sect_GetSymbol(Section* section, int32_t symbolId)
 	Symbol* symbol = &section->symbols[symbolId];
 
 	if (!symbol->resolved)
-		resolveSymbol(section, symbol);
+		resolveSymbol(section, symbol, allowImports);
 
 	return symbol;
 }
@@ -161,7 +163,7 @@ Symbol* sect_GetSymbol(Section* section, int32_t symbolId)
 
 void sect_GetSymbolValue(Section* section, int32_t symbolId, int32_t* outValue, Section** outSection)
 {
-	Symbol* symbol = sect_GetSymbol(section, symbolId);
+	Symbol* symbol = sect_GetSymbol(section, symbolId, false);
 
 	*outValue = symbol->value;
 	if (symbol->section->cpuLocation != -1)
@@ -185,7 +187,7 @@ bool_t sect_GetConstantSymbolBank(Section* section, int32_t symbolId, int32_t* o
 	Symbol* symbol = &section->symbols[symbolId];
 
 	if (!symbol->resolved)
-		resolveSymbol(section, symbol);
+		resolveSymbol(section, symbol, false);
 
 	bank = symbol->section->cpuBank;
 	if (bank != -1)

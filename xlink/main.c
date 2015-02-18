@@ -70,7 +70,7 @@ int	main(int argc, char* argv[])
 {
 	int argn = 1;
 	bool_t targetDefined = false;
-	TargetType targetType;
+	TargetType targetType = TARGET_BINARY;
 
 	char* outputFilename = NULL;
 	char* smartlink = NULL;
@@ -205,7 +205,7 @@ int	main(int argc, char* argv[])
 	if (targetType == TARGET_BINARY)
 		assign_Process();
 
-	patch_Process(targetType != TARGET_BINARY, targetType != TARGET_BINARY);
+	patch_Process(targetType != TARGET_BINARY, targetType == TARGET_AMIGA_EXECUTABLE, targetType == TARGET_AMIGA_LINK_OBJECT);
 
 	if (outputFilename != NULL)
 	{

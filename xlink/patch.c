@@ -368,7 +368,7 @@ static char* makePatchString(Patch* patch, Section* section)
 	}
 
 
-static bool_t calculatePatchValue(Patch* patch, Section* section, int32_t* outValue, Symbol** outSymbol)
+static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowImports, int32_t* outValue, Symbol** outSymbol)
 {
 	int32_t size = patch->expressionSize;
 	uint8_t* expression = patch->expression;
@@ -581,8 +581,8 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, int32_t* outVa
 				symbolId |= (*expression++) << 16;
 				symbolId |= (*expression++) << 24;
 
-				symbol = sect_GetSymbol(section, symbolId);
-				if (symbol->section->cpuLocation != -1)
+				symbol = sect_GetSymbol(section, symbolId, allowImports);
+				if (symbol->section != NULL && symbol->section->cpuLocation != -1)
 					pushSymbolInt(NULL, symbol->value);
 				else
 					pushSymbolInt(symbol, 0);
@@ -631,7 +631,7 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, int32_t* outVa
 }
 
 
-static void patchSection(Section* section, bool_t allowReloc, bool_t useSectionRelativeReloc)
+static void patchSection(Section* section, bool_t allowReloc, bool_t onlySectionRelativeReloc, bool_t allowImports)
 {
 	Patches* patches = section->patches;
 
@@ -645,7 +645,7 @@ static void patchSection(Section* section, bool_t allowReloc, bool_t useSectionR
 			Symbol* valueSymbol;
 			int32_t value;
 
-			if (calculatePatchValue(patch, section, &value, &valueSymbol))
+			if (calculatePatchValue(patch, section, allowImports, &value, &valueSymbol))
 			{
 				if (valueSymbol != NULL)
 				{
@@ -654,7 +654,7 @@ static void patchSection(Section* section, bool_t allowReloc, bool_t useSectionR
 						Error("Expression \"%s\" at offset %d in section \"%s\" is relocatable", makePatchString(patch, section), patch->offset, section->name);
 						return;
 					}
-					else if (useSectionRelativeReloc || symbol_IsLocal(valueSymbol))
+					else if (onlySectionRelativeReloc || symbol_IsLocal(valueSymbol))
 					{
 						value += valueSymbol->value;
 						patch->valueSection = valueSymbol->section;
@@ -753,12 +753,12 @@ static void patchSection(Section* section, bool_t allowReloc, bool_t useSectionR
 }
 
 
-void patch_Process(bool_t allowReloc, bool_t useSectionRelativeReloc)
+void patch_Process(bool_t allowReloc, bool_t onlySectionRelativeReloc, bool_t allowImports)
 {
     for (Section* section = g_sections; section != NULL; section = section->nextSection)
     {
         if (section->used)
-			patchSection(section, allowReloc, useSectionRelativeReloc);
+			patchSection(section, allowReloc, onlySectionRelativeReloc, allowImports);
 	}
 }
 
