@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:motor68k/motor68k.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:xlink/xlink.xcodeproj">
    </FileRef>
    <FileRef

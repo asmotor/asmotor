@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten S¯rensen
+/*  Copyright 2008 Carsten Sùrensen
 
     This file is part of ASMotor.
 
@@ -3341,112 +3341,112 @@ static SInstruction sIntegerInstructions[] =
 	{	// DBCC
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBCC
 	},
 	{	// DBCS
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBCS
 	},
 	{	// DBEQ
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBEQ
 	},
 	{	// DBF
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBF
 	},
 	{	// DBGE
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBGE
 	},
 	{	// DBGT
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBGT
 	},
 	{	// DBHI
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBHI
 	},
 	{	// DBLE
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBLE
 	},
 	{	// DBLS
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBLS
 	},
 	{	// DBLT
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBLT
 	},
 	{	// DBMI
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBMI
 	},
 	{	// DBNE
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBNE
 	},
 	{	// DBPL
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBPL
 	},
 	{	// DBT
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBT
 	},
 	{	// DBVC
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBVC
 	},
 	{	// DBVS
 		CPUF_ALL,
 		0, 0,
-		AM_DREG, AM_LONG,
+		AM_DREG, AM_WORD | AM_LONG,
 		0, 0,
 		parse_DBVS
 	},
