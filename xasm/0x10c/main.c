@@ -11,7 +11,8 @@ static SConfiguration s_sConfiguration =
 	false,
 	false,
 	MINSIZE_16BIT,
-
+	2,
+	
 	NULL, "rw", "rl",
 	NULL, "dw", "dl",
 	NULL, "dw", NULL

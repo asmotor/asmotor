@@ -11,6 +11,7 @@ static SConfiguration s_sConfiguration =
 	false,
 	true,
 	MINSIZE_8BIT,
+	8,
 
 	"rs.b", "rs.w", "rs.l",
 	"dc.b", "dc.w", "dc.l",

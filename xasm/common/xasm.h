@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sørensen
+/*  Copyright 2008 Carsten Sï¿½rensen
 
     This file is part of ASMotor.
 
@@ -67,6 +67,7 @@ typedef struct Configuration
 	bool_t bSupportBanks;
 	bool_t bSupportAmiga;
 	EMinimumWordSize eMinimumWordSize;
+	int nSectionAlignment;
 	char* pszNameRB;
 	char* pszNameRW;
 	char* pszNameRL;

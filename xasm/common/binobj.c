@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sørensen
+/*  Copyright 2008 Carsten Sï¿½rensen
 
     This file is part of ASMotor.
 
@@ -49,7 +49,8 @@ bool_t bin_CommonPatch()
 	nAddress = sect->Position;
 	do
 	{
-		nAddress += (sect->UsedSpace + 7) & ~7;
+		int alignment = g_pConfiguration->nSectionAlignment - 1;
+		nAddress += (sect->UsedSpace + alignment) & ~alignment;
 		sect = list_GetNext(sect);
 		if(sect != NULL)
 		{
