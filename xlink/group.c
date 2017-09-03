@@ -369,11 +369,11 @@ void group_SetupUnbankedCommodore(int baseAddress, int size)
 
 void group_SetupUnbankedCommodore128(void)
 {
-    group_SetupUnbankedCommodore(0x1C0D, 0xF000 - 0x1C0D);
+    group_SetupUnbankedCommodore(0x1C0E, 0xF000 - 0x1C0E);
 }
 
 
 void group_SetupCommodore64(void)
 {
-    group_SetupUnbankedCommodore(0x080D, 0xA000 - 0x080D);
+    group_SetupUnbankedCommodore(0x080E, 0xA000 - 0x080E);
 }
