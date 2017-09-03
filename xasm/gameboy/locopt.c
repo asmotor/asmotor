@@ -31,27 +31,27 @@ uint32_t GameboyConstID;
 
 SMachineOptions* locopt_Alloc(void)
 {
-	return mem_Alloc(sizeof(SMachineOptions));
+    return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
 {
-	*pDest = *pSrc;
+    *pDest = *pSrc;
 }
 
 void locopt_Open(void)
 {
-	g_pOptions->pMachine->GameboyChar[0] = '0';
-	g_pOptions->pMachine->GameboyChar[1] = '1';
-	g_pOptions->pMachine->GameboyChar[2] = '2';
-	g_pOptions->pMachine->GameboyChar[3] = '3';
-	g_pOptions->pMachine->nCpu = CPUF_GB;
+    g_pOptions->pMachine->GameboyChar[0] = '0';
+    g_pOptions->pMachine->GameboyChar[1] = '1';
+    g_pOptions->pMachine->GameboyChar[2] = '2';
+    g_pOptions->pMachine->GameboyChar[3] = '3';
+    g_pOptions->pMachine->nCpu = CPUF_GB;
 }
 
 void locopt_Update(void)
 {
-	lex_FloatRemoveAll(GameboyConstID);
-	lex_FloatAddRange(GameboyConstID, '`', '`', 1);
+    lex_FloatRemoveAll(GameboyConstID);
+    lex_FloatAddRange(GameboyConstID, '`', '`', 1);
     lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[0], g_pOptions->pMachine->GameboyChar[0], 2);
     lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[1], g_pOptions->pMachine->GameboyChar[1], 2);
     lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[2], g_pOptions->pMachine->GameboyChar[2], 2);
@@ -60,51 +60,53 @@ void locopt_Update(void)
 
 bool_t locopt_Parse(char* s)
 {
-	if(s == NULL || strlen(s) == 0)
-		return false;
+    if(s == NULL || strlen(s) == 0)
+        return false;
 
-	switch(s[0])
-	{
-		case 'g':
-			if(strlen(&s[1])==4)
-			{
-				g_pOptions->pMachine->GameboyChar[0]=s[1];
-				g_pOptions->pMachine->GameboyChar[1]=s[2];
-				g_pOptions->pMachine->GameboyChar[2]=s[3];
-				g_pOptions->pMachine->GameboyChar[3]=s[4];
-				return true;
-			}
+    switch(s[0])
+    {
+        case 'g':
+            if(strlen(&s[1])==4)
+            {
+                g_pOptions->pMachine->GameboyChar[0]=s[1];
+                g_pOptions->pMachine->GameboyChar[1]=s[2];
+                g_pOptions->pMachine->GameboyChar[2]=s[3];
+                g_pOptions->pMachine->GameboyChar[3]=s[4];
+                return true;
+            }
 
-			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return false;
-		case 'c':
-			if(strlen(&s[1]) == 1)
-			{
-				switch(s[1])
-				{
-					case 'g':
-						g_pOptions->pMachine->nCpu = CPUF_GB;
-						return true;
-					case 'z':
-						g_pOptions->pMachine->nCpu = CPUF_Z80;
-						return true;
-					default:
-						break;
-				}
-			}
-			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return false;
-		default:
-			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return false;
-	}
+            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            return false;
+        case 'c':
+            if(strlen(&s[1]) == 1)
+            {
+                switch(s[1])
+                {
+                    case 'g':
+                        g_pOptions->pMachine->nCpu = CPUF_GB;
+                        g_pConfiguration->nMaxSectionSize = 0x4000;
+                        return true;
+                    case 'z':
+                        g_pOptions->pMachine->nCpu = CPUF_Z80;
+                        g_pConfiguration->nMaxSectionSize = 0x10000;
+                        return true;
+                    default:
+                        break;
+                }
+            }
+            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            return false;
+        default:
+            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            return false;
+    }
 }
 
 void locopt_PrintOptions(void)
 {
-	printf("    -mg<ASCI> Change the four characters used for Gameboy graphics\n"
-		   "              constants (default is 0123)\n");
-	printf("    -mc<x>    Change CPU type:\n"
-		   "                  g - Gameboy\n"
-		   "                  z - Z80\n");
+    printf("    -mg<ASCI> Change the four characters used for Gameboy graphics\n"
+           "              constants (default is 0123)\n");
+    printf("    -mc<x>    Change CPU type:\n"
+           "                  g - Gameboy\n"
+           "                  z - Z80\n");
 }
