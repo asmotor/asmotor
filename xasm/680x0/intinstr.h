@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sùrensen
+/*  Copyright 2008-2017 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 

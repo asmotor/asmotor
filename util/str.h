@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sørensen
+/*  Copyright 2008-2017 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -35,7 +35,9 @@ extern void str_Free(string* pString);
 extern string* str_Concat(string* pString1, string* pString2);
 extern string* str_Slice(string* pString1, int nIndex, int nLength);
 extern bool_t str_Equal(string* pString1, string* pString2);
+extern bool_t str_EqualConst(string* pString1, char* pString2);
 extern string* str_Replace(string* pString, char search, char replace);
+extern string* str_ToLower(string* pString);
 
 INLINE string* str_Copy(string* pString)
 {

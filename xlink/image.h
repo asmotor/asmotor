@@ -1,4 +1,4 @@
-/*  Copyright 2008-2015 Carsten Elton Sorensen
+/*  Copyright 2008-2017 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -19,6 +19,9 @@
 #ifndef	XLINK_IMAGE_H_INCLUDED_
 #define	XLINK_IMAGE_H_INCLUDED_
 
+#include <stdio.h>
+
+extern void image_WriteBinaryToFile(FILE* fileHandle);
 extern void image_WriteBinary(char* name);
 
 #endif

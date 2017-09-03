@@ -1,4 +1,4 @@
-/*  Copyright 2008-2015 Carsten Elton Sorensen
+/*  Copyright 2008-2017 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -18,6 +18,7 @@
 
 #include "xlink.h"
 #include "asmotor.h"
+#include "str.h"
 #include <stdarg.h>
 
 
@@ -25,8 +26,28 @@ typedef enum
 {
 	TARGET_BINARY,
 	TARGET_AMIGA_EXECUTABLE,
-	TARGET_AMIGA_LINK_OBJECT
+	TARGET_AMIGA_LINK_OBJECT,
+	TARGET_COMMODORE64_PRG,
+	TARGET_COMMODORE128_PRG,
 } TargetType;
+
+
+bool_t target_SupportsReloc(TargetType type)
+{
+	return type == TARGET_AMIGA_EXECUTABLE || type == TARGET_AMIGA_LINK_OBJECT;
+}
+
+
+bool_t target_SupportsOnlySectionRelativeReloc(TargetType type)
+{
+	return type == TARGET_AMIGA_EXECUTABLE;
+}
+
+
+bool_t target_SupportsImports(TargetType type)
+{
+	return type == TARGET_AMIGA_LINK_OBJECT;
+}
 
 
 void Error(char* fmt, ...)
@@ -58,6 +79,8 @@ static void printUsage(void)
 			"\t-t\t\tOutput target\n"
 			"\t    -ta\t\tAmiga executable\n"
 			"\t    -tb\t\tAmiga link object\n"
+			"\t    -tc64\tCommodore 64 .prg\n"
+			"\t    -tc128\tCommodore 128 unbanked .prg\n"
 			"\t    -tg\t\tGameboy ROM image\n"
 			"\t    -ts\t\tGameboy small mode (32 KiB)\n"
 //			"\t    -tm<mach>\tUse file <mach>\n"
@@ -127,55 +150,66 @@ int	main(int argc, char* argv[])
 				/* Target */
 				if(argv[argn][2] != 0 && !targetDefined)
 				{
-					switch(tolower((unsigned char)argv[argn][2]))
+					string* target = str_ToLower(str_Create(&argv[argn][2]));
+					if (str_EqualConst(target, "a"))
 					{
-						case 'a':
-						{
-							/* Amiga executable */
-							group_SetupAmiga();
-							targetDefined = true;
-							targetType = TARGET_AMIGA_EXECUTABLE;
-							++argn;
-							break;
-						}
-						case 'b':
-						{
-							/* Amiga link object */
-							group_SetupAmiga();
-							targetDefined = true;
-							targetType = TARGET_AMIGA_LINK_OBJECT;
-							++argn;
-							break;
-						}
-						case 'g':
-						{
-							/* Gameboy ROM image */
-							group_SetupGameboy();
-							targetDefined = true;
-							targetType = TARGET_BINARY;
-							++argn;
-							break;
-						}
-						case 's':
-						{
-							/* Gameboy small mode ROM image */
-							group_SetupSmallGameboy();
-							targetDefined = true;
-							targetType = TARGET_BINARY;
-							++argn;
-							break;
-						}
-#if 0
-						case 'm':
-						{
-							/* Use machine def file */
-							targetDefined = 1;
-							Error("option \"tm\" not implemented yet");
-							++argn;
-							break;
-						}
-#endif
+						/* Amiga executable */
+						group_SetupAmiga();
+						targetDefined = true;
+						targetType = TARGET_AMIGA_EXECUTABLE;
+						++argn;
+					} 
+					else if (str_EqualConst(target, "b"))
+					{
+						/* Amiga link object */
+						group_SetupAmiga();
+						targetDefined = true;
+						targetType = TARGET_AMIGA_LINK_OBJECT;
+						++argn;
 					}
+					else if (str_EqualConst(target, "g"))
+					{
+						/* Gameboy ROM image */
+						group_SetupGameboy();
+						targetDefined = true;
+						targetType = TARGET_BINARY;
+						++argn;
+					}
+					else if (str_EqualConst(target, "s"))
+					{
+						/* Gameboy small mode ROM image */
+						group_SetupSmallGameboy();
+						targetDefined = true;
+						targetType = TARGET_BINARY;
+						++argn;
+					}
+					else if (str_EqualConst(target, "c64"))
+					{
+						/* Commodore 64 .prg */
+						group_SetupCommodore64();
+						targetDefined = true;
+						targetType = TARGET_COMMODORE64_PRG;
+						++argn;
+					}
+					else if (str_EqualConst(target, "c128"))
+					{
+						/* Commodore 128 .prg */
+						group_SetupUnbankedCommodore128();
+						targetDefined = true;
+						targetType = TARGET_COMMODORE128_PRG;
+						++argn;
+					}
+#if 0
+					case 'm':
+					{
+						/* Use machine def file */
+						targetDefined = 1;
+						Error("option \"tm\" not implemented yet");
+						++argn;
+						break;
+					}
+#endif
+					str_Free(target);
 				}
 				else
 				{
@@ -202,10 +236,13 @@ int	main(int argc, char* argv[])
 
 	smart_Process(smartlink);
 
-	if (targetType == TARGET_BINARY)
+	if (!target_SupportsReloc(targetType))
 		assign_Process();
 
-	patch_Process(targetType != TARGET_BINARY, targetType == TARGET_AMIGA_EXECUTABLE, targetType == TARGET_AMIGA_LINK_OBJECT);
+	patch_Process(
+		target_SupportsReloc(targetType),
+		target_SupportsOnlySectionRelativeReloc(targetType),
+		target_SupportsImports(targetType));
 
 	if (outputFilename != NULL)
 	{
@@ -213,6 +250,12 @@ int	main(int argc, char* argv[])
 		{
 			case TARGET_BINARY:
 				image_WriteBinary(outputFilename);
+				break;
+			case TARGET_COMMODORE64_PRG:
+				commodore_WritePrg(outputFilename, 0x0801);
+				break;
+			case TARGET_COMMODORE128_PRG:
+				commodore_WritePrg(outputFilename, 0x1C01);
 				break;
 			case TARGET_AMIGA_EXECUTABLE:
 				amiga_WriteExecutable(outputFilename, false);

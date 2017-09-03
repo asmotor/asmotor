@@ -1,4 +1,4 @@
-/*  Copyright 2008-2015 Carsten Elton Sorensen
+/*  Copyright 2008-2017 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -45,16 +45,11 @@ static void* allocEmptyBytes()
 }
 
 
-extern void image_WriteBinary(char* outputFilename)
+extern void image_WriteBinaryToFile(FILE* fileHandle)
 {
+	uint32_t headerSize = ftell(fileHandle);
 	char* emptyBytes = allocEmptyBytes();
-
-	FILE* fileHandle;
 	uint32_t currentFileSize = 0;
-
-	fileHandle = fopen(outputFilename, "wb");
-	if (fileHandle == NULL)
-		Error("Unable to open \"%s\" for writing", outputFilename);
 
 	for (Section* section = g_sections; section != NULL; section = section->nextSection)
 	{
@@ -68,15 +63,26 @@ extern void image_WriteBinary(char* outputFilename)
 			uint32_t endOffset = startOffset + section->size;
 
 			if(startOffset > currentFileSize)
-				writeRepeatedBytes(fileHandle, emptyBytes, startOffset, startOffset - currentFileSize);
+				writeRepeatedBytes(fileHandle, emptyBytes, startOffset + headerSize, startOffset - currentFileSize);
 
-			fseek(fileHandle, section->imageLocation, SEEK_SET);
+			fseek(fileHandle, section->imageLocation + headerSize, SEEK_SET);
 			fwrite(section->data, 1, section->size, fileHandle);
 			if (endOffset > currentFileSize)
 				currentFileSize = endOffset;
 		}
 	}
 
-	fclose(fileHandle);
 	mem_Free(emptyBytes);
+}
+
+
+extern void image_WriteBinary(char* outputFilename)
+{
+	FILE* fileHandle = fopen(outputFilename, "wb");
+	if (fileHandle == NULL)
+		Error("Unable to open \"%s\" for writing", outputFilename);
+
+	image_WriteBinaryToFile(fileHandle);
+
+	fclose(fileHandle);
 }

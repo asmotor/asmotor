@@ -29,3 +29,5 @@ Breakpoints_v2.xcbkptlist
 gbfade.gb
 *.output
 build/Visual Studio 2012/Windows.opensdf
+amigaobj.68k.bin
+amigaexe.68k.bin

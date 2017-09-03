@@ -16,22 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
-#include "symbol.h"
+#ifndef	XLINK_COMMODORE_H_INCLUDED_
+#define	XLINK_COMMODORE_H_INCLUDED_
 
-void locsym_Init(void)
-{
-	string* pName;
-	
-	pName = str_Create("CODE");
-	sym_CreateGROUP(pName, GROUP_TEXT);
-	str_Free(pName);
+extern void commodore_WritePrg(char* outputFilename, uint32_t baseAddress);
 
-	pName = str_Create("DATA");
-	sym_CreateGROUP(pName, GROUP_TEXT);
-	str_Free(pName);
-
-	pName = str_Create("BSS");
-	sym_CreateGROUP(pName, GROUP_BSS);
-	str_Free(pName);
-}
+#endif

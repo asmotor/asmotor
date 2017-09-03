@@ -1,4 +1,4 @@
-/*  Copyright 2008-2015 Carsten Elton Sorensen
+/*  Copyright 2008-2017 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -22,6 +22,8 @@
 extern void	group_SetupGameboy(void);
 extern void group_SetupSmallGameboy(void);
 extern void	group_SetupAmiga(void);
+extern void	group_SetupCommodore64(void);
+extern void	group_SetupUnbankedCommodore128(void);
 extern bool_t group_AllocateMemory(char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 extern bool_t group_AllocateAbsolute(char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 

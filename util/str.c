@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sørensen
+/*  Copyright 2008-2017 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -17,6 +17,7 @@
 */
 
 #include <string.h>
+#include <ctype.h>
 
 #include "asmotor.h"
 #include "mem.h"
@@ -107,6 +108,24 @@ bool_t str_Equal(string* pString1, string* pString2)
 	return true;
 }
 
+bool_t str_EqualConst(string* pString1, char* pString2)
+{
+	int i;
+	int len = str_Length(pString1);
+	char ch2;
+	
+	ch2 = *pString2++;
+	for(i = 0; i < len; ++i)
+	{
+		if(ch2 == 0 || str_CharAt(pString1, i) != ch2)
+			return false;
+
+		ch2 = *pString2++;
+	}
+
+	return ch2 == 0;
+}
+
 string* str_Replace(string* pString, char search, char replace)
 {
 	int i;
@@ -120,4 +139,18 @@ string* str_Replace(string* pString, char search, char replace)
 	}
 	
 	return pString;
+}
+
+string* str_ToLower(string* pString)
+{
+	int i;
+	int len = str_Length(pString);
+	string* pLowerString = str_Alloc(len);
+
+	for(i = 0; i < len; ++i)
+	{
+		str_Set(pLowerString, i, tolower(str_CharAt(pString, i)));
+	}
+	
+	return pLowerString;
 }

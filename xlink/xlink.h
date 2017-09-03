@@ -1,4 +1,4 @@
-/*  Copyright 2008-2015 Carsten Elton Sorensen
+/*  Copyright 2008-2017 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -24,6 +24,7 @@
 #include "types.h"
 #include "object.h"
 #include "image.h"
+#include "commodore.h"
 #include "mapfile.h"
 #include "symbol.h"
 #include "patch.h"
@@ -33,11 +34,18 @@
 #include "smart.h"
 #include "amiga.h"
 #include "mem.h"
+#include "section.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 
-extern void Error(char* fmt, ...);
+#if defined(__clang__) || defined(__llvm__) || defined(__GNUC__)
+#   define NO_RETURN __attribute__ ((noreturn))
+#else
+#   define NO_RETURN
+#endif
+
+extern void Error(char* fmt, ...) NO_RETURN;
 
 #endif
