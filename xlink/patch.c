@@ -386,10 +386,12 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
             case OBJ_OP_SUB:
             {
                 popInt2(&left, &right);
-                if (left.symbol->section == right.symbol->section)
-                    pushInt(left.symbol->value + left.value - right.symbol->value - right.value);
+                if (left.symbol == NULL && right.symbol == NULL)
+                    pushInt(left.value - right.value);
                 else if (left.symbol != NULL && right.symbol == NULL)
                     pushSymbolInt(left.symbol, left.value - right.value);
+                else if (left.symbol->section == right.symbol->section)
+                    pushInt(left.symbol->value + left.value - right.symbol->value - right.value);
                 else
                     Error("Expression \"%s\" at offset %d in section \"%s\" attempts to subtract two values from different sections", makePatchString(patch, section), patch->offset, section->name);
                 break;
@@ -397,7 +399,9 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
             case OBJ_OP_ADD:
             {
                 popInt2(&left, &right);
-                if (right.symbol == NULL)
+                if (left.symbol == NULL && right.symbol == NULL)
+                    pushInt(left.value + right.value);
+                else if (right.symbol == NULL)
                     pushSymbolInt(left.symbol, left.value + right.value);
                 else if (left.symbol == NULL)
                     pushSymbolInt(right.symbol, left.value + right.value);
