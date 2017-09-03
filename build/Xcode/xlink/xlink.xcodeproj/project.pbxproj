@@ -16,6 +16,7 @@
 		CA5B1F6219E4678E00699767 /* section.c in Sources */ = {isa = PBXBuildFile; fileRef = CA5B1F5519E4678E00699767 /* section.c */; };
 		CA5B1F6319E4678E00699767 /* smart.c in Sources */ = {isa = PBXBuildFile; fileRef = CA5B1F5719E4678E00699767 /* smart.c */; };
 		CA5B1F6C19E467E900699767 /* libutil.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B1F6919E467C900699767 /* libutil.a */; };
+		CA6FFA551F5C92A60003D715 /* commodore.c in Sources */ = {isa = PBXBuildFile; fileRef = CA6FFA531F5C92A60003D715 /* commodore.c */; };
 		CAFDD0E31A93F57B00EB40ED /* amiga.c in Sources */ = {isa = PBXBuildFile; fileRef = CAFDD0DF1A93F57B00EB40ED /* amiga.c */; };
 		CAFDD0E41A93F57B00EB40ED /* image.c in Sources */ = {isa = PBXBuildFile; fileRef = CAFDD0E11A93F57B00EB40ED /* image.c */; };
 /* End PBXBuildFile section */
@@ -69,6 +70,8 @@
 		CA5B1F5919E4678E00699767 /* symbol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = symbol.h; path = ../../../xlink/symbol.h; sourceTree = "<group>"; };
 		CA5B1F5A19E4678E00699767 /* xlink.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xlink.h; path = ../../../xlink/xlink.h; sourceTree = "<group>"; };
 		CA5B1F6419E467C900699767 /* util.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = util.xcodeproj; path = ../util/util.xcodeproj; sourceTree = "<group>"; };
+		CA6FFA531F5C92A60003D715 /* commodore.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = commodore.c; path = ../../../xlink/commodore.c; sourceTree = "<group>"; };
+		CA6FFA541F5C92A60003D715 /* commodore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = commodore.h; path = ../../../xlink/commodore.h; sourceTree = "<group>"; };
 		CAFDD0DF1A93F57B00EB40ED /* amiga.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = amiga.c; path = ../../../xlink/amiga.c; sourceTree = "<group>"; };
 		CAFDD0E01A93F57B00EB40ED /* amiga.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = amiga.h; path = ../../../xlink/amiga.h; sourceTree = "<group>"; };
 		CAFDD0E11A93F57B00EB40ED /* image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = image.c; path = ../../../xlink/image.c; sourceTree = "<group>"; };
@@ -93,6 +96,8 @@
 				CA5B1F6419E467C900699767 /* util.xcodeproj */,
 				CAFDD0DF1A93F57B00EB40ED /* amiga.c */,
 				CAFDD0E01A93F57B00EB40ED /* amiga.h */,
+				CA6FFA531F5C92A60003D715 /* commodore.c */,
+				CA6FFA541F5C92A60003D715 /* commodore.h */,
 				CAFDD0E11A93F57B00EB40ED /* image.c */,
 				CAFDD0E21A93F57B00EB40ED /* image.h */,
 				CA5B1F4719E4678E00699767 /* assign.c */,
@@ -215,6 +220,7 @@
 				CAFDD0E31A93F57B00EB40ED /* amiga.c in Sources */,
 				CA5B1F5D19E4678E00699767 /* main.c in Sources */,
 				CA5B1F6219E4678E00699767 /* section.c in Sources */,
+				CA6FFA551F5C92A60003D715 /* commodore.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
