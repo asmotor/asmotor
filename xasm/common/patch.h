@@ -27,22 +27,22 @@ struct Section;
 
 typedef	enum
 {
-	PATCH_BYTE,
-	PATCH_LWORD,
-	PATCH_BWORD,
-	PATCH_LLONG,
-	PATCH_BLONG,
+    PATCH_BYTE,
+    PATCH_LWORD,
+    PATCH_BWORD,
+    PATCH_LLONG,
+    PATCH_BLONG,
 } EPatchType;
 
 typedef struct Patch
 {
-	list_Data(struct Patch);
-	struct Section* pSection;
-	uint32_t	Offset;
- 	EPatchType	Type;
-	SExpression* pExpression;
-	string*		pFile;
-	int			nLine;
+    list_Data(struct Patch);
+    struct Section* pSection;
+    uint32_t	    Offset;
+    EPatchType	    Type;
+    SExpression*    pExpression;
+    string*		    pFile;
+    int			    nLine;
 } SPatch;
 
 #include "section.h"

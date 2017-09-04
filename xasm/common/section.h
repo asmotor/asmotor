@@ -29,34 +29,37 @@ struct Expression;
 
 struct Section
 {
-	list_Data(struct Section);
-	char	Name[MAXSYMNAMELENGTH + 1];
-	struct Symbol* pGroup;
-	uint32_t	PC;
-	uint32_t	Flags;
-	uint32_t	UsedSpace;		/*	How many bytes are used in the section */
-	uint32_t	FreeSpace;		/*	How many bytes are free */
-	uint32_t	AllocatedSpace;	/*	How big a chunk of memory pData is pointing to */
-	int32_t		Position;
-	int32_t		BasePC;
-	int32_t		Bank;
-	struct Patch* pPatches;
-	uint8_t* pData;
+    list_Data(struct Section);
+    char	Name[MAXSYMNAMELENGTH + 1];
+    struct Symbol* pGroup;
+    uint32_t	PC;
+    uint32_t	Flags;
+    uint32_t	UsedSpace;		/*	How many bytes are used in the section */
+    uint32_t	FreeSpace;		/*	How many bytes are free */
+    uint32_t	AllocatedSpace;	/*	How big a chunk of memory pData is pointing to */
+    int32_t		Position;
+    int32_t		BasePC;
+    int32_t		OrgOffset;
+    int32_t		Bank;
+    struct Patch* pPatches;
+    uint8_t* pData;
 };
 typedef	struct Section SSection;
 
-#define	SECTF_ORGFIXED	0x01
+#define	SECTF_LOADFIXED	0x01
 #define	SECTF_BANKFIXED	0x02
+#define	SECTF_ORGFIXED	0x04
 
 extern	SSection* pCurrentSection;
 extern	SSection* pSectionList;
 
 extern bool_t sect_SwitchTo(char* sectname, struct Symbol* group);
-extern bool_t sect_SwitchTo_ORG(char* sectname, struct Symbol* group, int32_t org);
+extern bool_t sect_SwitchTo_LOAD(char* sectname, struct Symbol* group, int32_t load);
 extern bool_t sect_SwitchTo_BANK(char* sectname, struct Symbol* group, int32_t bank);
-extern bool_t sect_SwitchTo_ORG_BANK(char* sectname, struct Symbol* group, int32_t org, int32_t bank);
+extern bool_t sect_SwitchTo_LOAD_BANK(char* sectname, struct Symbol* group, int32_t org, int32_t bank);
 extern bool_t sect_SwitchTo_NAMEONLY(char* sectname);
 extern bool_t sect_Init(void);
+extern void	sect_SetOrgAddress(int32_t org);
 extern void	sect_SkipBytes(int32_t count);
 extern void	sect_Align(int32_t align);
 extern void	sect_OutputExpr8(struct Expression* expr);

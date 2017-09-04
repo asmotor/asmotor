@@ -488,8 +488,8 @@ bool_t obj_Write(string* pName)
 		else
 			fputll(-1, f);
 
-		fputll(sect->Flags & SECTF_ORGFIXED ? sect->Position : -1, f);
-		fputll(sect->Flags & SECTF_ORGFIXED ? sect->BasePC : -1, f);
+		fputll(sect->Flags & SECTF_LOADFIXED ? sect->Position : -1, f);
+		fputll(sect->Flags & SECTF_LOADFIXED ? sect->BasePC : -1, f);
 
 		//	Reset symbol IDs
 

@@ -40,9 +40,9 @@ bool_t bin_CommonPatch()
 	}
 	
 	sect = pSectionList;
-	if(bNeedOrg && (sect->Flags & SECTF_ORGFIXED) == 0)
+	if(bNeedOrg && (sect->Flags & SECTF_LOADFIXED) == 0)
 	{
-		prj_Error(ERROR_SECTION_MUST_ORG);
+		prj_Error(ERROR_SECTION_MUST_LOAD);
 		return false;
 	}
 
@@ -54,18 +54,18 @@ bool_t bin_CommonPatch()
 		sect = list_GetNext(sect);
 		if(sect != NULL)
 		{
-			if(sect->Flags & SECTF_ORGFIXED)
+			if(sect->Flags & SECTF_LOADFIXED)
 			{
 				if(sect->Position < nAddress)
 				{
-					prj_Error(ERROR_SECTION_ORG, sect->Name, sect->BasePC);
+					prj_Error(ERROR_SECTION_LOAD, sect->Name, sect->BasePC);
 					return false;
 				}
 				nAddress = sect->Position;
 			}
 			else
 			{
-				sect->Flags |= SECTF_ORGFIXED;
+				sect->Flags |= SECTF_LOADFIXED;
 				sect->Position = nAddress;
 				sect->BasePC = nAddress / g_pConfiguration->eMinimumWordSize;
 			}

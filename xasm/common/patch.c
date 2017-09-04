@@ -283,7 +283,7 @@ bool_t patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection*
         return patch_GetSectionPcOffset(pOffset, pExpr->pRight, pSection);
     }
 
-    if(expr_GetType(pExpr) == EXPR_CONSTANT && (pSection->Flags & SECTF_ORGFIXED))
+    if(expr_GetType(pExpr) == EXPR_CONSTANT && (pSection->Flags & SECTF_LOADFIXED))
     {
         *pOffset = pExpr->Value.Value - pSection->BasePC;
         return true;
@@ -292,14 +292,14 @@ bool_t patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection*
     if(expr_GetType(pExpr) == EXPR_SYMBOL)
     {
         SSymbol* pSym = pExpr->Value.pSymbol;
-        if((pSym->eType == SYM_EQU) && (pSection->Flags & SECTF_ORGFIXED))
+        if((pSym->eType == SYM_EQU) && (pSection->Flags & SECTF_LOADFIXED))
         {
             *pOffset = pSym->Value.Value - pSection->BasePC;
             return true;
         }
         else if(pSym->pSection == pSection)
         {
-            if((pSym->nFlags & SYMF_CONSTANT) && (pSection->Flags & SECTF_ORGFIXED))
+            if((pSym->nFlags & SYMF_CONSTANT) && (pSection->Flags & SECTF_LOADFIXED))
             {
                 *pOffset = pSym->Value.Value - pSection->BasePC;
                 return true;
@@ -481,7 +481,7 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
                 return true;
             }
 
-            prj_Error(ERROR_EXPR_TWO_POWER);
+            prj_PatchError(patch, ERROR_EXPR_TWO_POWER);
             break;
         }
 
@@ -499,7 +499,7 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
 
                     return true;
                 }
-                prj_Fail(ERROR_OPERAND_RANGE);
+                prj_PatchFail(patch, ERROR_OPERAND_RANGE);
             }
             return false;
         }
@@ -517,7 +517,7 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
                     expr_SetConst(expr, *v = vl);
                     return true;
                 }
-                prj_Fail(ERROR_OPERAND_RANGE);
+                prj_PatchFail(patch, ERROR_OPERAND_RANGE);
             }
             return false;
         }
@@ -575,7 +575,7 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
             }
             else if(expr->Value.pSymbol->eType == SYM_UNDEFINED)
             {
-                prj_Error(ERROR_SYMBOL_UNDEFINED, str_String(expr->Value.pSymbol->pName));
+                prj_PatchError(patch, ERROR_SYMBOL_UNDEFINED, str_String(expr->Value.pSymbol->pName));
             }
             return false;
         default:
@@ -635,7 +635,7 @@ void patch_BackPatch(void)
                         if(v >= -128 && v <= 255)
                             sect->pData[patch->Offset] = (uint8_t)v;
                         else
-                            prj_Error(ERROR_EXPRESSION_N_BIT, 8);
+                            prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 8);
                         break;
 
                     case PATCH_LWORD:
@@ -645,7 +645,7 @@ void patch_BackPatch(void)
                             sect->pData[patch->Offset + 1] = (uint8_t)(v >> 8);
                         }
                         else
-                            prj_Error(ERROR_EXPRESSION_N_BIT, 16);
+                            prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
                         break;
 
                     case PATCH_BWORD:
@@ -655,7 +655,7 @@ void patch_BackPatch(void)
                             sect->pData[patch->Offset + 1] = (uint8_t)(v & 0xFF);
                         }
                         else
-                            prj_Error(ERROR_EXPRESSION_N_BIT, 16);
+                            prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
                         break;
 
                     case PATCH_LLONG:

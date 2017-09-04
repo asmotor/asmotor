@@ -330,7 +330,7 @@ static char* makePatchString(Patch* patch, Section* section)
             case OBJ_PCREL:
             {
                 combinePatchStrings("+");
-                pushString("*");
+                pushStringCopy("*");
                 combinePatchStrings("-");
                 break;
             }
@@ -614,7 +614,9 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
             {
                 combine_operator(left, right, +)
                 left = popInt();
-                if (left.symbol->section == section)
+                if (left.symbol == NULL)
+                    pushInt(left.value - patch->offset);
+                else if (left.symbol->section == section)
                     pushInt(left.symbol->value + left.value - patch->offset);
                 else
                     Error("Illegal PC relative expression \"%s\" at offset %d in section \"%s\" attempts to subtract two values from different sections", makePatchString(patch, section), patch->offset, section->name);
