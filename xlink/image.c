@@ -49,7 +49,7 @@ extern void image_WriteBinaryToFile(FILE* fileHandle)
 {
 	uint32_t headerSize = ftell(fileHandle);
 	char* emptyBytes = allocEmptyBytes();
-	uint32_t currentFileSize = 0;
+	uint32_t currentFileSize = headerSize;
 
 	for (Section* section = g_sections; section != NULL; section = section->nextSection)
 	{
@@ -59,13 +59,15 @@ extern void image_WriteBinaryToFile(FILE* fileHandle)
 
 		if (section->used && section->assigned && section->imageLocation != -1)
 		{
-			uint32_t startOffset = section->imageLocation;
+			uint32_t startOffset = section->imageLocation + headerSize;
 			uint32_t endOffset = startOffset + section->size;
 
-			if(startOffset > currentFileSize)
-				writeRepeatedBytes(fileHandle, emptyBytes, startOffset + headerSize, startOffset - currentFileSize);
+            if(startOffset > currentFileSize) {
+                fseek(fileHandle, currentFileSize, SEEK_SET);
+                writeRepeatedBytes(fileHandle, emptyBytes, currentFileSize, startOffset - currentFileSize);
+            }
 
-			fseek(fileHandle, section->imageLocation + headerSize, SEEK_SET);
+			fseek(fileHandle, startOffset, SEEK_SET);
 			fwrite(section->data, 1, section->size, fileHandle);
 			if (endOffset > currentFileSize)
 				currentFileSize = endOffset;
