@@ -271,6 +271,30 @@ SExpression* expr_BooleanNot(SExpression* right)
     return expr;
 }
 
+SExpression* expr_Sub(SExpression* left, SExpression* right)
+{
+    int32_t val;
+    if(!expr_VerifyPointers(left, right))
+        return NULL;
+    val = left->Value.Value - right->Value.Value;
+    left = parse_MergeExpressions(left, right);
+    left->eType = EXPR_OPERATOR;
+    left->eOperator = T_OP_SUB;
+    left->Value.Value = val;
+    if ((left->nFlags & EXPRF_CONSTANT) == 0 && left->pLeft != NULL && left->pRight != NULL)
+    {
+        if (left->pLeft->eType == EXPR_SYMBOL && left->pRight->eType == EXPR_SYMBOL)
+        {
+            if (left->pLeft->Value.pSymbol->pSection == left->pRight->Value.pSymbol->pSection)
+            {
+                left->nFlags = EXPRF_CONSTANT;
+                left->Value.Value = left->pLeft->Value.pSymbol->Value.Value - left->pRight->Value.pSymbol->Value.Value;
+            }
+        }
+    }
+    return left;
+}
+
 #define CREATEEXPR(NAME,OP) \
 SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
 {													\
@@ -285,7 +309,6 @@ SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
     return left;									\
 }
 
-CREATEEXPR(Sub, -)
 CREATEEXPR(Add, +)
 CREATEEXPR(Xor, ^)
 CREATEEXPR(Or,  |)
