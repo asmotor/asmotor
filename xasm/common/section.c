@@ -521,6 +521,9 @@ void sect_Align(int32_t align)
 
 void sect_SkipBytes(int32_t count)
 {
+    if (count == 0)
+        return;
+        
     assert(g_pConfiguration->eMinimumWordSize <= count);
 
     if(sect_CheckAvailableSpace(count))

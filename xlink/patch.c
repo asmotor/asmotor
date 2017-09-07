@@ -390,8 +390,8 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
                     pushInt(left.value - right.value);
                 else if (left.symbol != NULL && right.symbol == NULL)
                     pushSymbolInt(left.symbol, left.value - right.value);
-                else if (left.symbol->section == right.symbol->section)
-                    pushInt(left.symbol->value + left.value - right.symbol->value - right.value);
+                else if (left.symbol != NULL && right.symbol != NULL && left.symbol->section == right.symbol->section)
+                    pushInt(left.symbol->value - right.symbol->value);
                 else
                     Error("Expression \"%s\" at offset %d in section \"%s\" attempts to subtract two values from different sections", makePatchString(patch, section), patch->offset, section->name);
                 break;
@@ -531,7 +531,7 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
                 if (left.symbol == NULL && right.symbol == NULL && left.value >= right.value)
                     pushInt(left.value);
                 else
-                    Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
+                    Error("Expression \"%s\" at offset %d in section \"%s\" out of range (%d must be >= %d)", makePatchString(patch, section), patch->offset, section->name, left.value, right.value);
 
                 break;
             }
@@ -542,7 +542,7 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
                 if (left.symbol == NULL && right.symbol == NULL && left.value <= right.value)
                     pushInt(left.value);
                 else
-                    Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
+                    Error("Expression \"%s\" at offset %d in section \"%s\" out of range (%d must be <= %d)", makePatchString(patch, section), patch->offset, section->name, left.value, right.value);
 
                 break;
             }
@@ -615,7 +615,7 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
                 combine_operator(left, right, +)
                 left = popInt();
                 if (left.symbol == NULL)
-                    pushInt(left.value - patch->offset);
+                    pushInt(left.value - (section->cpuLocation + patch->offset));
                 else if (left.symbol->section == section)
                     pushInt(left.symbol->value + left.value - patch->offset);
                 else
