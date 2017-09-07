@@ -539,10 +539,10 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
 
 static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
 {
-    if(expr == NULL)
+    if (expr == NULL)
         return false;
 
-    if(expr_IsConstant(expr))
+    if (expr_IsConstant(expr))
     {
         expr_Free(expr->pLeft);
         expr->pLeft = NULL;
@@ -556,7 +556,7 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
         return true;
     }
 
-    switch(expr_GetType(expr))
+    switch (expr_GetType(expr))
     {
         case EXPR_PARENS:
             return patch_Evaluate(patch, expr->pRight, v);
@@ -568,12 +568,12 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
             *v = expr->Value.Value;
             return true;
         case EXPR_SYMBOL:
-            if(expr->Value.pSymbol->nFlags & SYMF_CONSTANT)
+            if (expr->Value.pSymbol->nFlags & SYMF_CONSTANT)
             {
                 *v = expr->Value.pSymbol->Value.Value;
                 return true;
             }
-            else if(expr->Value.pSymbol->eType == SYM_UNDEFINED)
+            else if (expr->Value.pSymbol->eType == SYM_UNDEFINED)
             {
                 prj_PatchError(patch, ERROR_SYMBOL_UNDEFINED, str_String(expr->Value.pSymbol->pName));
             }
@@ -612,19 +612,13 @@ void patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType
 
 void patch_BackPatch(void)
 {
-    SSection* sect;
-
-    sect = pSectionList;
-    while(sect)
+    for (SSection* sect = pSectionList; sect != NULL; sect = list_GetNext(sect))
     {
-        SPatch* patch;
-
-        patch = sect->pPatches;
-        while(patch)
+        for (SPatch* patch = sect->pPatches; patch != NULL; patch = list_GetNext(patch))
         {
             int32_t v;
 
-            if(patch_Evaluate(patch, patch->pExpression, &v))
+            if (patch_Evaluate(patch, patch->pExpression, &v))
             {
                 list_Remove(sect->pPatches, patch);
                 str_Free(patch->pFile);
@@ -677,10 +671,7 @@ void patch_BackPatch(void)
                         break;
                 }
             }
-            patch = list_GetNext(patch);
         }
-
-        sect = list_GetNext(sect);
     }
 }
 
@@ -697,6 +688,13 @@ void patch_OptimizeExpression(SExpression* pExpr)
         SExpression* pToFree = pExpr->pRight;
         *pExpr = *(pExpr->pRight);
         mem_Free(pToFree);
+    }
+
+    if((pExpr->eType == EXPR_SYMBOL) && (pExpr->Value.pSymbol->nFlags & SYMF_CONSTANT))
+    {
+        pExpr->eType = EXPR_CONSTANT;
+        pExpr->nFlags = EXPRF_CONSTANT | EXPRF_RELOC;
+        pExpr->Value.Value = pExpr->Value.pSymbol->Value.Value;
     }
 
     if(expr_IsConstant(pExpr))
