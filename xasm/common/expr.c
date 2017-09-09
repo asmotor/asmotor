@@ -140,20 +140,22 @@ SExpression* expr_Bit(SExpression* pRight)
 
 SExpression* expr_PcRelative(SExpression* pExpr, int nAdjust)
 {
-    SExpression* expr;
-    
-    if(!expr_VerifyPointer(pExpr))
+    if (!expr_VerifyPointer(pExpr))
         return NULL;
 
-    expr = (SExpression*)mem_Alloc(sizeof(SExpression));
-
-    if((pExpr->eType == EXPR_CONSTANT) && (pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)))
+    if ((pExpr->nFlags & EXPRF_CONSTANT) && (pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)))
     {
         pExpr->Value.Value -= (pCurrentSection->PC + pCurrentSection->BasePC + pCurrentSection->OrgOffset - nAdjust);
         return pExpr;
     }
+    else if (pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))
+    {
+        return expr_Add(pExpr, expr_Const(nAdjust - (pCurrentSection->PC + pCurrentSection->BasePC + pCurrentSection->OrgOffset)));
+    }
     else
     {
+        SExpression* expr = (SExpression*)mem_Alloc(sizeof(SExpression));
+        
         expr->Value.Value = 0;
         expr->eType = EXPR_PCREL;
         expr->nFlags = EXPRF_RELOC;

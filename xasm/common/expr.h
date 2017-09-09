@@ -26,11 +26,11 @@ struct Symbol;
 
 typedef	enum
 {
-	EXPR_OPERATOR,
-	EXPR_PCREL,
-	EXPR_CONSTANT,
-	EXPR_SYMBOL,
-	EXPR_PARENS
+    EXPR_OPERATOR,
+    EXPR_PCREL,
+    EXPR_CONSTANT,
+    EXPR_SYMBOL,
+    EXPR_PARENS
 } EExprType;
 
 #define EXPRF_CONSTANT	0x01
@@ -38,37 +38,37 @@ typedef	enum
 
 typedef struct Expression
 {
-	struct Expression* pLeft;
-	struct Expression* pRight;
-	EExprType	eType;
-	uint32_t	nFlags;
-	EToken		eOperator;
-	union
-	{
-		int32_t	Value;
-		struct Symbol* pSymbol;
-	} Value;
+    struct Expression* pLeft;
+    struct Expression* pRight;
+    EExprType	eType;
+    uint32_t	nFlags;
+    EToken		eOperator;
+    union
+    {
+        int32_t	Value;
+        struct Symbol* pSymbol;
+    } Value;
 } SExpression;
 
 
 INLINE EExprType expr_GetType(SExpression* pExpr)
 {
-	return pExpr->eType;
+    return pExpr->eType;
 }
 
 INLINE bool_t expr_IsOperator(SExpression* pExpr, EToken eOperator)
 {
-	return pExpr != NULL && pExpr->eType == EXPR_OPERATOR && pExpr->eOperator == eOperator;
+    return pExpr != NULL && pExpr->eType == EXPR_OPERATOR && pExpr->eOperator == eOperator;
 }
 
 INLINE bool_t expr_IsConstant(SExpression* pExpr)
 {
-	return pExpr != NULL && pExpr->nFlags & EXPRF_CONSTANT;
+    return pExpr != NULL && pExpr->nFlags & EXPRF_CONSTANT;
 }
 
 INLINE bool_t expr_IsRelocatable(SExpression* pExpr)
 {
-	return pExpr != NULL && pExpr->nFlags & EXPRF_RELOC;
+    return pExpr != NULL && pExpr->nFlags & EXPRF_RELOC;
 }
 
 extern SExpression* expr_CheckRange(SExpression* pExpr, int32_t nLow, int32_t nHigh);
