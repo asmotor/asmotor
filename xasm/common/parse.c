@@ -1770,18 +1770,18 @@ static bool_t parse_PseudoOp(void)
             do
             {
                 parse_GetToken();
-                if((s = parse_StringExpressionRaw_Pri0()) != NULL)
-                {
-                    while(*s)
-                        sect_OutputConst8(*s++);
-                }
-                else if((expr = parse_Expression()) != NULL)
+                if((expr = parse_Expression()) != NULL)
                 {
                     expr = expr_CheckRange(expr, -128, 255);
                     if(expr)
                         sect_OutputExpr8(expr);
                     else
                         prj_Error(ERROR_EXPRESSION_N_BIT, 8);
+                }
+                else if((s = parse_StringExpressionRaw_Pri0()) != NULL)
+                {
+                    while(*s)
+                        sect_OutputConst8(*s++);
                 }
                 else
                     sect_SkipBytes(1); //prj_Error(ERROR_INVALID_EXPRESSION);
