@@ -242,7 +242,7 @@ static bool_t parse_Branch(void)
 		else
 			rt = 0;
 		
-		pExpr = parse_Expression();
+		pExpr = parse_Expression(4);
 		if(pExpr == NULL)
 			return false;
 
@@ -302,7 +302,7 @@ static bool_t parse_Shift(void)
 		if(!parse_ExpectChar(','))
 			return false;
 			
-		pExpr = parse_Expression();
+		pExpr = parse_Expression(1);
 		if(pExpr == NULL)
 			return false;
 
@@ -507,7 +507,7 @@ static bool_t parse_IntegerInstructionRSRTCode(void)
 			{
 				SExpression* pExpr;
 				parse_GetToken();
-				pExpr = parse_Expression();
+				pExpr = parse_Expression(2);
 				if(pExpr == NULL)
 				{
 					prj_Error(ERROR_INVALID_EXPRESSION);
@@ -756,7 +756,7 @@ static bool_t parse_IntegerJumpAbs(void)
 		
 		parse_GetToken();
 		
-		pExpr = parse_Expression();
+		pExpr = parse_Expression(4);
 		if(pExpr != NULL)
 		{
 			pExpr = expr_Shr(pExpr, expr_Const(2));

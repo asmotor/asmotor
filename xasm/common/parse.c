@@ -425,16 +425,16 @@ bool_t parse_ExpectChar(char ch)
  *	Expression parser
  */
 
-static SExpression* parse_ExprPri0(void);
+static SExpression* parse_ExprPri0(int maxStringConstLength);
 
-static SExpression* parse_ExprPri9(void)
+static SExpression* parse_ExprPri9(int maxStringConstLength)
 {
     switch(g_CurrentToken.ID.Token)
     {
         case T_STRING:
         {
             int len = (int)strlen(g_CurrentToken.Value.aString);
-            if(len <= 4)
+            if(len <= maxStringConstLength)
             {
                 int32_t val = 0;
                 int i;
@@ -463,7 +463,7 @@ static SExpression* parse_ExprPri9(void)
             lex_Bookmark(&bookmark);
 
             parse_GetToken();
-            expr = parse_ExprPri0();
+            expr = parse_ExprPri0(maxStringConstLength);
             if(expr != NULL)
             {
                 if(g_CurrentToken.ID.Token == ')')
@@ -532,7 +532,7 @@ int32_t parse_StringCompare(char* s)
     return r;
 }
 
-static SExpression* parse_ExprPri8(void)
+static SExpression* parse_ExprPri8(int maxStringConstLength)
 {
     SLexBookmark bm;
     char* s;
@@ -637,10 +637,10 @@ static SExpression* parse_ExprPri8(void)
 
     mem_Free(s);
     lex_Goto(&bm);
-    return parse_ExprPri9();
+    return parse_ExprPri9(maxStringConstLength);
 }
 
-static SExpression* parse_TwoArgFunc(SExpression*(*pFunc)(SExpression*,SExpression*))
+static SExpression* parse_TwoArgFunc(SExpression*(*pFunc)(SExpression*,SExpression*), int maxStringConstLength)
 {
     SExpression* t1;
     SExpression* t2;
@@ -649,12 +649,12 @@ static SExpression* parse_TwoArgFunc(SExpression*(*pFunc)(SExpression*,SExpressi
     if(!parse_ExpectChar('('))
         return NULL;
 
-    t1 = parse_ExprPri0();
+    t1 = parse_ExprPri0(maxStringConstLength);
 
     if(!parse_ExpectChar(','))
         return NULL;
 
-    t2 = parse_ExprPri0();
+    t2 = parse_ExprPri0(maxStringConstLength);
 
     if(!parse_ExpectChar(')'))
         return NULL;
@@ -662,7 +662,7 @@ static SExpression* parse_TwoArgFunc(SExpression*(*pFunc)(SExpression*,SExpressi
     return pFunc(t1, t2);
 }
 
-static SExpression* parse_SingleArgFunc(SExpression*(*pFunc)(SExpression*))
+static SExpression* parse_SingleArgFunc(SExpression*(*pFunc)(SExpression*), int maxStringConstLength)
 {
     SExpression* t1;
 
@@ -671,7 +671,7 @@ static SExpression* parse_SingleArgFunc(SExpression*(*pFunc)(SExpression*))
     if(!parse_ExpectChar('('))
         return NULL;
 
-    t1 = parse_ExprPri0();
+    t1 = parse_ExprPri0(maxStringConstLength);
 
     if(!parse_ExpectChar(')'))
         return NULL;
@@ -680,24 +680,24 @@ static SExpression* parse_SingleArgFunc(SExpression*(*pFunc)(SExpression*))
 }
 
 
-static SExpression* parse_ExprPri7(void)
+static SExpression* parse_ExprPri7(int maxStringConstLength)
 {
     switch(g_CurrentToken.ID.Token)
     {
         case T_FUNC_ATAN2:
-            return parse_TwoArgFunc(expr_Atan2);
+            return parse_TwoArgFunc(expr_Atan2, maxStringConstLength);
         case T_FUNC_SIN:
-            return parse_SingleArgFunc(expr_Sin);
+            return parse_SingleArgFunc(expr_Sin, maxStringConstLength);
         case T_FUNC_COS:
-            return parse_SingleArgFunc(expr_Cos);
+            return parse_SingleArgFunc(expr_Cos, maxStringConstLength);
         case T_FUNC_TAN:
-            return parse_SingleArgFunc(expr_Tan);
+            return parse_SingleArgFunc(expr_Tan, maxStringConstLength);
         case T_FUNC_ASIN:
-            return parse_SingleArgFunc(expr_Asin);
+            return parse_SingleArgFunc(expr_Asin, maxStringConstLength);
         case T_FUNC_ACOS:
-            return parse_SingleArgFunc(expr_Acos);
+            return parse_SingleArgFunc(expr_Acos, maxStringConstLength);
         case T_FUNC_ATAN:
-            return parse_SingleArgFunc(expr_Atan);
+            return parse_SingleArgFunc(expr_Atan, maxStringConstLength);
         case T_FUNC_DEF:
         {
             SExpression* t1;
@@ -756,42 +756,42 @@ static SExpression* parse_ExprPri7(void)
             if((expr = parse_TargetFunction()) != NULL)
                 return expr;
 
-            return parse_ExprPri8();
+            return parse_ExprPri8(maxStringConstLength);
             break;
         }
     }
 }
 
-static	SExpression* parse_ExprPri6(void)
+static	SExpression* parse_ExprPri6(int maxStringConstLength)
 {
     switch(g_CurrentToken.ID.Token)
     {
         case T_OP_SUB:
         {
             parse_GetToken();
-            return expr_Sub(expr_Const(0), parse_ExprPri6());
+            return expr_Sub(expr_Const(0), parse_ExprPri6(maxStringConstLength));
         }
         case T_OP_NOT:
         {
             parse_GetToken();
-            return expr_Xor(expr_Const(0xFFFFFFFF), parse_ExprPri6());
+            return expr_Xor(expr_Const(0xFFFFFFFF), parse_ExprPri6(maxStringConstLength));
         }
         case T_OP_ADD:
         {
             parse_GetToken();
-            return parse_ExprPri6();
+            return parse_ExprPri6(maxStringConstLength);
         }
         default:
         {
-            return parse_ExprPri7();
+            return parse_ExprPri7(maxStringConstLength);
         }
     }
 
 }
 
-static	SExpression* parse_ExprPri5(void)
+static	SExpression* parse_ExprPri5(int maxStringConstLength)
 {
-    SExpression* t1 = parse_ExprPri6();
+    SExpression* t1 = parse_ExprPri6(maxStringConstLength);
 
     while(g_CurrentToken.ID.Token == T_OP_SHL
        || g_CurrentToken.ID.Token == T_OP_SHR
@@ -806,43 +806,43 @@ static	SExpression* parse_ExprPri5(void)
             case T_OP_SHL:
             {
                 parse_GetToken();
-                t1 = expr_Shl(t1, parse_ExprPri6());
+                t1 = expr_Shl(t1, parse_ExprPri6(maxStringConstLength));
                 break;
             }
             case T_OP_SHR:
             {
                 parse_GetToken();
-                t1 = expr_Shr(t1, parse_ExprPri6());
+                t1 = expr_Shr(t1, parse_ExprPri6(maxStringConstLength));
                 break;
             }
             case T_FUNC_FMUL:
             {
                 parse_GetToken();
-                t1 = expr_Fmul(t1, parse_ExprPri6());
+                t1 = expr_Fmul(t1, parse_ExprPri6(maxStringConstLength));
                 break;
             }
             case T_OP_MUL:
             {
                 parse_GetToken();
-                t1 = expr_Mul(t1, parse_ExprPri6());
+                t1 = expr_Mul(t1, parse_ExprPri6(maxStringConstLength));
                 break;
             }
             case T_FUNC_FDIV:
             {
                 parse_GetToken();
-                t1 = expr_Fdiv(t1, parse_ExprPri6());
+                t1 = expr_Fdiv(t1, parse_ExprPri6(maxStringConstLength));
                 break;
             }
             case T_OP_DIV:
             {
                 parse_GetToken();
-                t1 = expr_Div(t1, parse_ExprPri6());
+                t1 = expr_Div(t1, parse_ExprPri6(maxStringConstLength));
                 break;
             }
             case T_OP_MOD:
             {
                 parse_GetToken();
-                t1 = expr_Mod(t1, parse_ExprPri6());
+                t1 = expr_Mod(t1, parse_ExprPri6(maxStringConstLength));
                 break;
             }
             default:
@@ -853,9 +853,9 @@ static	SExpression* parse_ExprPri5(void)
     return t1;
 }
 
-static	SExpression* parse_ExprPri4(void)
+static	SExpression* parse_ExprPri4(int maxStringConstLength)
 {
-    SExpression* t1 = parse_ExprPri5();
+    SExpression* t1 = parse_ExprPri5(maxStringConstLength);
 
     while(g_CurrentToken.ID.Token == T_OP_XOR
        || g_CurrentToken.ID.Token == T_OP_OR
@@ -866,19 +866,19 @@ static	SExpression* parse_ExprPri4(void)
             case T_OP_XOR:
             {
                 parse_GetToken();
-                t1 = expr_Xor(t1, parse_ExprPri5());
+                t1 = expr_Xor(t1, parse_ExprPri5(maxStringConstLength));
                 break;
             }
             case T_OP_OR:
             {
                 parse_GetToken();
-                t1 = expr_Or(t1, parse_ExprPri5());
+                t1 = expr_Or(t1, parse_ExprPri5(maxStringConstLength));
                 break;
             }
             case T_OP_AND:
             {
                 parse_GetToken();
-                t1 = expr_And(t1, parse_ExprPri5());
+                t1 = expr_And(t1, parse_ExprPri5(maxStringConstLength));
                 break;
             }
             default:
@@ -889,9 +889,9 @@ static	SExpression* parse_ExprPri4(void)
     return t1;
 }
 
-static SExpression* parse_ExprPri3(void)
+static SExpression* parse_ExprPri3(int maxStringConstLength)
 {
-    SExpression* t1 = parse_ExprPri4();
+    SExpression* t1 = parse_ExprPri4(maxStringConstLength);
 
     while(g_CurrentToken.ID.Token == T_OP_ADD
        || g_CurrentToken.ID.Token == T_OP_SUB)
@@ -905,7 +905,7 @@ static SExpression* parse_ExprPri3(void)
 
                 lex_Bookmark(&mark);
                 parse_GetToken();
-                t2 = parse_ExprPri4();
+                t2 = parse_ExprPri4(maxStringConstLength);
                 if(t2 != NULL)
                 {
                     t1 = expr_Add(t1, t2);
@@ -920,7 +920,7 @@ static SExpression* parse_ExprPri3(void)
             case T_OP_SUB:
             {
                 parse_GetToken();
-                t1 = expr_Sub(t1, parse_ExprPri4());
+                t1 = expr_Sub(t1, parse_ExprPri4(maxStringConstLength));
                 break;
             }
             default:
@@ -931,11 +931,11 @@ static SExpression* parse_ExprPri3(void)
 }
 
 
-static	SExpression* parse_ExprPri2(void)
+static	SExpression* parse_ExprPri2(int maxStringConstLength)
 {
     SExpression* t1;
 
-    t1 = parse_ExprPri3();
+    t1 = parse_ExprPri3(maxStringConstLength);
     while(g_CurrentToken.ID.Token == T_OP_LOGICEQU
        || g_CurrentToken.ID.Token == T_OP_LOGICGT
        || g_CurrentToken.ID.Token == T_OP_LOGICLT
@@ -948,37 +948,37 @@ static	SExpression* parse_ExprPri2(void)
             case T_OP_LOGICEQU:
             {
                 parse_GetToken();
-                t1 = expr_Equal(t1, parse_ExprPri3());
+                t1 = expr_Equal(t1, parse_ExprPri3(maxStringConstLength));
                 break;
             }
             case T_OP_LOGICGT:
             {
                 parse_GetToken();
-                t1 = expr_GreaterThan(t1, parse_ExprPri3());
+                t1 = expr_GreaterThan(t1, parse_ExprPri3(maxStringConstLength));
                 break;
             }
             case T_OP_LOGICLT:
             {
                 parse_GetToken();
-                t1 = expr_LessThan(t1, parse_ExprPri3());
+                t1 = expr_LessThan(t1, parse_ExprPri3(maxStringConstLength));
                 break;
             }
             case T_OP_LOGICGE:
             {
                 parse_GetToken();
-                t1 = expr_GreaterEqual(t1, parse_ExprPri3());
+                t1 = expr_GreaterEqual(t1, parse_ExprPri3(maxStringConstLength));
                 break;
             }
             case T_OP_LOGICLE:
             {
                 parse_GetToken();
-                t1 = expr_LessEqual(t1, parse_ExprPri3());
+                t1 = expr_LessEqual(t1, parse_ExprPri3(maxStringConstLength));
                 break;
             }
             case T_OP_LOGICNE:
             {
                 parse_GetToken();
-                t1 = expr_NotEqual(t1, parse_ExprPri3());
+                t1 = expr_NotEqual(t1, parse_ExprPri3(maxStringConstLength));
                 break;
             }
             default:
@@ -989,7 +989,7 @@ static	SExpression* parse_ExprPri2(void)
     return t1;
 }
 
-static	SExpression* parse_ExprPri1(void)
+static	SExpression* parse_ExprPri1(int maxStringConstLength)
 {
     switch(g_CurrentToken.ID.Token)
     {
@@ -997,19 +997,19 @@ static	SExpression* parse_ExprPri1(void)
         case T_OP_LOGICNOT:
         {
             parse_GetToken();
-            return expr_BooleanNot(parse_ExprPri1());
+            return expr_BooleanNot(parse_ExprPri1(maxStringConstLength));
         }
         default:
         {
-            return parse_ExprPri2();
+            return parse_ExprPri2(maxStringConstLength);
         }
     }
 
 }
 
-static	SExpression* parse_ExprPri0(void)
+static	SExpression* parse_ExprPri0(int maxStringConstLength)
 {
-    SExpression* t1 = parse_ExprPri1();
+    SExpression* t1 = parse_ExprPri1(maxStringConstLength);
 
     while(g_CurrentToken.ID.Token == T_OP_LOGICOR
        || g_CurrentToken.ID.Token == T_OP_LOGICAND)
@@ -1019,13 +1019,13 @@ static	SExpression* parse_ExprPri0(void)
             case T_OP_LOGICOR:
             {
                 parse_GetToken();
-                t1 = expr_BooleanOr(t1, parse_ExprPri1());
+                t1 = expr_BooleanOr(t1, parse_ExprPri1(maxStringConstLength));
                 break;
             }
             case T_OP_LOGICAND:
             {
                 parse_GetToken();
-                t1 = expr_BooleanAnd(t1, parse_ExprPri1());
+                t1 = expr_BooleanAnd(t1, parse_ExprPri1(maxStringConstLength));
                 break;
             }
             default:
@@ -1036,16 +1036,16 @@ static	SExpression* parse_ExprPri0(void)
     return t1;
 }
 
-SExpression* parse_Expression(void)
+SExpression* parse_Expression(int maxStringConstLength)
 {
-    return parse_ExprPri0();
+    return parse_ExprPri0(maxStringConstLength);
 }
 
-int32_t parse_ConstantExpression(void)
+int32_t parse_ConstantExpression()
 {
     SExpression* expr;
 
-    if((expr = parse_Expression()) != NULL)
+    if((expr = parse_Expression(4)) != NULL)
     {
         if(expr_IsConstant(expr))
         {
@@ -1770,7 +1770,7 @@ static bool_t parse_PseudoOp(void)
             do
             {
                 parse_GetToken();
-                if((expr = parse_Expression()) != NULL)
+                if((expr = parse_Expression(1)) != NULL)
                 {
                     expr = expr_CheckRange(expr, -128, 255);
                     if(expr)
@@ -1797,7 +1797,7 @@ static bool_t parse_PseudoOp(void)
             do
             {
                 parse_GetToken();
-                expr = parse_Expression();
+                expr = parse_Expression(2);
                 if(expr)
                 {
                     expr = expr_CheckRange(expr, -32768, 65535);
@@ -1820,7 +1820,7 @@ static bool_t parse_PseudoOp(void)
             do
             {
                 parse_GetToken();
-                expr = parse_Expression();
+                expr = parse_Expression(4);
                 if(expr)
                     sect_OutputExpr32(expr);
                 else
@@ -1925,7 +1925,7 @@ static bool_t parse_PseudoOp(void)
             SExpression* expr;
 
             parse_GetToken();
-            expr = parse_Expression();
+            expr = parse_Expression(4);
             if(expr)
             {
                 if(expr_IsConstant(expr))

@@ -4146,7 +4146,7 @@ bool_t parse_GetBitfield(SAddrMode* pMode)
 		}
 		else
 		{
-			pMode->pBFOffsetExpr = parse_Expression();
+			pMode->pBFOffsetExpr = parse_Expression(4);
 			if(pMode->pBFOffsetExpr == NULL)
 			{
 				prj_Error(ERROR_OPERAND);
@@ -4167,7 +4167,7 @@ bool_t parse_GetBitfield(SAddrMode* pMode)
 		}
 		else
 		{
-			pMode->pBFWidthExpr = parse_Expression();
+			pMode->pBFWidthExpr = parse_Expression(4);
 			if(pMode->pBFWidthExpr == NULL)
 			{
 				prj_Error(ERROR_OPERAND);

@@ -23,8 +23,8 @@
 
 extern bool_t	parse_Do(void);
 extern void		parse_GetToken(void);
-extern SExpression* parse_Expression(void);
-extern int32_t	parse_ConstantExpression(void);
+extern SExpression* parse_Expression(int maxStringConstLength);
+extern int32_t	parse_ConstantExpression();
 extern bool_t	parse_ExpectChar(char ch);
 
 INLINE bool_t parse_ExpectComma(void)

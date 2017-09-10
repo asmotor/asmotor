@@ -908,7 +908,7 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 
 		if(mode == T_MODE_SP && (g_CurrentToken.ID.Token == T_OP_ADD || g_CurrentToken.ID.Token == T_OP_SUB))
 		{
-			SExpression* pExpr = parse_CreateExpression8S(parse_Expression());
+			SExpression* pExpr = parse_CreateExpression8S(parse_Expression(1));
 			if(pExpr != NULL)
 			{
 				pAddrMode->nMode = MODE_REG_SP_DISP;
@@ -939,7 +939,7 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 			if(g_CurrentToken.ID.Token == T_OP_ADD
 			|| g_CurrentToken.ID.Token == T_OP_SUB)
 			{
-				SExpression* pExpr = parse_CreateExpression8S(parse_Expression());
+				SExpression* pExpr = parse_CreateExpression8S(parse_Expression(1));
 
 				if(pExpr != NULL && parse_ExpectChar(endToken))
 				{
@@ -969,7 +969,7 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 
 		parse_GetToken();
 		
-		pExpr = parse_Expression();
+		pExpr = parse_Expression(2);
 
 		if(pExpr != NULL && parse_ExpectChar(']'))
 		{
@@ -987,7 +987,7 @@ static bool_t parse_AddrMode(SAddrMode* pAddrMode)
 		SExpression* pExpr;
 
 		lex_Bookmark(&bm);
-		pExpr = parse_Expression();
+		pExpr = parse_Expression(2);
 
 		if(pExpr != NULL)
 		{

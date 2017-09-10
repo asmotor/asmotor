@@ -26,7 +26,7 @@
 
 SExpression* parse_ExpressionS16(void)
 {
-	SExpression* pExpr = parse_Expression();
+	SExpression* pExpr = parse_Expression(2);
 	if(pExpr == NULL)
 		return NULL;
 		
@@ -40,7 +40,7 @@ SExpression* parse_ExpressionS16(void)
 
 SExpression* parse_ExpressionU16(void)
 {
-	SExpression* pExpr = parse_Expression();
+	SExpression* pExpr = parse_Expression(2);
 	if(pExpr == NULL)
 		return NULL;
 		
@@ -53,7 +53,7 @@ SExpression* parse_ExpressionU16(void)
 
 SExpression* parse_ExpressionSU8(void)
 {
-	SExpression* pExpr = parse_Expression();
+	SExpression* pExpr = parse_Expression(1);
 	if(pExpr == NULL)
 		return NULL;
 		

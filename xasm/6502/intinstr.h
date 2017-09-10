@@ -408,7 +408,7 @@ bool_t parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 		{
 			parse_GetToken();
 
-			pAddrMode->pExpr = parse_Expression();
+			pAddrMode->pExpr = parse_Expression(2);
 			if(pAddrMode->pExpr != NULL)
 			{
 				if(parse_ExpectChar(')'))
@@ -423,7 +423,7 @@ bool_t parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
 
 	if(nAllowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y))
 	{
-		pAddrMode->pExpr = parse_Expression();
+		pAddrMode->pExpr = parse_Expression(2);
 
 		if(pAddrMode->pExpr != NULL)
 		{

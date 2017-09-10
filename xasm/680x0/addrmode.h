@@ -201,7 +201,7 @@ static bool_t parse_GetIndexReg(SModeRegs* pMode)
 	if(g_CurrentToken.ID.TargetToken == T_OP_MUL)
 	{
 		parse_GetToken();
-		if((pMode->pIndexScale = parse_Expression()) == NULL)
+		if((pMode->pIndexScale = parse_Expression(1)) == NULL)
 		{
 			prj_Error(ERROR_EXPECT_EXPR);
 			return false;
@@ -273,7 +273,7 @@ static bool_t parse_SingleModePart(SModeRegs* pMode)
 		return parse_GetIndexReg(pMode);
 	}
 
-	expr = parse_Expression();
+	expr = parse_Expression(4);
 	if(expr != NULL)
 	{
 		if(pMode->pDisp != NULL)
@@ -685,11 +685,11 @@ static bool_t parse_GetAddrMode(SAddrMode* pMode)
 	{
 		parse_GetToken();
 		pMode->eMode = AM_IMM;
-		pMode->pImmediate = parse_Expression();
+		pMode->pImmediate = parse_Expression(4);
 		return pMode->pImmediate != NULL;
 	}
 
-	pMode->Outer.pDisp = parse_Expression();
+	pMode->Outer.pDisp = parse_Expression(4);
 	if(pMode->Outer.pDisp != NULL)
 		pMode->Outer.eDispSize = parse_GetSizeSpec(SIZE_DEFAULT);
 

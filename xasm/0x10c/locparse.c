@@ -103,7 +103,7 @@ static SExpression* parse_ExpressionNoReservedIdentifiers()
 
 	opt_Push();
 	g_pOptions->bAllowReservedIdentifierLabels = false;
-	pExpr = parse_Expression();
+	pExpr = parse_Expression(4);
 	opt_Pop();
 
 	return pExpr;
@@ -316,7 +316,7 @@ static bool_t parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes)
 			}
 			else
 			{
-				SExpression* pAddress = parse_Expression();
+				SExpression* pAddress = parse_Expression(2);
 				if(pAddress != NULL && (nAllowedModes & ADDRF_LITERAL))
 				{
 					pMode->eMode = ADDR_LITERAL;
