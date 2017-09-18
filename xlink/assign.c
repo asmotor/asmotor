@@ -56,6 +56,19 @@ static void assignBankFixedSection(Section* section)
 }
 
 
+static void assignTextSection(Section* section)
+{
+    if (!section->assigned && section->group != NULL && section->group->type == GROUP_TEXT)
+    {
+        if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation, &section->cpuBank, &section->imageLocation))
+            Error("No space for section \"%s\"", section->name);
+        
+        section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
+        section->assigned = true;
+    }
+}
+
+
 static void assignSection(Section* section)
 {
 	if (section->group == NULL)
@@ -85,5 +98,6 @@ void assign_Process(void)
 	sect_ForEachUsedSection(assignOrgFixedSection);
 	sect_ForEachUsedSection(assignBankFixedSection);
 	// Byte aligned sections should go here
-	sect_ForEachUsedSection(assignSection);
+    sect_ForEachUsedSection(assignTextSection);
+    sect_ForEachUsedSection(assignSection);
 }

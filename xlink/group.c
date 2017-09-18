@@ -359,8 +359,10 @@ void group_SetupUnbankedCommodore(int baseAddress, int size)
     group->pools[0] = codepool;
 
     //	Create BSS group
-    group = group_Create("BSS", 1);
-    group->pools[0] = pool_Create(-1, 0, 0, 0x10000);
+    group = group_Create("BSS", 3);
+    group->pools[0] = codepool;
+    group->pools[1] = pool_Create(-1, 0, 0, baseAddress);
+    group->pools[2] = pool_Create(-1, baseAddress + size, 0, 0x10000 - baseAddress - size);
 
     //	initialise memory chunks
     group_InitMemoryChunks();

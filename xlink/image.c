@@ -57,7 +57,7 @@ extern void image_WriteBinaryToFile(FILE* fileHandle)
 		if (section->group == NULL)
 			continue;
 
-		if (section->used && section->assigned && section->imageLocation != -1)
+		if (section->used && section->assigned && section->imageLocation != -1 && section->group->type != GROUP_BSS)
 		{
 			uint32_t startOffset = section->imageLocation + headerSize;
 			uint32_t endOffset = startOffset + section->size;
