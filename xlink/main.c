@@ -29,6 +29,7 @@ typedef enum
 	TARGET_AMIGA_LINK_OBJECT,
 	TARGET_COMMODORE64_PRG,
 	TARGET_COMMODORE128_PRG,
+	TARGET_COMMODORE264_PRG,
 } TargetType;
 
 
@@ -81,6 +82,7 @@ static void printUsage(void)
 			"\t    -tb\t\tAmiga link object\n"
 			"\t    -tc64\tCommodore 64 .prg\n"
 			"\t    -tc128\tCommodore 128 unbanked .prg\n"
+			"\t    -tc264\tCommodore 264 series .prg\n"
 			"\t    -tg\t\tGameboy ROM image\n"
 			"\t    -ts\t\tGameboy small mode (32 KiB)\n"
 //			"\t    -tm<mach>\tUse file <mach>\n"
@@ -199,6 +201,14 @@ int	main(int argc, char* argv[])
 						targetType = TARGET_COMMODORE128_PRG;
 						++argn;
 					}
+					else if (str_EqualConst(target, "c264"))
+					{
+						/* Commodore 264 series .prg */
+						group_SetupCommodore264();
+						targetDefined = true;
+						targetType = TARGET_COMMODORE264_PRG;
+						++argn;
+					}
 #if 0
 					case 'm':
 					{
@@ -256,6 +266,9 @@ int	main(int argc, char* argv[])
 				break;
 			case TARGET_COMMODORE128_PRG:
 				commodore_WritePrg(outputFilename, 0x1C01);
+				break;
+			case TARGET_COMMODORE264_PRG:
+				commodore_WritePrg(outputFilename, 0x1001);
 				break;
 			case TARGET_AMIGA_EXECUTABLE:
 				amiga_WriteExecutable(outputFilename, false);

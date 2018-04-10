@@ -379,3 +379,9 @@ void group_SetupCommodore64(void)
 {
     group_SetupUnbankedCommodore(0x080E, 0xA000 - 0x080E);
 }
+
+
+void group_SetupCommodore264(void)
+{
+    group_SetupUnbankedCommodore(0x100E, 0xFD00 - 0x100E);
+}
