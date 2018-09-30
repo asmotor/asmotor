@@ -385,3 +385,46 @@ void group_SetupCommodore264(void)
 {
     group_SetupUnbankedCommodore(0x100E, 0xFD00 - 0x100E);
 }
+
+
+void group_SetupCommodore128ROM(int baseAddress, int size)
+{
+    MemoryGroup* group;
+    MemoryPool* pool;
+
+    pool = pool_Create(0, baseAddress, 0, size);
+
+    //	Create CODE group
+    group = group_Create("CODE", 1);
+    group->pools[0] = pool;
+
+    //	Create DATA group
+    group = group_Create("DATA", 1);
+    group->pools[0] = pool;
+
+    //	Create BSS group
+    pool = pool_Create(-1, 0x0000, 0, 0x10000);
+    group = group_Create("BSS", 1);
+    group->pools[0] = pool;
+
+    //	initialise memory chunks
+    group_InitMemoryChunks();
+}
+
+
+void group_SetupCommodore128FunctionROM()
+{
+    group_SetupCommodore128ROM(0x8000, 0x8000);
+}
+
+
+void group_SetupCommodore128FunctionROMLow()
+{
+    group_SetupCommodore128ROM(0x8000, 0x4000);
+}
+
+
+void group_SetupCommodore128FunctionROMHigh()
+{
+    group_SetupCommodore128ROM(0xC000, 0x4000);
+}

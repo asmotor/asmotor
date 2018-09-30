@@ -82,6 +82,9 @@ static void printUsage(void)
 			"\t    -tb\t\tAmiga link object\n"
 			"\t    -tc64\tCommodore 64 .prg\n"
 			"\t    -tc128\tCommodore 128 unbanked .prg\n"
+			"\t    -tc128f\tCommodore 128 Function ROM (32 KiB)\n"
+			"\t    -tc128fl\tCommodore 128 Function ROM Low (16 KiB)\n"
+			"\t    -tc128fh\tCommodore 128 Function ROM High (16 KiB)\n"
 			"\t    -tc264\tCommodore 264 series .prg\n"
 			"\t    -tg\t\tGameboy ROM image\n"
 			"\t    -ts\t\tGameboy small mode (32 KiB)\n"
@@ -96,6 +99,7 @@ int	main(int argc, char* argv[])
 	int argn = 1;
 	bool_t targetDefined = false;
 	TargetType targetType = TARGET_BINARY;
+	int binaryPad = -1;
 
 	char* outputFilename = NULL;
 	char* smartlink = NULL;
@@ -201,6 +205,33 @@ int	main(int argc, char* argv[])
 						targetType = TARGET_COMMODORE128_PRG;
 						++argn;
 					}
+					else if (str_EqualConst(target, "c128f"))
+					{
+						/* Commodore 128 Function ROM */
+						group_SetupCommodore128FunctionROM();
+						targetDefined = true;
+						targetType = TARGET_BINARY;
+						binaryPad = 0x8000;
+						++argn;
+					}
+					else if (str_EqualConst(target, "c128fl"))
+					{
+						/* Commodore 128 Function ROM Low */
+						group_SetupCommodore128FunctionROMLow();
+						targetDefined = true;
+						targetType = TARGET_BINARY;
+						binaryPad = 0x4000;
+						++argn;
+					}
+					else if (str_EqualConst(target, "c128fh"))
+					{
+						/* Commodore 128 Function ROM High */
+						group_SetupCommodore128FunctionROMHigh();
+						targetDefined = true;
+						targetType = TARGET_BINARY;
+						binaryPad = 0x4000;
+						++argn;
+					}
 					else if (str_EqualConst(target, "c264"))
 					{
 						/* Commodore 264 series .prg */
@@ -259,7 +290,7 @@ int	main(int argc, char* argv[])
 		switch (targetType)
 		{
 			case TARGET_BINARY:
-				image_WriteBinary(outputFilename);
+				image_WriteBinary(outputFilename, binaryPad);
 				break;
 			case TARGET_COMMODORE64_PRG:
 				commodore_WritePrg(outputFilename, 0x0801);
