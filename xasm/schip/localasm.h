@@ -108,6 +108,6 @@ typedef	enum
 	T_CHIP_REG_I_IND,
 	T_CHIP_REG_RPL,
 
-}	eTargetToken;
+}	ETargetToken;
 
 #endif	//LOCALASM_H

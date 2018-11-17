@@ -498,7 +498,7 @@ bool_t parse_IntegerInstruction(void)
 	if(T_6502_ADC <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_6502U_XAS)
 	{
 		SAddressingMode addrMode;
-		eTargetToken nToken = g_CurrentToken.ID.TargetToken;
+		ETargetToken nToken = g_CurrentToken.ID.TargetToken;
 		SParser* pParser = &g_Parsers[nToken - T_6502_ADC];
 
 		parse_GetToken();

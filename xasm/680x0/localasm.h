@@ -542,6 +542,6 @@ typedef	enum
 	T_FPUREG_6,
 	T_FPUREG_7,
 
-}	eTargetToken;
+}	ETargetToken;
 
 #endif	//LOCALASM_H

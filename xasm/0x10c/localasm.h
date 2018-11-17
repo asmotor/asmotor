@@ -60,6 +60,6 @@ typedef	enum
 	T_REG_PC,
 	T_REG_O,
 
-}	eTargetToken;
+}	ETargetToken;
 
 #endif	/* LOCALASM_H */

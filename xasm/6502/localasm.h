@@ -123,6 +123,6 @@ typedef	enum
 	T_6502_REG_X,
 	T_6502_REG_Y,
 	
-}	eTargetToken;
+}	ETargetToken;
 
 #endif	/* LOCALASM_H */

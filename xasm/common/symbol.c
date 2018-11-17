@@ -351,7 +351,7 @@ SSymbol* sym_CreateLabel(string* pName)
 
         if(pCurrentSection)
         {
-            if(str_CharAt(pName, 0) != '.' && str_CharAt(pName, -1) != '$')
+            if(str_CharAt(pName, 0) != '$' && str_CharAt(pName, 0) != '.' && str_CharAt(pName, -1) != '$')
                 s_pCurrentScope = pSym;
 
             if((pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) == 0)

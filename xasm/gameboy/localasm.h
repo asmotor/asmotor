@@ -148,6 +148,6 @@ typedef	enum
 	T_CC_M,		// Z80 only
 
 
-}	eTargetToken;
+}	ETargetToken;
 
 #endif	//LOCALASM_H

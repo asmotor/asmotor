@@ -300,6 +300,6 @@ typedef	enum
 
 	T_MIPS_MIPS32R1,
 	T_MIPS_MIPS32R2,
-}	eTargetToken;
+}	ETargetToken;
 
 #endif	//LOCALASM_H

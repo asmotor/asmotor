@@ -424,7 +424,7 @@ bool_t parse_IntegerInstruction(void)
 {
 	if(T_0X10C_ADD <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_0X10C_XOR)
 	{
-		eTargetToken nToken = g_CurrentToken.ID.TargetToken;
+		ETargetToken nToken = g_CurrentToken.ID.TargetToken;
 		SParser* pParser = &g_Parsers[nToken - T_0X10C_ADD];
 
 		parse_GetToken();
