@@ -65,7 +65,7 @@ extern void commodore_WritePrg(char* outputFilename, uint32_t baseAddress)
 
     writeHeader(fileHandle, baseAddress);
 
-	image_WriteBinaryToFile(fileHandle);
+	image_WriteBinaryToFile(fileHandle, -1);
 
 	fclose(fileHandle);
 }

@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 
+extern void image_WriteBinaryToFile(FILE* fileHandle, int padToMultipleOf);
 extern void image_WriteBinary(char* name, int padToMultipleOf);
 
 #endif
