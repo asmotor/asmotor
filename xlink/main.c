@@ -240,6 +240,18 @@ int	main(int argc, char* argv[])
 						targetType = TARGET_COMMODORE264_PRG;
 						++argn;
 					}
+					else if (str_EqualConst(target, "md"))
+					{
+						/* Sega Mega Drive/Genesis */
+						group_SetupSegaGenesis();
+						targetDefined = true;
+						targetType = TARGET_BINARY;
+						++argn;
+					}
+					else
+					{
+						Error("Unknown target \"%s\"", str_String(target));
+					}
 #if 0
 					case 'm':
 					{

@@ -270,7 +270,7 @@ void group_SetupGameboy(void)
     group_InitMemoryChunks();
 }
 
-void	group_SetupSmallGameboy(void)
+void group_SetupSmallGameboy(void)
 {
     int i;
     MemoryPool* codepool;
@@ -427,4 +427,27 @@ void group_SetupCommodore128FunctionROMLow()
 void group_SetupCommodore128FunctionROMHigh()
 {
     group_SetupCommodore128ROM(0xC000, 0x4000);
+}
+
+
+void group_SetupSegaGenesis()
+{
+    MemoryGroup* group;
+    MemoryPool* rompool = pool_Create(0, 0x000000, 0, 0x400000);
+    MemoryPool* rampool = pool_Create(0, 0xFF0000, 0, 0x10000);
+
+    //	Create CODE group
+    group = group_Create("CODE", 1);
+    group->pools[0] = rompool;
+
+    //	Create DATA group
+    group = group_Create("DATA", 1);
+    group->pools[0] = rompool;
+
+    //	Create BSS group
+    group = group_Create("BSS", 1);
+    group->pools[0] = rampool;
+
+    //	initialise memory chunks
+    group_InitMemoryChunks();
 }
