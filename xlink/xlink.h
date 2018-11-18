@@ -25,6 +25,7 @@
 #include "object.h"
 #include "image.h"
 #include "commodore.h"
+#include "sega.h"
 #include "mapfile.h"
 #include "symbol.h"
 #include "patch.h"

@@ -21,6 +21,22 @@
 
 #define WRITE_BLOCK_SIZE 16384
 
+static int log2(size_t value)
+{
+    int r = sizeof(value) * 8 - 1;
+    size_t mask = (size_t)1 << (sizeof(value) * 8 - 1);
+    while (r > 0)
+    {
+        if (value & mask)
+            return r;
+
+        r -= 1;
+        mask = mask >> 1;
+    }
+
+    return 0;
+}
+
 static void writeRepeatedBytes(FILE* fileHandle, void* data, uint32_t offset, int bytes)
 {
     fseek(fileHandle, offset, SEEK_SET);
@@ -39,13 +55,13 @@ static void* allocEmptyBytes()
     if (data == NULL)
         Error("Out of memory");
 
-    memset(data, 0, WRITE_BLOCK_SIZE);
+    memset(data, 0xFF, WRITE_BLOCK_SIZE);
 
     return data;
 }
 
 
-extern void image_WriteBinaryToFile(FILE* fileHandle, int padToMultipleOf)
+extern void image_WriteBinaryToFile(FILE* fileHandle, int padding)
 {
     uint32_t headerSize = ftell(fileHandle);
     char* emptyBytes = allocEmptyBytes();
@@ -74,8 +90,9 @@ extern void image_WriteBinaryToFile(FILE* fileHandle, int padToMultipleOf)
         }
     }
 
-    if (padToMultipleOf != -1) {
-        int bytesToPad = padToMultipleOf - currentFileSize % padToMultipleOf;
+    if (padding != -1)
+    {
+        int bytesToPad = padding == 0 ? (2 << log2(currentFileSize)) - currentFileSize : padding - currentFileSize % padding;
         writeRepeatedBytes(fileHandle, emptyBytes, currentFileSize, bytesToPad);
     }
 
@@ -83,13 +100,13 @@ extern void image_WriteBinaryToFile(FILE* fileHandle, int padToMultipleOf)
 }
 
 
-extern void image_WriteBinary(char* outputFilename, int padToMultipleOf)
+extern void image_WriteBinary(char* outputFilename, int padding)
 {
     FILE* fileHandle = fopen(outputFilename, "wb");
     if (fileHandle == NULL)
         Error("Unable to open \"%s\" for writing", outputFilename);
 
-    image_WriteBinaryToFile(fileHandle, padToMultipleOf);
+    image_WriteBinaryToFile(fileHandle, padding);
 
     fclose(fileHandle);
 }

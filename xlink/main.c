@@ -30,6 +30,7 @@ typedef enum
 	TARGET_COMMODORE64_PRG,
 	TARGET_COMMODORE128_PRG,
 	TARGET_COMMODORE264_PRG,
+	TARGET_MEGA_DRIVE
 } TargetType;
 
 
@@ -245,7 +246,8 @@ int	main(int argc, char* argv[])
 						/* Sega Mega Drive/Genesis */
 						group_SetupSegaGenesis();
 						targetDefined = true;
-						targetType = TARGET_BINARY;
+						targetType = TARGET_MEGA_DRIVE;
+						binaryPad = 0;
 						++argn;
 					}
 					else
@@ -301,6 +303,10 @@ int	main(int argc, char* argv[])
 	{
 		switch (targetType)
 		{
+			case TARGET_MEGA_DRIVE:
+				image_WriteBinary(outputFilename, binaryPad);
+				sega_WriteMegaDriveImage(outputFilename);
+				break;
 			case TARGET_BINARY:
 				image_WriteBinary(outputFilename, binaryPad);
 				break;
