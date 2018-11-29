@@ -19,7 +19,7 @@
 #include "xlink.h"
 
 
-static void fputml(uint32_t d, FILE* f)
+static void fputbl(uint32_t d, FILE* f)
 {
 	fputc((d >> 24) & 0xFF, f);
 	fputc((d >> 16) & 0xFF, f);
@@ -28,10 +28,17 @@ static void fputml(uint32_t d, FILE* f)
 }
 
 
-static void fputmw(uint16_t d, FILE* f)
+static void fputbw(uint16_t d, FILE* f)
 {
 	fputc((d >> 8) & 0xFF, f);
 	fputc(d & 0xFF, f);
+}
+
+
+static void fputlw(uint16_t d, FILE* f)
+{
+	fputc(d & 0xFF, f);
+	fputc((d >> 8) & 0xFF, f);
 }
 
 
@@ -42,7 +49,7 @@ static uint16_t fgetmw(FILE* f)
 }
 
 
-static uint16_t sega_CalcChecksum(FILE* fileHandle, long length)
+static uint16_t sega_CalcMegaDriveChecksum(FILE* fileHandle, long length)
 {
     uint16_t r = 0;
     long c = (length - 0x200) >> 1;
@@ -55,17 +62,17 @@ static uint16_t sega_CalcChecksum(FILE* fileHandle, long length)
 }
 
 
-static void sega_UpdateHeader(FILE* fileHandle)
+static void sega_UpdateMegaDriveHeader(FILE* fileHandle)
 {
     fseek(fileHandle, 0, SEEK_END);
     long length = ftell(fileHandle);
 
     fseek(fileHandle, 0x1A4, SEEK_SET);
-    fputml(length - 1, fileHandle);
+    fputbl(length - 1, fileHandle);
 
-    uint16_t checksum = sega_CalcChecksum(fileHandle, length);
+    uint16_t checksum = sega_CalcMegaDriveChecksum(fileHandle, length);
     fseek(fileHandle, 0x18E, SEEK_SET);
-    fputmw(checksum, fileHandle);
+    fputbw(checksum, fileHandle);
 }
 
 
@@ -77,7 +84,92 @@ void sega_WriteMegaDriveImage(char* outputFilename)
 
 	image_WriteBinaryToFile(fileHandle, 0);
 
-    sega_UpdateHeader(fileHandle);
+    sega_UpdateMegaDriveHeader(fileHandle);
+
+	fclose(fileHandle);
+}
+
+
+static uint16_t sega_CalcMasterSystemCheckSumPart(FILE* fileHandle, int count, uint16_t checkSumIn)
+{
+    while (count--)
+    {
+        checkSumIn += (uint16_t)fgetc(fileHandle);
+    }
+    return checkSumIn;
+}
+
+
+static uint16_t sega_CalcMasterSystemCheckSum(FILE* fileHandle, int fileSize, int headerLocation)
+{
+    uint16_t checkSum = 0;
+
+    fseek(fileHandle, 0, SEEK_SET);
+    checkSum = sega_CalcMasterSystemCheckSumPart(fileHandle, headerLocation, checkSum);
+    fseek(fileHandle, 16, SEEK_CUR);
+    fileSize -= headerLocation + 16;
+
+    if (fileSize > 0)
+        checkSum = sega_CalcMasterSystemCheckSumPart(fileHandle, fileSize, checkSum);
+
+    return checkSum;
+}
+
+
+uint8_t sega_CalcSizeCode(uint8_t code, int fileSize)
+{
+    uint8_t newCode = 0;
+    
+    switch (fileSize)
+    {
+        case 0x002000: newCode = 0x0A; break;
+        case 0x004000: newCode = 0x0B; break;
+        case 0x008000: newCode = 0x0C; break;
+        case 0x00C000: newCode = 0x0D; break;
+        case 0x010000: newCode = 0x0E; break;
+        case 0x020000: newCode = 0x0F; break;
+        case 0x040000: newCode = 0x00; break;
+        case 0x080000: newCode = 0x01; break;
+        default:
+        case 0x100000: newCode = 0x02; break;
+    }
+
+    return (code & 0xF0) | newCode;
+}
+
+
+void sega_UpdateMasterSystemHeader(FILE* fileHandle, int headerLocation)
+{
+    uint16_t checkSum;
+    int fileSize;
+    uint8_t code;
+
+    fseek(fileHandle, 0, SEEK_END);
+    fileSize = ftell(fileHandle);
+
+    checkSum = sega_CalcMasterSystemCheckSum(fileHandle, fileSize, headerLocation);
+
+    fseek(fileHandle, headerLocation, SEEK_SET);
+    fwrite("TMR SEGA  ", 1, 10, fileHandle);
+    fputlw(checkSum, fileHandle);
+    fseek(fileHandle, 3, SEEK_CUR);
+    code = fgetc(fileHandle);
+    fseek(fileHandle, -1, SEEK_CUR);
+    fputc(sega_CalcSizeCode(code, fileSize), fileHandle);
+}
+
+
+void sega_WriteMasterSystemImage(char* outputFilename, int binaryPad)
+{
+    int headerLocation =  (binaryPad == 0) || (binaryPad >= 0x8000) ? 0x8000 : binaryPad;
+
+	FILE* fileHandle = fopen(outputFilename, "w+b");
+	if (fileHandle == NULL)
+		Error("Unable to open \"%s\" for writing", outputFilename);
+
+	image_WriteBinaryToFile(fileHandle, binaryPad);
+
+    sega_UpdateMasterSystemHeader(fileHandle, headerLocation - 16);
 
 	fclose(fileHandle);
 }

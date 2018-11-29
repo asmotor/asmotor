@@ -430,7 +430,7 @@ void group_SetupCommodore128FunctionROMHigh()
 }
 
 
-void group_SetupSegaGenesis()
+void group_SetupSegaMegaDrive()
 {
     MemoryGroup* group;
     MemoryPool* rompool = pool_Create(0, 0x000000, 0, 0x400000);
@@ -451,3 +451,76 @@ void group_SetupSegaGenesis()
     //	initialise memory chunks
     group_InitMemoryChunks();
 }
+
+
+void group_SetupSegaMasterSystem(int size)
+{
+    MemoryPool* codepool;
+    MemoryGroup* group;
+
+    codepool = pool_Create(0, 0, 0, size - 16);
+    
+    //	Create CODE group
+
+    group = group_Create("CODE", 1);
+    group->pools[0] = codepool;
+
+    //	Create HOME group
+
+    group = group_Create("HOME", 1);
+    group->pools[0] = codepool;
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 1);
+    group->pools[0] = codepool;
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 1);
+    group->pools[0] = pool_Create(-1, 0xC000, 0, 0x1FF8);
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+
+
+void group_SetupSegaMasterSystemBanked(void)
+{
+    int i;
+    MemoryPool* codepools[63];
+    MemoryGroup* group;
+
+    codepools[0] = pool_Create(0, 0, 0, 0x8000);
+
+    for (i = 2; i < 64; ++i)
+        codepools[i - 1] = pool_Create(i * 0x4000, 0x8000, i, 0x4000);
+    
+    //	Create HOME group
+
+    group = group_Create("HOME", 1);
+    group->pools[0] = codepools[0];
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 63);
+    for(i = 0; i < 63; ++i)
+        group->pools[i] = codepools[i];
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 63);
+    for(i = 0; i < 63; ++i)
+        group->pools[i] = codepools[i];
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 1);
+    group->pools[0] = pool_Create(-1, 0xC000, 0, 0x1FF8);
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+

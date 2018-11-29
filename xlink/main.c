@@ -30,7 +30,8 @@ typedef enum
 	TARGET_COMMODORE64_PRG,
 	TARGET_COMMODORE128_PRG,
 	TARGET_COMMODORE264_PRG,
-	TARGET_MEGA_DRIVE
+	TARGET_MEGA_DRIVE,
+	TARGET_MASTER_SYSTEM,
 } TargetType;
 
 
@@ -89,6 +90,12 @@ static void printUsage(void)
 			"\t    -tc264\tCommodore 264 series .prg\n"
 			"\t    -tg\t\tGameboy ROM image\n"
 			"\t    -ts\t\tGameboy small mode (32 KiB)\n"
+			"\t    -tmd\t\tSega Mega Drive\n"
+			"\t    -tms8\t\tSega Master System (8 KiB)\n"
+			"\t    -tms16\t\tSega Master System (16 KiB)\n"
+			"\t    -tms32\t\tSega Master System (32 KiB)\n"
+			"\t    -tms48\t\tSega Master System (48 KiB)\n"
+			"\t    -tmsb\t\tSega Master System banked (64+ KiB)\n"
 //			"\t    -tm<mach>\tUse file <mach>\n"
 			);
     exit(EXIT_SUCCESS);
@@ -244,9 +251,53 @@ int	main(int argc, char* argv[])
 					else if (str_EqualConst(target, "md"))
 					{
 						/* Sega Mega Drive/Genesis */
-						group_SetupSegaGenesis();
+						group_SetupSegaMegaDrive();
 						targetDefined = true;
 						targetType = TARGET_MEGA_DRIVE;
+						++argn;
+					}
+					else if (str_EqualConst(target, "ms8"))
+					{
+						/* Sega Master System 8 KiB */
+						group_SetupSegaMasterSystem(0x2000);
+						targetDefined = true;
+						targetType = TARGET_MASTER_SYSTEM;
+						binaryPad = 0x2000;
+						++argn;
+					}
+					else if (str_EqualConst(target, "ms16"))
+					{
+						/* Sega Master System 16 KiB */
+						group_SetupSegaMasterSystem(0x4000);
+						targetDefined = true;
+						targetType = TARGET_MASTER_SYSTEM;
+						binaryPad = 0x4000;
+						++argn;
+					}
+					else if (str_EqualConst(target, "ms32"))
+					{
+						/* Sega Master System 32 KiB */
+						group_SetupSegaMasterSystem(0x8000);
+						targetDefined = true;
+						targetType = TARGET_MASTER_SYSTEM;
+						binaryPad = 0x8000;
+						++argn;
+					}
+					else if (str_EqualConst(target, "ms48"))
+					{
+						/* Sega Master System 48 KiB */
+						group_SetupSegaMasterSystem(0xC000);
+						targetDefined = true;
+						targetType = TARGET_MASTER_SYSTEM;
+						binaryPad = 0xC000;
+						++argn;
+					}
+					else if (str_EqualConst(target, "msb"))
+					{
+						/* Sega Master System 64+ KiB */
+						group_SetupSegaMasterSystemBanked();
+						targetDefined = true;
+						targetType = TARGET_MASTER_SYSTEM;
 						binaryPad = 0;
 						++argn;
 					}
@@ -304,8 +355,10 @@ int	main(int argc, char* argv[])
 		switch (targetType)
 		{
 			case TARGET_MEGA_DRIVE:
-				image_WriteBinary(outputFilename, binaryPad);
 				sega_WriteMegaDriveImage(outputFilename);
+				break;
+			case TARGET_MASTER_SYSTEM:
+				sega_WriteMasterSystemImage(outputFilename, binaryPad);
 				break;
 			case TARGET_BINARY:
 				image_WriteBinary(outputFilename, binaryPad);
