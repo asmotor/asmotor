@@ -20,5 +20,6 @@
 #define	XLINK_SEGA_H_INCLUDED_
 
 extern void sega_WriteMegaDriveImage(char* filename);
+extern void sega_WriteMasterSystemImage(char* outputFilename, int binaryPad);
 
 #endif

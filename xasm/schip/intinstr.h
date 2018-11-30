@@ -95,7 +95,7 @@ static bool_t parse_AddressMode(SAddressMode* pMode)
 		pMode->nMode = MODE_I_IND;
 		return true;
 	}
-	else if((pMode->pExpr = parse_Expression()) != NULL)
+	else if((pMode->pExpr = parse_Expression(1)) != NULL)
 	{
 		pMode->nMode = MODE_IMM;
 		return true;

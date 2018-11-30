@@ -27,7 +27,7 @@
 
 SExpression* parse_ExpressionU12(void)
 {
-	SExpression* pExpr = parse_Expression();
+	SExpression* pExpr = parse_Expression(1);
 	if(pExpr == NULL)
 		return NULL;
 		

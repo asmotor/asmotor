@@ -30,7 +30,7 @@ extern void	group_SetupCommodore128FunctionROMHigh(void);
 extern void	group_SetupCommodore128FunctionROMLow(void);
 extern void	group_SetupSegaMegaDrive(void);
 extern void	group_SetupSegaMasterSystem(int size);
-extern void	group_SetupSegaMasterBanked(void);
+extern void	group_SetupSegaMasterSystemBanked(void);
 extern bool_t group_AllocateMemory(char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 extern bool_t group_AllocateAbsolute(char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 

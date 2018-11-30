@@ -318,7 +318,7 @@ bool_t ParseMacroArg(char* src, uint32_t size)
 {
     char* arg = fstk_GetMacroArgValue(src[1]);
     lex_SkipBytes(size);
-    if(arg != NULL)
+    if (arg != NULL)
         lex_UnputString(arg);
     return false;
 }
