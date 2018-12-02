@@ -31,7 +31,7 @@ bool_t bin_CommonPatch()
 	int i;
 	bool_t bNeedOrg = false;
 
-	sect = pSectionList;
+	sect = g_pSectionList;
 	while(sect)
 	{
 		if(sect->pPatches != NULL)
@@ -39,7 +39,7 @@ bool_t bin_CommonPatch()
 		sect = list_GetNext(sect);
 	}
 	
-	sect = pSectionList;
+	sect = g_pSectionList;
 	if(bNeedOrg && (sect->Flags & SECTF_LOADFIXED) == 0)
 	{
 		prj_Error(ERROR_SECTION_MUST_LOAD);
@@ -101,7 +101,7 @@ bool_t bin_Write(string* pName)
 
 	if((f = fopen(str_String(pName),"wb")) != NULL)
 	{
-		SSection* sect = pSectionList;
+		SSection* sect = g_pSectionList;
 		int32_t nAddress = sect->Position;
 
 		while(sect)
@@ -138,7 +138,7 @@ bool_t bin_WriteVerilog(string* pName)
 
 	if((f = fopen(str_String(pName),"wt")) != NULL)
 	{
-		SSection* sect = pSectionList;
+		SSection* sect = g_pSectionList;
 		int32_t nAddress = sect->Position;
 
 		while(sect)

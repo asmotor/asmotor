@@ -16,6 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,415 +33,315 @@
 #include "project.h"
 #include "amigaobject.h"
 
-#define	HUNK_UNIT	0x3E7
-#define	HUNK_NAME	0x3E8
-#define	HUNK_CODE	0x3E9
-#define	HUNK_DATA	0x3EA
-#define	HUNK_BSS	0x3EB
-#define	HUNK_RELOC32 0x3EC
-#define	HUNK_EXT	0x3EF
-#define	HUNK_SYMBOL	0x3F0
-#define	HUNK_END	0x3F2
-#define	HUNK_HEADER	0x3F3
-#define	HUNKF_CHIP	(1 << 30)
+#define HUNK_UNIT    0x3E7
+#define HUNK_NAME    0x3E8
+#define HUNK_CODE    0x3E9
+#define HUNK_DATA    0x3EA
+#define HUNK_BSS     0x3EB
+#define HUNK_RELOC32 0x3EC
+#define HUNK_EXT     0x3EF
+#define HUNK_SYMBOL  0x3F0
+#define HUNK_END     0x3F2
+#define HUNK_HEADER  0x3F3
+#define HUNKF_CHIP   (1 << 30)
 
-#define EXT_DEF		0x01000000
-#define EXT_REF32	0x81000000
+#define EXT_DEF      0x01000000
+#define EXT_REF32    0x81000000
 
-static void fputbuf(const void* pBuf, size_t nLen, FILE* f)
-{
-	fwrite(pBuf, 1, nLen, f);
+static void fputbuf(const void* buffer, size_t length, FILE* fileHandle) {
+	fwrite(buffer, 1, length, fileHandle);
 
-	while((nLen & 3) != 0)
-	{
-		fputc(0, f);
-		++nLen;
+	while ((length & 3) != 0) {
+		fputc(0, fileHandle);
+		++length;
 	}
 }
 
-static void fputstr(string* str, FILE* f, uint32_t def)
-{
-	uint32_t nLen = (uint32_t)str_Length(str);
-	fputbl(((nLen + 3) / 4) | def, f);
-	fputbuf(str_String(str), nLen, f);
+static void fputstr(const string* str, FILE* fileHandle, uint32_t flags) {
+	uint32_t length = (uint32_t) str_Length(str);
+	fputbl(((length + 3) / 4) | flags, fileHandle);
+	fputbuf(str_String(str), length, fileHandle);
 }
 
-void ami_WriteSymbolHunk(FILE* f, SSection* pSect, bool_t bSkipExt)
-{
-	int i;
+static void writeSymbolHunk(FILE* fileHandle, const SSection* section, bool_t bSkipExt) {
 	int count = 0;
-	long fpos;
+	long startPosition = ftell(fileHandle);
 
-	fpos = ftell(f);
-	fputbl(HUNK_SYMBOL, f);
+	fputbl(HUNK_SYMBOL, fileHandle);
 
-	for(i = 0; i < HASHSIZE; ++i)
-	{
-		SSymbol* sym = g_pHashedSymbols[i];
-		while(sym)
-		{
-			if((sym->nFlags & SYMF_RELOC) != 0
-			&& sym->pSection == pSect)
-			{
-				if(!((sym->nFlags & SYMF_EXPORT) && bSkipExt))
-				{
-					fputstr(sym->pName, f, 0);
-					fputbl(sym->Value.Value, f);
+	for (int i = 0; i < HASHSIZE; ++i) {
+		for (SSymbol* symbol = g_pHashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+			if ((symbol->nFlags & SYMF_RELOC) != 0 && symbol->pSection == section) {
+				if (!((symbol->nFlags & SYMF_EXPORT) && bSkipExt)) {
+					fputstr(symbol->pName, fileHandle, 0);
+					fputbl((uint32_t) symbol->Value.Value, fileHandle);
 					++count;
 				}
 			}
-			sym = list_GetNext(sym);
 		}
 	}
 
-	if(count == 0)
-		fseek(f, fpos, SEEK_SET);
+	if (count == 0)
+		fseek(fileHandle, startPosition, SEEK_SET);
 	else
-		fputbl(0, f);
+		fputbl(0, fileHandle);
 }
 
-void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatches, uint32_t nCodePos)
-{
-	int i;
+static void writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatches, long hunkPosition) {
 	int count = 0;
-	long fpos;
+	long fpos = ftell(fileHandle);
+	fputbl(HUNK_EXT, fileHandle);
 
-	fpos = ftell(f);
-	fputbl(HUNK_EXT, f);
-
-	while(pImportPatches != NULL)
-	{
+	while (importPatches != NULL) {
 		uint32_t offset;
 		SSymbol* pSym = NULL;
-		if(patch_GetImportOffset(&offset, &pSym, pImportPatches->pExpression))
-		{
-			long oldpos;
-			long symcountpos;
-			long loccount = 0;
-			SPatch* patch;
+		if (patch_GetImportOffset(&offset, &pSym, importPatches->pExpression)) {
+			uint32_t symbolCount = 0;
 
-			fputstr(pSym->pName, f, EXT_REF32);
-			symcountpos = ftell(f);
-			fputbl(0, f);
+			fputstr(pSym->pName, fileHandle, EXT_REF32);
+			long symbolCountPosition = ftell(fileHandle);
+			fputbl(0, fileHandle);
 
-			patch = pImportPatches;
-			do
-			{
-				long pos = ftell(f);
-				fseek(f, patch->Offset + nCodePos, SEEK_SET);
-				fputbl(offset, f);
-				fseek(f, pos, SEEK_SET);
-				fputbl(patch->Offset, f);
+			const SPatch* patch = importPatches;
+			do {
+				long pos = ftell(fileHandle);
+				fseek(fileHandle, patch->Offset + hunkPosition, SEEK_SET);
+				fputbl(offset, fileHandle);
+				fseek(fileHandle, pos, SEEK_SET);
+				fputbl(patch->Offset, fileHandle);
 				++count;
-				++loccount;
+				++symbolCount;
 
 				patch = list_GetNext(patch);
-				while(patch != NULL)
-				{
+				while (patch != NULL) {
 					SSymbol* sym = NULL;
-					if(patch_GetImportOffset(&offset, &sym, patch->pExpression)
-					&& sym == pSym)
-					{
-						if(patch->pPrev)
-							patch->pPrev->pNext = patch->pNext;
-						else
-							internalerror("shouldn't happen");
-						if(patch->pNext)
+					if (patch_GetImportOffset(&offset, &sym, patch->pExpression) && sym == pSym) {
+						assert (patch->pPrev != NULL);
+						patch->pPrev->pNext = patch->pNext;
+						if (patch->pNext)
 							patch->pNext->pPrev = patch->pPrev;
 
 						break;
 					}
 					patch = list_GetNext(patch);
 				}
-			} while(patch != NULL);
+			} while (patch != NULL);
 
-			oldpos = ftell(f);
-			fseek(f, symcountpos, SEEK_SET);
-			fputbl(loccount, f);
-			fseek(f, oldpos, SEEK_SET);
+			long currentPosition = ftell(fileHandle);
+			fseek(fileHandle, symbolCountPosition, SEEK_SET);
+			fputbl(symbolCount, fileHandle);
+			fseek(fileHandle, currentPosition, SEEK_SET);
 		}
-		pImportPatches = list_GetNext(pImportPatches);
+		importPatches = list_GetNext(importPatches);
 	}
 
-	for(i = 0; i < HASHSIZE; ++i)
-	{
-		SSymbol* sym = g_pHashedSymbols[i];
-		while(sym)
-		{
-			if((sym->nFlags & (SYMF_RELOC | SYMF_EXPORT)) == (SYMF_RELOC | SYMF_EXPORT)
-			&& sym->pSection == pSect)
-			{
-				fputstr(sym->pName, f, EXT_DEF);
-				fputbl(sym->Value.Value, f);
+	for (int i = 0; i < HASHSIZE; ++i) {
+		for (SSymbol* sym = g_pHashedSymbols[i]; sym != NULL; sym = list_GetNext(sym)) {
+			if ((sym->nFlags & (SYMF_RELOC | SYMF_EXPORT)) == (SYMF_RELOC | SYMF_EXPORT) && sym->pSection == section) {
+				fputstr(sym->pName, fileHandle, EXT_DEF);
+				fputbl((uint32_t) sym->Value.Value, fileHandle);
 				++count;
 			}
-			sym = list_GetNext(sym);
 		}
 	}
 
-	if(count == 0)
-		fseek(f, fpos, SEEK_SET);
+	if (count == 0)
+		fseek(fileHandle, fpos, SEEK_SET);
 	else
-		fputbl(0, f);
-
+		fputbl(0, fileHandle);
 }
 
-bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nSections, bool_t bLink)
-{
-	if(pSect->pGroup->Value.GroupType == GROUP_TEXT)
-	{
-		SPatch** pPatches = mem_Alloc(sizeof(SPatch*) * nSections);
-		SPatch* pImportPatches = NULL;
-		SPatch* patch;
-		long hunkpos;
-		uint32_t i;
-		uint32_t hunktype;
-		bool_t bHasReloc32 = false;
+static void writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSections, long hunkPosition) {
+	fputbl(HUNK_RELOC32, fileHandle);
 
-		for(i = 0; i < nSections; ++i)
-			pPatches[i] = NULL;
+	SSection* offsetToSection = g_pSectionList;
+	for (uint32_t i = 0; i < totalSections; ++i) {
+		uint32_t totalRelocations = 0;
+		for (SPatch* patch = patchesPerSection[i]; patch != NULL; patch = list_GetNext(patch)) {
+			++totalRelocations;
+		}
+		if (totalRelocations > 0) {
+			fputbl(totalRelocations, fileHandle);
+			fputbl(i, fileHandle);
+			for (SPatch* patch = patchesPerSection[i]; patch != NULL; patch = list_GetNext(patch)) {
+				uint32_t value;
+				patch_GetSectionPcOffset(&value, patch->pExpression, offsetToSection);
 
-		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->nFlags & SYMF_DATA))
-			hunktype = HUNK_DATA;
-		else
-			hunktype = HUNK_CODE;
+				long currentPosition = ftell(fileHandle);
+				fseek(fileHandle, patch->Offset + hunkPosition, SEEK_SET);
+				fputbl(value, fileHandle);
+				fseek(fileHandle, currentPosition, SEEK_SET);
+				fputbl(patch->Offset, fileHandle);
+			}
+		}
 
-		fputbl(hunktype, f);
-		fputbl((pSect->UsedSpace + 3) / 4, f);
-		hunkpos = ftell(f);
-		fputbuf(pSect->pData, pSect->UsedSpace, f);
+		offsetToSection = list_GetNext(offsetToSection);
+	}
+	fputbl(0, fileHandle);
+}
 
-		/* move the patches into the pPatches array according to
-		   the section to which their value is relative
-		 */
-		patch = pSect->pPatches;
-		while(patch)
-		{
-			SPatch* nextpatch = list_GetNext(patch);
-			if(patch->Type == PATCH_BLONG)
-			{
-				SSection* fsect = pSectionList;
-				int nsect = 0;
-				bool_t foundsect = false;
-				while(fsect != NULL)
-				{
-					if(patch_IsRelativeToSection(patch->pExpression, fsect))
-					{
-						if(patch->pPrev)
-							patch->pPrev = patch->pNext;
+static bool_t writeSection(FILE* fileHandle, SSection* section, bool_t writeDebugInfo, uint32_t totalSections, bool_t isLinkObject) {
+	if (section->pGroup->Value.GroupType == GROUP_TEXT) {
+		SPatch** patchesPerSection = mem_Alloc(sizeof(SPatch*) * totalSections);
+		for (uint32_t i = 0; i < totalSections; ++i)
+			patchesPerSection[i] = NULL;
+
+		uint32_t hunkType =
+			(g_pConfiguration->bSupportAmiga && (section->pGroup->nFlags & SYMF_DATA)) ? HUNK_DATA : HUNK_CODE;
+
+		fputbl(hunkType, fileHandle);
+		fputbl((section->UsedSpace + 3) / 4, fileHandle);
+		long hunkPosition = ftell(fileHandle);
+		fputbuf(section->pData, section->UsedSpace, fileHandle);
+
+		// Move the patches into the patchesPerSection array according the section to which their value is relative
+		SPatch* patch = section->pPatches;
+		SPatch* importPatches = NULL;
+		bool_t hasReloc32 = false;
+
+		while (patch) {
+			SPatch* nextPatch = list_GetNext(patch);
+			if (patch->Type == PATCH_BLONG) {
+				bool_t foundSection = false;
+				int sectionIndex = 0;
+				SSection* originSection = g_pSectionList;
+				while (originSection != NULL) {
+					if (patch_IsRelativeToSection(patch->pExpression, originSection)) {
+						if (patch->pPrev)
+							patch->pPrev->pNext = patch->pNext;
 						else
-							pSect->pPatches = patch->pNext;
-						if(patch->pNext)
+							section->pPatches = patch->pNext;
+						if (patch->pNext)
 							patch->pNext->pPrev = patch->pPrev;
 
 						patch->pPrev = NULL;
-						patch->pNext = pPatches[nsect];
-						if(pPatches[nsect])
-							pPatches[nsect]->pPrev = patch;
-						pPatches[nsect] = patch;
-						bHasReloc32 = true;
-						foundsect = true;
+						patch->pNext = patchesPerSection[sectionIndex];
+						if (patchesPerSection[sectionIndex])
+							patchesPerSection[sectionIndex]->pPrev = patch;
+						patchesPerSection[sectionIndex] = patch;
+						hasReloc32 = true;
+						foundSection = true;
 						break;
 					}
-					++nsect;
-					fsect = list_GetNext(fsect);
+					++sectionIndex;
+					originSection = list_GetNext(originSection);
 				}
 
-				if((!foundsect) && bLink)
-				{
+				if ((!foundSection) && isLinkObject) {
 					uint32_t offset;
 					SSymbol* pSym = NULL;
-					if(patch_GetImportOffset(&offset, &pSym, patch->pExpression))
-					{
-						if(patch->pPrev)
-							patch->pPrev = patch->pNext;
+					if (patch_GetImportOffset(&offset, &pSym, patch->pExpression)) {
+						if (patch->pPrev)
+							patch->pPrev->pNext = patch->pNext;
 						else
-							pSect->pPatches = patch->pNext;
-						if(patch->pNext)
+							section->pPatches = patch->pNext;
+
+						if (patch->pNext)
 							patch->pNext->pPrev = patch->pPrev;
 
 						patch->pPrev = NULL;
-						patch->pNext = pImportPatches;
-						if(pImportPatches)
-							pImportPatches->pPrev = patch;
-						pImportPatches = patch;
+						patch->pNext = importPatches;
+						if (importPatches)
+							importPatches->pPrev = patch;
+						importPatches = patch;
 					}
 				}
 			}
-			patch = nextpatch;
+			patch = nextPatch;
 		}
-		if(pSect->pPatches != NULL)
-		{
+		if (section->pPatches != NULL) {
 			prj_Error(ERROR_OBJECTFILE_PATCH);
 			return false;
 		}
 
-		if(bHasReloc32)
-		{
-			uint32_t i;
-			SSection* fsect = pSectionList;
+		if (hasReloc32)
+			writeReloc32(fileHandle, patchesPerSection, totalSections, hunkPosition);
 
-			fputbl(HUNK_RELOC32, f);
+		if (isLinkObject)
+			writeExtHunk(fileHandle, section, importPatches, hunkPosition);
 
-			for(i = 0; i < nSections; ++i)
-			{
-				uint32_t nReloc = 0;
-				SPatch* patch = pPatches[i];
-				while(patch)
-				{
-					++nReloc;
-					patch = list_GetNext(patch);
-				}
-				if(nReloc > 0)
-				{
-					fputbl(nReloc, f);
-					fputbl(i, f);
-					patch = pPatches[i];
-					while(patch)
-					{
-						uint32_t value;
-						size_t fpos;
-						patch_GetSectionPcOffset(&value, patch->pExpression, fsect);
-						fpos = ftell(f);
-						fseek(f, (long)(patch->Offset + hunkpos), SEEK_SET);
-						fputbl(value, f);
-						fseek(f, (long)fpos, SEEK_SET);
-						fputbl(patch->Offset, f);
-						patch = list_GetNext(patch);
-					}
-				}
+		mem_Free(patchesPerSection);
+	} else {
+		uint32_t hunkType = HUNK_BSS;
+		fputbl(hunkType, fileHandle);
+		fputbl((section->UsedSpace + 3) / 4, fileHandle);
 
-				fsect = list_GetNext(fsect);
-			}
-			fputbl(0, f);
-		}
-
-		if(bLink)
-			ami_WriteExtHunk(f, pSect, pImportPatches, hunkpos);
-
-		mem_Free(pPatches);
-	}
-	else /*if(pSect->pGroup->Flags & GROUP_BSS)*/
-	{
-		uint32_t hunktype = HUNK_BSS;
-		fputbl(hunktype, f);
-		fputbl((pSect->UsedSpace + 3) / 4, f);
-
-		if(bLink)
-			ami_WriteExtHunk(f, pSect, NULL, 0);
+		if (isLinkObject)
+			writeExtHunk(fileHandle, section, NULL, 0);
 	}
 
-	if(bDebugInfo)
-		ami_WriteSymbolHunk(f, pSect, /*bLink*/ false);
+	if (writeDebugInfo)
+		writeSymbolHunk(fileHandle, section, /*bLink*/ false);
 
-	fputbl(HUNK_END, f);
+	fputbl(HUNK_END, fileHandle);
 	return true;
 }
 
-void ami_WriteSectionNames(FILE* f, bool_t bDebugInfo)
-{
-	if(bDebugInfo)
-	{
-		SSection* pSect = pSectionList;
-		while(pSect != NULL)
-		{
-			fputstr(pSect->Name, f, 0);
-			pSect = list_GetNext(pSect);
+static void writeSectionNames(FILE* fileHandle, bool_t writeDebugInfo) {
+	if (writeDebugInfo) {
+		for (const SSection* pSect = g_pSectionList; pSect != NULL; pSect = list_GetNext(pSect)) {
+			fputstr(pSect->Name, fileHandle, 0);
 		}
 	}
 
 	/* name list terminator */
-	fputbl(0, f);
+	fputbl(0, fileHandle);
 }
 
-bool_t ami_WriteObject(string* pDestFilename, string* pSourceFilename)
-{
-	FILE* f;
-	SSection* pSect;
-	uint32_t nSections;
+bool_t ami_WriteObject(string* destFilename, string* sourceFilename) {
 	bool_t r = true;
 
-	f = fopen(str_String(pDestFilename), "wb");
-	if(f == NULL)
+	FILE* fileHandle = fopen(str_String(destFilename), "wb");
+	if (fileHandle == NULL)
 		return false;
 
-	nSections = 0;
-	pSect = pSectionList;
-	while(pSect != NULL)
-	{
-		pSect = list_GetNext(pSect);
-		++nSections;
-	}
+	fputbl(HUNK_UNIT, fileHandle);
+	fputstr(sourceFilename, fileHandle, 0);
 
-	fputbl(HUNK_UNIT, f);
-	fputstr(pSourceFilename, f, 0);
+	uint32_t totalSections = sect_TotalSections();
 
-	pSect = pSectionList;
-	while(pSect != NULL)
-	{
-		fputbl(HUNK_NAME, f);
-		fputstr(pSect->Name, f, 0);
-		if(!ami_WriteSection(f, pSect, true, nSections, true))
-		{
+	for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+		fputbl(HUNK_NAME, fileHandle);
+		fputstr(section->Name, fileHandle, 0);
+		if (!writeSection(fileHandle, section, true, totalSections, true)) {
 			r = false;
 			break;
 		}
-
-		pSect = list_GetNext(pSect);
 	}
 
-	fclose(f);
+	fclose(fileHandle);
 	return r;
 }
 
-bool_t ami_WriteExecutable(string* pDestFilename, bool_t bDebugInfo)
-{
-	FILE* f;
-	SSection* pSect;
-	uint32_t nSections;
+bool_t ami_WriteExecutable(string* destFilename, bool_t writeDebugInfo) {
 	bool_t r = true;
 
-	f = fopen(str_String(pDestFilename), "wb");
-	if(f == NULL)
+	FILE* fileHandle = fopen(str_String(destFilename), "wb");
+	if (fileHandle == NULL)
 		return false;
 
-	fputbl(HUNK_HEADER, f);
-	ami_WriteSectionNames(f, bDebugInfo);
+	fputbl(HUNK_HEADER, fileHandle);
+	writeSectionNames(fileHandle, writeDebugInfo);
 
-	nSections = 0;
-	pSect = pSectionList;
-	while(pSect != NULL)
-	{
-		pSect = list_GetNext(pSect);
-		++nSections;
-	}
+	uint32_t totalSections = sect_TotalSections();
+	fputbl(totalSections, fileHandle);
+	fputbl(0, fileHandle);
+	fputbl(totalSections - 1, fileHandle);
 
-	fputbl(nSections, f);
-	fputbl(0, f);
-	fputbl(nSections - 1, f);
-
-	pSect = pSectionList;
-	while(pSect != NULL)
-	{
-		uint32_t size = (pSect->UsedSpace + 3) / 4;
-		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->nFlags & SYMF_CHIP))
+	for (const SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+		uint32_t size = (section->UsedSpace + 3) / 4;
+		if (g_pConfiguration->bSupportAmiga && (section->pGroup->nFlags & SYMF_CHIP))
 			size |= HUNKF_CHIP;
-		fputbl(size, f);
-		pSect = list_GetNext(pSect);
+		fputbl(size, fileHandle);
 	}
 
-	pSect = pSectionList;
-	while(pSect != NULL)
-	{
-		if(!ami_WriteSection(f, pSect, bDebugInfo, nSections, false))
-		{
+	for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+		if (!writeSection(fileHandle, section, writeDebugInfo, totalSections, false)) {
 			r = false;
 			break;
 		}
-
-		pSect = list_GetNext(pSect);
 	}
 
-	fclose(f);
+	fclose(fileHandle);
 	return r;
 }

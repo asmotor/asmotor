@@ -39,6 +39,6 @@ motor68k
 motorgb
 motormips
 motorschip
-xgbfix/xgbfix
-xlib/xlib
-xlink/xlink
+build/cmake/*/xgbfix/xgbfix
+build/cmake/*/xlib/xlib
+build/cmake/*/xlink/xlink

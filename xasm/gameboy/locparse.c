@@ -471,7 +471,7 @@ static bool_t parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 
 static bool_t parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
-	assert(pOpcode == NULL);
+	assert(pOpcode != NULL);
 
 	if((pAddrMode1->nMode & MODE_GROUP_D) && (pAddrMode2->nMode & MODE_GROUP_D)
 	&& (pAddrMode1->eRegD != REGD_HL_IND || pAddrMode2->eRegD != REGD_HL_IND))
@@ -1100,7 +1100,7 @@ bool_t parse_TargetSpecific(void)
 				&& (g_pOptions->pMachine->nCpu & addrMode1.nCpu)
 				&& (g_pOptions->pMachine->nCpu & addrMode2.nCpu))
 				{
-					return pOpcode->pParser(pOpcode, &addrMode1, &addrMode2);
+					return pOpcode->pParser(pOpcode, pOpcode->nAddrMode1 != 0 ? &addrMode1 : NULL, pOpcode->nAddrMode2 != 0 ? &addrMode2 : NULL);
 				}
 				else
 					prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);

@@ -143,14 +143,14 @@ SExpression* expr_PcRelative(SExpression* pExpr, int nAdjust)
     if (!expr_VerifyPointer(pExpr))
         return NULL;
 
-    if ((pExpr->nFlags & EXPRF_CONSTANT) && (pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)))
+    if ((pExpr->nFlags & EXPRF_CONSTANT) && (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)))
     {
-        pExpr->Value.Value -= (pCurrentSection->PC + pCurrentSection->BasePC + pCurrentSection->OrgOffset - nAdjust);
+        pExpr->Value.Value -= (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset - nAdjust);
         return pExpr;
     }
-    else if (pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))
+    else if (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))
     {
-        return expr_Add(pExpr, expr_Const(nAdjust - (pCurrentSection->PC + pCurrentSection->BasePC + pCurrentSection->OrgOffset)));
+        return expr_Add(pExpr, expr_Const(nAdjust - (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset)));
     }
     else
     {
@@ -174,7 +174,7 @@ SExpression* expr_Pc()
     char sym[MAXSYMNAMELENGTH + 20];
     SSymbol* pSym;
 
-    sprintf(sym, "$%s%u", str_String(pCurrentSection->Name), pCurrentSection->PC);
+    sprintf(sym, "$%s%u", str_String(g_pCurrentSection->Name), g_pCurrentSection->PC);
     pName = str_Create(sym);
     pSym = sym_CreateLabel(pName);
     str_Free(pName);

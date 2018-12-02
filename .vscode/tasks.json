@@ -6,7 +6,7 @@
         {
             "label": "make",
             "type": "shell",
-            "command": "make -j 8",
+            "command": "cd build/cmake/debug && make -j 8",
             "group": {
                 "kind": "build",
                 "isDefault": true

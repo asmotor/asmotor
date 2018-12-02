@@ -348,7 +348,7 @@ bool_t patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection*
 
 SSection* patch_GetExpressionSectionAndPcOffset(SExpression* pExpr, uint32_t* pOffset)
 {
-    SSection* pSection = pSectionList;
+    SSection* pSection = g_pSectionList;
 
     while(pSection)
     {
@@ -612,7 +612,7 @@ void patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType
 
 void patch_BackPatch(void)
 {
-    for (SSection* sect = pSectionList; sect != NULL; sect = list_GetNext(sect))
+    for (SSection* sect = g_pSectionList; sect != NULL; sect = list_GetNext(sect))
     {
         for (SPatch* patch = sect->pPatches; patch != NULL; patch = list_GetNext(patch))
         {
@@ -713,7 +713,7 @@ void patch_OptimizeAll(void)
 {
     SSection* sect;
 
-    sect = pSectionList;
+    sect = g_pSectionList;
     while(sect)
     {
         SPatch* patch;

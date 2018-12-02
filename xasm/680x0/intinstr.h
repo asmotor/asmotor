@@ -873,13 +873,13 @@ static bool_t parse_AND(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_CLR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(dest == NULL);
+	assert(dest == dest);
 	return parse_SingleOpIns(0x4200, sz, src);
 }
 
 static bool_t parse_TST(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	if(src->eMode == AM_AREG
 	&& sz == SIZE_BYTE)
@@ -980,7 +980,7 @@ static bool_t parse_ROXR(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_Bcc(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	ins = (uint16_t) 0x6000 | (ins << 8);
 	if(sz == SIZE_BYTE)
@@ -1209,28 +1209,28 @@ static bool_t parse_SingleOpBitfieldInstruction(uint16_t ins, SAddrMode* src)
 static bool_t parse_BFCHG(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 	return parse_SingleOpBitfieldInstruction(0xEAC0, src);
 }
 
 static bool_t parse_BFCLR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 	return parse_SingleOpBitfieldInstruction(0xECC0, src);
 }
 
 static bool_t parse_BFSET(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 	return parse_SingleOpBitfieldInstruction(0xEEC0, src);
 }
 
 static bool_t parse_BFTST(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 	return parse_SingleOpBitfieldInstruction(0xE8C0, src);
 }
 
@@ -1261,7 +1261,7 @@ static bool_t parse_BFINS(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_BKPT(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	SExpression* expr = expr_CheckRange(src->pImmediate, 0, 7);
 	if(expr == NULL)
@@ -1401,8 +1401,8 @@ static bool_t parse_ExpectIndirectRegister(uint16_t* pReg)
 
 static bool_t parse_CAS2(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 {
-	assert(unused1 == NULL);
-	assert(unused2 == NULL);
+	assert(unused1 != NULL);
+	assert(unused2 != NULL);
 
 	uint16_t dc1, dc2, du1, du2, rn1, rn2;
 
@@ -1780,7 +1780,7 @@ static bool_t parse_EXT(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_EXTB(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_LONG);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x4800 | src->nDirectReg | 0x7 << 6));
 	return true;
@@ -1789,8 +1789,8 @@ static bool_t parse_EXTB(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_ILLEGAL(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(src == NULL);
-	assert(dest == NULL);
+	assert(src == src);
+	assert(dest == dest);
 
 	sect_OutputConst16(0x4AFC);
 	return true;
@@ -1806,7 +1806,7 @@ static bool_t parse_Jxx(uint16_t ins, SAddrMode* src)
 static bool_t parse_JMP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	return parse_Jxx(0x4EC0, src);
 }
@@ -1814,7 +1814,7 @@ static bool_t parse_JMP(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_JSR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	return parse_Jxx(0x4E80, src);
 }
@@ -2164,8 +2164,8 @@ static uint16_t parse_SwapBits(uint16_t bits)
 
 static bool_t parse_MOVEM(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 {
-	assert(unused1 == NULL);
-	assert(unused2 == NULL);
+	assert(unused1 == unused1);
+	assert(unused2 == unused2);
 
 	uint16_t ins;
 	uint16_t dr;
@@ -2375,7 +2375,7 @@ static bool_t parse_MULU(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_NBCD(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_BYTE);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x4800 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
@@ -2383,7 +2383,7 @@ static bool_t parse_NBCD(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_NEG(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x4400 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
 	return parse_OutputExtWords(src);
@@ -2391,7 +2391,7 @@ static bool_t parse_NEG(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_NEGX(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x4000 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
 	return parse_OutputExtWords(src);
@@ -2400,8 +2400,8 @@ static bool_t parse_NEGX(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_NOP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(src == NULL);
-	assert(dest == NULL);
+	assert(src == src);
+	assert(dest == dest);
 
 	sect_OutputConst16(0x4E71);
 	return true;
@@ -2409,7 +2409,7 @@ static bool_t parse_NOP(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_NOT(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x4600 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
 	return parse_OutputExtWords(src);
@@ -2507,8 +2507,8 @@ static bool_t parse_UNPACK(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_PEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(sz == SIZE_LONG);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x4840 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
@@ -2517,7 +2517,7 @@ static bool_t parse_PEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_RTD(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	sect_OutputConst16(0x4E74);
 	sect_OutputExpr16(src->pImmediate);
@@ -2527,7 +2527,7 @@ static bool_t parse_RTD(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_RTM(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	uint16_t reg;
 
@@ -2543,8 +2543,8 @@ static bool_t parse_RTM(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_RTR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(src == NULL);
-	assert(dest == NULL);
+	assert(src == src);
+	assert(dest == dest);
 
 	sect_OutputConst16(0x4E77);
 	return true;
@@ -2553,8 +2553,8 @@ static bool_t parse_RTR(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_RTS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(src == NULL);
-	assert(dest == NULL);
+	assert(src == src);
+	assert(dest == dest);
 
 	sect_OutputConst16(0x4E75);
 	return true;
@@ -2562,8 +2562,8 @@ static bool_t parse_RTS(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_Scc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(sz == SIZE_BYTE);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x50C0 | code << 8 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
@@ -2651,8 +2651,8 @@ static bool_t parse_SLE(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_SWAP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(sz == SIZE_WORD);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x4840 | src->nDirectReg));
 	return true;
@@ -2660,8 +2660,8 @@ static bool_t parse_SWAP(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_TAS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(sz == SIZE_BYTE);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x4AC0 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
@@ -2670,7 +2670,7 @@ static bool_t parse_TAS(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_TRAP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	SExpression* expr;
 
@@ -2687,7 +2687,7 @@ static bool_t parse_TRAP(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_TRAPcc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	uint16_t opmode;
 
@@ -2795,8 +2795,8 @@ static bool_t parse_TRAPLE(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_TRAPV(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(src == NULL);
-	assert(dest == NULL);
+	assert(src == src);
+	assert(dest == dest);
 
 	sect_OutputConst16(0x4E76);
 	return true;
@@ -2805,7 +2805,7 @@ static bool_t parse_TRAPV(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_UNLK(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	sect_OutputConst16((uint16_t)(0x4E58 | src->nDirectReg));
 	return true;
@@ -2814,8 +2814,8 @@ static bool_t parse_UNLK(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_RESET(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(src == NULL);
-	assert(dest == NULL);
+	assert(src == src);
+	assert(dest == dest);
 
 	prj_Warn(MERROR_INSTRUCTION_PRIV);
 	sect_OutputConst16(0x4E70);
@@ -2825,8 +2825,8 @@ static bool_t parse_RESET(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_RTE(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(src == NULL);
-	assert(dest == NULL);
+	assert(src == src);
+	assert(dest == dest);
 
 	prj_Warn(MERROR_INSTRUCTION_PRIV);
 	sect_OutputConst16(0x4E73);
@@ -2836,7 +2836,7 @@ static bool_t parse_RTE(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool_t parse_STOP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	assert(sz == SIZE_DEFAULT);
-	assert(dest == NULL);
+	assert(dest == dest);
 
 	prj_Warn(MERROR_INSTRUCTION_PRIV);
 	sect_OutputConst16(0x4E72);
@@ -2979,7 +2979,7 @@ SControlRegister g_ControlRegister[]=
 
 static bool_t parse_MOVEC(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	assert(sz == SIZE_DEFAULT);
+	assert(sz == SIZE_LONG);
 
 	uint16_t dr;
 	int control;

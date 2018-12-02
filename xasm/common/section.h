@@ -50,8 +50,10 @@ typedef	struct Section SSection;
 #define	SECTF_BANKFIXED	0x02
 #define	SECTF_ORGFIXED	0x04
 
-extern	SSection* pCurrentSection;
-extern	SSection* pSectionList;
+extern	SSection* g_pCurrentSection;
+extern	SSection* g_pSectionList;
+
+extern uint32_t sect_TotalSections(void);
 
 extern bool_t sect_SwitchTo(char* sectname, struct Symbol* group);
 extern bool_t sect_SwitchTo_LOAD(char* sectname, struct Symbol* group, int32_t load);

@@ -452,6 +452,7 @@ void globlex_Init(void)
     id = lex_VariadicCreateWord(&s_sMacroArgToken);
     lex_FloatAddRange(id, '\\', '\\', 0);
     lex_FloatAddRange(id, '0', '9', 1);
+
     id = lex_VariadicCreateWord(&s_sMacroUniqueToken);
     lex_FloatAddRange(id, '\\', '\\', 0);
     lex_FloatAddRange(id, '@', '@', 1);
@@ -463,7 +464,7 @@ void globlex_Init(void)
     lex_FloatAddRangeAndBeyond(id, '0', '9', 1);
     lex_FloatAddRangeAndBeyond(id, '.', '.', 1);
 
-    /* Hex constants*/
+    /* Hex constants */
 
     id = lex_VariadicCreateWord(&s_sNumberToken);
     lex_FloatAddRange(id, '$', '$', 0);
@@ -471,7 +472,7 @@ void globlex_Init(void)
     lex_FloatAddRangeAndBeyond(id, 'A', 'F', 1);
     lex_FloatAddRangeAndBeyond(id, 'a', 'f', 1);
 
-    /*      Binary constants*/
+    /* Binary constants */
 
     BinaryConstID = id = lex_VariadicCreateWord(&s_sNumberToken);
     lex_FloatAddRange(id, '%', '%', 0);

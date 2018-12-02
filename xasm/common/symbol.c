@@ -297,20 +297,20 @@ SSymbol* sym_CreateLabel(string* pName) {
 		if (pSym->eType == SYM_GLOBAL)
 			pSym->nFlags |= SYMF_EXPORT;
 
-		if (pCurrentSection) {
+		if (g_pCurrentSection) {
 			if (str_CharAt(pName, 0) != '$' && str_CharAt(pName, 0) != '.' && str_CharAt(pName, -1) != '$')
 				s_pCurrentScope = pSym;
 
-			if ((pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) == 0) {
+			if ((g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) == 0) {
 				pSym->eType = SYM_LABEL;
 				SET_FLAGS(pSym->nFlags, SYM_LABEL);
-				pSym->pSection = pCurrentSection;
-				pSym->Value.Value = pCurrentSection->PC;
+				pSym->pSection = g_pCurrentSection;
+				pSym->Value.Value = g_pCurrentSection->PC;
 				return pSym;
 			} else {
 				pSym->eType = SYM_EQU;
 				SET_FLAGS(pSym->nFlags, SYM_EQU);
-				pSym->Value.Value = pCurrentSection->PC + pCurrentSection->OrgOffset + pCurrentSection->BasePC;
+				pSym->Value.Value = g_pCurrentSection->PC + g_pCurrentSection->OrgOffset + g_pCurrentSection->BasePC;
 				return pSym;
 			}
 		} else

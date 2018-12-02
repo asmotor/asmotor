@@ -364,7 +364,7 @@ bool_t obj_Write(string* pName) {
 
 	//	Output sections
 
-	for (sect = pSectionList; sect; sect = list_GetNext(sect))
+	for (sect = g_pSectionList; sect; sect = list_GetNext(sect))
 		++sectioncount;
 
 	fputll(sectioncount + 1, f);
@@ -399,7 +399,7 @@ bool_t obj_Write(string* pName) {
 
 	//	Fix symbols that should be locally exported
 
-	for (sect = pSectionList; sect; sect = list_GetNext(sect)) {
+	for (sect = g_pSectionList; sect; sect = list_GetNext(sect)) {
 		SPatch* patch;
 
 		for (patch = sect->pPatches; patch; patch = list_GetNext(patch)) {
@@ -411,7 +411,7 @@ bool_t obj_Write(string* pName) {
 
 	//	Output other sections
 
-	for (sect = pSectionList; sect; sect = list_GetNext(sect)) {
+	for (sect = g_pSectionList; sect; sect = list_GetNext(sect)) {
 		SPatch* patch;
 		long sympos;
 		long oldpos;

@@ -21,7 +21,7 @@
 
 #include "str.h"
 
-extern bool_t ami_WriteObject(string* pDestFilename, string* pSourceFilename);
-extern bool_t ami_WriteExecutable(string* pDestFilename, bool_t bDebugInfo);
+extern bool_t ami_WriteObject(string* destFilename, string* sourceFilename);
+extern bool_t ami_WriteExecutable(string* destFilename, bool_t writeDebugInfo);
 
 #endif

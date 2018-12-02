@@ -140,25 +140,21 @@ void lex_FloatSetSuffix(uint32_t id, uint8_t ch) {
 }
 
 void lex_VariadicMatchString(char* buffer, size_t bufferLength, size_t* length, SVariadicWordDefinition** variadicWord) {
-	uint32_t nextMask;
-	uint32_t mask;
-	SVariadicWordsPerChar* chars = g_variadicWordsPerChar;
-
-	mask = 0;
 	*length = 0;
 
-	nextMask = chars->idBits[(uint8_t) *buffer++];
-	while (nextMask && *length < bufferLength) {
+	SVariadicWordsPerChar* chars = g_variadicWordsPerChar;
+	uint32_t mask = 0;
+	uint32_t nextMask = UINT32_MAX;
+	while ((nextMask &= chars->idBits[(uint8_t) *buffer++]) && *length < bufferLength) {
 		*length += 1;
 		mask = nextMask;
 
 		if (list_GetNext(chars)) {
 			chars = list_GetNext(chars);
 		}
-		nextMask &= chars->idBits[(uint8_t) *buffer++];
 	}
 
-	if (g_variadicHasSuffixFlags & nextMask) {
+	if (g_variadicHasSuffixFlags & mask) {
 		nextMask = mask & g_variadicSuffix[(uint8_t) buffer[-1]];
 		if (nextMask) {
 			*length += 1;
