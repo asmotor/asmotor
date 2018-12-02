@@ -26,7 +26,7 @@
 
 #include "asmotor.h"
 #include "amitime.h"
-#include "amigaobj.h"
+#include "amigaobject.h"
 #include "section.h"
 #include "symbol.h"
 #include "globlex.h"
@@ -36,7 +36,7 @@
 #include "parse.h"
 #include "patch.h"
 #include "object.h"
-#include "binobj.h"
+#include "binaryobject.h"
 #include "xasm.h"
 
 

@@ -39,9 +39,9 @@ static void opt_Update(void)
 {
 	lex_FloatRemoveAll(BinaryConstID);
 
-	lex_FloatAddRange(BinaryConstID, '%', '%', 1);
-    lex_FloatAddRangeAndBeyond(BinaryConstID, g_pOptions->BinaryChar[0], g_pOptions->BinaryChar[0], 2);
-    lex_FloatAddRangeAndBeyond(BinaryConstID, g_pOptions->BinaryChar[1], g_pOptions->BinaryChar[1], 2);
+	lex_FloatAddRange(BinaryConstID, '%', '%', 0);
+    lex_FloatAddRangeAndBeyond(BinaryConstID, g_pOptions->BinaryChar[0], g_pOptions->BinaryChar[0], 1);
+    lex_FloatAddRangeAndBeyond(BinaryConstID, g_pOptions->BinaryChar[1], g_pOptions->BinaryChar[1], 1);
 
 	locopt_Update();
 }

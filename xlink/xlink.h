@@ -21,6 +21,8 @@
 
 #define	MAXSYMNAMELENGTH	256
 
+#include "asmotor.h"
+
 #include "types.h"
 #include "object.h"
 #include "image.h"

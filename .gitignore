@@ -1,12 +1,16 @@
-<<<<<<< .merge_file_a05564
 *.tlog
 *.lastbuildstate
 *.idb
-=======
-build/Visual Studio 2012/Win32/
->>>>>>> .merge_file_a02860
-build/Visual Studio 2012/Windows.sdf
 *.o
+*.obj
+*.lib
+*.xcuserstate
+*.xcscheme
+*.output
+*.a
+build/Visual Studio 2012/Win32/
+build/Visual Studio 2012/Windows.sdf
+build/Visual Studio 2012/Windows.opensdf
 build/scons/build_0x10c
 build/scons/build_6502
 build/scons/build_680x0
@@ -19,15 +23,22 @@ build/scons/build_xlib
 build/scons/build_xlink
 .sconsign.dblite
 asmotor.sublime-workspace
-*.obj
-*.lib
-*.xcuserstate
-*.xcscheme
 xcschememanagement.plist
 WorkspaceSettings.xcsettings
 Breakpoints_v2.xcbkptlist
 gbfade.gb
-*.output
-build/Visual Studio 2012/Windows.opensdf
 amigaobj.68k.bin
 amigaexe.68k.bin
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+CMakeFiles
+motor0x10c
+motor6502
+motor68k
+motorgb
+motormips
+motorschip
+xgbfix/xgbfix
+xlib/xlib
+xlink/xlink

@@ -85,3 +85,20 @@ int32_t fatan2(int32_t a, int32_t b)
 	return d2f(atan2(f2d(a), f2d(b)) / (2 * PI));
 }
 
+int log2n(size_t value)
+{
+	int r = sizeof(value) * 8 - 1;
+	size_t mask = (size_t)1 << (sizeof(value) * 8 - 1);
+	while (r > 0)
+	{
+		if (value & mask)
+			return r;
+
+		r -= 1;
+		mask = mask >> 1;
+	}
+
+	return 0;
+}
+
+

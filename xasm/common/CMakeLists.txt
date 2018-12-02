@@ -1,8 +1,8 @@
 add_library (xasm 
-    amigaobj.c
-    amigaobj.h
-    binobj.c
-    binobj.h
+    amigaobject.c
+    amigaobject.h
+    binaryobject.c
+    binaryobject.h
     expr.c
     expr.h
     fstack.c

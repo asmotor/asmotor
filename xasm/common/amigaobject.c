@@ -29,7 +29,7 @@
 #include "symbol.h"
 #include "patch.h"
 #include "project.h"
-#include "amigaobj.h"
+#include "amigaobject.h"
 
 #define	HUNK_UNIT	0x3E7
 #define	HUNK_NAME	0x3E8

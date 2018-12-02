@@ -336,31 +336,31 @@ enum
     T_LEX_MACROUNIQUE
 };
 
-static SLexFloat s_sMacroArgToken=
+static SVariadicWordDefinition s_sMacroArgToken=
 {
     ParseMacroArg,
     T_LEX_MACROARG
 };
 
-static SLexFloat s_sMacroUniqueToken=
+static SVariadicWordDefinition s_sMacroUniqueToken=
 {
     ParseUniqueArg,
     T_LEX_MACROUNIQUE
 };
 
-static SLexFloat s_sDecimal =
+static SVariadicWordDefinition s_sDecimal =
 {
     ParseDecimal,
     T_NUMBER
 };
 
-static SLexFloat s_sNumberToken=
+static SVariadicWordDefinition s_sNumberToken=
 {
     ParseNumber,
     T_NUMBER
 };
 
-static SLexFloat s_sIDToken=
+static SVariadicWordDefinition s_sIDToken=
 {
     ParseSymbol,
     T_ID
@@ -424,63 +424,11 @@ void globlex_Init(void)
     /* Local ID */
 
     id = lex_FloatAlloc(&s_sIDToken);
-    lex_FloatAddRange(id, '.', '.', 1);
-    lex_FloatAddRange(id, 'a', 'z', 2);
-    lex_FloatAddRange(id, 'A', 'Z', 2);
-    lex_FloatAddRange(id, '_', '_', 2);
-    lex_FloatAddRange(id, '#', '#', 2);
-    lex_FloatAddRange(id, '\\', '\\', 2);
-    lex_FloatAddRangeAndBeyond(id, 'a', 'z', 3);
-    lex_FloatAddRangeAndBeyond(id, 'A', 'Z', 3);
-    lex_FloatAddRangeAndBeyond(id, '0', '9', 3);
-    lex_FloatAddRangeAndBeyond(id, '_', '_', 3);
-    lex_FloatAddRangeAndBeyond(id, '\\', '\\', 3);
-    lex_FloatAddRangeAndBeyond(id, '@', '@', 3);
-    lex_FloatAddRangeAndBeyond(id, '#', '#', 3);
-
-    id = lex_FloatAlloc(&s_sIDToken);
-    lex_FloatAddRangeAndBeyond(id, '0', '9', 1);
-    lex_FloatAddRangeAndBeyond(id, '\\', '\\', 1);
-    lex_FloatAddRangeAndBeyond(id, '@', '@', 2);
-    lex_FloatSetSuffix(id, '$');
-
-    /* Macro arguments */
-
-    id = lex_FloatAlloc(&s_sMacroArgToken);
-    lex_FloatAddRange(id, '\\', '\\', 1);
-    lex_FloatAddRange(id, '0', '9', 2);
-    id = lex_FloatAlloc(&s_sMacroUniqueToken);
-    lex_FloatAddRange(id, '\\', '\\', 1);
-    lex_FloatAddRange(id, '@', '@', 2);
-
-    /* Decimal constants */
-
-    id = lex_FloatAlloc(&s_sDecimal);
-    lex_FloatAddRange(id, '0', '9', 1);
-    lex_FloatAddRangeAndBeyond(id, '0', '9', 2);
-    lex_FloatAddRangeAndBeyond(id, '.', '.', 2);
-
-    /* Hex constants*/
-
-    id = lex_FloatAlloc(&s_sNumberToken);
-    lex_FloatAddRange(id, '$', '$', 1);
-    lex_FloatAddRangeAndBeyond(id, '0', '9', 2);
-    lex_FloatAddRangeAndBeyond(id, 'A', 'F', 2);
-    lex_FloatAddRangeAndBeyond(id, 'a', 'f', 2);
-
-    /*      Binary constants*/
-
-    BinaryConstID = id = lex_FloatAlloc(&s_sNumberToken);
-    lex_FloatAddRange(id, '%', '%', 1);
-    lex_FloatAddRangeAndBeyond(id, '0', '1', 2);
-
-    /* ID's */
-
-    id = lex_FloatAlloc(&s_sIDToken);
+    lex_FloatAddRange(id, '.', '.', 0);
     lex_FloatAddRange(id, 'a', 'z', 1);
     lex_FloatAddRange(id, 'A', 'Z', 1);
     lex_FloatAddRange(id, '_', '_', 1);
-    lex_FloatAddRange(id, '@', '@', 1);
+    lex_FloatAddRange(id, '#', '#', 1);
     lex_FloatAddRange(id, '\\', '\\', 1);
     lex_FloatAddRangeAndBeyond(id, 'a', 'z', 2);
     lex_FloatAddRangeAndBeyond(id, 'A', 'Z', 2);
@@ -489,4 +437,56 @@ void globlex_Init(void)
     lex_FloatAddRangeAndBeyond(id, '\\', '\\', 2);
     lex_FloatAddRangeAndBeyond(id, '@', '@', 2);
     lex_FloatAddRangeAndBeyond(id, '#', '#', 2);
+
+    id = lex_FloatAlloc(&s_sIDToken);
+    lex_FloatAddRangeAndBeyond(id, '0', '9', 0);
+    lex_FloatAddRangeAndBeyond(id, '\\', '\\', 0);
+    lex_FloatAddRangeAndBeyond(id, '@', '@', 1);
+    lex_FloatSetSuffix(id, '$');
+
+    /* Macro arguments */
+
+    id = lex_FloatAlloc(&s_sMacroArgToken);
+    lex_FloatAddRange(id, '\\', '\\', 0);
+    lex_FloatAddRange(id, '0', '9', 1);
+    id = lex_FloatAlloc(&s_sMacroUniqueToken);
+    lex_FloatAddRange(id, '\\', '\\', 0);
+    lex_FloatAddRange(id, '@', '@', 1);
+
+    /* Decimal constants */
+
+    id = lex_FloatAlloc(&s_sDecimal);
+    lex_FloatAddRange(id, '0', '9', 0);
+    lex_FloatAddRangeAndBeyond(id, '0', '9', 1);
+    lex_FloatAddRangeAndBeyond(id, '.', '.', 1);
+
+    /* Hex constants*/
+
+    id = lex_FloatAlloc(&s_sNumberToken);
+    lex_FloatAddRange(id, '$', '$', 0);
+    lex_FloatAddRangeAndBeyond(id, '0', '9', 1);
+    lex_FloatAddRangeAndBeyond(id, 'A', 'F', 1);
+    lex_FloatAddRangeAndBeyond(id, 'a', 'f', 1);
+
+    /*      Binary constants*/
+
+    BinaryConstID = id = lex_FloatAlloc(&s_sNumberToken);
+    lex_FloatAddRange(id, '%', '%', 0);
+    lex_FloatAddRangeAndBeyond(id, '0', '1', 1);
+
+    /* ID's */
+
+    id = lex_FloatAlloc(&s_sIDToken);
+    lex_FloatAddRange(id, 'a', 'z', 0);
+    lex_FloatAddRange(id, 'A', 'Z', 0);
+    lex_FloatAddRange(id, '_', '_', 0);
+    lex_FloatAddRange(id, '@', '@', 0);
+    lex_FloatAddRange(id, '\\', '\\', 0);
+    lex_FloatAddRangeAndBeyond(id, 'a', 'z', 1);
+    lex_FloatAddRangeAndBeyond(id, 'A', 'Z', 1);
+    lex_FloatAddRangeAndBeyond(id, '0', '9', 1);
+    lex_FloatAddRangeAndBeyond(id, '_', '_', 1);
+    lex_FloatAddRangeAndBeyond(id, '\\', '\\', 1);
+    lex_FloatAddRangeAndBeyond(id, '@', '@', 1);
+    lex_FloatAddRangeAndBeyond(id, '#', '#', 1);
 }

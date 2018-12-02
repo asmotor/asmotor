@@ -21,6 +21,11 @@
 
 #include "types.h"
 
+#define	list_Data(type)	\
+	type* pPrev;		\
+	type* pNext
+
+#define list_Init(e) {(e)->pPrev=NULL;(e)->pNext=NULL;}
 #define	list_GetNext(e)	((e)->pNext)
 #define	list_GetPrev(e)	((e)->pPrev)
 #define	list_isLast(e)	(list_GetNext(e)==NULL?true:false)
@@ -65,9 +70,5 @@
 	}										  	\
 	list_GetNext(where)=(e);				  	\
 }
-
-#define	list_Data(type)	\
-	type* pPrev;		\
-	type* pNext
 
 #endif	/*INCLUDE_LISTS_H*/

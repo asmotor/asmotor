@@ -193,7 +193,7 @@ static bool_t ParseGameboyNumber(char* s, uint32_t size)
 }
 
 
-static SLexFloat	tNumberToken=
+static SVariadicWordDefinition	tNumberToken=
 {
 	ParseGameboyNumber,
 	T_NUMBER
@@ -205,8 +205,8 @@ void	loclexer_Init(void)
 	/* Gameboy constants */
 
     GameboyConstID = lex_FloatAlloc(&tNumberToken);
-    lex_FloatAddRange(GameboyConstID, '`', '`', 1);
-    lex_FloatAddRangeAndBeyond(GameboyConstID, '0', '3', 2);
+    lex_FloatAddRange(GameboyConstID, '`', '`', 0);
+    lex_FloatAddRangeAndBeyond(GameboyConstID, '0', '3', 1);
 
 	lex_AddStrings(localstrings);
 }

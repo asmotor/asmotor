@@ -4,9 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "scons",
+            "label": "make",
             "type": "shell",
-            "command": "cd build/scons && scons",
+            "command": "make -j 8",
             "group": {
                 "kind": "build",
                 "isDefault": true

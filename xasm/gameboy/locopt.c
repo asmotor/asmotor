@@ -51,11 +51,11 @@ void locopt_Open(void)
 void locopt_Update(void)
 {
     lex_FloatRemoveAll(GameboyConstID);
-    lex_FloatAddRange(GameboyConstID, '`', '`', 1);
-    lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[0], g_pOptions->pMachine->GameboyChar[0], 2);
-    lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[1], g_pOptions->pMachine->GameboyChar[1], 2);
-    lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[2], g_pOptions->pMachine->GameboyChar[2], 2);
-    lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[3], g_pOptions->pMachine->GameboyChar[3], 2);
+    lex_FloatAddRange(GameboyConstID, '`', '`', 0);
+    lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[0], g_pOptions->pMachine->GameboyChar[0], 1);
+    lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[1], g_pOptions->pMachine->GameboyChar[1], 1);
+    lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[2], g_pOptions->pMachine->GameboyChar[2], 1);
+    lex_FloatAddRangeAndBeyond(GameboyConstID, g_pOptions->pMachine->GameboyChar[3], g_pOptions->pMachine->GameboyChar[3], 1);
 }
 
 bool_t locopt_Parse(char* s)

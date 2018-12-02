@@ -19,6 +19,7 @@
 #ifndef	INCLUDE_ASMOTOR_H
 #define	INCLUDE_ASMOTOR_H
 
+#include <stdlib.h>
 #include "types.h"
 
 #if defined(__GNUC_STDC_INLINE__)
@@ -46,6 +47,8 @@ extern int32_t fasin(int32_t a);
 extern int32_t facos(int32_t a);
 extern int32_t fatan(int32_t a);
 extern int32_t fatan2(int32_t a, int32_t b);
+
+extern int log2n(size_t value);
 
 
 #if defined(__VBCC__) || defined(__GNUC__)

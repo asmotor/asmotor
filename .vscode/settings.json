@@ -4,5 +4,15 @@
   "files.associations": {
     "exec.h": "c",
     "xlink.h": "c"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/CMakeFiles": true,
+    "**/cmake_install.cmake": true,
+    "**/*.a": true
   }
 }

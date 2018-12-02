@@ -30,163 +30,111 @@
 #include "project.h"
 
 
-/*	Internal defines*/
+/* Internal defines */
 
-#define HASH(hash,key)			\
-{								\
-	hash = ((hash) << 1) + key;	\
-	hash ^= hash >> 3;			\
-	hash &= LEXHASHSIZE - 1;	\
+#define HASH(hash, key)            \
+{                                  \
+    hash = ((hash) << 1) + key;    \
+    hash ^= hash >> 3;             \
+    hash &= WORDS_HASH_SIZE - 1;   \
 }
 
-#define TOKENSTACKSIZE	16
-#define	SAFETYMARGIN	MAXSTRINGSYMBOLSIZE
-#define	MAXFLOATS		32
-#define	LEXHASHSIZE		1024
-#define	BUF_REMAINING_CHARS	(g_pCurrentBuffer->pBufferStart + g_pCurrentBuffer->nBufferSize - g_pCurrentBuffer->pBuffer)
+#define SAFETY_MARGIN MAXSTRINGSYMBOLSIZE
+#define MAX_VARIADIC 32
+#define WORDS_HASH_SIZE 1024
+#define BUF_REMAINING_CHARS (g_pCurrentBuffer->pBufferStart + g_pCurrentBuffer->bufferSize - g_pCurrentBuffer->pBuffer)
 
 
+/* Private structures */
 
-
-/*	Private structures*/
-
-struct LexString
-{
-	char*	pszName;
-	uint32_t	Token;
-	int32_t	NameLength;
-	list_Data(struct LexString);
+struct ConstantWord {
+	string* name;
+	uint32_t token;
+	list_Data(struct ConstantWord);
 };
-typedef	struct LexString SLexString;
+typedef struct ConstantWord SConstantWord;
 
-struct FloatingChars
-{
-	uint32_t Chars[256];
-	list_Data(struct FloatingChars);
+struct VariadicWordsPerChar {
+	uint32_t idBits[UINT8_MAX + 1];
+	list_Data(struct VariadicWordsPerChar);
 };
-typedef	struct FloatingChars SFloatingChars;
+typedef struct VariadicWordsPerChar SVariadicWordsPerChar;
 
 
+/* Private variables */
 
+static SVariadicWordDefinition g_variadicWordDefinitions[MAX_VARIADIC];
+static SVariadicWordsPerChar* g_variadicWordsPerChar;
+static uint32_t g_nextVariadicId;
+static uint32_t g_variadicSuffix[UINT8_MAX];
+static uint32_t g_variadicHasSuffixFlags;
 
-/*	Private variables*/
+static SConstantWord* g_wordsHashTable[WORDS_HASH_SIZE];
+static int32_t g_maxWordLength;
 
-static SLexFloat g_aLexFloat[MAXFLOATS];
-static uint32_t g_nNextFreeFloat;
-static SLexString* g_aLexHash[LEXHASHSIZE];
 static SLexBuffer* g_pCurrentBuffer;
-static int32_t g_nLexTokenMaxLength;
-static SFloatingChars* g_pFloatingChars;
-static uint32_t g_aFloatSuffix[256];
-static uint32_t g_nHasSuffix;
 
 
+/* Public variables */
 
-/*	Public variables*/
-
-SLexToken	g_CurrentToken;
-
+SLexToken g_CurrentToken;
 
 
+/* Private functions */
 
-/*	Private routines*/
+static SVariadicWordsPerChar* allocVariadicWordsPerChar() {
+	SVariadicWordsPerChar* words = mem_Alloc(sizeof(SVariadicWordsPerChar));
+	memset(words->idBits, 0, sizeof(words->idBits));
+	list_Init(words);
 
-static SFloatingChars* lex_GetPointerToFloatingChar(int32_t charnumber)
-{
-	if(charnumber >= 0)
-	{
-		SFloatingChars* chars;
+	return words;
+}
 
-		if(g_pFloatingChars == NULL)
-		{
-			g_pFloatingChars = mem_Alloc(sizeof(SFloatingChars));
-			memset(g_pFloatingChars, 0, sizeof(SFloatingChars));
+static SVariadicWordsPerChar* variadicWordsAt(uint32_t charIndex) {
+	SVariadicWordsPerChar** chars = &g_variadicWordsPerChar;
+
+	for(;;) {
+		if (*chars == NULL) {
+			*chars = allocVariadicWordsPerChar();
 		}
-
-		chars = g_pFloatingChars;
-
-		if(charnumber == 0)
-		{
-			while(list_GetNext(chars))
-				chars = list_GetNext(chars);
+		if (charIndex-- == 0) {
+			return *chars;
 		}
-		else
-		{
-			while(--charnumber > 0)
-			{
-				if(list_GetNext(chars))
-				{
-					chars = list_GetNext(chars);
-				}
-				else
-				{
-					SFloatingChars* newchars = mem_Alloc(sizeof(SFloatingChars));
-
-					memset(newchars, 0, sizeof(SFloatingChars));
-					list_InsertAfter(chars, newchars);
-					chars = newchars;
-				}
-			}
-		}
-
-		return chars;
-	}
-	else
-	{
-		internalerror("Negative argument not allowed");
-		return NULL;
+		chars = &list_GetNext(*chars);
 	}
 }
 
-static SLexFloat* lex_GetFloat(uint32_t id)
-{
-    uint32_t r = 0;
-	uint32_t mask = 1;
-
-    if(id == 0)
+static SVariadicWordDefinition* variadicWordByMask(uint32_t mask) {
+	if (mask == 0)
 		return NULL;
 
-    while((id & mask) == 0)
-    {
-		mask <<= 1;
-		r += 1;
-    }
-
-    return &g_aLexFloat[r];
+	return &g_variadicWordDefinitions[log2n(mask)];
 }
 
-static uint32_t lex_CalcHash(char* s)
-{
-    uint32_t r = 0;
+static uint32_t hashString(char* s) {
+	uint32_t r = 0;
 
-    while(*s)
-    {
-		HASH(r, toupper((unsigned char)*s));
+	while (*s) {
+		HASH(r, toupper((uint8_t) *s));
 		++s;
-    }
+	}
 
-    return r;
+	return r;
 }
 
-static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t bAllowUndefinedSymbols)
-{
-	while(*src && strchr(stopchar, *src) == NULL)
-	{
+static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t bAllowUndefinedSymbols) {
+	while (*src && strchr(stopchar, *src) == NULL) {
 		char ch;
 
-		if((ch = *src++) == '\\')
-		{
-			/*	Ahh, it's an escape sequence*/
+		if ((ch = *src++) == '\\') {
+			/* Handle escape sequences */
 
-			switch(ch = (*src++))
-			{
-				case 'n':
-				{
+			switch (ch = (*src++)) {
+				case 'n': {
 					ch = ASM_CRLF;
 					break;
 				}
-				case 't':
-				{
+				case 't': {
 					ch = ASM_TAB;
 					break;
 				}
@@ -199,47 +147,38 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t b
 				case '6':
 				case '7':
 				case '8':
-				case '9':
-				{
+				case '9': {
 					char* marg;
 
-					if((marg = fstk_GetMacroArgValue(ch))!=NULL)
-					{
-						while(*marg)
+					if ((marg = fstk_GetMacroArgValue(ch)) != NULL) {
+						while (*marg)
 							*dst++ = *marg++;
 					}
 
 					ch = 0;
 					break;
 				}
-				case '@':
-				{
+				case '@': {
 					char* marg;
 
-					if((marg=fstk_GetMacroRunID())!=NULL)
-					{
-						while(*marg)
+					if ((marg = fstk_GetMacroRunID()) != NULL) {
+						while (*marg)
 							*dst++ = *marg++;
 
-						ch=0;
+						ch = 0;
 					}
 					break;
 				}
 			}
-		}
-		else if(ch=='{')
-		{
+		} else if (ch == '{') {
 			bool_t bSymDefined;
 			string* pSymName;
 			char sym[MAXSYMNAMELENGTH];
 			int i = 0;
 
-			while(*src && (*src!='}') && (strchr(stopchar,*src)==NULL))
-			{
-				if((ch=*src++)=='\\')
-				{
-					switch(ch=(*src++))
-					{
+			while (*src && (*src != '}') && (strchr(stopchar, *src) == NULL)) {
+				if ((ch = *src++) == '\\') {
+					switch (ch = (*src++)) {
 						case '0':
 						case '1':
 						case '2':
@@ -249,69 +188,58 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t b
 						case '6':
 						case '7':
 						case '8':
-						case '9':
-						{
+						case '9': {
 							char* marg;
 
-							if((marg=fstk_GetMacroArgValue(ch))!=NULL)
-							{
-								while(*marg)
-								{
-									sym[i++]=*marg++;
+							if ((marg = fstk_GetMacroArgValue(ch)) != NULL) {
+								while (*marg) {
+									sym[i++] = *marg++;
 								}
 
-								ch=0;
+								ch = 0;
 							}
 							break;
 						}
-						case '@':
-						{
+						case '@': {
 							char* marg;
 
-							if((marg=fstk_GetMacroRunID())!=NULL)
-							{
-								while(*marg)
-								{
-									sym[i++]=*marg++;
+							if ((marg = fstk_GetMacroRunID()) != NULL) {
+								while (*marg) {
+									sym[i++] = *marg++;
 								}
 
-								ch=0;
+								ch = 0;
 							}
 							break;
 						}
 					}
-				}
-				else
-				{
-					sym[i++]=ch;
+				} else {
+					sym[i++] = ch;
 				}
 			}
 
 			sym[i] = 0;
 			pSymName = str_Create(sym);
 			bSymDefined = sym_IsDefined(pSymName);
-			
-			if(!bAllowUndefinedSymbols && !bSymDefined)
-			{
+
+			if (!bAllowUndefinedSymbols && !bSymDefined) {
 				str_Free(pSymName);
 				return NULL;
 			}
 
 			dst = sym_GetValueAsStringByName(dst, pSymName);
 			str_Free(pSymName);
-			
-			if(*src == '}')
-			{
-				if(strchr(stopchar, *src++) != NULL)
+
+			if (*src == '}') {
+				if (strchr(stopchar, *src++) != NULL)
 					return src;
-			}
-			else
+			} else
 				prj_Fail(ERROR_CHAR_EXPECTED, '}');
 
 			ch = 0;
 		}
 
-		if(ch != 0)
+		if (ch != 0)
 			*dst++ = ch;
 	}
 
@@ -321,334 +249,260 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t b
 }
 
 
-
-
 /*	Public routines*/
 
-void lex_Bookmark(SLexBookmark* pBookmark)
-{
+void lex_Bookmark(SLexBookmark* pBookmark) {
 	pBookmark->Buffer = *g_pCurrentBuffer;
 	pBookmark->Token = g_CurrentToken;
 }
 
-void lex_Goto(SLexBookmark* pBookmark)
-{
+void lex_Goto(SLexBookmark* pBookmark) {
 	*g_pCurrentBuffer = pBookmark->Buffer;
 	g_CurrentToken = pBookmark->Token;
 }
 
-int lex_CompareBookmarks(SLexBookmark* pBookmark1, SLexBookmark* pBookmark2)
-{
-	if(pBookmark1->Buffer.pBuffer < pBookmark2->Buffer.pBuffer)
-		return -1;
-	if(pBookmark1->Buffer.pBuffer > pBookmark2->Buffer.pBuffer)
-		return 1;
-	return 0;
-}
-
-
-void lex_SkipBytes(uint32_t count)
-{
-	if(g_pCurrentBuffer)
-	{
-		while(count > 0)
-		{
-			if(g_pCurrentBuffer->pBuffer[0] == '\n')
+void lex_SkipBytes(uint32_t count) {
+	if (g_pCurrentBuffer) {
+		while (count > 0) {
+			if (g_pCurrentBuffer->pBuffer[0] == '\n')
 				++g_pFileContext->LineNumber;
 			++g_pCurrentBuffer->pBuffer;
 			--count;
 		}
-	}
-	else
-	{
+	} else {
 		internalerror("g_pCurrentBuffer not initialized");
 	}
 }
 
-void lex_RewindBytes(uint32_t count)
-{
-	if(g_pCurrentBuffer)
-	{
-		g_pCurrentBuffer->pBuffer-=count;
-	}
-	else
-	{
+void lex_RewindBytes(uint32_t count) {
+	if (g_pCurrentBuffer) {
+		g_pCurrentBuffer->pBuffer -= count;
+	} else {
 		internalerror("g_pCurrentBuffer not initialized");
 	}
 }
 
-void lex_UnputChar(char c)
-{
-	if(g_pCurrentBuffer)
-	{
+void lex_UnputChar(char c) {
+	if (g_pCurrentBuffer) {
 		*(--(g_pCurrentBuffer->pBuffer)) = c;
-	}
-	else
-	{
+	} else {
 		internalerror("g_pCurrentBuffer not initialized");
 	}
 }
 
-void lex_UnputString(char* s)
-{
-	int i = (int)strlen(s) - 1;
+void lex_UnputString(char* s) {
+	int i = (int) strlen(s) - 1;
 
-	while(i >= 0)
-	{
+	while (i >= 0) {
 		lex_UnputChar(s[i--]);
 	}
 }
 
-void lex_SetBuffer(SLexBuffer* buf)
-{
-	if(buf)
-	{
+void lex_SetBuffer(SLexBuffer* buf) {
+	if (buf) {
 		g_pCurrentBuffer = buf;
-	}
-	else
-	{
+	} else {
 		internalerror("Argument must not be NULL");
 	}
 }
 
-void	lex_SetState(ELexerState i)
-{
-	if(g_pCurrentBuffer)
-	{
-		g_pCurrentBuffer->State=i;
-	}
-	else
-	{
+void lex_SetState(ELexerState i) {
+	if (g_pCurrentBuffer) {
+		g_pCurrentBuffer->State = i;
+	} else {
 		internalerror("g_pCurrentBuffer not initialized");
 	}
 }
 
-void	lex_FreeBuffer(SLexBuffer* buf)
-{
-	if(buf)
-	{
-		if(buf->pBufferStart)
-		{
-			mem_Free(buf->pBufferStart-SAFETYMARGIN);
-		}
-		else
-		{
+void lex_FreeBuffer(SLexBuffer* buf) {
+	if (buf) {
+		if (buf->pBufferStart) {
+			mem_Free(buf->pBufferStart - SAFETY_MARGIN);
+		} else {
 			internalerror("buf->pBufferStart not initialized");
 		}
 		mem_Free(buf);
-	}
-	else
-	{
+	} else {
 		internalerror("Argument must not be NULL");
 	}
 }
 
-SLexBuffer* lex_CreateMemoryBuffer(char* mem, size_t size)
-{
-	SLexBuffer* pBuffer = (SLexBuffer* )mem_Alloc(sizeof(SLexBuffer));
+SLexBuffer* lex_CreateMemoryBuffer(char* mem, size_t size) {
+	SLexBuffer* pBuffer = (SLexBuffer*) mem_Alloc(sizeof(SLexBuffer));
 	memset(pBuffer, 0, sizeof(SLexBuffer));
-	
-	pBuffer->pBuffer = pBuffer->pBufferStart = (char*)mem_Alloc(size + 1 + SAFETYMARGIN);
-	
-	pBuffer->pBuffer += SAFETYMARGIN;
-	pBuffer->pBufferStart += SAFETYMARGIN;
+
+	pBuffer->pBuffer = pBuffer->pBufferStart = (char*) mem_Alloc(size + 1 + SAFETY_MARGIN);
+
+	pBuffer->pBuffer += SAFETY_MARGIN;
+	pBuffer->pBufferStart += SAFETY_MARGIN;
 	memcpy(pBuffer->pBuffer, mem, size);
-	pBuffer->nBufferSize = size;
-	pBuffer->bAtLineStart = true;
+	pBuffer->bufferSize = size;
+	pBuffer->atLineStart = true;
 	pBuffer->pBuffer[size] = 0;
 	pBuffer->State = LEX_STATE_NORMAL;
 	return pBuffer;
 }
 
-SLexBuffer* lex_CreateFileBuffer(FILE* f)
-{
-    size_t size;
+SLexBuffer* lex_CreateFileBuffer(FILE* f) {
+	size_t size;
 	char strterm = 0;
 	char* pFile;
 	char* mem;
 	char* dest;
 	bool_t bWasSpace = true;
-	
-	SLexBuffer* pBuffer = (SLexBuffer*)mem_Alloc(sizeof(SLexBuffer));
+
+	SLexBuffer* pBuffer = (SLexBuffer*) mem_Alloc(sizeof(SLexBuffer));
 	memset(pBuffer, 0, sizeof(SLexBuffer));
 
 	fseek(f, 0, SEEK_END);
 	size = ftell(f);
 	fseek(f, 0, SEEK_SET);
 
-	pFile = (char*)mem_Alloc(size);
+	pFile = (char*) mem_Alloc(size);
 	size = fread(pFile, sizeof(uint8_t), size, f);
 
-	pBuffer->pBuffer = pBuffer->pBufferStart = (char*)mem_Alloc(size + 2 + SAFETYMARGIN) + SAFETYMARGIN;
+	pBuffer->pBuffer = pBuffer->pBufferStart = (char*) mem_Alloc(size + 2 + SAFETY_MARGIN) + SAFETY_MARGIN;
 	dest = pBuffer->pBuffer;
 
 	mem = pFile;
 
-	while((size_t)(mem - pFile) < size)
-	{
-		if(*mem == '"' || *mem == '\'')
-		{
+	while ((size_t) (mem - pFile) < size) {
+		if (*mem == '"' || *mem == '\'') {
 			strterm = *mem;
 			*dest++ = *mem++;
-			while(*mem && *mem != strterm)
-			{
-				if(*mem == '\\')
+			while (*mem && *mem != strterm) {
+				if (*mem == '\\')
 					*dest++ = *mem++;
 
 				*dest++ = *mem++;
 			}
 			*dest++ = *mem++;
 			bWasSpace = false;
-		}
-		else if((mem[0]==10 && mem[1]==13) || (mem[0]==13 && mem[1]==10))
-		{
+		} else if ((mem[0] == 10 && mem[1] == 13) || (mem[0] == 13 && mem[1] == 10)) {
 			*dest++ = '\n';
 			mem += 2;
 			bWasSpace = true;
-		}
-		else if(mem[0] == 10 || mem[0] == 13)
-		{
+		} else if (mem[0] == 10 || mem[0] == 13) {
 			*dest++ = '\n';
 			mem += 1;
 			bWasSpace = true;
-		}
-		else if(*mem==';' || (bWasSpace && mem[0] == '*'))
-		{
+		} else if (*mem == ';' || (bWasSpace && mem[0] == '*')) {
 			++mem;
-			while(*mem && *mem != 13 && *mem != 10)
+			while (*mem && *mem != 13 && *mem != 10)
 				++mem;
 			bWasSpace = false;
-		}
-		else
-		{
-			bWasSpace = isspace((uint8_t)*mem);
+		} else {
+			bWasSpace = isspace((uint8_t) *mem);
 			*dest++ = *mem++;
 		}
 	}
 
 	*dest++ = '\n';
 	*dest++ = 0;
-	pBuffer->nBufferSize = dest - pBuffer->pBufferStart;
-	pBuffer->bAtLineStart = true;
+	pBuffer->bufferSize = dest - pBuffer->pBufferStart;
+	pBuffer->atLineStart = true;
 
 	mem_Free(pFile);
 	return pBuffer;
 }
 
-uint32_t lex_FloatAlloc(SLexFloat* tok)
-{
-	g_aLexFloat[g_nNextFreeFloat] = *tok;
+uint32_t lex_FloatAlloc(SVariadicWordDefinition* tok) {
+	g_variadicWordDefinitions[g_nextVariadicId] = *tok;
 
-	return 1 << g_nNextFreeFloat++;
+	return 1U << g_nextVariadicId++;
 }
 
-void lex_FloatRemoveAll(uint32_t id)
-{
-	SFloatingChars* chars = g_pFloatingChars;
+void lex_FloatRemoveAll(uint32_t id) {
+	SVariadicWordsPerChar* chars = g_variadicWordsPerChar;
 
-	while(chars)
-	{
+	while (chars) {
 		int c;
 
-		for(c = 0; c < 256; c += 1)
-			chars->Chars[c] &= ~id;
+		for (c = 0; c < 256; c += 1)
+			chars->idBits[c] &= ~id;
 
 		chars = list_GetNext(chars);
 	}
 }
 
-void lex_FloatAddRangeAndBeyond(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber)
-{
-	if(charnumber >= 0)
-	{
-		SFloatingChars* chars = lex_GetPointerToFloatingChar(charnumber);
+void lex_FloatAddRangeAndBeyond(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber) {
+	if (charnumber >= 0) {
+		SVariadicWordsPerChar* chars = variadicWordsAt(charnumber);
 
-		while(chars)
-		{
+		while (chars) {
 			uint16_t c;
 
 			c = start;
 
-		    while(c <= end)
-				chars->Chars[c++] |= id;
+			while (c <= end)
+				chars->idBits[c++] |= id;
 
 			chars = list_GetNext(chars);
 		}
 	}
 }
 
-void lex_FloatAddRange(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber)
-{
-	if(charnumber >= 0)
-	{
-		SFloatingChars* chars = lex_GetPointerToFloatingChar(charnumber);
+void lex_FloatAddRange(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber) {
+	if (charnumber >= 0) {
+		SVariadicWordsPerChar* chars = variadicWordsAt(charnumber);
 
-		while(start <= end)
-			chars->Chars[start++] |= id;
+		while (start <= end)
+			chars->idBits[start++] |= id;
 	}
 }
 
-void lex_FloatSetSuffix(uint32_t id, uint8_t ch)
-{
-	g_nHasSuffix |= id;
-	g_aFloatSuffix[ch] |= id;
+void lex_FloatSetSuffix(uint32_t id, uint8_t ch) {
+	g_variadicHasSuffixFlags |= id;
+	g_variadicSuffix[ch] |= id;
 }
 
-void lex_Init(void)
-{
+void lex_Init(void) {
 	int i;
 
-	for(i = 0; i < LEXHASHSIZE; ++i)
-		g_aLexHash[i] = NULL;
+	for (i = 0; i < WORDS_HASH_SIZE; ++i)
+		g_wordsHashTable[i] = NULL;
 
-	g_nHasSuffix = 0;
-	for(i = 0; i < 256; ++i)
-		g_aFloatSuffix[i] = 0;
+	g_variadicHasSuffixFlags = 0;
+	for (i = 0; i < 256; ++i)
+		g_variadicSuffix[i] = 0;
 
-	g_pFloatingChars = NULL;
+	g_variadicWordsPerChar = NULL;
 
-	g_nLexTokenMaxLength = 0;
-	g_nNextFreeFloat = 0;
+	g_maxWordLength = 0;
+	g_nextVariadicId = 0;
 }
 
-void lex_PrintMaxTokensPerHash(void)
-{
+void lex_PrintMaxTokensPerHash(void) {
 	int nMax = 0;
 	int i;
 	int nInUse = 0;
 	int nTotal = 0;
 
-	for(i = 0; i < LEXHASHSIZE; ++i)
-	{
+	for (i = 0; i < WORDS_HASH_SIZE; ++i) {
 		int n = 0;
-		SLexString* p = g_aLexHash[i];
-		if(p)
+		SConstantWord* p = g_wordsHashTable[i];
+		if (p)
 			++nInUse;
-		while(p)
-		{
+		while (p) {
 			++nTotal;
 			++n;
 			p = list_GetNext(p);
 		}
-		if(n > nMax)
+		if (n > nMax)
 			nMax = n;
 	}
 
 	printf("Total strings %d, max %d strings with same hash, %d slots in use\n", nTotal, nMax, nInUse);
 }
 
-void lex_RemoveString(char* pszName, int nToken)
-{
-	SLexString** pHash = &g_aLexHash[lex_CalcHash(pszName)];
-	SLexString* pToken = *pHash;
-	
-	while(pToken)
-	{
-		if(pToken->Token == (uint32_t)nToken
-		&& _stricmp(pToken->pszName, pszName) == 0)
-		{
+void lex_RemoveString(char* pszName, int nToken) {
+	SConstantWord** pHash = &g_wordsHashTable[hashString(pszName)];
+	SConstantWord* pToken = *pHash;
+
+	while (pToken) {
+		if (pToken->token == (uint32_t) nToken && str_EqualConst(pToken->name, pszName) == 0) {
 			list_Remove(*pHash, pToken);
-			mem_Free(pToken->pszName);
+			str_Free(pToken->name);
 			mem_Free(pToken);
 			return;
 		}
@@ -657,149 +511,119 @@ void lex_RemoveString(char* pszName, int nToken)
 	internalerror("token not found");
 }
 
-void lex_RemoveStrings(SLexInitString* pLex)
-{
-    while(pLex->pszName)
-    {
-		lex_RemoveString(pLex->pszName, pLex->nToken);
+void lex_RemoveStrings(SLexInitString* pLex) {
+	while (pLex->name) {
+		lex_RemoveString(pLex->name, pLex->token);
 		++pLex;
-    }
+	}
 }
 
-void lex_AddString(char* pszName, int nToken)
-{
-	SLexString** pHash = &g_aLexHash[lex_CalcHash(pszName)];
-	SLexString* pPrev = *pHash;
-	SLexString* pNew;
+void lex_AddString(char* pszName, int nToken) {
+	SConstantWord** pHash = &g_wordsHashTable[hashString(pszName)];
+	SConstantWord* pPrev = *pHash;
+	SConstantWord* pNew;
 
 	/*printf("%s has hashvalue %d\n", lex->tzName, hash);*/
 
-	pNew = (SLexString*)mem_Alloc(sizeof(SLexString));
-	memset(pNew, 0, sizeof(SLexString));
-	
-	pNew->pszName = (char*)mem_Alloc(strlen(pszName) + 1);
-	strcpy(pNew->pszName, pszName);
+	pNew = (SConstantWord*) mem_Alloc(sizeof(SConstantWord));
+	memset(pNew, 0, sizeof(SConstantWord));
 
-	pNew->NameLength = (int32_t)strlen(pszName);
-	pNew->Token = nToken;
+	pNew->name = str_Create(pszName);
+	pNew->token = nToken;
+	_strupr(str_String(pNew->name));
 
-	_strupr(pNew->pszName);
+	if (str_Length(pNew->name) > g_maxWordLength)
+		g_maxWordLength = str_Length(pNew->name);
 
-	if(pNew->NameLength > g_nLexTokenMaxLength)
-		g_nLexTokenMaxLength = pNew->NameLength;
-
-	if(pPrev)
-	{
+	if (pPrev) {
 		list_InsertAfter(pPrev, pNew);
-	}
-	else
-	{
+	} else {
 		*pHash = pNew;
 	}
 }
 
-void lex_AddStrings(SLexInitString* lex)
-{
-    while(lex->pszName)
-    {
-		lex_AddString(lex->pszName, lex->nToken);
+void lex_AddStrings(SLexInitString* lex) {
+	while (lex->name) {
+		lex_AddString(lex->name, lex->token);
 		++lex;
-    }
+	}
 
 	/*lex_PrintMaxTokensPerHash();*/
 }
 
-static uint32_t lex_LexStateNormal()
-{
-	bool_t bLineStart = g_pCurrentBuffer->bAtLineStart;
-	SLexString* pLongestFixed = NULL;
+static uint32_t lex_LexStateNormal() {
+	bool_t bLineStart = g_pCurrentBuffer->atLineStart;
+	SConstantWord* pLongestFixed = NULL;
 
-	g_pCurrentBuffer->bAtLineStart = false;
+	g_pCurrentBuffer->atLineStart = false;
 
-	for(;;)
-	{
+	for (;;) {
 		int32_t nFloatLen;
 		uint32_t nNewFloatMask;
 		uint32_t nFloatMask;
-		SFloatingChars* pFloat;
+		SVariadicWordsPerChar* pFloat;
 		int32_t nMaxLen;
 		uint32_t nHash;
-		SLexFloat* pFloatToken;
+		SVariadicWordDefinition* pFloatToken;
 		unsigned char* s;
 
-		while(isspace((unsigned char)g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n')
-		{
+		while (isspace((unsigned char) g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n') {
 			bLineStart = 0;
 			g_pCurrentBuffer->pBuffer += 1;
 		}
 
-		if(*(g_pCurrentBuffer->pBuffer) == 0)
-		{
-			if(fstk_RunNextBuffer())
-			{
-				bLineStart = g_pCurrentBuffer->bAtLineStart;
-				g_pCurrentBuffer->bAtLineStart = false;
+		if (*(g_pCurrentBuffer->pBuffer) == 0) {
+			if (fstk_RunNextBuffer()) {
+				bLineStart = g_pCurrentBuffer->atLineStart;
+				g_pCurrentBuffer->atLineStart = false;
 				continue;
-			}
-			else
-			{
+			} else {
 				g_CurrentToken.ID.Token = 0;
 				return 0;
 			}
 		}
 
-		s = (unsigned char*)g_pCurrentBuffer->pBuffer;
+		s = (unsigned char*) g_pCurrentBuffer->pBuffer;
 		nFloatMask = nFloatLen = 0;
-		pFloat = g_pFloatingChars;
-		nNewFloatMask = pFloat->Chars[(int)(*s++)];
-		while(nNewFloatMask && nFloatLen < BUF_REMAINING_CHARS)
-		{
-			if(list_GetNext(pFloat))
-			{
+		pFloat = g_variadicWordsPerChar;
+		nNewFloatMask = pFloat->idBits[(int) (*s++)];
+		while (nNewFloatMask && nFloatLen < BUF_REMAINING_CHARS) {
+			if (list_GetNext(pFloat)) {
 				pFloat = list_GetNext(pFloat);
 			}
 
 			++nFloatLen;
 			nFloatMask = nNewFloatMask;
-			nNewFloatMask &= pFloat->Chars[(int)(*s++)];
+			nNewFloatMask &= pFloat->idBits[(int) (*s++)];
 		}
 
-		if(g_nHasSuffix & nFloatMask)
-		{
-			nNewFloatMask = nFloatMask & g_aFloatSuffix[(int)s[-1]];
-			if(nNewFloatMask)
-			{
+		if (g_variadicHasSuffixFlags & nFloatMask) {
+			nNewFloatMask = nFloatMask & g_variadicSuffix[(int) s[-1]];
+			if (nNewFloatMask) {
 				++nFloatLen;
 				nFloatMask = nNewFloatMask;
-			}
-			else
-			{
-				nFloatMask &= ~g_nHasSuffix;
+			} else {
+				nFloatMask &= ~g_variadicHasSuffixFlags;
 			}
 		}
 
-		nMaxLen = (int32_t)BUF_REMAINING_CHARS;
-		if(g_nLexTokenMaxLength < nMaxLen)
-		{
-			nMaxLen = g_nLexTokenMaxLength;
+		nMaxLen = (int32_t) BUF_REMAINING_CHARS;
+		if (g_maxWordLength < nMaxLen) {
+			nMaxLen = g_maxWordLength;
 		}
 
 		g_CurrentToken.TokenLength = 0;
 		nHash = 0;
-		s = (unsigned char*)g_pCurrentBuffer->pBuffer;
-		while(g_CurrentToken.TokenLength < nMaxLen)
-		{
+		s = (unsigned char*) g_pCurrentBuffer->pBuffer;
+		while (g_CurrentToken.TokenLength < nMaxLen) {
 			++g_CurrentToken.TokenLength;
 			HASH(nHash, toupper(*s));
 			++s;
-			if(g_aLexHash[nHash])
-			{
-				SLexString* lex = g_aLexHash[nHash];
-				while(lex)
-				{
-					if(lex->NameLength == g_CurrentToken.TokenLength
-					&& 0 == _strnicmp(g_pCurrentBuffer->pBuffer, lex->pszName, g_CurrentToken.TokenLength))
-					{
+			if (g_wordsHashTable[nHash]) {
+				SConstantWord* lex = g_wordsHashTable[nHash];
+				while (lex) {
+					if (str_Length(lex->name) == g_CurrentToken.TokenLength &&
+						0 == _strnicmp(g_pCurrentBuffer->pBuffer, str_String(lex->name), g_CurrentToken.TokenLength)) {
 						pLongestFixed = lex;
 					}
 					lex = list_GetNext(lex);
@@ -808,91 +632,72 @@ static uint32_t lex_LexStateNormal()
 
 		}
 
-		if(nFloatLen == 0 && pLongestFixed == NULL )
-		{
-			if(*g_pCurrentBuffer->pBuffer == '"'
-			|| *g_pCurrentBuffer->pBuffer == '\'')
-			{
+		if (nFloatLen == 0 && pLongestFixed == NULL) {
+			if (*g_pCurrentBuffer->pBuffer == '"' || *g_pCurrentBuffer->pBuffer == '\'') {
 				char term[3];
 				term[0] = *g_pCurrentBuffer->pBuffer;
 				term[1] = '\n';
 				term[2] = 0;
-				g_pCurrentBuffer->pBuffer = lex_ParseStringUntil(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer+1, term, true);
-		 		if(*g_pCurrentBuffer->pBuffer != term[0])
-				{
+				g_pCurrentBuffer->pBuffer = lex_ParseStringUntil(g_CurrentToken.Value.aString,
+																 g_pCurrentBuffer->pBuffer + 1, term, true);
+				if (*g_pCurrentBuffer->pBuffer != term[0]) {
 					prj_Fail(ERROR_STRING_TERM);
-				}
-				else
-				{
+				} else {
 					g_pCurrentBuffer->pBuffer += 1;
 				}
 				g_CurrentToken.ID.Token = T_STRING;
 				return T_STRING;
-			}
-			else if(*g_pCurrentBuffer->pBuffer == '{')
-			{
+			} else if (*g_pCurrentBuffer->pBuffer == '{') {
 				char sym[MAXSYMNAMELENGTH];
 				char* pNewBuf;
 
 				pNewBuf = lex_ParseStringUntil(sym, g_pCurrentBuffer->pBuffer, "}\n", false);
-				if(pNewBuf)
-				{
+				if (pNewBuf) {
 					g_pCurrentBuffer->pBuffer = pNewBuf;
 					g_CurrentToken.ID.Token = T_STRING;
 					strcpy(g_CurrentToken.Value.aString, sym);
 					return T_STRING;
 				}
 			}
-			if(*g_pCurrentBuffer->pBuffer == '\n')
-			{
-				g_pCurrentBuffer->bAtLineStart = true;
+			if (*g_pCurrentBuffer->pBuffer == '\n') {
+				g_pCurrentBuffer->atLineStart = true;
 			}
 
 			g_CurrentToken.TokenLength = 1;
 			g_CurrentToken.ID.Token = *(g_pCurrentBuffer->pBuffer);
-			return* (g_pCurrentBuffer->pBuffer)++;
+			return *(g_pCurrentBuffer->pBuffer)++;
 		}
 
-		if(nFloatLen == 0)
-		{
-			g_CurrentToken.TokenLength = pLongestFixed->NameLength;
+		if (nFloatLen == 0) {
+			g_CurrentToken.TokenLength = str_Length(pLongestFixed->name);
 			g_pCurrentBuffer->pBuffer += g_CurrentToken.TokenLength;
-			g_CurrentToken.ID.Token = pLongestFixed->Token;
-			return pLongestFixed->Token;
+			g_CurrentToken.ID.Token = pLongestFixed->token;
+			return pLongestFixed->token;
 		}
 
-		pFloatToken = lex_GetFloat(nFloatMask);
-		if(pLongestFixed == NULL || nFloatLen > pLongestFixed->NameLength)
-		{
+		pFloatToken = variadicWordByMask(nFloatMask);
+		if (pLongestFixed == NULL || nFloatLen > str_Length(pLongestFixed->name)) {
 			g_CurrentToken.TokenLength = nFloatLen;
-			if(pFloatToken->pCallback)
-			{
-				if(!pFloatToken->pCallback(g_pCurrentBuffer->pBuffer, g_CurrentToken.TokenLength))
-				{
+			if (pFloatToken->callback) {
+				if (!pFloatToken->callback(g_pCurrentBuffer->pBuffer, g_CurrentToken.TokenLength)) {
 					continue;
 				}
 			}
 
-			if(pFloatToken->nToken == T_ID && bLineStart)
-			{
+			if (pFloatToken->token == T_ID && bLineStart) {
 				g_pCurrentBuffer->pBuffer += g_CurrentToken.TokenLength;
 				g_CurrentToken.ID.Token = T_LABEL;
 				return T_LABEL;
-			}
-			else
-			{
+			} else {
 				g_pCurrentBuffer->pBuffer += g_CurrentToken.TokenLength;
-				g_CurrentToken.ID.Token = pFloatToken->nToken;
-				return pFloatToken->nToken;
+				g_CurrentToken.ID.Token = pFloatToken->token;
+				return pFloatToken->token;
 			}
-		}
-		else if(pFloatToken && pFloatToken->nToken == T_ID && bLineStart && g_pCurrentBuffer->pBuffer[nFloatLen] == ':')
-		{
+		} else if (pFloatToken && pFloatToken->token == T_ID && bLineStart &&
+				   g_pCurrentBuffer->pBuffer[nFloatLen] == ':') {
 			g_CurrentToken.TokenLength = nFloatLen;
-			if(pFloatToken->pCallback)
-			{
-				if(!(pFloatToken->pCallback(g_pCurrentBuffer->pBuffer,g_CurrentToken.TokenLength)))
-				{
+			if (pFloatToken->callback) {
+				if (!(pFloatToken->callback(g_pCurrentBuffer->pBuffer, g_CurrentToken.TokenLength))) {
 					continue;
 				}
 			}
@@ -901,39 +706,31 @@ static uint32_t lex_LexStateNormal()
 			g_pCurrentBuffer->pBuffer += g_CurrentToken.TokenLength;
 			g_CurrentToken.ID.Token = T_LABEL;
 			return T_LABEL;
-		}
-		else
-		{
-			g_CurrentToken.TokenLength = pLongestFixed->NameLength;
+		} else {
+			g_CurrentToken.TokenLength = str_Length(pLongestFixed->name);
 			memcpy(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer, g_CurrentToken.TokenLength);
 			g_CurrentToken.Value.aString[g_CurrentToken.TokenLength] = 0;
 			g_pCurrentBuffer->pBuffer += g_CurrentToken.TokenLength;
-			g_CurrentToken.ID.Token = pLongestFixed->Token;
-			return pLongestFixed->Token;
+			g_CurrentToken.ID.Token = pLongestFixed->token;
+			return pLongestFixed->token;
 		}
 	}
 }
 
-uint32_t	lex_GetNextToken(void)
-{
-	switch(g_pCurrentBuffer->State)
-	{
-		case LEX_STATE_NORMAL:
-		{
+uint32_t lex_GetNextToken(void) {
+	switch (g_pCurrentBuffer->State) {
+		case LEX_STATE_NORMAL: {
 			return lex_LexStateNormal();
 			break;
 		}
-		case LEX_STATE_MACROARG0:
-		{
-			g_pCurrentBuffer->State = LEX_STATE_MACROARGS;
+		case LEX_STATE_MACRO_ARG0: {
+			g_pCurrentBuffer->State = LEX_STATE_MACRO_ARGS;
 
-			if(g_pCurrentBuffer->pBuffer[0] == '.')
-			{
+			if (g_pCurrentBuffer->pBuffer[0] == '.') {
 				int i = 0;
 
 				g_pCurrentBuffer->pBuffer += 1;
-				while(!isspace((unsigned char)g_pCurrentBuffer->pBuffer[0]))
-				{
+				while (!isspace((unsigned char) g_pCurrentBuffer->pBuffer[0])) {
 					g_CurrentToken.Value.aString[i++] = g_pCurrentBuffer->pBuffer[0];
 					g_pCurrentBuffer->pBuffer += 1;
 				}
@@ -943,63 +740,49 @@ uint32_t	lex_GetNextToken(void)
 
 			// fall through
 		}
-		case LEX_STATE_MACROARGS:
-		{
+		case LEX_STATE_MACRO_ARGS: {
 			char* newbuf;
 			uint32_t index;
 
-			while(isspace((unsigned char)g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n')
-			{
+			while (isspace((unsigned char) g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n') {
 				g_pCurrentBuffer->pBuffer += 1;
 			}
 
-			if(g_pCurrentBuffer->pBuffer[0] == '<')
-			{
+			if (g_pCurrentBuffer->pBuffer[0] == '<') {
 				g_pCurrentBuffer->pBuffer += 1;
 				newbuf = lex_ParseStringUntil(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer, ">\n", true);
-				index = (int32_t)(newbuf - g_pCurrentBuffer->pBuffer);
-				if(newbuf[0] == '>')
+				index = (int32_t) (newbuf - g_pCurrentBuffer->pBuffer);
+				if (newbuf[0] == '>')
 					newbuf += 1;
-			}
-			else
-			{
+			} else {
 				newbuf = lex_ParseStringUntil(g_CurrentToken.Value.aString, g_pCurrentBuffer->pBuffer, ",\n", true);
-				index = (int32_t)(newbuf - g_pCurrentBuffer->pBuffer);
+				index = (int32_t) (newbuf - g_pCurrentBuffer->pBuffer);
 			}
 			g_pCurrentBuffer->pBuffer = newbuf;
 
-			if(index)
-			{
+			if (index) {
 				g_CurrentToken.TokenLength = index;
-				if(*(g_pCurrentBuffer->pBuffer) == '\n')
-				{
-					while(g_CurrentToken.Value.aString[--index] == ' ')
-					{
+				if (*(g_pCurrentBuffer->pBuffer) == '\n') {
+					while (g_CurrentToken.Value.aString[--index] == ' ') {
 						g_CurrentToken.Value.aString[index] = 0;
 						g_CurrentToken.TokenLength -= 1;
 					}
 				}
 				g_CurrentToken.ID.Token = T_STRING;
 				return T_STRING;
-			}
-			else if(*(g_pCurrentBuffer->pBuffer) == '\n')
-			{
+			} else if (*(g_pCurrentBuffer->pBuffer) == '\n') {
 				g_pCurrentBuffer->pBuffer += 1;
-				g_pCurrentBuffer->bAtLineStart = true;
+				g_pCurrentBuffer->atLineStart = true;
 				g_CurrentToken.TokenLength = 1;
 				g_CurrentToken.ID.Token = '\n';
 				return '\n';
-			}
-			else if(*(g_pCurrentBuffer->pBuffer)==',')
-			{
-				g_pCurrentBuffer->pBuffer+=1;
+			} else if (*(g_pCurrentBuffer->pBuffer) == ',') {
+				g_pCurrentBuffer->pBuffer += 1;
 				g_CurrentToken.TokenLength = 1;
-				g_CurrentToken.ID.Token=',';
+				g_CurrentToken.ID.Token = ',';
 				return ',';
-			}
-			else
-			{
-				g_CurrentToken.ID.Token=0;
+			} else {
+				g_CurrentToken.ID.Token = 0;
 				return 0;
 			}
 			break;
