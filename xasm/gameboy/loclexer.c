@@ -204,7 +204,7 @@ void	loclexer_Init(void)
 {
 	/* Gameboy constants */
 
-    GameboyConstID = lex_FloatAlloc(&tNumberToken);
+    GameboyConstID = lex_VariadicCreateWord(&tNumberToken);
     lex_FloatAddRange(GameboyConstID, '`', '`', 0);
     lex_FloatAddRangeAndBeyond(GameboyConstID, '0', '3', 1);
 

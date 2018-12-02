@@ -24,29 +24,26 @@
 #include "asmotor.h"
 #include "str.h"
 
-typedef struct
-{
-	int		nSize;
-	int		nAllocated;
-	char*	pBuffer;
+typedef struct {
+	size_t nSize;
+	size_t nAllocated;
+	char* pBuffer;
 } stringbuffer;
 
 extern stringbuffer* strbuf_Create(void);
 extern void strbuf_Free(stringbuffer* pBuffer);
 extern string* strbuf_String(stringbuffer* pBuffer);
-extern void strbuf_AppendChars(stringbuffer* pBuffer, char* pChars, int nCount);
+extern void strbuf_AppendChars(stringbuffer* pBuffer, const char* pChars, size_t nCount);
 
-INLINE void strbuf_AppendChar(stringbuffer* pBuffer, char nChar)
-{
+INLINE void strbuf_AppendChar(stringbuffer* pBuffer, char nChar) {
 	strbuf_AppendChars(pBuffer, &nChar, 1);
 }
 
-INLINE void strbuf_AppendStringZero(stringbuffer* pBuffer, char* pszString)
-{
-	if(pszString == NULL)
+INLINE void strbuf_AppendStringZero(stringbuffer* pBuffer, const char* pszString) {
+	if (pszString == NULL)
 		return;
-		
-	strbuf_AppendChars(pBuffer, pszString, (int)strlen(pszString));
+
+	strbuf_AppendChars(pBuffer, pszString, strlen(pszString));
 }
 
 #endif

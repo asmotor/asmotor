@@ -22,6 +22,7 @@
 
 #include "asmotor.h"
 #include "mem.h"
+#include "file.h"
 
 #include "types.h"
 
@@ -46,15 +47,7 @@
 #define EXT_DEF		0x01000000
 #define EXT_REF32	0x81000000
 
-static void fputml(int32_t d, FILE* f)
-{
-	fputc((d >> 24) & 0xFF, f);
-	fputc((d >> 16) & 0xFF, f);
-	fputc((d >> 8) & 0xFF, f);
-	fputc(d & 0xFF, f);
-}
-
-static void fputbuf(void* pBuf, int nLen, FILE* f)
+static void fputbuf(const void* pBuf, size_t nLen, FILE* f)
 {
 	fwrite(pBuf, 1, nLen, f);
 
@@ -65,11 +58,11 @@ static void fputbuf(void* pBuf, int nLen, FILE* f)
 	}
 }
 
-static void fputstr(char* pStr, FILE* f, uint32_t def)
+static void fputstr(string* str, FILE* f, uint32_t def)
 {
-	int nLen = (int)strlen(pStr);
-	fputml(((nLen + 3) / 4) | def, f);
-	fputbuf(pStr, nLen, f);
+	uint32_t nLen = (uint32_t)str_Length(str);
+	fputbl(((nLen + 3) / 4) | def, f);
+	fputbuf(str_String(str), nLen, f);
 }
 
 void ami_WriteSymbolHunk(FILE* f, SSection* pSect, bool_t bSkipExt)
@@ -79,7 +72,7 @@ void ami_WriteSymbolHunk(FILE* f, SSection* pSect, bool_t bSkipExt)
 	long fpos;
 
 	fpos = ftell(f);
-	fputml(HUNK_SYMBOL, f);
+	fputbl(HUNK_SYMBOL, f);
 
 	for(i = 0; i < HASHSIZE; ++i)
 	{
@@ -91,8 +84,8 @@ void ami_WriteSymbolHunk(FILE* f, SSection* pSect, bool_t bSkipExt)
 			{
 				if(!((sym->nFlags & SYMF_EXPORT) && bSkipExt))
 				{
-					fputstr(str_String(sym->pName), f, 0);
-					fputml(sym->Value.Value, f);
+					fputstr(sym->pName, f, 0);
+					fputbl(sym->Value.Value, f);
 					++count;
 				}
 			}
@@ -103,7 +96,7 @@ void ami_WriteSymbolHunk(FILE* f, SSection* pSect, bool_t bSkipExt)
 	if(count == 0)
 		fseek(f, fpos, SEEK_SET);
 	else
-		fputml(0, f);
+		fputbl(0, f);
 }
 
 void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatches, uint32_t nCodePos)
@@ -113,7 +106,7 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 	long fpos;
 
 	fpos = ftell(f);
-	fputml(HUNK_EXT, f);
+	fputbl(HUNK_EXT, f);
 
 	while(pImportPatches != NULL)
 	{
@@ -126,18 +119,18 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 			long loccount = 0;
 			SPatch* patch;
 
-			fputstr(str_String(pSym->pName), f, EXT_REF32);
+			fputstr(pSym->pName, f, EXT_REF32);
 			symcountpos = ftell(f);
-			fputml(0, f);
+			fputbl(0, f);
 
 			patch = pImportPatches;
 			do
 			{
 				long pos = ftell(f);
 				fseek(f, patch->Offset + nCodePos, SEEK_SET);
-				fputml(offset, f);
+				fputbl(offset, f);
 				fseek(f, pos, SEEK_SET);
-				fputml(patch->Offset, f);
+				fputbl(patch->Offset, f);
 				++count;
 				++loccount;
 
@@ -163,7 +156,7 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 
 			oldpos = ftell(f);
 			fseek(f, symcountpos, SEEK_SET);
-			fputml(loccount, f);
+			fputbl(loccount, f);
 			fseek(f, oldpos, SEEK_SET);
 		}
 		pImportPatches = list_GetNext(pImportPatches);
@@ -177,8 +170,8 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 			if((sym->nFlags & (SYMF_RELOC | SYMF_EXPORT)) == (SYMF_RELOC | SYMF_EXPORT)
 			&& sym->pSection == pSect)
 			{
-				fputstr(str_String(sym->pName), f, EXT_DEF);
-				fputml(sym->Value.Value, f);
+				fputstr(sym->pName, f, EXT_DEF);
+				fputbl(sym->Value.Value, f);
 				++count;
 			}
 			sym = list_GetNext(sym);
@@ -188,7 +181,7 @@ void ami_WriteExtHunk(FILE* f, struct Section* pSect, struct Patch* pImportPatch
 	if(count == 0)
 		fseek(f, fpos, SEEK_SET);
 	else
-		fputml(0, f);
+		fputbl(0, f);
 
 }
 
@@ -212,8 +205,8 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 		else
 			hunktype = HUNK_CODE;
 
-		fputml(hunktype, f);
-		fputml((pSect->UsedSpace + 3) / 4, f);
+		fputbl(hunktype, f);
+		fputbl((pSect->UsedSpace + 3) / 4, f);
 		hunkpos = ftell(f);
 		fputbuf(pSect->pData, pSect->UsedSpace, f);
 
@@ -287,7 +280,7 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 			uint32_t i;
 			SSection* fsect = pSectionList;
 
-			fputml(HUNK_RELOC32, f);
+			fputbl(HUNK_RELOC32, f);
 
 			for(i = 0; i < nSections; ++i)
 			{
@@ -300,8 +293,8 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 				}
 				if(nReloc > 0)
 				{
-					fputml(nReloc, f);
-					fputml(i, f);
+					fputbl(nReloc, f);
+					fputbl(i, f);
 					patch = pPatches[i];
 					while(patch)
 					{
@@ -310,16 +303,16 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 						patch_GetSectionPcOffset(&value, patch->pExpression, fsect);
 						fpos = ftell(f);
 						fseek(f, (long)(patch->Offset + hunkpos), SEEK_SET);
-						fputml(value, f);
+						fputbl(value, f);
 						fseek(f, (long)fpos, SEEK_SET);
-						fputml(patch->Offset, f);
+						fputbl(patch->Offset, f);
 						patch = list_GetNext(patch);
 					}
 				}
 
 				fsect = list_GetNext(fsect);
 			}
-			fputml(0, f);
+			fputbl(0, f);
 		}
 
 		if(bLink)
@@ -330,8 +323,8 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 	else /*if(pSect->pGroup->Flags & GROUP_BSS)*/
 	{
 		uint32_t hunktype = HUNK_BSS;
-		fputml(hunktype, f);
-		fputml((pSect->UsedSpace + 3) / 4, f);
+		fputbl(hunktype, f);
+		fputbl((pSect->UsedSpace + 3) / 4, f);
 
 		if(bLink)
 			ami_WriteExtHunk(f, pSect, NULL, 0);
@@ -340,7 +333,7 @@ bool_t ami_WriteSection(FILE* f, SSection* pSect, bool_t bDebugInfo, uint32_t nS
 	if(bDebugInfo)
 		ami_WriteSymbolHunk(f, pSect, /*bLink*/ false);
 
-	fputml(HUNK_END, f);
+	fputbl(HUNK_END, f);
 	return true;
 }
 
@@ -357,10 +350,10 @@ void ami_WriteSectionNames(FILE* f, bool_t bDebugInfo)
 	}
 
 	/* name list terminator */
-	fputml(0, f);
+	fputbl(0, f);
 }
 
-bool_t ami_WriteObject(string* pDestFilename, string* pSourceFilename, bool_t bDebugInfo)
+bool_t ami_WriteObject(string* pDestFilename, string* pSourceFilename)
 {
 	FILE* f;
 	SSection* pSect;
@@ -379,13 +372,13 @@ bool_t ami_WriteObject(string* pDestFilename, string* pSourceFilename, bool_t bD
 		++nSections;
 	}
 
-	fputml(HUNK_UNIT, f);
-	fputstr(str_String(pSourceFilename), f, 0);
+	fputbl(HUNK_UNIT, f);
+	fputstr(pSourceFilename, f, 0);
 
 	pSect = pSectionList;
 	while(pSect != NULL)
 	{
-		fputml(HUNK_NAME, f);
+		fputbl(HUNK_NAME, f);
 		fputstr(pSect->Name, f, 0);
 		if(!ami_WriteSection(f, pSect, true, nSections, true))
 		{
@@ -411,7 +404,7 @@ bool_t ami_WriteExecutable(string* pDestFilename, bool_t bDebugInfo)
 	if(f == NULL)
 		return false;
 
-	fputml(HUNK_HEADER, f);
+	fputbl(HUNK_HEADER, f);
 	ami_WriteSectionNames(f, bDebugInfo);
 
 	nSections = 0;
@@ -422,9 +415,9 @@ bool_t ami_WriteExecutable(string* pDestFilename, bool_t bDebugInfo)
 		++nSections;
 	}
 
-	fputml(nSections, f);
-	fputml(0, f);
-	fputml(nSections - 1, f);
+	fputbl(nSections, f);
+	fputbl(0, f);
+	fputbl(nSections - 1, f);
 
 	pSect = pSectionList;
 	while(pSect != NULL)
@@ -432,7 +425,7 @@ bool_t ami_WriteExecutable(string* pDestFilename, bool_t bDebugInfo)
 		uint32_t size = (pSect->UsedSpace + 3) / 4;
 		if(g_pConfiguration->bSupportAmiga && (pSect->pGroup->nFlags & SYMF_CHIP))
 			size |= HUNKF_CHIP;
-		fputml(size, f);
+		fputbl(size, f);
 		pSect = list_GetNext(pSect);
 	}
 

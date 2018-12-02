@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/xasm/680x0/intinstr.h" line="4408" />
+    <bookmark url="file://$PROJECT_DIR$/xasm/680x0/intinstr.h" line="4412" />
+  </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
     <generated>
-      <config projectName="Project" targetName="motor68k" />
-      <config projectName="Project" targetName="xasm" />
-      <config projectName="Project" targetName="util" />
-      <config projectName="Project" targetName="motormips" />
-      <config projectName="Project" targetName="motor6502" />
-      <config projectName="Project" targetName="xlink" />
       <config projectName="Project" targetName="motor0x10c" />
-      <config projectName="Project" targetName="xgbfix" />
       <config projectName="Project" targetName="motorgb" />
-      <config projectName="Project" targetName="motorschip" />
       <config projectName="Project" targetName="xlib" />
+      <config projectName="Project" targetName="xasm" />
+      <config projectName="Project" targetName="motorschip" />
+      <config projectName="Project" targetName="motor68k" />
+      <config projectName="Project" targetName="xlink" />
+      <config projectName="Project" targetName="motor6502" />
+      <config projectName="Project" targetName="motormips" />
+      <config projectName="Project" targetName="util" />
+      <config projectName="Project" targetName="xgbfix" />
     </generated>
   </component>
   <component name="CMakeSettings">
@@ -22,37 +26,56 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3f618a09-4763-4bea-83b2-9583c946325e" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/asmotor.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/tasks.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/tasks.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/gameboy/run.sh" beforeDir="false" afterPath="$PROJECT_DIR$/test/gameboy/run.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/z80/run.sh" beforeDir="false" afterPath="$PROJECT_DIR$/test/z80/run.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/util/file.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/util/file.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/xasm/common/lexervariadics.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/xasm/common/lexervariadics.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/util/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/util/asmotor.h" beforeDir="false" afterPath="$PROJECT_DIR$/util/asmotor.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util/lists.h" beforeDir="false" afterPath="$PROJECT_DIR$/util/lists.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util/math.c" beforeDir="false" afterPath="$PROJECT_DIR$/util/math.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/str.c" beforeDir="false" afterPath="$PROJECT_DIR$/util/str.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/str.h" beforeDir="false" afterPath="$PROJECT_DIR$/util/str.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/strbuf.c" beforeDir="false" afterPath="$PROJECT_DIR$/util/strbuf.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/strbuf.h" beforeDir="false" afterPath="$PROJECT_DIR$/util/strbuf.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/strings.c" beforeDir="false" afterPath="$PROJECT_DIR$/util/strings.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/types.h" beforeDir="false" afterPath="$PROJECT_DIR$/util/types.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/0x10c/locparse.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/0x10c/locparse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/6502/intinstr.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/6502/intinstr.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/6502/locparse.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/6502/locparse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/680x0/intinstr.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/680x0/intinstr.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/680x0/locparse.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/680x0/locparse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xasm/common/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xasm/common/amigaobj.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/amigaobject.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xasm/common/amigaobj.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/amigaobject.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xasm/common/binobj.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/binaryobject.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xasm/common/binobj.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/binaryobject.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/amigaobject.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/amigaobject.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/amigaobject.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/amigaobject.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/binaryobject.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/binaryobject.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/expr.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/expression.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/expr.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/expression.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/fstack.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/filestack.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/fstack.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/filestack.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xasm/common/globlex.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/globlex.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xasm/common/lexer.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/lexer.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xasm/common/lexer.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/lexer.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xasm/common/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/object.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/object.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xasm/common/options.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/options.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xasm/common/parse.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/parse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/parse.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/parse.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/patch.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/patch.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/patch.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/patch.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/project.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/project.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/section.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/section.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/section.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/section.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/common/symbol.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/common/symbol.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xasm/gameboy/loclexer.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/gameboy/loclexer.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xasm/gameboy/locopt.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/gameboy/locopt.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xlink/image.c" beforeDir="false" afterPath="$PROJECT_DIR$/xlink/image.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xlink/xlink.h" beforeDir="false" afterPath="$PROJECT_DIR$/xlink/xlink.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/gameboy/locparse.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/gameboy/locparse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/mips/locerror.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/mips/locerror.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/mips/locparse.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/mips/locparse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/schip/intinstr.h" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/schip/intinstr.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/schip/loclexer.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/schip/loclexer.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xasm/schip/locparse.c" beforeDir="false" afterPath="$PROJECT_DIR$/xasm/schip/locparse.c" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/CMakeFiles/" />
     <ignored path="$PROJECT_DIR$/xasm/common/CMakeFiles/" />
@@ -75,100 +98,102 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Default" />
   <component name="FileEditorManager">
-    <leaf>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/xasm/common/lexer.c">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/xasm/680x0/intinstr.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="287">
-              <caret line="462" column="33" selection-start-line="462" selection-start-column="33" selection-end-line="462" selection-end-column="33" />
+            <state relative-caret-position="290">
+              <caret line="4416" column="5" selection-start-line="4416" selection-start-column="5" selection-end-line="4416" selection-end-column="5" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file:///usr/include/_ctype.h">
+        <entry file="file://$PROJECT_DIR$/xasm/common/section.c">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="177">
-              <caret line="297" selection-start-line="297" selection-end-line="297" />
+              <caret line="148" column="5" selection-start-line="148" selection-start-column="5" selection-end-line="148" selection-end-column="5" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/xlink/image.c">
+        <entry file="file://$PROJECT_DIR$/xasm/0x10c/locparse.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="282">
-              <caret line="15" column="7" selection-start-line="15" selection-start-column="7" selection-end-line="15" selection-end-column="7" />
+            <state relative-caret-position="167">
+              <caret line="462" column="4" selection-start-line="462" selection-start-column="4" selection-end-line="462" selection-end-column="4" />
               <folding>
-                <element signature="e#724#742#0" expanded="true" />
+                <element signature="e#837#856#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/xlink/xlink.h">
+        <entry file="file://$PROJECT_DIR$/xasm/6502/intinstr.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="244">
-              <caret line="32" column="18" selection-start-line="32" selection-start-column="18" selection-end-line="32" selection-end-column="18" />
+            <state relative-caret-position="287">
+              <caret line="254" column="47" selection-start-line="254" selection-start-column="47" selection-end-line="254" selection-end-column="47" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/util/math.c">
+        <entry file="file://$PROJECT_DIR$/xasm/gameboy/locparse.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="350">
-              <caret line="96" column="15" selection-start-line="96" selection-start-column="15" selection-end-line="96" selection-end-column="15" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/util/asmotor.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="380">
-              <caret line="50" column="16" selection-start-line="50" selection-start-column="16" selection-end-line="50" selection-end-column="16" />
+            <state relative-caret-position="470">
+              <caret line="816" selection-start-line="816" selection-end-line="816" />
               <folding>
-                <element signature="e#777#796#0" expanded="true" />
+                <element signature="e#724#743#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/util/types.h">
+        <entry file="file://$PROJECT_DIR$/xasm/schip/loclexer.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-112" />
+            <state relative-caret-position="155">
+              <caret line="27" column="5" selection-start-line="27" selection-start-column="5" selection-end-line="27" selection-end-column="5" />
+            </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/xasm/common/globlex.c">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/xasm/schip/intinstr.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="410">
-              <caret line="447" selection-start-line="447" selection-end-line="447" />
+            <state relative-caret-position="302">
+              <caret line="284" column="17" selection-start-line="284" selection-start-column="17" selection-end-line="284" selection-end-column="17" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/xasm/common/lexer.h">
+        <entry file="file://$PROJECT_DIR$/xasm/680x0/locparse.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="350">
-              <caret line="87" selection-start-line="87" selection-end-line="87" />
+            <state relative-caret-position="177">
+              <caret line="34" selection-start-line="34" selection-end-line="34" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/xasm/680x0/addrmode.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="242">
+              <caret line="57" column="2" selection-start-line="57" selection-start-column="2" selection-end-line="57" selection-end-column="2" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/xasm/common/symbol.c">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1320">
+              <caret line="66" selection-start-line="66" selection-end-line="66" />
               <folding>
-                <element signature="e#773#791#0" expanded="true" />
+                <element signature="e#724#741#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/util/lists.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="188">
-              <caret line="27" column="55" selection-start-line="27" selection-start-column="55" selection-end-line="27" selection-end-column="55" />
             </state>
           </provider>
         </entry>
@@ -177,22 +202,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>TOKENSTACKSIZE</find>
-      <find>FloatingChars</find>
-      <find>SLexFloat</find>
-      <find>LEX_STATE_MACRO_ARG0</find>
-      <find>g_nHasSuffix</find>
-      <find>256</find>
-      <find>g_variadicWordsPerChar</find>
-      <find>lex_GetPointerToFloatingChar</find>
-      <find>lex_FloatAddRangeAndBeyond</find>
-      <find>lex_FloatAddRange</find>
-      <find>fatan2</find>
       <find>log2</find>
       <find>lex_GetFloat</find>
       <find>nFloatMask</find>
       <find>HASH</find>
       <find>lex_CompareBookmarks</find>
+      <find>nFloat</find>
+      <find>LexBuffer</find>
+      <find>floatm</find>
+      <find>uint8_t</find>
+      <find>uint8</find>
+      <find>uint</find>
+      <find>str_Replace</find>
+      <find>fstk_FixSeparators</find>
+      <find>parse_GetIfLength</find>
+      <find>parse_BitfieldInstruction</find>
+      <find>BCHG</find>
+      <find>parse_DBcc</find>
+      <find>parse_EXG</find>
+      <find>parse_EXTB</find>
+      <find>parse_Jxx</find>
+      <find>parse_LEA</find>
+      <find>sz == 0</find>
+      <find>parse_MOVEM</find>
+      <find>parse_MOVEQ</find>
+      <find>parse_NBCD</find>
+      <find>parse_PackUnpack</find>
+      <find>parse_UNPACK</find>
+      <find>parse_Bcc</find>
+      <find>parse_CommonCpuFpu</find>
+      <find>parse_DOP</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -201,18 +240,47 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/xasm/common/parse.c" />
         <option value="$PROJECT_DIR$/util/lists.h" />
-        <option value="$PROJECT_DIR$/xasm/common/globlex.c" />
         <option value="$PROJECT_DIR$/xasm/common/options.c" />
         <option value="$PROJECT_DIR$/xasm/gameboy/loclexer.c" />
         <option value="$PROJECT_DIR$/xasm/gameboy/locopt.c" />
-        <option value="$PROJECT_DIR$/util/asmotor.h" />
         <option value="$PROJECT_DIR$/util/math.c" />
         <option value="$PROJECT_DIR$/xlink/image.c" />
         <option value="$PROJECT_DIR$/xlink/xlink.h" />
+        <option value="$PROJECT_DIR$/xasm/common/globlex.c" />
+        <option value="$PROJECT_DIR$/util/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/xasm/common/lexervariadics.h" />
+        <option value="$PROJECT_DIR$/xasm/common/lexervariadics.c" />
+        <option value="$PROJECT_DIR$/util/strbuf.h" />
+        <option value="$PROJECT_DIR$/util/strbuf.c" />
+        <option value="$PROJECT_DIR$/util/file.c" />
+        <option value="$PROJECT_DIR$/util/file.h" />
+        <option value="$PROJECT_DIR$/xasm/common/expression.c" />
+        <option value="$PROJECT_DIR$/util/types.h" />
+        <option value="$PROJECT_DIR$/xasm/common/amigaobject.c" />
+        <option value="$PROJECT_DIR$/util/strings.c" />
+        <option value="$PROJECT_DIR$/util/asmotor.h" />
+        <option value="$PROJECT_DIR$/util/str.h" />
+        <option value="$PROJECT_DIR$/util/str.c" />
+        <option value="$PROJECT_DIR$/xasm/common/parse.h" />
+        <option value="$PROJECT_DIR$/xasm/common/filestack.c" />
+        <option value="$PROJECT_DIR$/xasm/common/filestack.h" />
+        <option value="$PROJECT_DIR$/xasm/common/object.c" />
+        <option value="$PROJECT_DIR$/xasm/common/main.c" />
+        <option value="$PROJECT_DIR$/xasm/common/project.c" />
+        <option value="$PROJECT_DIR$/xasm/mips/locerror.c" />
+        <option value="$PROJECT_DIR$/xasm/common/symbol.c" />
+        <option value="$PROJECT_DIR$/xasm/common/patch.c" />
+        <option value="$PROJECT_DIR$/xasm/common/section.h" />
         <option value="$PROJECT_DIR$/xasm/common/lexer.c" />
         <option value="$PROJECT_DIR$/xasm/common/lexer.h" />
+        <option value="$PROJECT_DIR$/xasm/common/parse.c" />
+        <option value="$PROJECT_DIR$/xasm/common/section.c" />
+        <option value="$PROJECT_DIR$/xasm/680x0/intinstr.h" />
+        <option value="$PROJECT_DIR$/xasm/0x10c/locparse.c" />
+        <option value="$PROJECT_DIR$/xasm/6502/intinstr.h" />
+        <option value="$PROJECT_DIR$/xasm/gameboy/locparse.c" />
+        <option value="$PROJECT_DIR$/xasm/schip/intinstr.h" />
       </list>
     </option>
   </component>
@@ -253,6 +321,12 @@
               <item name="xasm" type="462c0819:PsiDirectoryNode" />
               <item name="common" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="asmotor" type="b2602c69:ProjectViewProjectNode" />
+              <item name="asmotor" type="462c0819:PsiDirectoryNode" />
+              <item name="xasm" type="462c0819:PsiDirectoryNode" />
+              <item name="schip" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
@@ -276,7 +350,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.motor68k">
+  <component name="RunManager" selected="Application.motorschip">
     <configuration name="motor0x10c" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Project" TARGET_NAME="motor0x10c" CONFIG_NAME="Default" RUN_TARGET_PROJECT_NAME="Project" RUN_TARGET_NAME="motor0x10c">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -356,26 +430,21 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1543664551968</updated>
-      <workItem from="1543664554169" duration="8342000" />
+      <workItem from="1543664554169" duration="18287000" />
+      <workItem from="1543767752012" duration="3111000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="8342000" />
+    <option name="totallyTimeSpent" value="21398000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Favorites" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.17453505" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17668097" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Database Changes" />
-      <window_info anchor="bottom" id="Version Control" />
-      <window_info anchor="bottom" id="Messages" visible="true" weight="0.32771084" />
-      <window_info anchor="bottom" id="Terminal" weight="0.32891566" />
-      <window_info anchor="bottom" id="Event Log" side_tool="true" />
-      <window_info anchor="bottom" id="CMake" />
+      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32891566" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -383,71 +452,27 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="right" id="Database" />
+      <window_info anchor="bottom" id="Database Changes" order="7" />
+      <window_info active="true" anchor="bottom" id="Messages" order="8" visible="true" weight="0.32771084" />
+      <window_info anchor="bottom" id="Terminal" order="9" weight="0.32891566" />
+      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info anchor="bottom" id="Version Control" order="11" />
+      <window_info anchor="bottom" id="CMake" order="12" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Database" order="3" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/xasm/common/globlex.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="271">
-          <caret line="21" column="18" selection-start-line="21" selection-start-column="18" selection-end-line="21" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/xasm/common/parse.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="291">
-          <caret line="1828" column="45" selection-start-line="1828" selection-start-column="45" selection-end-line="1828" selection-end-column="45" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/xasm/common/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
-          <caret line="10" column="13" selection-start-line="10" selection-start-column="13" selection-end-line="10" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/include/stdint.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
           <caret line="87" column="17" selection-start-line="87" selection-start-column="8" selection-end-line="87" selection-end-column="17" />
         </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/util/lists.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="188">
-          <caret line="27" column="55" selection-start-line="27" selection-start-column="55" selection-end-line="27" selection-end-column="55" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/xasm/common/globlex.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="410">
-          <caret line="447" selection-start-line="447" selection-end-line="447" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/util/asmotor.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="380">
-          <caret line="50" column="16" selection-start-line="50" selection-start-column="16" selection-end-line="50" selection-end-column="16" />
-          <folding>
-            <element signature="e#777#796#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/util/types.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-112" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/xlink/image.c">
@@ -474,6 +499,147 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/tokens.h">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/globlex.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="193">
+          <caret line="16" column="2" selection-end-line="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/stdio.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-591">
+          <caret line="163" column="9" selection-start-line="163" selection-start-column="9" selection-end-line="163" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/amitime.c">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/lists.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="320">
+          <caret line="16" column="4" lean-forward="true" selection-start-line="16" selection-start-column="4" selection-end-line="16" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/globlex.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="316" column="21" selection-start-line="316" selection-start-column="21" selection-end-line="316" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/lexervariadics.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="253">
+          <caret line="28" selection-start-line="28" selection-end-line="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/lexervariadics.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="405">
+          <caret line="99" selection-start-line="99" selection-end-line="99" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/string.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="81" column="9" selection-start-line="81" selection-start-column="9" selection-end-line="81" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/strbuf.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-109">
+          <caret line="24" column="16" lean-forward="true" selection-start-line="24" selection-start-column="16" selection-end-line="24" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/strbuf.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="681">
+          <caret line="54" selection-start-line="54" selection-end-line="54" />
+          <folding>
+            <element signature="e#724#740#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/file.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="431">
+          <caret line="42" selection-start-line="42" selection-end-line="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/file.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="27" column="17" selection-start-line="27" selection-start-column="17" selection-end-line="27" selection-end-column="17" />
+          <folding>
+            <element signature="e#767#785#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/expression.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="177" column="28" selection-start-line="177" selection-start-column="28" selection-end-line="177" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/680x0/locsym.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="19" selection-start-line="19" selection-end-line="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/types.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="291">
+          <caret line="26" selection-start-line="26" selection-end-line="26" />
+          <folding>
+            <element signature="e#773#792#0" expanded="true" />
+            <element signature="e#869#885#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/amigaobject.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="445" column="1" selection-start-line="445" selection-start-column="1" selection-end-line="445" selection-end-column="1" />
+          <folding>
+            <element signature="e#724#742#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/asmotor.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="291">
+          <caret line="55" column="38" selection-start-line="55" selection-start-column="38" selection-end-line="55" selection-end-column="38" />
+          <folding>
+            <element signature="e#777#796#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file:///usr/include/_ctype.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="177">
@@ -481,20 +647,210 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/util/strings.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="275">
+          <caret line="34" column="6" selection-start-line="34" selection-start-column="6" selection-end-line="34" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/str.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="39" column="41" selection-start-line="39" selection-start-column="41" selection-end-line="39" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/str.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="139" column="35" selection-start-line="139" selection-start-column="35" selection-end-line="139" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/parse.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="233">
+          <caret line="26" column="45" selection-start-line="26" selection-start-column="45" selection-end-line="26" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/filestack.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="334" selection-start-line="334" selection-end-line="334" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/filestack.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="63" column="45" selection-start-line="63" selection-start-column="45" selection-end-line="63" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/symbol.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="76" column="20" selection-start-line="76" selection-start-column="20" selection-end-line="76" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/object.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="470">
+          <caret line="102" column="41" selection-start-line="102" selection-start-column="41" selection-end-line="102" selection-end-column="41" />
+          <folding>
+            <element signature="e#1968#1986#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/main.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="237" column="65" selection-start-line="237" selection-start-column="65" selection-end-line="237" selection-end-column="65" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/project.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="373">
+          <caret line="102" column="23" selection-start-line="102" selection-start-column="23" selection-end-line="102" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/mips/locerror.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="353">
+          <caret line="25" column="18" selection-start-line="25" selection-start-column="18" selection-end-line="25" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/patch.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="7780">
+          <caret line="389" column="73" selection-start-line="389" selection-start-column="73" selection-end-line="389" selection-end-column="73" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/parse.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6280">
+          <caret line="314" column="43" selection-start-line="314" selection-start-column="43" selection-end-line="314" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/section.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="820">
+          <caret line="41" column="16" selection-start-line="41" selection-start-column="16" selection-end-line="41" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/lexer.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9940">
+          <caret line="497" column="113" selection-start-line="497" selection-start-column="113" selection-end-line="497" selection-end-column="113" />
+          <folding>
+            <element signature="e#724#743#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/xasm/common/lexer.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="350">
-          <caret line="87" selection-start-line="87" selection-end-line="87" />
+        <state relative-caret-position="940">
+          <caret line="47" selection-start-line="47" selection-end-line="47" />
           <folding>
             <element signature="e#773#791#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/xasm/common/lexer.c">
+    <entry file="file://$PROJECT_DIR$/xasm/common/xasm.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1160">
+          <caret line="58" column="2" selection-start-line="58" selection-start-column="2" selection-end-line="58" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/symbol.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1320">
+          <caret line="66" selection-start-line="66" selection-end-line="66" />
+          <folding>
+            <element signature="e#724#741#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/680x0/addrmode.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="242">
+          <caret line="57" column="2" selection-start-line="57" selection-start-column="2" selection-end-line="57" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/680x0/locparse.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="34" selection-start-line="34" selection-end-line="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/680x0/intinstr.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="290">
+          <caret line="4416" column="5" selection-start-line="4416" selection-start-column="5" selection-end-line="4416" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/0x10c/locparse.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="167">
+          <caret line="462" column="4" selection-start-line="462" selection-start-column="4" selection-end-line="462" selection-end-column="4" />
+          <folding>
+            <element signature="e#837#856#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/common/section.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="148" column="5" selection-start-line="148" selection-start-column="5" selection-end-line="148" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/6502/intinstr.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="287">
-          <caret line="462" column="33" selection-start-line="462" selection-start-column="33" selection-end-line="462" selection-end-column="33" />
+          <caret line="254" column="47" selection-start-line="254" selection-start-column="47" selection-end-line="254" selection-end-column="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/gameboy/locparse.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="470">
+          <caret line="816" selection-start-line="816" selection-end-line="816" />
+          <folding>
+            <element signature="e#724#743#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/schip/loclexer.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="155">
+          <caret line="27" column="5" selection-start-line="27" selection-start-column="5" selection-end-line="27" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/xasm/schip/intinstr.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="302">
+          <caret line="284" column="17" selection-start-line="284" selection-start-column="17" selection-end-line="284" selection-end-column="17" />
         </state>
       </provider>
     </entry>

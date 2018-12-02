@@ -16,16 +16,17 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#ifndef UTIL_FILE_H_
+#define UTIL_FILE_H_
 
-static char* g_pszLocalError[] = {
-		"Result of operation is undefined",
-		"Register expected"
-};
+#include <stdio.h>
 
-const char* loc_GetError(size_t n) {
-	if (n < 1000)
-		return NULL;
+#include "types.h"
 
-	return g_pszLocalError[n - 1000];
-}
+extern size_t fsize(FILE* fileHandle);
+extern void fputll(uint32_t data, FILE* f);
+extern void fputbl(uint32_t data, FILE* f);
+extern void fputsz(const char* str, FILE* f);
+
+
+#endif

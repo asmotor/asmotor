@@ -61,7 +61,7 @@ typedef struct FileStack SFileStack;
 
 extern void fstk_RunMacro(string* pName);
 extern void fstk_RunInclude(string* pFile);
-extern void fstk_RunRept(char* buffer, uint32_t size, uint32_t count);
+extern void fstk_RunRept(char* buffer, size_t size, uint32_t count);
 extern bool_t fstk_RunNextBuffer(void);
 extern bool_t fstk_Init(string* pFile);
 extern void fstk_Cleanup(void);

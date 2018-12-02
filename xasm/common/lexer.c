@@ -22,10 +22,11 @@
 #include <string.h>
 
 #include "asmotor.h"
+#include "file.h"
 #include "mem.h"
 #include "lists.h"
 #include "lexer.h"
-#include "fstack.h"
+#include "filestack.h"
 #include "symbol.h"
 #include "project.h"
 
@@ -40,10 +41,8 @@
 }
 
 #define SAFETY_MARGIN MAXSTRINGSYMBOLSIZE
-#define MAX_VARIADIC 32
 #define WORDS_HASH_SIZE 1024
 #define BUF_REMAINING_CHARS (g_pCurrentBuffer->pBufferStart + g_pCurrentBuffer->bufferSize - g_pCurrentBuffer->pBuffer)
-
 
 /* Private structures */
 
@@ -54,64 +53,20 @@ struct ConstantWord {
 };
 typedef struct ConstantWord SConstantWord;
 
-struct VariadicWordsPerChar {
-	uint32_t idBits[UINT8_MAX + 1];
-	list_Data(struct VariadicWordsPerChar);
-};
-typedef struct VariadicWordsPerChar SVariadicWordsPerChar;
-
-
 /* Private variables */
 
-static SVariadicWordDefinition g_variadicWordDefinitions[MAX_VARIADIC];
-static SVariadicWordsPerChar* g_variadicWordsPerChar;
-static uint32_t g_nextVariadicId;
-static uint32_t g_variadicSuffix[UINT8_MAX];
-static uint32_t g_variadicHasSuffixFlags;
-
 static SConstantWord* g_wordsHashTable[WORDS_HASH_SIZE];
-static int32_t g_maxWordLength;
+static size_t g_maxWordLength;
 
 static SLexBuffer* g_pCurrentBuffer;
-
 
 /* Public variables */
 
 SLexToken g_CurrentToken;
 
-
 /* Private functions */
 
-static SVariadicWordsPerChar* allocVariadicWordsPerChar() {
-	SVariadicWordsPerChar* words = mem_Alloc(sizeof(SVariadicWordsPerChar));
-	memset(words->idBits, 0, sizeof(words->idBits));
-	list_Init(words);
-
-	return words;
-}
-
-static SVariadicWordsPerChar* variadicWordsAt(uint32_t charIndex) {
-	SVariadicWordsPerChar** chars = &g_variadicWordsPerChar;
-
-	for(;;) {
-		if (*chars == NULL) {
-			*chars = allocVariadicWordsPerChar();
-		}
-		if (charIndex-- == 0) {
-			return *chars;
-		}
-		chars = &list_GetNext(*chars);
-	}
-}
-
-static SVariadicWordDefinition* variadicWordByMask(uint32_t mask) {
-	if (mask == 0)
-		return NULL;
-
-	return &g_variadicWordDefinitions[log2n(mask)];
-}
-
-static uint32_t hashString(char* s) {
+static uint32_t hashString(const char* s) {
 	uint32_t r = 0;
 
 	while (*s) {
@@ -248,7 +203,6 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t b
 	return src;
 }
 
-
 /*	Public routines*/
 
 void lex_Bookmark(SLexBookmark* pBookmark) {
@@ -261,7 +215,7 @@ void lex_Goto(SLexBookmark* pBookmark) {
 	g_CurrentToken = pBookmark->Token;
 }
 
-void lex_SkipBytes(uint32_t count) {
+void lex_SkipBytes(size_t count) {
 	if (g_pCurrentBuffer) {
 		while (count > 0) {
 			if (g_pCurrentBuffer->pBuffer[0] == '\n')
@@ -290,8 +244,8 @@ void lex_UnputChar(char c) {
 	}
 }
 
-void lex_UnputString(char* s) {
-	int i = (int) strlen(s) - 1;
+void lex_UnputString(const char* s) {
+	ssize_t i = strlen(s) - 1;
 
 	while (i >= 0) {
 		lex_UnputChar(s[i--]);
@@ -327,7 +281,7 @@ void lex_FreeBuffer(SLexBuffer* buf) {
 	}
 }
 
-SLexBuffer* lex_CreateMemoryBuffer(char* mem, size_t size) {
+SLexBuffer* lex_CreateMemoryBuffer(const char* mem, size_t size) {
 	SLexBuffer* pBuffer = (SLexBuffer*) mem_Alloc(sizeof(SLexBuffer));
 	memset(pBuffer, 0, sizeof(SLexBuffer));
 
@@ -354,9 +308,7 @@ SLexBuffer* lex_CreateFileBuffer(FILE* f) {
 	SLexBuffer* pBuffer = (SLexBuffer*) mem_Alloc(sizeof(SLexBuffer));
 	memset(pBuffer, 0, sizeof(SLexBuffer));
 
-	fseek(f, 0, SEEK_END);
-	size = ftell(f);
-	fseek(f, 0, SEEK_SET);
+	size = fsize(f);
 
 	pFile = (char*) mem_Alloc(size);
 	size = fread(pFile, sizeof(uint8_t), size, f);
@@ -406,70 +358,15 @@ SLexBuffer* lex_CreateFileBuffer(FILE* f) {
 	return pBuffer;
 }
 
-uint32_t lex_FloatAlloc(SVariadicWordDefinition* tok) {
-	g_variadicWordDefinitions[g_nextVariadicId] = *tok;
-
-	return 1U << g_nextVariadicId++;
-}
-
-void lex_FloatRemoveAll(uint32_t id) {
-	SVariadicWordsPerChar* chars = g_variadicWordsPerChar;
-
-	while (chars) {
-		int c;
-
-		for (c = 0; c < 256; c += 1)
-			chars->idBits[c] &= ~id;
-
-		chars = list_GetNext(chars);
-	}
-}
-
-void lex_FloatAddRangeAndBeyond(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber) {
-	if (charnumber >= 0) {
-		SVariadicWordsPerChar* chars = variadicWordsAt(charnumber);
-
-		while (chars) {
-			uint16_t c;
-
-			c = start;
-
-			while (c <= end)
-				chars->idBits[c++] |= id;
-
-			chars = list_GetNext(chars);
-		}
-	}
-}
-
-void lex_FloatAddRange(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber) {
-	if (charnumber >= 0) {
-		SVariadicWordsPerChar* chars = variadicWordsAt(charnumber);
-
-		while (start <= end)
-			chars->idBits[start++] |= id;
-	}
-}
-
-void lex_FloatSetSuffix(uint32_t id, uint8_t ch) {
-	g_variadicHasSuffixFlags |= id;
-	g_variadicSuffix[ch] |= id;
-}
-
 void lex_Init(void) {
 	int i;
 
 	for (i = 0; i < WORDS_HASH_SIZE; ++i)
 		g_wordsHashTable[i] = NULL;
 
-	g_variadicHasSuffixFlags = 0;
-	for (i = 0; i < 256; ++i)
-		g_variadicSuffix[i] = 0;
-
-	g_variadicWordsPerChar = NULL;
-
 	g_maxWordLength = 0;
-	g_nextVariadicId = 0;
+
+	lex_VariadicInit();
 }
 
 void lex_PrintMaxTokensPerHash(void) {
@@ -495,7 +392,7 @@ void lex_PrintMaxTokensPerHash(void) {
 	printf("Total strings %d, max %d strings with same hash, %d slots in use\n", nTotal, nMax, nInUse);
 }
 
-void lex_RemoveString(char* pszName, int nToken) {
+void lex_RemoveString(const char* pszName, uint32_t nToken) {
 	SConstantWord** pHash = &g_wordsHashTable[hashString(pszName)];
 	SConstantWord* pToken = *pHash;
 
@@ -518,7 +415,7 @@ void lex_RemoveStrings(SLexInitString* pLex) {
 	}
 }
 
-void lex_AddString(char* pszName, int nToken) {
+void lex_AddString(const char* pszName, uint32_t nToken) {
 	SConstantWord** pHash = &g_wordsHashTable[hashString(pszName)];
 	SConstantWord* pPrev = *pHash;
 	SConstantWord* pNew;
@@ -529,8 +426,8 @@ void lex_AddString(char* pszName, int nToken) {
 	memset(pNew, 0, sizeof(SConstantWord));
 
 	pNew->name = str_Create(pszName);
+	str_ToUpperReplace(&pNew->name);
 	pNew->token = nToken;
-	_strupr(str_String(pNew->name));
 
 	if (str_Length(pNew->name) > g_maxWordLength)
 		g_maxWordLength = str_Length(pNew->name);
@@ -558,13 +455,10 @@ static uint32_t lex_LexStateNormal() {
 	g_pCurrentBuffer->atLineStart = false;
 
 	for (;;) {
-		int32_t nFloatLen;
-		uint32_t nNewFloatMask;
-		uint32_t nFloatMask;
-		SVariadicWordsPerChar* pFloat;
-		int32_t nMaxLen;
-		uint32_t nHash;
-		SVariadicWordDefinition* pFloatToken;
+		size_t variadicLength;
+		SVariadicWordDefinition* variadicWord;
+		size_t nMaxLen;
+		uint32_t hashCode;
 		unsigned char* s;
 
 		while (isspace((unsigned char) g_pCurrentBuffer->pBuffer[0]) && g_pCurrentBuffer->pBuffer[0] != '\n') {
@@ -583,44 +477,22 @@ static uint32_t lex_LexStateNormal() {
 			}
 		}
 
-		s = (unsigned char*) g_pCurrentBuffer->pBuffer;
-		nFloatMask = nFloatLen = 0;
-		pFloat = g_variadicWordsPerChar;
-		nNewFloatMask = pFloat->idBits[(int) (*s++)];
-		while (nNewFloatMask && nFloatLen < BUF_REMAINING_CHARS) {
-			if (list_GetNext(pFloat)) {
-				pFloat = list_GetNext(pFloat);
-			}
+		lex_VariadicMatchString(g_pCurrentBuffer->pBuffer, BUF_REMAINING_CHARS, &variadicLength, &variadicWord);
 
-			++nFloatLen;
-			nFloatMask = nNewFloatMask;
-			nNewFloatMask &= pFloat->idBits[(int) (*s++)];
-		}
-
-		if (g_variadicHasSuffixFlags & nFloatMask) {
-			nNewFloatMask = nFloatMask & g_variadicSuffix[(int) s[-1]];
-			if (nNewFloatMask) {
-				++nFloatLen;
-				nFloatMask = nNewFloatMask;
-			} else {
-				nFloatMask &= ~g_variadicHasSuffixFlags;
-			}
-		}
-
-		nMaxLen = (int32_t) BUF_REMAINING_CHARS;
+		nMaxLen = BUF_REMAINING_CHARS;
 		if (g_maxWordLength < nMaxLen) {
 			nMaxLen = g_maxWordLength;
 		}
 
 		g_CurrentToken.TokenLength = 0;
-		nHash = 0;
+		hashCode = 0;
 		s = (unsigned char*) g_pCurrentBuffer->pBuffer;
 		while (g_CurrentToken.TokenLength < nMaxLen) {
 			++g_CurrentToken.TokenLength;
-			HASH(nHash, toupper(*s));
+			HASH(hashCode, toupper(*s));
 			++s;
-			if (g_wordsHashTable[nHash]) {
-				SConstantWord* lex = g_wordsHashTable[nHash];
+			if (g_wordsHashTable[hashCode]) {
+				SConstantWord* lex = g_wordsHashTable[hashCode];
 				while (lex) {
 					if (str_Length(lex->name) == g_CurrentToken.TokenLength &&
 						0 == _strnicmp(g_pCurrentBuffer->pBuffer, str_String(lex->name), g_CurrentToken.TokenLength)) {
@@ -632,7 +504,7 @@ static uint32_t lex_LexStateNormal() {
 
 		}
 
-		if (nFloatLen == 0 && pLongestFixed == NULL) {
+		if (variadicLength == 0 && pLongestFixed == NULL) {
 			if (*g_pCurrentBuffer->pBuffer == '"' || *g_pCurrentBuffer->pBuffer == '\'') {
 				char term[3];
 				term[0] = *g_pCurrentBuffer->pBuffer;
@@ -668,36 +540,35 @@ static uint32_t lex_LexStateNormal() {
 			return *(g_pCurrentBuffer->pBuffer)++;
 		}
 
-		if (nFloatLen == 0) {
+		if (variadicLength == 0) {
 			g_CurrentToken.TokenLength = str_Length(pLongestFixed->name);
 			g_pCurrentBuffer->pBuffer += g_CurrentToken.TokenLength;
 			g_CurrentToken.ID.Token = pLongestFixed->token;
 			return pLongestFixed->token;
 		}
 
-		pFloatToken = variadicWordByMask(nFloatMask);
-		if (pLongestFixed == NULL || nFloatLen > str_Length(pLongestFixed->name)) {
-			g_CurrentToken.TokenLength = nFloatLen;
-			if (pFloatToken->callback) {
-				if (!pFloatToken->callback(g_pCurrentBuffer->pBuffer, g_CurrentToken.TokenLength)) {
+		if (pLongestFixed == NULL || variadicLength > str_Length(pLongestFixed->name)) {
+			g_CurrentToken.TokenLength = variadicLength;
+			if (variadicWord->callback) {
+				if (!variadicWord->callback(g_pCurrentBuffer->pBuffer, g_CurrentToken.TokenLength)) {
 					continue;
 				}
 			}
 
-			if (pFloatToken->token == T_ID && bLineStart) {
+			if (variadicWord->token == T_ID && bLineStart) {
 				g_pCurrentBuffer->pBuffer += g_CurrentToken.TokenLength;
 				g_CurrentToken.ID.Token = T_LABEL;
 				return T_LABEL;
 			} else {
 				g_pCurrentBuffer->pBuffer += g_CurrentToken.TokenLength;
-				g_CurrentToken.ID.Token = pFloatToken->token;
-				return pFloatToken->token;
+				g_CurrentToken.ID.Token = variadicWord->token;
+				return variadicWord->token;
 			}
-		} else if (pFloatToken && pFloatToken->token == T_ID && bLineStart &&
-				   g_pCurrentBuffer->pBuffer[nFloatLen] == ':') {
-			g_CurrentToken.TokenLength = nFloatLen;
-			if (pFloatToken->callback) {
-				if (!(pFloatToken->callback(g_pCurrentBuffer->pBuffer, g_CurrentToken.TokenLength))) {
+		} else if (variadicWord && variadicWord->token == T_ID && bLineStart &&
+				   g_pCurrentBuffer->pBuffer[variadicLength] == ':') {
+			g_CurrentToken.TokenLength = variadicLength;
+			if (variadicWord->callback) {
+				if (!(variadicWord->callback(g_pCurrentBuffer->pBuffer, g_CurrentToken.TokenLength))) {
 					continue;
 				}
 			}

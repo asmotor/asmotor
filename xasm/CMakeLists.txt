@@ -1,3 +1,9 @@
+if(MSVC)
+  add_compile_options(/W4 /WX)
+else(MSVC)
+  add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif(MSVC)
+
 include_directories ("${PROJECT_SOURCE_DIR}/xasm/common")
 
 add_subdirectory (common)

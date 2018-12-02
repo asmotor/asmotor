@@ -19,27 +19,11 @@
 #ifndef	INCLUDE_TYPES_H
 #define	INCLUDE_TYPES_H
 
-#if defined(__APPLE__)
-#	include <stdint.h>
-#else
-typedef	unsigned char	uint8_t;
-typedef	signed char		int8_t;
-typedef	unsigned short	uint16_t;
-typedef	signed short	int16_t;
-typedef	unsigned int	uint32_t;
-typedef	signed int		int32_t;
-typedef signed long long int64_t;
-#endif
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
 
-#if defined(__cplusplus)
 typedef bool bool_t;
-#else
-typedef	enum
-{
-	false = 0,
-	true = 1
-}	bool_t;
-#endif
 
 #ifndef	NULL
 #	define	NULL	0L

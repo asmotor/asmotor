@@ -21,7 +21,7 @@
 #include "asmotor.h"
 #include "mem.h"
 #include "xasm.h"
-#include "expr.h"
+#include "expression.h"
 #include "symbol.h"
 #include "section.h"
 #include "tokens.h"
@@ -174,7 +174,7 @@ SExpression* expr_Pc()
     char sym[MAXSYMNAMELENGTH + 20];
     SSymbol* pSym;
 
-    sprintf(sym, "$%s%u", pCurrentSection->Name, pCurrentSection->PC);
+    sprintf(sym, "$%s%u", str_String(pCurrentSection->Name), pCurrentSection->PC);
     pName = str_Create(sym);
     pSym = sym_CreateLabel(pName);
     str_Free(pName);

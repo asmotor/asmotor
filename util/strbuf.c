@@ -19,40 +19,35 @@
 #include "mem.h"
 #include "strbuf.h"
 
-stringbuffer* strbuf_Create(void)
-{
+stringbuffer* strbuf_Create(void) {
 	stringbuffer* pBuffer = mem_Alloc(sizeof(stringbuffer));
 	pBuffer->nSize = 0;
 	pBuffer->pBuffer = mem_Alloc(pBuffer->nAllocated = 32);
-	
+
 	return pBuffer;
 }
 
-void strbuf_Free(stringbuffer* pBuffer)
-{
+void strbuf_Free(stringbuffer* pBuffer) {
 	mem_Free(pBuffer->pBuffer);
 	mem_Free(pBuffer);
 }
 
-string* strbuf_String(stringbuffer* pBuffer)
-{
+string* strbuf_String(stringbuffer* pBuffer) {
 	return str_CreateLength(pBuffer->pBuffer, pBuffer->nSize);
 }
 
-void strbuf_AppendChars(stringbuffer* pBuffer, char* pChars, int nCount)
-{
-	if(pChars == NULL)
+void strbuf_AppendChars(stringbuffer* pBuffer, const char* pChars, size_t nCount) {
+	if (pChars == NULL)
 		return;
-		
-	if(nCount + pBuffer->nSize > pBuffer->nAllocated)
-	{
-		int nNewSize = nCount + pBuffer->nSize;
+
+	if (nCount + pBuffer->nSize > pBuffer->nAllocated) {
+		size_t nNewSize = nCount + pBuffer->nSize;
 		nNewSize += nNewSize >> 1;
-		
+
 		pBuffer->pBuffer = mem_Realloc(pBuffer->pBuffer, nNewSize);
 		pBuffer->nAllocated = nNewSize;
 	}
-	
+
 	memcpy(pBuffer->pBuffer + pBuffer->nSize, pChars, nCount);
 	pBuffer->nSize += nCount;
 }

@@ -27,7 +27,7 @@
 #include "lexer.h"
 #include "globlex.h"
 #include "project.h"
-#include "fstack.h"
+#include "filestack.h"
 
 extern void locopt_Update(void);
 extern bool_t locopt_Parse(char*);

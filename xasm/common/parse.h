@@ -19,12 +19,12 @@
 #ifndef	XASM_COMMON_PARSE_H_INCLUDED_
 #define	XASM_COMMON_PARSE_H_INCLUDED_
 
-#include "expr.h"
+#include "expression.h"
 
 extern bool_t	parse_Do(void);
 extern void		parse_GetToken(void);
-extern SExpression* parse_Expression(int maxStringConstLength);
-extern int32_t	parse_ConstantExpression();
+extern SExpression* parse_Expression(size_t maxStringConstLength);
+extern int32_t	parse_ConstantExpression(void);
 extern bool_t	parse_ExpectChar(char ch);
 
 INLINE bool_t parse_ExpectComma(void)

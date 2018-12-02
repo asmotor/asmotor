@@ -453,7 +453,7 @@ static bool_t parse_OutputExtWords(SAddrMode* mode)
 	return false;
 }
 
-static int parse_GetEAField(SAddrMode* mode)
+static uint16_t parse_GetEAField(SAddrMode* mode)
 {
 	switch(mode->eMode)
 	{
@@ -493,14 +493,14 @@ static int parse_GetEAField(SAddrMode* mode)
 		case AM_PREINDAXD020:
 		case AM_POSTINDAXD020:
 			if(mode->Inner.nBaseReg != -1)
-				return 0x6 << 3 | mode->Inner.nBaseReg;
+				return (uint16_t) ((0x6 << 3) | mode->Inner.nBaseReg);
 			else
 				return 0x6 << 3 | 0;
 		default:
 			internalerror("Unknown addressing mode");
 	}
 
-	return -1;
+	return 0;
 }
 
 
@@ -873,11 +873,14 @@ static bool_t parse_AND(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_CLR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(dest == NULL);
 	return parse_SingleOpIns(0x4200, sz, src);
 }
 
 static bool_t parse_TST(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(dest == NULL);
+
 	if(src->eMode == AM_AREG
 	&& sz == SIZE_BYTE)
 	{
@@ -977,7 +980,9 @@ static bool_t parse_ROXR(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_Bcc(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	ins = 0x6000 | ins << 8;
+	assert(dest == NULL);
+
+	ins = (uint16_t) 0x6000 | (ins << 8);
 	if(sz == SIZE_BYTE)
 	{
 		SExpression* expr = expr_CheckRange(expr_PcRelative(src->Outer.pDisp, -2), -128, 127);
@@ -1105,7 +1110,7 @@ static bool_t parse_BLE(ESize sz, SAddrMode* src, SAddrMode* dest)
 	return parse_Bcc(0xF, sz, src, dest);
 }
 
-static bool_t parse_BitInstruction(uint16_t dins, uint16_t immins, ESize sz, SAddrMode* src, SAddrMode* dest)
+static bool_t parse_BitInstruction(uint16_t dins, uint16_t immins, SAddrMode* src, SAddrMode* dest)
 {
 	if(src->eMode == AM_DREG)
 	{
@@ -1137,25 +1142,29 @@ static bool_t parse_BitInstruction(uint16_t dins, uint16_t immins, ESize sz, SAd
 
 static bool_t parse_BCHG(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_BitInstruction(0x0140, 0x0840, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_BitInstruction(0x0140, 0x0840, src, dest);
 }
 
 static bool_t parse_BCLR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_BitInstruction(0x0180, 0x0880, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_BitInstruction(0x0180, 0x0880, src, dest);
 }
 
 static bool_t parse_BSET(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_BitInstruction(0x01C0, 0x08C0, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_BitInstruction(0x01C0, 0x08C0, src, dest);
 }
 
 static bool_t parse_BTST(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_BitInstruction(0x0100, 0x0800, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_BitInstruction(0x0100, 0x0800, src, dest);
 }
 
-static bool_t parse_BitfieldInstruction(uint16_t ins, uint16_t ext, ESize sz, SAddrMode* src, SAddrMode* dest)
+static bool_t parse_BitfieldInstruction(uint16_t ins, uint16_t ext, SAddrMode* src)
 {
 	SExpression* expr = expr_Const(ext);
 
@@ -1192,53 +1201,68 @@ static bool_t parse_BitfieldInstruction(uint16_t ins, uint16_t ext, ESize sz, SA
 	return parse_OutputExtWords(src);
 }
 
-static bool_t parse_SingleOpBitfieldInstruction(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
+static bool_t parse_SingleOpBitfieldInstruction(uint16_t ins, SAddrMode* src)
 {
-	return parse_BitfieldInstruction(ins, 0, sz, src, dest);
+	return parse_BitfieldInstruction(ins, 0, src);
 }
 
 static bool_t parse_BFCHG(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_SingleOpBitfieldInstruction(0xEAC0, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+	return parse_SingleOpBitfieldInstruction(0xEAC0, src);
 }
 
 static bool_t parse_BFCLR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_SingleOpBitfieldInstruction(0xECC0, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+	return parse_SingleOpBitfieldInstruction(0xECC0, src);
 }
 
 static bool_t parse_BFSET(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_SingleOpBitfieldInstruction(0xEEC0, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+	return parse_SingleOpBitfieldInstruction(0xEEC0, src);
 }
 
 static bool_t parse_BFTST(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_SingleOpBitfieldInstruction(0xE8C0, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+	return parse_SingleOpBitfieldInstruction(0xE8C0, src);
 }
 
 static bool_t parse_BFEXTS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_BitfieldInstruction(0xEBC0, (uint16_t)(dest->nDirectReg << 12), sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_BitfieldInstruction(0xEBC0, (uint16_t)(dest->nDirectReg << 12), src);
 }
 
 static bool_t parse_BFEXTU(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_BitfieldInstruction(0xE9C0, (uint16_t)(dest->nDirectReg << 12), sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_BitfieldInstruction(0xE9C0, (uint16_t)(dest->nDirectReg << 12), src);
 }
 
 static bool_t parse_BFFFO(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_BitfieldInstruction(0xEDC0, (uint16_t)(dest->nDirectReg << 12), sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_BitfieldInstruction(0xEDC0, (uint16_t)(dest->nDirectReg << 12), src);
 }
 
 static bool_t parse_BFINS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_BitfieldInstruction(0xEFC0, (uint16_t)(src->nDirectReg << 12), sz, dest, src);
+	assert(sz == SIZE_DEFAULT);
+	return parse_BitfieldInstruction(0xEFC0, (uint16_t)(src->nDirectReg << 12), dest);
 }
 
 static bool_t parse_BKPT(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	SExpression* expr = expr_CheckRange(src->pImmediate, 0, 7);
 	if(expr == NULL)
 	{
@@ -1253,6 +1277,8 @@ static bool_t parse_BKPT(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_CALLM(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+
 	SExpression* expr = expr_CheckRange(src->pImmediate, 0, 255);
 	if(expr == NULL)
 	{
@@ -1260,7 +1286,7 @@ static bool_t parse_CALLM(ESize sz, SAddrMode* src, SAddrMode* dest)
 		return true;
 	}
 
-	sect_OutputConst16(0x06C0 | (uint16_t)parse_GetEAField(dest));
+	sect_OutputConst16((uint16_t) 0x06C0 | parse_GetEAField(dest));
 	sect_OutputExpr16(expr);
 	return parse_OutputExtWords(dest);
 }
@@ -1375,6 +1401,9 @@ static bool_t parse_ExpectIndirectRegister(uint16_t* pReg)
 
 static bool_t parse_CAS2(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 {
+	assert(unused1 == NULL);
+	assert(unused2 == NULL);
+
 	uint16_t dc1, dc2, du1, du2, rn1, rn2;
 
 	if(!parse_ExpectDataRegister(&dc1))
@@ -1483,7 +1512,7 @@ static bool_t parse_CMP2(ESize sz, SAddrMode* src, SAddrMode* dest)
 	return true;
 }
 
-static bool_t parse_DBcc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* dest)
+static bool_t parse_DBcc(uint16_t code, SAddrMode* src, SAddrMode* dest)
 {
 	code = (uint16_t)(0x50C8 | code << 8 | src->nDirectReg);
 	sect_OutputConst16(code);
@@ -1493,82 +1522,98 @@ static bool_t parse_DBcc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* des
 
 static bool_t parse_DBT(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x0, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x0, src, dest);
 }
 
 static bool_t parse_DBF(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x1, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x1, src, dest);
 }
 
 static bool_t parse_DBHI(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x2, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x2, src, dest);
 }
 
 static bool_t parse_DBLS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x3, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x3, src, dest);
 }
 
 static bool_t parse_DBCC(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x4, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x4, src, dest);
 }
 
 static bool_t parse_DBCS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x5, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x5, src, dest);
 }
 
 static bool_t parse_DBNE(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x6, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x6, src, dest);
 }
 
 static bool_t parse_DBEQ(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x7, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x7, src, dest);
 }
 
 static bool_t parse_DBVC(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x8, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x8, src, dest);
 }
 
 static bool_t parse_DBVS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0x9, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0x9, src, dest);
 }
 
 static bool_t parse_DBPL(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0xA, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0xA, src, dest);
 }
 
 static bool_t parse_DBMI(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0xB, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0xB, src, dest);
 }
 
 static bool_t parse_DBGE(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0xC, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0xC, src, dest);
 }
 
 static bool_t parse_DBLT(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0xD, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0xD, src, dest);
 }
 
 static bool_t parse_DBGT(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0xE, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0xE, src, dest);
 }
 
 static bool_t parse_DBLE(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_DBcc(0xF, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	return parse_DBcc(0xF, src, dest);
 }
 
 static bool_t parse_DIVxx(bool_t sign, bool_t l, ESize sz, SAddrMode* src, SAddrMode* dest)
@@ -1685,6 +1730,8 @@ static bool_t parse_EORI(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_EXG(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_LONG);
+
 	uint16_t ins;
 	uint16_t rx, ry;
 
@@ -1718,6 +1765,8 @@ static bool_t parse_EXG(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_EXT(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(dest != NULL);
+	
 	uint16_t ins = (uint16_t)(0x4800 | src->nDirectReg);
 	if(sz == SIZE_WORD)
 		ins |= 0x2 << 6;
@@ -1730,17 +1779,24 @@ static bool_t parse_EXT(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_EXTB(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_LONG);
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x4800 | src->nDirectReg | 0x7 << 6));
 	return true;
 }
 
 static bool_t parse_ILLEGAL(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(src == NULL);
+	assert(dest == NULL);
+
 	sect_OutputConst16(0x4AFC);
 	return true;
 }
 
-static bool_t parse_Jxx(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
+static bool_t parse_Jxx(uint16_t ins, SAddrMode* src)
 {
 	ins |= parse_GetEAField(src);
 	sect_OutputConst16(ins);
@@ -1749,16 +1805,24 @@ static bool_t parse_Jxx(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_JMP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_Jxx(0x4EC0, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
+	return parse_Jxx(0x4EC0, src);
 }
 
 static bool_t parse_JSR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	return parse_Jxx(0x4E80, sz, src, dest);
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
+	return parse_Jxx(0x4E80, src);
 }
 
 static bool_t parse_LEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+
 	sect_OutputConst16((uint16_t)(0x41C0 | dest->nDirectReg << 9 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
@@ -1980,6 +2044,8 @@ static bool_t parse_MOVEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_MOVE16(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+
 	uint16_t opmode;
 	SExpression *line;
 	uint16_t reg;
@@ -2098,6 +2164,9 @@ static uint16_t parse_SwapBits(uint16_t bits)
 
 static bool_t parse_MOVEM(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 {
+	assert(unused1 == NULL);
+	assert(unused2 == NULL);
+
 	uint16_t ins;
 	uint16_t dr;
 	uint32_t reglist;
@@ -2231,6 +2300,8 @@ static bool_t parse_MOVEP(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_MOVEQ(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_LONG);
+
 	SExpression* expr = expr_CheckRange(src->pImmediate, -128, 127);
 	if(expr == NULL)
 	{
@@ -2303,30 +2374,43 @@ static bool_t parse_MULU(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_NBCD(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_BYTE);
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x4800 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
 
 static bool_t parse_NEG(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x4400 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
 	return parse_OutputExtWords(src);
 }
 
 static bool_t parse_NEGX(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x4000 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
 	return parse_OutputExtWords(src);
 }
 
 static bool_t parse_NOP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(src == NULL);
+	assert(dest == NULL);
+
 	sect_OutputConst16(0x4E71);
 	return true;
 }
 
 static bool_t parse_NOT(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x4600 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
 	return parse_OutputExtWords(src);
 }
@@ -2375,6 +2459,8 @@ static bool_t parse_OR(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_PackUnpack(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+
 	uint16_t dy, dx;
 	uint16_t rm;
 	SAddrMode adj;
@@ -2421,12 +2507,18 @@ static bool_t parse_UNPACK(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_PEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x4840 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
 
 static bool_t parse_RTD(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	sect_OutputConst16(0x4E74);
 	sect_OutputExpr16(src->pImmediate);
 	return true;
@@ -2434,31 +2526,45 @@ static bool_t parse_RTD(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_RTM(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	uint16_t reg;
 
 	if(src->eMode == AM_DREG)
 		reg = (uint16_t)src->nDirectReg;
 	else /* if(src->eMode == AM_AREG) */
-		reg = (uint16_t)src->nDirectReg + 8;
+		reg = (uint16_t)(src->nDirectReg + 8);
 
-	sect_OutputConst16(0x06C0 | reg);
+	sect_OutputConst16((uint16_t)0x06C0 | reg);
 	return true;
 }
 
 static bool_t parse_RTR(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(src == NULL);
+	assert(dest == NULL);
+
 	sect_OutputConst16(0x4E77);
 	return true;
 }
 
 static bool_t parse_RTS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(src == NULL);
+	assert(dest == NULL);
+
 	sect_OutputConst16(0x4E75);
 	return true;
 }
 
 static bool_t parse_Scc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x50C0 | code << 8 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
@@ -2545,18 +2651,27 @@ static bool_t parse_SLE(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_SWAP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x4840 | src->nDirectReg));
 	return true;
 }
 
 static bool_t parse_TAS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x4AC0 | parse_GetEAField(src)));
 	return parse_OutputExtWords(src);
 }
 
 static bool_t parse_TRAP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	SExpression* expr;
 
 	expr = expr_CheckRange(src->pImmediate, 0, 15);
@@ -2572,6 +2687,8 @@ static bool_t parse_TRAP(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_TRAPcc(uint16_t code, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(dest == NULL);
+
 	uint16_t opmode;
 
 	if(sz == SIZE_DEFAULT && src->eMode == AM_EMPTY)
@@ -2677,18 +2794,29 @@ static bool_t parse_TRAPLE(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_TRAPV(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(src == NULL);
+	assert(dest == NULL);
+
 	sect_OutputConst16(0x4E76);
 	return true;
 }
 
 static bool_t parse_UNLK(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	sect_OutputConst16((uint16_t)(0x4E58 | src->nDirectReg));
 	return true;
 }
 
 static bool_t parse_RESET(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(src == NULL);
+	assert(dest == NULL);
+
 	prj_Warn(MERROR_INSTRUCTION_PRIV);
 	sect_OutputConst16(0x4E70);
 	return true;
@@ -2696,6 +2824,10 @@ static bool_t parse_RESET(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_RTE(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(src == NULL);
+	assert(dest == NULL);
+
 	prj_Warn(MERROR_INSTRUCTION_PRIV);
 	sect_OutputConst16(0x4E73);
 	return true;
@@ -2703,6 +2835,9 @@ static bool_t parse_RTE(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_STOP(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+	assert(dest == NULL);
+
 	prj_Warn(MERROR_INSTRUCTION_PRIV);
 	sect_OutputConst16(0x4E72);
 	sect_OutputExpr16(src->pImmediate);
@@ -2711,6 +2846,8 @@ static bool_t parse_STOP(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 static bool_t parse_Cache040(uint16_t ins, uint16_t scope, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+
 	uint16_t cache = 0;
 	uint16_t reg;
 	
@@ -2842,6 +2979,8 @@ SControlRegister g_ControlRegister[]=
 
 static bool_t parse_MOVEC(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
+	assert(sz == SIZE_DEFAULT);
+
 	uint16_t dr;
 	int control;
 	uint16_t reg;
@@ -4182,9 +4321,9 @@ bool_t parse_GetBitfield(SAddrMode* pMode)
 	return false;
 }
 
-bool_t parse_CommonCpuFpu(int op, SInstruction* pIns)
+bool_t parse_CommonCpuFpu(SInstruction* pIns)
 {
-	ESize inssz;
+	ESize insSz;
 	SAddrMode src;
 	SAddrMode dest;
 
@@ -4195,10 +4334,10 @@ bool_t parse_CommonCpuFpu(int op, SInstruction* pIns)
 			prj_Warn(MERROR_IGNORING_SIZE);
 			parse_GetToken();
 		}
-		inssz = SIZE_DEFAULT;
+		insSz = SIZE_DEFAULT;
 	}
 	else
-		inssz = parse_GetSizeSpec(pIns->nDefaultSize);
+		insSz = parse_GetSizeSpec(pIns->nDefaultSize);
 
 	src.eMode = AM_EMPTY;
 	dest.eMode = AM_EMPTY;
@@ -4217,7 +4356,7 @@ bool_t parse_CommonCpuFpu(int op, SInstruction* pIns)
 			}
 
 			if(src.eMode == AM_IMM)
-				src.eImmSize = inssz;
+				src.eImmSize = insSz;
 		}
 		else
 		{
@@ -4245,14 +4384,14 @@ bool_t parse_CommonCpuFpu(int op, SInstruction* pIns)
 		}
 	}
 
-	if((pIns->nAllowSize & inssz) == 0
+	if((pIns->nAllowSize & insSz) == 0
 	&&	pIns->nAllowSize != 0
 	&&	pIns->nDefaultSize != 0)
 	{
 		prj_Error(MERROR_INSTRUCTION_SIZE);
 	}
 
-	return parse_OpCore(pIns, inssz, &src, &dest);
+	return parse_OpCore(pIns, insSz, &src, &dest);
 
 }
 
@@ -4277,7 +4416,7 @@ bool_t parse_IntegerInstruction(void)
 		return true;
 	}
 
-	return parse_CommonCpuFpu(op, pIns);
+	return parse_CommonCpuFpu(pIns);
 }
 
 #endif

@@ -24,7 +24,7 @@
 #include "parse.h"
 #include "project.h"
 #include "localasm.h"
-#include "expr.h"
+#include "expression.h"
 #include "lexer.h"
 #include "options.h"
 #include "section.h"

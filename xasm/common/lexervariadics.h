@@ -16,16 +16,22 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#ifndef    INCLUDE_LEXERVARIADICS_H
+#define    INCLUDE_LEXERVARIADICS_H
 
-static char* g_pszLocalError[] = {
-		"Result of operation is undefined",
-		"Register expected"
-};
+typedef struct {
+	bool_t (* callback)(char* s, uint32_t size);
+	uint32_t token;
+} SVariadicWordDefinition;
 
-const char* loc_GetError(size_t n) {
-	if (n < 1000)
-		return NULL;
+extern void lex_VariadicInit(void);
+extern uint32_t lex_VariadicCreateWord(SVariadicWordDefinition* tok);
 
-	return g_pszLocalError[n - 1000];
-}
+extern void lex_FloatAddRange(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber);
+extern void lex_FloatAddRangeAndBeyond(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber);
+extern void lex_FloatRemoveAll(uint32_t id);
+extern void lex_FloatSetSuffix(uint32_t id, uint8_t ch);
+
+extern void lex_VariadicMatchString(char* buffer, size_t bufferLength, size_t* length, SVariadicWordDefinition** variadicWord);
+
+#endif

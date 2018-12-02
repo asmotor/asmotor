@@ -19,11 +19,13 @@ along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 /*
 Thoughts on the ISA:
 
-1) Destination literal on add, sub, xor etc - leave the operation undefined, this wil lgive you more room for extensions later.
+1) Destination literal on add, sub, xor etc - leave the operation undefined, this will give you more room for extensions later.
 */
 
+#include <assert.h>
+
 #include "xasm.h"
-#include "expr.h"
+#include "expression.h"
 #include "parse.h"
 #include "project.h"
 #include "section.h"
@@ -31,6 +33,7 @@ Thoughts on the ISA:
 #include "localasm.h"
 #include "options.h"
 #include "locopt.h"
+
 
 static SExpression* parse_CheckSU16(SExpression* pExpr)
 {
@@ -382,16 +385,20 @@ static bool_t parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, int nData);
 
 static bool_t parse_ADD(SAddrMode* pMode1, SAddrMode* pMode2, int nData)
 {
+	assert(nData >= 0);
 	return parse_ADD_SUB(pMode1, pMode2, 0x2, parse_SUB);
 }
 
 static bool_t parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, int nData)
 {
+	assert(nData >= 0);
 	return parse_ADD_SUB(pMode1, pMode2, 0x3, parse_ADD);
 }
 
 static bool_t parse_JSR(SAddrMode* pMode1, SAddrMode* pMode2, int nData)
 {
+	assert(pMode2 == NULL);
+
 	sect_OutputConst16((uint16_t)((nData << 4) | (pMode1->eMode << 10)));
 	if(pMode1->pAddress != NULL)
 		sect_OutputExpr16(pMode1->pAddress);

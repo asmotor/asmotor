@@ -32,7 +32,7 @@
 #include "globlex.h"
 #include "options.h"
 #include "project.h"
-#include "fstack.h"
+#include "filestack.h"
 #include "parse.h"
 #include "patch.h"
 #include "object.h"
@@ -235,7 +235,7 @@ extern int xasm_Main(int argc, char* argv[])
 							wr = ami_WriteExecutable(pOutname, debuginfo);
 							break;
 						case 'h':
-							wr = ami_WriteObject(pOutname, source, debuginfo);
+							wr = ami_WriteObject(pOutname, source);
 							break;
 					}
 					if(!wr)

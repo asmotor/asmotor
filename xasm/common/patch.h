@@ -20,7 +20,7 @@
 #define	INCLUDE_PATCH_H
 
 #include "lists.h"
-#include "expr.h"
+#include "expression.h"
 #include "str.h"
 
 struct Section;

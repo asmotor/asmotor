@@ -16,9 +16,11 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdlib.h>
+
 #include "xasm.h"
-#include "expr.h"
+#include "expression.h"
 #include "parse.h"
 #include "section.h"
 #include "project.h"
@@ -278,6 +280,8 @@ static bool_t parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Alu_16bit(SOpcode* pOpcode, int nPrefix, int nOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pOpcode != NULL);
+
 	if((pAddrMode1->nMode & MODE_GROUP_HL)
 	&& (pAddrMode2->nMode & (MODE_GROUP_SS | MODE_GROUP_HL)))
 	{
@@ -416,6 +420,9 @@ static bool_t parse_Jp(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 
 static bool_t parse_Implied(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pAddrMode1 == NULL);
+	assert(pAddrMode2 == NULL);
+
 	if(pOpcode->nPrefix != 0)
 		sect_OutputConst8(pOpcode->nPrefix);
 	sect_OutputConst8(pOpcode->nOpcode);
@@ -424,6 +431,8 @@ static bool_t parse_Implied(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* 
 
 static bool_t parse_Dec(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pAddrMode2 == NULL);
+
 	if(pAddrMode1->nMode & (MODE_GROUP_SS | MODE_GROUP_HL))
 	{
 		parse_OutputGroupHL(pAddrMode1);
@@ -442,6 +451,8 @@ static bool_t parse_Dec(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pOpcode != NULL);
+
 	if((pAddrMode1->nMode & MODE_IMM) && pAddrMode2->nMode == 0)
 	{
 		sect_OutputConst8(0x18);
@@ -460,6 +471,8 @@ static bool_t parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 
 static bool_t parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pOpcode == NULL);
+
 	if((pAddrMode1->nMode & MODE_GROUP_D) && (pAddrMode2->nMode & MODE_GROUP_D)
 	&& (pAddrMode1->eRegD != REGD_HL_IND || pAddrMode2->eRegD != REGD_HL_IND))
 	{
@@ -632,6 +645,8 @@ static bool_t parse_Ldh(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Ldhl(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pAddrMode1 != NULL);
+
 	sect_OutputConst8(pOpcode->nOpcode);
 	sect_OutputExpr8(parse_CreateExpression8S(pAddrMode2->pExpr));
 
@@ -640,6 +655,8 @@ static bool_t parse_Ldhl(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAd
 
 static bool_t parse_Pop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pAddrMode2 == NULL);
+
 	parse_OutputGroupHL(pAddrMode1);
 	sect_OutputConst8((uint8_t)(pOpcode->nOpcode | (pAddrMode1->eRegSS << 4)));
 	return true;
@@ -647,6 +664,8 @@ static bool_t parse_Pop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Rotate(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pAddrMode2 == NULL);
+
 	if(pAddrMode1->nMode & MODE_GROUP_I_IND_DISP)
 		parse_OutputIXIY(pAddrMode1, 0xCB);
 	else
@@ -686,6 +705,9 @@ static bool_t parse_Rlc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Ret(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pOpcode != NULL);
+	assert(pAddrMode2 == NULL);
+
 	if(pAddrMode1->nMode & MODE_CC_Z80)
 		sect_OutputConst8((uint8_t)(0xC0 | (pAddrMode1->eModeF << 3)));
 	else
@@ -696,6 +718,8 @@ static bool_t parse_Ret(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Rst(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pAddrMode2 == NULL);
+
 	if(expr_IsConstant(pAddrMode1->pExpr))
 	{
 		int32_t val = pAddrMode1->pExpr->Value.Value;
@@ -712,6 +736,10 @@ static bool_t parse_Rst(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAdd
 
 static bool_t parse_Stop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pOpcode != NULL);
+	assert(pAddrMode1 == NULL);
+	assert(pAddrMode2 == NULL);
+
 	sect_OutputConst8(0x10);
 	sect_OutputConst8(0x00);
 	return true;
@@ -719,6 +747,8 @@ static bool_t parse_Stop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAd
 
 static bool_t parse_Djnz(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pAddrMode2 == NULL);
+
 	sect_OutputConst8(pOpcode->nOpcode);
 	sect_OutputExpr8(parse_CreateExpressionPCRel(pAddrMode1->pExpr));
 	return true;
@@ -729,6 +759,8 @@ static bool_t parse_Djnz(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAd
 
 static bool_t parse_Ex(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pOpcode != NULL);
+
 	if(!IS_Z80)
 	{
 		prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
@@ -758,6 +790,9 @@ static bool_t parse_Ex(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 
 static bool_t parse_Im(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
 {
+	assert(pOpcode != NULL);
+	assert(pAddrMode2 == NULL);
+
 	if(!expr_IsConstant(pAddrMode1->pExpr))
 	{
 		prj_Error(ERROR_EXPR_CONST);

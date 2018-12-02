@@ -28,7 +28,7 @@
 #include "tokens.h"
 #include "parse.h"
 #include "project.h"
-#include "fstack.h"
+#include "filestack.h"
 
 
 typedef int32_t (*pPredicate_t)(int32_t nLeft, int32_t nRight);
@@ -346,7 +346,7 @@ bool_t patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection*
 }
 
 
-SSection* patch_GetExpressionSectionAndPcOffset(SPatch* pPatch, SExpression* pExpr, uint32_t* pOffset)
+SSection* patch_GetExpressionSectionAndPcOffset(SExpression* pExpr, uint32_t* pOffset)
 {
     SSection* pSection = pSectionList;
 
@@ -386,8 +386,8 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
         {
             uint32_t l, r;
 
-            SSection* pLeftSect = patch_GetExpressionSectionAndPcOffset(patch, expr->pLeft, &l);
-            SSection* pRightSect = patch_GetExpressionSectionAndPcOffset(patch, expr->pRight, &r);
+            SSection* pLeftSect = patch_GetExpressionSectionAndPcOffset(expr->pLeft, &l);
+            SSection* pRightSect = patch_GetExpressionSectionAndPcOffset(expr->pRight, &r);
 
             if(pLeftSect && pRightSect && pLeftSect == pRightSect)
             {

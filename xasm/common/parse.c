@@ -24,9 +24,9 @@
 #include "asmotor.h"
 #include "types.h"
 #include "mem.h"
-#include "expr.h"
+#include "expression.h"
 #include "project.h"
-#include "fstack.h"
+#include "filestack.h"
 #include "lexer.h"
 #include "parse.h"
 #include "symbol.h"
@@ -38,49 +38,48 @@ extern bool_t parse_TargetSpecific(void);
 
 extern SExpression* parse_TargetFunction(void);
 
-
 /*	Private routines*/
 
 static bool_t parse_isWhiteSpace(char s) {
 	return s == ' ' || s == '\t' || s == '\0' || s == '\n';
 }
 
-static bool_t parse_isToken(char* s, char* token) {
-	int len = (int) strlen(token);
+static bool_t parse_isToken(const char* s, const char* token) {
+	size_t len = strlen(token);
 	return _strnicmp(s, token, len) == 0 && parse_isWhiteSpace(s[len]);
 }
 
-static bool_t parse_isRept(char* s) {
+static bool_t parse_isRept(const char* s) {
 	return parse_isToken(s, "REPT");
 }
 
-static bool_t parse_isEndr(char* s) {
+static bool_t parse_isEndr(const char* s) {
 	return parse_isToken(s, "ENDR");
 }
 
-bool_t parse_isIf(char* s) {
+bool_t parse_isIf(const char* s) {
 	return parse_isToken(s, "IF") || parse_isToken(s, "IFC") || parse_isToken(s, "IFD") || parse_isToken(s, "IFNC") ||
 		   parse_isToken(s, "IFND") || parse_isToken(s, "IFNE") || parse_isToken(s, "IFEQ") ||
 		   parse_isToken(s, "IFGT") || parse_isToken(s, "IFGE") || parse_isToken(s, "IFLT") || parse_isToken(s, "IFLE");
 }
 
-bool_t parse_isElse(char* s) {
+bool_t parse_isElse(const char* s) {
 	return parse_isToken(s, "ELSE");
 }
 
-bool_t parse_isEndc(char* s) {
+bool_t parse_isEndc(const char* s) {
 	return parse_isToken(s, "ENDC");
 }
 
-bool_t parse_isMacro(char* s) {
+bool_t parse_isMacro(const char* s) {
 	return parse_isToken(s, "MACRO");
 }
 
-bool_t parse_isEndm(char* s) {
+bool_t parse_isEndm(const char* s) {
 	return parse_isToken(s, "ENDM");
 }
 
-static char* parse_SkipToLine(char* s) {
+static const char* parse_SkipToLine(const char* s) {
 	while (*s != 0) {
 		if (*s++ == '\n')
 			return s;
@@ -89,7 +88,7 @@ static char* parse_SkipToLine(char* s) {
 	return NULL;
 }
 
-static char* parse_GetLineToken(char* s) {
+static const char* parse_GetLineToken(const char* s) {
 	if (s == NULL)
 		return NULL;
 
@@ -108,12 +107,11 @@ static char* parse_GetLineToken(char* s) {
 	return s;
 }
 
-static int parse_GetIfLength(char* s);
+static size_t parse_GetIfLength(const char* s);
 
-
-static int parse_GetReptLength(char* s) {
-	char* start = s;
-	char* token;
+static size_t parse_GetReptLength(const char* s) {
+	const char* start = s;
+	const char* token;
 
 	s = parse_SkipToLine(s);
 	while (s != NULL && (token = parse_GetLineToken(s)) != NULL) {
@@ -122,7 +120,7 @@ static int parse_GetReptLength(char* s) {
 			s = token + parse_GetReptLength(token);
 			s = parse_SkipToLine(s);
 		} else if (parse_isEndr(token)) {
-			return (int) (token - start);
+			return token - start;
 		} else {
 			s = parse_SkipToLine(s);
 		}
@@ -131,9 +129,9 @@ static int parse_GetReptLength(char* s) {
 	return 0;
 }
 
-static int parse_GetMacroLength(char* s) {
-	char* start = s;
-	char* token;
+static int parse_GetMacroLength(const char* s) {
+	const char* start = s;
+	const char* token;
 
 	s = parse_SkipToLine(s);
 	while ((token = parse_GetLineToken(s)) != NULL) {
@@ -160,9 +158,9 @@ static int parse_GetMacroLength(char* s) {
 	return 0;
 }
 
-static int parse_GetIfLength(char* s) {
-	char* start = s;
-	char* token;
+static size_t parse_GetIfLength(const char* s) {
+	const char* start = s;
+	const char* token;
 
 	s = parse_SkipToLine(s);
 	while ((token = parse_GetLineToken(s)) != NULL) {
@@ -180,7 +178,7 @@ static int parse_GetIfLength(char* s) {
 			s = token + parse_GetIfLength(token) + 4;    // 4 = strlen("ENDC")
 			s = parse_SkipToLine(s);
 		} else if (_strnicmp(token, "ENDC", 4) == 0) {
-			return (int) (token - start);
+			return token - start;
 		} else {
 			s = parse_SkipToLine(s);
 		}
@@ -189,32 +187,28 @@ static int parse_GetIfLength(char* s) {
 	return 0;
 }
 
-static bool_t parse_CopyRept(char** newmacro, uint32_t* size) {
-	char* src = g_pFileContext->pLexBuffer->pBuffer;
-	int len = parse_GetReptLength(src);
-	int32_t i;
+static bool_t parse_CopyRept(char** reptBlock, size_t* size) {
+	const char* src = g_pFileContext->pLexBuffer->pBuffer;
+	size_t len = parse_GetReptLength(src);
 
 	if (len == 0)
 		return false;
 
 	*size = len;
 
-	*newmacro = (char*) mem_Alloc(len + 1);
-	(*newmacro)[len] = 0;
-	for (i = 0; i < len; i += 1) {
-		(*newmacro)[i] = src[i];
-	}
+	*reptBlock = (char*) mem_Alloc(len + 1);
+	(*reptBlock)[len] = 0;
+	memcpy(*reptBlock, src, len);
 
 	lex_SkipBytes(len + 4);
 	return true;
 }
 
 bool_t parse_IfSkipToElse(void) {
-	char* src = g_pFileContext->pLexBuffer->pBuffer;
-	char* s = src;
-	char* token;
+	const char* src = g_pFileContext->pLexBuffer->pBuffer;
+	const char* token;
 
-	s = parse_SkipToLine(s);
+	const char* s = parse_SkipToLine(src);
 	while ((token = parse_GetLineToken(s)) != NULL) {
 		if (parse_isRept(token)) {
 			token += 4;
@@ -230,7 +224,7 @@ bool_t parse_IfSkipToElse(void) {
 			s = token + parse_GetIfLength(token) + 4; // 4 = strlen("ENDC");
 			s = parse_SkipToLine(s);
 		} else if (_strnicmp(token, "ENDC", 4) == 0) {
-			lex_SkipBytes((int) (token - src));
+			lex_SkipBytes(token - src);
 			g_pFileContext->LineNumber++;
 			return true;
 		} else if (_strnicmp(token, "ELSE", 4) == 0) {
@@ -246,11 +240,10 @@ bool_t parse_IfSkipToElse(void) {
 }
 
 bool_t parse_IfSkipToEndc(void) {
-	char* src = g_pFileContext->pLexBuffer->pBuffer;
-	char* s = src;
-	char* token;
+	const char* src = g_pFileContext->pLexBuffer->pBuffer;
+	const char* token;
 
-	s = parse_SkipToLine(s);
+	const char* s = parse_SkipToLine(src);
 	while ((token = parse_GetLineToken(s)) != NULL) {
 		if (parse_isIf(token)) {
 			while (!parse_isWhiteSpace(*token))
@@ -258,7 +251,7 @@ bool_t parse_IfSkipToEndc(void) {
 			s = token + parse_GetIfLength(token);
 			s = parse_SkipToLine(s);
 		} else if (_strnicmp(token, "ENDC", 4) == 0) {
-			lex_SkipBytes((int) (token - src));
+			lex_SkipBytes(token - src);
 			return true;
 		} else {
 			s = parse_SkipToLine(s);
@@ -284,7 +277,6 @@ bool_t parse_CopyMacro(char** dest, uint32_t* size) {
 	lex_SkipBytes(len + 4);
 	return true;
 }
-
 
 static uint32_t parse_ColonCount(void) {
 	if (g_CurrentToken.ID.Token == ':') {
@@ -316,7 +308,7 @@ bool_t parse_IsDot(SLexBookmark* pBookmark) {
 }
 
 bool_t parse_ExpectChar(char ch) {
-	if (g_CurrentToken.ID.TargetToken == ch) {
+	if (g_CurrentToken.ID.TargetToken == (uint32_t)ch) {
 		parse_GetToken();
 		return true;
 	} else {
@@ -325,12 +317,11 @@ bool_t parse_ExpectChar(char ch) {
 	}
 }
 
-
 /*
  *	Expression parser
  */
 
-static SExpression* parse_ExprPri0(int maxStringConstLength);
+static SExpression* parse_ExprPri0(size_t maxStringConstLength);
 
 static SExpression* parse_ExprPri9(int maxStringConstLength) {
 	switch (g_CurrentToken.ID.Token) {
@@ -548,7 +539,6 @@ static SExpression* parse_SingleArgFunc(SExpression* (* pFunc)(SExpression*), in
 	return pFunc(t1);
 }
 
-
 static SExpression* parse_ExprPri7(int maxStringConstLength) {
 	switch (g_CurrentToken.ID.Token) {
 		case T_FUNC_ATAN2:
@@ -757,7 +747,6 @@ static SExpression* parse_ExprPri3(int maxStringConstLength) {
 	return t1;
 }
 
-
 static SExpression* parse_ExprPri2(int maxStringConstLength) {
 	SExpression* t1;
 
@@ -818,7 +807,7 @@ static SExpression* parse_ExprPri1(int maxStringConstLength) {
 
 }
 
-static SExpression* parse_ExprPri0(int maxStringConstLength) {
+static SExpression* parse_ExprPri0(size_t maxStringConstLength) {
 	SExpression* t1 = parse_ExprPri1(maxStringConstLength);
 
 	while (g_CurrentToken.ID.Token == T_OP_LOGICOR || g_CurrentToken.ID.Token == T_OP_LOGICAND) {
@@ -841,7 +830,7 @@ static SExpression* parse_ExprPri0(int maxStringConstLength) {
 	return t1;
 }
 
-SExpression* parse_Expression(int maxStringConstLength) {
+SExpression* parse_Expression(size_t maxStringConstLength) {
 	return parse_ExprPri0(maxStringConstLength);
 }
 
@@ -1018,13 +1007,11 @@ static void parse_RS(string* pName, int32_t size, int coloncount) {
 		sym_Export(pName);
 }
 
-
 static void parse_RS_Skip(int32_t size) {
 	string* pRS = str_Create("__RS");
 	sym_CreateSET(pRS, sym_GetValueByName(pRS) + size);
 	str_Free(pRS);
 }
-
 
 static bool_t parse_Symbol(void) {
 	bool_t r = false;
@@ -1113,7 +1100,7 @@ static bool_t parse_Symbol(void) {
 				uint32_t reptsize;
 				char* reptblock;
 				int32_t lineno = g_pFileContext->LineNumber;
-				char* pszfile = str_String(g_pFileContext->pName);
+				const char* pszfile = str_String(g_pFileContext->pName);
 
 				if (parse_CopyMacro(&reptblock, &reptsize)) {
 					sym_CreateMACRO(pName, reptblock, reptsize);
@@ -1570,15 +1557,14 @@ static bool_t parse_PseudoOp(void) {
 			break;
 		}
 		case T_POP_REPT: {
-			uint32_t reptsize;
-			int32_t reptcount;
-			char* reptblock;
-
 			parse_GetToken();
-			reptcount = parse_ConstantExpression();
+			int32_t reptcount = parse_ConstantExpression();
+
+			size_t reptsize;
+			char* reptblock;
 			if (parse_CopyRept(&reptblock, &reptsize)) {
 				if (reptcount > 0) {
-					fstk_RunRept(reptblock, reptsize, reptcount);
+					fstk_RunRept(reptblock, reptsize, (uint32_t)reptcount);
 				} else if (reptcount < 0) {
 					prj_Error(ERROR_EXPR_POSITIVE);
 					mem_Free(reptblock);

@@ -19,6 +19,8 @@
 #if !defined(INTEGER_INSTRUCTIONS_65XX_)
 #define INTEGER_INSTRUCTIONS_65XX_
 
+#include <assert.h>
+
 #define MODE_NONE	0x001
 #define MODE_IMM	0x002
 #define MODE_ZP		0x004
@@ -42,44 +44,44 @@ typedef struct Parser
 {
 	uint8_t	nBaseOpcode;
 	int		nAddressingModes;
-	bool_t	(*fpParser)(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode);
+	bool_t	(*fpParser)(uint8_t nBaseOpcode, SAddressingMode* pAddrMode);
 } SParser;
 
-static bool_t parse_Standard_All(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Standard_All(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IND_X:
-			sect_OutputConst8(nBaseOpcode | (0 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(0 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_IMM:
-			sect_OutputConst8(nBaseOpcode | (2 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(2 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_IND_Y:
-			sect_OutputConst8(nBaseOpcode | (4 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(4 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_Y:
-			sect_OutputConst8(nBaseOpcode | (6 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(6 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP:
-			sect_OutputConst8(nBaseOpcode | (1 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(1 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS:
-			sect_OutputConst8(nBaseOpcode | (3 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(3 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
-			sect_OutputConst8(nBaseOpcode | (5 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(5 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_X:
-			sect_OutputConst8(nBaseOpcode | (7 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 	}
@@ -88,37 +90,37 @@ static bool_t parse_Standard_All(int nToken, uint8_t nBaseOpcode, SAddressingMod
 	return true;
 }
 
-static bool_t parse_Standard_AbsY7(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Standard_AbsY7(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IND_X:
-			sect_OutputConst8(nBaseOpcode | (0 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(0 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_IMM:
-			sect_OutputConst8(nBaseOpcode | (2 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(2 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_IND_Y:
-			sect_OutputConst8(nBaseOpcode | (4 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(4 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_Y:
-			sect_OutputConst8(nBaseOpcode | (7 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP:
-			sect_OutputConst8(nBaseOpcode | (1 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(1 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS:
-			sect_OutputConst8(nBaseOpcode | (3 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(3 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
-			sect_OutputConst8(nBaseOpcode | (5 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(5 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 	}
@@ -127,30 +129,30 @@ static bool_t parse_Standard_AbsY7(int nToken, uint8_t nBaseOpcode, SAddressingM
 	return true;
 }
 
-static bool_t parse_Standard_Imm0(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Standard_Imm0(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IMM:
-			sect_OutputConst8(nBaseOpcode | (0 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(0 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP:
-			sect_OutputConst8(nBaseOpcode | (1 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(1 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS:
-			sect_OutputConst8(nBaseOpcode | (3 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(3 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
-			sect_OutputConst8(nBaseOpcode | (5 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(5 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_X:
 		case MODE_ABS_Y:
-			sect_OutputConst8(nBaseOpcode | (7 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 	}
@@ -159,27 +161,27 @@ static bool_t parse_Standard_Imm0(int nToken, uint8_t nBaseOpcode, SAddressingMo
 	return true;
 }
 
-static bool_t parse_Standard_Rotate(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Standard_Rotate(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
 		case MODE_A:
-			sect_OutputConst8(nBaseOpcode | (2 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(2 << 2));
 			return true;
 		case MODE_ZP:
-			sect_OutputConst8(nBaseOpcode | (1 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(1 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS:
-			sect_OutputConst8(nBaseOpcode | (3 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(3 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 		case MODE_ZP_X:
-			sect_OutputConst8(nBaseOpcode | (5 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(5 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
 		case MODE_ABS_X:
-			sect_OutputConst8(nBaseOpcode | (7 << 2));
+			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
 	}
@@ -189,7 +191,7 @@ static bool_t parse_Standard_Rotate(int nToken, uint8_t nBaseOpcode, SAddressing
 }
 
 
-static bool_t parse_Branch(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Branch(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	SExpression* pExpr;
 
@@ -210,14 +212,15 @@ static bool_t parse_Branch(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAd
 }
 
 
-static bool_t parse_Implied(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_Implied(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
+	assert(pAddrMode == NULL);
 	sect_OutputConst8(nBaseOpcode);
 	return true;
 }
 
 
-static bool_t parse_JMP(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_JMP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	if(pAddrMode->nMode == MODE_IND)
 		nBaseOpcode += 0x20;
@@ -228,7 +231,7 @@ static bool_t parse_JMP(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrM
 }
 
 
-static bool_t parse_BRK(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_BRK(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	sect_OutputConst8(nBaseOpcode);
 	if(pAddrMode->nMode == MODE_IMM)
@@ -237,8 +240,10 @@ static bool_t parse_BRK(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrM
 }
 
 
-static bool_t parse_DOP(int nToken, uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool_t parse_DOP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
+	assert(nBaseOpcode == 0);
+
 	switch(pAddrMode->nMode)
 	{
 		case MODE_IMM:
@@ -503,7 +508,7 @@ bool_t parse_IntegerInstruction(void)
 
 		parse_GetToken();
 		if(parse_AddressingMode(&addrMode, pParser->nAddressingModes))
-			return pParser->fpParser(nToken, pParser->nBaseOpcode, &addrMode);
+			return pParser->fpParser(pParser->nBaseOpcode, &addrMode);
 		else
 			prj_Error(MERROR_ILLEGAL_ADDRMODE);
 	}

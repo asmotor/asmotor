@@ -17,7 +17,7 @@
 */
 
 #include "xasm.h"
-#include "expr.h"
+#include "expression.h"
 #include "parse.h"
 #include "project.h"
 #include "section.h"

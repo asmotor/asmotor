@@ -19,6 +19,8 @@
 #if !defined(INTEGER_INSTRUCTIONS_SCHIP_)
 #define INTEGER_INSTRUCTIONS_SCHIP_
 
+#include <assert.h>
+
 #define	MODE_REG	0x01
 #define MODE_IMM	0x02
 #define MODE_I		0x04
@@ -105,12 +107,17 @@ static bool_t parse_AddressMode(SAddressMode* pMode)
 
 static bool_t parse_ModeReg(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode2 == NULL);
+	assert(pMode3 == NULL);
+
 	sect_OutputConst16(nOpcode | (pMode1->nRegister << 8));
 	return true;
 }
 
 static bool_t parse_ModeRegReg(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode3 == NULL);
+
 	sect_OutputConst16(nOpcode | (pMode1->nRegister << 8) | (pMode2->nRegister << 4));
 	return true;
 }
@@ -118,6 +125,9 @@ static bool_t parse_ModeRegReg(SAddressMode* pMode1, SAddressMode* pMode2, SAddr
 
 static bool_t parse_ModeImm12(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode2 == NULL);
+	assert(pMode3 == NULL);
+
 	sect_OutputExpr16(
 		expr_Or(
 			expr_Const(nOpcode),
@@ -145,6 +155,9 @@ static bool_t parse_DRW(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode
 
 static bool_t parse_SCRD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode1 == NULL);
+	assert(pMode2 == NULL);
+
 	sect_OutputExpr16(
 		expr_Or(
 			expr_Const(nOpcode),
@@ -157,6 +170,8 @@ static bool_t parse_SCRD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMod
 
 static bool_t parse_ModeRegImm(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode3 == NULL);
+
 	sect_OutputExpr16(
 		expr_Or(
 			expr_Const(nOpcode | (pMode1->nRegister << 8)),
@@ -172,6 +187,8 @@ static bool_t parse_ModeRegImm(SAddressMode* pMode1, SAddressMode* pMode2, SAddr
 
 static bool_t parse_LD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(nOpcode >= 0);
+
 	if(pMode1->nMode == MODE_REG && pMode2->nMode == MODE_IMM)
 		return parse_ModeRegImm(pMode1, pMode2, pMode3, 0x6000);
 	
@@ -196,6 +213,9 @@ static bool_t parse_LD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode*
 
 static bool_t parse_LDM(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode3 == NULL);
+	assert(nOpcode >= 0);
+
 	if(pMode1->nMode == MODE_REG && pMode2->nMode == MODE_I_IND)
 		return parse_ModeReg(pMode1, NULL, NULL, 0xF065);
 
@@ -213,6 +233,9 @@ static bool_t parse_LDM(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode
 
 static bool_t parse_ADD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode3 == NULL);
+	assert(nOpcode >= 0);
+
 	if(pMode1->nMode == MODE_REG && pMode2->nMode == MODE_REG)
 		return parse_ModeRegReg(pMode1, pMode2, NULL, 0x8004);
 
@@ -227,12 +250,14 @@ static bool_t parse_ADD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode
 
 static bool_t parse_Skips(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode3 == NULL);
+
 	if(pMode1->nMode == MODE_REG && pMode2->nMode == MODE_IMM)
 		return parse_ModeRegImm(pMode1, pMode2, NULL, nOpcode);
 
 	if(pMode1->nMode == MODE_REG && pMode2->nMode == MODE_REG)
 	{
-		nOpcode = nOpcode == 0x3000 ? 0x5000 : 0x9000;
+		nOpcode = (uint16_t)(nOpcode == 0x3000 ? 0x5000 : 0x9000);
 		return parse_ModeRegReg(pMode1, pMode2, NULL, nOpcode);
 	}
 
@@ -241,6 +266,10 @@ static bool_t parse_Skips(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMo
 
 static bool_t parse_JP(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode2 == NULL);
+	assert(pMode3 == NULL);
+	assert(nOpcode >= 0);
+
 	if(pMode1->nMode == MODE_IMM)
 		return parse_ModeImm12(pMode1, NULL, NULL, 0x1000);
 
@@ -253,6 +282,10 @@ static bool_t parse_JP(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode*
 
 static bool_t parse_ModeNone(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
+	assert(pMode1 == NULL);
+	assert(pMode2 == NULL);
+	assert(pMode3 == NULL);
+
 	sect_OutputConst16(nOpcode);
 	return true;
 }

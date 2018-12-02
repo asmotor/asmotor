@@ -23,16 +23,12 @@
 #include "types.h"
 #include "tokens.h"
 #include "xasm.h"
+#include "lexervariadics.h"
 
 typedef struct {
 	char* name;
 	uint32_t token;
 } SLexInitString;
-
-typedef struct {
-	bool_t (* callback)(char* s, uint32_t size);
-	uint32_t token;
-} SVariadicWordDefinition;
 
 typedef enum {
 	LEX_STATE_NORMAL, LEX_STATE_MACRO_ARG0, LEX_STATE_MACRO_ARGS
@@ -51,10 +47,10 @@ typedef struct {
 		char aString[MAXTOKENLENGTH + 1];
 		int32_t nInteger;
 	} Value;
-	int32_t TokenLength;
+	size_t TokenLength;
 	union {
 		EToken Token;
-		int TargetToken;
+		uint32_t TargetToken;
 	} ID;
 } SLexToken;
 
@@ -69,21 +65,16 @@ extern void lex_FreeBuffer(SLexBuffer* buf);
 extern SLexBuffer* lex_CreateFileBuffer(FILE* f);
 extern void lex_SetBuffer(SLexBuffer* buf);
 extern uint32_t lex_GetNextToken(void);
-extern void lex_AddString(char* pszName, int nToken);
+extern void lex_AddString(const char* pszName, uint32_t nToken);
 extern void lex_AddStrings(SLexInitString* lex);
-extern void lex_RemoveString(char* pszName, int nToken);
+extern void lex_RemoveString(const char* pszName, uint32_t nToken);
 extern void lex_RemoveStrings(SLexInitString* lex);
 extern void lex_SetState(ELexerState i);
-extern uint32_t lex_FloatAlloc(SVariadicWordDefinition* tok);
-extern void lex_FloatAddRange(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber);
-extern void lex_FloatAddRangeAndBeyond(uint32_t id, uint16_t start, uint16_t end, int32_t charnumber);
-extern void lex_FloatRemoveAll(uint32_t id);
-extern void lex_FloatSetSuffix(uint32_t id, uint8_t ch);
-extern void lex_UnputString(char* s);
+extern void lex_UnputString(const char* s);
 extern void lex_UnputChar(char c);
-extern void lex_SkipBytes(uint32_t count);
+extern void lex_SkipBytes(size_t count);
 extern void lex_Init(void);
-extern SLexBuffer* lex_CreateMemoryBuffer(char* mem, size_t size);
+extern SLexBuffer* lex_CreateMemoryBuffer(const char* mem, size_t size);
 extern void lex_RewindBytes(uint32_t count);
 
 extern void lex_Bookmark(SLexBookmark* pBookmark);

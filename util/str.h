@@ -21,69 +21,62 @@
 
 #include "asmotor.h"
 
-typedef struct
-{
+typedef struct {
 	int nRefCount;
-	int	nLength;
+	size_t nLength;
 	char szData[];
 } string;
 
-extern string* str_Create(char* pszData);
-extern string* str_CreateLength(char* pszData, int nLength);
+extern string* str_Create(const char* pszData);
+extern string* str_CreateLength(const char* pszData, size_t nLength);
 extern string* str_Empty(void);
 extern void str_Free(string* pString);
-extern string* str_Concat(string* pString1, string* pString2);
-extern string* str_Slice(string* pString1, int nIndex, int nLength);
-extern bool_t str_Equal(string* pString1, string* pString2);
-extern bool_t str_EqualConst(string* pString1, char* pString2);
-extern string* str_Replace(string* pString, char search, char replace);
-extern string* str_ToLower(string* pString);
+extern string* str_Concat(const string* pString1, const string* pString2);
+extern string* str_Slice(const string* pString1, ssize_t nIndex, size_t nLength);
+extern bool_t str_Equal(const string* pString1, const string* pString2);
+extern bool_t str_EqualConst(const string* pString1, const char* pString2);
+extern string* str_Replace(const string* pString, char search, char replace);
+extern string* str_ToLower(const string* pString);
+extern void str_ToUpperReplace(string** ppString);
 
-INLINE string* str_Copy(string* pString)
-{
-	if(pString != NULL)
+INLINE string* str_Copy(string* pString) {
+	if (pString != NULL)
 		++pString->nRefCount;
 	return pString;
 }
 
-INLINE int str_Length(string* pString)
-{
+INLINE size_t str_Length(const string* pString) {
 	return pString->nLength;
 }
 
-INLINE char* str_String(string* pString)
-{
+INLINE const char* str_String(const string* pString) {
 	return pString->szData;
 }
 
-INLINE char str_CharAt(string* pString, int nIndex)
-{
-	if(nIndex < 0)
+INLINE char str_CharAt(const string* pString, ssize_t nIndex) {
+	if (nIndex < 0)
 		nIndex = str_Length(pString) + nIndex;
 	return pString->szData[nIndex];
 }
 
-INLINE void str_Set(string* pString, int nIndex, char ch)
-{
-	if(nIndex < 0)
+INLINE void str_Set(string* pString, ssize_t nIndex, char ch) {
+	if (nIndex < 0)
 		nIndex = str_Length(pString) + nIndex;
 	pString->szData[nIndex] = ch;
 }
 
-INLINE void str_Assign(string** ppDest, string* pSrc)
-{
+INLINE void str_Assign(string** ppDest, string* pSrc) {
 	str_Free(*ppDest);
 	*ppDest = str_Copy(pSrc);
 }
 
-INLINE void str_Move(string** ppDest, string** ppSrc)
-{
+INLINE void str_Move(string** ppDest, string** ppSrc) {
 	str_Free(*ppDest);
 	*ppDest = *ppSrc;
 	*ppSrc = NULL;
 }
 
-#define STR_ASSIGN(p,str) 	str_Assign(&p, str)
-#define STR_MOVE(p,str) 	str_Move(&p, &str)
+#define STR_ASSIGN(p, str)    str_Assign(&p, str)
+#define STR_MOVE(p, str)    str_Move(&p, &str)
 
 #endif

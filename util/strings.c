@@ -17,6 +17,7 @@
 */
 
 #if defined(__VBCC__) || defined(__GNUC__)
+
 #include "asmotor.h"
 
 #include <ctype.h>
@@ -24,71 +25,63 @@
 
 #include "mem.h"
 
-char* _strdup(const char* pszString)
-{
-	int l = (int)strlen(pszString);
+char* _strdup(const char* pszString) {
+	size_t l = strlen(pszString);
 	char* r = mem_Alloc(l + 1);
 	memcpy(r, pszString, l + 1);
 	return r;
 }
 
-char* _strupr(char* pszString)
-{
+char* _strupr(char* pszString) {
 	char* r = pszString;
-	while(*r)
-	{
-		*r = toupper((unsigned char)*r);
+	while (*r) {
+		*r = (char) toupper((unsigned char) *r);
 		++r;
 	}
 	return pszString;
 }
 
-char* _strlwr(char* pszString)
-{
+char* _strlwr(char* pszString) {
 	char* r = pszString;
-	while(*r)
-	{
-		*r = tolower((unsigned char)*r);
+	while (*r) {
+		*r = (char) tolower((unsigned char) *r);
 		++r;
 	}
 	return pszString;
 }
 
-int _strnicmp(const char* pszString1, const char* pszString2, int nCount)
-{
+int _strnicmp(const char* pszString1, const char* pszString2, size_t nCount) {
 	char l1 = 0;
 	char l2 = 0;
 
-	while(*pszString1 && *pszString2 && nCount-- > 0)
-	{
-		l1 = tolower((unsigned char)*pszString1++);
-		l2 = tolower((unsigned char)*pszString2++);
+	while (*pszString1 && *pszString2 && nCount-- > 0) {
+		l1 = (char) tolower((unsigned char) *pszString1++);
+		l2 = (char) tolower((unsigned char) *pszString2++);
 
-		if(l1 != l2)
+		if (l1 != l2)
 			return l1 - l2;
 	}
 
-	if(nCount == 0)
+	if (nCount == 0)
 		return 0;
 
 	return *pszString1 - *pszString2;
 }
 
-int _stricmp(const char* pszString1, const char* pszString2)
-{
+int _stricmp(const char* pszString1, const char* pszString2) {
 	char l1 = 0;
 	char l2 = 0;
 
-	while(*pszString1 && *pszString2)
-	{
-		l1 = tolower((unsigned char)*pszString1++);
-		l2 = tolower((unsigned char)*pszString2++);
+	while (*pszString1 && *pszString2) {
+		l1 = (char) tolower((unsigned char) *pszString1++);
+		l2 = (char) tolower((unsigned char) *pszString2++);
 
-		if(l1 != l2)
+		if (l1 != l2)
 			return l1 - l2;
 	}
 
 	return *pszString1 - *pszString2;
 }
+
 #endif
 

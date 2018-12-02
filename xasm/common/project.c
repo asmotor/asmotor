@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 #include "xasm.h"
-#include "fstack.h"
+#include "filestack.h"
 #include "options.h"
 #include "patch.h"
 
@@ -97,7 +97,7 @@ static char* g_pszError[]=
     "Object file does not support expression",
 };
 
-static char* geterror(int n)
+static char* geterror(size_t n)
 {
     if(n >= 1000)
         return loc_GetError(n);
