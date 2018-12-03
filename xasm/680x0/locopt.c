@@ -79,16 +79,11 @@ bool_t locopt_Parse(char* s)
 						g_pOptions->pMachine->nCpu = CPUF_68060;
 						return true;
 					default:
-						prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-						return false;
+						break;
 				}
 			}
-			else
-			{
-				prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-				return false;
-			}
-			break;
+			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
 		case 'f':
 			if(strlen(&s[1]) == 1)
 			{
@@ -106,16 +101,11 @@ bool_t locopt_Parse(char* s)
 						g_pOptions->pMachine->nCpu = FPUF_68060;
 						return true;
 					default:
-						prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-						return false;
+						break;
 				}
 			}
-			else
-			{
-				prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-				return false;
-			}
-			break;
+			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
 		default:
 			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
 			return false;

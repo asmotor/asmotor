@@ -21,6 +21,7 @@
 
 typedef enum
 {
+	AM_NONE = 0,
 	AM_DREG          = 0x00000001,	// Dn
 	AM_AREG          = 0x00000002,	// An
 	AM_AIND          = 0x00000004,	// (An)
@@ -384,7 +385,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 
 static bool_t parse_OptimizeMode(SAddrMode* pMode)
 {
-	int inner = 0;
+	uint32_t inner = 0;
 
 	parse_OptimizeFields(&pMode->Inner);
 	parse_OptimizeFields(&pMode->Outer);
@@ -482,6 +483,8 @@ static bool_t parse_OptimizeMode(SAddrMode* pMode)
 
 	switch(inner)
 	{
+		default:
+			return false;
 		case O_BASE:
 			pMode->eMode = AM_AIND;
 			return true;
@@ -582,8 +585,6 @@ static bool_t parse_OptimizeMode(SAddrMode* pMode)
 			}
 			return true;
 	}
-
-	return false;
 }
 
 

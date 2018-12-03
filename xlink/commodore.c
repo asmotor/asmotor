@@ -48,8 +48,8 @@ static void writeHeader(FILE* fileHandle, uint32_t baseAddress)
 {
     int startAddress = startAddressOfFirstCodeSection();
 
-    fputc(baseAddress & 0xFF, fileHandle);
-    fputc((baseAddress >> 8) & 0xFF, fileHandle);
+    fputc(baseAddress & 0xFFu, fileHandle);
+    fputc((baseAddress >> 8u) & 0xFFu, fileHandle);
 
     sprintf(&basicSys[SYS_ASCII_ADDRESS], "%d", startAddress);
 

@@ -31,7 +31,7 @@
  *
  */
 
-void fatalerror(char* s)
+void fatalError(char* s)
 {
 	printf("*ERROR* : %s\n", s);
 	exit(EXIT_FAILURE);
@@ -42,7 +42,7 @@ void fatalerror(char* s)
  *
  */
 
-void	PrintUsage(void)
+void	printUsage(void)
 {
 	printf( "xLib v" LIB_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n\n"
 			"Usage: xlib library command [module1 module2 ... modulen]\n"
@@ -129,10 +129,10 @@ int	main(int argc, char* argv[])
 								printf("Extracted module '%s'\n", argv[argn]);
 							}
 							else
-								fatalerror("Unable to write module");
+								fatalError("Unable to write module");
 						}
 						else
-							fatalerror("Module not found");
+							fatalError("Module not found");
 
 						argn+=1;
 						argc-=1;
@@ -140,18 +140,18 @@ int	main(int argc, char* argv[])
 					lib_Free(lib);
 					break;
 				default:
-					fatalerror("Invalid command");
+					fatalError("Invalid command");
 					break;
 			}
 
 		}
 		else
 		{
-			fatalerror("Invalid command");
+			fatalError("Invalid command");
 		}
 	}
 	else
-		PrintUsage();
+		printUsage();
 
 	return 0;
 }

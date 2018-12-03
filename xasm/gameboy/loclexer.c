@@ -149,13 +149,11 @@ static SLexInitString localstrings[]=
     { NULL, 0 }
 };
 
-static int32_t gbgfx2bin(char ch)
+static uint32_t gbgfx2bin(char ch)
 {
-	int32_t i;
-
-	for(i = 0; i <= 3; ++i)
+	for(uint32_t i = 0; i <= 3; ++i)
 	{
-		if(g_pOptions->pMachine->GameboyChar[i] == ch)
+		if (g_pOptions->pMachine->GameboyChar[i] == ch)
 			return i;
 	}
 
@@ -163,22 +161,22 @@ static int32_t gbgfx2bin(char ch)
 }
 
 
-static int32_t ascii2bin(char* s)
+static uint32_t ascii2bin(char* s)
 {
-	int32_t result = 0;
+	uint32_t result = 0;
 
 	++s;
 	while(*s != '\0')
 	{
-		int32_t c = gbgfx2bin(*s++);
-		result = result * 2 + ((c & 1) << 8) + ((c & 2) >> 1);
+		uint32_t c = gbgfx2bin(*s++);
+		result = result * 2 + ((c & 1u) << 8u) + ((c & 2u) >> 1u);
 	}
 
 	return result;
 }
 
 
-static bool_t ParseGameboyNumber(char* s, uint32_t size)
+static bool_t ParseGameboyNumber(const char* s, uint32_t size)
 {
     char dest[256];
 
@@ -204,9 +202,9 @@ void	loclexer_Init(void)
 {
 	/* Gameboy constants */
 
-    GameboyConstID = lex_VariadicCreateWord(&tNumberToken);
-    lex_FloatAddRange(GameboyConstID, '`', '`', 0);
-    lex_FloatAddRangeAndBeyond(GameboyConstID, '0', '3', 1);
+    g_GameboyLiteralId = lex_VariadicCreateWord(&tNumberToken);
+    lex_FloatAddRange(g_GameboyLiteralId, '`', '`', 0);
+    lex_FloatAddRangeAndBeyond(g_GameboyLiteralId, '0', '3', 1);
 
 	lex_AddStrings(localstrings);
 }

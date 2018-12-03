@@ -27,7 +27,6 @@
 #include "tokens.h"
 #include "project.h"
 
-#define T_OP_Sub T_OP_SUB
 #define T_OP_Add T_OP_ADD
 #define T_OP_Xor T_OP_XOR
 #define T_OP_Or T_OP_OR
@@ -52,7 +51,6 @@
 #define T_FUNC_Asin T_FUNC_ASIN
 #define T_FUNC_Acos T_FUNC_ACOS
 #define T_FUNC_Atan T_FUNC_ATAN
-#define T_FUNC_Atan2 T_FUNC_ATAN2
 
 #define T_FUNC_LowLimit T_FUNC_LOWLIMIT
 #define T_FUNC_HighLimit T_FUNC_HIGHLIMIT
@@ -90,7 +88,7 @@ SExpression* expr_Parens(SExpression* pExpr)
     expr->Value.Value = pExpr->Value.Value;
     expr->nFlags = pExpr->nFlags;
     expr->eType = EXPR_PARENS;
-    expr->eOperator = 0;
+    expr->eOperator = T_NONE;
     return expr;
 }
 
@@ -110,9 +108,9 @@ SExpression* expr_Bit(SExpression* pRight)
     if(!expr_VerifyPointer(pRight))
         return NULL;
 
-    v = pRight->Value.Value;
+    v = (uint32_t) pRight->Value.Value;
 
-    if(expr_IsConstant(pRight) && (v & -(int32_t)v) != v)
+    if(expr_IsConstant(pRight) && (v & -v) != v)
     {
         prj_Error(ERROR_EXPR_TWO_POWER);
         return NULL;
@@ -223,17 +221,15 @@ static SExpression* parse_MergeExpressions(SExpression* pLeft, SExpression* pRig
     if(!expr_VerifyPointers(pLeft, pRight))
         return NULL;
 
-    expr = (SExpression*)mem_Alloc(sizeof(SExpression));
+    expr = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-    expr->Value.Value = 0;
-    expr->eType = 0;
     expr->nFlags = pLeft->nFlags & pRight->nFlags;
     expr->pLeft = pLeft;
     expr->pRight = pRight;
     return expr;
 }
 
-#define CREATEEXPRDIV(NAME,OP)															\
+#define CREATE_EXPR_DIV(NAME,OP)															\
 SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
 {													\
     int32_t val;									\
@@ -252,8 +248,8 @@ SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
     return left;									\
 }
 
-CREATEEXPRDIV(Div, /)
-CREATEEXPRDIV(Mod, %)
+CREATE_EXPR_DIV(Div, /)
+CREATE_EXPR_DIV(Mod, %)
 
 SExpression* expr_BooleanNot(SExpression* right)
 {
@@ -297,7 +293,21 @@ SExpression* expr_Sub(SExpression* left, SExpression* right)
     return left;
 }
 
-#define CREATEEXPR(NAME,OP) \
+#define CREATE_BITWISE(NAME,OP) \
+SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
+{													\
+    int32_t val;									\
+    if(!expr_VerifyPointers(left, right))			\
+        return NULL;								\
+    val = (uint32_t) left->Value.Value OP (uint32_t) right->Value.Value;	\
+    left = parse_MergeExpressions(left, right);		\
+    left->eType = EXPR_OPERATOR;						\
+    left->eOperator = T_OP_ ## NAME;					\
+    left->Value.Value = val;							\
+    return left;									\
+}
+
+#define CREATE_EXPR(NAME,OP) \
 SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
 {													\
     int32_t val;									\
@@ -311,23 +321,23 @@ SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
     return left;									\
 }
 
-CREATEEXPR(Add, +)
-CREATEEXPR(Xor, ^)
-CREATEEXPR(Or,  |)
-CREATEEXPR(And, &)
-CREATEEXPR(Shl, <<)
-CREATEEXPR(Shr, >>)
-CREATEEXPR(Mul, *)
-CREATEEXPR(BooleanOr, ||)
-CREATEEXPR(BooleanAnd, &&)
-CREATEEXPR(GreaterEqual, >=)
-CREATEEXPR(GreaterThan, >)
-CREATEEXPR(LessEqual, <=)
-CREATEEXPR(LessThan, <)
-CREATEEXPR(Equal, ==)
-CREATEEXPR(NotEqual, !=)
+CREATE_BITWISE(Xor, ^)
+CREATE_BITWISE(Or,  |)
+CREATE_BITWISE(And, &)
+CREATE_BITWISE(Shl, <<)
+CREATE_BITWISE(Shr, >>)
+CREATE_EXPR(Add, +)
+CREATE_EXPR(Mul, *)
+CREATE_EXPR(BooleanOr, ||)
+CREATE_EXPR(BooleanAnd, &&)
+CREATE_EXPR(GreaterEqual, >=)
+CREATE_EXPR(GreaterThan, >)
+CREATE_EXPR(LessEqual, <=)
+CREATE_EXPR(LessThan, <)
+CREATE_EXPR(Equal, ==)
+CREATE_EXPR(NotEqual, !=)
 
-#define CREATELIMIT(NAME,OP)	\
+#define CREATE_LIMIT(NAME,OP)	\
 SExpression* expr_ ## NAME(SExpression* expr, SExpression* bound)	\
 {														\
     int32_t val;										\
@@ -350,8 +360,8 @@ SExpression* expr_ ## NAME(SExpression* expr, SExpression* bound)	\
     return expr;										\
 }
 
-CREATELIMIT(LowLimit,<)
-CREATELIMIT(HighLimit,>)
+CREATE_LIMIT(LowLimit,<)
+CREATE_LIMIT(HighLimit,>)
 
 SExpression* expr_CheckRange(SExpression* pExpr, int32_t nLow, int32_t nHigh)
 {
@@ -366,7 +376,7 @@ SExpression* expr_CheckRange(SExpression* pExpr, int32_t nLow, int32_t nHigh)
     return NULL;
 }
 
-SExpression* expr_Fdiv(SExpression* left, SExpression* right)
+SExpression* expr_FixedDivision(SExpression* left, SExpression* right)
 {
     if(!expr_VerifyPointers(left, right))
         return NULL;
@@ -387,7 +397,7 @@ SExpression* expr_Fdiv(SExpression* left, SExpression* right)
     return NULL;
 }
 
-SExpression* expr_Fmul(SExpression* left, SExpression* right)
+SExpression* expr_FixedMultiplication(SExpression* left, SExpression* right)
 {
     int32_t val;
 
@@ -421,7 +431,7 @@ SExpression* expr_Atan2(SExpression* left, SExpression* right)
     return left;
 }
 
-#define CREATETRANSEXPR(NAME,FUNC)							\
+#define CREATE_TRANS_EXPR(NAME,FUNC)							\
 SExpression* expr_ ## NAME(SExpression* right)				\
 {															\
     SExpression* expr;										\
@@ -437,12 +447,12 @@ SExpression* expr_ ## NAME(SExpression* right)				\
     return expr;											\
 }
 
-CREATETRANSEXPR(Sin,fsin)
-CREATETRANSEXPR(Cos,fcos)
-CREATETRANSEXPR(Tan,ftan)
-CREATETRANSEXPR(Asin,fasin)
-CREATETRANSEXPR(Acos,facos)
-CREATETRANSEXPR(Atan,fatan)
+CREATE_TRANS_EXPR(Sin,fsin)
+CREATE_TRANS_EXPR(Cos,fcos)
+CREATE_TRANS_EXPR(Tan,ftan)
+CREATE_TRANS_EXPR(Asin,fasin)
+CREATE_TRANS_EXPR(Acos,facos)
+CREATE_TRANS_EXPR(Atan,fatan)
 
 SExpression* expr_Bank(char* s)
 {
@@ -513,7 +523,6 @@ void expr_Clear(SExpression* pExpr)
     expr_Free(pExpr->pRight);
     pExpr->pRight = NULL;
 
-    pExpr->eType = 0;
     pExpr->nFlags = 0;
 }
 

@@ -39,7 +39,7 @@
 
 //	Private defines
 
-#define    CHUNKSIZE    0x4000
+#define CHUNK_SIZE 0x4000U
 
 
 
@@ -61,17 +61,16 @@ static EGroupType sect_GetCurrentType(void) {
 	if (g_pCurrentSection->pGroup == NULL)
 		internalerror("No GROUP defined for SECTION");
 
-	if (g_pCurrentSection->pGroup->eType == SYM_GROUP)
-		return g_pCurrentSection->pGroup->Value.GroupType;
-	else
+	if (g_pCurrentSection->pGroup->eType != SYM_GROUP)
 		internalerror("SECTION's GROUP symbol is not of type SYM_GROUP");
 
-	return -1;
+	return g_pCurrentSection->pGroup->Value.GroupType;
 }
 
 static SSection* sect_Create(const char* name) {
 	SSection* sect = mem_Alloc(sizeof(SSection));
 	memset(sect, 0, sizeof(SSection));
+
 	sect->Name = str_Create(name);
 	sect->FreeSpace = g_pConfiguration->nMaxSectionSize;
 
@@ -113,7 +112,7 @@ static void sect_GrowCurrent(uint32_t count) {
 	assert(g_pConfiguration->eMinimumWordSize <= count);
 
 	if (count + g_pCurrentSection->UsedSpace > g_pCurrentSection->AllocatedSpace) {
-		uint32_t allocate = (count + g_pCurrentSection->UsedSpace + CHUNKSIZE - 1) & -CHUNKSIZE;
+		uint32_t allocate = (count + g_pCurrentSection->UsedSpace + CHUNK_SIZE - 1) & -CHUNK_SIZE;
 		if ((g_pCurrentSection->pData = mem_Realloc(g_pCurrentSection->pData, allocate)) != NULL) {
 			g_pCurrentSection->AllocatedSpace = allocate;
 		} else {
@@ -217,11 +216,11 @@ void sect_OutputConst16(uint16_t value) {
 				switch (g_pOptions->Endian) {
 					case ASM_LITTLE_ENDIAN: {
 						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value);
-						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8);
+						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8u);
 						break;
 					}
 					case ASM_BIG_ENDIAN: {
-						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8);
+						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8u);
 						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value);
 						break;
 					}
@@ -295,15 +294,15 @@ void sect_OutputConst32(uint32_t value) {
 				switch (g_pOptions->Endian) {
 					case ASM_LITTLE_ENDIAN: {
 						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value);
-						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8);
-						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 16);
-						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 24);
+						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8u);
+						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 16u);
+						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 24u);
 						break;
 					}
 					case ASM_BIG_ENDIAN: {
-						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 24);
-						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 16);
-						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8);
+						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 24u);
+						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 16u);
+						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8u);
 						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value);
 						break;
 					}
@@ -472,7 +471,7 @@ bool_t sect_SwitchTo(char* sectname, SSymbol* group) {
 	}
 }
 
-bool_t sect_SwitchTo_LOAD(char* sectname, SSymbol* group, int32_t load) {
+bool_t sect_SwitchTo_LOAD(char* sectname, SSymbol* group, uint32_t load) {
 	SSection* sect;
 
 	if ((sect = sect_Find(sectname, group)) != NULL) {
@@ -522,7 +521,7 @@ bool_t sect_SwitchTo_BANK(char* sectname, SSymbol* group, int32_t bank) {
 	return sect != NULL;
 }
 
-bool_t sect_SwitchTo_LOAD_BANK(char* sectname, SSymbol* group, int32_t load, int32_t bank) {
+bool_t sect_SwitchTo_LOAD_BANK(char* sectname, SSymbol* group, uint32_t load, int32_t bank) {
 	SSection* sect;
 
 	if (!g_pConfiguration->bSupportBanks)

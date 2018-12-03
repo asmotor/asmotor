@@ -22,6 +22,7 @@
 #define	MAXSYMNAMELENGTH	256
 
 #include "asmotor.h"
+#include "file.h"
 
 #include "types.h"
 #include "object.h"
@@ -41,6 +42,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 
 #if defined(__clang__) || defined(__llvm__) || defined(__GNUC__)

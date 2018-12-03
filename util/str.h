@@ -76,7 +76,7 @@ INLINE void str_Move(string** ppDest, string** ppSrc) {
 	*ppSrc = NULL;
 }
 
-#define STR_ASSIGN(p, str)    str_Assign(&p, str)
-#define STR_MOVE(p, str)    str_Move(&p, &str)
+#define STR_ASSIGN(p, str) str_Assign(&(p), (str))
+#define STR_MOVE(p, str)   str_Move(&(p), &(str))
 
 #endif

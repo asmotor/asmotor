@@ -33,22 +33,22 @@
 
 /* Internal defines */
 
-#define HASH(hash, key)            \
-{                                  \
-    hash = ((hash) << 1) + key;    \
-    hash ^= hash >> 3;             \
-    hash &= WORDS_HASH_SIZE - 1;   \
+#define HASH(hash, key)              \
+{                                    \
+	(hash) = ((hash) << 1u) + (key); \
+	(hash) ^= (hash) >> 3u;          \
+	(hash) &= WORDS_HASH_SIZE - 1u;  \
 }
 
 #define SAFETY_MARGIN MAXSTRINGSYMBOLSIZE
-#define WORDS_HASH_SIZE 1024
+#define WORDS_HASH_SIZE 1024u
 #define BUF_REMAINING_CHARS (g_pCurrentBuffer->pBufferStart + g_pCurrentBuffer->bufferSize - g_pCurrentBuffer->pBuffer)
 
 /* Private structures */
 
 struct ConstantWord {
 	string* name;
-	uint32_t token;
+	EToken token;
 	list_Data(struct ConstantWord);
 };
 typedef struct ConstantWord SConstantWord;
@@ -85,6 +85,8 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t b
 			/* Handle escape sequences */
 
 			switch (ch = (*src++)) {
+				default:
+					break;
 				case 'n': {
 					ch = ASM_CRLF;
 					break;
@@ -134,6 +136,8 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool_t b
 			while (*src && (*src != '}') && (strchr(stopchar, *src) == NULL)) {
 				if ((ch = *src++) == '\\') {
 					switch (ch = (*src++)) {
+						default:
+							break;
 						case '0':
 						case '1':
 						case '2':
@@ -228,7 +232,7 @@ void lex_SkipBytes(size_t count) {
 	}
 }
 
-void lex_RewindBytes(uint32_t count) {
+void lex_RewindBytes(size_t count) {
 	if (g_pCurrentBuffer) {
 		g_pCurrentBuffer->pBuffer -= count;
 	} else {
@@ -359,9 +363,7 @@ SLexBuffer* lex_CreateFileBuffer(FILE* f) {
 }
 
 void lex_Init(void) {
-	int i;
-
-	for (i = 0; i < WORDS_HASH_SIZE; ++i)
+	for (uint32_t i = 0; i < WORDS_HASH_SIZE; ++i)
 		g_wordsHashTable[i] = NULL;
 
 	g_maxWordLength = 0;
@@ -371,11 +373,10 @@ void lex_Init(void) {
 
 void lex_PrintMaxTokensPerHash(void) {
 	int nMax = 0;
-	int i;
 	int nInUse = 0;
 	int nTotal = 0;
 
-	for (i = 0; i < WORDS_HASH_SIZE; ++i) {
+	for (uint32_t i = 0; i < WORDS_HASH_SIZE; ++i) {
 		int n = 0;
 		SConstantWord* p = g_wordsHashTable[i];
 		if (p)
@@ -427,7 +428,7 @@ void lex_AddString(const char* pszName, uint32_t nToken) {
 
 	pNew->name = str_Create(pszName);
 	str_ToUpperReplace(&pNew->name);
-	pNew->token = nToken;
+	pNew->token = (EToken) nToken;
 
 	if (str_Length(pNew->name) > g_maxWordLength)
 		g_maxWordLength = str_Length(pNew->name);
@@ -472,7 +473,7 @@ static uint32_t lex_LexStateNormal() {
 				g_pCurrentBuffer->atLineStart = false;
 				continue;
 			} else {
-				g_CurrentToken.ID.Token = 0;
+				g_CurrentToken.ID.Token = T_NONE;
 				return 0;
 			}
 		}
@@ -536,7 +537,7 @@ static uint32_t lex_LexStateNormal() {
 			}
 
 			g_CurrentToken.TokenLength = 1;
-			g_CurrentToken.ID.Token = *(g_pCurrentBuffer->pBuffer);
+			g_CurrentToken.ID.Token = (EToken) *(g_pCurrentBuffer->pBuffer);
 			return *(g_pCurrentBuffer->pBuffer)++;
 		}
 
@@ -645,15 +646,15 @@ uint32_t lex_GetNextToken(void) {
 				g_pCurrentBuffer->pBuffer += 1;
 				g_pCurrentBuffer->atLineStart = true;
 				g_CurrentToken.TokenLength = 1;
-				g_CurrentToken.ID.Token = '\n';
+				g_CurrentToken.ID.Token = T_LINEFEED;
 				return '\n';
 			} else if (*(g_pCurrentBuffer->pBuffer) == ',') {
 				g_pCurrentBuffer->pBuffer += 1;
 				g_CurrentToken.TokenLength = 1;
-				g_CurrentToken.ID.Token = ',';
+				g_CurrentToken.ID.Token = T_COMMA;
 				return ',';
 			} else {
-				g_CurrentToken.ID.Token = 0;
+				g_CurrentToken.ID.Token = T_NONE;
 				return 0;
 			}
 			break;

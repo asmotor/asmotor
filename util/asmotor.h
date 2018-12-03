@@ -48,7 +48,7 @@ extern int32_t facos(int32_t a);
 extern int32_t fatan(int32_t a);
 extern int32_t fatan2(int32_t a, int32_t b);
 
-extern int log2n(size_t value);
+extern uint32_t log2n(size_t value);
 
 
 #if defined(__VBCC__) || defined(__GNUC__)

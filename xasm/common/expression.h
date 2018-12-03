@@ -33,8 +33,8 @@ typedef	enum
     EXPR_PARENS
 } EExprType;
 
-#define EXPRF_CONSTANT	0x01
-#define EXPRF_RELOC		0x02
+#define EXPRF_CONSTANT	0x01u
+#define EXPRF_RELOC		0x02u
 
 typedef struct Expression
 {
@@ -109,8 +109,8 @@ extern SExpression* expr_Acos(SExpression* pExpr);
 extern SExpression* expr_Atan(SExpression* pExpr);
 extern SExpression* expr_Atan2(SExpression* pLeft, SExpression* pRight);
 
-extern SExpression* expr_Fmul(SExpression* pLeft, SExpression* pRight);
-extern SExpression* expr_Fdiv(SExpression* pLeft, SExpression* pRight);
+extern SExpression* expr_FixedMultiplication(SExpression* left, SExpression* right);
+extern SExpression* expr_FixedDivision(SExpression* left, SExpression* right);
 
 extern SExpression* expr_Parens(SExpression* pExpr);
 

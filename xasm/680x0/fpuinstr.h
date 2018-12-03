@@ -40,7 +40,7 @@ static uint16_t parse_GetSourceSpecifier(ESize sz)
 
 static bool_t parse_FpuGeneric(ESize sz, uint16_t opmode, SAddrMode* src, SAddrMode* dest)
 {
-	uint16_t rm = src->eMode == AM_FPUREG ? 0x0000 : 0x4000;
+	uint16_t rm = src->eMode == AM_FPUREG ? (uint16_t) 0x0000 : (uint16_t) 0x4000;
 
 	if(dest->eMode != AM_FPUREG)
 	{
@@ -71,7 +71,7 @@ static SInstruction s_FpuInstructions[] =
 		FPUF_ALL,
 		SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
 		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_FPUREG | AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ 0,
+		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_NONE,
 		parse_FABS
 	}
 };

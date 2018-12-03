@@ -82,6 +82,8 @@ bool_t locopt_Parse(char* s)
 				return false;
 			}
 			break;
+		default:
+			break;
 	}
 
 	prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);

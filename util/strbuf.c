@@ -42,7 +42,7 @@ void strbuf_AppendChars(stringbuffer* pBuffer, const char* pChars, size_t nCount
 
 	if (nCount + pBuffer->nSize > pBuffer->nAllocated) {
 		size_t nNewSize = nCount + pBuffer->nSize;
-		nNewSize += nNewSize >> 1;
+		nNewSize += nNewSize >> 1u;
 
 		pBuffer->pBuffer = mem_Realloc(pBuffer->pBuffer, nNewSize);
 		pBuffer->nAllocated = nNewSize;

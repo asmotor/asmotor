@@ -16,41 +16,39 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "xlink.h"
 
-#define HUNK_UNIT    0x3E7
-#define HUNK_NAME    0x3E8
-#define HUNK_CODE    0x3E9
-#define HUNK_DATA    0x3EA
-#define HUNK_BSS     0x3EB
-#define HUNK_RELOC32 0x3EC
-#define HUNK_EXT     0x3EF
-#define HUNK_SYMBOL  0x3F0
-#define HUNK_END     0x3F2
-#define HUNK_HEADER  0x3F3
-#define HUNKF_CHIP   (1 << 30)
+#define HUNK_UNIT    0x3E7u
+#define HUNK_NAME    0x3E8u
+#define HUNK_CODE    0x3E9u
+#define HUNK_DATA    0x3EAu
+#define HUNK_BSS     0x3EBu
+#define HUNK_RELOC32 0x3ECu
+#define HUNK_EXT     0x3EFu
+#define HUNK_SYMBOL  0x3F0u
+#define HUNK_END     0x3F2u
+#define HUNK_HEADER  0x3F3u
+#define HUNKF_CHIP   (1u << 30u)
 
-#define EXT_DEF      0x01000000
-#define EXT_REF32    0x81000000
+#define EXT_DEF      0x01000000u
+#define EXT_REF32    0x81000000u
 
 
-static void writeInt32(FILE* f, int32_t d)
+static void writeInt32(FILE* f, uint32_t d)
 {
-    fputc((d >> 24) & 0xFF, f);
-    fputc((d >> 16) & 0xFF, f);
-    fputc((d >> 8) & 0xFF, f);
-    fputc(d & 0xFF, f);
+    fputc((d >> 24u) & 0xFFu, f);
+    fputc((d >> 16u) & 0xFFu, f);
+    fputc((d >> 8u) & 0xFFu, f);
+    fputc(d & 0xFFu, f);
 }
 
 
-static void writeBuffer(FILE* fileHandle, void* buffer, int bufferSize)
+static void writeBuffer(FILE* fileHandle, const void* buffer, size_t bufferSize)
 {
     fwrite(buffer, 1, bufferSize, fileHandle);
 
-    while ((bufferSize & 3) != 0)
+    while ((bufferSize & 3u) != 0)
     {
         fputc(0, fileHandle);
         ++bufferSize;
@@ -65,7 +63,7 @@ static uint32_t longSize(uint32_t size)
 
 static void writeString(FILE* fileHandle, char* string, uint32_t extFlags)
 {
-    int stringLength = (int)strlen(string);
+    uint32_t stringLength = (uint32_t) strlen(string);
 
     writeInt32(fileHandle, longSize(stringLength) | extFlags);
     writeBuffer(fileHandle, string, stringLength);
@@ -146,24 +144,25 @@ static void writeExtHunk(FILE* fileHandle, Section* section, Patches* importPatc
 
 static uint32_t hunkType(Section* section)
 {
-    uint32_t hunktype;
+    uint32_t hunkType;
 
     switch (section->group->type)
     {
         case GROUP_TEXT:
             if (section->group->flags & GROUP_FLAG_DATA)
-                hunktype = HUNK_DATA;
+                hunkType = HUNK_DATA;
             else
-                hunktype = HUNK_CODE;
+                hunkType = HUNK_CODE;
 
             break;
+        default:
         case GROUP_BSS:
-            hunktype = HUNK_BSS;
+            hunkType = HUNK_BSS;
 
             break;
     }
 
-    return hunktype;
+    return hunkType;
 }
 
 
@@ -307,7 +306,7 @@ static uint32_t updateSectionIds()
         if (section->used && section->group != NULL)
             section->sectionId = sectionId++;
         else
-            section->sectionId = -1;
+            section->sectionId = UINT32_MAX;
     }
 
     return sectionId;

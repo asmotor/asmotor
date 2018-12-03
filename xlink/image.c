@@ -76,7 +76,7 @@ extern void image_WriteBinaryToFile(FILE* fileHandle, int padding)
 
     if (padding != -1)
     {
-        int bytesToPad = padding == 0 ? (2 << log2n(currentFileSize)) - currentFileSize : padding - currentFileSize % padding;
+        int bytesToPad = padding == 0 ? (2u << log2n(currentFileSize)) - currentFileSize : padding - currentFileSize % padding;
         writeRepeatedBytes(fileHandle, emptyBytes, currentFileSize, bytesToPad);
     }
 

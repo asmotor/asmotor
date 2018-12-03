@@ -39,7 +39,7 @@ extern void locsym_Init(void);
 /* ----------------------------------------------------------------------- */
 
 
-#define    SET_FLAGS(flags, type)    (flags)=((flags)&(SYMF_EXPORT|SYMF_REFERENCED))|s_aDefaultSymbolFlags[type]
+#define SET_FLAGS(flags, type) ((flags)=((flags)&(SYMF_EXPORT|SYMF_REFERENCED))|s_aDefaultSymbolFlags[type])
 
 /* ----------------------------------------------------------------------- */
 
@@ -124,18 +124,17 @@ static string* Callback__AMIGADATE(SSymbol* pSym) {
 
 static uint32_t sym_CalcHash(string* pName) {
 	uint32_t hash = 0;
-	int i;
-	int len = str_Length(pName);
+	size_t len = str_Length(pName);
 
-	for (i = 0; i < len; ++i) {
+	for (size_t i = 0; i < len; ++i) {
 		hash += str_CharAt(pName, i);
-		hash += hash << 10;
-		hash ^= hash >> 6;
+		hash += hash << 10U;
+		hash ^= hash >> 6U;
 	}
 
-	hash += hash << 3;
-	hash ^= hash >> 11;
-	hash += hash << 15;
+	hash += hash << 3U;
+	hash ^= hash >> 11U;
+	hash += hash << 15U;
 
 	return hash & (HASHSIZE - 1);
 }
@@ -242,7 +241,7 @@ SSymbol* sym_CreateEQUS(string* pName, string* pValue) {
 	return NULL;
 }
 
-SSymbol* sym_CreateMACRO(string* pName, char* value, uint32_t size) {
+SSymbol* sym_CreateMACRO(string* pName, char* value, size_t size) {
 	SSymbol* pSym = sym_FindOrCreate(pName);
 
 	if ((pSym->nFlags & SYMF_MODIFY) && sym_isType(pSym, SYM_MACRO)) {

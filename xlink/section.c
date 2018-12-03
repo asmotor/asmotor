@@ -132,13 +132,11 @@ static void resolveSymbol(Section* section, Symbol* symbol, bool_t allowImports)
 			}
 
 			Error("Unresolved symbol \"%s\"", symbol->name);
-			break;
 		}
 
 		default:
 		{
 			Error("Unhandled symbol type");
-			break;
 		}
 	}
 }
@@ -146,18 +144,16 @@ static void resolveSymbol(Section* section, Symbol* symbol, bool_t allowImports)
 
 Symbol* sect_GetSymbol(Section* section, int32_t symbolId, bool_t allowImports)
 {
-	if (symbolId < 0 || symbolId >= section->totalSymbols)
-	{
+	if (symbolId < 0 || symbolId >= section->totalSymbols) {
 		Error("Symbol ID out of range");
-		return NULL;
+	} else {
+		Symbol* symbol = &section->symbols[symbolId];
+
+		if (!symbol->resolved)
+			resolveSymbol(section, symbol, allowImports);
+
+		return symbol;
 	}
-	
-	Symbol* symbol = &section->symbols[symbolId];
-
-	if (!symbol->resolved)
-		resolveSymbol(section, symbol, allowImports);
-
-	return symbol;
 }
 
 

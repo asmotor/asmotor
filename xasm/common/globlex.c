@@ -182,11 +182,12 @@ static int32_t char2bin(char ch)
 
 typedef	int32_t (*x2bin)(char ch);
 
-static int32_t ascii2bin(char* s, size_t len)
+static int32_t ascii2bin(const char* s, size_t len)
 {
-    int32_t radix = 10;
     int32_t result = 0;
-    x2bin convertfunc = char2bin;
+
+    int32_t radix;
+    x2bin convertfunc;
 
     switch(*s)
     {
@@ -202,6 +203,10 @@ static int32_t ascii2bin(char* s, size_t len)
             --len;
             convertfunc = binary2bin;
             break;
+        default:
+            radix = 10;
+            convertfunc = char2bin;
+            break;
     }
 
     while(*s != '\0' && len-- > 0)
@@ -211,13 +216,13 @@ static int32_t ascii2bin(char* s, size_t len)
 }
 
 
-static bool_t ParseNumber(char* s, uint32_t size)
+static bool_t ParseNumber(const char* s, uint32_t size)
 {
     g_CurrentToken.Value.nInteger = ascii2bin(s, size);
     return true;
 }
 
-static bool_t ParseDecimal(char* s, uint32_t size)
+static bool_t ParseDecimal(const char* s, uint32_t size)
 {
     uint32_t integer = 0;
 
@@ -236,7 +241,7 @@ static bool_t ParseDecimal(char* s, uint32_t size)
             d *= 10;
         }
 
-        integer = (integer << 16) + imuldiv(fraction, 65536, d);
+        integer = (integer << 16u) + imuldiv(fraction, 65536, d);
     }
 
     g_CurrentToken.TokenLength -= size;
@@ -244,14 +249,13 @@ static bool_t ParseDecimal(char* s, uint32_t size)
     return true;
 }
 
-static bool_t ParseSymbol(char* src, uint32_t size)
+static bool_t ParseSymbol(const char* src, uint32_t size)
 {
     stringbuffer* pBuffer = strbuf_Create();
     string* pString;
-    uint32_t i;
     bool_t r;
 
-    for(i = 0; i < size; ++i)
+    for(uint32_t i = 0; i < size; ++i)
     {
         char ch = *src++;
         
@@ -290,13 +294,12 @@ static bool_t ParseSymbol(char* src, uint32_t size)
     if(g_bDontExpandStrings == 0 && sym_IsString(pString))
     {
         string* pValue = sym_GetStringValueByName(pString);
-        int len = str_Length(pValue);
-        int i;
+        size_t len = str_Length(pValue);
 
         lex_SkipBytes(size);
         lex_UnputString(str_String(pValue));
 
-        for(i = 0; i < len; ++i)
+        for(size_t i = 0; i < len; ++i)
         {
             if(str_CharAt(pValue, i) == '\n')
                 g_pFileContext->LineNumber -= 1;
@@ -315,7 +318,7 @@ static bool_t ParseSymbol(char* src, uint32_t size)
     return r;
 }
 
-bool_t ParseMacroArg(char* src, uint32_t size)
+bool_t ParseMacroArg(const char* src, uint32_t size)
 {
     char* arg = fstk_GetMacroArgValue(src[1]);
     lex_SkipBytes(size);
@@ -324,7 +327,7 @@ bool_t ParseMacroArg(char* src, uint32_t size)
     return false;
 }
 
-bool_t ParseUniqueArg(char* src, uint32_t size)
+bool_t ParseUniqueArg(const char* src, uint32_t size)
 {
     assert(src != NULL);
 

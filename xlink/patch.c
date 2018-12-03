@@ -283,9 +283,9 @@ static char* makePatchString(Patch* patch, Section* section)
                 uint32_t value;
 
                 value  = (*expression++);
-                value |= (*expression++) << 8;
-                value |= (*expression++) << 16;
-                value |= (*expression++) << 24;
+                value |= (*expression++) << 8u;
+                value |= (*expression++) << 16u;
+                value |= (*expression++) << 24u;
 
                 pushIntAsString(value);
 
@@ -297,9 +297,9 @@ static char* makePatchString(Patch* patch, Section* section)
                 uint32_t symbolId;
 
                 symbolId  = (*expression++);
-                symbolId |= (*expression++) << 8;
-                symbolId |= (*expression++) << 16;
-                symbolId |= (*expression++) << 24;
+                symbolId |= (*expression++) << 8u;
+                symbolId |= (*expression++) << 16u;
+                symbolId |= (*expression++) << 24u;
 
                 pushStringCopy(sect_GetSymbolName(section, symbolId));
 
@@ -313,9 +313,9 @@ static char* makePatchString(Patch* patch, Section* section)
                 uint32_t symbolId;
 
                 symbolId  = (*expression++);
-                symbolId |= (*expression++) << 8;
-                symbolId |= (*expression++) << 16;
-                symbolId |= (*expression++) << 24;
+                symbolId |= (*expression++) << 8u;
+                symbolId |= (*expression++) << 16u;
+                symbolId |= (*expression++) << 24u;
 
                 symbolName = sect_GetSymbolName(section, symbolId);
 
@@ -343,26 +343,34 @@ static char* makePatchString(Patch* patch, Section* section)
     return popString();
 }
 
+#define combine_bitwise(left, right, operator) \
+    popInt2(&(left), &(right)); \
+    if ((left).symbol == NULL && (right).symbol == NULL) { \
+        pushInt((uint32_t)(left).value operator (uint32_t)(right).value); \
+    } else { \
+        Error("Expression \"%s\" at offset %d in section \"%s\" attempts to combine two values from different sections", makePatchString(patch, section), patch->offset, section->name); \
+    }
+
 #define combine_operator(left, right, operator) \
-    popInt2(&left, &right); \
-    if (left.symbol == NULL && right.symbol == NULL) { \
-        pushInt(left.value operator right.value); \
+    popInt2(&(left), &(right)); \
+    if ((left).symbol == NULL && (right).symbol == NULL) { \
+        pushInt((left).value operator (right).value); \
     } else { \
         Error("Expression \"%s\" at offset %d in section \"%s\" attempts to combine two values from different sections", makePatchString(patch, section), patch->offset, section->name); \
     }
 
 #define combine_func(left, right, operator) \
-    popInt2(&left, &right); \
-    if (left.symbol == NULL && right.symbol == NULL) { \
-        pushInt(operator(left.value, right.value)); \
+    popInt2(&(left), &(right)); \
+    if ((left).symbol == NULL && (right).symbol == NULL) { \
+        pushInt(operator((left).value, (right).value)); \
     } else { \
         Error("Expression \"%s\" at offset %d in section \"%s\" attempts to combine two values from different sections", makePatchString(patch, section), patch->offset, section->name); \
     }
 
 #define unary(left, operator) \
-    left = popInt(); \
-    if (left.symbol == NULL) { \
-        pushSymbolInt(left.symbol, operator(left.value)); \
+    (left) = popInt(); \
+    if ((left).symbol == NULL) { \
+        pushSymbolInt((left).symbol, operator((left).value)); \
     } else { \
         Error("Expression \"%s\" at offset %d in section \"%s\" attempts to perform a unary operation on a value relative to a section", makePatchString(patch, section), patch->offset, section->name); \
     }
@@ -411,27 +419,27 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
             }
             case OBJ_OP_XOR:
             {
-                combine_operator(left, right, ^)
+                combine_bitwise(left, right, ^)
                 break;
             }
             case OBJ_OP_OR:
             {
-                combine_operator(left, right, |)
+                combine_bitwise(left, right, |)
                 break;
             }
             case OBJ_OP_AND:
             {
-                combine_operator(left, right, &)
+                combine_bitwise(left, right, &)
                 break;
             }
             case OBJ_OP_SHL:
             {
-                combine_operator(left, right, <<)
+                combine_bitwise(left, right, <<)
                 break;
             }
             case OBJ_OP_SHR:
             {
-                combine_operator(left, right, >>)
+                combine_bitwise(left, right, >>)
                 break;
             }
             case OBJ_OP_MUL:
@@ -566,9 +574,9 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
                 uint32_t value;
 
                 value  = (*expression++);
-                value |= (*expression++) << 8;
-                value |= (*expression++) << 16;
-                value |= (*expression++) << 24;
+                value |= (*expression++) << 8u;
+                value |= (*expression++) << 16u;
+                value |= (*expression++) << 24u;
 
                 pushInt(value);
 
@@ -581,9 +589,9 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
                 Symbol* symbol;
 
                 symbolId  = (*expression++);
-                symbolId |= (*expression++) << 8;
-                symbolId |= (*expression++) << 16;
-                symbolId |= (*expression++) << 24;
+                symbolId |= (*expression++) << 8u;
+                symbolId |= (*expression++) << 16u;
+                symbolId |= (*expression++) << 24u;
 
                 symbol = sect_GetSymbol(section, symbolId, allowImports);
                 if (symbol->section != NULL && symbol->section->cpuLocation != -1)
@@ -599,9 +607,9 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
                 int32_t bank;
 
                 symbolId  = (*expression++);
-                symbolId |= (*expression++) << 8;
-                symbolId |= (*expression++) << 16;
-                symbolId |= (*expression++) << 24;
+                symbolId |= (*expression++) << 8u;
+                symbolId |= (*expression++) << 16u;
+                symbolId |= (*expression++) << 24u;
 
                 if (!sect_GetConstantSymbolBank(section, symbolId, &bank))
                     return false;
@@ -689,8 +697,8 @@ static void patchSection(Section* section, bool_t allowReloc, bool_t onlySection
                     {
                         if (valueSymbol == NULL && value >= -32768 && value <= 65535)
                         {
-                            section->data[patch->offset + 0] = (uint8_t)value;
-                            section->data[patch->offset + 1] = (uint8_t)(value >> 8);
+                            section->data[patch->offset + 0] = (uint8_t) value;
+                            section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
                         }
                         else
                         {
@@ -702,8 +710,8 @@ static void patchSection(Section* section, bool_t allowReloc, bool_t onlySection
                     {
                         if (valueSymbol == NULL && value >= -32768 && value <= 65535)
                         {
-                            section->data[patch->offset + 0] = (uint8_t)(value >> 8);
-                            section->data[patch->offset + 1] = (uint8_t)value;
+                            section->data[patch->offset + 0] = (uint8_t) ((uint32_t) value >> 8u);
+                            section->data[patch->offset + 1] = (uint8_t) value;
                         }
                         else
                         {
@@ -713,18 +721,18 @@ static void patchSection(Section* section, bool_t allowReloc, bool_t onlySection
                     }
                     case PATCH_LLONG:
                     {
-                        section->data[patch->offset + 0] = (uint8_t)value;
-                        section->data[patch->offset + 1] = (uint8_t)(value >> 8);
-                        section->data[patch->offset + 2] = (uint8_t)(value >> 16);
-                        section->data[patch->offset + 3] = (uint8_t)(value >> 24);
+                        section->data[patch->offset + 0] = (uint8_t) value;
+                        section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
+                        section->data[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 16u);
+                        section->data[patch->offset + 3] = (uint8_t) ((uint32_t) value >> 24u);
                         break;
                     }
                     case PATCH_BLONG:
                     {
-                        section->data[patch->offset + 0] = (uint8_t)(value >> 24);
-                        section->data[patch->offset + 1] = (uint8_t)(value >> 16);
-                        section->data[patch->offset + 2] = (uint8_t)(value >> 8);
-                        section->data[patch->offset + 3] = (uint8_t)value;
+                        section->data[patch->offset + 0] = (uint8_t) ((uint32_t) value >> 24u);
+                        section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 16u);
+                        section->data[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 8u);
+                        section->data[patch->offset + 3] = (uint8_t) value;
                         break;
                     }
                     case PATCH_NONE:

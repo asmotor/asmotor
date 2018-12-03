@@ -65,8 +65,12 @@ bool_t locopt_Parse(char* s)
 					case 1:
 						g_pOptions->pMachine->bOptimize = true;
 						return true;
+					default:
+						break;
 				}
 			}
+			break;
+		default:
 			break;
 	}
 

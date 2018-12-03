@@ -38,7 +38,7 @@ struct Section
     uint32_t	FreeSpace;		/*	How many bytes are free */
     uint32_t	AllocatedSpace;	/*	How big a chunk of memory pData is pointing to */
     int32_t		Position;
-    int32_t		BasePC;
+    uint32_t	BasePC;
     int32_t		OrgOffset;
     int32_t		Bank;
     struct Patch* pPatches;
@@ -46,9 +46,9 @@ struct Section
 };
 typedef	struct Section SSection;
 
-#define	SECTF_LOADFIXED	0x01
-#define	SECTF_BANKFIXED	0x02
-#define	SECTF_ORGFIXED	0x04
+#define	SECTF_LOADFIXED	0x01u
+#define	SECTF_BANKFIXED	0x02u
+#define	SECTF_ORGFIXED	0x04u
 
 extern	SSection* g_pCurrentSection;
 extern	SSection* g_pSectionList;
@@ -56,9 +56,9 @@ extern	SSection* g_pSectionList;
 extern uint32_t sect_TotalSections(void);
 
 extern bool_t sect_SwitchTo(char* sectname, struct Symbol* group);
-extern bool_t sect_SwitchTo_LOAD(char* sectname, struct Symbol* group, int32_t load);
+extern bool_t sect_SwitchTo_LOAD(char* sectname, struct Symbol* group, uint32_t load);
 extern bool_t sect_SwitchTo_BANK(char* sectname, struct Symbol* group, int32_t bank);
-extern bool_t sect_SwitchTo_LOAD_BANK(char* sectname, struct Symbol* group, int32_t org, int32_t bank);
+extern bool_t sect_SwitchTo_LOAD_BANK(char* sectname, struct Symbol* group, uint32_t org, int32_t bank);
 extern bool_t sect_SwitchTo_NAMEONLY(char* sectname);
 extern bool_t sect_Init(void);
 extern void	sect_SetOrgAddress(uint32_t org);

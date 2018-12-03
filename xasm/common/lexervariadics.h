@@ -19,8 +19,10 @@
 #ifndef    INCLUDE_LEXERVARIADICS_H
 #define    INCLUDE_LEXERVARIADICS_H
 
+#include "tokens.h"
+
 typedef struct {
-	bool_t (* callback)(char* s, uint32_t size);
+	bool_t (* callback)(const char* s, uint32_t size);
 	uint32_t token;
 } SVariadicWordDefinition;
 

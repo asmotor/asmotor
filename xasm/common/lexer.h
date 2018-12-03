@@ -75,7 +75,7 @@ extern void lex_UnputChar(char c);
 extern void lex_SkipBytes(size_t count);
 extern void lex_Init(void);
 extern SLexBuffer* lex_CreateMemoryBuffer(const char* mem, size_t size);
-extern void lex_RewindBytes(uint32_t count);
+extern void lex_RewindBytes(size_t count);
 
 extern void lex_Bookmark(SLexBookmark* pBookmark);
 extern void lex_Goto(SLexBookmark* pBookmark);

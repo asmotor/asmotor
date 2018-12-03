@@ -67,7 +67,7 @@ typedef struct Configuration
 	bool_t bSupportBanks;
 	bool_t bSupportAmiga;
 	EMinimumWordSize eMinimumWordSize;
-	int nSectionAlignment;
+	uint32_t nSectionAlignment;
 	char* pszNameRB;
 	char* pszNameRW;
 	char* pszNameRL;

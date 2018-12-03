@@ -19,44 +19,14 @@
 #include "xlink.h"
 
 
-static void fputbl(uint32_t d, FILE* f)
-{
-	fputc((d >> 24) & 0xFF, f);
-	fputc((d >> 16) & 0xFF, f);
-	fputc((d >> 8) & 0xFF, f);
-	fputc(d & 0xFF, f);
-}
-
-
-static void fputbw(uint16_t d, FILE* f)
-{
-	fputc((d >> 8) & 0xFF, f);
-	fputc(d & 0xFF, f);
-}
-
-
-static void fputlw(uint16_t d, FILE* f)
-{
-	fputc(d & 0xFF, f);
-	fputc((d >> 8) & 0xFF, f);
-}
-
-
-static uint16_t fgetmw(FILE* f)
-{
-    uint16_t hi = fgetc(f) << 8;
-    return hi | fgetc(f);
-}
-
-
-static uint16_t sega_CalcMegaDriveChecksum(FILE* fileHandle, long length)
+static uint16_t sega_CalcMegaDriveChecksum(FILE* fileHandle, size_t length)
 {
     uint16_t r = 0;
-    long c = (length - 0x200) >> 1;
+    size_t c = (length - 0x200U) >> 1u;
 
     fseek(fileHandle, 0x200, SEEK_SET);
     while (c--)
-        r += fgetmw(fileHandle);
+        r += fgetbw(fileHandle);
 
     return r;
 }
@@ -116,7 +86,7 @@ static uint16_t sega_CalcMasterSystemCheckSum(FILE* fileHandle, int fileSize, in
 }
 
 
-uint8_t sega_CalcSizeCode(uint8_t code, int fileSize)
+uint8_t sega_CalcSizeCode(uint8_t code, size_t fileSize)
 {
     uint8_t newCode = 0;
     
@@ -134,7 +104,7 @@ uint8_t sega_CalcSizeCode(uint8_t code, int fileSize)
         case 0x100000: newCode = 0x02; break;
     }
 
-    return (code & 0xF0) | newCode;
+    return (uint8_t) ((code & 0xF0U) | newCode);
 }
 
 

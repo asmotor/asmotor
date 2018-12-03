@@ -21,18 +21,18 @@
 
 #include <assert.h>
 
-#define MODE_NONE	0x001
-#define MODE_IMM	0x002
-#define MODE_ZP		0x004
-#define MODE_ZP_X	0x008
-#define MODE_ZP_Y	0x010
-#define MODE_ABS	0x020
-#define MODE_ABS_X	0x040
-#define MODE_ABS_Y	0x080
-#define MODE_IND_X	0x100
-#define MODE_IND_Y	0x200
-#define MODE_A		0x400
-#define MODE_IND	0x800
+#define MODE_NONE	0x001u
+#define MODE_IMM	0x002u
+#define MODE_ZP		0x004u
+#define MODE_ZP_X	0x008u
+#define MODE_ZP_Y	0x010u
+#define MODE_ABS	0x020u
+#define MODE_ABS_X	0x040u
+#define MODE_ABS_Y	0x080u
+#define MODE_IND_X	0x100u
+#define MODE_IND_Y	0x200u
+#define MODE_A		0x400u
+#define MODE_IND	0x800u
 
 typedef struct
 {
@@ -43,8 +43,8 @@ typedef struct
 typedef struct Parser
 {
 	uint8_t	nBaseOpcode;
-	int		nAddressingModes;
-	bool_t	(*fpParser)(uint8_t nBaseOpcode, SAddressingMode* pAddrMode);
+	uint32_t nAddressingModes;
+	bool_t (*fpParser)(uint8_t nBaseOpcode, SAddressingMode* pAddrMode);
 } SParser;
 
 static bool_t parse_Standard_All(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
@@ -84,10 +84,11 @@ static bool_t parse_Standard_All(uint8_t nBaseOpcode, SAddressingMode* pAddrMode
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
+		default:
+			prj_Fail(MERROR_ILLEGAL_ADDRMODE);
+			return true;
 	}
 
-	prj_Fail(MERROR_ILLEGAL_ADDRMODE);
-	return true;
 }
 
 static bool_t parse_Standard_AbsY7(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
@@ -123,10 +124,10 @@ static bool_t parse_Standard_AbsY7(uint8_t nBaseOpcode, SAddressingMode* pAddrMo
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(5 << 2));
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
+		default:
+			prj_Fail(MERROR_ILLEGAL_ADDRMODE);
+			return true;
 	}
-
-	prj_Fail(MERROR_ILLEGAL_ADDRMODE);
-	return true;
 }
 
 static bool_t parse_Standard_Imm0(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
@@ -155,10 +156,10 @@ static bool_t parse_Standard_Imm0(uint8_t nBaseOpcode, SAddressingMode* pAddrMod
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
+		default:
+			prj_Fail(MERROR_ILLEGAL_ADDRMODE);
+			return true;
 	}
-
-	prj_Fail(MERROR_ILLEGAL_ADDRMODE);
-	return true;
 }
 
 static bool_t parse_Standard_Rotate(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
@@ -184,10 +185,10 @@ static bool_t parse_Standard_Rotate(uint8_t nBaseOpcode, SAddressingMode* pAddrM
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
 			sect_OutputExpr16(pAddrMode->pExpr);
 			return true;
+		default:
+			prj_Fail(MERROR_ILLEGAL_ADDRMODE);
+			return true;
 	}
-
-	prj_Fail(MERROR_ILLEGAL_ADDRMODE);
-	return true;
 }
 
 
@@ -258,8 +259,9 @@ static bool_t parse_DOP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 			sect_OutputConst8(0x14);
 			sect_OutputExpr8(pAddrMode->pExpr);
 			return true;
+		default:
+			return false;
 	}
-	return false;
 }
 
 static SParser g_Parsers[T_6502U_XAS - T_6502_ADC + 1] = 
@@ -348,7 +350,7 @@ static SParser g_Parsers[T_6502U_XAS - T_6502_ADC + 1] =
 };
 
 
-bool_t parse_AddressingMode(SAddressingMode* pAddrMode, int nAllowedModes)
+bool_t parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 {
 	SLexBookmark bm;
 	lex_Bookmark(&bm);
@@ -503,7 +505,7 @@ bool_t parse_IntegerInstruction(void)
 	if(T_6502_ADC <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_6502U_XAS)
 	{
 		SAddressingMode addrMode;
-		ETargetToken nToken = g_CurrentToken.ID.TargetToken;
+		ETargetToken nToken = (ETargetToken)g_CurrentToken.ID.TargetToken;
 		SParser* pParser = &g_Parsers[nToken - T_6502_ADC];
 
 		parse_GetToken();

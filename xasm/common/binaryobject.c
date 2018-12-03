@@ -28,7 +28,6 @@ bool_t bin_CommonPatch()
 {
 	SSection* sect;
 	int32_t nAddress;
-	int i;
 	bool_t bNeedOrg = false;
 
 	sect = g_pSectionList;
@@ -49,7 +48,7 @@ bool_t bin_CommonPatch()
 	nAddress = sect->Position;
 	do
 	{
-		int alignment = g_pConfiguration->nSectionAlignment - 1;
+		uint32_t alignment = g_pConfiguration->nSectionAlignment - 1u;
 		nAddress += (sect->UsedSpace + alignment) & ~alignment;
 		sect = list_GetNext(sect);
 		if(sect != NULL)
@@ -72,7 +71,7 @@ bool_t bin_CommonPatch()
 		}
 	} while(sect != NULL);
 
-	for(i = 0; i < HASHSIZE; ++i)
+	for(uint_fast16_t i = 0; i < HASHSIZE; ++i)
 	{
 		SSymbol* sym = g_pHashedSymbols[i];
 		while(sym)

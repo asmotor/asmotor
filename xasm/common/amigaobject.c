@@ -33,25 +33,25 @@
 #include "project.h"
 #include "amigaobject.h"
 
-#define HUNK_UNIT    0x3E7
-#define HUNK_NAME    0x3E8
-#define HUNK_CODE    0x3E9
-#define HUNK_DATA    0x3EA
-#define HUNK_BSS     0x3EB
-#define HUNK_RELOC32 0x3EC
-#define HUNK_EXT     0x3EF
-#define HUNK_SYMBOL  0x3F0
-#define HUNK_END     0x3F2
-#define HUNK_HEADER  0x3F3
-#define HUNKF_CHIP   (1 << 30)
+#define HUNK_UNIT    0x3E7u
+#define HUNK_NAME    0x3E8u
+#define HUNK_CODE    0x3E9u
+#define HUNK_DATA    0x3EAu
+#define HUNK_BSS     0x3EBu
+#define HUNK_RELOC32 0x3ECu
+#define HUNK_EXT     0x3EFu
+#define HUNK_SYMBOL  0x3F0u
+#define HUNK_END     0x3F2u
+#define HUNK_HEADER  0x3F3u
+#define HUNKF_CHIP   (1u << 30u)
 
-#define EXT_DEF      0x01000000
-#define EXT_REF32    0x81000000
+#define EXT_DEF      0x01000000u
+#define EXT_REF32    0x81000000u
 
 static void fputbuf(const void* buffer, size_t length, FILE* fileHandle) {
 	fwrite(buffer, 1, length, fileHandle);
 
-	while ((length & 3) != 0) {
+	while ((length & 3u) != 0) {
 		fputc(0, fileHandle);
 		++length;
 	}
@@ -69,7 +69,7 @@ static void writeSymbolHunk(FILE* fileHandle, const SSection* section, bool_t bS
 
 	fputbl(HUNK_SYMBOL, fileHandle);
 
-	for (int i = 0; i < HASHSIZE; ++i) {
+	for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
 		for (SSymbol* symbol = g_pHashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
 			if ((symbol->nFlags & SYMF_RELOC) != 0 && symbol->pSection == section) {
 				if (!((symbol->nFlags & SYMF_EXPORT) && bSkipExt)) {
@@ -135,7 +135,7 @@ static void writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch
 		importPatches = list_GetNext(importPatches);
 	}
 
-	for (int i = 0; i < HASHSIZE; ++i) {
+	for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
 		for (SSymbol* sym = g_pHashedSymbols[i]; sym != NULL; sym = list_GetNext(sym)) {
 			if ((sym->nFlags & (SYMF_RELOC | SYMF_EXPORT)) == (SYMF_RELOC | SYMF_EXPORT) && sym->pSection == section) {
 				fputstr(sym->pName, fileHandle, EXT_DEF);

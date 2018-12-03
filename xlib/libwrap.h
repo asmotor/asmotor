@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten Sørensen
+/*  Copyright 2008 Carsten Sï¿½rensen
 
     This file is part of ASMotor.
 
@@ -25,11 +25,11 @@
 
 typedef struct Library
 {
-	char	tName[MAXNAMELENGTH];
-	uint32_t	ulTime;
-	uint32_t	ulDate;
-	size_t	nByteLength;
-	uint8_t*	pData;
+	char tName[MAXNAMELENGTH];
+	uint32_t ulTime;
+	uint32_t ulDate;
+	uint32_t nByteLength;
+	uint8_t* pData;
 	struct Library* pNext;
 } SLibrary;
 

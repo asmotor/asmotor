@@ -67,51 +67,24 @@
 
 #include <string.h>
 
-#define	MAKE_ID(a,b,c,d)  (a)|((b)<<8)|((c)<<16)|((d)<<24)
+#define	MAKE_ID(a,b,c,d)  ((uint32_t)(a)|((uint32_t)(b)<<8u)|((uint32_t)(c)<<16u)|((uint32_t)(d)<<24u))
 
 static uint32_t	s_fileId = 0;
 static uint32_t s_minimumWordSize = 0;
-
-static uint32_t fgetll(FILE* fileHandle)
-{
-	uint32_t r;
-
-	r  = fgetc(fileHandle);
-	r |= fgetc(fileHandle) << 8;
-	r |= fgetc(fileHandle) << 16;
-	r |= fgetc(fileHandle) << 24;
-
-	return r;
-}
-
-static void fgetasciiz(char* destination, int maxLength, FILE* fileHandle)
-{
-	if (maxLength > 0)
-	{
-		char ch;
-
-		do
-		{
-			ch = *destination++ = (char)fgetc(fileHandle);
-			--maxLength;
-		} while (maxLength != 0 && ch);
-	}
-}
-
 
 static void readGroup(FILE* fileHandle, Group* group)
 {
 	uint32_t flags;
 	uint32_t type;
 
-	fgetasciiz(group->name, MAXSYMNAMELENGTH, fileHandle);
+	fgetsz(group->name, MAXSYMNAMELENGTH, fileHandle);
 
 	type = fgetll(fileHandle);
 	flags = type & (GROUP_FLAG_DATA | GROUP_FLAG_CHIP);
 	type &= ~flags;
 
 	group->flags = flags;
-	group->type = type;
+	group->type = (GroupType) type;
 
 }
 
@@ -155,9 +128,9 @@ static Groups* readGroups(FILE* fileHandle)
 
 static void readSymbol(FILE* fileHandle, Symbol* symbol)
 {
-	fgetasciiz(symbol->name, MAXSYMNAMELENGTH, fileHandle);
+	fgetsz(symbol->name, MAXSYMNAMELENGTH, fileHandle);
 
-	symbol->type = fgetll(fileHandle);
+	symbol->type = (SymbolType) fgetll(fileHandle);
 
 	if (symbol->type != SYM_IMPORT && symbol->type != SYM_LOCALIMPORT)
 		symbol->value = fgetll(fileHandle);
@@ -184,7 +157,6 @@ static uint32_t readSymbols(FILE* fileHandle, Symbol** outputSymbols)
 	}
 
 	Error("Out of memory");
-	return 0;
 }
 
 
@@ -193,7 +165,7 @@ static void readPatch(FILE* fileHandle, Patch* patch)
 	patch->offset = fgetll(fileHandle);
 	patch->valueSymbol = NULL;
 	patch->valueSection = NULL;
-	patch->type = fgetll(fileHandle);
+	patch->type = (PatchType) fgetll(fileHandle);
 	patch->expressionSize = fgetll(fileHandle);
 
 	if ((patch->expression = mem_Alloc(patch->expressionSize)) != NULL)
@@ -225,14 +197,13 @@ static Patches* readPatches(FILE* fileHandle)
 	}
 
 	Error("Out of memory");
-	return NULL;
 }
 
 
 static void readSection(FILE* fileHandle, Section* section, Groups* groups, int version)
 {
 	section->group = groups_GetGroup(groups, fgetll(fileHandle));
-	fgetasciiz(section->name, MAXSYMNAMELENGTH, fileHandle);
+	fgetsz(section->name, MAXSYMNAMELENGTH, fileHandle);
 	section->cpuBank = fgetll(fileHandle);
 	section->cpuByteLocation = fgetll(fileHandle);
 	if (version >= 1)
@@ -336,22 +307,12 @@ static void readChunk(FILE* fileHandle)
 			readXLB0(fileHandle);
 			break;
 		}
+
+		default:
+		{
+			Error("Unknown file type");
+		}
 	}
-}
-
-
-static size_t fsize(FILE* fileHandle)
-{
-	size_t pos;
-	size_t r;
-
-	pos = ftell(fileHandle);
-	fseek(fileHandle, 0, SEEK_END);
-
-	r = ftell(fileHandle);
-	fseek(fileHandle, pos, SEEK_SET);
-
-	return r;
 }
 
 

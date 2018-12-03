@@ -34,95 +34,98 @@
 typedef int32_t (*pPredicate_t)(int32_t nLeft, int32_t nRight);
 typedef int32_t (*pPredicate1_t)(int32_t nValue);
 
+static bool_t exactlyOneBitSet(int32_t d) {
+    return ((uint32_t) d & (uint32_t) -d) == (uint32_t) d && d != 0;
+}
+
 static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v);
 
-
-static int32_t patch_PredSub(int32_t nLeft, int32_t nRight)
+static int32_t patch_Subtract(int32_t nLeft, int32_t nRight)
 {
     return nLeft - nRight;
 }
 
-static int32_t patch_PredAdd(int32_t nLeft, int32_t nRight)
+static int32_t patch_Add(int32_t nLeft, int32_t nRight)
 {
     return nLeft + nRight;
 }
 
-static int32_t patch_PredXor(int32_t nLeft, int32_t nRight)
+static int32_t patch_BitwiseXor(int32_t nLeft, int32_t nRight)
 {
-    return nLeft ^ nRight;
+    return (uint32_t) nLeft ^ (uint32_t) nRight;
 }
 
-static int32_t patch_PredOr(int32_t nLeft, int32_t nRight)
+static int32_t patch_BitwiseOr(int32_t nLeft, int32_t nRight)
 {
-    return nLeft | nRight;
+    return (uint32_t) nLeft | (uint32_t) nRight;
 }
 
-static int32_t patch_PredAnd(int32_t nLeft, int32_t nRight)
+static int32_t patch_BitwiseAnd(int32_t nLeft, int32_t nRight)
 {
-    return nLeft & nRight;
+    return (uint32_t) nLeft & (uint32_t) nRight;
 }
 
-static int32_t patch_PredShl(int32_t nLeft, int32_t nRight)
+static int32_t patch_BitwiseShiftLeft(int32_t nLeft, int32_t nRight)
 {
-    return nLeft << nRight;
+    return (uint32_t) nLeft << (uint32_t) nRight;
 }
 
-static int32_t patch_PredShr(int32_t nLeft, int32_t nRight)
+static int32_t patch_BitwiseShiftRight(int32_t nLeft, int32_t nRight)
 {
-    return nLeft >> nRight;
+    return (uint32_t) nLeft >> (uint32_t) nRight;
 }
 
-static int32_t patch_PredMul(int32_t nLeft, int32_t nRight)
+static int32_t patch_Multiply(int32_t nLeft, int32_t nRight)
 {
     return nLeft * nRight;
 }
 
-static int32_t patch_PredDiv(int32_t nLeft, int32_t nRight)
+static int32_t patch_Divide(int32_t nLeft, int32_t nRight)
 {
     return nLeft / nRight;
 }
 
-static int32_t patch_PredMod(int32_t nLeft, int32_t nRight)
+static int32_t patch_Modulo(int32_t nLeft, int32_t nRight)
 {
     return nLeft % nRight;
 }
 
-static int32_t patch_PredBooleanAnd(int32_t nLeft, int32_t nRight)
+static int32_t patch_BooleanAnd(int32_t nLeft, int32_t nRight)
 {
     return nLeft && nRight;
 }
 
-static int32_t patch_PredBooleanOr(int32_t nLeft, int32_t nRight)
+static int32_t patch_BooleanOr(int32_t nLeft, int32_t nRight)
 {
     return nLeft || nRight;
 }
 
-static int32_t patch_PredGe(int32_t nLeft, int32_t nRight)
+static int32_t patch_GreaterOrEqual(int32_t nLeft, int32_t nRight)
 {
     return nLeft >= nRight;
 }
 
-static int32_t patch_PredGt(int32_t nLeft, int32_t nRight)
+static int32_t patch_GreaterThan(int32_t nLeft, int32_t nRight)
 {
     return nLeft > nRight;
 }
 
-static int32_t patch_PredLe(int32_t nLeft, int32_t nRight)
+static int32_t patch_LessOrEqual(int32_t nLeft, int32_t nRight)
 {
     return nLeft <= nRight;
 }
 
-static int32_t patch_PredLt(int32_t nLeft, int32_t nRight)
+static int32_t patch_LessThan(int32_t nLeft, int32_t nRight)
 {
     return nLeft < nRight;
 }
 
-static int32_t patch_PredEquals(int32_t nLeft, int32_t nRight)
+static int32_t patch_Equals(int32_t nLeft, int32_t nRight)
 {
     return nLeft == nRight;
 }
 
-static int32_t patch_PredNotEquals(int32_t nLeft, int32_t nRight)
+static int32_t patch_NotEquals(int32_t nLeft, int32_t nRight)
 {
     return nLeft != nRight;
 }
@@ -149,7 +152,7 @@ static int32_t patch_PredBooleanNot(int32_t nValue)
 
 static int32_t patch_PredNot(int32_t nValue)
 {
-    return ~nValue;
+    return ~ (uint32_t) nValue;
 }
 
 static int32_t patch_PredSin(int32_t nValue)
@@ -396,46 +399,46 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
                 return true;
             }
 
-            return patch_ReduceBinary(patch, expr, v, patch_PredSub);
+            return patch_ReduceBinary(patch, expr, v, patch_Subtract);
         }
         case T_OP_ADD:
-            return patch_ReduceBinary(patch, expr, v, patch_PredAdd);
+            return patch_ReduceBinary(patch, expr, v, patch_Add);
         case T_OP_XOR:
-            return patch_ReduceBinary(patch, expr, v, patch_PredXor);
+            return patch_ReduceBinary(patch, expr, v, patch_BitwiseXor);
         case T_OP_OR:
-            return patch_ReduceBinary(patch, expr, v, patch_PredOr);
+            return patch_ReduceBinary(patch, expr, v, patch_BitwiseOr);
         case T_OP_AND:
-            return patch_ReduceBinary(patch, expr, v, patch_PredAnd);
+            return patch_ReduceBinary(patch, expr, v, patch_BitwiseAnd);
         case T_OP_SHL:
-            return patch_ReduceBinary(patch, expr, v, patch_PredShl);
+            return patch_ReduceBinary(patch, expr, v, patch_BitwiseShiftLeft);
         case T_OP_SHR:
-            return patch_ReduceBinary(patch, expr, v, patch_PredShr);
+            return patch_ReduceBinary(patch, expr, v, patch_BitwiseShiftRight);
         case T_OP_MUL:
-            return patch_ReduceBinary(patch, expr, v, patch_PredMul);
+            return patch_ReduceBinary(patch, expr, v, patch_Multiply);
         case T_OP_DIV:
-            return patch_ReduceBinary(patch, expr, v, patch_PredDiv);
+            return patch_ReduceBinary(patch, expr, v, patch_Divide);
         case T_OP_MOD:
-            return patch_ReduceBinary(patch, expr, v, patch_PredMod);
+            return patch_ReduceBinary(patch, expr, v, patch_Modulo);
         case T_OP_LOGICOR:
-            return patch_ReduceBinary(patch, expr, v, patch_PredBooleanOr);
+            return patch_ReduceBinary(patch, expr, v, patch_BooleanOr);
         case T_OP_LOGICAND:
-            return patch_ReduceBinary(patch, expr, v, patch_PredBooleanAnd);
+            return patch_ReduceBinary(patch, expr, v, patch_BooleanAnd);
         case T_OP_LOGICNOT:
             return patch_ReduceUnary(patch, expr, v, patch_PredBooleanNot);
         case T_OP_NOT:
             return patch_ReduceUnary(patch, expr, v, patch_PredNot);
         case T_OP_LOGICGE:
-            return patch_ReduceBinary(patch, expr, v, patch_PredGe);
+            return patch_ReduceBinary(patch, expr, v, patch_GreaterOrEqual);
         case T_OP_LOGICGT:
-            return patch_ReduceBinary(patch, expr, v, patch_PredGt);
+            return patch_ReduceBinary(patch, expr, v, patch_GreaterThan);
         case T_OP_LOGICLE:
-            return patch_ReduceBinary(patch, expr, v, patch_PredLe);
+            return patch_ReduceBinary(patch, expr, v, patch_LessOrEqual);
         case T_OP_LOGICLT:
-            return patch_ReduceBinary(patch, expr, v, patch_PredLt);
+            return patch_ReduceBinary(patch, expr, v, patch_LessThan);
         case T_OP_LOGICEQU:
-            return patch_ReduceBinary(patch, expr, v, patch_PredEquals);
+            return patch_ReduceBinary(patch, expr, v, patch_Equals);
         case T_OP_LOGICNE:
-            return patch_ReduceBinary(patch, expr, v, patch_PredNotEquals);
+            return patch_ReduceBinary(patch, expr, v, patch_NotEquals);
         case T_FUNC_FDIV:
             return patch_ReduceBinary(patch, expr, v, patch_PredFDiv);
         case T_FUNC_FMUL:
@@ -461,7 +464,7 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
             if(!patch_Evaluate(patch,expr->pRight,&vr))
                 return false;
 
-            if((vr & -vr) == vr && vr != 0)
+            if(exactlyOneBitSet(vr))
             {
                 uint32_t t = vr;
                 int b = 0;
@@ -532,7 +535,6 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
         
         default:
             internalerror("Unknown operator");
-            break;
     }
     return false;
 }
@@ -581,7 +583,6 @@ static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
         default:
             internalerror("Unknown expression");
     }
-    return false;
 }
 
 
@@ -635,8 +636,8 @@ void patch_BackPatch(void)
                     case PATCH_LWORD:
                         if(v >= -32768 && v <= 65535)
                         {
-                            sect->pData[patch->Offset] = (uint8_t)v;
-                            sect->pData[patch->Offset + 1] = (uint8_t)(v >> 8);
+                            sect->pData[patch->Offset] = (uint8_t) v;
+                            sect->pData[patch->Offset + 1] = (uint8_t) ((uint32_t) v >> 8u);
                         }
                         else
                             prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
@@ -645,30 +646,29 @@ void patch_BackPatch(void)
                     case PATCH_BWORD:
                         if(v >= -32768 && v <= 65535)
                         {
-                            sect->pData[patch->Offset] = (uint8_t)(v >> 8);
-                            sect->pData[patch->Offset + 1] = (uint8_t)(v & 0xFF);
+                            sect->pData[patch->Offset] = (uint8_t) ((uint32_t) v >> 8u);
+                            sect->pData[patch->Offset + 1] = (uint8_t) v;
                         }
                         else
                             prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
                         break;
 
                     case PATCH_LLONG:
-                        sect->pData[patch->Offset] = (uint8_t)v;
-                        sect->pData[patch->Offset + 1] = (uint8_t)(v >> 8);
-                        sect->pData[patch->Offset + 2] = (uint8_t)(v >> 16);
-                        sect->pData[patch->Offset + 3] = (uint8_t)(v >> 24);
+                        sect->pData[patch->Offset] = (uint8_t) v;
+                        sect->pData[patch->Offset + 1] = (uint8_t)((uint32_t) v >> 8u);
+                        sect->pData[patch->Offset + 2] = (uint8_t)((uint32_t) v >> 16u);
+                        sect->pData[patch->Offset + 3] = (uint8_t)((uint32_t) v >> 24u);
                         break;
 
                     case PATCH_BLONG:
-                        sect->pData[patch->Offset] = (uint8_t)(v >> 24);
-                        sect->pData[patch->Offset + 1] = (uint8_t)(v >> 16);
-                        sect->pData[patch->Offset + 2] = (uint8_t)(v >> 8);
-                        sect->pData[patch->Offset + 3] = (uint8_t)v;
+                        sect->pData[patch->Offset] = (uint8_t)((uint32_t) v >> 24u);
+                        sect->pData[patch->Offset + 1] = (uint8_t)((uint32_t) v >> 16u);
+                        sect->pData[patch->Offset + 2] = (uint8_t)((uint32_t) v >> 8u);
+                        sect->pData[patch->Offset + 3] = (uint8_t) v;
                         break;
 
                     default:
-                        internalerror("Unknown patchtype");
-                        break;
+                        internalerror("Unknown patch type");
                 }
             }
         }
@@ -705,7 +705,7 @@ void patch_OptimizeExpression(SExpression* pExpr)
         pExpr->pRight = NULL;
 
         pExpr->eType = EXPR_CONSTANT;
-        pExpr->eOperator = 0;
+        pExpr->eOperator = T_NONE;
     }
 }
 

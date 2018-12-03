@@ -329,7 +329,6 @@ static void write_patch(FILE* f, SPatch* patch) {
 
 bool_t obj_Write(string* pName) {
 	FILE* f;
-	int i;
 	uint32_t groupcount = 0;
 	uint32_t equsetcount = 0;
 	uint32_t sectioncount = 0;
@@ -344,7 +343,7 @@ bool_t obj_Write(string* pName) {
 	fputc(g_pConfiguration->eMinimumWordSize, f);
 	fputll(0, f);
 
-	for (i = 0; i < HASHSIZE; ++i) {
+	for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
 		SSymbol* sym = g_pHashedSymbols[i];
 
 		while (sym) {
@@ -378,7 +377,7 @@ bool_t obj_Write(string* pName) {
 	pos = ftell(f);
 	fputll(0, f);        //	Number of symbols
 
-	for (i = 0; i < HASHSIZE; ++i) {
+	for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
 		SSymbol* sym;
 
 		for (sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym)) {
@@ -437,7 +436,7 @@ bool_t obj_Write(string* pName) {
 
 		ID = 0;
 
-		for (i = 0; i < HASHSIZE; ++i) {
+		for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
 			SSymbol* sym;
 
 			for (sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym)) {

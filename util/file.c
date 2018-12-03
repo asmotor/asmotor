@@ -29,22 +29,59 @@ size_t fsize(FILE* fileHandle) {
 }
 
 void fputll(uint32_t d, FILE* f) {
-	fputc(d & 0xFF, f);
-	fputc((d >> 8) & 0xFF, f);
-	fputc((d >> 16) & 0xFF, f);
-	fputc((d >> 24) & 0xFF, f);
+	fputc(d & 0xFFu, f);
+	fputc((d >> 8u) & 0xFFu, f);
+	fputc((d >> 16u) & 0xFFu, f);
+	fputc((d >> 24u) & 0xFFu, f);
+}
+
+uint32_t fgetll(FILE* fileHandle) {
+	uint32_t r;
+
+	r = (uint8_t) fgetc(fileHandle);
+	r |= (uint32_t) fgetc(fileHandle) << 8u;
+	r |= (uint32_t) fgetc(fileHandle) << 16u;
+	r |= (uint32_t) fgetc(fileHandle) << 24u;
+
+	return r;
 }
 
 void fputbl(uint32_t d, FILE* f) {
-	fputc((d >> 24) & 0xFF, f);
-	fputc((d >> 16) & 0xFF, f);
-	fputc((d >> 8) & 0xFF, f);
-	fputc(d & 0xFF, f);
+	fputc((d >> 24u) & 0xFFu, f);
+	fputc((d >> 16u) & 0xFFu, f);
+	fputc((d >> 8u) & 0xFFu, f);
+	fputc(d & 0xFFu, f);
 }
 
-void fputsz(const char* str, FILE* f) {
-	while (*str) {
-		fputc(*str++, f);
+uint16_t fgetbw(FILE* f) {
+	uint16_t hi = (uint16_t) fgetc(f) << 8u;
+	return hi | (uint8_t) fgetc(f);
+}
+
+void fputbw(uint16_t d, FILE* f) {
+	fputc((uint8_t) (d >> 8u), f);
+	fputc((uint8_t) d, f);
+}
+
+void fputlw(uint16_t d, FILE* f) {
+	fputc((uint8_t) d, f);
+	fputc((uint8_t) (d >> 8u), f);
+}
+
+void fgetsz(char* destination, size_t maxLength, FILE* fileHandle) {
+	if (maxLength > 0) {
+		char ch;
+
+		do {
+			ch = *destination++ = (char) fgetc(fileHandle);
+			--maxLength;
+		} while (maxLength != 0 && ch);
 	}
-	fputc(0, f);
+}
+
+void fputsz(const char* str, FILE* fileHandle) {
+	while (*str) {
+		fputc(*str++, fileHandle);
+	}
+	fputc(0, fileHandle);
 }

@@ -1,7 +1,55 @@
 <component name="ProjectDictionaryState">
   <dictionary name="ces">
     <words>
+      <w>addrf</w>
+      <w>argn</w>
+      <w>asci</w>
+      <w>asciiz</w>
+      <w>carsten</w>
+      <w>checksums</w>
+      <w>cpdr</w>
+      <w>cpir</w>
+      <w>disp</w>
+      <w>djnz</w>
+      <w>endr</w>
+      <w>facos</w>
+      <w>fasin</w>
+      <w>fatan</w>
+      <w>fcos</w>
+      <w>fdiv</w>
+      <w>fgetbw</w>
+      <w>fgetll</w>
+      <w>fgetsz</w>
+      <w>fmul</w>
+      <w>fputbl</w>
+      <w>fputbw</w>
+      <w>fputll</w>
+      <w>fputlw</w>
+      <w>fputsz</w>
+      <w>fsin</w>
       <w>fsize</w>
+      <w>ftan</w>
+      <w>gameboy</w>
+      <w>imuldiv</w>
+      <w>indr</w>
+      <w>inir</w>
+      <w>lddr</w>
+      <w>ldhl</w>
+      <w>ldir</w>
+      <w>locopt</w>
+      <w>opcode</w>
+      <w>optf</w>
+      <w>otdr</w>
+      <w>otir</w>
+      <w>outd</w>
+      <w>outi</w>
+      <w>rept</w>
+      <w>reti</w>
+      <w>retn</w>
+      <w>rlca</w>
+      <w>rrca</w>
+      <w>sorensen</w>
+      <w>xgbfix</w>
     </words>
   </dictionary>
 </component>

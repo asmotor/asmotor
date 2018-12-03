@@ -25,17 +25,14 @@ typedef	enum
 	GROUP_BSS = 1
 } GroupType;
 
-typedef enum
-{
-    GROUP_FLAG_CHIP = 0x20000000,
-    GROUP_FLAG_DATA = 0x40000000,
-} GroupFlags;
+#define GROUP_FLAG_CHIP 0x20000000u
+#define GROUP_FLAG_DATA 0x40000000u
 
 typedef	struct
 {
 	char name[MAXSYMNAMELENGTH];
 	GroupType  type;
-    GroupFlags flags;
+    uint32_t flags;
 } Group;
 
 typedef	struct

@@ -46,6 +46,7 @@ static inline bool_t symbol_IsLocal(Symbol* symbol)
         case SYM_LOCALEXPORT:
         case SYM_LOCALIMPORT:
             return true;
+    	default:
         case SYM_EXPORT:
         case SYM_IMPORT:
             return false;

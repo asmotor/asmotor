@@ -59,9 +59,9 @@ static bool_t parse_PseudoOp()
 			g_pOptions->pMachine->nFpu = FPUF_68060;
 			parse_GetToken();
 			return true;
+		default:
+			return false;
 	}
-
-	return false;
 }
 
 #endif

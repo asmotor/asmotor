@@ -19,15 +19,15 @@
 #ifndef GAMEBOY_LOCOPT_H_
 #define GAMEBOY_LOCOPT_H_
 
-#define CPUF_GB  0x01
-#define CPUF_Z80 0x02
+#define CPUF_GB  0x01u
+#define CPUF_Z80 0x02u
 
 typedef struct MachineOptions
 {
 	char GameboyChar[4];
-    char nCpu;
+    uint8_t nCpu;
 } SMachineOptions;
 
-extern uint32_t GameboyConstID;
+extern uint32_t g_GameboyLiteralId;
 
 #endif

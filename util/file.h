@@ -24,9 +24,19 @@
 #include "types.h"
 
 extern size_t fsize(FILE* fileHandle);
+
 extern void fputll(uint32_t data, FILE* f);
+extern uint32_t fgetll(FILE* f);
+
 extern void fputbl(uint32_t data, FILE* f);
-extern void fputsz(const char* str, FILE* f);
+
+extern uint16_t fgetbw(FILE* f);
+extern void fputbw(uint16_t d, FILE* f);
+
+extern void fputlw(uint16_t d, FILE* f);
+
+extern void fgetsz(char* destination, size_t maxLength, FILE* fileHandle);
+extern void fputsz(const char* str, FILE* fileHandle);
 
 
 #endif

@@ -19,448 +19,364 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "asmotor.h"
 
 #define XGBFIX_VERSION "1.0.0"
 
-#define POS_NINTENDO_LOGO	0x0104L
+#define POS_NINTENDO_LOGO   0x0104L
 #define POS_CARTRIDGE_TITLE 0x0134L
-#define POS_CARTRIDGE_TYPE	0x0147L
-#define POS_ROM_SIZE		0x0148L
-#define POS_COMP_CHECKSUM	0x014DL
-#define POS_CHECKSUM		0x014EL
+#define POS_CARTRIDGE_TYPE  0x0147L
+#define POS_ROM_SIZE        0x0148L
+#define POS_COMP_CHECKSUM   0x014DL
+#define POS_CHECKSUM        0x014EL
 
 
-/*
- * Option defines
- *
+/* Option handling
  */
 
-#define OPTF_DEBUG		0x01L
-#define OPTF_PAD		0x02L
-#define OPTF_VALIDATE	0x04L
-#define OPTF_TITLE		0x08L
+#define OPTF_DEBUG    0x01L
+#define OPTF_PAD      0x02L
+#define OPTF_VALIDATE 0x04L
+#define OPTF_TITLE    0x08L
 
-int g_nOptions;
+uint8_t g_OptionFlags;
 
-int IsOptionSet(int nOption)
-{
-	return g_nOptions & nOption ? 1 : 0;
+static bool isOptionSet(uint8_t optionFlag) {
+	return (g_OptionFlags & optionFlag) != 0;
 }
 
+/* Misc. variables */
 
-/*
- * Misc. variables
- *
- */
-
-unsigned char g_NintendoChar[48]=
-{
-	0xCE,0xED,0x66,0x66,0xCC,0x0D,0x00,0x0B,0x03,0x73,0x00,0x83,0x00,0x0C,0x00,0x0D,
-	0x00,0x08,0x11,0x1F,0x88,0x89,0x00,0x0E,0xDC,0xCC,0x6E,0xE6,0xDD,0xDD,0xD9,0x99,
-	0xBB,0xBB,0x67,0x63,0x6E,0x0E,0xEC,0xCC,0xDD,0xDC,0x99,0x9F,0xBB,0xB9,0x33,0x3E
+static uint8_t g_NintendoChar[48] = {
+		0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D, 0x00, 0x08,
+		0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E, 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63,
+		0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E
 };
 
+/* Diagnostic functions */
 
-
-
-/*
- * Misc. routines
- *
- */
-
-void PrintUsage( void )
-{
-	printf("motorgbfix v" XGBFIX_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n\n");
-	printf("Usage: rgbfix [options] image[.gb]\n");
-	printf("Options:\n");
-	printf("\t-h\t\tThis text\n");
-	printf("\t-d\t\tDebug: Don't change image\n");
-	printf("\t-p\t\tPad image to valid size\n\t\t\tPads to 32/64/128/256/512kB as appropriate\n");
-	printf("\t-t<name>\tChange cartridge title field (16 characters)\n");
-	printf("\t-v\t\tValidate header\n\t\t\tCorrects - Nintendo Character Area (0x0104)\n\t\t\t\t - ROM type (0x0147)\n\t\t\t\t - ROM size (0x0148)\n\t\t\t\t - Checksums (0x014D-0x014F)\n");
+static void printUsage(void) {
+	printf("xgbfix v" XGBFIX_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n\n"
+		   "Usage: xgbfix [options] image[.gb]\n"
+		   "Options:\n"
+		   "\t-h\t\tThis text\n"
+		   "\t-d\t\tDebug: Don't change image\n"
+		   "\t-p\t\tPad image to valid size\n\t\t\tPads to 32/64/128/256/512kB as appropriate\n"
+		   "\t-t<name>\tChange cartridge title field (16 characters)\n"
+		   "\t-v\t\tValidate header\n"
+		   "\t\t\tCorrects - Nintendo Character Area (0x0104)\n"
+		   "\t\t\t\t - ROM type (0x0147)\n"
+		   "\t\t\t\t - ROM size (0x0148)\n"
+		   "\t\t\t\t - Checksums (0x014D-0x014F)\n");
 	exit(EXIT_SUCCESS);
 }
 
-void FatalError(char* s)
-{
-	printf("ERROR: %s\n\n", s);
+static void fatalError(const char* error) {
+	printf("ERROR: %s\n\n", error);
 	exit(EXIT_FAILURE);
 }
 
+/* File helper functions */
 
-/*
- * File helper routines
- *
- */
+static size_t fileSize(FILE* fileHandle) {
+	fflush(fileHandle);
+	off_t prevPos = ftello(fileHandle);
+	fseek(fileHandle, 0, SEEK_END);
+	off_t r = ftello(fileHandle);
+	fseek(fileHandle, prevPos, SEEK_SET);
 
-long int FileSize(FILE* f)
-{
-	long nPrevPos;
-	long r;
-
-	fflush(f);
-	nPrevPos = ftell(f);
-	fseek(f, 0, SEEK_END);
-	r = ftell(f);
-	fseek(f, nPrevPos, SEEK_SET);
-	return r;
+	return (size_t) r;
 }
 
-int FileExists(char* s)
-{
-	FILE* f;
+static bool fileExists(const char* filename) {
+	FILE* fileHandle;
 
-	if((f = fopen(s, "rb")) != NULL)
-	{
-		fclose(f);
-		return 1;
-	}
-	else
-		return 0;
+	if ((fileHandle = fopen(filename, "rb")) != NULL) {
+		fclose(fileHandle);
+		return true;
+	} else
+		return false;
 }
 
+/* ROM image validation functions */
 
-/*
- * ROM image validation routines
- *
- */
+static void validateNintendoCharacterArea(FILE* fileHandle) {
+	uint32_t bytesChangedCount = 0;
 
-void ValidateNintendoCharacterArea(FILE* f)
-{
-	int i;
-	int nBytesChanged = 0;
+	fflush(fileHandle);
+	fseek(fileHandle, POS_NINTENDO_LOGO, SEEK_SET);
 
-	fflush(f);
-	fseek(f, POS_NINTENDO_LOGO, SEEK_SET);
-
-	for(i = 0; i < 48; ++i)
-	{
-		int ch = fgetc( f );
-		if(ch == EOF)
+	for (int i = 0; i < 48; ++i) {
+		int ch = fgetc(fileHandle);
+		if (ch == EOF)
 			ch = 0x00;
-		if(ch != g_NintendoChar[i])
-		{
-			++nBytesChanged;
+		if (ch != g_NintendoChar[i]) {
+			++bytesChangedCount;
 
-			if(!IsOptionSet(OPTF_DEBUG))
-			{
-				fflush(f);
-				fseek(f, POS_NINTENDO_LOGO + i, SEEK_SET);
-				fwrite(&g_NintendoChar[i], 1, 1, f);
-				fflush(f);
+			if (!isOptionSet(OPTF_DEBUG)) {
+				fflush(fileHandle);
+				fseek(fileHandle, POS_NINTENDO_LOGO + i, SEEK_SET);
+				fwrite(&g_NintendoChar[i], 1, 1, fileHandle);
+				fflush(fileHandle);
 			}
 		}
 	}
 
-	if(IsOptionSet(OPTF_DEBUG))
-	{
-		if(nBytesChanged != 0)
-			printf("\tChanged %d bytes in the Nintendo Character Area\n", nBytesChanged);
+	if (isOptionSet(OPTF_DEBUG)) {
+		if (bytesChangedCount != 0)
+			printf("\tChanged %d bytes in the Nintendo Character Area\n", bytesChangedCount);
 		else
 			printf("\tNintendo Character Area is OK\n");
 	}
 }
 
-void ValidateRomSize(FILE* f)
-{
-	int nCartRomSize;
-	long nFilesize;
-	unsigned char nCalcRomSize = 0;
+static void validateRomSize(FILE* fileHandle) {
+	fflush(fileHandle);
+	fseek(fileHandle, POS_ROM_SIZE, SEEK_SET);
 
-	fflush(f);
-	fseek(f, POS_ROM_SIZE, SEEK_SET);
+	int cartRomSize = fgetc(fileHandle);
+	if (cartRomSize == EOF)
+		cartRomSize = 0x00;
 
-	nCartRomSize = fgetc(f);
-	if(nCartRomSize == EOF)
-		nCartRomSize = 0x00;
+	uint8_t calculatedRomSize = 0;
+	size_t romSize = fileSize(fileHandle);
+	while (romSize > (0x8000UL << calculatedRomSize))
+		++calculatedRomSize;
 
-	nFilesize = FileSize(f);
-	while(nFilesize > (0x8000L << nCalcRomSize))
-		++nCalcRomSize;
-
-	if(nCalcRomSize == nCartRomSize)
-	{
-		if(IsOptionSet(OPTF_DEBUG))
+	if (calculatedRomSize == cartRomSize) {
+		if (isOptionSet(OPTF_DEBUG))
 			printf("\tROM size byte is OK\n");
 		return;
 	}
 
-	if(IsOptionSet(OPTF_DEBUG))
-	{
-		printf("\tChanged ROM size byte from 0x%02X (%ldkB) to 0x%02X (%ldkB)\n",
-			nCartRomSize, (0x8000L << nCartRomSize) / 1024,
-			nCalcRomSize, (0x8000L << nCalcRomSize) / 1024);
-	}
-	else
-	{
-		fseek(f, POS_ROM_SIZE, SEEK_SET);
-		fwrite(&nCalcRomSize, 1, 1, f);
-		fflush(f);
+	if (isOptionSet(OPTF_DEBUG)) {
+		printf("\tChanged ROM size byte from 0x%02X (%ldkB) to 0x%02X (%ldkB)\n", cartRomSize,
+			   (0x8000UL << (uint8_t) cartRomSize) / 1024, calculatedRomSize, (0x8000UL << calculatedRomSize) / 1024);
+	} else {
+		fseek(fileHandle, POS_ROM_SIZE, SEEK_SET);
+		fwrite(&calculatedRomSize, 1, 1, fileHandle);
+		fflush(fileHandle);
 	}
 }
 
-void ValidateCartridgeType(FILE* f)
-{
-	int nCartType;
+static void validateCartridgeType(FILE* fileHandle) {
+	fflush(fileHandle);
+	fseek(fileHandle, POS_CARTRIDGE_TYPE, SEEK_SET);
 
-	fflush(f);
-	fseek(f, POS_CARTRIDGE_TYPE, SEEK_SET);
+	int cartType = fgetc(fileHandle);
+	if (cartType == EOF)
+		cartType = 0x00;
 
-	nCartType = fgetc( f );
-	if(nCartType == EOF)
-		nCartType = 0x00;
-
-	if(FileSize(f) <= 0x8000L || nCartType != 0x00)
-	{
-		/* carttype byte can be anything? */
-		if(IsOptionSet(OPTF_DEBUG))
+	if (fileSize(fileHandle) <= 0x8000UL || cartType != 0x00) {
+		/* cart type byte can be anything? */
+		if (isOptionSet(OPTF_DEBUG))
 			printf("\tCartridge type byte is OK\n");
 		return;
 	}
 
-	if(IsOptionSet(OPTF_DEBUG))
-	{
+	if (isOptionSet(OPTF_DEBUG)) {
 		printf("\tCartridge type byte changed to 0x01\n");
 		return;
 	}
 
-	nCartType = 0x01;
-	fseek(f, POS_CARTRIDGE_TYPE, SEEK_SET);
-	fwrite(&nCartType, 1, 1, f);
-	fflush(f);
+	cartType = 0x01;
+	fseek(fileHandle, POS_CARTRIDGE_TYPE, SEEK_SET);
+	fwrite(&cartType, 1, 1, fileHandle);
+	fflush(fileHandle);
 }
 
-void ValidateChecksum(FILE* f)
-{
-	long i;
-	long nRomSize = FileSize(f);
-	unsigned short nCartChecksum = 0;
-	unsigned short nCalcChecksum = 0;
-	unsigned char nCartCompChecksum = 0;
-	unsigned char nCalcCompChecksum = 0;
+static void validateChecksum(FILE* fileHandle) {
+	size_t romSize = fileSize(fileHandle);
 
-	fflush(f);
-	fseek(f, 0, SEEK_SET);
+	uint16_t cartChecksum = 0;
+	uint16_t calculatedChecksum = 0;
+	uint8_t cartCompChecksum = 0;
+	uint8_t calculatedCompChecksum = 0;
 
-	for(i = 0; i < nRomSize; ++i)
-	{
-		int ch = fgetc(f);
-		if(ch == EOF)
+	fflush(fileHandle);
+	fseek(fileHandle, 0, SEEK_SET);
+
+	for (size_t i = 0; i < romSize; ++i) {
+		int ch = fgetc(fileHandle);
+		if (ch == EOF)
 			ch = 0;
 
-		if(i < 0x0134L)
-			nCalcChecksum += (unsigned short)ch;
-		else if(i < 0x014DL)
-		{
-			nCalcCompChecksum += (unsigned char)ch;
-			nCalcChecksum += (unsigned short)ch;
+		if (i < 0x0134L) {
+			calculatedChecksum += (uint16_t) ch;
+		} else if (i < 0x014DL) {
+			calculatedCompChecksum += (uint8_t) ch;
+			calculatedChecksum += (uint16_t) ch;
+		} else if (i == 0x014DL) {
+			cartCompChecksum = (uint8_t) ch;
+		} else if (i == 0x014EL) {
+			cartChecksum = (uint16_t) ch << 8U;
+		} else if (i == 0x014FL) {
+			cartChecksum |= (uint16_t) ch;
+		} else {
+			calculatedChecksum += (uint16_t) ch;
 		}
-		else if(i == 0x014DL)
-			nCartCompChecksum = (unsigned char)ch;
-		else if(i == 0x014EL)
-			nCartChecksum = (unsigned short)ch << 8;
-		else if(i == 0x014FL)
-			nCartChecksum |= (unsigned short)ch;
-		else
-			nCalcChecksum += (unsigned short)ch;
 	}
 
-	nCalcCompChecksum = 0xE7 - nCalcCompChecksum;
-	nCalcChecksum += nCalcCompChecksum;
+	calculatedCompChecksum = (uint8_t) (0xE7U - calculatedCompChecksum);
+	calculatedChecksum += calculatedCompChecksum;
 
-	if(nCartChecksum == nCalcChecksum)
-	{
-		if(IsOptionSet(OPTF_DEBUG))
+	if (cartChecksum == calculatedChecksum) {
+		if (isOptionSet(OPTF_DEBUG))
 			printf("\tChecksum is OK\n");
-	}
-	else
-	{
-		if(!IsOptionSet(OPTF_DEBUG))
-		{
-			fflush(f);
-			fseek(f, POS_CHECKSUM, SEEK_SET);
-			fputc(nCalcChecksum >> 8, f);
-			fputc(nCalcChecksum & 0xFF, f);
-			fflush(f);
-		}
-		else
-			printf("\tChecksum changed from 0x%04lX to 0x%04lX\n", (long)nCartChecksum, (long)nCalcChecksum);
+	} else {
+		if (!isOptionSet(OPTF_DEBUG)) {
+			fflush(fileHandle);
+			fseek(fileHandle, POS_CHECKSUM, SEEK_SET);
+			fputc(calculatedChecksum >> 8U, fileHandle);
+			fputc(calculatedChecksum & 0xFFU, fileHandle);
+			fflush(fileHandle);
+		} else
+			printf("\tChecksum changed from 0x%04lX to 0x%04lX\n", (long) cartChecksum, (long) calculatedChecksum);
 	}
 
-	if(nCartCompChecksum == nCalcCompChecksum)
-	{
-		if(IsOptionSet(OPTF_DEBUG))
+	if (cartCompChecksum == calculatedCompChecksum) {
+		if (isOptionSet(OPTF_DEBUG))
 			printf("\tCompChecksum is OK\n");
-	}
-	else if(!IsOptionSet(OPTF_DEBUG))
-	{
-		fflush(f);
-		fseek(f, POS_COMP_CHECKSUM, SEEK_SET);
-	 	fwrite(&nCalcCompChecksum, 1, 1, f);
-		fflush(f);
-	}
-	else
-		printf("\tCompChecksum changed from 0x%02lX to 0x%02lX\n", (long)nCartCompChecksum, (long)nCalcCompChecksum);
+	} else if (!isOptionSet(OPTF_DEBUG)) {
+		fflush(fileHandle);
+		fseek(fileHandle, POS_COMP_CHECKSUM, SEEK_SET);
+		fwrite(&calculatedCompChecksum, 1, 1, fileHandle);
+		fflush(fileHandle);
+	} else
+		printf("\tCompChecksum changed from 0x%02lX to 0x%02lX\n", (long) cartCompChecksum,
+			   (long) calculatedCompChecksum);
 }
 
+static void padRomImage(FILE* fileHandle) {
+	size_t romSize = fileSize(fileHandle);
+	size_t padToSize;
 
-void PadRomImage(FILE* f)
-{
-	long size = FileSize(f);
-	long padto;
+	padToSize = 0x8000UL;
+	while (romSize > padToSize)
+		padToSize *= 2;
 
-	padto = 0x8000L;
-	while(size > padto)
-		padto *= 2;
+	if (isOptionSet(OPTF_DEBUG))
+		printf("Padding to %ldkB:\n", padToSize / 1024);
 
-	if(IsOptionSet(OPTF_DEBUG))
-		printf("Padding to %ldkB:\n", padto / 1024);
-
-	if(size == padto)
-	{
+	if (romSize == padToSize) {
 		printf("\tNo padding needed\n");
 		return;
 	}
 
-	if(IsOptionSet(OPTF_DEBUG))
-	{
-		printf("\tAdded %ld bytes\n", padto - size);
+	if (isOptionSet(OPTF_DEBUG)) {
+		printf("\tAdded %ld bytes\n", padToSize - romSize);
 		return;
 	}
 
-	fseek(f, 0, SEEK_END);
-	while(size < padto)
-	{
-		++size;
-		fputc(0, f);
+	fseek(fileHandle, 0, SEEK_END);
+	while (romSize < padToSize) {
+		++romSize;
+		fputc(0, fileHandle);
 	}
-	fflush(f);
+	fflush(fileHandle);
 }
 
+static void setCartridgeTitle(FILE* fileHandle, char* newTitle) {
+	char cartTitle[16];
 
-void SetCartridgeTitle(FILE* f, char* pszTitle)
-{
-	char szCartname[16];
-
-	if(IsOptionSet(OPTF_DEBUG))
-	{
+	if (isOptionSet(OPTF_DEBUG)) {
 		printf("Setting cartridge title:\n");
-		printf("\tTitle set to %s\n", pszTitle);
+		printf("\tTitle set to %s\n", newTitle);
 		return;
 	}
 
-	memset(szCartname, 0, 16);
-	strncpy(szCartname, pszTitle, 16);
+	memset(cartTitle, 0, 16);
+	strncpy(cartTitle, newTitle, 16);
 
-	fflush(f);
-	fseek(f, POS_CARTRIDGE_TITLE, SEEK_SET);
-	fwrite(szCartname, 16, 1, f);
-	fflush(f);
+	fflush(fileHandle);
+	fseek(fileHandle, POS_CARTRIDGE_TITLE, SEEK_SET);
+	fwrite(cartTitle, 16, 1, fileHandle);
+	fflush(fileHandle);
 }
 
+int main(int argc, char* argv[]) {
+	if (--argc == 0)
+		printUsage();
 
-/*
- * Das main
- *
- */
+	g_OptionFlags = 0;
 
-int main( int argc, char *argv[] )
-{
-	int argn=1;
-	char filename[512];
-	char cartname[32];
-	FILE* f;
+	char newCartTitle[32];
+	int argn = 1;
 
-	g_nOptions = 0;
-
-	if(--argc == 0)
-		PrintUsage();
-
-	while(*argv[argn] == '-')
-	{
+	while (*argv[argn] == '-') {
 		--argc;
-		switch(argv[argn++][1])
-		{
+		switch (argv[argn++][1]) {
+			default:
+				printf("Unknown option \"%s\"\n", argv[argn - 1]);
+				exit(EXIT_FAILURE);
 			case '?':
 			case 'h':
-				PrintUsage();
+				printUsage();
 				break;
 			case 'd':
-				g_nOptions |= OPTF_DEBUG;
+				g_OptionFlags |= OPTF_DEBUG;
 				break;
 			case 'p':
-				g_nOptions |= OPTF_PAD;
+				g_OptionFlags |= OPTF_PAD;
 				break;
 			case 'v':
-				g_nOptions |= OPTF_VALIDATE;
+				g_OptionFlags |= OPTF_VALIDATE;
 				break;
 			case 't':
-				strncpy(cartname, argv[argn - 1] + 2, 16);
-				g_nOptions |= OPTF_TITLE;
+				strncpy(newCartTitle, argv[argn - 1] + 2, 16);
+				g_OptionFlags |= OPTF_TITLE;
 				break;
 		}
 	}
 
-	strcpy( filename, argv[argn++] );
+	char filename[512];
+	strcpy(filename, argv[argn++]);
 
-	if(!FileExists(filename))
+	FILE* fileHandle;
+
+	if (!fileExists(filename))
 		strcat(filename, ".gb");
 
-	if((f=fopen(filename,"rb+")) != NULL)
-	{
-		/*
-		 * -d (Debug) option code
-		 *
-		 */
+	if ((fileHandle = fopen(filename, "rb+")) != NULL) {
+		/* -d (Debug) option */
 
-		if(IsOptionSet(OPTF_DEBUG))
+		if (isOptionSet(OPTF_DEBUG))
 			printf("-d (Debug) option enabled...\n");
 
-		/*
-		 * -p (Pad) option code
-		 *
-		 */
+		/* -p (Pad) option */
 
-		if(IsOptionSet(OPTF_PAD))
-			PadRomImage(f);
+		if (isOptionSet(OPTF_PAD))
+			padRomImage(fileHandle);
 
-		/*
-		 * -t (Set carttitle) option code
-		 *
-		 */
+		/* -t (Set cart title) option */
 
-		if(IsOptionSet(OPTF_TITLE))
-			SetCartridgeTitle(f, cartname);
+		if (isOptionSet(OPTF_TITLE))
+			setCartridgeTitle(fileHandle, newCartTitle);
 
-		/*
-		 * -v (Validate header) option code
-		 *
-		 */
+		/* -v (Validate header) option */
 
-		if(IsOptionSet(OPTF_VALIDATE))
-		{
-			if(IsOptionSet(OPTF_DEBUG))
+		if (isOptionSet(OPTF_VALIDATE)) {
+			if (isOptionSet(OPTF_DEBUG))
 				printf("Validating header:\n");
 
 			/* Nintendo Character Area */
-			ValidateNintendoCharacterArea(f);
+			validateNintendoCharacterArea(fileHandle);
 
 			/* ROM size */
-			ValidateRomSize(f);
+			validateRomSize(fileHandle);
 
 			/* Cartridge type */
-			ValidateCartridgeType(f);
+			validateCartridgeType(fileHandle);
 
 			/* Checksum */
-			ValidateChecksum(f);
+			validateChecksum(fileHandle);
 		}
-		fclose( f );
-	}
-	else
-	{
-		FatalError( "Unable to open file" );
+		fclose(fileHandle);
+	} else {
+		fatalError("Unable to open file");
 	}
 
 	return EXIT_SUCCESS;

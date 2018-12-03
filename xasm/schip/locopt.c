@@ -66,16 +66,11 @@ bool_t locopt_Parse(char* s)
 						g_pOptions->pMachine->nCpu = CPUF_SCHIP;
 						return true;
 					default:
-						prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-						return false;
+						break;
 				}
 			}
-			else
-			{
-				prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-				return false;
-			}
-			break;
+			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
 		default:
 			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
 			return false;

@@ -53,7 +53,7 @@ uint32_t g_nTotalWarnings = 0;
 
 /*	Help text*/
 
-void PrintUsage(void)
+void printUsage(void)
 {
     printf(
 		"%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
@@ -113,7 +113,7 @@ extern int xasm_Main(int argc, char* argv[])
 
 	argc -= 1;
 	if(argc == 0)
-		PrintUsage();
+		printUsage();
 
 	sect_Init();
 	sym_Init();
@@ -128,7 +128,7 @@ extern int xasm_Main(int argc, char* argv[])
 		{
 			case '?':
 			case 'h':
-				PrintUsage();
+				printUsage();
 				break;
 			case 'g':
 				debuginfo = true;
@@ -236,6 +236,8 @@ extern int xasm_Main(int argc, char* argv[])
 							break;
 						case 'h':
 							wr = ami_WriteObject(pOutname, source);
+							break;
+						default:
 							break;
 					}
 					if(!wr)
