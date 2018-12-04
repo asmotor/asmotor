@@ -16,10 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XASM_COMMON_INCLUDE_BINOBJ_H_INCLUDED_
-#define	XASM_COMMON_INCLUDE_BINOBJ_H_INCLUDED_
+#ifndef XASM_COMMON_BINARYOBJECT_H_INCLUDED_
+#define XASM_COMMON_BINARYOBJECT_H_INCLUDED_
 
-extern bool bin_Write(string* pName);
-extern bool bin_WriteVerilog(string* pName);
+extern bool bin_Write(string* filename);
+extern bool bin_WriteVerilog(string* filename);
 
-#endif
+#endif /* XASM_COMMON_BINARYOBJECT_H_INCLUDED_ */

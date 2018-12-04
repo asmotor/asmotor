@@ -640,12 +640,12 @@ static SExpression* parse_ExprPri5(size_t maxStringConstLength) {
 		switch (g_CurrentToken.Token) {
 			case T_OP_SHL: {
 				parse_GetToken();
-				t1 = expr_Shl(t1, parse_ExprPri6(maxStringConstLength));
+				t1 = expr_Asl(t1, parse_ExprPri6(maxStringConstLength));
 				break;
 			}
 			case T_OP_SHR: {
 				parse_GetToken();
-				t1 = expr_Shr(t1, parse_ExprPri6(maxStringConstLength));
+				t1 = expr_Asr(t1, parse_ExprPri6(maxStringConstLength));
 				break;
 			}
 			case T_FUNC_FMUL: {

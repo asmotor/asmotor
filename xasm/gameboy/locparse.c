@@ -368,10 +368,7 @@ static bool parse_Bit(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 
 	sect_OutputExpr8(
 		expr_Or(
-			expr_Const(nOpcode),
-			expr_Shl(
-			parse_CreateExpression3U(pAddrMode1->pExpr),
-				expr_Const(3))
+			expr_Const(nOpcode), expr_Asl(parse_CreateExpression3U(pAddrMode1->pExpr), expr_Const(3))
 			)
 		);
 
@@ -1055,7 +1052,7 @@ static bool parse_AddrMode(SAddrMode* pAddrMode)
 
 		if(pExpr != NULL)
 		{
-			if(expr_GetType(pExpr) == EXPR_PARENS)
+			if(expr_Type(pExpr) == EXPR_PARENS)
 			{
 				pAddrMode->nMode = MODE_IMM_IND;
 				pAddrMode->pExpr = pExpr;

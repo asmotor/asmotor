@@ -18,150 +18,117 @@
 
 #include <stdio.h>
 
+// From util
 #include "types.h"
+
+// From xasm
 #include "section.h"
 #include "project.h"
 #include "symbol.h"
 #include "patch.h"
 
-bool bin_CommonPatch()
-{
-	SSection* sect;
-	uint32_t nAddress;
-	bool bNeedOrg = false;
-
-	sect = g_pSectionList;
-	while(sect)
-	{
-		if(sect->pPatches != NULL)
-			bNeedOrg = true;
-		sect = list_GetNext(sect);
+static bool needsOrg() {
+	for (const SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+		if (section->pPatches != NULL)
+			return true;
 	}
-	
-	sect = g_pSectionList;
-	if(bNeedOrg && (sect->Flags & SECTF_LOADFIXED) == 0)
-	{
+	return false;
+}
+
+static bool commonPatch() {
+	// Check first section
+	if (needsOrg() && (g_pSectionList->Flags & SECTF_LOADFIXED) == 0) {
 		prj_Error(ERROR_SECTION_MUST_LOAD);
 		return false;
 	}
 
-	nAddress = sect->Position;
-	do
-	{
+	uint32_t nAddress = g_pSectionList->Position;
+	SSection* section = g_pSectionList;
+	do {
 		uint32_t alignment = g_pConfiguration->nSectionAlignment - 1u;
-		nAddress += (sect->UsedSpace + alignment) & ~alignment;
-		sect = list_GetNext(sect);
-		if(sect != NULL)
-		{
-			if(sect->Flags & SECTF_LOADFIXED)
-			{
-				if(sect->Position < nAddress)
-				{
-					prj_Error(ERROR_SECTION_LOAD, sect->Name, sect->BasePC);
+		nAddress += (section->UsedSpace + alignment) & ~alignment;
+		section = list_GetNext(section);
+		if (section != NULL) {
+			if (section->Flags & SECTF_LOADFIXED) {
+				if (section->Position < nAddress) {
+					prj_Error(ERROR_SECTION_LOAD, section->Name, section->BasePC);
 					return false;
 				}
-				nAddress = sect->Position;
-			}
-			else
-			{
-				sect->Flags |= SECTF_LOADFIXED;
-				sect->Position = nAddress;
-				sect->BasePC = nAddress / g_pConfiguration->eMinimumWordSize;
+				nAddress = section->Position;
+			} else {
+				section->Flags |= SECTF_LOADFIXED;
+				section->Position = nAddress;
+				section->BasePC = nAddress / g_pConfiguration->eMinimumWordSize;
 			}
 		}
-	} while(sect != NULL);
+	} while (section != NULL);
 
-	for(uint_fast16_t i = 0; i < HASHSIZE; ++i)
-	{
-		SSymbol* sym = g_pHashedSymbols[i];
-		while(sym)
-		{
-			if(sym->nFlags & SYMF_RELOC)
-			{
-				sym->nFlags &= ~SYMF_RELOC;
-				sym->nFlags |= SYMF_CONSTANT;
-				sym->Value.Value += sym->pSection->BasePC;
+	for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
+		for (SSymbol* symbol = g_pHashedSymbols[i]; symbol !=NULL; symbol = list_GetNext(symbol)) {
+			if (symbol->nFlags & SYMF_RELOC) {
+				symbol->nFlags &= ~SYMF_RELOC;
+				symbol->nFlags |= SYMF_CONSTANT;
+				symbol->Value.Value += symbol->pSection->BasePC;
 			}
-			sym = list_GetNext(sym);
 		}
 	}
 
 	patch_BackPatch();
-
 	return true;
 }
 
-bool bin_Write(string* pName)
-{
-	FILE* f;
-
-	if(!bin_CommonPatch())
+bool bin_Write(string* filename) {
+	if (!commonPatch())
 		return false;
 
-	if((f = fopen(str_String(pName),"wb")) != NULL)
-	{
-		SSection* sect = g_pSectionList;
-		uint32_t nAddress = sect->Position;
+	FILE* fileHandle;
+	if ((fileHandle = fopen(str_String(filename), "wb")) != NULL) {
+		uint32_t position = g_pSectionList->Position;
 
-		while(sect)
-		{
-			if(sect->pData)
-			{
-				while(nAddress < sect->Position)
-				{
-					++nAddress;
-					fputc(0, f);
+		for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+			if (section->pData) {
+				while (position < section->Position) {
+					++position;
+					fputc(0, fileHandle);
 				}
 
-				fwrite(sect->pData, 1, sect->UsedSpace, f);
+				fwrite(section->pData, 1, section->UsedSpace, fileHandle);
 			}
 
-			nAddress += sect->UsedSpace;
-
-			sect = list_GetNext(sect);
+			position += section->UsedSpace;
 		}
 
-		fclose(f);
+		fclose(fileHandle);
 		return true;
 	}
 
 	return false;
 }
 
-bool bin_WriteVerilog(string* pName)
-{
-	FILE* f;
-
-	if(!bin_CommonPatch())
+bool bin_WriteVerilog(string* filename) {
+	if (!commonPatch())
 		return false;
 
-	if((f = fopen(str_String(pName),"wt")) != NULL)
-	{
-		SSection* sect = g_pSectionList;
-		uint32_t nAddress = sect->Position;
+	FILE* fileHandle;
+	if ((fileHandle = fopen(str_String(filename), "wt")) != NULL) {
+		uint32_t position = g_pSectionList->Position;
 
-		while(sect)
-		{
-			while(nAddress < sect->Position)
-			{
-				++nAddress;
-				fprintf(f, "00\n");
+		for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+			while (position < section->Position) {
+				++position;
+				fprintf(fileHandle, "00\n");
 			}
 
-			for(uint32_t i = 0; i < sect->UsedSpace; ++i)
-			{
-				uint8_t b = sect->pData ? sect->pData[i] : 0;
-				fprintf(f, "%02X\n", b);
+			for (uint32_t i = 0; i < section->UsedSpace; ++i) {
+				uint8_t b = (uint8_t) (section->pData ? section->pData[i] : 0u);
+				fprintf(fileHandle, "%02X\n", b);
 			}
-			nAddress += sect->UsedSpace;
-
-			sect = list_GetNext(sect);
+			position += section->UsedSpace;
 		}
 
-		fclose(f);
+		fclose(fileHandle);
 		return true;
 	}
 
 	return false;
 }
-

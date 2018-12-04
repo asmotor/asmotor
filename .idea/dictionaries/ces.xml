@@ -43,12 +43,15 @@
       <w>otir</w>
       <w>outd</w>
       <w>outi</w>
+      <w>relocations</w>
       <w>rept</w>
       <w>reti</w>
       <w>retn</w>
       <w>rlca</w>
       <w>rrca</w>
       <w>sorensen</w>
+      <w>verilog</w>
+      <w>xasm</w>
       <w>xgbfix</w>
     </words>
   </dictionary>

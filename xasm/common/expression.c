@@ -31,526 +31,420 @@
 #include "tokens.h"
 #include "project.h"
 
-#define T_OP_Add T_OP_ADD
-#define T_OP_Xor T_OP_XOR
-#define T_OP_Or T_OP_OR
-#define T_OP_And T_OP_AND
-#define T_OP_Shl T_OP_SHL
-#define T_OP_Shr T_OP_SHR
-#define T_OP_Mul T_OP_MUL
-#define T_OP_Div T_OP_DIV
-#define T_OP_Mod T_OP_MOD
-#define T_OP_BooleanOr T_OP_LOGICOR
-#define T_OP_BooleanAnd T_OP_LOGICAND
-#define T_OP_GreaterEqual T_OP_LOGICGE
-#define T_OP_GreaterThan T_OP_LOGICGT
-#define T_OP_LessEqual T_OP_LOGICLE
-#define T_OP_LessThan T_OP_LOGICLT
-#define T_OP_Equal T_OP_LOGICEQU
-#define T_OP_NotEqual T_OP_LOGICNE
-
-#define T_FUNC_Sin T_FUNC_SIN
-#define T_FUNC_Cos T_FUNC_COS
-#define T_FUNC_Tan T_FUNC_TAN
-#define T_FUNC_Asin T_FUNC_ASIN
-#define T_FUNC_Acos T_FUNC_ACOS
-#define T_FUNC_Atan T_FUNC_ATAN
-
-#define T_FUNC_LowLimit T_FUNC_LOWLIMIT
-#define T_FUNC_HighLimit T_FUNC_HIGHLIMIT
-
-static bool expr_VerifyPointers(SExpression* pLeft, SExpression* pRight)
-{
-    if(pLeft != NULL && pRight != NULL )
-        return true;
-
-    prj_Fail(ERROR_INVALID_EXPRESSION);
-    expr_Free(pLeft);
-    expr_Free(pRight);
-    return false;
+#define COMBINE(NAME, OP, TOKEN) \
+SExpression* expr_ ## NAME(SExpression* left, SExpression* right) { \
+    if (!expr_VerifyPointers(left, right)) \
+        return NULL;                       \
+    int32_t val = OP;                      \
+    left = mergeExpressions(left, right);  \
+    left->type = EXPR_OPERATION;           \
+    left->operation = TOKEN;               \
+    left->Value.Value = val;               \
+    return left;                           \
 }
 
-static bool expr_VerifyPointer(SExpression* pExpr)
-{
-    if(pExpr != NULL)
-        return true;
+#define COMBINE_BITWISE(NAME, OP, TOKEN) \
+	COMBINE(NAME, (uint32_t) left->Value.Value OP (uint32_t) right->Value.Value, TOKEN)
 
-    prj_Fail(ERROR_INVALID_EXPRESSION);
-    return false;
+#define COMBINE_ARITHMETIC(NAME, OP, TOKEN) \
+	COMBINE(NAME, left->Value.Value OP right->Value.Value, TOKEN)
+
+#define CREATE_BINARY_FUNC(NAME, OP, TOKEN) \
+	COMBINE(NAME, OP(left->Value.Value, right->Value.Value), TOKEN)
+
+#define CREATE_LIMIT(NAME, OP, TOKEN) \
+SExpression* expr_ ## NAME(SExpression* expr, SExpression* bound) { \
+    if (!expr_VerifyPointers(expr, bound))                \
+        return NULL;                                      \
+    int32_t val = expr->Value.Value;                      \
+    if(expr_IsConstant(expr) && expr_IsConstant(bound)) { \
+        if(expr->Value.Value OP bound->Value.Value) {     \
+            expr_Free(expr);                              \
+            expr_Free(bound);                             \
+            return NULL;                                  \
+        }                                                 \
+    }                                                     \
+    expr = mergeExpressions(expr, bound);                 \
+    expr->type = EXPR_OPERATION;                          \
+    expr->operation = TOKEN;                              \
+    expr->Value.Value = val;                              \
+    return expr;                                          \
 }
 
-SExpression* expr_Parens(SExpression* pExpr)
-{
-    SExpression* expr;
-
-    if(!expr_VerifyPointer(pExpr))
-        return NULL;
-
-    expr = (SExpression*)mem_Alloc(sizeof(SExpression));
-    expr->pRight = pExpr;
-    expr->pLeft = NULL;
-    expr->Value.Value = pExpr->Value.Value;
-    expr->nFlags = pExpr->nFlags;
-    expr->eType = EXPR_PARENS;
-    expr->eOperator = T_NONE;
-    return expr;
+#define CREATE_UNARY_FUNC(NAME, FUNC, TOKEN)      \
+SExpression* expr_ ## NAME(SExpression* right) {  \
+    if (!expr_VerifyPointer(right))               \
+        return NULL;                              \
+    SExpression* expr = (SExpression*) mem_Alloc(sizeof(SExpression)); \
+    expr->right = right;                          \
+    expr->left = NULL;                            \
+    expr->Value.Value = FUNC(right->Value.Value); \
+    expr->flags = right->flags & ~EXPRF_RELOC;    \
+    expr->type = EXPR_OPERATION;                  \
+    expr->operation = TOKEN;                      \
+    return expr;                                  \
 }
 
-SExpression* expr_Abs(SExpression* pRight)
-{
-    SExpression* pSign = expr_Shr(expr_Clone(pRight), expr_Const(31));
-    return expr_Sub(expr_Xor(pRight, expr_Clone(pSign)), pSign);
-}
-
-
-SExpression* expr_Bit(SExpression* pRight)
-{
-    SExpression* expr;
-    int b = 0;
-    uint32_t v;
-
-    if(!expr_VerifyPointer(pRight))
-        return NULL;
-
-    v = (uint32_t) pRight->Value.Value;
-
-    if(expr_IsConstant(pRight) && (v & -v) != v)
-    {
-        prj_Error(ERROR_EXPR_TWO_POWER);
-        return NULL;
-    }
-
-    b = 0;
-    if(v != 0)
-    {
-        while(v != 1)
-        {
-            v >>= 1;
-            ++b;
-        }
-    }
-
-    expr = (SExpression*)mem_Alloc(sizeof(SExpression));
-    expr->pRight = pRight;
-    expr->pLeft = NULL;
-    expr->Value.Value = b;
-    expr->nFlags = pRight->nFlags;
-    expr->eType = EXPR_OPERATOR;
-    expr->eOperator = T_OP_BIT;
-    return expr;
-}
-
-SExpression* expr_PcRelative(SExpression* pExpr, int nAdjust)
-{
-    if (!expr_VerifyPointer(pExpr))
-        return NULL;
-
-    if ((pExpr->nFlags & EXPRF_CONSTANT) && (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)))
-    {
-        pExpr->Value.Value -= (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset - nAdjust);
-        return pExpr;
-    }
-    else if (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))
-    {
-        return expr_Add(pExpr, expr_Const(nAdjust - (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset)));
-    }
-    else
-    {
-        SExpression* expr = (SExpression*)mem_Alloc(sizeof(SExpression));
-        
-        expr->Value.Value = 0;
-        expr->eType = EXPR_PCREL;
-        expr->nFlags = EXPRF_RELOC;
-        expr->pLeft = expr_Const(nAdjust);
-        expr->pRight = pExpr;
-        return expr;
-    }
+#define CREATE_EXPR_DIV(NAME, OP, TOKEN) \
+SExpression* expr_ ## NAME(SExpression* left, SExpression* right) \
+{                                                          \
+    if (!expr_VerifyPointers(left, right))                 \
+        return NULL;                                       \
+    if (right->Value.Value == 0) {                         \
+        prj_Fail(ERROR_ZERO_DIVIDE);                       \
+        return NULL;                                       \
+    }                                                      \
+    int32_t val = left->Value.Value OP right->Value.Value; \
+    left = mergeExpressions(left, right);                  \
+    left->type = EXPR_OPERATION;                           \
+    left->operation = TOKEN;                               \
+    left->Value.Value = val;                               \
+    return left;                                           \
 }
 
 
-SExpression* expr_Pc()
-{
-    string* pName;
-    SExpression* expr = (SExpression*)mem_Alloc(sizeof(SExpression));
+static bool expr_VerifyPointers(SExpression* left, SExpression* right) {
+	if (left != NULL && right != NULL)
+		return true;
 
-    char sym[MAXSYMNAMELENGTH + 20];
-    SSymbol* pSym;
-
-    sprintf(sym, "$%s%u", str_String(g_pCurrentSection->Name), g_pCurrentSection->PC);
-    pName = str_Create(sym);
-    pSym = sym_CreateLabel(pName);
-    str_Free(pName);
-
-    if(pSym->nFlags & SYMF_CONSTANT)
-    {
-        expr->Value.Value = pSym->Value.Value;
-        expr->eType = EXPR_CONSTANT;
-        expr->nFlags = EXPRF_CONSTANT | EXPRF_RELOC;
-        expr->pLeft = NULL;
-        expr->pRight = NULL;
-    }
-    else
-    {
-        expr->pRight = NULL;
-        expr->pLeft = NULL;
-        expr->Value.pSymbol = pSym;
-        expr->nFlags = EXPRF_RELOC;
-        expr->eType = EXPR_SYMBOL;
-    }
-
-    return expr;
+	prj_Fail(ERROR_INVALID_EXPRESSION);
+	expr_Free(left);
+	expr_Free(right);
+	return false;
 }
 
-void expr_SetConst(SExpression* pExpr, int32_t nValue)
-{
-    pExpr->pLeft = NULL;
-    pExpr->pRight = NULL;
-    pExpr->eType = EXPR_CONSTANT;
-    pExpr->nFlags = EXPRF_CONSTANT | EXPRF_RELOC;
-    pExpr->Value.Value = nValue;
+static bool expr_VerifyPointer(SExpression* expression) {
+	if (expression != NULL)
+		return true;
+
+	prj_Fail(ERROR_INVALID_EXPRESSION);
+	return false;
 }
 
-SExpression* expr_Const(int32_t nValue)
-{
-    SExpression* pExpr = (SExpression*)mem_Alloc(sizeof(SExpression));
+static SExpression* mergeExpressions(SExpression* left, SExpression* right) {
+	SExpression* expr;
 
-    expr_SetConst(pExpr, nValue);
-    return pExpr;
+	if (!expr_VerifyPointers(left, right))
+		return NULL;
+
+	expr = (SExpression*) mem_Alloc(sizeof(SExpression));
+
+	expr->flags = left->flags & right->flags;
+	expr->left = left;
+	expr->right = right;
+	return expr;
 }
 
-static SExpression* parse_MergeExpressions(SExpression* pLeft, SExpression* pRight)
-{
-    SExpression* expr;
+CREATE_EXPR_DIV(Div, /, T_OP_DIV)
 
-    if(!expr_VerifyPointers(pLeft, pRight))
-        return NULL;
+CREATE_EXPR_DIV(Mod, %, T_OP_MOD)
 
-    expr = (SExpression*) mem_Alloc(sizeof(SExpression));
+CREATE_UNARY_FUNC(BooleanNot, !, T_OP_LOGICNOT)
 
-    expr->nFlags = pLeft->nFlags & pRight->nFlags;
-    expr->pLeft = pLeft;
-    expr->pRight = pRight;
-    return expr;
+COMBINE_BITWISE(Xor, ^, T_OP_XOR)
+
+COMBINE_BITWISE(Or, |, T_OP_OR)
+
+COMBINE_BITWISE(And, &, T_OP_AND)
+
+COMBINE_BITWISE(Asl, <<, T_OP_SHL)
+
+COMBINE_ARITHMETIC(Add, +, T_OP_ADD)
+
+COMBINE_ARITHMETIC(Mul, *, T_OP_ADD)
+
+COMBINE_ARITHMETIC(BooleanOr, ||, T_OP_LOGICOR)
+
+COMBINE_ARITHMETIC(BooleanAnd, &&, T_OP_LOGICAND)
+
+COMBINE_ARITHMETIC(GreaterEqual, >=, T_OP_LOGICGE)
+
+COMBINE_ARITHMETIC(GreaterThan, >, T_OP_LOGICGT)
+
+COMBINE_ARITHMETIC(LessEqual, <=, T_OP_LOGICLE)
+
+COMBINE_ARITHMETIC(LessThan, <, T_OP_LOGICLT)
+
+COMBINE_ARITHMETIC(Equal, ==, T_OP_LOGICEQU)
+
+COMBINE_ARITHMETIC(NotEqual, !=, T_OP_LOGICNE)
+
+CREATE_LIMIT(LowLimit, <, T_FUNC_LOWLIMIT)
+
+CREATE_LIMIT(HighLimit, >, T_FUNC_HIGHLIMIT)
+
+CREATE_BINARY_FUNC(FixedMultiplication, fmul, T_FUNC_FMUL)
+
+CREATE_BINARY_FUNC(Atan2, fatan2, T_FUNC_ATAN2)
+
+CREATE_BINARY_FUNC(Asr, asr, T_OP_SHR)
+
+CREATE_UNARY_FUNC(Sin, fsin, T_FUNC_SIN)
+
+CREATE_UNARY_FUNC(Cos, fcos, T_FUNC_COS)
+
+CREATE_UNARY_FUNC(Tan, ftan, T_FUNC_TAN)
+
+CREATE_UNARY_FUNC(Asin, fasin, T_FUNC_ASIN)
+
+CREATE_UNARY_FUNC(Acos, facos, T_FUNC_ACOS)
+
+CREATE_UNARY_FUNC(Atan, fatan, T_FUNC_ATAN)
+
+void expr_Clear(SExpression* pExpr) {
+	if (pExpr == NULL)
+		return;
+
+	expr_Free(pExpr->left);
+	pExpr->left = NULL;
+
+	expr_Free(pExpr->right);
+	pExpr->right = NULL;
+
+	pExpr->flags = 0;
 }
 
-#define CREATE_EXPR_DIV(NAME,OP)															\
-SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
-{													\
-    int32_t val;									\
-    if(!expr_VerifyPointers(left, right))			\
-        return NULL;								\
-    if(right->Value.Value == 0)						\
-    {												\
-        prj_Fail(ERROR_ZERO_DIVIDE);				\
-        return NULL;								\
-    }												\
-    val = left->Value.Value OP right->Value.Value;	\
-    left = parse_MergeExpressions(left, right);		\
-    left->eType = EXPR_OPERATOR;						\
-    left->eOperator = T_OP_ ## NAME;					\
-    left->Value.Value = val;							\
-    return left;									\
+void expr_Free(SExpression* pExpr) {
+	if (pExpr == NULL)
+		return;
+
+	expr_Free(pExpr->left);
+	expr_Free(pExpr->right);
+	mem_Free(pExpr);
 }
 
-CREATE_EXPR_DIV(Div, /)
-CREATE_EXPR_DIV(Mod, %)
+SExpression* expr_Clone(SExpression* expr) {
+	SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-SExpression* expr_BooleanNot(SExpression* right)
-{
-    SExpression* expr;
+	*r = *expr;
+	if (r->left != NULL)
+		r->left = expr_Clone(r->left);
+	if (r->right != NULL)
+		r->right = expr_Clone(r->right);
 
-    if(!expr_VerifyPointer(right))
-        return NULL;
-
-    expr = (SExpression*)mem_Alloc(sizeof(SExpression));
-
-    expr->pRight = right;
-    expr->pLeft = NULL;
-    expr->Value.Value = !right->Value.Value;
-    expr->nFlags = right->nFlags;
-    expr->eType = EXPR_OPERATOR;
-    expr->eOperator = T_OP_LOGICNOT;
-    return expr;
+	return r;
 }
 
-SExpression* expr_Sub(SExpression* left, SExpression* right)
-{
-    int32_t val;
-    if(!expr_VerifyPointers(left, right))
-        return NULL;
-    val = left->Value.Value - right->Value.Value;
-    left = parse_MergeExpressions(left, right);
-    left->eType = EXPR_OPERATOR;
-    left->eOperator = T_OP_SUB;
-    left->Value.Value = val;
-    if ((left->nFlags & EXPRF_CONSTANT) == 0 && left->pLeft != NULL && left->pRight != NULL)
-    {
-        if (left->pLeft->eType == EXPR_SYMBOL && left->pRight->eType == EXPR_SYMBOL)
-        {
-            if (left->pLeft->Value.pSymbol->pSection == left->pRight->Value.pSymbol->pSection)
-            {
-                left->nFlags = EXPRF_CONSTANT;
-                left->Value.Value = left->pLeft->Value.pSymbol->Value.Value - left->pRight->Value.pSymbol->Value.Value;
-            }
-        }
-    }
-    return left;
+SExpression* expr_Parens(SExpression* expression) {
+	if (!expr_VerifyPointer(expression))
+		return NULL;
+
+	SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
+	r->right = expression;
+	r->left = NULL;
+	r->Value.Value = expression->Value.Value;
+	r->flags = expression->flags;
+	r->type = EXPR_PARENS;
+	r->operation = T_NONE;
+	return r;
 }
 
-#define CREATE_BITWISE(NAME,OP) \
-SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
-{													\
-    int32_t val;									\
-    if(!expr_VerifyPointers(left, right))			\
-        return NULL;								\
-    val = (uint32_t) left->Value.Value OP (uint32_t) right->Value.Value;	\
-    left = parse_MergeExpressions(left, right);		\
-    left->eType = EXPR_OPERATOR;						\
-    left->eOperator = T_OP_ ## NAME;					\
-    left->Value.Value = val;							\
-    return left;									\
+SExpression* expr_Abs(SExpression* right) {
+	SExpression* sign = expr_Asr(expr_Clone(right), expr_Const(31));
+	return expr_Sub(expr_Xor(right, expr_Clone(sign)), sign);
 }
 
-#define CREATE_EXPR(NAME,OP) \
-SExpression* expr_ ## NAME(SExpression* left, SExpression* right)	\
-{													\
-    int32_t val;									\
-    if(!expr_VerifyPointers(left, right))			\
-        return NULL;								\
-    val = left->Value.Value OP right->Value.Value;	\
-    left = parse_MergeExpressions(left, right);		\
-    left->eType = EXPR_OPERATOR;						\
-    left->eOperator = T_OP_ ## NAME;					\
-    left->Value.Value = val;							\
-    return left;									\
+SExpression* expr_Bit(SExpression* right) {
+	SExpression* expr;
+	int b = 0;
+	uint32_t v;
+
+	if (!expr_VerifyPointer(right))
+		return NULL;
+
+	v = (uint32_t) right->Value.Value;
+
+	if (expr_IsConstant(right) && (v & -v) != v) {
+		prj_Error(ERROR_EXPR_TWO_POWER);
+		return NULL;
+	}
+
+	b = 0;
+	if (v != 0) {
+		while (v != 1) {
+			v >>= 1;
+			++b;
+		}
+	}
+
+	expr = (SExpression*) mem_Alloc(sizeof(SExpression));
+	expr->right = right;
+	expr->left = NULL;
+	expr->Value.Value = b;
+	expr->flags = right->flags;
+	expr->type = EXPR_OPERATION;
+	expr->operation = T_OP_BIT;
+	return expr;
 }
 
-CREATE_BITWISE(Xor, ^)
-CREATE_BITWISE(Or,  |)
-CREATE_BITWISE(And, &)
-CREATE_BITWISE(Shl, <<)
-CREATE_BITWISE(Shr, >>)
-CREATE_EXPR(Add, +)
-CREATE_EXPR(Mul, *)
-CREATE_EXPR(BooleanOr, ||)
-CREATE_EXPR(BooleanAnd, &&)
-CREATE_EXPR(GreaterEqual, >=)
-CREATE_EXPR(GreaterThan, >)
-CREATE_EXPR(LessEqual, <=)
-CREATE_EXPR(LessThan, <)
-CREATE_EXPR(Equal, ==)
-CREATE_EXPR(NotEqual, !=)
+SExpression* expr_PcRelative(SExpression* pExpr, int nAdjust) {
+	if (!expr_VerifyPointer(pExpr))
+		return NULL;
 
-#define CREATE_LIMIT(NAME,OP)	\
-SExpression* expr_ ## NAME(SExpression* expr, SExpression* bound)	\
-{														\
-    int32_t val;										\
-    if(!expr_VerifyPointers(expr, bound))				\
-        return NULL;									\
-    val = expr->Value.Value;								\
-    if(expr_IsConstant(expr) && expr_IsConstant(bound))	\
-    {													\
-        if(expr->Value.Value OP bound->Value.Value)		\
-        {												\
-            expr_Free(expr);							\
-            expr_Free(bound);							\
-            return NULL;								\
-        }												\
-    }													\
-    expr = parse_MergeExpressions(expr, bound);			\
-    expr->eType = EXPR_OPERATOR;							\
-    expr->eOperator = T_FUNC_ ## NAME;					\
-    expr->Value.Value = val;								\
-    return expr;										\
+	if ((pExpr->flags & EXPRF_CONSTANT) && (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
+		pExpr->Value.Value -=
+				(g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset - nAdjust);
+		return pExpr;
+	} else if (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
+		return expr_Add(pExpr, expr_Const(
+				nAdjust - (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset)));
+	} else {
+		SExpression* expr = (SExpression*) mem_Alloc(sizeof(SExpression));
+
+		expr->Value.Value = 0;
+		expr->type = EXPR_PC_RELATIVE;
+		expr->flags = EXPRF_RELOC;
+		expr->left = expr_Const(nAdjust);
+		expr->right = pExpr;
+		return expr;
+	}
 }
 
-CREATE_LIMIT(LowLimit,<)
-CREATE_LIMIT(HighLimit,>)
+SExpression* expr_Pc() {
+	string* pName;
+	SExpression* expr = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-SExpression* expr_CheckRange(SExpression* pExpr, int32_t nLow, int32_t nHigh)
-{
-    SExpression* pLowExpr = expr_Const(nLow);
-    SExpression* pHighExpr = expr_Const(nHigh);
+	char sym[MAXSYMNAMELENGTH + 20];
+	SSymbol* pSym;
 
-    pExpr = expr_LowLimit(pExpr, pLowExpr);
-    if(pExpr != NULL)
-        return expr_HighLimit(pExpr, pHighExpr);
+	sprintf(sym, "$%s%u", str_String(g_pCurrentSection->Name), g_pCurrentSection->PC);
+	pName = str_Create(sym);
+	pSym = sym_CreateLabel(pName);
+	str_Free(pName);
 
-    expr_Free(pHighExpr);
-    return NULL;
+	if (pSym->nFlags & SYMF_CONSTANT) {
+		expr->Value.Value = pSym->Value.Value;
+		expr->type = EXPR_CONSTANT;
+		expr->flags = EXPRF_CONSTANT | EXPRF_RELOC;
+		expr->left = NULL;
+		expr->right = NULL;
+	} else {
+		expr->right = NULL;
+		expr->left = NULL;
+		expr->Value.pSymbol = pSym;
+		expr->flags = EXPRF_RELOC;
+		expr->type = EXPR_SYMBOL;
+	}
+
+	return expr;
 }
 
-SExpression* expr_FixedDivision(SExpression* left, SExpression* right)
-{
-    if(!expr_VerifyPointers(left, right))
-        return NULL;
-
-    if(right->Value.Value != 0)
-    {
-        int32_t val = fdiv(left->Value.Value, right->Value.Value);
-
-        left = parse_MergeExpressions(left, right);
-        left->eType = EXPR_OPERATOR;
-        left->eOperator = T_FUNC_FDIV;
-        left->Value.Value = val;
-        left->nFlags &= ~EXPRF_RELOC;
-        return left;
-    }
-
-    prj_Fail(ERROR_ZERO_DIVIDE);
-    return NULL;
+void expr_SetConst(SExpression* pExpr, int32_t nValue) {
+	pExpr->left = NULL;
+	pExpr->right = NULL;
+	pExpr->type = EXPR_CONSTANT;
+	pExpr->flags = EXPRF_CONSTANT | EXPRF_RELOC;
+	pExpr->Value.Value = nValue;
 }
 
-SExpression* expr_FixedMultiplication(SExpression* left, SExpression* right)
-{
-    int32_t val;
+SExpression* expr_Const(int32_t nValue) {
+	SExpression* pExpr = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-    if(!expr_VerifyPointers(left, right))
-        return NULL;
-
-    val = fmul(left->Value.Value, right->Value.Value);
-
-    left = parse_MergeExpressions(left, right);
-    left->eType = EXPR_OPERATOR;
-    left->eOperator = T_FUNC_FMUL;
-    left->Value.Value = val;
-    left->nFlags &= ~EXPRF_RELOC;
-    return left;
+	expr_SetConst(pExpr, nValue);
+	return pExpr;
 }
 
-SExpression* expr_Atan2(SExpression* left, SExpression* right)
-{
-    int32_t val;
+SExpression* expr_Sub(SExpression* left, SExpression* right) {
+	if (!expr_VerifyPointers(left, right))
+		return NULL;
 
-    if(!expr_VerifyPointers(left, right))
-        return NULL;
+	int32_t val = left->Value.Value - right->Value.Value;
 
-    val = fatan2(left->Value.Value, right->Value.Value);
+	left = mergeExpressions(left, right);
+	left->type = EXPR_OPERATION;
+	left->operation = T_OP_SUB;
+	left->Value.Value = val;
 
-    left = parse_MergeExpressions(left, right);
-    left->eType = EXPR_OPERATOR;
-    left->eOperator = T_FUNC_ATAN2;
-    left->Value.Value = val;
-    left->nFlags &= ~EXPRF_RELOC;
-    return left;
+	if ((left->flags & EXPRF_CONSTANT) == 0 && left->left != NULL && left->right != NULL) {
+		if (left->left->type == EXPR_SYMBOL && left->right->type == EXPR_SYMBOL) {
+			if (left->left->Value.pSymbol->pSection == left->right->Value.pSymbol->pSection) {
+				left->flags = EXPRF_CONSTANT;
+				left->Value.Value = left->left->Value.pSymbol->Value.Value - left->right->Value.pSymbol->Value.Value;
+			}
+		}
+	}
+	return left;
 }
 
-#define CREATE_TRANS_EXPR(NAME,FUNC)							\
-SExpression* expr_ ## NAME(SExpression* right)				\
-{															\
-    SExpression* expr;										\
-    if(!expr_VerifyPointer(right))							\
-        return NULL;										\
-    expr = (SExpression*)mem_Alloc(sizeof(SExpression));	\
-    expr->pRight = right;									\
-    expr->pLeft = NULL;										\
-    expr->Value.Value = FUNC(right->Value.Value);			\
-    expr->nFlags = right->nFlags & ~EXPRF_RELOC;				\
-    expr->eType = EXPR_OPERATOR;								\
-    expr->eOperator = T_FUNC_ ## NAME;						\
-    return expr;											\
+SExpression* expr_FixedDivision(SExpression* left, SExpression* right) {
+	if (!expr_VerifyPointers(left, right))
+		return NULL;
+
+	if (right->Value.Value != 0) {
+		int32_t val = fdiv(left->Value.Value, right->Value.Value);
+
+		left = mergeExpressions(left, right);
+		left->type = EXPR_OPERATION;
+		left->operation = T_FUNC_FDIV;
+		left->Value.Value = val;
+		left->flags &= ~EXPRF_RELOC;
+		return left;
+	}
+
+	prj_Fail(ERROR_ZERO_DIVIDE);
+	return NULL;
 }
 
-CREATE_TRANS_EXPR(Sin,fsin)
-CREATE_TRANS_EXPR(Cos,fcos)
-CREATE_TRANS_EXPR(Tan,ftan)
-CREATE_TRANS_EXPR(Asin,fasin)
-CREATE_TRANS_EXPR(Acos,facos)
-CREATE_TRANS_EXPR(Atan,fatan)
+SExpression* expr_CheckRange(SExpression* pExpr, int32_t nLow, int32_t nHigh) {
+	SExpression* pLowExpr = expr_Const(nLow);
+	SExpression* pHighExpr = expr_Const(nHigh);
 
-SExpression* expr_Bank(char* s)
-{
-    SExpression* expr;
-    string* pName;
+	pExpr = expr_LowLimit(pExpr, pLowExpr);
+	if (pExpr != NULL)
+		return expr_HighLimit(pExpr, pHighExpr);
 
-    if(!g_pConfiguration->bSupportBanks)
-        internalerror("Banks not supported");
-
-    pName = str_Create(s);
-    
-    expr = (SExpression*)mem_Alloc(sizeof(SExpression));
-
-    expr->pRight = NULL;
-    expr->pLeft = NULL;
-    expr->Value.pSymbol = sym_FindSymbol(pName);
-    expr->Value.pSymbol->nFlags |= SYMF_REFERENCED;
-    expr->nFlags = EXPRF_RELOC;
-    expr->eType = EXPR_OPERATOR;
-    expr->eOperator = T_FUNC_BANK;
-    
-    str_Free(pName);
-    
-    return expr;
+	expr_Free(pHighExpr);
+	return NULL;
 }
 
-SExpression* expr_Symbol(char* s)
-{
-    string* pName = str_Create(s);
-    SSymbol* pSym = sym_FindSymbol(pName);
-    str_Free(pName);
+SExpression* expr_Bank(const char* s) {
+	SExpression* expr;
+	string* pName;
 
-    if(pSym->nFlags & SYMF_EXPR)
-    {
-        pSym->nFlags |= SYMF_REFERENCED;
-        
-        if(pSym->nFlags & SYMF_CONSTANT)
-        {
-            return expr_Const(sym_GetValue(pSym));
-        }
-        else
-        {
-            SExpression* pExpr = (SExpression*)mem_Alloc(sizeof(SExpression));
+	if (!g_pConfiguration->bSupportBanks)
+		internalerror("Banks not supported");
 
-            pExpr->pRight = NULL;
-            pExpr->pLeft = NULL;
-            pExpr->Value.pSymbol = pSym;
-            pExpr->nFlags = EXPRF_RELOC;
-            pExpr->eType = EXPR_SYMBOL;
-            
-            return pExpr;
-        }
-    }
+	pName = str_Create(s);
 
-    prj_Fail(ERROR_SYMBOL_IN_EXPR);
-    return NULL;
+	expr = (SExpression*) mem_Alloc(sizeof(SExpression));
+
+	expr->right = NULL;
+	expr->left = NULL;
+	expr->Value.pSymbol = sym_FindSymbol(pName);
+	expr->Value.pSymbol->nFlags |= SYMF_REFERENCED;
+	expr->flags = EXPRF_RELOC;
+	expr->type = EXPR_OPERATION;
+	expr->operation = T_FUNC_BANK;
+
+	str_Free(pName);
+
+	return expr;
 }
 
+SExpression* expr_Symbol(const char* s) {
+	string* pName = str_Create(s);
+	SSymbol* pSym = sym_FindSymbol(pName);
+	str_Free(pName);
 
-void expr_Clear(SExpression* pExpr)
-{
-    if(pExpr == NULL)
-        return;
+	if (pSym->nFlags & SYMF_EXPR) {
+		pSym->nFlags |= SYMF_REFERENCED;
 
-    expr_Free(pExpr->pLeft);
-    pExpr->pLeft = NULL;
+		if (pSym->nFlags & SYMF_CONSTANT) {
+			return expr_Const(sym_GetValue(pSym));
+		} else {
+			SExpression* pExpr = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-    expr_Free(pExpr->pRight);
-    pExpr->pRight = NULL;
+			pExpr->right = NULL;
+			pExpr->left = NULL;
+			pExpr->Value.pSymbol = pSym;
+			pExpr->flags = EXPRF_RELOC;
+			pExpr->type = EXPR_SYMBOL;
 
-    pExpr->nFlags = 0;
+			return pExpr;
+		}
+	}
+
+	prj_Fail(ERROR_SYMBOL_IN_EXPR);
+	return NULL;
 }
 
-
-void expr_Free(SExpression* pExpr)
-{
-    if(pExpr == NULL)
-        return;
-
-    expr_Free(pExpr->pLeft);
-    expr_Free(pExpr->pRight);
-    mem_Free(pExpr);
-}
-
-
-SExpression* expr_Clone(SExpression* expr)
-{
-    SExpression* r = (SExpression*)mem_Alloc(sizeof(SExpression));
-    
-    *r = *expr;
-    if(r->pLeft != NULL)
-        r->pLeft = expr_Clone(r->pLeft);
-    if(r->pRight != NULL)
-        r->pRight = expr_Clone(r->pRight);
-
-    return r;
-}

@@ -37,7 +37,7 @@
 typedef struct
 {
 	int	nMode;
-	SExpression* pExpr;
+	SExpression* expr;
 } SAddressingMode;
 
 typedef struct Parser
@@ -53,36 +53,36 @@ static bool parse_Standard_All(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 	{
 		case MODE_IND_X:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(0 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_IMM:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(2 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_IND_Y:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(4 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ABS_Y:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(6 << 2));
-			sect_OutputExpr16(pAddrMode->pExpr);
+			sect_OutputExpr16(pAddrMode->expr);
 			return true;
 		case MODE_ZP:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(1 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ABS:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(3 << 2));
-			sect_OutputExpr16(pAddrMode->pExpr);
+			sect_OutputExpr16(pAddrMode->expr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(5 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ABS_X:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
-			sect_OutputExpr16(pAddrMode->pExpr);
+			sect_OutputExpr16(pAddrMode->expr);
 			return true;
 		default:
 			prj_Fail(MERROR_ILLEGAL_ADDRMODE);
@@ -97,32 +97,32 @@ static bool parse_Standard_AbsY7(uint8_t nBaseOpcode, SAddressingMode* pAddrMode
 	{
 		case MODE_IND_X:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(0 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_IMM:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(2 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_IND_Y:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(4 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ABS_Y:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
-			sect_OutputExpr16(pAddrMode->pExpr);
+			sect_OutputExpr16(pAddrMode->expr);
 			return true;
 		case MODE_ZP:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(1 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ABS:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(3 << 2));
-			sect_OutputExpr16(pAddrMode->pExpr);
+			sect_OutputExpr16(pAddrMode->expr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(5 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		default:
 			prj_Fail(MERROR_ILLEGAL_ADDRMODE);
@@ -136,25 +136,25 @@ static bool parse_Standard_Imm0(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 	{
 		case MODE_IMM:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(0 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ZP:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(1 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ABS:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(3 << 2));
-			sect_OutputExpr16(pAddrMode->pExpr);
+			sect_OutputExpr16(pAddrMode->expr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(5 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ABS_X:
 		case MODE_ABS_Y:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
-			sect_OutputExpr16(pAddrMode->pExpr);
+			sect_OutputExpr16(pAddrMode->expr);
 			return true;
 		default:
 			prj_Fail(MERROR_ILLEGAL_ADDRMODE);
@@ -171,19 +171,19 @@ static bool parse_Standard_Rotate(uint8_t nBaseOpcode, SAddressingMode* pAddrMod
 			return true;
 		case MODE_ZP:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(1 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ABS:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(3 << 2));
-			sect_OutputExpr16(pAddrMode->pExpr);
+			sect_OutputExpr16(pAddrMode->expr);
 			return true;
 		case MODE_ZP_X:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(5 << 2));
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ABS_X:
 			sect_OutputConst8(nBaseOpcode | (uint8_t)(7 << 2));
-			sect_OutputExpr16(pAddrMode->pExpr);
+			sect_OutputExpr16(pAddrMode->expr);
 			return true;
 		default:
 			prj_Fail(MERROR_ILLEGAL_ADDRMODE);
@@ -197,7 +197,7 @@ static bool parse_Branch(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 	SExpression* pExpr;
 
 	sect_OutputConst8(nBaseOpcode);
-	pExpr = expr_PcRelative(pAddrMode->pExpr, -1);
+	pExpr = expr_PcRelative(pAddrMode->expr, -1);
 	pExpr = expr_CheckRange(pExpr, -128, 127);
 	if(pExpr == NULL)
 	{
@@ -227,7 +227,7 @@ static bool parse_JMP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 		nBaseOpcode += 0x20;
 
 	sect_OutputConst8(nBaseOpcode);
-	sect_OutputExpr16(pAddrMode->pExpr);
+	sect_OutputExpr16(pAddrMode->expr);
 	return true;
 }
 
@@ -236,7 +236,7 @@ static bool parse_BRK(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	sect_OutputConst8(nBaseOpcode);
 	if(pAddrMode->nMode == MODE_IMM)
-		sect_OutputExpr8(pAddrMode->pExpr);
+		sect_OutputExpr8(pAddrMode->expr);
 	return true;
 }
 
@@ -249,15 +249,15 @@ static bool parse_DOP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 	{
 		case MODE_IMM:
 			sect_OutputConst8(0x80);
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ZP:
 			sect_OutputConst8(0x04);
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		case MODE_ZP_X:
 			sect_OutputConst8(0x14);
-			sect_OutputExpr8(pAddrMode->pExpr);
+			sect_OutputExpr8(pAddrMode->expr);
 			return true;
 		default:
 			return false;
@@ -359,23 +359,23 @@ bool parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 	{
 		parse_GetToken();
 		pAddrMode->nMode = MODE_A;
-		pAddrMode->pExpr = NULL;
+		pAddrMode->expr = NULL;
 		return true;
 	}
 	else if((nAllowedModes & MODE_IMM) && g_CurrentToken.Token == '#')
 	{
 		parse_GetToken();
 		pAddrMode->nMode = MODE_IMM;
-		pAddrMode->pExpr = parse_ExpressionSU8();
+		pAddrMode->expr = parse_ExpressionSU8();
 		return true;
 	}
 
 	if((nAllowedModes & (MODE_IND_X | MODE_IND_Y)) && g_CurrentToken.Token == '(')
 	{
 		parse_GetToken();
-		pAddrMode->pExpr = parse_ExpressionSU8();
+		pAddrMode->expr = parse_ExpressionSU8();
 
-		if(pAddrMode->pExpr != NULL)
+		if(pAddrMode->expr != NULL)
 		{
 			if(g_CurrentToken.Token == ',')
 			{
@@ -415,8 +415,8 @@ bool parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 		{
 			parse_GetToken();
 
-			pAddrMode->pExpr = parse_Expression(2);
-			if(pAddrMode->pExpr != NULL)
+			pAddrMode->expr = parse_Expression(2);
+			if(pAddrMode->expr != NULL)
 			{
 				if(parse_ExpectChar(')'))
 				{
@@ -430,12 +430,12 @@ bool parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 
 	if(nAllowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y))
 	{
-		pAddrMode->pExpr = parse_Expression(2);
+		pAddrMode->expr = parse_Expression(2);
 
-		if(pAddrMode->pExpr != NULL)
+		if(pAddrMode->expr != NULL)
 		{
-			if(expr_IsConstant(pAddrMode->pExpr)
-			&& 0 <= pAddrMode->pExpr->Value.Value && pAddrMode->pExpr->Value.Value <= 255)
+			if(expr_IsConstant(pAddrMode->expr)
+			&& 0 <= pAddrMode->expr->Value.Value && pAddrMode->expr->Value.Value <= 255)
 			{
 				if(g_CurrentToken.Token == ',')
 				{
@@ -485,14 +485,14 @@ bool parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 	if((nAllowedModes == 0) || (nAllowedModes & MODE_NONE))
 	{
 		pAddrMode->nMode = MODE_NONE;
-		pAddrMode->pExpr = NULL;
+		pAddrMode->expr = NULL;
 		return true;
 	}
 
 	if(nAllowedModes & MODE_A)
 	{
 		pAddrMode->nMode = MODE_A;
-		pAddrMode->pExpr = NULL;
+		pAddrMode->expr = NULL;
 		return true;
 	}
 

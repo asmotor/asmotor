@@ -131,7 +131,7 @@ static bool parse_OutputExtWords(SAddrMode* mode)
 				expr = expr_Or(expr, expr_Const(ins));
 				if(mode->Outer.pIndexScale != NULL)
 				{
-					expr = expr_Or(expr, expr_Shl(mode->Outer.pIndexScale, expr_Const(9)));
+					expr = expr_Or(expr, expr_Asl(mode->Outer.pIndexScale, expr_Const(9)));
 				}
 				sect_OutputExpr16(expr);
 				return true;
@@ -199,7 +199,7 @@ static bool parse_OutputExtWords(SAddrMode* mode)
 			{
 				if(mode->Outer.pIndexScale != NULL)
 				{
-					expr = expr_Or(expr, expr_Shl(mode->Outer.pIndexScale, expr_Const(9)));
+					expr = expr_Or(expr, expr_Asl(mode->Outer.pIndexScale, expr_Const(9)));
 				}
 				sect_OutputExpr16(expr);
 
@@ -296,7 +296,7 @@ static bool parse_OutputExtWords(SAddrMode* mode)
 			{
 				if(mode->Inner.pIndexScale != NULL)
 				{
-					expr = expr_Or(expr, expr_Shl(mode->Inner.pIndexScale, expr_Const(9)));
+					expr = expr_Or(expr, expr_Asl(mode->Inner.pIndexScale, expr_Const(9)));
 				}
 				sect_OutputExpr16(expr);
 
@@ -407,7 +407,7 @@ static bool parse_OutputExtWords(SAddrMode* mode)
 			{
 				if(mode->Outer.pIndexScale != NULL)
 				{
-					expr = expr_Or(expr, expr_Shl(mode->Outer.pIndexScale, expr_Const(9)));
+					expr = expr_Or(expr, expr_Asl(mode->Outer.pIndexScale, expr_Const(9)));
 				}
 				sect_OutputExpr16(expr);
 
@@ -590,7 +590,7 @@ static bool parse_xxxQ(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 	ins |= (uint16_t)(parse_GetEAField(dest) | (parse_GetSizeField(sz) << 6));
 
 	expr = expr_Const(ins);
-	expr = expr_Or(expr, expr_Shl(expr_And(src->pImmediate, expr_Const(7)), expr_Const(9)));
+	expr = expr_Or(expr, expr_Asl(expr_And(src->pImmediate, expr_Const(7)), expr_Const(9)));
 
 	sect_OutputExpr16(expr);
 	return parse_OutputExtWords(dest);
@@ -906,7 +906,7 @@ static bool parse_Shift(uint16_t ins, uint16_t memins, ESize sz, SAddrMode* src,
 				prj_Error(ERROR_OPERAND_RANGE);
 				return true;
 			}
-			expr = expr_Or(expr_Const(ins), expr_Shl(expr, expr_Const(9)));
+			expr = expr_Or(expr_Const(ins), expr_Asl(expr, expr_Const(9)));
 			sect_OutputExpr16(expr);
 		}
 		else if(src->eMode == AM_DREG)
@@ -1181,7 +1181,7 @@ static bool parse_BitfieldInstruction(uint16_t ins, uint16_t ext, SAddrMode* src
 			prj_Error(ERROR_OPERAND_RANGE);
 			return true;
 		}
-		expr = expr_Or(expr, expr_Shl(bf, expr_Const(6)));
+		expr = expr_Or(expr, expr_Asl(bf, expr_Const(6)));
 	}
 
 	if(src->nBFWidthReg != -1)

@@ -247,7 +247,7 @@ static bool parse_Branch(void)
 			return false;
 
 		pExpr = expr_PcRelative(pExpr, -4);
-		pExpr = expr_Shr(pExpr, expr_Const(2));
+		pExpr = expr_Asr(pExpr, expr_Const(2));
 		pExpr = expr_CheckRange(pExpr, -32768, 32767);
 		if(pExpr != NULL)
 		{
@@ -309,7 +309,7 @@ static bool parse_Shift(void)
 		pExpr = expr_CheckRange(pExpr, 0, 31);
 		if(pExpr != NULL)
 		{
-			pExpr = expr_Shl(pExpr, expr_Const(6));
+			pExpr = expr_Asl(pExpr, expr_Const(6));
 			pExpr = expr_Or(pExpr, expr_Const(ins | (rt << 16) | (rd << 11)));
 		
 			sect_OutputExpr32(pExpr);
@@ -521,7 +521,7 @@ static bool parse_IntegerInstructionRSRTCode(void)
 					return true;
 				}
 				
-				pExpr = expr_Shl(pExpr, expr_Const(6));
+				pExpr = expr_Asl(pExpr, expr_Const(6));
 				pExpr = expr_Or(pExpr, expr_Const(ins | (rs << 21) | (rt << 16)));
 				sect_OutputExpr32(pExpr);
 			}
@@ -759,7 +759,7 @@ static bool parse_IntegerJumpAbs(void)
 		pExpr = parse_Expression(4);
 		if(pExpr != NULL)
 		{
-			pExpr = expr_Shr(pExpr, expr_Const(2));
+			pExpr = expr_Asr(pExpr, expr_Const(2));
 			pExpr = expr_And(pExpr, expr_Const(0x03FFFFFF));
 			pExpr = expr_Or(pExpr, expr_Const(ins));
 		

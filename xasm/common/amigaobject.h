@@ -16,12 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_COMMON_AMIGAOBJ_H_INCLUDED_
-#define XASM_COMMON_AMIGAOBJ_H_INCLUDED_
+#ifndef XASM_COMMON_AMIGAOBJECT_H_INCLUDED_
+#define XASM_COMMON_AMIGAOBJECT_H_INCLUDED_
 
 #include "str.h"
 
 extern bool ami_WriteObject(string* destFilename, string* sourceFilename);
 extern bool ami_WriteExecutable(string* destFilename, bool writeDebugInfo);
 
-#endif
+#endif /* XASM_COMMON_AMIGAOBJECT_H_INCLUDED_ */

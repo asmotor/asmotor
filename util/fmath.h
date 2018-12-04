@@ -35,4 +35,6 @@ extern int32_t fatan2(int32_t a, int32_t b);
 
 extern uint32_t log2n(size_t value);
 
+extern int32_t asr(int32_t lhs, int32_t rhs);
+
 #endif /* UTIL_FMATH_H_INCLUDED_ */

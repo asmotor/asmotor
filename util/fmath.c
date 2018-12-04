@@ -86,3 +86,10 @@ uint32_t log2n(size_t value) {
 
 	return 0;
 }
+
+int32_t asr(int32_t lhs, int32_t rhs) {
+	if (lhs < 0)
+		return (uint32_t) lhs >> (int32_t) rhs | ~(UINT32_MAX >> (int32_t) rhs);
+	else
+		return lhs >> rhs;
+}

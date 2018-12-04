@@ -80,10 +80,10 @@
 
 static uint32_t calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, uint32_t ID) {
 	if (expr) {
-		ID = calc_symbol_ids(sect, f, expr->pLeft, ID);
-		ID = calc_symbol_ids(sect, f, expr->pRight, ID);
+		ID = calc_symbol_ids(sect, f, expr->left, ID);
+		ID = calc_symbol_ids(sect, f, expr->right, ID);
 
-		if (expr_GetType(expr) == EXPR_SYMBOL ||
+		if (expr_Type(expr) == EXPR_SYMBOL ||
 			(g_pConfiguration->bSupportBanks && expr_IsOperator(expr, T_FUNC_BANK))) {
 			if (expr->Value.pSymbol->ID == UINT32_MAX) {
 				expr->Value.pSymbol->ID = ID++;
@@ -112,10 +112,10 @@ static uint32_t calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, uint
 
 static void fix_local_exports(SSection* sect, SExpression* expr) {
 	if (expr) {
-		fix_local_exports(sect, expr->pLeft);
-		fix_local_exports(sect, expr->pRight);
+		fix_local_exports(sect, expr->left);
+		fix_local_exports(sect, expr->right);
 
-		if ((expr_GetType(expr) == EXPR_SYMBOL ||
+		if ((expr_Type(expr) == EXPR_SYMBOL ||
 			 (g_pConfiguration->bSupportBanks && expr_IsOperator(expr, T_FUNC_BANK))) &&
 			(expr->Value.pSymbol->nFlags & SYMF_EXPORTABLE) && expr->Value.pSymbol->pSection != sect) {
 			expr->Value.pSymbol->nFlags |= SYMF_LOCALEXPORT;
@@ -127,15 +127,15 @@ static int write_expr(FILE* f, SExpression* expr) {
 	int r = 0;
 
 	if (expr) {
-		r += write_expr(f, expr->pLeft);
-		r += write_expr(f, expr->pRight);
+		r += write_expr(f, expr->left);
+		r += write_expr(f, expr->right);
 
-		switch (expr_GetType(expr)) {
+		switch (expr_Type(expr)) {
 			case EXPR_PARENS: {
-				return write_expr(f, expr->pRight);
+				return write_expr(f, expr->right);
 			}
-			case EXPR_OPERATOR: {
-				switch (expr->eOperator) {
+			case EXPR_OPERATION: {
+				switch (expr->operation) {
 					default:
 						internalerror("Unknown operator");
 						break;
@@ -284,7 +284,7 @@ static int write_expr(FILE* f, SExpression* expr) {
 				r += 5;
 				break;
 			}
-			case EXPR_PCREL: {
+			case EXPR_PC_RELATIVE: {
 				fputc(OBJ_PCREL, f);
 				++r;
 				break;
