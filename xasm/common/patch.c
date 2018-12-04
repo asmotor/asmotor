@@ -16,7 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <math.h>
+#include <fmath.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
@@ -34,11 +34,11 @@
 typedef int32_t (*pPredicate_t)(int32_t nLeft, int32_t nRight);
 typedef int32_t (*pPredicate1_t)(int32_t nValue);
 
-static bool_t exactlyOneBitSet(int32_t d) {
+static bool exactlyOneBitSet(int32_t d) {
     return ((uint32_t) d & (uint32_t) -d) == (uint32_t) d && d != 0;
 }
 
-static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v);
+static bool patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v);
 
 static int32_t patch_Subtract(int32_t nLeft, int32_t nRight)
 {
@@ -186,7 +186,7 @@ static int32_t patch_PredAtan(int32_t nValue)
 }
 
 
-static bool_t patch_ReduceBinary(SPatch* pPatch, SExpression* pExpr, int32_t* v, pPredicate_t pPred)
+static bool patch_ReduceBinary(SPatch* pPatch, SExpression* pExpr, int32_t* v, pPredicate_t pPred)
 {
     int32_t vl;
     int32_t vr;
@@ -202,7 +202,7 @@ static bool_t patch_ReduceBinary(SPatch* pPatch, SExpression* pExpr, int32_t* v,
 }
 
 
-static bool_t patch_ReduceUnary(SPatch* pPatch, SExpression* pExpr, int32_t* v, pPredicate1_t pPred)
+static bool patch_ReduceUnary(SPatch* pPatch, SExpression* pExpr, int32_t* v, pPredicate1_t pPred)
 {
     int32_t vr;
 
@@ -222,7 +222,7 @@ static bool_t patch_ReduceUnary(SPatch* pPatch, SExpression* pExpr, int32_t* v, 
 }
 
 
-bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExpr)
+bool patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExpr)
 {
     if(pExpr == NULL)
         return false;
@@ -270,13 +270,13 @@ bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pE
     return false;
 }
 
-bool_t patch_IsRelativeToSection(SExpression* pExpr, SSection* pSection)
+bool patch_IsRelativeToSection(SExpression* pExpr, SSection* pSection)
 {
     uint32_t nOffset;
     return patch_GetSectionPcOffset(&nOffset, pExpr, pSection);
 }
 
-bool_t patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection* pSection)
+bool patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection* pSection)
 {
     if(pExpr == NULL)
         return false;
@@ -365,7 +365,7 @@ SSection* patch_GetExpressionSectionAndPcOffset(SExpression* pExpr, uint32_t* pO
     return NULL;
 }
 
-static bool_t patch_EvaluatePcRel(SPatch* patch, SExpression* expr, int32_t* v)
+static bool patch_EvaluatePcRel(SPatch* patch, SExpression* expr, int32_t* v)
 {
     uint32_t offset;
     if(patch_GetSectionPcOffset(&offset, expr->pRight, patch->pSection))
@@ -381,7 +381,7 @@ static bool_t patch_EvaluatePcRel(SPatch* patch, SExpression* expr, int32_t* v)
     return false;
 }
 
-static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* v)
+static bool patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* v)
 {
     switch(expr->eOperator)
     {
@@ -539,7 +539,7 @@ static bool_t patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* 
     return false;
 }
 
-static bool_t patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
+static bool patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
 {
     if (expr == NULL)
         return false;

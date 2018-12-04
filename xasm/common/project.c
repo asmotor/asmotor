@@ -142,7 +142,7 @@ void prj_Warn(int n, ...)
     ++g_nTotalWarnings;
 }
 
-bool_t prj_Error(int n, ...)
+bool prj_Error(int n, ...)
 {
     va_list	args;
 
@@ -154,7 +154,7 @@ bool_t prj_Error(int n, ...)
     return false;
 }
 
-bool_t prj_PatchError(SPatch* patch, int n, ...)
+bool prj_PatchError(SPatch* patch, int n, ...)
 {
     va_list	args;
 
@@ -166,7 +166,7 @@ bool_t prj_PatchError(SPatch* patch, int n, ...)
     return false;
 }
 
-bool_t prj_Fail(int n, ...)
+bool prj_Fail(int n, ...)
 {
     va_list	args;
 
@@ -178,7 +178,7 @@ bool_t prj_Fail(int n, ...)
     exit(EXIT_FAILURE);
 }
 
-bool_t prj_PatchFail(SPatch* patch, int n, ...)
+bool prj_PatchFail(SPatch* patch, int n, ...)
 {
     va_list	args;
 

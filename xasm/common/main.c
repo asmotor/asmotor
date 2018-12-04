@@ -101,8 +101,8 @@ extern int xasm_Main(int argc, char* argv[])
 	clock_t	StartClock;
 	clock_t EndClock;
 	string* pOutname = NULL;
-	bool_t debuginfo = false;
-	bool_t verbose = false;
+	bool debuginfo = false;
+	bool verbose = false;
 
 #if defined(_DEBUG)
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG)| _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
@@ -185,7 +185,7 @@ extern int xasm_Main(int argc, char* argv[])
 		string* source = str_Create(argv[argn]);
 		if(fstk_Init(source))
 		{
-			bool_t b = parse_Do();
+			bool b = parse_Do();
 
 			if(b)
 			{
@@ -196,7 +196,7 @@ extern int xasm_Main(int argc, char* argv[])
 			if(b && g_nTotalErrors == 0)
 			{
 				float timespent;
-				bool_t wr = false;
+				bool wr = false;
 
 				if(verbose)
 				{

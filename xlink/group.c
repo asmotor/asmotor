@@ -83,7 +83,7 @@ static MemoryPool* pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, 
 }
 
 
-static bool_t pool_AllocateMemory(MemoryPool* pool, uint32_t size, int32_t* cpuByteLocation)
+static bool pool_AllocateMemory(MemoryPool* pool, uint32_t size, int32_t* cpuByteLocation)
 {
     for (MemoryChunk* chunk = pool->freeChunks; chunk != NULL; chunk = chunk->nextChunk)
     {
@@ -102,7 +102,7 @@ static bool_t pool_AllocateMemory(MemoryPool* pool, uint32_t size, int32_t* cpuB
 }
 
 
-static bool_t pool_AllocateAbsolute(MemoryPool* pool, uint32_t size, int32_t cpuByteLocation)
+static bool pool_AllocateAbsolute(MemoryPool* pool, uint32_t size, int32_t cpuByteLocation)
 {
     for (MemoryChunk* chunk = pool->freeChunks; chunk != NULL; chunk = chunk->nextChunk)
     {
@@ -180,7 +180,7 @@ static MemoryGroup* group_FindByName(char* name)
 }
 
 
-static bool_t group_AllocateMemoryFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation)
+static bool group_AllocateMemoryFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation)
 {
     for (int32_t i = 0; i < group->totalPools; ++i)
     {
@@ -200,7 +200,7 @@ static bool_t group_AllocateMemoryFromGroup(MemoryGroup* group, uint32_t size, i
 }
 
 
-static bool_t group_AllocateAbsoluteFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation)
+static bool group_AllocateAbsoluteFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation)
 {
     for (int32_t i = 0; i < group->totalPools; ++i)
     {
@@ -220,7 +220,7 @@ static bool_t group_AllocateAbsoluteFromGroup(MemoryGroup* group, uint32_t size,
 }
 
 
-bool_t group_AllocateMemory(char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation)
+bool group_AllocateMemory(char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation)
 {
     MemoryGroup* group = group_FindByName(groupName);
     return group_AllocateMemoryFromGroup(group, size, bankId, cpuByteLocation, cpuBank, imageLocation);
@@ -228,7 +228,7 @@ bool_t group_AllocateMemory(char* groupName, uint32_t size, int32_t bankId, int3
 }
 
 
-bool_t group_AllocateAbsolute(char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation)
+bool group_AllocateAbsolute(char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation)
 {
     MemoryGroup* group = group_FindByName(groupName);
     return group_AllocateAbsoluteFromGroup(group, size, bankId, cpuByteLocation, cpuBank, imageLocation);
@@ -343,7 +343,7 @@ void group_SetupAmiga(void)
 }
 
 
-void group_SetupUnbankedCommodore(int baseAddress, int size)
+static void group_SetupUnbankedCommodore(uint32_t baseAddress, uint32_t size)
 {
     MemoryGroup* group;
     MemoryPool* codepool;
@@ -387,7 +387,7 @@ void group_SetupCommodore264(void)
 }
 
 
-void group_SetupCommodore128ROM(int baseAddress, int size)
+static void setupCommodore128ROM(uint32_t baseAddress, uint32_t size)
 {
     MemoryGroup* group;
     MemoryPool* pool;
@@ -414,19 +414,19 @@ void group_SetupCommodore128ROM(int baseAddress, int size)
 
 void group_SetupCommodore128FunctionROM()
 {
-    group_SetupCommodore128ROM(0x8000, 0x8000);
+	setupCommodore128ROM(0x8000, 0x8000);
 }
 
 
 void group_SetupCommodore128FunctionROMLow()
 {
-    group_SetupCommodore128ROM(0x8000, 0x4000);
+	setupCommodore128ROM(0x8000, 0x4000);
 }
 
 
 void group_SetupCommodore128FunctionROMHigh()
 {
-    group_SetupCommodore128ROM(0xC000, 0x4000);
+	setupCommodore128ROM(0xC000, 0x4000);
 }
 
 

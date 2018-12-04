@@ -30,7 +30,7 @@
 #include "filestack.h"
 
 extern void locopt_Update(void);
-extern bool_t locopt_Parse(char*);
+extern bool locopt_Parse(char*);
 extern void locopt_Open(void);
 
 SOptions* g_pOptions;

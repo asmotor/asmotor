@@ -16,21 +16,23 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef UTIL_MEM_H_INCLUDED_
-#define UTIL_MEM_H_INCLUDED_
+#ifndef UTIL_FMATH_H_INCLUDED_
+#define UTIL_FMATH_H_INCLUDED_
 
-#include <stdlib.h>
+#include "types.h"
 
-#if defined(_DEBUG)
-extern void* mem_AllocImpl(size_t size, char* filename, int lineNumber);
-extern void* mem_ReallocImpl(void* pMem, size_t size, char* filename, int lineNumber);
-#define mem_Alloc(size) mem_AllocImpl(size, __FILE__, __LINE__)
-#define mem_Realloc(mem, size) mem_ReallocImpl(mem, size, __FILE__, __LINE__)
-#else
-extern void* mem_Alloc(size_t size);
-extern void* mem_Realloc(void* memory, size_t size);
-#endif
+extern int32_t imuldiv(int32_t a, int32_t b, int32_t c);
 
-extern void mem_Free(void* memory);
+extern int32_t fmul(int32_t a, int32_t b);
+extern int32_t fdiv(int32_t a, int32_t b);
+extern int32_t fsin(int32_t a);
+extern int32_t fcos(int32_t a);
+extern int32_t ftan(int32_t a);
+extern int32_t fasin(int32_t a);
+extern int32_t facos(int32_t a);
+extern int32_t fatan(int32_t a);
+extern int32_t fatan2(int32_t a, int32_t b);
 
-#endif
+extern uint32_t log2n(size_t value);
+
+#endif /* UTIL_FMATH_H_INCLUDED_ */

@@ -43,14 +43,14 @@ SExpression* parse_ExpressionU12(void)
 
 SExpression* parse_TargetFunction(void)
 {
-	switch(g_CurrentToken.ID.TargetToken)
+	switch(g_CurrentToken.Token)
 	{
 		default:
 			return NULL;
 	}
 }
 
-bool_t parse_TargetSpecific(void)
+bool parse_TargetSpecific(void)
 {
 	if(parse_IntegerInstruction())
 		return true;

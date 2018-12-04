@@ -4,8 +4,9 @@ add_library(util
     asmotor.h
     file.c
     file.h
+    fmath.c
+    fmath.h
     lists.h
-    math.c
     mem.c
     mem.h
     str.c

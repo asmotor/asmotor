@@ -184,7 +184,7 @@ static SSymbol* sym_FindOrCreate(string* pName) {
 	return pSym;
 }
 
-static bool_t sym_isType(SSymbol* sym, ESymbolType type) {
+static bool sym_isType(SSymbol* sym, ESymbolType type) {
 	return sym->eType == type || sym->eType == SYM_UNDEFINED;
 }
 
@@ -398,7 +398,7 @@ SSymbol* sym_Global(string* pName) {
 	return NULL;
 }
 
-bool_t sym_Purge(string* pName) {
+bool sym_Purge(string* pName) {
 	SSymbol** ppSym = &g_pHashedSymbols[sym_CalcHash(pName)];
 	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
@@ -417,19 +417,19 @@ bool_t sym_Purge(string* pName) {
 	return false;
 }
 
-bool_t sym_IsString(string* pName) {
+bool sym_IsString(string* pName) {
 	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
 	return pSym != NULL && pSym->eType == SYM_EQUS;
 }
 
-bool_t sym_IsMacro(string* pName) {
+bool sym_IsMacro(string* pName) {
 	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
 	return pSym != NULL && pSym->eType == SYM_MACRO;
 }
 
-bool_t sym_IsDefined(string* pName) {
+bool sym_IsDefined(string* pName) {
 	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
 	return pSym != NULL && pSym->eType != SYM_UNDEFINED;
@@ -456,7 +456,7 @@ string* sym_GetStringValueByName(string* pName) {
 	return NULL;
 }
 
-bool_t sym_Init(void) {
+bool sym_Init(void) {
 	string* pName;
 	SSymbol* pSym;
 

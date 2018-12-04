@@ -16,13 +16,13 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <math.h>
+
 #include "asmotor.h"
 #include "types.h"
 
-#include <math.h>
-
-#ifndef    PI
-#define    PI    acos(-1.0)
+#ifndef PI
+# define PI acos(-1.0)
 #endif
 
 double f2d(int32_t a) {
@@ -86,5 +86,3 @@ uint32_t log2n(size_t value) {
 
 	return 0;
 }
-
-

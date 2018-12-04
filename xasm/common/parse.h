@@ -21,13 +21,13 @@
 
 #include "expression.h"
 
-extern bool_t	parse_Do(void);
+extern bool	parse_Do(void);
 extern void		parse_GetToken(void);
 extern SExpression* parse_Expression(size_t maxStringConstLength);
 extern int32_t	parse_ConstantExpression(void);
-extern bool_t	parse_ExpectChar(char ch);
+extern bool	parse_ExpectChar(char ch);
 
-INLINE bool_t parse_ExpectComma(void)
+INLINE bool parse_ExpectComma(void)
 {
 	return parse_ExpectChar(',');
 }

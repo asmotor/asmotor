@@ -38,7 +38,7 @@
 
 SExpression* parse_TargetFunction(void)
 {
-	switch(g_CurrentToken.ID.TargetToken)
+	switch(g_CurrentToken.Token)
 	{
 		case T_68K_REGMASK:
 		{
@@ -58,7 +58,7 @@ SExpression* parse_TargetFunction(void)
 	}
 }
 
-bool_t parse_TargetSpecific(void)
+bool parse_TargetSpecific(void)
 {
 	if(parse_IntegerInstruction())
 		return true;

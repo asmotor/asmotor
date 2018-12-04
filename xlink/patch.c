@@ -19,7 +19,7 @@
 #include "asmotor.h"
 #include "xlink.h"
 
-#include <math.h>
+#include <fmath.h>
 #include <string.h>
 
 #define	STACKSIZE	256
@@ -376,7 +376,7 @@ static char* makePatchString(Patch* patch, Section* section)
     }
 
 
-static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowImports, int32_t* outValue, Symbol** outSymbol)
+static bool calculatePatchValue(Patch* patch, Section* section, bool allowImports, int32_t* outValue, Symbol** outSymbol)
 {
     int32_t size = patch->expressionSize;
     uint8_t* expression = patch->expression;
@@ -645,7 +645,7 @@ static bool_t calculatePatchValue(Patch* patch, Section* section, bool_t allowIm
 }
 
 
-static void patchSection(Section* section, bool_t allowReloc, bool_t onlySectionRelativeReloc, bool_t allowImports)
+static void patchSection(Section* section, bool allowReloc, bool onlySectionRelativeReloc, bool allowImports)
 {
     Patches* patches = section->patches;
 
@@ -767,7 +767,7 @@ static void patchSection(Section* section, bool_t allowReloc, bool_t onlySection
 }
 
 
-void patch_Process(bool_t allowReloc, bool_t onlySectionRelativeReloc, bool_t allowImports)
+void patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports)
 {
     for (Section* section = g_sections; section != NULL; section = section->nextSection)
     {

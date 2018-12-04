@@ -64,8 +64,8 @@ typedef struct Configuration
 	char* pszBackendVersion;
 	uint32_t nMaxSectionSize;
 	EEndian eDefaultEndianness;
-	bool_t bSupportBanks;
-	bool_t bSupportAmiga;
+	bool bSupportBanks;
+	bool bSupportAmiga;
 	EMinimumWordSize eMinimumWordSize;
 	uint32_t nSectionAlignment;
 	char* pszNameRB;

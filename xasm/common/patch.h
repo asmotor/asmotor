@@ -51,9 +51,9 @@ typedef struct Patch
 extern void patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType type);
 extern void patch_BackPatch(void);
 extern void patch_OptimizeAll(void);
-extern bool_t patch_IsRelativeToSection(SExpression* pExpr, SSection* pSection);
-extern bool_t patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection* pSection);
-extern bool_t patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExpr);
+extern bool patch_IsRelativeToSection(SExpression* pExpr, SSection* pSection);
+extern bool patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection* pSection);
+extern bool patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExpr);
 
 
 #endif	/*INCLUDE_PATCH_H*/

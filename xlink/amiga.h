@@ -19,7 +19,7 @@
 #ifndef XLINK_AMIGA_H_INCLUDED_
 #define XLINK_AMIGA_H_INCLUDED_
 
-extern void amiga_WriteExecutable(char* filename, bool_t debugInfo);
-extern void amiga_WriteLinkObject(char* filename, bool_t debugInfo);
+extern void amiga_WriteExecutable(char* filename, bool debugInfo);
+extern void amiga_WriteLinkObject(char* filename, bool debugInfo);
 
 #endif

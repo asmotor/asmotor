@@ -48,7 +48,7 @@ void locopt_Update(void)
 {
 }
 
-bool_t locopt_Parse(char* s)
+bool locopt_Parse(char* s)
 {
 	if(s == NULL || strlen(s) == 0)
 		return false;

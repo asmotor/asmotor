@@ -37,10 +37,10 @@ struct Section
     uint32_t	UsedSpace;		/*	How many bytes are used in the section */
     uint32_t	FreeSpace;		/*	How many bytes are free */
     uint32_t	AllocatedSpace;	/*	How big a chunk of memory pData is pointing to */
-    int32_t		Position;
+    uint32_t	Position;
     uint32_t	BasePC;
-    int32_t		OrgOffset;
-    int32_t		Bank;
+    uint32_t	OrgOffset;
+    uint32_t	Bank;
     struct Patch* pPatches;
     uint8_t* pData;
 };
@@ -55,12 +55,12 @@ extern	SSection* g_pSectionList;
 
 extern uint32_t sect_TotalSections(void);
 
-extern bool_t sect_SwitchTo(char* sectname, struct Symbol* group);
-extern bool_t sect_SwitchTo_LOAD(char* sectname, struct Symbol* group, uint32_t load);
-extern bool_t sect_SwitchTo_BANK(char* sectname, struct Symbol* group, int32_t bank);
-extern bool_t sect_SwitchTo_LOAD_BANK(char* sectname, struct Symbol* group, uint32_t org, int32_t bank);
-extern bool_t sect_SwitchTo_NAMEONLY(char* sectname);
-extern bool_t sect_Init(void);
+extern bool sect_SwitchTo(char* sectname, struct Symbol* group);
+extern bool sect_SwitchTo_LOAD(char* sectname, struct Symbol* group, uint32_t load);
+extern bool sect_SwitchTo_BANK(char* sectname, struct Symbol* group, uint32_t bank);
+extern bool sect_SwitchTo_LOAD_BANK(char* sectname, struct Symbol* group, uint32_t org, uint32_t bank);
+extern bool sect_SwitchTo_NAMEONLY(char* sectname);
+extern bool sect_Init(void);
 extern void	sect_SetOrgAddress(uint32_t org);
 extern void	sect_SkipBytes(uint32_t count);
 extern void	sect_Align(uint32_t align);

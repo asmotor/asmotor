@@ -21,7 +21,7 @@
 
 #include "str.h"
 
-extern bool_t obj_Write(string* name);
+extern bool obj_Write(string* name);
 
 
 enum

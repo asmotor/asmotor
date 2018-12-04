@@ -90,10 +90,10 @@ typedef enum
 
 
 extern void	prj_Warn(int n, ...);
-extern bool_t prj_Error(int n, ...);
-extern bool_t prj_Fail(int n, ...);
+extern bool prj_Error(int n, ...);
+extern bool prj_Fail(int n, ...);
 
-extern bool_t prj_PatchError(SPatch* patch, int n, ...);
-extern bool_t prj_PatchFail(SPatch* patch, int n, ...);
+extern bool prj_PatchError(SPatch* patch, int n, ...);
+extern bool prj_PatchFail(SPatch* patch, int n, ...);
 
 #endif	/*INCLUDE_PROJECT_H*/

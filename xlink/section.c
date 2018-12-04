@@ -51,7 +51,7 @@ uint32_t sect_TotalSections(void)
 }
 
 
-static void resolveSymbol(Section* section, Symbol* symbol, bool_t allowImports)
+static void resolveSymbol(Section* section, Symbol* symbol, bool allowImports)
 {
 	switch (symbol->type)
 	{
@@ -142,7 +142,7 @@ static void resolveSymbol(Section* section, Symbol* symbol, bool_t allowImports)
 }
 
 
-Symbol* sect_GetSymbol(Section* section, int32_t symbolId, bool_t allowImports)
+Symbol* sect_GetSymbol(Section* section, int32_t symbolId, bool allowImports)
 {
 	if (symbolId < 0 || symbolId >= section->totalSymbols) {
 		Error("Symbol ID out of range");
@@ -177,7 +177,7 @@ char* sect_GetSymbolName(Section* section, int32_t symbolId)
 }
 
 
-bool_t sect_GetConstantSymbolBank(Section* section, int32_t symbolId, int32_t* outValue)
+bool sect_GetConstantSymbolBank(Section* section, int32_t symbolId, int32_t* outValue)
 {
 	int32_t bank;
 	Symbol* symbol = &section->symbols[symbolId];

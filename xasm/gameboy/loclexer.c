@@ -176,7 +176,7 @@ static uint32_t ascii2bin(char* s)
 }
 
 
-static bool_t ParseGameboyNumber(const char* s, uint32_t size)
+static bool ParseGameboyNumber(const char* s, uint32_t size)
 {
     char dest[256];
 

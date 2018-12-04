@@ -38,20 +38,17 @@ typedef struct LexBuffer {
 	char* pBufferStart;
 	char* pBuffer;
 	size_t bufferSize;
-	bool_t atLineStart;
+	bool atLineStart;
 	ELexerState State;
 } SLexBuffer;
 
 typedef struct {
+	uint32_t Token;
+	size_t TokenLength;
 	union {
 		char aString[MAXTOKENLENGTH + 1];
 		int32_t nInteger;
 	} Value;
-	size_t TokenLength;
-	union {
-		EToken Token;
-		uint32_t TargetToken;
-	} ID;
 } SLexToken;
 
 typedef struct {

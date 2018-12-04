@@ -63,7 +63,7 @@ static void fputstr(const string* str, FILE* fileHandle, uint32_t flags) {
 	fputbuf(str_String(str), length, fileHandle);
 }
 
-static void writeSymbolHunk(FILE* fileHandle, const SSection* section, bool_t bSkipExt) {
+static void writeSymbolHunk(FILE* fileHandle, const SSection* section, bool bSkipExt) {
 	int count = 0;
 	long startPosition = ftell(fileHandle);
 
@@ -180,7 +180,7 @@ static void writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t 
 	fputbl(0, fileHandle);
 }
 
-static bool_t writeSection(FILE* fileHandle, SSection* section, bool_t writeDebugInfo, uint32_t totalSections, bool_t isLinkObject) {
+static bool writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t totalSections, bool isLinkObject) {
 	if (section->pGroup->Value.GroupType == GROUP_TEXT) {
 		SPatch** patchesPerSection = mem_Alloc(sizeof(SPatch*) * totalSections);
 		for (uint32_t i = 0; i < totalSections; ++i)
@@ -197,12 +197,12 @@ static bool_t writeSection(FILE* fileHandle, SSection* section, bool_t writeDebu
 		// Move the patches into the patchesPerSection array according the section to which their value is relative
 		SPatch* patch = section->pPatches;
 		SPatch* importPatches = NULL;
-		bool_t hasReloc32 = false;
+		bool hasReloc32 = false;
 
 		while (patch) {
 			SPatch* nextPatch = list_GetNext(patch);
 			if (patch->Type == PATCH_BLONG) {
-				bool_t foundSection = false;
+				bool foundSection = false;
 				int sectionIndex = 0;
 				SSection* originSection = g_pSectionList;
 				while (originSection != NULL) {
@@ -277,7 +277,7 @@ static bool_t writeSection(FILE* fileHandle, SSection* section, bool_t writeDebu
 	return true;
 }
 
-static void writeSectionNames(FILE* fileHandle, bool_t writeDebugInfo) {
+static void writeSectionNames(FILE* fileHandle, bool writeDebugInfo) {
 	if (writeDebugInfo) {
 		for (const SSection* pSect = g_pSectionList; pSect != NULL; pSect = list_GetNext(pSect)) {
 			fputstr(pSect->Name, fileHandle, 0);
@@ -288,8 +288,8 @@ static void writeSectionNames(FILE* fileHandle, bool_t writeDebugInfo) {
 	fputbl(0, fileHandle);
 }
 
-bool_t ami_WriteObject(string* destFilename, string* sourceFilename) {
-	bool_t r = true;
+bool ami_WriteObject(string* destFilename, string* sourceFilename) {
+	bool r = true;
 
 	FILE* fileHandle = fopen(str_String(destFilename), "wb");
 	if (fileHandle == NULL)
@@ -313,8 +313,8 @@ bool_t ami_WriteObject(string* destFilename, string* sourceFilename) {
 	return r;
 }
 
-bool_t ami_WriteExecutable(string* destFilename, bool_t writeDebugInfo) {
-	bool_t r = true;
+bool ami_WriteExecutable(string* destFilename, bool writeDebugInfo) {
+	bool r = true;
 
 	FILE* fileHandle = fopen(str_String(destFilename), "wb");
 	if (fileHandle == NULL)

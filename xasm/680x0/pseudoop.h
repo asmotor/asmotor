@@ -19,9 +19,9 @@
 #ifndef ASMOTOR_R68KASM_PSEUDOOP_H_INCLUDED_
 #define ASMOTOR_R68KASM_PSEUDOOP_H_INCLUDED_
 
-static bool_t parse_PseudoOp()
+static bool parse_PseudoOp()
 {
-	switch(g_CurrentToken.ID.TargetToken)
+	switch(g_CurrentToken.Token)
 	{
 		case T_68K_MC68000:
 			g_pOptions->pMachine->nCpu = CPUF_68000;

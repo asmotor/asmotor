@@ -16,7 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <math.h>
+#include <fmath.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -34,48 +34,48 @@
 #include "globlex.h"
 #include "options.h"
 
-extern bool_t parse_TargetSpecific(void);
+extern bool parse_TargetSpecific(void);
 
 extern SExpression* parse_TargetFunction(void);
 
 /*	Private routines*/
 
-static bool_t parse_isWhiteSpace(char s) {
+static bool parse_isWhiteSpace(char s) {
 	return s == ' ' || s == '\t' || s == '\0' || s == '\n';
 }
 
-static bool_t parse_isToken(const char* s, const char* token) {
+static bool parse_isToken(const char* s, const char* token) {
 	size_t len = strlen(token);
 	return _strnicmp(s, token, len) == 0 && parse_isWhiteSpace(s[len]);
 }
 
-static bool_t parse_isRept(const char* s) {
+static bool parse_isRept(const char* s) {
 	return parse_isToken(s, "REPT");
 }
 
-static bool_t parse_isEndr(const char* s) {
+static bool parse_isEndr(const char* s) {
 	return parse_isToken(s, "ENDR");
 }
 
-bool_t parse_isIf(const char* s) {
+bool parse_isIf(const char* s) {
 	return parse_isToken(s, "IF") || parse_isToken(s, "IFC") || parse_isToken(s, "IFD") || parse_isToken(s, "IFNC") ||
 		   parse_isToken(s, "IFND") || parse_isToken(s, "IFNE") || parse_isToken(s, "IFEQ") ||
 		   parse_isToken(s, "IFGT") || parse_isToken(s, "IFGE") || parse_isToken(s, "IFLT") || parse_isToken(s, "IFLE");
 }
 
-bool_t parse_isElse(const char* s) {
+bool parse_isElse(const char* s) {
 	return parse_isToken(s, "ELSE");
 }
 
-bool_t parse_isEndc(const char* s) {
+bool parse_isEndc(const char* s) {
 	return parse_isToken(s, "ENDC");
 }
 
-bool_t parse_isMacro(const char* s) {
+bool parse_isMacro(const char* s) {
 	return parse_isToken(s, "MACRO");
 }
 
-bool_t parse_isEndm(const char* s) {
+bool parse_isEndm(const char* s) {
 	return parse_isToken(s, "ENDM");
 }
 
@@ -187,7 +187,7 @@ static size_t parse_GetIfLength(const char* s) {
 	return 0;
 }
 
-static bool_t parse_CopyRept(char** reptBlock, size_t* size) {
+static bool parse_CopyRept(char** reptBlock, size_t* size) {
 	const char* src = g_pFileContext->pLexBuffer->pBuffer;
 	size_t len = parse_GetReptLength(src);
 
@@ -204,7 +204,7 @@ static bool_t parse_CopyRept(char** reptBlock, size_t* size) {
 	return true;
 }
 
-bool_t parse_IfSkipToElse(void) {
+bool parse_IfSkipToElse(void) {
 	const char* src = g_pFileContext->pLexBuffer->pBuffer;
 	const char* token;
 
@@ -239,7 +239,7 @@ bool_t parse_IfSkipToElse(void) {
 	return false;
 }
 
-bool_t parse_IfSkipToEndc(void) {
+bool parse_IfSkipToEndc(void) {
 	const char* src = g_pFileContext->pLexBuffer->pBuffer;
 	const char* token;
 
@@ -261,7 +261,7 @@ bool_t parse_IfSkipToEndc(void) {
 	return 0;
 }
 
-bool_t parse_CopyMacro(char** dest, size_t* size) {
+bool parse_CopyMacro(char** dest, size_t* size) {
 	char* src = g_pFileContext->pLexBuffer->pBuffer;
 	size_t len = parse_GetMacroLength(src);
 
@@ -278,9 +278,9 @@ bool_t parse_CopyMacro(char** dest, size_t* size) {
 }
 
 static uint32_t parse_ColonCount(void) {
-	if (g_CurrentToken.ID.Token == ':') {
+	if (g_CurrentToken.Token == ':') {
 		parse_GetToken();
-		if (g_CurrentToken.ID.Token == ':') {
+		if (g_CurrentToken.Token == ':') {
 			parse_GetToken();
 			return 2;
 		}
@@ -288,16 +288,16 @@ static uint32_t parse_ColonCount(void) {
 	return 1;
 }
 
-bool_t parse_IsDot(SLexBookmark* pBookmark) {
+bool parse_IsDot(SLexBookmark* pBookmark) {
 	if (pBookmark)
 		lex_Bookmark(pBookmark);
 
-	if (g_CurrentToken.ID.Token == '.') {
+	if (g_CurrentToken.Token == '.') {
 		parse_GetToken();
 		return true;
 	}
 
-	if (g_CurrentToken.ID.Token == T_ID && g_CurrentToken.Value.aString[0] == '.') {
+	if (g_CurrentToken.Token == T_ID && g_CurrentToken.Value.aString[0] == '.') {
 		lex_RewindBytes(strlen(g_CurrentToken.Value.aString) - 1);
 		parse_GetToken();
 		return true;
@@ -306,8 +306,8 @@ bool_t parse_IsDot(SLexBookmark* pBookmark) {
 	return false;
 }
 
-bool_t parse_ExpectChar(char ch) {
-	if (g_CurrentToken.ID.TargetToken == (uint32_t)ch) {
+bool parse_ExpectChar(char ch) {
+	if (g_CurrentToken.Token == (uint32_t)ch) {
 		parse_GetToken();
 		return true;
 	} else {
@@ -323,7 +323,7 @@ bool_t parse_ExpectChar(char ch) {
 static SExpression* parse_ExprPri0(size_t maxStringConstLength);
 
 static SExpression* parse_ExprPri9(size_t maxStringConstLength) {
-	switch (g_CurrentToken.ID.Token) {
+	switch (g_CurrentToken.Token) {
 		case T_STRING: {
 			size_t len = strlen(g_CurrentToken.Value.aString);
 			if (len <= maxStringConstLength) {
@@ -351,7 +351,7 @@ static SExpression* parse_ExprPri9(size_t maxStringConstLength) {
 			parse_GetToken();
 			expr = parse_ExprPri0(maxStringConstLength);
 			if (expr != NULL) {
-				if (g_CurrentToken.ID.Token == ')') {
+				if (g_CurrentToken.Token == ')') {
 					parse_GetToken();
 					return expr_Parens(expr);
 				}
@@ -378,7 +378,7 @@ static SExpression* parse_ExprPri9(size_t maxStringConstLength) {
 		}
 		default: {
 			if (g_pOptions->bAllowReservedIdentifierLabels) {
-				if (g_CurrentToken.TokenLength > 0 && g_CurrentToken.ID.Token >= T_FIRST_TOKEN) {
+				if (g_CurrentToken.TokenLength > 0 && g_CurrentToken.Token >= T_FIRST_TOKEN) {
 					SExpression* expr = expr_Symbol(g_CurrentToken.Value.aString);
 					parse_GetToken();
 					return expr;
@@ -415,7 +415,7 @@ static SExpression* parse_ExprPri8(size_t maxStringConstLength) {
 	lex_Bookmark(&bm);
 	if ((s = parse_StringExpressionRaw_Pri0()) != NULL) {
 		if (parse_IsDot(NULL)) {
-			switch (g_CurrentToken.ID.Token) {
+			switch (g_CurrentToken.Token) {
 				case T_FUNC_COMPARETO: {
 					SExpression* r = NULL;
 					char* t;
@@ -536,7 +536,7 @@ static SExpression* parse_SingleArgFunc(SExpression* (* pFunc)(SExpression*), si
 }
 
 static SExpression* parse_ExprPri7(size_t maxStringConstLength) {
-	switch (g_CurrentToken.ID.Token) {
+	switch (g_CurrentToken.Token) {
 		case T_FUNC_ATAN2:
 			return parse_TwoArgFunc(expr_Atan2, maxStringConstLength);
 		case T_FUNC_SIN:
@@ -560,7 +560,7 @@ static SExpression* parse_ExprPri7(size_t maxStringConstLength) {
 			if (!parse_ExpectChar('('))
 				return NULL;
 
-			if (g_CurrentToken.ID.Token != T_ID) {
+			if (g_CurrentToken.Token != T_ID) {
 				prj_Fail(ERROR_DEF_SYMBOL);
 				return NULL;
 			}
@@ -586,7 +586,7 @@ static SExpression* parse_ExprPri7(size_t maxStringConstLength) {
 			if (!parse_ExpectChar('('))
 				return NULL;
 
-			if (g_CurrentToken.ID.Token != T_ID) {
+			if (g_CurrentToken.Token != T_ID) {
 				prj_Fail(ERROR_BANK_SYMBOL);
 				return NULL;
 			}
@@ -610,7 +610,7 @@ static SExpression* parse_ExprPri7(size_t maxStringConstLength) {
 }
 
 static SExpression* parse_ExprPri6(size_t maxStringConstLength) {
-	switch (g_CurrentToken.ID.Token) {
+	switch (g_CurrentToken.Token) {
 		case T_OP_SUB: {
 			parse_GetToken();
 			return expr_Sub(expr_Const(0), parse_ExprPri6(maxStringConstLength));
@@ -633,11 +633,11 @@ static SExpression* parse_ExprPri6(size_t maxStringConstLength) {
 static SExpression* parse_ExprPri5(size_t maxStringConstLength) {
 	SExpression* t1 = parse_ExprPri6(maxStringConstLength);
 
-	while (g_CurrentToken.ID.Token == T_OP_SHL || g_CurrentToken.ID.Token == T_OP_SHR ||
-		   g_CurrentToken.ID.Token == T_OP_MUL || g_CurrentToken.ID.Token == T_OP_DIV ||
-		   g_CurrentToken.ID.Token == T_FUNC_FMUL || g_CurrentToken.ID.Token == T_FUNC_FDIV ||
-		   g_CurrentToken.ID.Token == T_OP_MOD) {
-		switch (g_CurrentToken.ID.Token) {
+	while (g_CurrentToken.Token == T_OP_SHL || g_CurrentToken.Token == T_OP_SHR ||
+		   g_CurrentToken.Token == T_OP_MUL || g_CurrentToken.Token == T_OP_DIV ||
+		   g_CurrentToken.Token == T_FUNC_FMUL || g_CurrentToken.Token == T_FUNC_FDIV ||
+		   g_CurrentToken.Token == T_OP_MOD) {
+		switch (g_CurrentToken.Token) {
 			case T_OP_SHL: {
 				parse_GetToken();
 				t1 = expr_Shl(t1, parse_ExprPri6(maxStringConstLength));
@@ -684,9 +684,9 @@ static SExpression* parse_ExprPri5(size_t maxStringConstLength) {
 static SExpression* parse_ExprPri4(size_t maxStringConstLength) {
 	SExpression* t1 = parse_ExprPri5(maxStringConstLength);
 
-	while (g_CurrentToken.ID.Token == T_OP_XOR || g_CurrentToken.ID.Token == T_OP_OR ||
-		   g_CurrentToken.ID.Token == T_OP_AND) {
-		switch (g_CurrentToken.ID.Token) {
+	while (g_CurrentToken.Token == T_OP_XOR || g_CurrentToken.Token == T_OP_OR ||
+		   g_CurrentToken.Token == T_OP_AND) {
+		switch (g_CurrentToken.Token) {
 			case T_OP_XOR: {
 				parse_GetToken();
 				t1 = expr_Xor(t1, parse_ExprPri5(maxStringConstLength));
@@ -713,8 +713,8 @@ static SExpression* parse_ExprPri4(size_t maxStringConstLength) {
 static SExpression* parse_ExprPri3(size_t maxStringConstLength) {
 	SExpression* t1 = parse_ExprPri4(maxStringConstLength);
 
-	while (g_CurrentToken.ID.Token == T_OP_ADD || g_CurrentToken.ID.Token == T_OP_SUB) {
-		switch (g_CurrentToken.ID.Token) {
+	while (g_CurrentToken.Token == T_OP_ADD || g_CurrentToken.Token == T_OP_SUB) {
+		switch (g_CurrentToken.Token) {
 			case T_OP_ADD: {
 				SExpression* t2;
 				SLexBookmark mark;
@@ -746,10 +746,10 @@ static SExpression* parse_ExprPri2(size_t maxStringConstLength) {
 	SExpression* t1;
 
 	t1 = parse_ExprPri3(maxStringConstLength);
-	while (g_CurrentToken.ID.Token == T_OP_LOGICEQU || g_CurrentToken.ID.Token == T_OP_LOGICGT ||
-		   g_CurrentToken.ID.Token == T_OP_LOGICLT || g_CurrentToken.ID.Token == T_OP_LOGICGE ||
-		   g_CurrentToken.ID.Token == T_OP_LOGICLE || g_CurrentToken.ID.Token == T_OP_LOGICNE) {
-		switch (g_CurrentToken.ID.Token) {
+	while (g_CurrentToken.Token == T_OP_LOGICEQU || g_CurrentToken.Token == T_OP_LOGICGT ||
+		   g_CurrentToken.Token == T_OP_LOGICLT || g_CurrentToken.Token == T_OP_LOGICGE ||
+		   g_CurrentToken.Token == T_OP_LOGICLE || g_CurrentToken.Token == T_OP_LOGICNE) {
+		switch (g_CurrentToken.Token) {
 			case T_OP_LOGICEQU: {
 				parse_GetToken();
 				t1 = expr_Equal(t1, parse_ExprPri3(maxStringConstLength));
@@ -789,7 +789,7 @@ static SExpression* parse_ExprPri2(size_t maxStringConstLength) {
 }
 
 static SExpression* parse_ExprPri1(size_t maxStringConstLength) {
-	switch (g_CurrentToken.ID.Token) {
+	switch (g_CurrentToken.Token) {
 		case T_OP_OR:
 		case T_OP_LOGICNOT: {
 			parse_GetToken();
@@ -805,8 +805,8 @@ static SExpression* parse_ExprPri1(size_t maxStringConstLength) {
 static SExpression* parse_ExprPri0(size_t maxStringConstLength) {
 	SExpression* t1 = parse_ExprPri1(maxStringConstLength);
 
-	while (g_CurrentToken.ID.Token == T_OP_LOGICOR || g_CurrentToken.ID.Token == T_OP_LOGICAND) {
-		switch (g_CurrentToken.ID.Token) {
+	while (g_CurrentToken.Token == T_OP_LOGICOR || g_CurrentToken.Token == T_OP_LOGICAND) {
+		switch (g_CurrentToken.Token) {
 			case T_OP_LOGICOR: {
 				parse_GetToken();
 				t1 = expr_BooleanOr(t1, parse_ExprPri1(maxStringConstLength));
@@ -850,7 +850,7 @@ static char* parse_StringExpressionRaw_Pri2(void) {
 	SLexBookmark bm;
 	lex_Bookmark(&bm);
 
-	switch (g_CurrentToken.ID.Token) {
+	switch (g_CurrentToken.Token) {
 		case T_STRING: {
 			char* r = mem_Alloc(strlen(g_CurrentToken.Value.aString) + 1);
 			strcpy(r, g_CurrentToken.Value.aString);
@@ -882,7 +882,7 @@ static char* parse_StringExpressionRaw_Pri1(void) {
 	char* t = parse_StringExpressionRaw_Pri2();
 
 	while (parse_IsDot(&bm)) {
-		switch (g_CurrentToken.ID.Token) {
+		switch (g_CurrentToken.Token) {
 			case T_FUNC_SLICE: {
 				int32_t start;
 				int32_t count;
@@ -900,7 +900,7 @@ static char* parse_StringExpressionRaw_Pri1(void) {
 						start = 0;
 				}
 
-				if (g_CurrentToken.ID.Token == ',') {
+				if (g_CurrentToken.Token == ',') {
 					parse_GetToken();
 					count = parse_ConstantExpression();
 				} else
@@ -953,7 +953,7 @@ static char* parse_StringExpressionRaw_Pri1(void) {
 static char* parse_StringExpressionRaw_Pri0(void) {
 	char* t1 = parse_StringExpressionRaw_Pri1();
 
-	while (g_CurrentToken.ID.Token == T_OP_ADD) {
+	while (g_CurrentToken.Token == T_OP_ADD) {
 		char* r = NULL;
 		char* t2;
 
@@ -1003,17 +1003,17 @@ static void parse_RS_Skip(int32_t size) {
 	str_Free(pRS);
 }
 
-static bool_t parse_Symbol(void) {
-	bool_t r = false;
+static bool parse_Symbol(void) {
+	bool r = false;
 
-	if (g_CurrentToken.ID.Token == T_LABEL) {
+	if (g_CurrentToken.Token == T_LABEL) {
 		string* pName = str_Create(g_CurrentToken.Value.aString);
 		uint32_t coloncount;
 
 		parse_GetToken();
 		coloncount = parse_ColonCount();
 
-		switch (g_CurrentToken.ID.Token) {
+		switch (g_CurrentToken.Token) {
 			default:
 				sym_CreateLabel(pName);
 				if (coloncount == 2)
@@ -1068,7 +1068,7 @@ static bool_t parse_Symbol(void) {
 			}
 			case T_POP_GROUP: {
 				parse_GetToken();
-				switch (g_CurrentToken.ID.Token) {
+				switch (g_CurrentToken.Token) {
 					case T_GROUP_TEXT:
 						sym_CreateGROUP(pName, GROUP_TEXT);
 						r = true;
@@ -1107,30 +1107,30 @@ static bool_t parse_Symbol(void) {
 	return r;
 }
 
-static bool_t parse_Import(string* pName) {
+static bool parse_Import(string* pName) {
 	return sym_Import(pName) != NULL;
 }
 
-static bool_t parse_Export(string* pName) {
+static bool parse_Export(string* pName) {
 	return sym_Export(pName) != NULL;
 }
 
-static bool_t parse_Global(string* pName) {
+static bool parse_Global(string* pName) {
 	return sym_Global(pName) != NULL;
 }
 
-static bool_t parse_SymbolOp(bool_t (* pOp)(string* pName)) {
-	bool_t r = false;
+static bool parse_SymbolOp(bool (* pOp)(string* pName)) {
+	bool r = false;
 
 	parse_GetToken();
-	if (g_CurrentToken.ID.Token == T_ID) {
+	if (g_CurrentToken.Token == T_ID) {
 		string* pName = str_Create(g_CurrentToken.Value.aString);
 		pOp(pName);
 		str_Free(pName);
 		parse_GetToken();
-		while (g_CurrentToken.ID.Token == ',') {
+		while (g_CurrentToken.Token == ',') {
 			parse_GetToken();
-			if (g_CurrentToken.ID.Token == T_ID) {
+			if (g_CurrentToken.Token == T_ID) {
 				pName = str_Create(g_CurrentToken.Value.aString);
 				pOp(pName);
 				str_Free(pName);
@@ -1151,7 +1151,7 @@ static int32_t parse_ExpectBankFixed(void) {
 	if (!g_pConfiguration->bSupportBanks)
 		internalerror("Banks not supported");
 
-	if (g_CurrentToken.ID.Token != T_FUNC_BANK) {
+	if (g_CurrentToken.Token != T_FUNC_BANK) {
 		prj_Error(ERROR_EXPECT_BANK);
 		return -1;
 	}
@@ -1168,8 +1168,8 @@ static int32_t parse_ExpectBankFixed(void) {
 	return bank;
 }
 
-static bool_t parse_PseudoOp(void) {
-	switch (g_CurrentToken.ID.Token) {
+static bool parse_PseudoOp(void) {
+	switch (g_CurrentToken.Token) {
 		case T_POP_REXIT: {
 			if (g_pFileContext->Type != CONTEXT_REPT) {
 				prj_Warn(WARN_REXIT_OUTSIDE_REPT);
@@ -1207,7 +1207,7 @@ static bool_t parse_PseudoOp(void) {
 			if (!parse_ExpectChar(','))
 				return sect_SwitchTo_NAMEONLY(r);
 
-			if (g_CurrentToken.ID.Token != T_ID) {
+			if (g_CurrentToken.Token != T_ID) {
 				prj_Error(ERROR_EXPECT_IDENTIFIER);
 				return false;
 			}
@@ -1222,7 +1222,7 @@ static bool_t parse_PseudoOp(void) {
 			}
 			parse_GetToken();
 
-			if (g_pConfiguration->bSupportBanks && g_CurrentToken.ID.Token == ',') {
+			if (g_pConfiguration->bSupportBanks && g_CurrentToken.Token == ',') {
 				int32_t bank;
 				parse_GetToken();
 				bank = parse_ExpectBankFixed();
@@ -1231,7 +1231,7 @@ static bool_t parse_PseudoOp(void) {
 					return true;
 
 				return sect_SwitchTo_BANK(r, sym, bank);
-			} else if (g_CurrentToken.ID.Token != '[') {
+			} else if (g_CurrentToken.Token != '[') {
 				return sect_SwitchTo(r, sym);
 			}
 			parse_GetToken();
@@ -1240,7 +1240,7 @@ static bool_t parse_PseudoOp(void) {
 			if (!parse_ExpectChar(']'))
 				return true;
 
-			if (g_pConfiguration->bSupportBanks && g_CurrentToken.ID.Token == ',') {
+			if (g_pConfiguration->bSupportBanks && g_CurrentToken.Token == ',') {
 				int32_t bank;
 				parse_GetToken();
 				bank = parse_ExpectBankFixed();
@@ -1303,7 +1303,7 @@ static bool_t parse_PseudoOp(void) {
 			return parse_SymbolOp(parse_Global);
 		}
 		case T_POP_PURGE: {
-			bool_t r;
+			bool r;
 
 			g_bDontExpandStrings = true;
 			r = parse_SymbolOp(sym_Purge);
@@ -1440,7 +1440,7 @@ static bool_t parse_PseudoOp(void) {
 						sect_OutputConst8((uint8_t) *s++);
 				} else
 					sect_SkipBytes(1); //prj_Error(ERROR_INVALID_EXPRESSION);
-			} while (g_CurrentToken.ID.Token == ',');
+			} while (g_CurrentToken.Token == ',');
 
 			return true;
 		}
@@ -1458,7 +1458,7 @@ static bool_t parse_PseudoOp(void) {
 						prj_Error(ERROR_EXPRESSION_N_BIT, 16);
 				} else
 					sect_SkipBytes(2); // prj_Error(ERROR_INVALID_EXPRESSION);
-			} while (g_CurrentToken.ID.Token == ',');
+			} while (g_CurrentToken.Token == ',');
 
 			return true;
 		}
@@ -1472,7 +1472,7 @@ static bool_t parse_PseudoOp(void) {
 					sect_OutputExpr32(expr);
 				else
 					sect_SkipBytes(4); //prj_Error(ERROR_INVALID_EXPRESSION);
-			} while (g_CurrentToken.ID.Token == ',');
+			} while (g_CurrentToken.Token == ',');
 
 			return true;
 		}
@@ -1620,7 +1620,7 @@ static bool_t parse_PseudoOp(void) {
 		case T_POP_IFD: {
 			parse_GetToken();
 
-			if (g_CurrentToken.ID.Token == T_ID) {
+			if (g_CurrentToken.Token == T_ID) {
 				string* pName = str_Create(g_CurrentToken.Value.aString);
 				if (sym_IsDefined(pName)) {
 					parse_GetToken();
@@ -1638,7 +1638,7 @@ static bool_t parse_PseudoOp(void) {
 		case T_POP_IFND: {
 			parse_GetToken();
 
-			if (g_CurrentToken.ID.Token == T_ID) {
+			if (g_CurrentToken.Token == T_ID) {
 				string* pName = str_Create(g_CurrentToken.Value.aString);
 				if (!sym_IsDefined(pName)) {
 					parse_GetToken();
@@ -1731,10 +1731,10 @@ static bool_t parse_PseudoOp(void) {
 		case T_POP_OPT: {
 			lex_SetState(LEX_STATE_MACRO_ARGS);
 			parse_GetToken();
-			if (g_CurrentToken.ID.Token == T_STRING) {
+			if (g_CurrentToken.Token == T_STRING) {
 				opt_Parse(g_CurrentToken.Value.aString);
 				parse_GetToken();
-				while (g_CurrentToken.ID.Token == ',') {
+				while (g_CurrentToken.Token == ',') {
 					parse_GetToken();
 					opt_Parse(g_CurrentToken.Value.aString);
 					parse_GetToken();
@@ -1749,11 +1749,11 @@ static bool_t parse_PseudoOp(void) {
 	}
 }
 
-bool_t parse_Misc(void) {
-	switch (g_CurrentToken.ID.Token) {
+bool parse_Misc(void) {
+	switch (g_CurrentToken.Token) {
 		case T_ID: {
 			string* pName = str_Create(g_CurrentToken.Value.aString);
-			bool_t bIsMacro = sym_IsMacro(pName);
+			bool bIsMacro = sym_IsMacro(pName);
 			str_Free(pName);
 
 			if (bIsMacro) {
@@ -1761,19 +1761,19 @@ bool_t parse_Misc(void) {
 
 				lex_SetState(LEX_STATE_MACRO_ARG0);
 				parse_GetToken();
-				while (g_CurrentToken.ID.Token != '\n') {
-					if (g_CurrentToken.ID.Token == T_STRING) {
+				while (g_CurrentToken.Token != '\n') {
+					if (g_CurrentToken.Token == T_STRING) {
 						fstk_AddMacroArg(g_CurrentToken.Value.aString);
 						parse_GetToken();
-						if (g_CurrentToken.ID.Token == ',') {
+						if (g_CurrentToken.Token == ',') {
 							parse_GetToken();
-						} else if (g_CurrentToken.ID.Token != '\n') {
+						} else if (g_CurrentToken.Token != '\n') {
 							prj_Error(ERROR_CHAR_EXPECTED, ',');
 							lex_SetState(LEX_STATE_NORMAL);
 							parse_GetToken();
 							return false;
 						}
-					} else if (g_CurrentToken.ID.Token == T_MACROARG0) {
+					} else if (g_CurrentToken.Token == T_MACROARG0) {
 						fstk_SetMacroArg0(g_CurrentToken.Value.aString);
 						parse_GetToken();
 					} else {
@@ -1805,18 +1805,18 @@ void parse_GetToken(void) {
 	prj_Fail(ERROR_END_OF_FILE);
 }
 
-bool_t parse_Do(void) {
-	bool_t r = true;
+bool parse_Do(void) {
+	bool r = true;
 
 	lex_GetNextToken();
 
-	while (g_CurrentToken.ID.Token && r) {
+	while (g_CurrentToken.Token && r) {
 		if (!parse_TargetSpecific() && !parse_Symbol() && !parse_PseudoOp() && !parse_Misc()) {
-			if (g_CurrentToken.ID.Token == '\n') {
+			if (g_CurrentToken.Token == '\n') {
 				lex_GetNextToken();
 				g_pFileContext->LineNumber += 1;
 				g_nTotalLines += 1;
-			} else if (g_CurrentToken.ID.Token == T_POP_END) {
+			} else if (g_CurrentToken.Token == T_POP_END) {
 				return true;
 			} else {
 				prj_Error(ERROR_SYNTAX);

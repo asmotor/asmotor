@@ -25,63 +25,62 @@
 
 #include "mem.h"
 
-char* _strdup(const char* pszString) {
-	size_t l = strlen(pszString);
+char* _strdup(const char* str) {
+	size_t l = strlen(str);
 	char* r = mem_Alloc(l + 1);
-	memcpy(r, pszString, l + 1);
+	memcpy(r, str, l + 1);
 	return r;
 }
 
-char* _strupr(char* pszString) {
-	char* r = pszString;
+char* _strupr(char* str) {
+	char* r = str;
 	while (*r) {
 		*r = (char) toupper((unsigned char) *r);
 		++r;
 	}
-	return pszString;
+	return str;
 }
 
-char* _strlwr(char* pszString) {
-	char* r = pszString;
+char* _strlwr(char* str) {
+	char* r = str;
 	while (*r) {
 		*r = (char) tolower((unsigned char) *r);
 		++r;
 	}
-	return pszString;
+	return str;
 }
 
-int _strnicmp(const char* pszString1, const char* pszString2, size_t nCount) {
+int _strnicmp(const char* string1, const char* string2, size_t length) {
 	char l1 = 0;
 	char l2 = 0;
 
-	while (*pszString1 && *pszString2 && nCount-- > 0) {
-		l1 = (char) tolower((unsigned char) *pszString1++);
-		l2 = (char) tolower((unsigned char) *pszString2++);
+	while (*string1 && *string2 && length-- > 0) {
+		l1 = (char) tolower((unsigned char) *string1++);
+		l2 = (char) tolower((unsigned char) *string2++);
 
 		if (l1 != l2)
 			return l1 - l2;
 	}
 
-	if (nCount == 0)
+	if (length == 0)
 		return 0;
 
-	return *pszString1 - *pszString2;
+	return *string1 - *string2;
 }
 
-int _stricmp(const char* pszString1, const char* pszString2) {
+int _stricmp(const char* string1, const char* string2) {
 	char l1 = 0;
 	char l2 = 0;
 
-	while (*pszString1 && *pszString2) {
-		l1 = (char) tolower((unsigned char) *pszString1++);
-		l2 = (char) tolower((unsigned char) *pszString2++);
+	while (*string1 && *string2) {
+		l1 = (char) tolower((unsigned char) *string1++);
+		l2 = (char) tolower((unsigned char) *string2++);
 
 		if (l1 != l2)
 			return l1 - l2;
 	}
 
-	return *pszString1 - *pszString2;
+	return *string1 - *string2;
 }
 
 #endif
-

@@ -83,7 +83,7 @@ typedef struct Symbol
 } SSymbol;
 
 
-extern bool_t	sym_Init(void);
+extern bool	sym_Init(void);
 
 extern SSymbol* sym_CreateLabel(string* pName);
 extern SSymbol* sym_CreateEQUS(string* pName, string* pValue);
@@ -94,7 +94,7 @@ extern SSymbol* sym_CreateMACRO(string* pName, char* value, size_t size);
 
 extern SSymbol* sym_FindSymbol(string* name);
 
-extern bool_t	sym_Purge(string* pName);
+extern bool	sym_Purge(string* pName);
 
 extern SSymbol*	sym_Export(string* pName);
 extern SSymbol* sym_Import(string* pName);
@@ -106,9 +106,9 @@ extern string*	sym_GetStringValueByName(string* pName);
 extern int32_t	sym_GetValue(SSymbol* pSym);
 extern int32_t	sym_GetValueByName(string* pName);
 
-extern bool_t	sym_IsDefined(string* pName);
-extern bool_t	sym_IsString(string* pName);
-extern bool_t	sym_IsMacro(string* pName);
+extern bool	sym_IsDefined(string* pName);
+extern bool	sym_IsString(string* pName);
+extern bool	sym_IsMacro(string* pName);
 
 extern SSymbol* g_pHashedSymbols[HASHSIZE];
 

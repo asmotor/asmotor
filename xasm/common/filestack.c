@@ -77,18 +77,16 @@ static void fstk_SetNewContext(SFileStack* newcontext) {
 /* Public routines */
 
 char* fstk_GetMacroArgValue(char ch) {
-	uint32_t ct;
-
 	if (ch == '0')
 		return g_pMacroContext->BlockInfo.Macro.Arg0;
 
-	ct = ch - '1';
+	uint_fast8_t argumentIndex = (uint8_t)(ch - '1');
 	if (g_pMacroContext == NULL || g_pMacroContext->Type != CONTEXT_MACRO ||
-		ct >= g_pMacroContext->BlockInfo.Macro.ArgCount) {
+		argumentIndex >= g_pMacroContext->BlockInfo.Macro.ArgCount) {
 		return NULL;
 	}
 
-	return g_pMacroContext->BlockInfo.Macro.Args[ct];
+	return g_pMacroContext->BlockInfo.Macro.Args[argumentIndex];
 }
 
 char* fstk_GetMacroRunID(void) {
@@ -162,7 +160,7 @@ static string* fstk_BuildPath(string* pPath, string* pFile) {
 	return p;
 }
 
-static bool_t fstk_FileExists(string* pFile) {
+static bool fstk_FileExists(string* pFile) {
 	FILE* f;
 
 	if ((f = fopen(str_String(pFile), "rb")) != NULL) {
@@ -233,7 +231,7 @@ void fstk_Dump(void) {
 	}
 }
 
-bool_t fstk_RunNextBuffer(void) {
+bool fstk_RunNextBuffer(void) {
 	if (list_isLast(g_pFileContext)) {
 		return false;
 	} else {
@@ -381,7 +379,7 @@ void fstk_RunMacro(string* pName) {
 	}
 }
 
-bool_t fstk_Init(string* pFile) {
+bool fstk_Init(string* pFile) {
 	FILE* f;
 	string* pName;
 

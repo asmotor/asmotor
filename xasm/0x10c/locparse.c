@@ -104,9 +104,9 @@ static SExpression* parse_ExpressionNoReservedIdentifiers() {
 	return pExpr;
 }
 
-static bool_t parse_IndirectComponent(int* pRegister, SExpression** ppAddress) {
-	if (g_CurrentToken.ID.TargetToken >= T_REG_A && g_CurrentToken.ID.TargetToken <= T_REG_J) {
-		*pRegister = g_CurrentToken.ID.TargetToken - T_REG_A;
+static bool parse_IndirectComponent(uint32_t* pRegister, SExpression** ppAddress) {
+	if (g_CurrentToken.Token >= T_REG_A && g_CurrentToken.Token <= T_REG_J) {
+		*pRegister = g_CurrentToken.Token - T_REG_A;
 		*ppAddress = NULL;
 		parse_GetToken();
 		return true;
@@ -114,7 +114,7 @@ static bool_t parse_IndirectComponent(int* pRegister, SExpression** ppAddress) {
 		SExpression* pExpr = parse_ExpressionNoReservedIdentifiers();
 
 		if (pExpr != NULL) {
-			*pRegister = -1;
+			*pRegister = UINT32_MAX;
 			*ppAddress = pExpr;
 			return true;
 		}
@@ -122,9 +122,9 @@ static bool_t parse_IndirectComponent(int* pRegister, SExpression** ppAddress) {
 	return false;
 }
 
-static bool_t parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes) {
-	if (g_CurrentToken.ID.TargetToken == '[') {
-		int nRegister = -1;
+static bool parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes) {
+	if (g_CurrentToken.Token == '[') {
+		uint32_t nRegister = UINT32_MAX;
 		SExpression* pAddress = NULL;
 
 		parse_GetToken();
@@ -132,9 +132,9 @@ static bool_t parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes)
 		if (!parse_IndirectComponent(&nRegister, &pAddress))
 			return false;
 
-		while (g_CurrentToken.ID.TargetToken == T_OP_ADD || g_CurrentToken.ID.TargetToken == T_OP_SUB) {
-			if (g_CurrentToken.ID.TargetToken == T_OP_ADD) {
-				int nRegister2 = -1;
+		while (g_CurrentToken.Token == T_OP_ADD || g_CurrentToken.Token == T_OP_SUB) {
+			if (g_CurrentToken.Token == T_OP_ADD) {
+				uint32_t nRegister2 = UINT32_MAX;
 				SExpression* pAddress2 = NULL;
 
 				parse_GetToken();
@@ -142,7 +142,7 @@ static bool_t parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes)
 					return false;
 
 				if (nRegister2 >= 0) {
-					if (nRegister == -1)
+					if (nRegister == UINT32_MAX)
 						nRegister = nRegister2;
 					else
 						prj_Error(MERROR_ADDRMODE_ONE_REGISTER);
@@ -151,8 +151,8 @@ static bool_t parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes)
 				} else {
 					prj_Error(MERROR_ILLEGAL_ADDRMODE);
 				}
-			} else if (g_CurrentToken.ID.TargetToken == T_OP_SUB) {
-				int nRegister2 = -1;
+			} else if (g_CurrentToken.Token == T_OP_SUB) {
+				uint32_t nRegister2 = UINT32_MAX;
 				SExpression* pAddress2 = NULL;
 
 				parse_GetToken();
@@ -171,7 +171,7 @@ static bool_t parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes)
 
 		parse_ExpectChar(']');
 
-		if (nRegister != -1 && pAddress == NULL) {
+		if (nRegister != UINT32_MAX && pAddress == NULL) {
 			EAddrMode mode = ADDR_A_IND + nRegister;
 			if (nAllowedModes & (1u << mode)) {
 				pMode->eMode = mode;
@@ -180,7 +180,7 @@ static bool_t parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes)
 			}
 		}
 
-		if (nRegister != -1 && pAddress != NULL) {
+		if (nRegister != UINT32_MAX && pAddress != NULL) {
 			EAddrMode mode = ADDR_A_OFFSET_IND + nRegister;
 			if (nAllowedModes & (1u << mode)) {
 				pMode->eMode = mode;
@@ -189,7 +189,7 @@ static bool_t parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes)
 			}
 		}
 
-		if (nRegister == -1 && pAddress != NULL) {
+		if (nRegister == UINT32_MAX && pAddress != NULL) {
 			EAddrMode mode = ADDR_ADDRESS_IND;
 			if (nAllowedModes & (1u << mode)) {
 				pMode->eMode = mode;
@@ -224,8 +224,8 @@ static void parse_OptimizeAddressingMode(SAddrMode* pMode) {
 	}
 }
 
-static bool_t parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes) {
-	switch (g_CurrentToken.ID.TargetToken) {
+static bool parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes) {
+	switch (g_CurrentToken.Token) {
 		case T_REG_A:
 		case T_REG_B:
 		case T_REG_C:
@@ -234,7 +234,7 @@ static bool_t parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes) {
 		case T_REG_Z:
 		case T_REG_I:
 		case T_REG_J: {
-			EAddrMode mode = ADDR_A + (g_CurrentToken.ID.TargetToken - T_REG_A);
+			EAddrMode mode = ADDR_A + (g_CurrentToken.Token - T_REG_A);
 			parse_GetToken();
 
 			if (nAllowedModes & (1u << mode)) {
@@ -251,7 +251,7 @@ static bool_t parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes) {
 		case T_REG_SP:
 		case T_REG_PC:
 		case T_REG_O: {
-			EAddrMode eMode = ADDR_POP + (g_CurrentToken.ID.TargetToken - T_REG_POP);
+			EAddrMode eMode = ADDR_POP + (g_CurrentToken.Token - T_REG_POP);
 			parse_GetToken();
 
 			if (nAllowedModes & (1u << eMode)) {
@@ -281,7 +281,7 @@ static bool_t parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes) {
 	return false;
 }
 
-typedef bool_t
+typedef bool
 (* ParserFunc)(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData);
 
 typedef struct {
@@ -291,7 +291,7 @@ typedef struct {
 	uint32_t nAllowedModes2;
 } SParser;
 
-static bool_t parse_Basic(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
+static bool parse_Basic(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
 	sect_OutputConst16((uint16_t) ((pMode2->eMode << 10u) | (pMode1->eMode << 4u) | nData));
 	if (pMode1->pAddress != NULL)
 		sect_OutputExpr16(pMode1->pAddress);
@@ -301,7 +301,7 @@ static bool_t parse_Basic(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) 
 	return true;
 }
 
-static bool_t parse_ADD_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData, ParserFunc negatedParser) {
+static bool parse_ADD_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData, ParserFunc negatedParser) {
 	/* Optimize FUNC dest,-$1F */
 	if (g_pOptions->pMachine->bOptimize) {
 		if (pMode2->eMode == ADDR_LITERAL && (pMode2->pAddress->nFlags & EXPRF_CONSTANT)
@@ -323,19 +323,19 @@ static bool_t parse_ADD_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData
 	return true;
 }
 
-static bool_t parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData);
+static bool parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData);
 
-static bool_t parse_ADD(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
+static bool parse_ADD(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
 	assert(nData >= 0);
 	return parse_ADD_SUB(pMode1, pMode2, 0x2, parse_SUB);
 }
 
-static bool_t parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
+static bool parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
 	assert(nData >= 0);
 	return parse_ADD_SUB(pMode1, pMode2, 0x3, parse_ADD);
 }
 
-static bool_t parse_JSR(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
+static bool parse_JSR(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
 	assert(pMode2 == NULL);
 
 	sect_OutputConst16((uint16_t) ((nData << 4u) | (pMode1->eMode << 10u)));
@@ -363,9 +363,9 @@ static SParser g_Parsers[T_0X10C_XOR - T_0X10C_ADD + 1] = {{0x2, parse_ADD,   AD
 														   {0xB, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_XOR
 };
 
-bool_t parse_IntegerInstruction(void) {
-	if (T_0X10C_ADD <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_0X10C_XOR) {
-		ETargetToken nToken = (ETargetToken) g_CurrentToken.ID.TargetToken;
+bool parse_IntegerInstruction(void) {
+	if (T_0X10C_ADD <= g_CurrentToken.Token && g_CurrentToken.Token <= T_0X10C_XOR) {
+		ETargetToken nToken = (ETargetToken) g_CurrentToken.Token;
 		SParser* pParser = &g_Parsers[nToken - T_0X10C_ADD];
 
 		parse_GetToken();
@@ -400,13 +400,13 @@ bool_t parse_IntegerInstruction(void) {
 }
 
 SExpression* parse_TargetFunction(void) {
-	switch (g_CurrentToken.ID.TargetToken) {
+	switch (g_CurrentToken.Token) {
 		default:
 			return NULL;
 	}
 }
 
-bool_t parse_TargetSpecific(void) {
+bool parse_TargetSpecific(void) {
 	if (parse_IntegerInstruction())
 		return true;
 

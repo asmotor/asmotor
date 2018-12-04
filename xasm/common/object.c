@@ -327,7 +327,7 @@ static void write_patch(FILE* f, SPatch* patch) {
 
 //	Public routines
 
-bool_t obj_Write(string* pName) {
+bool obj_Write(string* pName) {
 	FILE* f;
 	uint32_t groupcount = 0;
 	uint32_t equsetcount = 0;
@@ -414,7 +414,7 @@ bool_t obj_Write(string* pName) {
 		SPatch* patch;
 		long sympos;
 		long oldpos;
-		long ID;
+		uint32_t ID;
 		long totalpatches;
 
 		fputll(sect->pGroup->ID, f);

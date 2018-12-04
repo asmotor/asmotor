@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef UTIL_FILE_H_
-#define UTIL_FILE_H_
+#ifndef UTIL_FILE_H_INCLUDED_
+#define UTIL_FILE_H_INCLUDED_
 
 #include <stdio.h>
 
@@ -25,18 +25,17 @@
 
 extern size_t fsize(FILE* fileHandle);
 
-extern void fputll(uint32_t data, FILE* f);
-extern uint32_t fgetll(FILE* f);
+extern void fputll(uint32_t value, FILE* fileHandle);
+extern uint32_t fgetll(FILE* fileHandle);
 
-extern void fputbl(uint32_t data, FILE* f);
+extern void fputbl(uint32_t value, FILE* fileHandle);
 
-extern uint16_t fgetbw(FILE* f);
-extern void fputbw(uint16_t d, FILE* f);
+extern uint16_t fgetbw(FILE* fileHandle);
+extern void fputbw(uint16_t value, FILE* fileHandle);
 
-extern void fputlw(uint16_t d, FILE* f);
+extern void fputlw(uint16_t value, FILE* fileHandle);
 
 extern void fgetsz(char* destination, size_t maxLength, FILE* fileHandle);
 extern void fputsz(const char* str, FILE* fileHandle);
 
-
-#endif
+#endif /* UTIL_FILE_H_INCLUDED_ */

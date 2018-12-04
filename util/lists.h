@@ -16,59 +16,48 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_LISTS_H
-#define	INCLUDE_LISTS_H
+#ifndef UTIL_LISTS_H_INCLUDED_
+#define UTIL_LISTS_H_INCLUDED_
 
 #include "types.h"
 
-#define	list_Data(type)	\
-	type* pPrev;		\
-	type* pNext
+#define list_Data(type) \
+    type* pPrev;        \
+    type* pNext
 
-#define list_Init(e) {(e)->pPrev=NULL;(e)->pNext=NULL;}
-#define	list_GetNext(e)	((e)->pNext)
-#define	list_GetPrev(e)	((e)->pPrev)
-#define	list_isLast(e)	(list_GetNext(e)==NULL?true:false)
-#define	list_isFirst(e)	(list_GetPrev(e)==NULL?true:false)
+#define list_Init(e)    {(e)->pPrev=NULL;(e)->pNext=NULL;}
+#define list_GetNext(e) ((e)->pNext)
+#define list_GetPrev(e) ((e)->pPrev)
+#define list_isLast(e)  (list_GetNext(e)==NULL?true:false)
+#define list_isFirst(e) (list_GetPrev(e)==NULL?true:false)
 
-#define	list_Remove(head,e)				\
-{										\
-	if((head) == (e))					\
-	{									\
-		(head) = list_GetNext(e);		\
-		if(head)						\
-			list_GetPrev(head) = NULL;	\
-	}													\
-	else												\
-	{													\
-		list_GetNext(list_GetPrev(e)) = list_GetNext(e);\
-		if((e) && !list_isLast(e))							\
-		{													\
-			list_GetPrev(list_GetNext(e)) = list_GetPrev(e);\
-		}													\
-	}													\
+#define list_Remove(head, e) {           \
+    if ((head) == (e)) {                 \
+        (head) = list_GetNext(e);        \
+        if (head)                        \
+            list_GetPrev(head) = NULL;   \
+    } else {                                                 \
+        list_GetNext(list_GetPrev(e)) = list_GetNext(e);     \
+        if((e) && !list_isLast(e)) {                         \
+            list_GetPrev(list_GetNext(e)) = list_GetPrev(e); \
+        }                                                    \
+    }                                                        \
 }
 
-
-#define	list_Insert(head,e)			\
-{									\
-	if(head)						\
-		list_GetPrev(head) = (e);	\
-	list_GetNext(e) = (head);		\
-	list_GetPrev(e) = NULL;			\
-	(head) = (e);					\
+#define list_Insert(head, e) {    \
+    if (head)                     \
+        list_GetPrev(head) = (e); \
+    list_GetNext(e) = (head);     \
+    list_GetPrev(e) = NULL;       \
+    (head) = (e);                 \
 }
 
-
-#define	list_InsertAfter(where,e)				\
-{											  	\
-	list_GetPrev(e)=(where);				  	\
-	list_GetNext(e)=list_GetNext(where);	  	\
-	if(!list_isLast(where))					  	\
-	{										  	\
-		list_GetPrev(list_GetNext(where))=(e);	\
-	}										  	\
-	list_GetNext(where)=(e);				  	\
+#define list_InsertAfter(where, e) {             \
+    list_GetPrev(e) = (where);                   \
+    list_GetNext(e) = list_GetNext(where);       \
+    if (!list_isLast(where))                     \
+        list_GetPrev(list_GetNext(where)) = (e); \
+    list_GetNext(where) = (e);                   \
 }
 
-#endif	/*INCLUDE_LISTS_H*/
+#endif /* UTIL_LISTS_H_INCLUDED_ */

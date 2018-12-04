@@ -20,18 +20,22 @@
 #include <stdlib.h>
 #include <assert.h>
 
+// From util
 #include "asmotor.h"
-#include "xasm.h"
+#include "fmath.h"
 #include "mem.h"
+#include "strbuf.h"
+
+// From xasm
+#include "xasm.h"
 #include "lexer.h"
 #include "options.h"
 #include "filestack.h"
 #include "project.h"
 #include "symbol.h"
-#include "strbuf.h"
 
 
-bool_t g_bDontExpandStrings;
+bool g_bDontExpandStrings;
 uint32_t BinaryConstID;
 
 /*	Private data */
@@ -216,13 +220,13 @@ static int32_t ascii2bin(const char* s, size_t len)
 }
 
 
-static bool_t ParseNumber(const char* s, uint32_t size)
+static bool ParseNumber(const char* s, uint32_t size)
 {
     g_CurrentToken.Value.nInteger = ascii2bin(s, size);
     return true;
 }
 
-static bool_t ParseDecimal(const char* s, uint32_t size)
+static bool ParseDecimal(const char* s, uint32_t size)
 {
     uint32_t integer = 0;
 
@@ -249,11 +253,11 @@ static bool_t ParseDecimal(const char* s, uint32_t size)
     return true;
 }
 
-static bool_t ParseSymbol(const char* src, uint32_t size)
+static bool ParseSymbol(const char* src, uint32_t size)
 {
-    stringbuffer* pBuffer = strbuf_Create();
+    string_buffer* pBuffer = strbuf_Create();
     string* pString;
-    bool_t r;
+    bool r;
 
     for(uint32_t i = 0; i < size; ++i)
     {
@@ -318,7 +322,7 @@ static bool_t ParseSymbol(const char* src, uint32_t size)
     return r;
 }
 
-bool_t ParseMacroArg(const char* src, uint32_t size)
+bool ParseMacroArg(const char* src, uint32_t size)
 {
     char* arg = fstk_GetMacroArgValue(src[1]);
     lex_SkipBytes(size);
@@ -327,7 +331,7 @@ bool_t ParseMacroArg(const char* src, uint32_t size)
     return false;
 }
 
-bool_t ParseUniqueArg(const char* src, uint32_t size)
+bool ParseUniqueArg(const char* src, uint32_t size)
 {
     assert(src != NULL);
 

@@ -36,7 +36,7 @@ struct Options
 	int		nTotalDisabledWarnings;
 	uint16_t	aDisabledWarnings[MAXDISABLEDWARNINGS];
 	struct MachineOptions*	pMachine;
-	bool_t	bAllowReservedIdentifierLabels;
+	bool	bAllowReservedIdentifierLabels;
 };
 typedef	struct Options SOptions;
 

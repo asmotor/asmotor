@@ -33,12 +33,12 @@ typedef	struct Symbol_
 	char       name[MAXSYMNAMELENGTH];
 	SymbolType type;
 	int32_t    value;
-	bool_t     resolved;
+	bool     resolved;
 
 	struct Section_* section;
 } Symbol;
 
-static inline bool_t symbol_IsLocal(Symbol* symbol)
+static inline bool symbol_IsLocal(Symbol* symbol)
 {
     switch (symbol->type)
     {

@@ -58,7 +58,7 @@ void locopt_Update(void)
     lex_FloatAddRangeAndBeyond(g_GameboyLiteralId, (uint8_t)g_pOptions->pMachine->GameboyChar[3], (uint8_t)g_pOptions->pMachine->GameboyChar[3], 1);
 }
 
-bool_t locopt_Parse(char* s)
+bool locopt_Parse(char* s)
 {
     if(s == NULL || strlen(s) == 0)
         return false;

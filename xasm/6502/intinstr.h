@@ -44,10 +44,10 @@ typedef struct Parser
 {
 	uint8_t	nBaseOpcode;
 	uint32_t nAddressingModes;
-	bool_t (*fpParser)(uint8_t nBaseOpcode, SAddressingMode* pAddrMode);
+	bool (*fpParser)(uint8_t nBaseOpcode, SAddressingMode* pAddrMode);
 } SParser;
 
-static bool_t parse_Standard_All(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool parse_Standard_All(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
@@ -91,7 +91,7 @@ static bool_t parse_Standard_All(uint8_t nBaseOpcode, SAddressingMode* pAddrMode
 
 }
 
-static bool_t parse_Standard_AbsY7(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool parse_Standard_AbsY7(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
@@ -130,7 +130,7 @@ static bool_t parse_Standard_AbsY7(uint8_t nBaseOpcode, SAddressingMode* pAddrMo
 	}
 }
 
-static bool_t parse_Standard_Imm0(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool parse_Standard_Imm0(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
@@ -162,7 +162,7 @@ static bool_t parse_Standard_Imm0(uint8_t nBaseOpcode, SAddressingMode* pAddrMod
 	}
 }
 
-static bool_t parse_Standard_Rotate(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool parse_Standard_Rotate(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	switch(pAddrMode->nMode)
 	{
@@ -192,7 +192,7 @@ static bool_t parse_Standard_Rotate(uint8_t nBaseOpcode, SAddressingMode* pAddrM
 }
 
 
-static bool_t parse_Branch(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool parse_Branch(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	SExpression* pExpr;
 
@@ -213,7 +213,7 @@ static bool_t parse_Branch(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 }
 
 
-static bool_t parse_Implied(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool parse_Implied(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	assert(pAddrMode == NULL);
 	sect_OutputConst8(nBaseOpcode);
@@ -221,7 +221,7 @@ static bool_t parse_Implied(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 }
 
 
-static bool_t parse_JMP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool parse_JMP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	if(pAddrMode->nMode == MODE_IND)
 		nBaseOpcode += 0x20;
@@ -232,7 +232,7 @@ static bool_t parse_JMP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 }
 
 
-static bool_t parse_BRK(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool parse_BRK(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	sect_OutputConst8(nBaseOpcode);
 	if(pAddrMode->nMode == MODE_IMM)
@@ -241,7 +241,7 @@ static bool_t parse_BRK(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 }
 
 
-static bool_t parse_DOP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
+static bool parse_DOP(uint8_t nBaseOpcode, SAddressingMode* pAddrMode)
 {
 	assert(nBaseOpcode == 0);
 
@@ -350,19 +350,19 @@ static SParser g_Parsers[T_6502U_XAS - T_6502_ADC + 1] =
 };
 
 
-bool_t parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
+bool parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 {
 	SLexBookmark bm;
 	lex_Bookmark(&bm);
 
-	if((nAllowedModes & MODE_A) && g_CurrentToken.ID.TargetToken == T_6502_REG_A)
+	if((nAllowedModes & MODE_A) && g_CurrentToken.Token == T_6502_REG_A)
 	{
 		parse_GetToken();
 		pAddrMode->nMode = MODE_A;
 		pAddrMode->pExpr = NULL;
 		return true;
 	}
-	else if((nAllowedModes & MODE_IMM) && g_CurrentToken.ID.Token == '#')
+	else if((nAllowedModes & MODE_IMM) && g_CurrentToken.Token == '#')
 	{
 		parse_GetToken();
 		pAddrMode->nMode = MODE_IMM;
@@ -370,17 +370,17 @@ bool_t parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 		return true;
 	}
 
-	if((nAllowedModes & (MODE_IND_X | MODE_IND_Y)) && g_CurrentToken.ID.Token == '(')
+	if((nAllowedModes & (MODE_IND_X | MODE_IND_Y)) && g_CurrentToken.Token == '(')
 	{
 		parse_GetToken();
 		pAddrMode->pExpr = parse_ExpressionSU8();
 
 		if(pAddrMode->pExpr != NULL)
 		{
-			if(g_CurrentToken.ID.Token == ',')
+			if(g_CurrentToken.Token == ',')
 			{
 				parse_GetToken();
-				if(g_CurrentToken.ID.TargetToken == T_6502_REG_X)
+				if(g_CurrentToken.Token == T_6502_REG_X)
 				{
 					parse_GetToken();
 					if(parse_ExpectChar(')'))
@@ -390,13 +390,13 @@ bool_t parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 					}
 				}
 			}
-			else if(g_CurrentToken.ID.Token == ')')
+			else if(g_CurrentToken.Token == ')')
 			{
 				parse_GetToken();
-				if(g_CurrentToken.ID.Token == ',')
+				if(g_CurrentToken.Token == ',')
 				{
 					parse_GetToken();
-					if(g_CurrentToken.ID.TargetToken == T_6502_REG_Y)
+					if(g_CurrentToken.Token == T_6502_REG_Y)
 					{
 						parse_GetToken();
 						pAddrMode->nMode = MODE_IND_Y;
@@ -411,7 +411,7 @@ bool_t parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 
 	if(nAllowedModes & MODE_IND)
 	{
-		if(g_CurrentToken.ID.Token == '(')
+		if(g_CurrentToken.Token == '(')
 		{
 			parse_GetToken();
 
@@ -437,16 +437,16 @@ bool_t parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 			if(expr_IsConstant(pAddrMode->pExpr)
 			&& 0 <= pAddrMode->pExpr->Value.Value && pAddrMode->pExpr->Value.Value <= 255)
 			{
-				if(g_CurrentToken.ID.Token == ',')
+				if(g_CurrentToken.Token == ',')
 				{
 					parse_GetToken();
-					if(g_CurrentToken.ID.TargetToken == T_6502_REG_X)
+					if(g_CurrentToken.Token == T_6502_REG_X)
 					{
 						parse_GetToken();
 						pAddrMode->nMode = MODE_ZP_X;
 						return true;
 					}
-					else if(g_CurrentToken.ID.TargetToken == T_6502_REG_Y)
+					else if(g_CurrentToken.Token == T_6502_REG_Y)
 					{
 						parse_GetToken();
 						pAddrMode->nMode = MODE_ZP_Y;
@@ -457,17 +457,17 @@ bool_t parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 				return true;
 			}
 
-			if(g_CurrentToken.ID.Token == ',')
+			if(g_CurrentToken.Token == ',')
 			{
 				parse_GetToken();
 
-				if(g_CurrentToken.ID.TargetToken == T_6502_REG_X)
+				if(g_CurrentToken.Token == T_6502_REG_X)
 				{
 					parse_GetToken();
 					pAddrMode->nMode = MODE_ABS_X;
 					return true;
 				}
-				else if(g_CurrentToken.ID.TargetToken == T_6502_REG_Y)
+				else if(g_CurrentToken.Token == T_6502_REG_Y)
 				{
 					parse_GetToken();
 					pAddrMode->nMode = MODE_ABS_Y;
@@ -500,12 +500,12 @@ bool_t parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 }
 
 
-bool_t parse_IntegerInstruction(void)
+bool parse_IntegerInstruction(void)
 {
-	if(T_6502_ADC <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_6502U_XAS)
+	if(T_6502_ADC <= g_CurrentToken.Token && g_CurrentToken.Token <= T_6502U_XAS)
 	{
 		SAddressingMode addrMode;
-		ETargetToken nToken = (ETargetToken)g_CurrentToken.ID.TargetToken;
+		ETargetToken nToken = (ETargetToken)g_CurrentToken.Token;
 		SParser* pParser = &g_Parsers[nToken - T_6502_ADC];
 
 		parse_GetToken();

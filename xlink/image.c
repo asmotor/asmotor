@@ -16,8 +16,13 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xlink.h"
 #include <memory.h>
+
+// From util
+#include "fmath.h"
+
+// From xlink
+#include "xlink.h"
 
 #define WRITE_BLOCK_SIZE 16384
 

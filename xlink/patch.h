@@ -87,7 +87,7 @@ typedef	struct
 	Patch patches[];
 } Patches;
 
-extern void patch_Process(bool_t allowReloc, bool_t onlySectionRelativeReloc, bool_t allowImports);
+extern void patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports);
 extern Patches* patch_Alloc(uint32_t totalPatches);
 
 #endif

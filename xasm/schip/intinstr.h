@@ -39,10 +39,10 @@ typedef struct
 
 static int parse_GetRegister(void)
 {
-	if(g_CurrentToken.ID.TargetToken >= T_CHIP_REG_V0
-	&& g_CurrentToken.ID.TargetToken <= T_CHIP_REG_V15)
+	if(g_CurrentToken.Token >= T_CHIP_REG_V0
+	&& g_CurrentToken.Token <= T_CHIP_REG_V15)
 	{
-		int r = g_CurrentToken.ID.TargetToken - T_CHIP_REG_V0;
+		int r = g_CurrentToken.Token - T_CHIP_REG_V0;
 		parse_GetToken();
 
 		return r;
@@ -52,12 +52,12 @@ static int parse_GetRegister(void)
 }
 
 
-static bool_t parse_AddressMode(SAddressMode* pMode)
+static bool parse_AddressMode(SAddressMode* pMode)
 {
 	if((pMode->nRegister = (uint8_t)parse_GetRegister()) != 0xFF)
 	{
 		pMode->nMode = MODE_REG;
-		if(g_CurrentToken.ID.Token != T_OP_ADD)
+		if(g_CurrentToken.Token != T_OP_ADD)
 			return true;
 
 		parse_GetToken();
@@ -67,31 +67,31 @@ static bool_t parse_AddressMode(SAddressMode* pMode)
 			return true;
 		}
 	}
-	else if(g_CurrentToken.ID.TargetToken == T_CHIP_REG_I)
+	else if(g_CurrentToken.Token == T_CHIP_REG_I)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_I;
 		return true;
 	}
-	else if(g_CurrentToken.ID.TargetToken == T_CHIP_REG_RPL)
+	else if(g_CurrentToken.Token == T_CHIP_REG_RPL)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_RPL;
 		return true;
 	}
-	else if(g_CurrentToken.ID.TargetToken == T_CHIP_REG_DT)
+	else if(g_CurrentToken.Token == T_CHIP_REG_DT)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_DT;
 		return true;
 	}
-	else if(g_CurrentToken.ID.TargetToken == T_CHIP_REG_ST)
+	else if(g_CurrentToken.Token == T_CHIP_REG_ST)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_ST;
 		return true;
 	}
-	else if(g_CurrentToken.ID.TargetToken == T_CHIP_REG_I_IND)
+	else if(g_CurrentToken.Token == T_CHIP_REG_I_IND)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_I_IND;
@@ -105,7 +105,7 @@ static bool_t parse_AddressMode(SAddressMode* pMode)
 	return false;
 }
 
-static bool_t parse_ModeReg(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_ModeReg(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode2 == NULL);
 	assert(pMode3 == NULL);
@@ -114,7 +114,7 @@ static bool_t parse_ModeReg(SAddressMode* pMode1, SAddressMode* pMode2, SAddress
 	return true;
 }
 
-static bool_t parse_ModeRegReg(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_ModeRegReg(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode3 == NULL);
 
@@ -123,7 +123,7 @@ static bool_t parse_ModeRegReg(SAddressMode* pMode1, SAddressMode* pMode2, SAddr
 }
 
 
-static bool_t parse_ModeImm12(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_ModeImm12(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode2 == NULL);
 	assert(pMode3 == NULL);
@@ -138,7 +138,7 @@ static bool_t parse_ModeImm12(SAddressMode* pMode1, SAddressMode* pMode2, SAddre
 }
 
 
-static bool_t parse_DRW(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_DRW(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	sect_OutputExpr16(
 		expr_Or(
@@ -153,7 +153,7 @@ static bool_t parse_DRW(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode
 }
 
 
-static bool_t parse_SCRD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_SCRD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode1 == NULL);
 	assert(pMode2 == NULL);
@@ -168,7 +168,7 @@ static bool_t parse_SCRD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMod
 }
 
 
-static bool_t parse_ModeRegImm(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_ModeRegImm(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode3 == NULL);
 
@@ -185,7 +185,7 @@ static bool_t parse_ModeRegImm(SAddressMode* pMode1, SAddressMode* pMode2, SAddr
 }
 
 
-static bool_t parse_LD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_LD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(nOpcode >= 0);
 
@@ -211,7 +211,7 @@ static bool_t parse_LD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode*
 }
 
 
-static bool_t parse_LDM(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_LDM(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode3 == NULL);
 	assert(nOpcode >= 0);
@@ -231,7 +231,7 @@ static bool_t parse_LDM(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode
 	return prj_Error(ERROR_OPERAND);
 }
 
-static bool_t parse_ADD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_ADD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode3 == NULL);
 	assert(nOpcode >= 0);
@@ -248,7 +248,7 @@ static bool_t parse_ADD(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode
 	return prj_Error(ERROR_OPERAND);
 }
 
-static bool_t parse_Skips(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_Skips(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode3 == NULL);
 
@@ -264,7 +264,7 @@ static bool_t parse_Skips(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMo
 	return prj_Error(ERROR_OPERAND);
 }
 
-static bool_t parse_JP(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_JP(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode2 == NULL);
 	assert(pMode3 == NULL);
@@ -280,7 +280,7 @@ static bool_t parse_JP(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode*
 }
 
 
-static bool_t parse_ModeNone(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
+static bool parse_ModeNone(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode)
 {
 	assert(pMode1 == NULL);
 	assert(pMode2 == NULL);
@@ -291,7 +291,7 @@ static bool_t parse_ModeNone(SAddressMode* pMode1, SAddressMode* pMode2, SAddres
 }
 
 
-typedef bool_t (*fpParser_t)(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode);
+typedef bool (*fpParser_t)(SAddressMode* pMode1, SAddressMode* pMode2, SAddressMode* pMode3, uint16_t nOpcode);
 
 typedef struct
 {
@@ -348,12 +348,12 @@ SInstruction g_Parsers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] =
 };
 
 
-bool_t parse_IntegerInstruction(void)
+bool parse_IntegerInstruction(void)
 {
-	if(T_CHIP_INSTR_FIRST <= g_CurrentToken.ID.TargetToken && g_CurrentToken.ID.TargetToken <= T_CHIP_INSTR_LAST)
+	if(T_CHIP_INSTR_FIRST <= g_CurrentToken.Token && g_CurrentToken.Token <= T_CHIP_INSTR_LAST)
 	{
-		bool_t r;
-		SInstruction* pInstr = &g_Parsers[g_CurrentToken.ID.TargetToken - T_CHIP_INSTR_FIRST];
+		bool r;
+		SInstruction* pInstr = &g_Parsers[g_CurrentToken.Token - T_CHIP_INSTR_FIRST];
 		SAddressMode mode1 = {0, 0, NULL};
 		SAddressMode mode2 = {0, 0, NULL};
 		SAddressMode mode3 = {0, 0, NULL};

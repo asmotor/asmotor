@@ -21,7 +21,7 @@
 
 extern void globlex_Init(void);
 
-extern bool_t	g_bDontExpandStrings;
+extern bool	g_bDontExpandStrings;
 extern uint32_t BinaryConstID;
 
 #endif	/*INCLUDE_GLOBLEX_H*/

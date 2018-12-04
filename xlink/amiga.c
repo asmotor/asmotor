@@ -80,7 +80,7 @@ static uint32_t sectionSize(Section* section)
 }
 
 
-static void writeSectionNames(FILE* fileHandle, bool_t debugInfo)
+static void writeSectionNames(FILE* fileHandle, bool debugInfo)
 {
     if (debugInfo)
     {
@@ -124,7 +124,7 @@ static void writeHunkName(FILE* fileHandle, char* hunkName)
 }
 
 
-static void writeHunkHeader(FILE* fileHandle, bool_t debugInfo, uint32_t totalSections)
+static void writeHunkHeader(FILE* fileHandle, bool debugInfo, uint32_t totalSections)
 {
     writeInt32(fileHandle, HUNK_HEADER);
     writeSectionNames(fileHandle, debugInfo);
@@ -200,7 +200,7 @@ static void freeOffsets(Offsets** offsets, uint32_t totalSections)
 
 static Offsets** getPatchSectionOffsets(Patches* patches, uint32_t totalSections)
 {
-    bool_t hasReloc = false;
+    bool hasReloc = false;
     Offsets** offsets = allocOffsets(totalSections);
     Patch* patch = patches->patches;
 
@@ -263,7 +263,7 @@ static void writeSymbolHunk(FILE* fileHandle, Section* section)
 }
 
 
-static void writeSection(FILE* fileHandle, Section* section, bool_t debugInfo, uint32_t totalSections, bool_t linkObject)
+static void writeSection(FILE* fileHandle, Section* section, bool debugInfo, uint32_t totalSections, bool linkObject)
 {
     if (linkObject)
         writeHunkName(fileHandle, section->name);
@@ -287,7 +287,7 @@ static void writeSection(FILE* fileHandle, Section* section, bool_t debugInfo, u
 }
 
 
-static void writeSections(FILE* fileHandle, bool_t debugInfo, uint32_t totalSections, bool_t linkObject)
+static void writeSections(FILE* fileHandle, bool debugInfo, uint32_t totalSections, bool linkObject)
 {
     for (Section* section = g_sections; section != NULL; section = section->nextSection)
     {
@@ -313,7 +313,7 @@ static uint32_t updateSectionIds()
 }
 
 
-static void writeExecutable(FILE* fileHandle, bool_t debugInfo)
+static void writeExecutable(FILE* fileHandle, bool debugInfo)
 {
     uint32_t totalSections = updateSectionIds();
 
@@ -322,7 +322,7 @@ static void writeExecutable(FILE* fileHandle, bool_t debugInfo)
 }
 
 
-static void writeLinkObject(FILE* fileHandle, bool_t debugInfo)
+static void writeLinkObject(FILE* fileHandle, bool debugInfo)
 {
     uint32_t totalSections = updateSectionIds();
 
@@ -331,7 +331,7 @@ static void writeLinkObject(FILE* fileHandle, bool_t debugInfo)
 }
 
 
-static void openAndWriteFile(char* filename, void (*function)(FILE*, bool_t), bool_t debugInfo)
+static void openAndWriteFile(char* filename, void (*function)(FILE*, bool), bool debugInfo)
 {
     FILE* fileHandle;
 
@@ -347,13 +347,13 @@ static void openAndWriteFile(char* filename, void (*function)(FILE*, bool_t), bo
 }
 
 
-void amiga_WriteExecutable(char* filename, bool_t debugInfo)
+void amiga_WriteExecutable(char* filename, bool debugInfo)
 {
     openAndWriteFile(filename, writeExecutable, debugInfo);
 }
 
 
-void amiga_WriteLinkObject(char* filename, bool_t debugInfo)
+void amiga_WriteLinkObject(char* filename, bool debugInfo)
 {
     openAndWriteFile(filename, writeLinkObject, debugInfo);
 }

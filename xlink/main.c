@@ -35,19 +35,19 @@ typedef enum
 } TargetType;
 
 
-bool_t target_SupportsReloc(TargetType type)
+bool target_SupportsReloc(TargetType type)
 {
 	return type == TARGET_AMIGA_EXECUTABLE || type == TARGET_AMIGA_LINK_OBJECT;
 }
 
 
-bool_t target_SupportsOnlySectionRelativeReloc(TargetType type)
+bool target_SupportsOnlySectionRelativeReloc(TargetType type)
 {
 	return type == TARGET_AMIGA_EXECUTABLE;
 }
 
 
-bool_t target_SupportsImports(TargetType type)
+bool target_SupportsImports(TargetType type)
 {
 	return type == TARGET_AMIGA_LINK_OBJECT;
 }
@@ -105,7 +105,7 @@ static void printUsage(void)
 int	main(int argc, char* argv[])
 {
 	int argn = 1;
-	bool_t targetDefined = false;
+	bool targetDefined = false;
 	TargetType targetType = TARGET_BINARY;
 	int binaryPad = -1;
 

@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ASMOTOR_AMITIME_H_
-#define ASMOTOR_AMITIME_H_
+#ifndef UTIL_AMITIME_INCLUDED_
+#define UTIL_AMITIME_INCLUDED_
 
 
 #if defined(__VBCC__)
@@ -35,10 +35,10 @@ typedef unsigned long clock_t;
 
 extern uint32_t time_GetMicroSeconds(void);
 
-#else
+#else /* __VBCC__ */
 
 #include <time.h>
 
-#endif
+#endif /* __VBCC__ */
 
-#endif
+#endif /* UTIL_AMITIME_INCLUDED_ */

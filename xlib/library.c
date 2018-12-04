@@ -154,7 +154,7 @@ SLibrary* lib_Read(char* filename) {
 	}
 }
 
-bool_t lib_Write(SLibrary* lib, char* filename) {
+bool lib_Write(SLibrary* lib, char* filename) {
 	FILE* f;
 
 	if ((f = fopen(filename, "wb")) != NULL) {
@@ -243,7 +243,7 @@ SLibrary* lib_DeleteModule(SLibrary* lib, char* filename) {
 	char truncatedName[MAXNAMELENGTH];
 	SLibrary** pp;
 	SLibrary** first;
-	bool_t found = 0;
+	bool found = 0;
 
 	first = pp = &lib;
 

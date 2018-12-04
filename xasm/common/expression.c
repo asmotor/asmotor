@@ -18,8 +18,12 @@
 
 #include <stdio.h>
 
+// From util
 #include "asmotor.h"
+#include "fmath.h"
 #include "mem.h"
+
+// From xasm
 #include "xasm.h"
 #include "expression.h"
 #include "symbol.h"
@@ -55,7 +59,7 @@
 #define T_FUNC_LowLimit T_FUNC_LOWLIMIT
 #define T_FUNC_HighLimit T_FUNC_HIGHLIMIT
 
-static bool_t expr_VerifyPointers(SExpression* pLeft, SExpression* pRight)
+static bool expr_VerifyPointers(SExpression* pLeft, SExpression* pRight)
 {
     if(pLeft != NULL && pRight != NULL )
         return true;
@@ -66,7 +70,7 @@ static bool_t expr_VerifyPointers(SExpression* pLeft, SExpression* pRight)
     return false;
 }
 
-static bool_t expr_VerifyPointer(SExpression* pExpr)
+static bool expr_VerifyPointer(SExpression* pExpr)
 {
     if(pExpr != NULL)
         return true;

@@ -19,61 +19,66 @@
 #if !defined(UTIL_STR_H_INCLUDED_)
 #define UTIL_STR_H_INCLUDED_
 
+#include <string.h>
+
 #include "asmotor.h"
 
 typedef struct {
-	int nRefCount;
-	size_t nLength;
-	char szData[];
+	uint32_t refCount;
+	size_t length;
+	char data[];
 } string;
 
-extern string* str_Create(const char* pszData);
-extern string* str_CreateLength(const char* pszData, size_t nLength);
+extern string* str_CreateLength(const char* data, size_t length);
 extern string* str_Empty(void);
-extern void str_Free(string* pString);
-extern string* str_Concat(const string* pString1, const string* pString2);
-extern string* str_Slice(const string* pString1, ssize_t nIndex, size_t nLength);
-extern bool_t str_Equal(const string* pString1, const string* pString2);
-extern bool_t str_EqualConst(const string* pString1, const char* pString2);
-extern string* str_Replace(const string* pString, char search, char replace);
-extern string* str_ToLower(const string* pString);
-extern void str_ToUpperReplace(string** ppString);
+extern void str_Free(string* str);
+extern string* str_Concat(const string* str1, const string* str2);
+extern string* str_Slice(const string* str1, ssize_t index, size_t length);
+extern bool str_Equal(const string* str1, const string* str2);
+extern bool str_EqualConst(const string* str1, const char* str2);
+extern string* str_Replace(const string* str, char search, char replace);
+extern string* str_ToLower(const string* str);
+extern void str_ToUpperReplace(string** str);
 
-INLINE string* str_Copy(string* pString) {
-	if (pString != NULL)
-		++pString->nRefCount;
-	return pString;
+INLINE string* str_Create(const char* data) {
+	return str_CreateLength(data, strlen(data));
 }
 
-INLINE size_t str_Length(const string* pString) {
-	return pString->nLength;
+INLINE string* str_Copy(string* str) {
+	if (str != NULL)
+		++str->refCount;
+	return str;
 }
 
-INLINE const char* str_String(const string* pString) {
-	return pString->szData;
+INLINE size_t str_Length(const string* str) {
+	return str->length;
 }
 
-INLINE char str_CharAt(const string* pString, ssize_t nIndex) {
-	if (nIndex < 0)
-		nIndex = str_Length(pString) + nIndex;
-	return pString->szData[nIndex];
+INLINE const char* str_String(const string* str) {
+	return str->data;
 }
 
-INLINE void str_Set(string* pString, ssize_t nIndex, char ch) {
-	if (nIndex < 0)
-		nIndex = str_Length(pString) + nIndex;
-	pString->szData[nIndex] = ch;
+INLINE char str_CharAt(const string* str, ssize_t index) {
+	if (index < 0)
+		index = str_Length(str) + index;
+	return str->data[index];
 }
 
-INLINE void str_Assign(string** ppDest, string* pSrc) {
-	str_Free(*ppDest);
-	*ppDest = str_Copy(pSrc);
+INLINE void str_Set(string* str, ssize_t index, char ch) {
+	if (index < 0)
+		index = str_Length(str) + index;
+	str->data[index] = ch;
 }
 
-INLINE void str_Move(string** ppDest, string** ppSrc) {
-	str_Free(*ppDest);
-	*ppDest = *ppSrc;
-	*ppSrc = NULL;
+INLINE void str_Assign(string** dest, string* src) {
+	str_Free(*dest);
+	*dest = str_Copy(src);
+}
+
+INLINE void str_Move(string** dest, string** src) {
+	str_Free(*dest);
+	*dest = *src;
+	*src = NULL;
 }
 
 #define STR_ASSIGN(p, str) str_Assign(&(p), (str))

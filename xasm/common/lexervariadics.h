@@ -22,7 +22,7 @@
 #include "tokens.h"
 
 typedef struct {
-	bool_t (* callback)(const char* s, uint32_t size);
+	bool (* callback)(const char* s, uint32_t size);
 	uint32_t token;
 } SVariadicWordDefinition;
 

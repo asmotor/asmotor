@@ -24,11 +24,11 @@
 #include "symbol.h"
 #include "patch.h"
 
-bool_t bin_CommonPatch()
+bool bin_CommonPatch()
 {
 	SSection* sect;
-	int32_t nAddress;
-	bool_t bNeedOrg = false;
+	uint32_t nAddress;
+	bool bNeedOrg = false;
 
 	sect = g_pSectionList;
 	while(sect)
@@ -91,7 +91,7 @@ bool_t bin_CommonPatch()
 	return true;
 }
 
-bool_t bin_Write(string* pName)
+bool bin_Write(string* pName)
 {
 	FILE* f;
 
@@ -101,7 +101,7 @@ bool_t bin_Write(string* pName)
 	if((f = fopen(str_String(pName),"wb")) != NULL)
 	{
 		SSection* sect = g_pSectionList;
-		int32_t nAddress = sect->Position;
+		uint32_t nAddress = sect->Position;
 
 		while(sect)
 		{
@@ -128,7 +128,7 @@ bool_t bin_Write(string* pName)
 	return false;
 }
 
-bool_t bin_WriteVerilog(string* pName)
+bool bin_WriteVerilog(string* pName)
 {
 	FILE* f;
 
@@ -138,7 +138,7 @@ bool_t bin_WriteVerilog(string* pName)
 	if((f = fopen(str_String(pName),"wt")) != NULL)
 	{
 		SSection* sect = g_pSectionList;
-		int32_t nAddress = sect->Position;
+		uint32_t nAddress = sect->Position;
 
 		while(sect)
 		{

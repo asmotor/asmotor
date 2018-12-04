@@ -16,17 +16,15 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_TYPES_H
-#define	INCLUDE_TYPES_H
+#ifndef UTIL_TYPES_H_INCLUDED_
+#define UTIL_TYPES_H_INCLUDED_
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 
-typedef bool bool_t;
-
-#ifndef	NULL
-#	define	NULL	0L
+#ifndef NULL
+# define NULL 0L
 #endif
 
-#endif	/*INCLUDE_TYPES_H*/
+#endif /* UTIL_TYPES_H_INCLUDED_ */

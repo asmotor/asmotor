@@ -19,7 +19,7 @@
 #if !defined(FPU_INSTRUCTIONS_M68K_)
 #define FPU_INSTRUCTIONS_M68K_
 
-#define FPU_INS 0xF200
+#define FPU_INS 0xF200u
 
 
 static uint16_t parse_GetSourceSpecifier(ESize sz)
@@ -38,7 +38,7 @@ static uint16_t parse_GetSourceSpecifier(ESize sz)
 }
 
 
-static bool_t parse_FpuGeneric(ESize sz, uint16_t opmode, SAddrMode* src, SAddrMode* dest)
+static bool parse_FpuGeneric(ESize sz, uint16_t opmode, SAddrMode* src, SAddrMode* dest)
 {
 	uint16_t rm = src->eMode == AM_FPUREG ? (uint16_t) 0x0000 : (uint16_t) 0x4000;
 
@@ -48,13 +48,13 @@ static bool_t parse_FpuGeneric(ESize sz, uint16_t opmode, SAddrMode* src, SAddrM
 		return true;
 	}
 
-	sect_OutputConst16(FPU_INS | (rm ? parse_GetEAField(src) : 0));
+	sect_OutputConst16(FPU_INS | (rm ? parse_GetEAField(src) : 0u));
 	sect_OutputConst16(rm | parse_GetSourceSpecifier(sz) | (dest->nDirectReg << 7) | opmode);
 	return parse_OutputExtWords(src);
 }
 
 
-static bool_t parse_FABS(ESize sz, SAddrMode* src, SAddrMode* dest)
+static bool parse_FABS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(dest == NULL && src->eMode == AM_FPUREG)
 	{
@@ -77,20 +77,20 @@ static SInstruction s_FpuInstructions[] =
 };
 
 
-bool_t parse_FpuInstruction(void)
+bool parse_FpuInstruction(void)
 {
 	return false;
 	/*
 	int op;
 	SInstruction* pIns;
 
-	if(g_CurrentToken.ID.TargetToken < T_FPU_FIRST
-	|| g_CurrentToken.ID.TargetToken > T_FPU_LAST)
+	if(g_CurrentToken.Token < T_FPU_FIRST
+	|| g_CurrentToken.Token > T_FPU_LAST)
 	{
 		return false;
 	}
 
-	op = g_CurrentToken.ID.TargetToken - T_FPU_FIRST;
+	op = g_CurrentToken.Token - T_FPU_FIRST;
 	parse_GetToken();
 
 	pIns = &s_FpuInstructions[op];

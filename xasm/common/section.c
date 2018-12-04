@@ -121,7 +121,7 @@ static void sect_GrowCurrent(uint32_t count) {
 	}
 }
 
-static bool_t sect_CheckAvailableSpace(uint32_t count) {
+static bool sect_CheckAvailableSpace(uint32_t count) {
 	assert(g_pConfiguration->eMinimumWordSize <= count);
 
 	if (g_pCurrentSection) {
@@ -453,7 +453,7 @@ void sect_SkipBytes(uint32_t count) {
 	}
 }
 
-bool_t sect_SwitchTo(char* sectname, SSymbol* group) {
+bool sect_SwitchTo(char* sectname, SSymbol* group) {
 	SSection* sect;
 
 	sect = sect_Find(sectname, group);
@@ -471,7 +471,7 @@ bool_t sect_SwitchTo(char* sectname, SSymbol* group) {
 	}
 }
 
-bool_t sect_SwitchTo_LOAD(char* sectname, SSymbol* group, uint32_t load) {
+bool sect_SwitchTo_LOAD(char* sectname, SSymbol* group, uint32_t load) {
 	SSection* sect;
 
 	if ((sect = sect_Find(sectname, group)) != NULL) {
@@ -494,7 +494,7 @@ bool_t sect_SwitchTo_LOAD(char* sectname, SSymbol* group, uint32_t load) {
 	}
 }
 
-bool_t sect_SwitchTo_BANK(char* sectname, SSymbol* group, int32_t bank) {
+bool sect_SwitchTo_BANK(char* sectname, SSymbol* group, uint32_t bank) {
 	SSection* sect;
 
 	if (!g_pConfiguration->bSupportBanks)
@@ -521,7 +521,7 @@ bool_t sect_SwitchTo_BANK(char* sectname, SSymbol* group, int32_t bank) {
 	return sect != NULL;
 }
 
-bool_t sect_SwitchTo_LOAD_BANK(char* sectname, SSymbol* group, uint32_t load, int32_t bank) {
+bool sect_SwitchTo_LOAD_BANK(char* sectname, SSymbol* group, uint32_t load, uint32_t bank) {
 	SSection* sect;
 
 	if (!g_pConfiguration->bSupportBanks)
@@ -549,7 +549,7 @@ bool_t sect_SwitchTo_LOAD_BANK(char* sectname, SSymbol* group, uint32_t load, in
 	return sect != NULL;
 }
 
-bool_t sect_SwitchTo_NAMEONLY(char* sectname) {
+bool sect_SwitchTo_NAMEONLY(char* sectname) {
 	if ((g_pCurrentSection = sect_Find(sectname, NULL)) != NULL) {
 		return true;
 	} else {
@@ -558,7 +558,7 @@ bool_t sect_SwitchTo_NAMEONLY(char* sectname) {
 	}
 }
 
-bool_t sect_Init(void) {
+bool sect_Init(void) {
 	g_pCurrentSection = NULL;
 	g_pSectionList = NULL;
 	return true;

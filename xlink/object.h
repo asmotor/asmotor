@@ -41,7 +41,7 @@ typedef	struct
 	Group groups[];
 } Groups;
 
-static inline bool_t group_isText(Group* group)
+static inline bool group_isText(Group* group)
 {
     return group != NULL && group->type == GROUP_TEXT;
 }

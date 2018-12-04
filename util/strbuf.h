@@ -16,7 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(UTIL_STRBUF_H_INCLUDED_)
+#ifndef UTIL_STRBUF_H_INCLUDED_
 #define UTIL_STRBUF_H_INCLUDED_
 
 #include <string.h>
@@ -25,25 +25,25 @@
 #include "str.h"
 
 typedef struct {
-	size_t nSize;
-	size_t nAllocated;
-	char* pBuffer;
-} stringbuffer;
+	size_t size;
+	size_t allocated;
+	char* data;
+} string_buffer;
 
-extern stringbuffer* strbuf_Create(void);
-extern void strbuf_Free(stringbuffer* pBuffer);
-extern string* strbuf_String(stringbuffer* pBuffer);
-extern void strbuf_AppendChars(stringbuffer* pBuffer, const char* pChars, size_t nCount);
+extern string_buffer* strbuf_Create(void);
+extern void strbuf_Free(string_buffer* buffer);
+extern string* strbuf_String(string_buffer* buffer);
+extern void strbuf_AppendChars(string_buffer* buffer, const char* data, size_t length);
 
-INLINE void strbuf_AppendChar(stringbuffer* pBuffer, char nChar) {
+INLINE void strbuf_AppendChar(string_buffer* pBuffer, char nChar) {
 	strbuf_AppendChars(pBuffer, &nChar, 1);
 }
 
-INLINE void strbuf_AppendStringZero(stringbuffer* pBuffer, const char* pszString) {
+INLINE void strbuf_AppendStringZero(string_buffer* pBuffer, const char* pszString) {
 	if (pszString == NULL)
 		return;
 
 	strbuf_AppendChars(pBuffer, pszString, strlen(pszString));
 }
 
-#endif
+#endif /* UTIL_STRBUF_H_INCLUDED_ */

@@ -44,3 +44,12 @@ build/cmake/*/xlib/xlib
 build/cmake/*/xlink/xlink
 Project.cbp
 workspace.xml
+xasm/0x10c/motor0x10c
+xasm/6502/motor6502
+xasm/680x0/motor68k
+xasm/gameboy/motorgb
+xasm/mips/motormips
+xasm/schip/motorschip
+xgbfix/xgbfix
+xlib/xlib
+xlink/xlink
