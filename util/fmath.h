@@ -37,4 +37,6 @@ extern uint32_t log2n(size_t value);
 
 extern int32_t asr(int32_t lhs, int32_t rhs);
 
+bool exactlyOneBitSet(int32_t d);
+
 #endif /* UTIL_FMATH_H_INCLUDED_ */

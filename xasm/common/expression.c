@@ -72,17 +72,17 @@ SExpression* expr_ ## NAME(SExpression* expr, SExpression* bound) { \
 }
 
 #define CREATE_UNARY_FUNC(NAME, FUNC, TOKEN)      \
-SExpression* expr_ ## NAME(SExpression* right) {  \
-    if (!expr_VerifyPointer(right))               \
+SExpression* expr_ ## NAME(SExpression* expr) {   \
+    if (!expr_VerifyPointer(expr))                \
         return NULL;                              \
-    SExpression* expr = (SExpression*) mem_Alloc(sizeof(SExpression)); \
-    expr->right = right;                          \
-    expr->left = NULL;                            \
-    expr->Value.Value = FUNC(right->Value.Value); \
-    expr->flags = right->flags & ~EXPRF_RELOC;    \
-    expr->type = EXPR_OPERATION;                  \
-    expr->operation = TOKEN;                      \
-    return expr;                                  \
+    SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression)); \
+    r->right = expr;                              \
+    r->left = NULL;                               \
+    r->Value.Value = FUNC(expr->Value.Value);     \
+    r->isConstant = expr->isConstant;             \
+    r->type = EXPR_OPERATION;                     \
+    r->operation = TOKEN;                         \
+    return r;                                     \
 }
 
 #define CREATE_EXPR_DIV(NAME, OP, TOKEN) \
@@ -95,11 +95,11 @@ SExpression* expr_ ## NAME(SExpression* left, SExpression* right) \
         return NULL;                                       \
     }                                                      \
     int32_t val = left->Value.Value OP right->Value.Value; \
-    left = mergeExpressions(left, right);                  \
-    left->type = EXPR_OPERATION;                           \
-    left->operation = TOKEN;                               \
-    left->Value.Value = val;                               \
-    return left;                                           \
+    SExpression* r = mergeExpressions(left, right);        \
+    r->type = EXPR_OPERATION;                              \
+    r->operation = TOKEN;                                  \
+    r->Value.Value = val;                                  \
+    return r;                                              \
 }
 
 
@@ -129,7 +129,7 @@ static SExpression* mergeExpressions(SExpression* left, SExpression* right) {
 
 	expr = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-	expr->flags = left->flags & right->flags;
+	expr->isConstant = left->isConstant && right->isConstant;
 	expr->left = left;
 	expr->right = right;
 	return expr;
@@ -191,26 +191,24 @@ CREATE_UNARY_FUNC(Acos, facos, T_FUNC_ACOS)
 
 CREATE_UNARY_FUNC(Atan, fatan, T_FUNC_ATAN)
 
-void expr_Clear(SExpression* pExpr) {
-	if (pExpr == NULL)
-		return;
+void expr_Clear(SExpression* expression) {
+	if (expression != NULL) {
+		expr_Free(expression->left);
+		expression->left = NULL;
 
-	expr_Free(pExpr->left);
-	pExpr->left = NULL;
+		expr_Free(expression->right);
+		expression->right = NULL;
 
-	expr_Free(pExpr->right);
-	pExpr->right = NULL;
-
-	pExpr->flags = 0;
+		expression->isConstant = true;
+	}
 }
 
-void expr_Free(SExpression* pExpr) {
-	if (pExpr == NULL)
-		return;
-
-	expr_Free(pExpr->left);
-	expr_Free(pExpr->right);
-	mem_Free(pExpr);
+void expr_Free(SExpression* expression) {
+	if (expression != NULL) {
+		expr_Free(expression->left);
+		expr_Free(expression->right);
+		mem_Free(expression);
+	}
 }
 
 SExpression* expr_Clone(SExpression* expr) {
@@ -233,135 +231,117 @@ SExpression* expr_Parens(SExpression* expression) {
 	r->right = expression;
 	r->left = NULL;
 	r->Value.Value = expression->Value.Value;
-	r->flags = expression->flags;
+	r->isConstant = expression->isConstant;
 	r->type = EXPR_PARENS;
 	r->operation = T_NONE;
 	return r;
 }
 
-SExpression* expr_Abs(SExpression* right) {
-	SExpression* sign = expr_Asr(expr_Clone(right), expr_Const(31));
-	return expr_Sub(expr_Xor(right, expr_Clone(sign)), sign);
-}
-
 SExpression* expr_Bit(SExpression* right) {
-	SExpression* expr;
-	int b = 0;
-	uint32_t v;
-
 	if (!expr_VerifyPointer(right))
 		return NULL;
 
-	v = (uint32_t) right->Value.Value;
+	uint32_t v = (uint32_t) right->Value.Value;
 
-	if (expr_IsConstant(right) && (v & -v) != v) {
+	if (expr_IsConstant(right) && !exactlyOneBitSet(v)) {
 		prj_Error(ERROR_EXPR_TWO_POWER);
 		return NULL;
 	}
 
-	b = 0;
-	if (v != 0) {
-		while (v != 1) {
-			v >>= 1;
-			++b;
-		}
-	}
-
-	expr = (SExpression*) mem_Alloc(sizeof(SExpression));
-	expr->right = right;
-	expr->left = NULL;
-	expr->Value.Value = b;
-	expr->flags = right->flags;
-	expr->type = EXPR_OPERATION;
-	expr->operation = T_OP_BIT;
-	return expr;
+	SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
+	r->right = right;
+	r->left = NULL;
+	r->Value.Value = log2n(v);
+	r->isConstant = right->isConstant;
+	r->type = EXPR_OPERATION;
+	r->operation = T_OP_BIT;
+	return r;
 }
 
 SExpression* expr_PcRelative(SExpression* pExpr, int nAdjust) {
 	if (!expr_VerifyPointer(pExpr))
 		return NULL;
 
-	if ((pExpr->flags & EXPRF_CONSTANT) && (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
-		pExpr->Value.Value -=
-				(g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset - nAdjust);
+	if (expr_IsConstant(pExpr) && (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
+		pExpr->Value.Value -= (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset - nAdjust);
 		return pExpr;
 	} else if (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
-		return expr_Add(pExpr, expr_Const(
-				nAdjust - (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset)));
+		return expr_Add(
+            pExpr,
+            expr_Const(nAdjust - (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset))
+        );
 	} else {
-		SExpression* expr = (SExpression*) mem_Alloc(sizeof(SExpression));
+		SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-		expr->Value.Value = 0;
-		expr->type = EXPR_PC_RELATIVE;
-		expr->flags = EXPRF_RELOC;
-		expr->left = expr_Const(nAdjust);
-		expr->right = pExpr;
-		return expr;
+		r->Value.Value = 0;
+		r->type = EXPR_PC_RELATIVE;
+		r->isConstant = false;
+		r->left = expr_Const(nAdjust);
+		r->right = pExpr;
+		return r;
 	}
 }
 
 SExpression* expr_Pc() {
-	string* pName;
-	SExpression* expr = (SExpression*) mem_Alloc(sizeof(SExpression));
+	char symbolName[MAXSYMNAMELENGTH + 20];
+	sprintf(symbolName, "$%s%u", str_String(g_pCurrentSection->Name), g_pCurrentSection->PC);
 
-	char sym[MAXSYMNAMELENGTH + 20];
-	SSymbol* pSym;
+	string* nameString = str_Create(symbolName);
+	SSymbol* symbol = sym_CreateLabel(nameString);
+	str_Free(nameString);
 
-	sprintf(sym, "$%s%u", str_String(g_pCurrentSection->Name), g_pCurrentSection->PC);
-	pName = str_Create(sym);
-	pSym = sym_CreateLabel(pName);
-	str_Free(pName);
+	SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-	if (pSym->nFlags & SYMF_CONSTANT) {
-		expr->Value.Value = pSym->Value.Value;
-		expr->type = EXPR_CONSTANT;
-		expr->flags = EXPRF_CONSTANT | EXPRF_RELOC;
-		expr->left = NULL;
-		expr->right = NULL;
+	if (symbol->nFlags & SYMF_CONSTANT) {
+		r->Value.Value = symbol->Value.Value;
+		r->type = EXPR_CONSTANT;
+		r->isConstant = true;
+		r->left = NULL;
+		r->right = NULL;
 	} else {
-		expr->right = NULL;
-		expr->left = NULL;
-		expr->Value.pSymbol = pSym;
-		expr->flags = EXPRF_RELOC;
-		expr->type = EXPR_SYMBOL;
+		r->right = NULL;
+		r->left = NULL;
+		r->Value.pSymbol = symbol;
+		r->isConstant = false;
+		r->type = EXPR_SYMBOL;
 	}
 
-	return expr;
+	return r;
 }
 
-void expr_SetConst(SExpression* pExpr, int32_t nValue) {
-	pExpr->left = NULL;
-	pExpr->right = NULL;
-	pExpr->type = EXPR_CONSTANT;
-	pExpr->flags = EXPRF_CONSTANT | EXPRF_RELOC;
-	pExpr->Value.Value = nValue;
+void expr_SetConst(SExpression* expression, int32_t nValue) {
+	expression->left = NULL;
+	expression->right = NULL;
+	expression->type = EXPR_CONSTANT;
+	expression->isConstant = true;
+	expression->Value.Value = nValue;
 }
 
-SExpression* expr_Const(int32_t nValue) {
-	SExpression* pExpr = (SExpression*) mem_Alloc(sizeof(SExpression));
+SExpression* expr_Const(int32_t value) {
+	SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
+	expr_SetConst(r, value);
 
-	expr_SetConst(pExpr, nValue);
-	return pExpr;
+	return r;
 }
 
 SExpression* expr_Sub(SExpression* left, SExpression* right) {
 	if (!expr_VerifyPointers(left, right))
 		return NULL;
 
-	int32_t val = left->Value.Value - right->Value.Value;
+	int32_t value = left->Value.Value - right->Value.Value;
 
 	left = mergeExpressions(left, right);
 	left->type = EXPR_OPERATION;
 	left->operation = T_OP_SUB;
-	left->Value.Value = val;
+	left->Value.Value = value;
 
-	if ((left->flags & EXPRF_CONSTANT) == 0 && left->left != NULL && left->right != NULL) {
-		if (left->left->type == EXPR_SYMBOL && left->right->type == EXPR_SYMBOL) {
-			if (left->left->Value.pSymbol->pSection == left->right->Value.pSymbol->pSection) {
-				left->flags = EXPRF_CONSTANT;
-				left->Value.Value = left->left->Value.pSymbol->Value.Value - left->right->Value.pSymbol->Value.Value;
-			}
-		}
+	if (expr_IsConstant(left) == 0
+	&& left->left != NULL
+	&& left->right != NULL
+	&& left->left->type == EXPR_SYMBOL
+	&& left->right->type == EXPR_SYMBOL
+	&& left->left->Value.pSymbol->pSection == left->right->Value.pSymbol->pSection) {
+		left->Value.Value = left->left->Value.pSymbol->Value.Value - left->right->Value.pSymbol->Value.Value;
 	}
 	return left;
 }
@@ -371,13 +351,12 @@ SExpression* expr_FixedDivision(SExpression* left, SExpression* right) {
 		return NULL;
 
 	if (right->Value.Value != 0) {
-		int32_t val = fdiv(left->Value.Value, right->Value.Value);
+		int32_t value = fdiv(left->Value.Value, right->Value.Value);
 
 		left = mergeExpressions(left, right);
 		left->type = EXPR_OPERATION;
 		left->operation = T_FUNC_FDIV;
-		left->Value.Value = val;
-		left->flags &= ~EXPRF_RELOC;
+		left->Value.Value = value;
 		return left;
 	}
 
@@ -385,66 +364,61 @@ SExpression* expr_FixedDivision(SExpression* left, SExpression* right) {
 	return NULL;
 }
 
-SExpression* expr_CheckRange(SExpression* pExpr, int32_t nLow, int32_t nHigh) {
-	SExpression* pLowExpr = expr_Const(nLow);
-	SExpression* pHighExpr = expr_Const(nHigh);
+SExpression* expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
+	SExpression* exprLow = expr_Const(low);
+	SExpression* exprHigh = expr_Const(high);
 
-	pExpr = expr_LowLimit(pExpr, pLowExpr);
-	if (pExpr != NULL)
-		return expr_HighLimit(pExpr, pHighExpr);
+	expression = expr_LowLimit(expression, exprLow);
+	if (expression != NULL)
+		return expr_HighLimit(expression, exprHigh);
 
-	expr_Free(pHighExpr);
+	expr_Free(exprHigh);
 	return NULL;
 }
 
-SExpression* expr_Bank(const char* s) {
-	SExpression* expr;
-	string* pName;
-
+SExpression* expr_Bank(const char* symbolName) {
 	if (!g_pConfiguration->bSupportBanks)
 		internalerror("Banks not supported");
 
-	pName = str_Create(s);
+	string* nameString = str_Create(symbolName);
 
-	expr = (SExpression*) mem_Alloc(sizeof(SExpression));
+	SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
+	r->right = NULL;
+	r->left = NULL;
+	r->Value.pSymbol = sym_FindSymbol(nameString);
+	r->Value.pSymbol->nFlags |= SYMF_REFERENCED;
+	r->isConstant = false;
+	r->type = EXPR_OPERATION;
+	r->operation = T_FUNC_BANK;
 
-	expr->right = NULL;
-	expr->left = NULL;
-	expr->Value.pSymbol = sym_FindSymbol(pName);
-	expr->Value.pSymbol->nFlags |= SYMF_REFERENCED;
-	expr->flags = EXPRF_RELOC;
-	expr->type = EXPR_OPERATION;
-	expr->operation = T_FUNC_BANK;
+	str_Free(nameString);
 
-	str_Free(pName);
-
-	return expr;
+	return r;
 }
 
-SExpression* expr_Symbol(const char* s) {
-	string* pName = str_Create(s);
-	SSymbol* pSym = sym_FindSymbol(pName);
-	str_Free(pName);
+SExpression* expr_Symbol(const char* symbolName) {
+	string* nameString = str_Create(symbolName);
+	SSymbol* symbol = sym_FindSymbol(nameString);
+	str_Free(nameString);
 
-	if (pSym->nFlags & SYMF_EXPR) {
-		pSym->nFlags |= SYMF_REFERENCED;
+	if (symbol->nFlags & SYMF_EXPR) {
+		symbol->nFlags |= SYMF_REFERENCED;
 
-		if (pSym->nFlags & SYMF_CONSTANT) {
-			return expr_Const(sym_GetValue(pSym));
+		if (symbol->nFlags & SYMF_CONSTANT) {
+			return expr_Const(sym_GetValue(symbol));
 		} else {
-			SExpression* pExpr = (SExpression*) mem_Alloc(sizeof(SExpression));
+			SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-			pExpr->right = NULL;
-			pExpr->left = NULL;
-			pExpr->Value.pSymbol = pSym;
-			pExpr->flags = EXPRF_RELOC;
-			pExpr->type = EXPR_SYMBOL;
+			r->right = NULL;
+			r->left = NULL;
+			r->Value.pSymbol = symbol;
+			r->isConstant = false;
+			r->type = EXPR_SYMBOL;
 
-			return pExpr;
+			return r;
 		}
 	}
 
 	prj_Fail(ERROR_SYMBOL_IN_EXPR);
 	return NULL;
 }
-

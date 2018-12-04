@@ -196,15 +196,14 @@ void sect_OutputReloc8(SExpression* expr) {
 void sect_OutputExpr8(SExpression* expr) {
 	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT);
 
-	if (expr == NULL)
+	if (expr == NULL) {
 		prj_Error(ERROR_EXPR_BAD);
-	else if (expr_IsConstant(expr)) {
+	} else if (expr_IsConstant(expr)) {
 		sect_OutputConst8((uint8_t) expr->Value.Value);
 		expr_Free(expr);
-	} else if (expr_IsRelocatable(expr))
+	} else {
 		sect_OutputReloc8(expr);
-	else
-		prj_Error(ERROR_EXPR_CONST_RELOC);
+	}
 }
 
 void sect_OutputConst16(uint16_t value) {
@@ -274,15 +273,14 @@ void sect_OutputReloc16(SExpression* expr) {
 void sect_OutputExpr16(SExpression* expr) {
 	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT);
 
-	if (expr == NULL)
+	if (expr == NULL) {
 		prj_Error(ERROR_EXPR_BAD);
-	else if (expr_IsConstant(expr)) {
+	} else if (expr_IsConstant(expr)) {
 		sect_OutputConst16((uint16_t) (expr->Value.Value));
 		expr_Free(expr);
-	} else if (expr_IsRelocatable(expr))
+	} else {
 		sect_OutputReloc16(expr);
-	else
-		prj_Error(ERROR_EXPR_CONST_RELOC);
+	}
 }
 
 void sect_OutputConst32(uint32_t value) {
@@ -356,15 +354,14 @@ void sect_OutputRel32(SExpression* expr) {
 void sect_OutputExpr32(SExpression* expr) {
 	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT);
 
-	if (expr == NULL)
+	if (expr == NULL) {
 		prj_Error(ERROR_EXPR_BAD);
-	else if (expr_IsConstant(expr)) {
+	} else if (expr_IsConstant(expr)) {
 		sect_OutputConst32(expr->Value.Value);
 		expr_Free(expr);
-	} else if (expr_IsRelocatable(expr))
+	} else {
 		sect_OutputRel32(expr);
-	else
-		prj_Error(ERROR_EXPR_CONST_RELOC);
+	}
 }
 
 void sect_OutputBinaryFile(string* pFile) {

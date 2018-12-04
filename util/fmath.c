@@ -93,3 +93,7 @@ int32_t asr(int32_t lhs, int32_t rhs) {
 	else
 		return lhs >> rhs;
 }
+
+bool exactlyOneBitSet(int32_t d) {
+    return ((uint32_t) d & (uint32_t) -d) == (uint32_t) d && d != 0;
+}

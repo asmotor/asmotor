@@ -24,6 +24,7 @@
 #include "asmotor.h"
 #include "xasm.h"
 #include "mem.h"
+#include "fmath.h"
 #include "patch.h"
 #include "tokens.h"
 #include "parse.h"
@@ -33,10 +34,6 @@
 
 typedef int32_t (*pPredicate_t)(int32_t nLeft, int32_t nRight);
 typedef int32_t (*pPredicate1_t)(int32_t nValue);
-
-static bool exactlyOneBitSet(int32_t d) {
-    return ((uint32_t) d & (uint32_t) -d) == (uint32_t) d && d != 0;
-}
 
 static bool patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v);
 
@@ -212,7 +209,7 @@ static bool patch_ReduceUnary(SPatch* pPatch, SExpression* pExpr, int32_t* v, pP
         pExpr->right = NULL;
 
         pExpr->type = EXPR_CONSTANT;
-        pExpr->flags |= EXPRF_CONSTANT;
+        pExpr->isConstant = true;
 
         *v = pExpr->Value.Value = pPred(vr);
         return true;
@@ -478,7 +475,7 @@ static bool patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* v)
                 expr->right = NULL;
 
                 expr->type = EXPR_CONSTANT;
-                expr->flags |= EXPRF_CONSTANT;
+                expr->isConstant = true;
 
                 expr->Value.Value = *v = b;
                 return true;
@@ -693,7 +690,7 @@ void patch_OptimizeExpression(SExpression* pExpr)
     if((pExpr->type == EXPR_SYMBOL) && (pExpr->Value.pSymbol->nFlags & SYMF_CONSTANT))
     {
         pExpr->type = EXPR_CONSTANT;
-        pExpr->flags = EXPRF_CONSTANT | EXPRF_RELOC;
+        pExpr->isConstant = true;
         pExpr->Value.Value = pExpr->Value.pSymbol->Value.Value;
     }
 
