@@ -604,7 +604,7 @@ static bool parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	}
 	else if(IS_Z80 && (pAddrMode1->nMode & MODE_REG_CONTROL) && (pAddrMode2->nMode & MODE_REG_A))
 	{
-		uint8_t regCtrl = (uint8_t) pAddrMode2->eRegCtrl << 3u;
+		uint8_t regCtrl = (uint8_t) pAddrMode1->eRegCtrl << 3u;
 		sect_OutputConst8(0xED);
 		sect_OutputConst8((uint8_t) 0x47u | regCtrl);
 	}

@@ -46,4 +46,11 @@ INLINE void strbuf_AppendStringZero(string_buffer* pBuffer, const char* pszStrin
 	strbuf_AppendChars(pBuffer, pszString, strlen(pszString));
 }
 
+INLINE void strbuf_AppendString(string_buffer* pBuffer, const string* str) {
+	if (str == NULL)
+		return;
+
+	strbuf_AppendChars(pBuffer, str_String(str), str_Length(str));
+}
+
 #endif /* UTIL_STRBUF_H_INCLUDED_ */

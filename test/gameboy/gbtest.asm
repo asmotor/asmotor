@@ -65,7 +65,7 @@ SETTest	SET	4
 ;testcomment:
 ; .test
 
-	PRINTT	"Expect 61:"
+	PRINTT	"Expect $45:"
 	PRINTV	__LINE
 	PRINTT	"\n"
 

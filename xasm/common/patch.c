@@ -604,8 +604,8 @@ void patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType
     patch->Offset = offset;
     patch->Type = type;
     patch->pExpression = expr;
-    patch->pFile = str_Copy(g_pFileContext->pName);
-    patch->nLine = g_pFileContext->LineNumber;
+    patch->pFile = str_Copy(g_currentContext->pName);
+    patch->nLine = g_currentContext->LineNumber;
 }
 
 void patch_BackPatch(void)

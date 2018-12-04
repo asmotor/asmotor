@@ -32,6 +32,8 @@
 #include "project.h"
 
 
+/* Internal functions */
+
 #define COMBINE(NAME, OP, TOKEN) \
 SExpression* expr_ ## NAME(SExpression* left, SExpression* right) { \
     if (!verifyPointers(left, right))            \
@@ -136,6 +138,8 @@ static bool isSymbol(SExpression* expression) {
 }
 
 
+/* Expression creation functions */
+
 CREATE_EXPR_DIV(Div, /, T_OP_DIV)
 
 CREATE_EXPR_DIV(Mod, %, T_OP_MOD)
@@ -191,27 +195,6 @@ CREATE_UNARY_FUNC(Asin, fasin, T_FUNC_ASIN)
 CREATE_UNARY_FUNC(Acos, facos, T_FUNC_ACOS)
 
 CREATE_UNARY_FUNC(Atan, fatan, T_FUNC_ATAN)
-
-
-void expr_Clear(SExpression* expression) {
-	if (expression != NULL) {
-		expr_Free(expression->left);
-		expression->left = NULL;
-
-		expr_Free(expression->right);
-		expression->right = NULL;
-
-		expression->isConstant = true;
-	}
-}
-
-void expr_Free(SExpression* expression) {
-	if (expression != NULL) {
-		expr_Free(expression->left);
-		expr_Free(expression->right);
-		mem_Free(expression);
-	}
-}
 
 SExpression* expr_Parens(SExpression* expression) {
 	if (!verifyPointer(expression))
@@ -297,14 +280,6 @@ SExpression* expr_Pc() {
 	}
 
 	return r;
-}
-
-void expr_SetConst(SExpression* expression, int32_t nValue) {
-	expression->left = NULL;
-	expression->right = NULL;
-	expression->type = EXPR_CONSTANT;
-	expression->isConstant = true;
-	expression->value.integer = nValue;
 }
 
 SExpression* expr_Const(int32_t value) {
@@ -403,4 +378,32 @@ SExpression* expr_Symbol(const char* symbolName) {
 
 	prj_Fail(ERROR_SYMBOL_IN_EXPR);
 	return NULL;
+}
+
+void expr_SetConst(SExpression* expression, int32_t nValue) {
+	expression->left = NULL;
+	expression->right = NULL;
+	expression->type = EXPR_CONSTANT;
+	expression->isConstant = true;
+	expression->value.integer = nValue;
+}
+
+void expr_Clear(SExpression* expression) {
+	if (expression != NULL) {
+		expr_Free(expression->left);
+		expression->left = NULL;
+
+		expr_Free(expression->right);
+		expression->right = NULL;
+
+		expression->isConstant = true;
+	}
+}
+
+void expr_Free(SExpression* expression) {
+	if (expression != NULL) {
+		expr_Free(expression->left);
+		expr_Free(expression->right);
+		mem_Free(expression);
+	}
 }

@@ -1,7 +1,7 @@
 #!/bin/sh
 function test {
 	echo Testing $i
-	../../xasm/gameboy/motorgb -mcg -fv -o$1.r $1 >$1.out 2>&1
+	../../build/cmake/debug/xasm/gameboy/motorgb -mcg -fv -o$1.r $1 >$1.out 2>&1
 	cat $1.r $1.out >$1.output 2>/dev/null
 	rm $1.r $1.out 2>/dev/null
 	diff $1.output $1.answer

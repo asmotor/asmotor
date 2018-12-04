@@ -71,7 +71,7 @@ static int32_t Callback__NARG(SSymbol* pSym) {
 static int32_t Callback__LINE(SSymbol* pSym) {
 	assert(pSym != NULL);
 
-	SFileStack* p = g_pFileContext;
+	SFileStackEntry* p = g_currentContext;
 	while (list_GetNext(p)) {
 		p = list_GetNext(p);
 	}

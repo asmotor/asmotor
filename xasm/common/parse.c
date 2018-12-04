@@ -188,7 +188,7 @@ static size_t parse_GetIfLength(const char* s) {
 }
 
 static bool parse_CopyRept(char** reptBlock, size_t* size) {
-	const char* src = g_pFileContext->pLexBuffer->pBuffer;
+	const char* src = g_currentContext->pLexBuffer->pBuffer;
 	size_t len = parse_GetReptLength(src);
 
 	if (len == 0)
@@ -205,7 +205,7 @@ static bool parse_CopyRept(char** reptBlock, size_t* size) {
 }
 
 bool parse_IfSkipToElse(void) {
-	const char* src = g_pFileContext->pLexBuffer->pBuffer;
+	const char* src = g_currentContext->pLexBuffer->pBuffer;
 	const char* token;
 
 	const char* s = parse_SkipToLine(src);
@@ -225,11 +225,11 @@ bool parse_IfSkipToElse(void) {
 			s = parse_SkipToLine(s);
 		} else if (_strnicmp(token, "ENDC", 4) == 0) {
 			lex_SkipBytes(token - src);
-			g_pFileContext->LineNumber++;
+			g_currentContext->LineNumber++;
 			return true;
 		} else if (_strnicmp(token, "ELSE", 4) == 0) {
 			lex_SkipBytes(token + 4 - src);
-			g_pFileContext->LineNumber++;
+			g_currentContext->LineNumber++;
 			return true;
 		} else {
 			s = parse_SkipToLine(s);
@@ -240,7 +240,7 @@ bool parse_IfSkipToElse(void) {
 }
 
 bool parse_IfSkipToEndc(void) {
-	const char* src = g_pFileContext->pLexBuffer->pBuffer;
+	const char* src = g_currentContext->pLexBuffer->pBuffer;
 	const char* token;
 
 	const char* s = parse_SkipToLine(src);
@@ -262,7 +262,7 @@ bool parse_IfSkipToEndc(void) {
 }
 
 bool parse_CopyMacro(char** dest, size_t* size) {
-	char* src = g_pFileContext->pLexBuffer->pBuffer;
+	char* src = g_currentContext->pLexBuffer->pBuffer;
 	size_t len = parse_GetMacroLength(src);
 
 	*size = len;
@@ -1089,8 +1089,8 @@ static bool parse_Symbol(void) {
 			case T_POP_MACRO: {
 				size_t reptSize;
 				char* reptBlock;
-				int32_t lineno = g_pFileContext->LineNumber;
-				const char* pszfile = str_String(g_pFileContext->pName);
+				int32_t lineno = g_currentContext->LineNumber;
+				const char* pszfile = str_String(g_currentContext->pName);
 
 				if (parse_CopyMacro(&reptBlock, &reptSize)) {
 					sym_CreateMACRO(pName, reptBlock, reptSize);
@@ -1171,18 +1171,18 @@ static int32_t parse_ExpectBankFixed(void) {
 static bool parse_PseudoOp(void) {
 	switch (g_CurrentToken.Token) {
 		case T_POP_REXIT: {
-			if (g_pFileContext->Type != CONTEXT_REPT) {
+			if (g_currentContext->Type != CONTEXT_REPT) {
 				prj_Warn(WARN_REXIT_OUTSIDE_REPT);
 			} else {
-				g_pFileContext->BlockInfo.Rept.RemainingRuns = 0;
+				g_currentContext->BlockInfo.Rept.RemainingRuns = 0;
 				fstk_RunNextBuffer();
-				g_pFileContext->LineNumber++;
+				g_currentContext->LineNumber++;
 			}
 			parse_GetToken();
 			return true;
 		}
 		case T_POP_MEXIT: {
-			if (g_pFileContext->Type != CONTEXT_MACRO) {
+			if (g_currentContext->Type != CONTEXT_MACRO) {
 				prj_Warn(WARN_MEXIT_OUTSIDE_MACRO);
 			} else {
 				fstk_RunNextBuffer();
@@ -1814,7 +1814,7 @@ bool parse_Do(void) {
 		if (!parse_TargetSpecific() && !parse_Symbol() && !parse_PseudoOp() && !parse_Misc()) {
 			if (g_CurrentToken.Token == '\n') {
 				lex_GetNextToken();
-				g_pFileContext->LineNumber += 1;
+				g_currentContext->LineNumber += 1;
 				g_nTotalLines += 1;
 			} else if (g_CurrentToken.Token == T_POP_END) {
 				return true;

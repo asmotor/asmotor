@@ -267,19 +267,19 @@ static bool ParseSymbol(const char* src, uint32_t size)
         {
             if(i + 1 < size)
             {
-                char* marg = NULL;
-
                 ch = *src++;
                 ++i;
-                
+
+                string* marg = NULL;
                 if(ch == '@')
-                    marg = fstk_GetMacroRunID();
+                    marg = fstk_GetMacroUniqueId();
                 else if(ch >= '0' && ch <= '9')
                     marg = fstk_GetMacroArgValue(ch);
                     
-                if(marg)
+                if (marg != NULL)
                 {
-                    strbuf_AppendStringZero(pBuffer, marg);
+                    strbuf_AppendString(pBuffer, marg);
+                    str_Free(marg);
                     continue;
                 }
             }
@@ -306,7 +306,7 @@ static bool ParseSymbol(const char* src, uint32_t size)
         for(size_t i = 0; i < len; ++i)
         {
             if(str_CharAt(pValue, i) == '\n')
-                g_pFileContext->LineNumber -= 1;
+                g_currentContext->LineNumber -= 1;
         }
         
         r = false;
@@ -324,10 +324,11 @@ static bool ParseSymbol(const char* src, uint32_t size)
 
 bool ParseMacroArg(const char* src, uint32_t size)
 {
-    char* arg = fstk_GetMacroArgValue(src[1]);
+    string* arg = fstk_GetMacroArgValue(src[1]);
     lex_SkipBytes(size);
     if (arg != NULL)
-        lex_UnputString(arg);
+        lex_UnputString(str_String(arg));
+    str_Free(arg);
     return false;
 }
 
@@ -336,7 +337,11 @@ bool ParseUniqueArg(const char* src, uint32_t size)
     assert(src != NULL);
 
     lex_SkipBytes(size);
-    lex_UnputString(fstk_GetMacroRunID());
+
+    string* id = fstk_GetMacroUniqueId();
+    lex_UnputString(str_String(id));
+    str_Free(id);
+    
     return false;
 }
 

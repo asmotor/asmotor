@@ -77,6 +77,16 @@ static uint32_t hashString(const char* s) {
 	return r;
 }
 
+static char* appendString(char* dst, string* str) {
+	if (str != NULL) {
+		size_t length = str_Length(str);
+		memcpy(dst, str_String(str), length);
+		dst += length;
+		str_Free(str);
+	}
+	return dst;
+}
+
 static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool bAllowUndefinedSymbols) {
 	while (*src && strchr(stopchar, *src) == NULL) {
 		char ch;
@@ -105,25 +115,13 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool bAl
 				case '7':
 				case '8':
 				case '9': {
-					char* marg;
-
-					if ((marg = fstk_GetMacroArgValue(ch)) != NULL) {
-						while (*marg)
-							*dst++ = *marg++;
-					}
-
+					dst = appendString(dst, fstk_GetMacroArgValue(ch));
 					ch = 0;
 					break;
 				}
 				case '@': {
-					char* marg;
-
-					if ((marg = fstk_GetMacroRunID()) != NULL) {
-						while (*marg)
-							*dst++ = *marg++;
-
-						ch = 0;
-					}
+					dst = appendString(dst, fstk_GetMacroUniqueId());
+					ch = 0;
 					break;
 				}
 			}
@@ -148,27 +146,13 @@ static char* lex_ParseStringUntil(char* dst, char* src, char* stopchar, bool bAl
 						case '7':
 						case '8':
 						case '9': {
-							char* marg;
-
-							if ((marg = fstk_GetMacroArgValue(ch)) != NULL) {
-								while (*marg) {
-									sym[i++] = *marg++;
-								}
-
-								ch = 0;
-							}
+							char* symDest = sym + i;
+							i += appendString(symDest, fstk_GetMacroArgValue(ch)) - symDest;
 							break;
 						}
 						case '@': {
-							char* marg;
-
-							if ((marg = fstk_GetMacroRunID()) != NULL) {
-								while (*marg) {
-									sym[i++] = *marg++;
-								}
-
-								ch = 0;
-							}
+							char* symDest = sym + i;
+							i += appendString(symDest, fstk_GetMacroUniqueId()) - symDest;
 							break;
 						}
 					}
@@ -223,7 +207,7 @@ void lex_SkipBytes(size_t count) {
 	if (g_pCurrentBuffer) {
 		while (count > 0) {
 			if (g_pCurrentBuffer->pBuffer[0] == '\n')
-				++g_pFileContext->LineNumber;
+				++g_currentContext->LineNumber;
 			++g_pCurrentBuffer->pBuffer;
 			--count;
 		}
