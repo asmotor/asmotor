@@ -499,8 +499,8 @@ static bool parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	else if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_IMM_IND))
 	{
 		if(IS_GB && expr_IsConstant(pAddrMode2->pExpr)
-		&& pAddrMode2->pExpr->Value.Value >= 0xFF00 
-		&& pAddrMode2->pExpr->Value.Value <= 0xFFFF)
+		&& pAddrMode2->pExpr->value.integer >= 0xFF00
+		&& pAddrMode2->pExpr->value.integer <= 0xFFFF)
 		{
 			sect_OutputConst8(0xF0);
 			sect_OutputExpr8(parse_CreateExpressionImmHi(pAddrMode2->pExpr));
@@ -520,8 +520,8 @@ static bool parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	else if((pAddrMode1->nMode & MODE_IMM_IND) && (pAddrMode2->nMode & MODE_REG_A))
 	{
 		if(IS_GB && expr_IsConstant(pAddrMode1->pExpr)
-		&& pAddrMode1->pExpr->Value.Value >= 0xFF00 
-		&& pAddrMode1->pExpr->Value.Value <= 0xFFFF)
+		&& pAddrMode1->pExpr->value.integer >= 0xFF00
+		&& pAddrMode1->pExpr->value.integer <= 0xFFFF)
 		{
 			sect_OutputConst8(0xE0);
 			sect_OutputExpr8(parse_CreateExpressionImmHi(pAddrMode1->pExpr));
@@ -747,7 +747,7 @@ static bool parse_Rst(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 
 	if(expr_IsConstant(pAddrMode1->pExpr))
 	{
-		uint32_t val = (uint32_t) pAddrMode1->pExpr->Value.Value;
+		uint32_t val = (uint32_t) pAddrMode1->pExpr->value.integer;
 		if (val == (val & 0x38u))
 			sect_OutputConst8((uint8_t) (pOpcode->nOpcode | val));
 		else
@@ -825,7 +825,7 @@ static bool parse_Im(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	}
 
 	sect_OutputConst8(0xED);
-	switch(pAddrMode1->pExpr->Value.Value)
+	switch(pAddrMode1->pExpr->value.integer)
 	{
 		case 0:
 			sect_OutputConst8(0x46);

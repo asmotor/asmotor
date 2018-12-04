@@ -380,7 +380,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 {
 	if(pRegs->pDisp != NULL
 	&& expr_IsConstant(pRegs->pDisp)
-	&& pRegs->pDisp->Value.Value == 0)
+	&& pRegs->pDisp->value.integer == 0)
 	{
 		expr_Free(pRegs->pDisp);
 		pRegs->pDisp = NULL;
@@ -388,7 +388,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 
 	if(pRegs->pIndexScale != NULL
 	&& expr_IsConstant(pRegs->pIndexScale)
-	&& pRegs->pIndexScale->Value.Value == 0)
+	&& pRegs->pIndexScale->value.integer == 0)
 	{
 		expr_Free(pRegs->pIndexScale);
 		pRegs->pIndexScale = NULL;
@@ -583,11 +583,11 @@ static bool parse_OptimizeMode(SAddrMode* pMode)
 				{
 					if(expr_IsConstant(pMode->Outer.pDisp))
 					{
-						if(pMode->Outer.pDisp->Value.Value >= -128
-						&& pMode->Outer.pDisp->Value.Value <= 127)
+						if(pMode->Outer.pDisp->value.integer >= -128
+						&& pMode->Outer.pDisp->value.integer <= 127)
 							pMode->Outer.eDispSize = SIZE_BYTE;
-						else if(pMode->Outer.pDisp->Value.Value >= -32768
-						&& pMode->Outer.pDisp->Value.Value <= 32767)
+						else if(pMode->Outer.pDisp->value.integer >= -32768
+						&& pMode->Outer.pDisp->value.integer <= 32767)
 							pMode->Outer.eDispSize = SIZE_WORD;
 						else
 							pMode->Outer.eDispSize = SIZE_LONG;
@@ -623,8 +623,8 @@ static void parse_OptimizeDisp(SModeRegs* pRegs)
 	{
 		if(expr_IsConstant(pRegs->pDisp))
 		{
-			if(pRegs->pDisp->Value.Value >= -32768
-			&& pRegs->pDisp->Value.Value <= 32767)
+			if(pRegs->pDisp->value.integer >= -32768
+			&& pRegs->pDisp->value.integer <= 32767)
 				pRegs->eDispSize = SIZE_WORD;
 			else
 				pRegs->eDispSize = SIZE_LONG;

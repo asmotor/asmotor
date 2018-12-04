@@ -85,21 +85,21 @@ static uint32_t calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, uint
 
 		if (expr_Type(expr) == EXPR_SYMBOL ||
 			(g_pConfiguration->bSupportBanks && expr_IsOperator(expr, T_FUNC_BANK))) {
-			if (expr->Value.pSymbol->ID == UINT32_MAX) {
-				expr->Value.pSymbol->ID = ID++;
-				fputsz(str_String(expr->Value.pSymbol->pName), f);
-				if (expr->Value.pSymbol->pSection == sect) {
-					if (expr->Value.pSymbol->nFlags & SYMF_LOCALEXPORT) {
+			if (expr->value.symbol->ID == UINT32_MAX) {
+				expr->value.symbol->ID = ID++;
+				fputsz(str_String(expr->value.symbol->pName), f);
+				if (expr->value.symbol->pSection == sect) {
+					if (expr->value.symbol->nFlags & SYMF_LOCALEXPORT) {
 						fputll(3, f);    //	LOCALEXPORT
-						fputll((uint32_t)expr->Value.pSymbol->Value.Value, f);
-					} else if (expr->Value.pSymbol->nFlags & SYMF_EXPORT) {
+						fputll((uint32_t)expr->value.symbol->Value.Value, f);
+					} else if (expr->value.symbol->nFlags & SYMF_EXPORT) {
 						fputll(0, f);    //	EXPORT
-						fputll((uint32_t)expr->Value.pSymbol->Value.Value, f);
+						fputll((uint32_t)expr->value.symbol->Value.Value, f);
 					} else {
 						fputll(2, f);    //	LOCAL
-						fputll((uint32_t)expr->Value.pSymbol->Value.Value, f);
+						fputll((uint32_t)expr->value.symbol->Value.Value, f);
 					}
-				} else if (expr->Value.pSymbol->eType == SYM_IMPORT || expr->Value.pSymbol->eType == SYM_GLOBAL) {
+				} else if (expr->value.symbol->eType == SYM_IMPORT || expr->value.symbol->eType == SYM_GLOBAL) {
 					fputll(1, f);    //	IMPORT
 				} else {
 					fputll(4, f);    //	LOCALIMPORT
@@ -117,8 +117,8 @@ static void fix_local_exports(SSection* sect, SExpression* expr) {
 
 		if ((expr_Type(expr) == EXPR_SYMBOL ||
 			 (g_pConfiguration->bSupportBanks && expr_IsOperator(expr, T_FUNC_BANK))) &&
-			(expr->Value.pSymbol->nFlags & SYMF_EXPORTABLE) && expr->Value.pSymbol->pSection != sect) {
-			expr->Value.pSymbol->nFlags |= SYMF_LOCALEXPORT;
+			(expr->value.symbol->nFlags & SYMF_EXPORTABLE) && expr->value.symbol->pSection != sect) {
+			expr->value.symbol->nFlags |= SYMF_LOCALEXPORT;
 		}
 	}
 }
@@ -262,7 +262,7 @@ static int write_expr(FILE* f, SExpression* expr) {
 					case T_FUNC_BANK: {
 						if (g_pConfiguration->bSupportBanks) {
 							fputc(OBJ_FUNC_BANK, f);
-							fputll(expr->Value.pSymbol->ID, f);
+							fputll(expr->value.symbol->ID, f);
 							r += 5;
 						} else
 							internalerror("Banks not supported");
@@ -274,13 +274,13 @@ static int write_expr(FILE* f, SExpression* expr) {
 			}
 			case EXPR_CONSTANT: {
 				fputc(OBJ_CONSTANT, f);
-				fputll(expr->Value.Value, f);
+				fputll(expr->value.integer, f);
 				r += 5;
 				break;
 			}
 			case EXPR_SYMBOL: {
 				fputc(OBJ_SYMBOL, f);
-				fputll(expr->Value.pSymbol->ID, f);
+				fputll(expr->value.symbol->ID, f);
 				r += 5;
 				break;
 			}

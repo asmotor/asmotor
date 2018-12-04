@@ -612,8 +612,8 @@ static bool parse_ADDA(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 	if(src->eMode == AM_IMM
 	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->Value.Value >= 1
-	&& src->pImmediate->Value.Value <= 8)
+	&& src->pImmediate->value.integer >= 1
+	&& src->pImmediate->value.integer <= 8)
 	{
 		return parse_IntegerOp(T_68K_ADDQ, sz, src, dest);
 	}
@@ -634,8 +634,8 @@ static bool parse_SUBA(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 	if(src->eMode == AM_IMM
 	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->Value.Value >= 1
-	&& src->pImmediate->Value.Value <= 8)
+	&& src->pImmediate->value.integer >= 1
+	&& src->pImmediate->value.integer <= 8)
 	{
 		return parse_IntegerOp(T_68K_SUBQ, sz, src, dest);
 	}
@@ -679,8 +679,8 @@ static bool parse_ADDI(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(src->eMode == AM_IMM
 	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->Value.Value >= 1
-	&& src->pImmediate->Value.Value <= 8)
+	&& src->pImmediate->value.integer >= 1
+	&& src->pImmediate->value.integer <= 8)
 	{
 		return parse_IntegerOp(T_68K_ADDQ, sz, src, dest);
 	}
@@ -692,8 +692,8 @@ static bool parse_SUBI(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(src->eMode == AM_IMM
 	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->Value.Value >= 1
-	&& src->pImmediate->Value.Value <= 8)
+	&& src->pImmediate->value.integer >= 1
+	&& src->pImmediate->value.integer <= 8)
 	{
 		return parse_IntegerOp(T_68K_SUBQ, sz, src, dest);
 	}
@@ -1995,8 +1995,8 @@ static bool parse_MOVE(ESize sz, SAddrMode* src, SAddrMode* dest)
 	if(src->eMode == AM_IMM
 	&& dest->eMode == AM_DREG && sz == SIZE_LONG
 	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->Value.Value >= -128
-	&& src->pImmediate->Value.Value < 127)
+	&& src->pImmediate->value.integer >= -128
+	&& src->pImmediate->value.integer < 127)
 	{
 		return parse_IntegerOp(T_68K_MOVEQ, sz, src, dest);
 	}

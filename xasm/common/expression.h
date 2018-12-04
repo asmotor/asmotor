@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_COMMON_INCLUDE_EXPR_H_INCLUDED_
-#define XASM_COMMON_INCLUDE_EXPR_H_INCLUDED_
+#ifndef XASM_COMMON_EXPR_H_INCLUDED_
+#define XASM_COMMON_EXPR_H_INCLUDED_
 
 #include "asmotor.h"
 #include "tokens.h"
@@ -39,9 +39,9 @@ typedef struct Expression {
 	bool isConstant;
 	EToken operation;
 	union {
-		int32_t Value;
-		struct Symbol* pSymbol;
-	} Value;
+		int32_t integer;
+		struct Symbol* symbol;
+	} value;
 } SExpression;
 
 INLINE EExpressionType expr_Type(SExpression* expression) {
@@ -68,9 +68,6 @@ extern SExpression* expr_LessEqual(SExpression* left, SExpression* right);
 extern SExpression* expr_BooleanNot(SExpression* expr);
 extern SExpression* expr_BooleanOr(SExpression* left, SExpression* right);
 extern SExpression* expr_BooleanAnd(SExpression* left, SExpression* right);
-extern SExpression* expr_BooleanXor(SExpression* left, SExpression* right);
-
-extern SExpression* expr_Abs(SExpression* expr);
 
 extern SExpression* expr_Or(SExpression* left, SExpression* right);
 extern SExpression* expr_And(SExpression* left, SExpression* right);
@@ -99,7 +96,7 @@ extern SExpression* expr_FixedDivision(SExpression* left, SExpression* right);
 
 extern SExpression* expr_Parens(SExpression* expression);
 
-extern SExpression* expr_PcRelative(SExpression* expr, int nAdjust);
+extern SExpression* expr_PcRelative(SExpression* expr, int adjustment);
 
 extern SExpression* expr_Pc();
 extern SExpression* expr_Const(int32_t value);
@@ -107,8 +104,7 @@ extern void expr_SetConst(SExpression* expression, int32_t value);
 extern SExpression* expr_Symbol(const char* symbolName);
 extern SExpression* expr_Bank(const char* symbolName);
 
-extern SExpression* expr_Clone(SExpression* expr);
 extern void expr_Free(SExpression* expression);
 extern void expr_Clear(SExpression* expression);
 
-#endif /* XASM_COMMON_INCLUDE_EXPR_H_INCLUDED_ */
+#endif /* XASM_COMMON_EXPR_H_INCLUDED_ */

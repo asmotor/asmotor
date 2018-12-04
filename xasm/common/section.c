@@ -199,7 +199,7 @@ void sect_OutputExpr8(SExpression* expr) {
 	if (expr == NULL) {
 		prj_Error(ERROR_EXPR_BAD);
 	} else if (expr_IsConstant(expr)) {
-		sect_OutputConst8((uint8_t) expr->Value.Value);
+		sect_OutputConst8((uint8_t) expr->value.integer);
 		expr_Free(expr);
 	} else {
 		sect_OutputReloc8(expr);
@@ -276,7 +276,7 @@ void sect_OutputExpr16(SExpression* expr) {
 	if (expr == NULL) {
 		prj_Error(ERROR_EXPR_BAD);
 	} else if (expr_IsConstant(expr)) {
-		sect_OutputConst16((uint16_t) (expr->Value.Value));
+		sect_OutputConst16((uint16_t) (expr->value.integer));
 		expr_Free(expr);
 	} else {
 		sect_OutputReloc16(expr);
@@ -357,7 +357,7 @@ void sect_OutputExpr32(SExpression* expr) {
 	if (expr == NULL) {
 		prj_Error(ERROR_EXPR_BAD);
 	} else if (expr_IsConstant(expr)) {
-		sect_OutputConst32(expr->Value.Value);
+		sect_OutputConst32(expr->value.integer);
 		expr_Free(expr);
 	} else {
 		sect_OutputRel32(expr);

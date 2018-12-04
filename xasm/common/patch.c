@@ -211,7 +211,7 @@ static bool patch_ReduceUnary(SPatch* pPatch, SExpression* pExpr, int32_t* v, pP
         pExpr->type = EXPR_CONSTANT;
         pExpr->isConstant = true;
 
-        *v = pExpr->Value.Value = pPred(vr);
+        *v = pExpr->value.integer = pPred(vr);
         return true;
     }
 
@@ -226,7 +226,7 @@ bool patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExp
 
     if(expr_Type(pExpr) == EXPR_SYMBOL)
     {
-        SSymbol* pSym = pExpr->Value.pSymbol;
+        SSymbol* pSym = pExpr->value.symbol;
         if(pSym->eType == SYM_IMPORT || pSym->eType == SYM_GLOBAL)
         {
             if(*ppSym != NULL)
@@ -246,9 +246,9 @@ bool patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExp
             if(expr_IsConstant(pExpr->right))
             {
                 if(expr_IsOperator(pExpr, T_OP_ADD))
-                    *pOffset = offset + pExpr->right->Value.Value;
+                    *pOffset = offset + pExpr->right->value.integer;
                 else
-                    *pOffset = offset - pExpr->right->Value.Value;
+                    *pOffset = offset - pExpr->right->value.integer;
                 return true;
             }
         }
@@ -257,9 +257,9 @@ bool patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExp
             if(expr_IsConstant(pExpr->left))
             {
                 if(expr_IsOperator(pExpr, T_OP_ADD))
-                    *pOffset = pExpr->left->Value.Value + offset;
+                    *pOffset = pExpr->left->value.integer + offset;
                 else
-                    *pOffset = pExpr->left->Value.Value - offset;
+                    *pOffset = pExpr->left->value.integer - offset;
                 return true;
             }
         }
@@ -285,13 +285,13 @@ bool patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
 
     if(expr_Type(pExpr) == EXPR_CONSTANT && (pSection->Flags & SECTF_LOADFIXED))
     {
-        *pOffset = pExpr->Value.Value - pSection->BasePC;
+        *pOffset = pExpr->value.integer - pSection->BasePC;
         return true;
     }
     
     if(expr_Type(pExpr) == EXPR_SYMBOL)
     {
-        SSymbol* pSym = pExpr->Value.pSymbol;
+        SSymbol* pSym = pExpr->value.symbol;
         if((pSym->eType == SYM_EQU) && (pSection->Flags & SECTF_LOADFIXED))
         {
             *pOffset = pSym->Value.Value - pSection->BasePC;
@@ -321,9 +321,9 @@ bool patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
             if(expr_IsConstant(pExpr->right))
             {
                 if(expr_IsOperator(pExpr, T_OP_ADD))
-                    *pOffset = offset + pExpr->right->Value.Value;
+                    *pOffset = offset + pExpr->right->value.integer;
                 else
-                    *pOffset = offset - pExpr->right->Value.Value;
+                    *pOffset = offset - pExpr->right->value.integer;
                 return true;
             }
         }
@@ -336,7 +336,7 @@ bool patch_GetSectionPcOffset(uint32_t* pOffset, SExpression* pExpr, SSection* p
         {
             if(expr_IsConstant(pExpr->left))
             {
-                *pOffset = pExpr->left->Value.Value + offset;
+                *pOffset = pExpr->left->value.integer + offset;
                 return true;
             }
         }
@@ -477,7 +477,7 @@ static bool patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* v)
                 expr->type = EXPR_CONSTANT;
                 expr->isConstant = true;
 
-                expr->Value.Value = *v = b;
+                expr->value.integer = *v = b;
                 return true;
             }
 
@@ -550,7 +550,7 @@ static bool patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
         expr->right = NULL;
 
         expr->type = EXPR_CONSTANT;
-        *v = expr->Value.Value;
+        *v = expr->value.integer;
 
         return true;
     }
@@ -564,17 +564,17 @@ static bool patch_Evaluate(SPatch* patch, SExpression* expr, int32_t* v)
         case EXPR_OPERATION:
             return patch_EvaluateOperator(patch, expr, v);
         case EXPR_CONSTANT:
-            *v = expr->Value.Value;
+            *v = expr->value.integer;
             return true;
         case EXPR_SYMBOL:
-            if (expr->Value.pSymbol->nFlags & SYMF_CONSTANT)
+            if (expr->value.symbol->nFlags & SYMF_CONSTANT)
             {
-                *v = expr->Value.pSymbol->Value.Value;
+                *v = expr->value.symbol->Value.Value;
                 return true;
             }
-            else if (expr->Value.pSymbol->eType == SYM_UNDEFINED)
+            else if (expr->value.symbol->eType == SYM_UNDEFINED)
             {
-                prj_PatchError(patch, ERROR_SYMBOL_UNDEFINED, str_String(expr->Value.pSymbol->pName));
+                prj_PatchError(patch, ERROR_SYMBOL_UNDEFINED, str_String(expr->value.symbol->pName));
             }
             return false;
         default:
@@ -687,11 +687,11 @@ void patch_OptimizeExpression(SExpression* pExpr)
         mem_Free(pToFree);
     }
 
-    if((pExpr->type == EXPR_SYMBOL) && (pExpr->Value.pSymbol->nFlags & SYMF_CONSTANT))
+    if((pExpr->type == EXPR_SYMBOL) && (pExpr->value.symbol->nFlags & SYMF_CONSTANT))
     {
         pExpr->type = EXPR_CONSTANT;
         pExpr->isConstant = true;
-        pExpr->Value.Value = pExpr->Value.pSymbol->Value.Value;
+        pExpr->value.integer = pExpr->value.symbol->Value.Value;
     }
 
     if(expr_IsConstant(pExpr))

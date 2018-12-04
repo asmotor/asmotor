@@ -834,7 +834,7 @@ int32_t parse_ConstantExpression() {
 
 	if ((expr = parse_Expression(4)) != NULL) {
 		if (expr_IsConstant(expr)) {
-			int32_t r = expr->Value.Value;
+			int32_t r = expr->value.integer;
 			expr_Free(expr);
 			return r;
 		}
@@ -1553,7 +1553,7 @@ static bool parse_PseudoOp(void) {
 			expr = parse_Expression(4);
 			if (expr) {
 				if (expr_IsConstant(expr)) {
-					fstk_ShiftMacroArgs(expr->Value.Value);
+					fstk_ShiftMacroArgs(expr->value.integer);
 					expr_Free(expr);
 					return true;
 				} else {

@@ -435,7 +435,7 @@ bool parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
 		if(pAddrMode->expr != NULL)
 		{
 			if(expr_IsConstant(pAddrMode->expr)
-			&& 0 <= pAddrMode->expr->Value.Value && pAddrMode->expr->Value.Value <= 255)
+			&& 0 <= pAddrMode->expr->value.integer && pAddrMode->expr->value.integer <= 255)
 			{
 				if(g_CurrentToken.Token == ',')
 				{

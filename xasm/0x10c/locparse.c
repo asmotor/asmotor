@@ -206,7 +206,7 @@ static void parse_OptimizeAddressingMode(SAddrMode* pMode) {
 	if (g_pOptions->pMachine->bOptimize) {
 		/* Optimize literals <= 0x1F */
 		if (pMode->eMode == ADDR_LITERAL && expr_IsConstant(pMode->pAddress)) {
-			uint16_t v = (uint16_t) pMode->pAddress->Value.Value;
+			uint16_t v = (uint16_t) pMode->pAddress->value.integer;
 			if (v <= 0x1F) {
 				pMode->eMode = ADDR_LITERAL_00 + v;
 				expr_Free(pMode->pAddress);
@@ -216,7 +216,7 @@ static void parse_OptimizeAddressingMode(SAddrMode* pMode) {
 
 		/* Optimize [reg+0] to [reg] */
 		if (pMode->eMode >= ADDR_A_OFFSET_IND && pMode->eMode <= ADDR_J_OFFSET_IND
-			&& expr_IsConstant(pMode->pAddress) && pMode->pAddress->Value.Value == 0) {
+			&& expr_IsConstant(pMode->pAddress) && pMode->pAddress->value.integer == 0) {
 			pMode->eMode = pMode->eMode - ADDR_A_OFFSET_IND + ADDR_A_IND;
 			expr_Free(pMode->pAddress);
 			pMode->pAddress = NULL;
@@ -305,9 +305,9 @@ static bool parse_ADD_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData, 
 	/* Optimize FUNC dest,-$1F */
 	if (g_pOptions->pMachine->bOptimize) {
 		if (pMode2->eMode == ADDR_LITERAL && (expr_IsConstant(pMode2->pAddress))
-			&& ((uint32_t) pMode2->pAddress->Value.Value & 0xFFFFu) >= 0xFFE1u) {
+			&& ((uint32_t) pMode2->pAddress->value.integer & 0xFFFFu) >= 0xFFE1u) {
 
-			int v = (uint32_t) -pMode2->pAddress->Value.Value & 0x1Fu;
+			int v = (uint32_t) -pMode2->pAddress->value.integer & 0x1Fu;
 			expr_Free(pMode2->pAddress);
 			pMode2->eMode = ADDR_LITERAL_00 + v;
 			return negatedParser(pMode1, pMode2, nData);
