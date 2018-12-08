@@ -97,7 +97,7 @@ static void skip(size_t count) {
 		}
 	}
 	g_pCurrentBuffer->index += count;
-	if (g_pCurrentBuffer->index >= g_pCurrentBuffer->bufferSize)
+	if (g_pCurrentBuffer->index > g_pCurrentBuffer->bufferSize)
 		g_pCurrentBuffer->index = g_pCurrentBuffer->bufferSize;
 }
 
@@ -106,16 +106,17 @@ static size_t charsAvailable(void) {
 }
 
 static bool expandStringUntil(char* dst, char* stopChars, bool allowUndefinedSymbols) {
+	size_t index = 0;
 	for (;;) {
-		char ch = lex_PeekChar(0);
-		if (ch == 0 || strchr(stopChars, ch) != NULL)
+		char ch = lex_PeekChar(index);
+		if (ch == 0 || strchr(stopChars, ch) != NULL) {
 			break;
-
-		ch = lex_GetChar();
+		}
+		index += 1;
 		if (ch == '\\') {
 			/* Handle escape sequences */
 
-			switch (ch = lex_GetChar()) {
+			switch (ch = lex_PeekChar(index++)) {
 				default:
 					break;
 				case 'n': {
@@ -141,13 +142,13 @@ static bool expandStringUntil(char* dst, char* stopChars, bool allowUndefinedSym
 			size_t i = 0;
 
 			for (;;) {
-				ch = lex_PeekChar(0);
-				if (ch == 0 || ch == '}' || strchr(stopChars, ch) != NULL)
+				ch = lex_PeekChar(index);
+				if (ch == 0 || ch == '}' || strchr(stopChars, ch) != NULL) {
 					break;
-
-				ch = lex_GetChar();
+				}
+				index += 1;
 				if (ch == '\\') {
-					switch (ch = lex_GetChar()) {
+					switch (ch = lex_PeekChar(index++)) {
 						default:
 							break;
 						case '0': case '1': case '2': case '3': case '4':
@@ -180,12 +181,13 @@ static bool expandStringUntil(char* dst, char* stopChars, bool allowUndefinedSym
 				prj_Error(ERROR_CHAR_EXPECTED, '}');
 				return false;
 			} else {
-				ch = lex_GetChar();
+				ch = lex_PeekChar(index++);
 			}
 		} else {
 			*dst++ = ch;
 		}
 	}
+	lex_SkipBytes(index);
 
 	*dst = 0;
 
@@ -399,7 +401,6 @@ SLexBuffer* lex_CreateFileBuffer(FILE* f) {
 	}
 
 	*dest++ = '\n';
-	*dest++ = 0;
 	pBuffer->bufferSize = dest - pBuffer->buffer;
 	pBuffer->atLineStart = true;
 
