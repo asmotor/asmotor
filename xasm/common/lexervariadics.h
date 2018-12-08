@@ -22,7 +22,7 @@
 #include "tokens.h"
 
 typedef struct {
-	bool (* callback)(const char* s, uint32_t size);
+	bool (* callback)(size_t size);
 	uint32_t token;
 } SVariadicWordDefinition;
 
@@ -34,6 +34,6 @@ extern void lex_FloatAddRangeAndBeyond(uint32_t id, uint8_t start, uint8_t end, 
 extern void lex_FloatRemoveAll(uint32_t id);
 extern void lex_FloatSetSuffix(uint32_t id, uint8_t ch);
 
-extern void lex_VariadicMatchString(char* buffer, size_t bufferLength, size_t* length, SVariadicWordDefinition** variadicWord);
+extern void lex_VariadicMatchString(char (* peek)(size_t), size_t bufferLength, size_t* length, SVariadicWordDefinition** variadicWord);
 
 #endif

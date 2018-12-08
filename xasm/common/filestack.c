@@ -20,8 +20,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+// From util
 #include "asmotor.h"
+#include "file.h"
 #include "mem.h"
+
+// From xasm
 #include "xasm.h"
 #include "filestack.h"
 #include "project.h"
@@ -33,6 +37,7 @@
 /* Internal structures */
 
 #define MAX_INCLUDE_PATHS 16
+
 
 /* Internal variables */
 
@@ -46,11 +51,11 @@ static string* g_newMacroArg0;
 static uint32_t g_totalNewMacroArgs;
 
 #if defined(WIN32)
-#	define PATH_SEPARATOR '\\'
-#	define PATH_REPLACE '/'
+# define PATH_SEPARATOR '\\'
+# define PATH_REPLACE '/'
 #else
-#	define PATH_SEPARATOR '/'
-#	define PATH_REPLACE '\\'
+# define PATH_SEPARATOR '/'
+# define PATH_REPLACE '\\'
 #endif
 
 /* Private functions */
@@ -72,7 +77,7 @@ static bool isContextMacro(void) {
 	return g_currentContext != NULL && g_currentContext->Type == CONTEXT_MACRO;
 }
 
-/* Public routines */
+/* Public functions */
 
 string* fstk_GetMacroArgValue(char ch) {
 	string* str = NULL;
@@ -82,7 +87,7 @@ string* fstk_GetMacroArgValue(char ch) {
 			str = g_currentContext->BlockInfo.Macro.Arg0;
 		} else {
 			uint_fast8_t argumentIndex = (uint8_t) (ch - '1');
-			if (argumentIndex >= g_currentContext->BlockInfo.Macro.ArgCount) {
+			if (argumentIndex < g_currentContext->BlockInfo.Macro.ArgCount) {
 				str = g_currentContext->BlockInfo.Macro.Args[argumentIndex];
 			}
 		}
@@ -150,17 +155,6 @@ static string* fstk_BuildPath(string* pPath, string* pFile) {
 	return p;
 }
 
-static bool fstk_FileExists(string* pFile) {
-	FILE* f;
-
-	if ((f = fopen(str_String(pFile), "rb")) != NULL) {
-		fclose(f);
-		return true;
-	}
-
-	return false;
-}
-
 string* fstk_FindFile(string* pFile) {
 	string* pResult;
 	uint32_t count;
@@ -168,24 +162,23 @@ string* fstk_FindFile(string* pFile) {
 	pFile = fstk_FixSeparators(pFile);
 
 	if (g_currentContext->pName == NULL) {
-		if (fstk_FileExists(pFile))
+		if (fexists(str_String(pFile)))
 			return pFile;
 	} else {
 		pResult = fstk_BuildPath(g_currentContext->pName, pFile);
 		if (pResult != NULL) {
-			if (fstk_FileExists(pResult)) {
-				str_Free(pFile);
-				return pResult;
-			}
+			bool exists = fexists(str_String(pResult));
+			str_Free(pFile);
 
-			str_Free(pResult);
+			if (exists)
+				return pResult;
 		}
 	}
 
 	for (count = 0; count < g_totalIncludePaths; count += 1) {
 		pResult = str_Concat(g_includePaths[count], pFile);
 
-		if (fstk_FileExists(pResult)) {
+		if (fexists(str_String(pResult))) {
 			str_Free(pFile);
 			return pResult;
 		}
@@ -225,17 +218,7 @@ bool fstk_RunNextBuffer(void) {
 	if (list_isLast(g_currentContext)) {
 		return false;
 	} else {
-		SFileStackEntry* newcontext;
-		SFileStackEntry* oldcontext;
-
-		oldcontext = g_currentContext;
-		newcontext = list_GetNext(g_currentContext);
-
-		if (newcontext->Type == CONTEXT_MACRO)
-			g_currentContext = newcontext;
-		else
-			g_currentContext = NULL;
-
+		SFileStackEntry* oldcontext = g_currentContext;
 		list_Remove(g_currentContext, g_currentContext);
 		lex_FreeBuffer(oldcontext->pLexBuffer);
 		str_Free(oldcontext->pName);

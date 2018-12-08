@@ -157,7 +157,7 @@ static SLexInitString staticstrings[] =
     {NULL, 0}
 };
 
-static int32_t binary2bin(char ch)
+static int32_t binaryCharToInt(char ch)
 {
     int32_t i;
 
@@ -170,7 +170,7 @@ static int32_t binary2bin(char ch)
     return 0;
 }
 
-static int32_t char2bin(char ch)
+static int32_t hexCharToInt(char ch)
 {
     if(ch >= 'a' && ch <= 'f')
         return ch - 'a' + 10;
@@ -184,64 +184,73 @@ static int32_t char2bin(char ch)
     return 0;
 }
 
-typedef	int32_t (*x2bin)(char ch);
+typedef	int32_t (*charToInt_t)(char ch);
 
-static int32_t ascii2bin(const char* s, size_t len)
+static int32_t ascii2bin(size_t len)
 {
     int32_t result = 0;
 
     int32_t radix;
-    x2bin convertfunc;
-
-    switch(*s)
+    charToInt_t charToInt;
+    size_t index = 0;
+    switch(lex_PeekChar(index))
     {
         case '$':
             radix = 16;
-            ++s;
+            ++index;
             --len;
-            convertfunc = char2bin;
+            charToInt = hexCharToInt;
             break;
         case '%':
-            radix = 2;
-            ++s;
+            ++index;
             --len;
-            convertfunc = binary2bin;
+            radix = 2;
+            charToInt = binaryCharToInt;
             break;
         default:
             radix = 10;
-            convertfunc = char2bin;
+            charToInt = hexCharToInt;
             break;
     }
 
-    while(*s != '\0' && len-- > 0)
-        result = result * radix + convertfunc(*s++);
+    while(lex_PeekChar(index) != '\0' && len-- > 0)
+        result = result * radix + charToInt(lex_PeekChar(index++));
 
     return result;
 }
 
 
-static bool ParseNumber(const char* s, uint32_t size)
+static bool ParseNumber(size_t size)
 {
-    g_CurrentToken.Value.nInteger = ascii2bin(s, size);
+    g_CurrentToken.Value.nInteger = ascii2bin(size);
     return true;
 }
 
-static bool ParseDecimal(const char* s, uint32_t size)
+static bool matchChar(size_t* index, char ch) {
+    if (lex_PeekChar(*index) == ch) {
+        *index += 1;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static bool ParseDecimal(size_t size)
 {
+    size_t index = 0;
     uint32_t integer = 0;
 
-    while(*s >= '0' && *s <= '9' && size-- > 0)
-        integer = integer * 10 + *s++ - '0';
+    while(lex_PeekChar(index) >= '0' && lex_PeekChar(index) <= '9' && size-- > 0)
+        integer = integer * 10 + lex_PeekChar(index++) - '0';
 
-    if(*s == '.')
+    if(matchChar(&index, '.'))
     {
         uint32_t fraction = 0;
         uint32_t d = 1;
-        ++s;
         --size;
-        while(*s >= '0' && *s <= '9' && size-- > 0)
+        while(lex_PeekChar(index) >= '0' && lex_PeekChar(index) <= '9' && size-- > 0)
         {
-            fraction = fraction * 10 + *s++ - '0';
+            fraction = fraction * 10 + lex_PeekChar(index++) - '0';
             d *= 10;
         }
 
@@ -253,22 +262,21 @@ static bool ParseDecimal(const char* s, uint32_t size)
     return true;
 }
 
-static bool ParseSymbol(const char* src, uint32_t size)
+static bool ParseSymbol(size_t size)
 {
     string_buffer* pBuffer = strbuf_Create();
     string* pString;
     bool r;
 
-    for(uint32_t i = 0; i < size; ++i)
+    for(size_t index = 0; index < size; ++index)
     {
-        char ch = *src++;
+        char ch = lex_PeekChar(index);
         
         if(ch == '\\')
         {
-            if(i + 1 < size)
+            if(index + 1 < size)
             {
-                ch = *src++;
-                ++i;
+                ch = lex_PeekChar(++index);
 
                 string* marg = NULL;
                 if(ch == '@')
@@ -295,7 +303,7 @@ static bool ParseSymbol(const char* src, uint32_t size)
     pString = strbuf_String(pBuffer);
     strbuf_Free(pBuffer);
     
-    if(g_bDontExpandStrings == 0 && sym_IsString(pString))
+    if(!g_bDontExpandStrings && sym_IsString(pString))
     {
         string* pValue = sym_GetStringValueByName(pString);
         size_t len = str_Length(pValue);
@@ -322,26 +330,25 @@ static bool ParseSymbol(const char* src, uint32_t size)
     return r;
 }
 
-bool ParseMacroArg(const char* src, uint32_t size)
+bool ParseMacroArg(size_t size)
 {
-    string* arg = fstk_GetMacroArgValue(src[1]);
+    string* arg = fstk_GetMacroArgValue(lex_PeekChar(1));
     lex_SkipBytes(size);
-    if (arg != NULL)
+    if (arg != NULL) {
         lex_UnputString(str_String(arg));
-    str_Free(arg);
+        str_Free(arg);
+    }
     return false;
 }
 
-bool ParseUniqueArg(const char* src, uint32_t size)
+bool ParseUniqueArg(size_t size)
 {
-    assert(src != NULL);
-
-    lex_SkipBytes(size);
-
     string* id = fstk_GetMacroUniqueId();
-    lex_UnputString(str_String(id));
-    str_Free(id);
-    
+    lex_SkipBytes(size);
+    if (id != NULL) {
+        lex_UnputString(str_String(id));
+        str_Free(id);
+    }
     return false;
 }
 
@@ -459,6 +466,22 @@ void globlex_Init(void)
     lex_FloatAddRangeAndBeyond(id, '@', '@', 1);
     lex_FloatSetSuffix(id, '$');
 
+    /* ID's */
+
+    id = lex_VariadicCreateWord(&s_sIDToken);
+    lex_FloatAddRange(id, 'a', 'z', 0);
+    lex_FloatAddRange(id, 'A', 'Z', 0);
+    lex_FloatAddRange(id, '_', '_', 0);
+    lex_FloatAddRange(id, '@', '@', 0);
+    lex_FloatAddRange(id, '\\', '\\', 0);
+    lex_FloatAddRangeAndBeyond(id, 'a', 'z', 1);
+    lex_FloatAddRangeAndBeyond(id, 'A', 'Z', 1);
+    lex_FloatAddRangeAndBeyond(id, '0', '9', 1);
+    lex_FloatAddRangeAndBeyond(id, '_', '_', 1);
+    lex_FloatAddRangeAndBeyond(id, '\\', '\\', 1);
+    lex_FloatAddRangeAndBeyond(id, '@', '@', 1);
+    lex_FloatAddRangeAndBeyond(id, '#', '#', 1);
+
     /* Macro arguments */
 
     id = lex_VariadicCreateWord(&s_sMacroArgToken);
@@ -490,19 +513,4 @@ void globlex_Init(void)
     lex_FloatAddRange(id, '%', '%', 0);
     lex_FloatAddRangeAndBeyond(id, '0', '1', 1);
 
-    /* ID's */
-
-    id = lex_VariadicCreateWord(&s_sIDToken);
-    lex_FloatAddRange(id, 'a', 'z', 0);
-    lex_FloatAddRange(id, 'A', 'Z', 0);
-    lex_FloatAddRange(id, '_', '_', 0);
-    lex_FloatAddRange(id, '@', '@', 0);
-    lex_FloatAddRange(id, '\\', '\\', 0);
-    lex_FloatAddRangeAndBeyond(id, 'a', 'z', 1);
-    lex_FloatAddRangeAndBeyond(id, 'A', 'Z', 1);
-    lex_FloatAddRangeAndBeyond(id, '0', '9', 1);
-    lex_FloatAddRangeAndBeyond(id, '_', '_', 1);
-    lex_FloatAddRangeAndBeyond(id, '\\', '\\', 1);
-    lex_FloatAddRangeAndBeyond(id, '@', '@', 1);
-    lex_FloatAddRangeAndBeyond(id, '#', '#', 1);
 }

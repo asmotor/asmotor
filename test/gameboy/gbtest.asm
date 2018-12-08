@@ -1,10 +1,8 @@
-	SECTION	"SectTest",HOME
+	SECTION	"SectTest",HOME[0]
 
 Ting	EQU	$FE00
 
 	ld	a,["AA"]
-
-	IMPORT	ImportTest
 
 RecursiveArgs:	MACRO
 	IF	\1>0
@@ -72,7 +70,6 @@ SETTest	SET	4
 	PRINTT	"Print the numbers $0-$5:\n"
 	RecursiveArgs 5
 	PRINTT	"...done!\n\n"
-	and	a,ImportTest
 	adc	a,$10
 	adc	$20
 	adc	b
@@ -83,7 +80,7 @@ SETTest	SET	4
 	add	a,b
 	add	[hl]
 	add	hl,bc
-	add	de
+	add	hl,de
 	add	sp,$40
 .john
 	and	a,$10
@@ -133,9 +130,9 @@ newscope2:
 	jp	nz,$1234
 	jp	c,$4321
 
-	jr	.weee
-	jr	nc,.weee
-.weee
+	jr	.jrtarget
+	jr	nc,.jrtarget
+.jrtarget
 	ld	[$3987],sp
 	ld	[$FF00+c],a
 	ld	[c],a
@@ -149,8 +146,8 @@ newscope2:
 	ld	a,[de]
 	ld	a,[hl-]
 	ld	a,50
-	ld	hl,[sp+6]
-	ld	hl,[sp-6]
+	ld	hl,sp+6
+	ld	hl,sp-6
 	ld	sp,hl
 	ld	[hl],34
 	ld	c,34

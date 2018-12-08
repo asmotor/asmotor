@@ -85,3 +85,14 @@ void fputsz(const char* str, FILE* fileHandle) {
 	}
 	fputc(0, fileHandle);
 }
+
+bool fexists(const char* filename) {
+	FILE* fileHandle = fopen(filename, "rb");
+	if (fileHandle != NULL) {
+		fclose(fileHandle);
+		return true;
+	}
+
+	return false;
+}
+

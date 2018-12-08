@@ -5,17 +5,16 @@
 ldw:	MACRO
 
 ; We purge the intermediate PAR1 and PAR2 string symbols to keep the
-; symbol table nice and small. My mum always told my that it was good
-; programming practice to clean up after myself
+; symbol table nice and small.
 
-PAR1\@	EQUS	STRSUB("\1", 1, 1)
-PAR2\@	EQUS	STRSUB("\2", 1, 1)
+PAR1\@	EQUS	"\1".slice(0, 1)
+PAR2\@	EQUS	"\2".slice(0, 1)
 
 	ld	PAR1\@,PAR2\@
 	PURGE	PAR1\@,PAR2\@
 
-PAR1\@	EQUS	STRSUB("\1", 2, 1)
-PAR2\@	EQUS	STRSUB("\2", 2, 1)
+PAR1\@	EQUS	"\1".slice(1, 1)
+PAR2\@	EQUS	"\2".slice(1, 1)
 
 	ld	PAR1\@,PAR2\@
 	PURGE	PAR1\@,PAR2\@

@@ -23,6 +23,7 @@
 
 #include "types.h"
 
+extern bool fexists(const char* filename);
 extern size_t fsize(FILE* fileHandle);
 
 extern void fputll(uint32_t value, FILE* fileHandle);

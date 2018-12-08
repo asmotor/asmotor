@@ -44,143 +44,143 @@ static bool parse_isWhiteSpace(char s) {
 	return s == ' ' || s == '\t' || s == '\0' || s == '\n';
 }
 
-static bool parse_isToken(const char* s, const char* token) {
+static bool parse_isToken(size_t index, const char* token) {
 	size_t len = strlen(token);
-	return _strnicmp(s, token, len) == 0 && parse_isWhiteSpace(s[len]);
+	return lex_CompareNoCase(index, token, len) && parse_isWhiteSpace(lex_PeekChar(index + len));
 }
 
-static bool parse_isRept(const char* s) {
-	return parse_isToken(s, "REPT");
+static bool parse_isRept(size_t index) {
+	return parse_isToken(index, "REPT");
 }
 
-static bool parse_isEndr(const char* s) {
-	return parse_isToken(s, "ENDR");
+static bool parse_isEndr(size_t index) {
+	return parse_isToken(index, "ENDR");
 }
 
-bool parse_isIf(const char* s) {
-	return parse_isToken(s, "IF") || parse_isToken(s, "IFC") || parse_isToken(s, "IFD") || parse_isToken(s, "IFNC") ||
-		   parse_isToken(s, "IFND") || parse_isToken(s, "IFNE") || parse_isToken(s, "IFEQ") ||
-		   parse_isToken(s, "IFGT") || parse_isToken(s, "IFGE") || parse_isToken(s, "IFLT") || parse_isToken(s, "IFLE");
+bool parse_isIf(size_t index) {
+	return parse_isToken(index, "IF") || parse_isToken(index, "IFC") || parse_isToken(index, "IFD") || parse_isToken(index, "IFNC") ||
+		   parse_isToken(index, "IFND") || parse_isToken(index, "IFNE") || parse_isToken(index, "IFEQ") ||
+		   parse_isToken(index, "IFGT") || parse_isToken(index, "IFGE") || parse_isToken(index, "IFLT") || parse_isToken(index, "IFLE");
 }
 
-bool parse_isElse(const char* s) {
-	return parse_isToken(s, "ELSE");
+bool parse_isElse(size_t index) {
+	return parse_isToken(index, "ELSE");
 }
 
-bool parse_isEndc(const char* s) {
-	return parse_isToken(s, "ENDC");
+bool parse_isEndc(size_t index) {
+	return parse_isToken(index, "ENDC");
 }
 
-bool parse_isMacro(const char* s) {
-	return parse_isToken(s, "MACRO");
+bool parse_isMacro(size_t index) {
+	return parse_isToken(index, "MACRO");
 }
 
-bool parse_isEndm(const char* s) {
-	return parse_isToken(s, "ENDM");
+bool parse_isEndm(size_t index) {
+	return parse_isToken(index, "ENDM");
 }
 
-static const char* parse_SkipToLine(const char* s) {
-	while (*s != 0) {
-		if (*s++ == '\n')
-			return s;
+static size_t parse_SkipToLine(size_t index) {
+	while (lex_PeekChar(index) != 0) {
+		if (lex_PeekChar(index++) == '\n')
+			return index;
 	}
 
-	return NULL;
+	return SIZE_MAX;
 }
 
-static const char* parse_GetLineToken(const char* s) {
-	if (s == NULL)
-		return NULL;
+static size_t parse_GetLineToken(size_t index) {
+	if (index == SIZE_MAX)
+		return SIZE_MAX;
 
-	if (parse_isRept(s) || parse_isEndr(s) || parse_isIf(s) || parse_isElse(s) || parse_isEndc(s) || parse_isMacro(s) ||
-		parse_isEndm(s)) {
-		return s;
+	if (parse_isRept(index) || parse_isEndr(index) || parse_isIf(index) || parse_isElse(index) || parse_isEndc(index) || parse_isMacro(index) ||
+		parse_isEndm(index)) {
+		return index;
 	}
 
-	while (!parse_isWhiteSpace(*s)) {
-		if (*s++ == ':')
+	while (!parse_isWhiteSpace(lex_PeekChar(index))) {
+		if (lex_PeekChar(index++) == ':')
 			break;
 	}
-	while (parse_isWhiteSpace(*s))
-		++s;
+	while (parse_isWhiteSpace(lex_PeekChar(index)))
+		++index;
 
-	return s;
+	return index;
 }
 
-static size_t parse_GetIfLength(const char* s);
+static size_t parse_GetIfLength(size_t index);
 
-static size_t parse_GetReptLength(const char* s) {
-	const char* start = s;
-	const char* token;
+static size_t parse_GetReptLength(size_t index) {
+	size_t start = index;
+	size_t token;
 
-	s = parse_SkipToLine(s);
-	while (s != NULL && (token = parse_GetLineToken(s)) != NULL) {
+	index = parse_SkipToLine(index);
+	while (index != SIZE_MAX && (token = parse_GetLineToken(index)) != SIZE_MAX) {
 		if (parse_isRept(token)) {
 			token += 4;
-			s = token + parse_GetReptLength(token);
-			s = parse_SkipToLine(s);
+			index = token + parse_GetReptLength(token);
+			index = parse_SkipToLine(index);
 		} else if (parse_isEndr(token)) {
 			return token - start;
 		} else {
-			s = parse_SkipToLine(s);
+			index = parse_SkipToLine(index);
 		}
 	}
 
 	return 0;
 }
 
-static size_t parse_GetMacroLength(const char* s) {
-	const char* start = s;
-	const char* token;
+static size_t parse_GetMacroLength(size_t index) {
+	size_t start = index;
+	size_t token;
 
-	s = parse_SkipToLine(s);
-	while ((token = parse_GetLineToken(s)) != NULL) {
+	index = parse_SkipToLine(index);
+	while ((token = parse_GetLineToken(index)) != SIZE_MAX) {
 		if (parse_isRept(token)) {
 			token += 4;    // 4 = strlen("REPT")
-			s = token + parse_GetReptLength(token) + 4; // 4 = strlen("ENDR")
-			s = parse_SkipToLine(s);
+			index = token + parse_GetReptLength(token) + 4; // 4 = strlen("ENDR")
+			index = parse_SkipToLine(index);
 		} else if (parse_isIf(token)) {
-			while (!parse_isWhiteSpace(*token))
+			while (!parse_isWhiteSpace(lex_PeekChar(token)))
 				++token;
-			s = token + parse_GetIfLength(token) + 4;    // 4 = strlen("ENDC")
-			s = parse_SkipToLine(s);
+			index = token + parse_GetIfLength(token) + 4;    // 4 = strlen("ENDC")
+			index = parse_SkipToLine(index);
 		} else if (parse_isMacro(token)) {
 			token += 5;
-			s = token + parse_GetMacroLength(token) + 4;
-			s = parse_SkipToLine(s);
+			index = token + parse_GetMacroLength(token) + 4;
+			index = parse_SkipToLine(index);
 		} else if (parse_isEndm(token)) {
 			return token - start;
 		} else {
-			s = parse_SkipToLine(s);
+			index = parse_SkipToLine(index);
 		}
 	}
 
 	return 0;
 }
 
-static size_t parse_GetIfLength(const char* s) {
-	const char* start = s;
-	const char* token;
+static size_t parse_GetIfLength(size_t index) {
+	size_t start = index;
+	size_t token;
 
-	s = parse_SkipToLine(s);
-	while ((token = parse_GetLineToken(s)) != NULL) {
+	index = parse_SkipToLine(index);
+	while ((token = parse_GetLineToken(index)) != SIZE_MAX) {
 		if (parse_isRept(token)) {
 			token += 4;    // 4 = strlen("REPT")
-			s = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDR")
-			s = parse_SkipToLine(s);
+			index = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDR")
+			index = parse_SkipToLine(index);
 		} else if (parse_isMacro(token)) {
 			token += 5;    // 5 = strlen("MACRO")
-			s = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDM")
-			s = parse_SkipToLine(s);
+			index = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDM")
+			index = parse_SkipToLine(index);
 		} else if (parse_isIf(token)) {
-			while (!parse_isWhiteSpace(*token))
+			while (!parse_isWhiteSpace(token))
 				++token;
-			s = token + parse_GetIfLength(token) + 4;    // 4 = strlen("ENDC")
-			s = parse_SkipToLine(s);
-		} else if (_strnicmp(token, "ENDC", 4) == 0) {
+			index = token + parse_GetIfLength(token) + 4;    // 4 = strlen("ENDC")
+			index = parse_SkipToLine(index);
+		} else if (lex_CompareNoCase(token, "ENDC", 4)) {
 			return token - start;
 		} else {
-			s = parse_SkipToLine(s);
+			index = parse_SkipToLine(index);
 		}
 	}
 
@@ -188,8 +188,7 @@ static size_t parse_GetIfLength(const char* s) {
 }
 
 static bool parse_CopyRept(char** reptBlock, size_t* size) {
-	const char* src = g_currentContext->pLexBuffer->pBuffer;
-	size_t len = parse_GetReptLength(src);
+	size_t len = parse_GetReptLength(0);
 
 	if (len == 0)
 		return false;
@@ -198,41 +197,40 @@ static bool parse_CopyRept(char** reptBlock, size_t* size) {
 
 	*reptBlock = (char*) mem_Alloc(len + 1);
 	(*reptBlock)[len] = 0;
-	memcpy(*reptBlock, src, len);
+	lex_GetChars(*reptBlock, len);
+	g_currentContext->LineNumber += lex_SkipBytes(4);
 
-	lex_SkipBytes(len + 4);
 	return true;
 }
 
 bool parse_IfSkipToElse(void) {
-	const char* src = g_currentContext->pLexBuffer->pBuffer;
-	const char* token;
+	size_t token;
 
-	const char* s = parse_SkipToLine(src);
-	while ((token = parse_GetLineToken(s)) != NULL) {
+	size_t index = parse_SkipToLine(0);
+	while ((token = parse_GetLineToken(index)) != SIZE_MAX) {
 		if (parse_isRept(token)) {
 			token += 4;
-			s = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDR")
-			s = parse_SkipToLine(s);
+			index = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDR")
+			index = parse_SkipToLine(index);
 		} else if (parse_isMacro(token)) {
 			token += 5;
-			s = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDM")
-			s = parse_SkipToLine(s);
+			index = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDM")
+			index = parse_SkipToLine(index);
 		} else if (parse_isIf(token)) {
-			while (!parse_isWhiteSpace(*token))
+			while (!parse_isWhiteSpace(lex_PeekChar(token)))
 				++token;
-			s = token + parse_GetIfLength(token) + 4; // 4 = strlen("ENDC");
-			s = parse_SkipToLine(s);
-		} else if (_strnicmp(token, "ENDC", 4) == 0) {
-			lex_SkipBytes(token - src);
+			index = token + parse_GetIfLength(token) + 4; // 4 = strlen("ENDC");
+			index = parse_SkipToLine(index);
+		} else if (lex_CompareNoCase(token, "ENDC", 4)) {
+			g_currentContext->LineNumber += lex_SkipBytes(token);
 			g_currentContext->LineNumber++;
 			return true;
-		} else if (_strnicmp(token, "ELSE", 4) == 0) {
-			lex_SkipBytes(token + 4 - src);
+		} else if (lex_CompareNoCase(token, "ELSE", 4)) {
+			g_currentContext->LineNumber += lex_SkipBytes(token + 4);
 			g_currentContext->LineNumber++;
 			return true;
 		} else {
-			s = parse_SkipToLine(s);
+			index = parse_SkipToLine(index);
 		}
 	}
 
@@ -240,21 +238,19 @@ bool parse_IfSkipToElse(void) {
 }
 
 bool parse_IfSkipToEndc(void) {
-	const char* src = g_currentContext->pLexBuffer->pBuffer;
-	const char* token;
-
-	const char* s = parse_SkipToLine(src);
-	while ((token = parse_GetLineToken(s)) != NULL) {
+	size_t token;
+	size_t index = parse_SkipToLine(0);
+	while ((token = parse_GetLineToken(index)) != SIZE_MAX) {
 		if (parse_isIf(token)) {
-			while (!parse_isWhiteSpace(*token))
+			while (!parse_isWhiteSpace(lex_PeekChar(token)))
 				++token;
-			s = token + parse_GetIfLength(token);
-			s = parse_SkipToLine(s);
-		} else if (_strnicmp(token, "ENDC", 4) == 0) {
-			lex_SkipBytes(token - src);
+			index = token + parse_GetIfLength(token);
+			index = parse_SkipToLine(index);
+		} else if (lex_CompareNoCase(token, "ENDC", 4)) {
+			g_currentContext->LineNumber += lex_SkipBytes(token);
 			return true;
 		} else {
-			s = parse_SkipToLine(s);
+			index = parse_SkipToLine(index);
 		}
 	}
 
@@ -262,18 +258,13 @@ bool parse_IfSkipToEndc(void) {
 }
 
 bool parse_CopyMacro(char** dest, size_t* size) {
-	char* src = g_currentContext->pLexBuffer->pBuffer;
-	size_t len = parse_GetMacroLength(src);
+	size_t len = parse_GetMacroLength(0);
 
 	*size = len;
 
 	*dest = (char*) mem_Alloc(len + 1);
-	(*dest)[len] = 0;
-	for (size_t i = 0; i < len; ++i) {
-		(*dest)[i] = src[i];
-	}
-
-	lex_SkipBytes(len + 4);
+	g_currentContext->LineNumber += lex_GetChars(*dest, len);
+	g_currentContext->LineNumber += lex_SkipBytes(4);
 	return true;
 }
 
@@ -1061,8 +1052,6 @@ static bool parse_Symbol(void) {
 					if (coloncount == 2)
 						sym_Export(pName);
 					r = true;
-				} else {
-					internalerror("String expression is NULL");
 				}
 				break;
 			}
@@ -1483,21 +1472,17 @@ static bool parse_PseudoOp(void) {
 			lex_Bookmark(&mark);
 			parse_GetToken();
 			if ((r = parse_StringExpressionRaw_Pri0()) == NULL) {
-				char* pStart = mark.Buffer.pBuffer;
-				char* pEnd;
+				size_t pEnd = 0;
 
-				while (*pStart && (*pStart == ' ' || *pStart == '\t'))
-					++pStart;
-
-				pEnd = pStart;
-				while (*pEnd && !isspace((unsigned char) *pEnd))
+				while (lex_PeekChar(pEnd) == ' ' || lex_PeekChar(pEnd) == '\t')
 					++pEnd;
 
-				r = mem_Alloc(pEnd - pStart + 1);
-				memcpy(r, pStart, pEnd - pStart);
-				r[pEnd - pStart] = 0;
-				lex_Goto(&mark);
-				lex_SkipBytes((uint32_t) (pEnd - mark.Buffer.pBuffer));
+				while (!isspace((unsigned char) lex_PeekChar(pEnd)))
+					++pEnd;
+
+				r = mem_Alloc(pEnd + 1);
+				g_currentContext->LineNumber += lex_GetChars(r, pEnd);
+				r[pEnd] = 0;
 				parse_GetToken();
 			}
 

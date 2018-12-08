@@ -64,8 +64,10 @@ static bool commonPatch() {
 	} while (section != NULL);
 
 	for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-		for (SSymbol* symbol = g_pHashedSymbols[i]; symbol !=NULL; symbol = list_GetNext(symbol)) {
-			if (symbol->nFlags & SYMF_RELOC) {
+		for (SSymbol* symbol = g_pHashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+			if (symbol->eType == SYM_IMPORT) {
+				prj_Fail(ERROR_SYMBOL_UNDEFINED, str_String(symbol->pName));
+			} else if (symbol->nFlags & SYMF_RELOC) {
 				symbol->nFlags &= ~SYMF_RELOC;
 				symbol->nFlags |= SYMF_CONSTANT;
 				symbol->Value.Value += symbol->pSection->BasePC;

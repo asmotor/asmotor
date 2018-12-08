@@ -176,14 +176,14 @@ static uint32_t ascii2bin(char* s)
 }
 
 
-static bool ParseGameboyNumber(const char* s, uint32_t size)
+static bool ParseGameboyNumber(size_t size)
 {
     char dest[256];
 
 	if(size >= 256)
 		size = 255;
 
-    strncpy(dest, s, size);
+	lex_GetChars(dest, size);
     dest[size] = 0;
     g_CurrentToken.Value.nInteger = ascii2bin(dest);
 

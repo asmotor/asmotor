@@ -20,6 +20,7 @@
 #define INCLUDE_LEXER_H
 
 #include <stdio.h>
+#include <str.h>
 #include "types.h"
 #include "tokens.h"
 #include "xasm.h"
@@ -34,9 +35,15 @@ typedef enum {
 	LEX_STATE_NORMAL, LEX_STATE_MACRO_ARG0, LEX_STATE_MACRO_ARGS
 } ELexerState;
 
+typedef struct CharStack {
+	char stack[MAXSTRINGSYMBOLSIZE];
+	size_t count;
+} SCharStack;
+
 typedef struct LexBuffer {
-	char* pBufferStart;
-	char* pBuffer;
+	SCharStack charStack;
+	char* buffer;
+	size_t index;
 	size_t bufferSize;
 	bool atLineStart;
 	ELexerState State;
@@ -58,21 +65,34 @@ typedef struct {
 
 extern SLexToken g_CurrentToken;
 
-extern void lex_FreeBuffer(SLexBuffer* buf);
-extern SLexBuffer* lex_CreateFileBuffer(FILE* f);
-extern void lex_SetBuffer(SLexBuffer* buf);
-extern uint32_t lex_GetNextToken(void);
+extern void lex_Init(void);
+
 extern void lex_AddString(const char* pszName, uint32_t nToken);
 extern void lex_AddStrings(SLexInitString* lex);
 extern void lex_RemoveString(const char* pszName, uint32_t nToken);
 extern void lex_RemoveStrings(SLexInitString* lex);
-extern void lex_SetState(ELexerState i);
-extern void lex_UnputString(const char* s);
-extern void lex_UnputChar(char c);
-extern void lex_SkipBytes(size_t count);
-extern void lex_Init(void);
+
 extern SLexBuffer* lex_CreateMemoryBuffer(const char* mem, size_t size);
+extern SLexBuffer* lex_CreateFileBuffer(FILE* f);
+extern void lex_FreeBuffer(SLexBuffer* buf);
+extern void lex_SetBuffer(SLexBuffer* buf);
+
+extern char lex_PeekChar(size_t index);
+extern char lex_GetChar(void);
+extern size_t lex_GetChars(char* dest, size_t length);
+extern bool lex_MatchChar(char ch);
+extern bool lex_CompareNoCase(size_t index, const char* str, size_t length);
+extern bool lex_StartsWithNoCase(const char* str, size_t length);
+extern bool lex_StartsWithStringNoCase(const string* str);
+
+extern size_t lex_SkipBytes(size_t count);
 extern void lex_RewindBytes(size_t count);
+
+extern void lex_UnputString(const char* s);
+
+extern uint32_t lex_GetNextToken(void);
+
+extern void lex_SetState(ELexerState i);
 
 extern void lex_Bookmark(SLexBookmark* pBookmark);
 extern void lex_Goto(SLexBookmark* pBookmark);
