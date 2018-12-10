@@ -97,7 +97,7 @@ static SExpression* parse_ExpressionNoReservedIdentifiers() {
 	SExpression* pExpr;
 
 	opt_Push();
-	g_pOptions->bAllowReservedIdentifierLabels = false;
+	opt_Current->allowReservedKeywordLabels = false;
 	pExpr = parse_Expression(4);
 	opt_Pop();
 
@@ -105,8 +105,8 @@ static SExpression* parse_ExpressionNoReservedIdentifiers() {
 }
 
 static bool parse_IndirectComponent(uint32_t* pRegister, SExpression** ppAddress) {
-	if (g_CurrentToken.Token >= T_REG_A && g_CurrentToken.Token <= T_REG_J) {
-		*pRegister = g_CurrentToken.Token - T_REG_A;
+	if (lex_Current.token >= T_REG_A && lex_Current.token <= T_REG_J) {
+		*pRegister = lex_Current.token - T_REG_A;
 		*ppAddress = NULL;
 		parse_GetToken();
 		return true;
@@ -123,7 +123,7 @@ static bool parse_IndirectComponent(uint32_t* pRegister, SExpression** ppAddress
 }
 
 static bool parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes) {
-	if (g_CurrentToken.Token == '[') {
+	if (lex_Current.token == '[') {
 		uint32_t nRegister = UINT32_MAX;
 		SExpression* pAddress = NULL;
 
@@ -132,8 +132,8 @@ static bool parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes) {
 		if (!parse_IndirectComponent(&nRegister, &pAddress))
 			return false;
 
-		while (g_CurrentToken.Token == T_OP_ADD || g_CurrentToken.Token == T_OP_SUB) {
-			if (g_CurrentToken.Token == T_OP_ADD) {
+		while (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUB) {
+			if (lex_Current.token == T_OP_ADD) {
 				uint32_t nRegister2 = UINT32_MAX;
 				SExpression* pAddress2 = NULL;
 
@@ -151,7 +151,7 @@ static bool parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes) {
 				} else {
 					prj_Error(MERROR_ILLEGAL_ADDRMODE);
 				}
-			} else if (g_CurrentToken.Token == T_OP_SUB) {
+			} else if (lex_Current.token == T_OP_SUB) {
 				uint32_t nRegister2 = UINT32_MAX;
 				SExpression* pAddress2 = NULL;
 
@@ -203,7 +203,7 @@ static bool parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes) {
 }
 
 static void parse_OptimizeAddressingMode(SAddrMode* pMode) {
-	if (g_pOptions->pMachine->bOptimize) {
+	if (opt_Current->machineOptions->bOptimize) {
 		/* Optimize literals <= 0x1F */
 		if (pMode->eMode == ADDR_LITERAL && expr_IsConstant(pMode->pAddress)) {
 			uint16_t v = (uint16_t) pMode->pAddress->value.integer;
@@ -225,7 +225,7 @@ static void parse_OptimizeAddressingMode(SAddrMode* pMode) {
 }
 
 static bool parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes) {
-	switch (g_CurrentToken.Token) {
+	switch (lex_Current.token) {
 		case T_REG_A:
 		case T_REG_B:
 		case T_REG_C:
@@ -234,7 +234,7 @@ static bool parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes) {
 		case T_REG_Z:
 		case T_REG_I:
 		case T_REG_J: {
-			EAddrMode mode = ADDR_A + (g_CurrentToken.Token - T_REG_A);
+			EAddrMode mode = ADDR_A + (lex_Current.token - T_REG_A);
 			parse_GetToken();
 
 			if (nAllowedModes & (1u << mode)) {
@@ -251,7 +251,7 @@ static bool parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes) {
 		case T_REG_SP:
 		case T_REG_PC:
 		case T_REG_O: {
-			EAddrMode eMode = ADDR_POP + (g_CurrentToken.Token - T_REG_POP);
+			EAddrMode eMode = ADDR_POP + (lex_Current.token - T_REG_POP);
 			parse_GetToken();
 
 			if (nAllowedModes & (1u << eMode)) {
@@ -303,7 +303,7 @@ static bool parse_Basic(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
 
 static bool parse_ADD_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData, ParserFunc negatedParser) {
 	/* Optimize FUNC dest,-$1F */
-	if (g_pOptions->pMachine->bOptimize) {
+	if (opt_Current->machineOptions->bOptimize) {
 		if (pMode2->eMode == ADDR_LITERAL && (expr_IsConstant(pMode2->pAddress))
 			&& ((uint32_t) pMode2->pAddress->value.integer & 0xFFFFu) >= 0xFFE1u) {
 
@@ -364,8 +364,8 @@ static SParser g_Parsers[T_0X10C_XOR - T_0X10C_ADD + 1] = {{0x2, parse_ADD,   AD
 };
 
 bool parse_IntegerInstruction(void) {
-	if (T_0X10C_ADD <= g_CurrentToken.Token && g_CurrentToken.Token <= T_0X10C_XOR) {
-		ETargetToken nToken = (ETargetToken) g_CurrentToken.Token;
+	if (T_0X10C_ADD <= lex_Current.token && lex_Current.token <= T_0X10C_XOR) {
+		ETargetToken nToken = (ETargetToken) lex_Current.token;
 		SParser* pParser = &g_Parsers[nToken - T_0X10C_ADD];
 
 		parse_GetToken();
@@ -400,7 +400,7 @@ bool parse_IntegerInstruction(void) {
 }
 
 SExpression* parse_TargetFunction(void) {
-	switch (g_CurrentToken.Token) {
+	switch (lex_Current.token) {
 		default:
 			return NULL;
 	}

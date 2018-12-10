@@ -56,7 +56,7 @@ typedef struct ConstantWord {
 static SConstantWord* g_wordsHashTable[WORDS_HASH_SIZE];
 static size_t g_maxWordLength;
 
-static SLexBuffer* g_pCurrentBuffer;
+static SLexerBuffer* g_pCurrentBuffer;
 
 
 /* Private functions */
@@ -197,7 +197,7 @@ static bool expandStringUntil(char* dst, char* stopChars, bool allowUndefinedSym
 
 /* Public variables */
 
-SLexToken g_CurrentToken;
+SLexerToken lex_Current;
 
 
 /*	Public functions */
@@ -264,14 +264,14 @@ bool lex_StartsWithStringNoCase(const string* str) {
 	return lex_CompareNoCase(0, str_String(str), str_Length(str));
 }
 
-void lex_Bookmark(SLexBookmark* pBookmark) {
-	pBookmark->Buffer = *g_pCurrentBuffer;
-	pBookmark->Token = g_CurrentToken;
+void lex_Bookmark(SLexerBookmark* bookmark) {
+	bookmark->Buffer = *g_pCurrentBuffer;
+	bookmark->Token = lex_Current;
 }
 
-void lex_Goto(SLexBookmark* pBookmark) {
-	*g_pCurrentBuffer = pBookmark->Buffer;
-	g_CurrentToken = pBookmark->Token;
+void lex_Goto(SLexerBookmark* bookmark) {
+	*g_pCurrentBuffer = bookmark->Buffer;
+	lex_Current = bookmark->Token;
 }
 
 size_t lex_SkipBytes(size_t count) {
@@ -301,48 +301,48 @@ void lex_RewindBytes(size_t count) {
 	}
 }
 
-void lex_UnputString(const char* s) {
-	size_t length = strlen(s);
-	s += length;
+void lex_UnputString(const char* str) {
+	size_t length = strlen(str);
+	str += length;
 	for (size_t i = 0; i < length ; ++i) {
-		unputChar(*(--s));
+		unputChar(*(--str));
 	}
 }
 
-void lex_SetBuffer(SLexBuffer* buf) {
-	if (buf) {
-		g_pCurrentBuffer = buf;
+void lex_SetBuffer(SLexerBuffer* buffer) {
+	if (buffer) {
+		g_pCurrentBuffer = buffer;
 	} else {
 		internalerror("Argument must not be NULL");
 	}
 }
 
-void lex_SetState(ELexerState i) {
+void lex_SetState(ELexerState state) {
 	if (g_pCurrentBuffer) {
-		g_pCurrentBuffer->State = i;
+		g_pCurrentBuffer->State = state;
 	} else {
 		internalerror("g_pCurrentBuffer not initialized");
 	}
 }
 
-void lex_FreeBuffer(SLexBuffer* buf) {
-	if (buf) {
-		if (buf->buffer) {
-			mem_Free(buf->buffer);
+void lex_FreeBuffer(SLexerBuffer* buffer) {
+	if (buffer) {
+		if (buffer->buffer) {
+			mem_Free(buffer->buffer);
 		} else {
 			internalerror("buf->pBufferStart not initialized");
 		}
-		mem_Free(buf);
+		mem_Free(buffer);
 	} else {
 		internalerror("Argument must not be NULL");
 	}
 }
 
-SLexBuffer* lex_CreateMemoryBuffer(const char* mem, size_t size) {
-	SLexBuffer* pBuffer = (SLexBuffer*) mem_Alloc(sizeof(SLexBuffer));
+SLexerBuffer* lex_CreateMemoryBuffer(const char* memory, size_t size) {
+	SLexerBuffer* pBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
 
 	pBuffer->buffer = (char*) mem_Alloc(size);
-	memcpy(pBuffer->buffer, mem, size);
+	memcpy(pBuffer->buffer, memory, size);
 	pBuffer->charStack.count = 0;
 	pBuffer->index = 0;
 	pBuffer->bufferSize = size;
@@ -351,13 +351,13 @@ SLexBuffer* lex_CreateMemoryBuffer(const char* mem, size_t size) {
 	return pBuffer;
 }
 
-SLexBuffer* lex_CreateFileBuffer(FILE* f) {
+SLexerBuffer* lex_CreateFileBuffer(FILE* f) {
 	char strterm = 0;
 	char* pFile;
 	bool bWasSpace = true;
 
-	SLexBuffer* pBuffer = (SLexBuffer*) mem_Alloc(sizeof(SLexBuffer));
-	memset(pBuffer, 0, sizeof(SLexBuffer));
+	SLexerBuffer* pBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
+	memset(pBuffer, 0, sizeof(SLexerBuffer));
 
 	size_t size = fsize(f);
 
@@ -439,12 +439,12 @@ void lex_PrintMaxTokensPerHash(void) {
 	printf("Total strings %d, max %d strings with same hash, %d slots in use\n", nTotal, nMax, nInUse);
 }
 
-void lex_RemoveString(const char* pszName, uint32_t nToken) {
-	SConstantWord** pHash = &g_wordsHashTable[hashString(pszName)];
+void lex_UndefineToken(const char* name, uint32_t token) {
+	SConstantWord** pHash = &g_wordsHashTable[hashString(name)];
 	SConstantWord* pToken = *pHash;
 
 	while (pToken) {
-		if (pToken->token == (uint32_t) nToken && str_EqualConst(pToken->name, pszName) == 0) {
+		if (pToken->token == (uint32_t) token && str_EqualConst(pToken->name, name) == 0) {
 			list_Remove(*pHash, pToken);
 			str_Free(pToken->name);
 			mem_Free(pToken);
@@ -455,15 +455,15 @@ void lex_RemoveString(const char* pszName, uint32_t nToken) {
 	internalerror("token not found");
 }
 
-void lex_RemoveStrings(SLexInitString* pLex) {
-	while (pLex->name) {
-		lex_RemoveString(pLex->name, pLex->token);
-		++pLex;
+void lex_UndefineTokens(SLexerTokenDefinition* lex) {
+	while (lex->name) {
+        lex_UndefineToken(lex->name, lex->token);
+		++lex;
 	}
 }
 
-void lex_AddString(const char* pszName, uint32_t nToken) {
-	SConstantWord** pHash = &g_wordsHashTable[hashString(pszName)];
+void lex_DefineToken(const char* name, uint32_t token) {
+	SConstantWord** pHash = &g_wordsHashTable[hashString(name)];
 	SConstantWord* pPrev = *pHash;
 	SConstantWord* pNew;
 
@@ -472,9 +472,9 @@ void lex_AddString(const char* pszName, uint32_t nToken) {
 	pNew = (SConstantWord*) mem_Alloc(sizeof(SConstantWord));
 	memset(pNew, 0, sizeof(SConstantWord));
 
-	pNew->name = str_Create(pszName);
+	pNew->name = str_Create(name);
 	str_ToUpperReplace(&pNew->name);
-	pNew->token = (EToken) nToken;
+	pNew->token = (EToken) token;
 
 	if (str_Length(pNew->name) > g_maxWordLength)
 		g_maxWordLength = str_Length(pNew->name);
@@ -486,10 +486,10 @@ void lex_AddString(const char* pszName, uint32_t nToken) {
 	}
 }
 
-void lex_AddStrings(SLexInitString* lex) {
+void lex_DefineTokens(const SLexerTokenDefinition* lex) {
 	while (lex->name) {
-		lex_AddString(lex->name, lex->token);
-		++lex;
+        lex_DefineToken(lex->name, lex->token);
+		lex += 1;
 	}
 
 	/*lex_PrintMaxTokensPerHash();*/
@@ -516,12 +516,12 @@ static uint32_t lex_LexStateNormal() {
 
 		/* Check if we're done with this buffer */
 		if (lex_PeekChar(0) == 0) {
-			if (fstk_RunNextBuffer()) {
+			if (fstk_ProcessNextBuffer()) {
 				bLineStart = g_pCurrentBuffer->atLineStart;
 				g_pCurrentBuffer->atLineStart = false;
 				continue;
 			} else {
-				g_CurrentToken.Token = T_NONE;
+				lex_Current.token = T_NONE;
 				return 0;
 			}
 		}
@@ -535,18 +535,18 @@ static uint32_t lex_LexStateNormal() {
 			nMaxLen = g_maxWordLength;
 		}
 
-		g_CurrentToken.TokenLength = 0;
+		lex_Current.length = 0;
 		uint32_t hashCode = 0;
 		size_t s = 0;
 
-		while (g_CurrentToken.TokenLength < nMaxLen) {
-			++g_CurrentToken.TokenLength;
+		while (lex_Current.length < nMaxLen) {
+			++lex_Current.length;
 			HASH(hashCode, toupper(lex_PeekChar(s)));
 			++s;
 			if (g_wordsHashTable[hashCode]) {
 				SConstantWord* lex = g_wordsHashTable[hashCode];
 				while (lex) {
-					if (str_Length(lex->name) == g_CurrentToken.TokenLength && lex_StartsWithStringNoCase(lex->name)) {
+					if (str_Length(lex->name) == lex_Current.length && lex_StartsWithStringNoCase(lex->name)) {
 						pLongestFixed = lex;
 					}
 					lex = list_GetNext(lex);
@@ -559,18 +559,18 @@ static uint32_t lex_LexStateNormal() {
 			if (p == '"' || p == '\'') {
 				lex_GetChar();
 				char term[3] = { p, '\n', 0 };
-				expandStringUntil(g_CurrentToken.Value.aString, term, true);
+				expandStringUntil(lex_Current.value.string, term, true);
 				if (lex_GetChar() != term[0]) {
 					prj_Error(ERROR_STRING_TERM);
 				}
-				g_CurrentToken.Token = T_STRING;
+				lex_Current.token = T_STRING;
 				return T_STRING;
 			} else if (p == '{') {
 				char sym[MAXSYMNAMELENGTH];
 
 				if (expandStringUntil(sym, "}\n", false)) {
-					g_CurrentToken.Token = T_STRING;
-					strcpy(g_CurrentToken.Value.aString, sym);
+					lex_Current.token = T_STRING;
+					strcpy(lex_Current.value.string, sym);
 					lex_MatchChar('}');
 					return T_STRING;
 				}
@@ -582,15 +582,15 @@ static uint32_t lex_LexStateNormal() {
 				g_pCurrentBuffer->atLineStart = true;
 			}
 
-			g_CurrentToken.TokenLength = 1;
-			g_CurrentToken.Token = (EToken) ch;
+			lex_Current.length = 1;
+			lex_Current.token = (EToken) ch;
 			return (uint32_t) ch;
 		}
 
 		if (variadicLength == 0) {
-			g_CurrentToken.TokenLength = str_Length(pLongestFixed->name);
-			skip(g_CurrentToken.TokenLength);
-			g_CurrentToken.Token = pLongestFixed->token;
+			lex_Current.length = str_Length(pLongestFixed->name);
+			skip(lex_Current.length);
+			lex_Current.token = pLongestFixed->token;
 			return pLongestFixed->token;
 		}
 
@@ -599,24 +599,24 @@ static uint32_t lex_LexStateNormal() {
 		}
 
 		if (pLongestFixed == NULL || variadicLength > str_Length(pLongestFixed->name)) {
-			g_CurrentToken.TokenLength = variadicLength;
-			if (variadicWord->callback && !variadicWord->callback(g_CurrentToken.TokenLength)) {
+			lex_Current.length = variadicLength;
+			if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
 				continue;
 			}
 
 			if (variadicWord->token == T_ID && bLineStart) {
-				skip(g_CurrentToken.TokenLength);
-				g_CurrentToken.Token = T_LABEL;
+				skip(lex_Current.length);
+				lex_Current.token = T_LABEL;
 				return T_LABEL;
 			} else {
-				skip(g_CurrentToken.TokenLength);
-				g_CurrentToken.Token = variadicWord->token;
+				skip(lex_Current.length);
+				lex_Current.token = variadicWord->token;
 				return variadicWord->token;
 			}
 		} else {
-			g_CurrentToken.TokenLength = str_Length(pLongestFixed->name);
-			lex_GetChars(g_CurrentToken.Value.aString, g_CurrentToken.TokenLength);
-			g_CurrentToken.Token = pLongestFixed->token;
+			lex_Current.length = str_Length(pLongestFixed->name);
+			lex_GetChars(lex_Current.value.string, lex_Current.length);
+			lex_Current.token = pLongestFixed->token;
 			return pLongestFixed->token;
 		}
 	}
@@ -635,10 +635,10 @@ uint32_t lex_GetNextToken(void) {
 				int i = 0;
 
 				while (!isspace((unsigned char) lex_PeekChar(0))) {
-					g_CurrentToken.Value.aString[i++] = lex_GetChar();
+					lex_Current.value.string[i++] = lex_GetChar();
 				}
-				g_CurrentToken.Value.aString[i] = 0;
-				return g_CurrentToken.Token = T_MACROARG0;
+				lex_Current.value.string[i] = 0;
+				return lex_Current.token = T_MACROARG0;
 			}
 
 			// fall through
@@ -651,33 +651,33 @@ uint32_t lex_GetNextToken(void) {
 			size_t tokenStart = g_pCurrentBuffer->index;
 
 			if (lex_MatchChar('<')) {
-				expandStringUntil(g_CurrentToken.Value.aString, ">\n", true);
+				expandStringUntil(lex_Current.value.string, ">\n", true);
 				lex_MatchChar('>');
 			} else {
-				expandStringUntil(g_CurrentToken.Value.aString, ",\n", true);
+				expandStringUntil(lex_Current.value.string, ",\n", true);
 			}
 
 			if (g_pCurrentBuffer->index > tokenStart) {
 				size_t length = g_pCurrentBuffer->index - tokenStart;
 				if (lex_PeekChar(0) == '\n') {
-					while (g_CurrentToken.Value.aString[length - 1] == ' ') {
-						g_CurrentToken.Value.aString[--length] = 0;
+					while (lex_Current.value.string[length - 1] == ' ') {
+						lex_Current.value.string[--length] = 0;
 					}
 				}
-				g_CurrentToken.TokenLength = length;
-				g_CurrentToken.Token = T_STRING;
+				lex_Current.length = length;
+				lex_Current.token = T_STRING;
 				return T_STRING;
 			} else if (lex_MatchChar('\n')) {
 				g_pCurrentBuffer->atLineStart = true;
-				g_CurrentToken.TokenLength = 1;
-				g_CurrentToken.Token = T_LINEFEED;
+				lex_Current.length = 1;
+				lex_Current.token = T_LINEFEED;
 				return '\n';
 			} else if (lex_MatchChar(',')) {
-				g_CurrentToken.TokenLength = 1;
-				g_CurrentToken.Token = T_COMMA;
+				lex_Current.length = 1;
+				lex_Current.token = T_COMMA;
 				return ',';
 			} else {
-				g_CurrentToken.Token = T_NONE;
+				lex_Current.token = T_NONE;
 				return 0;
 			}
 			break;

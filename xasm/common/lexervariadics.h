@@ -16,24 +16,36 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef    INCLUDE_LEXERVARIADICS_H
-#define    INCLUDE_LEXERVARIADICS_H
+#ifndef XASM_COMMON_LEXERVARIADICS_H_INCLUDED_
+#define XASM_COMMON_LEXERVARIADICS_H_INCLUDED_
 
 #include "tokens.h"
 
 typedef struct {
-	bool (* callback)(size_t size);
-	uint32_t token;
+    bool (* callback)(size_t size);
+    uint32_t token;
 } SVariadicWordDefinition;
 
-extern void lex_VariadicInit(void);
-extern uint32_t lex_VariadicCreateWord(SVariadicWordDefinition* tok);
+extern void
+lex_VariadicInit(void);
 
-extern void lex_FloatAddRange(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber);
-extern void lex_FloatAddRangeAndBeyond(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber);
-extern void lex_FloatRemoveAll(uint32_t id);
-extern void lex_FloatSetSuffix(uint32_t id, uint8_t ch);
+extern uint32_t
+lex_VariadicCreateWord(SVariadicWordDefinition* tok);
 
-extern void lex_VariadicMatchString(char (* peek)(size_t), size_t bufferLength, size_t* length, SVariadicWordDefinition** variadicWord);
+extern void
+lex_VariadicAddCharRange(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber);
+
+extern void
+lex_VariadicAddCharRangeRepeating(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber);
+
+extern void
+lex_VariadicAddSuffix(uint32_t id, uint8_t ch);
+
+extern void
+lex_VariadicRemoveAll(uint32_t id);
+
+extern void
+lex_VariadicMatchString(char (* peek)(size_t), size_t bufferLength, size_t* length,
+                        SVariadicWordDefinition** variadicWord);
 
 #endif

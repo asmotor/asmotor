@@ -461,7 +461,7 @@ static bool patch_EvaluateOperator(SPatch* patch, SExpression* expr, int32_t* v)
             if(!patch_Evaluate(patch,expr->right,&vr))
                 return false;
 
-            if(exactlyOneBitSet(vr))
+            if(isPowerOfTwo(vr))
             {
                 uint32_t t = vr;
                 int b = 0;
@@ -604,8 +604,8 @@ void patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType
     patch->Offset = offset;
     patch->Type = type;
     patch->pExpression = expr;
-    patch->pFile = str_Copy(g_currentContext->pName);
-    patch->nLine = g_currentContext->LineNumber;
+    patch->pFile = str_Copy(fstk_Current->name);
+    patch->nLine = fstk_Current->lineNumber;
 }
 
 void patch_BackPatch(void)

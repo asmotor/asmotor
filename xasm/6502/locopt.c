@@ -43,20 +43,20 @@ struct MachineOptions* locopt_Alloc(void)
 
 void locopt_Open(void)
 {
-	g_pOptions->pMachine->nUndocumented = 0;
+	opt_Current->machineOptions->nUndocumented = 0;
 }
 
 void locopt_Update(void)
 {
-	int nNewSet = g_pOptions->pMachine->nUndocumented;
+	int nNewSet = opt_Current->machineOptions->nUndocumented;
 	if(s_nPreviousInstructionSet != nNewSet)
 	{
-		SLexInitString* pPrev = loclexer_GetUndocumentedInstructions(s_nPreviousInstructionSet);
-		SLexInitString* pNew = loclexer_GetUndocumentedInstructions(nNewSet);
+		SLexerTokenDefinition* pPrev = loclexer_GetUndocumentedInstructions(s_nPreviousInstructionSet);
+		SLexerTokenDefinition* pNew = loclexer_GetUndocumentedInstructions(nNewSet);
 		if(pPrev)
-			lex_RemoveStrings(pPrev);
+			lex_UndefineTokens(pPrev);
 		if(pNew)
-			lex_AddStrings(pNew);
+			lex_DefineTokens(pNew);
 			
 		s_nPreviousInstructionSet = nNewSet;
 	}
@@ -75,7 +75,7 @@ bool locopt_Parse(char* s)
 				int n = atoi(&s[1]);
 				if(n >= 0 && n <= 3)
 				{
-					g_pOptions->pMachine->nUndocumented = n;
+					opt_Current->machineOptions->nUndocumented = n;
 					return true;
 				}
 				prj_Error(ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE);

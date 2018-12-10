@@ -21,7 +21,7 @@
 #include "lexer.h"
 #include "loclexer.h"
 
-static SLexInitString s_UndocumentedInstructions0[] =
+static SLexerTokenDefinition s_UndocumentedInstructions0[] =
 {
 	{ "aac", T_6502U_AAC },
 	{ "aax", T_6502U_AAX },
@@ -49,7 +49,7 @@ static SLexInitString s_UndocumentedInstructions0[] =
 	{ NULL, 0 }
 };
 
-static SLexInitString s_UndocumentedInstructions1[] =
+static SLexerTokenDefinition s_UndocumentedInstructions1[] =
 {
 	{ "anc", T_6502U_AAC },
 	{ "sax", T_6502U_AAX },
@@ -77,7 +77,7 @@ static SLexInitString s_UndocumentedInstructions1[] =
 	{ NULL, 0 }
 };
 
-static SLexInitString s_UndocumentedInstructions2[] =
+static SLexerTokenDefinition s_UndocumentedInstructions2[] =
 {
 	{ "anc", T_6502U_AAC },
 	{ "axs", T_6502U_AAX },
@@ -105,7 +105,7 @@ static SLexInitString s_UndocumentedInstructions2[] =
 	{ NULL, 0 }
 };
 
-static SLexInitString localstrings[] =
+static SLexerTokenDefinition localstrings[] =
 {
 	{ "adc",	T_6502_ADC },
 	{ "and",	T_6502_AND },
@@ -181,10 +181,10 @@ static SLexInitString localstrings[] =
 
 void loclexer_Init(void)
 {
-	lex_AddStrings(localstrings);
+	lex_DefineTokens(localstrings);
 }
 
-static SLexInitString* s_pLexInitStrings[] =
+static SLexerTokenDefinition* s_pLexInitStrings[] =
 {
 	NULL,
 	&s_UndocumentedInstructions0[0],
@@ -192,7 +192,7 @@ static SLexInitString* s_pLexInitStrings[] =
 	&s_UndocumentedInstructions2[0]
 };
 
-SLexInitString* loclexer_GetUndocumentedInstructions(int n)
+SLexerTokenDefinition* loclexer_GetUndocumentedInstructions(int n)
 {
 	return s_pLexInitStrings[n];
 }

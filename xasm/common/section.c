@@ -212,7 +212,7 @@ void sect_OutputConst16(uint16_t value) {
 	if (sect_CheckAvailableSpace(2)) {
 		switch (sect_GetCurrentType()) {
 			case GROUP_TEXT: {
-				switch (g_pOptions->Endian) {
+				switch (opt_Current->endianness) {
 					case ASM_LITTLE_ENDIAN: {
 						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value);
 						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8u);
@@ -251,7 +251,7 @@ void sect_OutputReloc16(SExpression* expr) {
 		switch (sect_GetCurrentType()) {
 			case GROUP_TEXT: {
 				patch_Create(g_pCurrentSection, g_pCurrentSection->UsedSpace, expr,
-							 g_pOptions->Endian == ASM_LITTLE_ENDIAN ? PATCH_LWORD : PATCH_BWORD);
+							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LWORD : PATCH_BWORD);
 				g_pCurrentSection->FreeSpace -= 2;
 				g_pCurrentSection->UsedSpace += 2;
 				g_pCurrentSection->PC += 2 / g_pConfiguration->eMinimumWordSize;
@@ -289,7 +289,7 @@ void sect_OutputConst32(uint32_t value) {
 	if (sect_CheckAvailableSpace(4)) {
 		switch (sect_GetCurrentType()) {
 			case GROUP_TEXT: {
-				switch (g_pOptions->Endian) {
+				switch (opt_Current->endianness) {
 					case ASM_LITTLE_ENDIAN: {
 						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value);
 						g_pCurrentSection->pData[g_pCurrentSection->UsedSpace++] = (uint8_t) (value >> 8u);
@@ -332,7 +332,7 @@ void sect_OutputRel32(SExpression* expr) {
 		switch (sect_GetCurrentType()) {
 			case GROUP_TEXT: {
 				patch_Create(g_pCurrentSection, g_pCurrentSection->UsedSpace, expr,
-							 g_pOptions->Endian == ASM_LITTLE_ENDIAN ? PATCH_LLONG : PATCH_BLONG);
+							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LLONG : PATCH_BLONG);
 				g_pCurrentSection->FreeSpace -= 4;
 				g_pCurrentSection->PC += 4 / g_pConfiguration->eMinimumWordSize;
 				g_pCurrentSection->UsedSpace += 4;
@@ -430,12 +430,10 @@ void sect_SkipBytes(uint32_t count) {
 		//printf("*DEBUG* skipping %d bytes\n", count);
 		switch (sect_GetCurrentType()) {
 			case GROUP_TEXT: {
-				if (g_pOptions->UninitChar != -1) {
-					while (count--)
-						sect_OutputConst8((uint8_t) g_pOptions->UninitChar);
-					return;
+				while (count--) {
+					sect_OutputConst8((uint8_t) opt_Current->uninitializedValue);
 				}
-				//	Fall through to GROUP_BSS
+				break;
 			}
 			case GROUP_BSS: {
 				g_pCurrentSection->FreeSpace -= count;

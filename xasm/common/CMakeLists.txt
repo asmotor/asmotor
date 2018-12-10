@@ -3,14 +3,14 @@ add_library (xasm
     amigaobject.h
     binaryobject.c
     binaryobject.h
-        expression.c
-        expression.h
-        filestack.c
-        filestack.h
-    globlex.c
-    globlex.h
+    expression.c
+    expression.h
+    filestack.c
+    filestack.h
     lexer.c
     lexer.h
+    lexervariadics.c
+    lexervariadics.h
     main.c
     object.c
     object.h
@@ -26,5 +26,6 @@ add_library (xasm
     section.h
     symbol.c
     symbol.h
+    tokens.c
     tokens.h
-    xasm.h lexervariadics.c lexervariadics.h)
+    xasm.h)

@@ -195,10 +195,10 @@ static char* makePatchString(Patch* patch, Section* section)
             case OBJ_OP_AND:
                 combinePatchStrings("&");
                 break;
-            case OBJ_OP_SHL:
+            case OBJ_OP_ASL:
                 combinePatchStrings("<<");
                 break;
-            case OBJ_OP_SHR:
+            case OBJ_OP_ASR:
                 combinePatchStrings(">>");
                 break;
             case OBJ_OP_MUL:
@@ -210,41 +210,41 @@ static char* makePatchString(Patch* patch, Section* section)
             case OBJ_OP_MOD:
                 combinePatchStrings("%");
                 break;
-            case OBJ_OP_LOGICOR:
+            case OBJ_OP_BOOLEAN_OR:
                 combinePatchStrings("||");
                 break;
-            case OBJ_OP_LOGICAND:
+            case OBJ_OP_BOOLEAN_AND:
                 combinePatchStrings("&&");
                 break;
-            case OBJ_OP_LOGICNOT:
+            case OBJ_OP_BOOLEAN_NOT:
                 combinePatchFunctionString("!");
                 break;
-            case OBJ_OP_LOGICGE:
+            case OBJ_OP_GREATER_OR_EQUAL:
                 combinePatchStrings(">=");
                 break;
-            case OBJ_OP_LOGICGT:
+            case OBJ_OP_GREATER_THAN:
                 combinePatchStrings(">");
                 break;
-            case OBJ_OP_LOGICLE:
+            case OBJ_OP_LESS_OR_EQUAL:
                 combinePatchStrings("<=");
                 break;
-            case OBJ_OP_LOGICLT:
+            case OBJ_OP_LESS_THAN:
                 combinePatchStrings("<");
                 break;
-            case OBJ_OP_LOGICEQU:
+            case OBJ_OP_EQUALS:
                 combinePatchStrings("==");
                 break;
-            case OBJ_OP_LOGICNE:
+            case OBJ_OP_NOT_EQUALS:
                 combinePatchStrings("!=");
                 break;
-            case OBJ_FUNC_LOWLIMIT:
+            case OBJ_FUNC_LOW_LIMIT:
             {
                 popString2(&left, &right);
                 pushString(left);
                 mem_Free(right);
                 break;
             }
-            case OBJ_FUNC_HIGHLIMIT:
+            case OBJ_FUNC_HIGH_LIMIT:
             {
                 popString2(&left, &right);
                 pushString(left);
@@ -327,7 +327,7 @@ static char* makePatchString(Patch* patch, Section* section)
                 size -= 4;
                 break;
             }
-            case OBJ_PCREL:
+            case OBJ_PC_REL:
             {
                 combinePatchStrings("+");
                 pushStringCopy("*");
@@ -432,12 +432,12 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 combine_bitwise(left, right, &)
                 break;
             }
-            case OBJ_OP_SHL:
+            case OBJ_OP_ASL:
             {
                 combine_bitwise(left, right, <<)
                 break;
             }
-            case OBJ_OP_SHR:
+            case OBJ_OP_ASR:
             {
                 combine_bitwise(left, right, >>)
                 break;
@@ -457,47 +457,47 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 combine_operator(left, right, %)
                 break;
             }
-            case OBJ_OP_LOGICOR:
+            case OBJ_OP_BOOLEAN_OR:
             {
                 combine_operator(left, right, ||)
                 break;
             }
-            case OBJ_OP_LOGICAND:
+            case OBJ_OP_BOOLEAN_AND:
             {
                 combine_operator(left, right, &&)
                 break;
             }
-            case OBJ_OP_LOGICGE:
+            case OBJ_OP_GREATER_OR_EQUAL:
             {
                 combine_operator(left, right, >=)
                 break;
             }
-            case OBJ_OP_LOGICGT:
+            case OBJ_OP_GREATER_THAN:
             {
                 combine_operator(left, right, >)
                 break;
             }
-            case OBJ_OP_LOGICLE:
+            case OBJ_OP_LESS_OR_EQUAL:
             {
                 combine_operator(left, right, <=)
                 break;
             }
-            case OBJ_OP_LOGICLT:
+            case OBJ_OP_LESS_THAN:
             {
                 combine_operator(left, right, <)
                 break;
             }
-            case OBJ_OP_LOGICEQU:
+            case OBJ_OP_EQUALS:
             {
                 combine_operator(left, right, ==)
                 break;
             }
-            case OBJ_OP_LOGICNE:
+            case OBJ_OP_NOT_EQUALS:
             {
                 combine_operator(left, right, !=)
                 break;
             }
-            case OBJ_OP_LOGICNOT:
+            case OBJ_OP_BOOLEAN_NOT:
             {
                 unary(left, !)
                 break;
@@ -532,7 +532,7 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 unary(left, fatan)
                 break;
             }
-            case OBJ_FUNC_LOWLIMIT:
+            case OBJ_FUNC_LOW_LIMIT:
             {
                 popInt2(&left, &right);
 
@@ -543,7 +543,7 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
 
                 break;
             }
-            case OBJ_FUNC_HIGHLIMIT:
+            case OBJ_FUNC_HIGH_LIMIT:
             {
                 popInt2(&left, &right);
 
@@ -618,7 +618,7 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 size -= 4;
                 break;
             }
-            case OBJ_PCREL:
+            case OBJ_PC_REL:
             {
                 combine_operator(left, right, +)
                 left = popInt();

@@ -129,9 +129,9 @@ void prj_Warn(int n, ...)
     va_list	args;
 
     int i = 0;
-    for(i = 0; i < g_pOptions->nTotalDisabledWarnings; ++i)
+    for(i = 0; i < opt_Current->disabledWarningsCount; ++i)
     {
-        if(g_pOptions->aDisabledWarnings[i] == n)
+        if(opt_Current->disabledWarnings[i] == n)
             return;
     }
 

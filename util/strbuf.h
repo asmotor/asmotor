@@ -25,32 +25,42 @@
 #include "str.h"
 
 typedef struct {
-	size_t size;
-	size_t allocated;
-	char* data;
+    size_t size;
+    size_t allocated;
+    char* data;
 } string_buffer;
 
-extern string_buffer* strbuf_Create(void);
-extern void strbuf_Free(string_buffer* buffer);
-extern string* strbuf_String(string_buffer* buffer);
-extern void strbuf_AppendChars(string_buffer* buffer, const char* data, size_t length);
+extern string_buffer*
+strbuf_Create(void);
 
-INLINE void strbuf_AppendChar(string_buffer* pBuffer, char nChar) {
-	strbuf_AppendChars(pBuffer, &nChar, 1);
+extern void
+strbuf_Free(string_buffer* buffer);
+
+extern string*
+strbuf_String(string_buffer* buffer);
+
+extern void
+strbuf_AppendChars(string_buffer* buffer, const char* data, size_t length);
+
+INLINE void
+strbuf_AppendChar(string_buffer* pBuffer, char nChar) {
+    strbuf_AppendChars(pBuffer, &nChar, 1);
 }
 
-INLINE void strbuf_AppendStringZero(string_buffer* pBuffer, const char* pszString) {
-	if (pszString == NULL)
-		return;
+INLINE void
+strbuf_AppendStringZero(string_buffer* pBuffer, const char* pszString) {
+    if (pszString == NULL)
+        return;
 
-	strbuf_AppendChars(pBuffer, pszString, strlen(pszString));
+    strbuf_AppendChars(pBuffer, pszString, strlen(pszString));
 }
 
-INLINE void strbuf_AppendString(string_buffer* pBuffer, const string* str) {
-	if (str == NULL)
-		return;
+INLINE void
+strbuf_AppendString(string_buffer* pBuffer, const string* str) {
+    if (str == NULL)
+        return;
 
-	strbuf_AppendChars(pBuffer, str_String(str), str_Length(str));
+    strbuf_AppendChars(pBuffer, str_String(str), str_Length(str));
 }
 
 #endif /* UTIL_STRBUF_H_INCLUDED_ */

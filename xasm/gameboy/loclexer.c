@@ -24,7 +24,7 @@
 #include "options.h"
 #include "locopt.h"
 
-static SLexInitString localstrings[]=
+static SLexerTokenDefinition localstrings[]=
 {
 	{ "adc",	T_Z80_ADC	},
 	{ "add",	T_Z80_ADD	},
@@ -153,7 +153,7 @@ static uint32_t gbgfx2bin(char ch)
 {
 	for(uint32_t i = 0; i <= 3; ++i)
 	{
-		if (g_pOptions->pMachine->GameboyChar[i] == ch)
+		if (opt_Current->machineOptions->GameboyChar[i] == ch)
 			return i;
 	}
 
@@ -185,7 +185,7 @@ static bool ParseGameboyNumber(size_t size)
 
 	lex_GetChars(dest, size);
     dest[size] = 0;
-    g_CurrentToken.Value.nInteger = ascii2bin(dest);
+    lex_Current.value.integer = ascii2bin(dest);
 
     return true;
 }
@@ -203,8 +203,8 @@ void	loclexer_Init(void)
 	/* Gameboy constants */
 
     g_GameboyLiteralId = lex_VariadicCreateWord(&tNumberToken);
-    lex_FloatAddRange(g_GameboyLiteralId, '`', '`', 0);
-    lex_FloatAddRangeAndBeyond(g_GameboyLiteralId, '0', '3', 1);
+    lex_VariadicAddCharRange(g_GameboyLiteralId, '`', '`', 0);
+	lex_VariadicAddCharRangeRepeating(g_GameboyLiteralId, '0', '3', 1);
 
-	lex_AddStrings(localstrings);
+	lex_DefineTokens(localstrings);
 }

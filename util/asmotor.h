@@ -37,11 +37,20 @@
 #define LIB_VERSION "0.1.0"
 
 #if defined(__VBCC__) || defined(__GNUC__)
-extern char* _strdup(const char* str);
-extern char* _strupr(char* str);
-extern char* _strlwr(char* str);
-extern int _strnicmp(const char* string1, const char* string2, size_t length);
-extern int _stricmp(const char* string1, const char* string2);
+extern char*
+_strdup(const char* str);
+
+extern char*
+_strupr(char* str);
+
+extern char*
+_strlwr(char* str);
+
+extern int
+_strnicmp(const char* string1, const char* string2, size_t length);
+
+extern int
+_stricmp(const char* string1, const char* string2);
 #endif
 
 #if defined(_MSC_VER) || defined(__VBCC__) || defined(__GNUC__)

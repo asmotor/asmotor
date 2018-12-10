@@ -162,39 +162,39 @@ SExpression* parse_Check8bit(SExpression* pExpr)
 
 static ESize parse_GetSizeSpec(ESize eDefault)
 {
-	if(g_CurrentToken.Token == T_ID && strlen(g_CurrentToken.Value.aString) == 2)
+	if(lex_Current.token == T_ID && strlen(lex_Current.value.string) == 2)
 	{
-		if(_strnicmp(g_CurrentToken.Value.aString,".b",2) == 0)
+		if(_strnicmp(lex_Current.value.string,".b",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_BYTE;
 		}
-		else if(_strnicmp(g_CurrentToken.Value.aString,".w",2) == 0)
+		else if(_strnicmp(lex_Current.value.string,".w",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_WORD;
 		}
-		else if(_strnicmp(g_CurrentToken.Value.aString,".l",2) == 0)
+		else if(_strnicmp(lex_Current.value.string,".l",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_LONG;
 		}
-		else if(_strnicmp(g_CurrentToken.Value.aString,".s",2) == 0)
+		else if(_strnicmp(lex_Current.value.string,".s",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_SINGLE;
 		}
-		else if(_strnicmp(g_CurrentToken.Value.aString,".d",2) == 0)
+		else if(_strnicmp(lex_Current.value.string,".d",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_DOUBLE;
 		}
-		else if(_strnicmp(g_CurrentToken.Value.aString,".x",2) == 0)
+		else if(_strnicmp(lex_Current.value.string,".x",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_EXTENDED;
 		}
-		else if(_strnicmp(g_CurrentToken.Value.aString,".p",2) == 0)
+		else if(_strnicmp(lex_Current.value.string,".p",2) == 0)
 		{
 			parse_GetToken();
 			return SIZE_PACKED;
@@ -206,15 +206,15 @@ static ESize parse_GetSizeSpec(ESize eDefault)
 
 static bool parse_GetIndexReg(SModeRegs* pMode)
 {
-	if(g_CurrentToken.Token >= T_68K_REG_D0
-	&& g_CurrentToken.Token <= T_68K_REG_D7)
+	if(lex_Current.token >= T_68K_REG_D0
+	&& lex_Current.token <= T_68K_REG_D7)
 	{
-		pMode->nIndexReg = REG_D0 + (g_CurrentToken.Token - T_68K_REG_D0);
+		pMode->nIndexReg = REG_D0 + (lex_Current.token - T_68K_REG_D0);
 	}
-	else if(g_CurrentToken.Token >= T_68K_REG_A0
-	&& g_CurrentToken.Token <= T_68K_REG_A7)
+	else if(lex_Current.token >= T_68K_REG_A0
+	&& lex_Current.token <= T_68K_REG_A7)
 	{
-		pMode->nIndexReg = REG_A0 + (g_CurrentToken.Token - T_68K_REG_A0);
+		pMode->nIndexReg = REG_A0 + (lex_Current.token - T_68K_REG_A0);
 	}
 
 	parse_GetToken();
@@ -228,7 +228,7 @@ static bool parse_GetIndexReg(SModeRegs* pMode)
 		return false;
 	}
 
-	if(g_CurrentToken.Token == T_OP_MUL)
+	if(lex_Current.token == T_OP_MUL)
 	{
 		parse_GetToken();
 		if((pMode->pIndexScale = parse_Expression(1)) == NULL)
@@ -248,7 +248,7 @@ static bool parse_SingleModePart(SModeRegs* pMode)
 	// parses xxxx, Ax, PC, Xn.S*scale
 	SExpression* expr;
 
-	if(g_CurrentToken.Token == T_68K_REG_PC)
+	if(lex_Current.token == T_68K_REG_PC)
 	{
 		if(pMode->nBaseReg != REG_NONE)
 			return false;
@@ -258,8 +258,8 @@ static bool parse_SingleModePart(SModeRegs* pMode)
 		return true;
 	}
 
-	if(g_CurrentToken.Token >= T_68K_REG_A0
-	&& g_CurrentToken.Token <= T_68K_REG_A7)
+	if(lex_Current.token >= T_68K_REG_A0
+	&& lex_Current.token <= T_68K_REG_A7)
 	{
 		ESize sz;
 
@@ -273,7 +273,7 @@ static bool parse_SingleModePart(SModeRegs* pMode)
 			return parse_GetIndexReg(pMode);
 		}
 
-		int addressRegister = g_CurrentToken.Token - T_68K_REG_A0;
+		int addressRegister = lex_Current.token - T_68K_REG_A0;
 		parse_GetToken();
 		sz = parse_GetSizeSpec(SIZE_DEFAULT);
 		if(sz == SIZE_WORD)
@@ -291,8 +291,8 @@ static bool parse_SingleModePart(SModeRegs* pMode)
 		return true;
 	}
 
-	if(g_CurrentToken.Token >= T_68K_REG_D0
-	&& g_CurrentToken.Token <= T_68K_REG_D7)
+	if(lex_Current.token >= T_68K_REG_D0
+	&& lex_Current.token <= T_68K_REG_D7)
 	{
 		if(pMode->nIndexReg != REG_NONE)
 		{
@@ -323,13 +323,13 @@ static bool parse_GetInnerMode(SAddrMode* pMode)
 		if(!parse_SingleModePart(&pMode->Inner))
 			return false;
 
-		if(g_CurrentToken.Token == ']')
+		if(lex_Current.token == ']')
 		{
 			parse_GetToken();
 			return true;
 		}
 
-		if(g_CurrentToken.Token == ',')
+		if(lex_Current.token == ',')
 		{
 			parse_GetToken();
 			continue;
@@ -341,7 +341,7 @@ static bool parse_GetInnerMode(SAddrMode* pMode)
 
 static bool parse_GetOuterPart(SAddrMode* pMode)
 {
-	if(g_pOptions->pMachine->nCpu >= CPUF_68020 && g_CurrentToken.Token == '[')
+	if(opt_Current->machineOptions->nCpu >= CPUF_68020 && lex_Current.token == '[')
 	{
 		parse_GetToken();
 		return parse_GetInnerMode(pMode);
@@ -357,13 +357,13 @@ static bool parse_GetOuterMode(SAddrMode* pMode)
 		if(!parse_GetOuterPart(pMode))
 			return false;
 
-		if(g_CurrentToken.Token == ')')
+		if(lex_Current.token == ')')
 		{
 			parse_GetToken();
 			return true;
 		}
 
-		if(g_CurrentToken.Token == ',')
+		if(lex_Current.token == ',')
 		{
 			parse_GetToken();
 			continue;
@@ -541,7 +541,7 @@ static bool parse_OptimizeMode(SAddrMode* pMode)
 				return false;
 			}
 
-			if(g_pOptions->pMachine->nCpu <= CPUF_68010)
+			if(opt_Current->machineOptions->nCpu <= CPUF_68010)
 			{
 				if(pMode->Outer.eDispSize == SIZE_DEFAULT)
 					pMode->Outer.eDispSize = SIZE_WORD;
@@ -572,7 +572,7 @@ static bool parse_OptimizeMode(SAddrMode* pMode)
 
 			return true;
 		case O_BASE | O_INDEX | O_DISP:
-			if(g_pOptions->pMachine->nCpu <= CPUF_68010)
+			if(opt_Current->machineOptions->nCpu <= CPUF_68010)
 			{
 				if(pMode->Outer.eDispSize == SIZE_DEFAULT)
 					pMode->Outer.eDispSize = SIZE_BYTE;
@@ -647,70 +647,70 @@ static bool parse_GetAddrMode(SAddrMode* pMode)
 	pMode->Outer.pDisp = NULL;
 	pMode->bBitfield = false;
 
-	if(g_CurrentToken.Token >= T_68K_SYSREG_FIRST
-	&& g_CurrentToken.Token <= T_68K_SYSREG_LAST)
+	if(lex_Current.token >= T_68K_SYSREG_FIRST
+	&& lex_Current.token <= T_68K_SYSREG_LAST)
 	{
 		pMode->eMode = AM_SYSREG;
-		pMode->nDirectReg = g_CurrentToken.Token;
+		pMode->nDirectReg = lex_Current.token;
 		parse_GetToken();
 		return true;
 	}
 
-	if(g_CurrentToken.Token >= T_68K_REG_D0
-	&& g_CurrentToken.Token <= T_68K_REG_D7)
+	if(lex_Current.token >= T_68K_REG_D0
+	&& lex_Current.token <= T_68K_REG_D7)
 	{
 		pMode->eMode = AM_DREG;
-		pMode->nDirectReg = g_CurrentToken.Token - T_68K_REG_D0;
+		pMode->nDirectReg = lex_Current.token - T_68K_REG_D0;
 		parse_GetToken();
 		return true;
 	}
 
-	if(g_CurrentToken.Token >= T_68K_REG_A0
-	&& g_CurrentToken.Token <= T_68K_REG_A7)
+	if(lex_Current.token >= T_68K_REG_A0
+	&& lex_Current.token <= T_68K_REG_A7)
 	{
 		pMode->eMode = AM_AREG;
-		pMode->nDirectReg = g_CurrentToken.Token - T_68K_REG_A0;
+		pMode->nDirectReg = lex_Current.token - T_68K_REG_A0;
 		parse_GetToken();
 		return true;
 	}
 
-	if(g_CurrentToken.Token >= T_68K_REG_A0_IND
-	&& g_CurrentToken.Token <= T_68K_REG_A7_IND)
+	if(lex_Current.token >= T_68K_REG_A0_IND
+	&& lex_Current.token <= T_68K_REG_A7_IND)
 	{
 		pMode->eMode = AM_AIND;
-		pMode->Outer.nBaseReg = REG_A0 + (g_CurrentToken.Token - T_68K_REG_A0_IND);
+		pMode->Outer.nBaseReg = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);
 		parse_GetToken();
 		return true;
 	}
 
-	if(g_CurrentToken.Token >= T_68K_REG_A0_DEC
-	&& g_CurrentToken.Token <= T_68K_REG_A7_DEC)
+	if(lex_Current.token >= T_68K_REG_A0_DEC
+	&& lex_Current.token <= T_68K_REG_A7_DEC)
 	{
 		pMode->eMode = AM_ADEC;
-		pMode->Outer.nBaseReg = REG_A0 + (g_CurrentToken.Token - T_68K_REG_A0_DEC);
+		pMode->Outer.nBaseReg = REG_A0 + (lex_Current.token - T_68K_REG_A0_DEC);
 		parse_GetToken();
 		return true;
 	}
 
-	if(g_CurrentToken.Token >= T_68K_REG_A0_INC
-	&& g_CurrentToken.Token <= T_68K_REG_A7_INC)
+	if(lex_Current.token >= T_68K_REG_A0_INC
+	&& lex_Current.token <= T_68K_REG_A7_INC)
 	{
 		pMode->eMode = AM_AINC;
-		pMode->Outer.nBaseReg = REG_A0 + (g_CurrentToken.Token - T_68K_REG_A0_INC);
+		pMode->Outer.nBaseReg = REG_A0 + (lex_Current.token - T_68K_REG_A0_INC);
 		parse_GetToken();
 		return true;
 	}
 
-	if(g_CurrentToken.Token >= T_FPUREG_0
-	&& g_CurrentToken.Token <= T_FPUREG_7)
+	if(lex_Current.token >= T_FPUREG_0
+	&& lex_Current.token <= T_FPUREG_7)
 	{
 		pMode->eMode = AM_FPUREG;
-		pMode->Outer.nBaseReg = REG_FP0 + (g_CurrentToken.Token - T_FPUREG_0);
+		pMode->Outer.nBaseReg = REG_FP0 + (lex_Current.token - T_FPUREG_0);
 		parse_GetToken();
 		return true;
 	}
 
-	if(g_CurrentToken.Token == '#')
+	if(lex_Current.token == '#')
 	{
 		parse_GetToken();
 		pMode->eMode = AM_IMM;
@@ -723,7 +723,7 @@ static bool parse_GetAddrMode(SAddrMode* pMode)
 		pMode->Outer.eDispSize = parse_GetSizeSpec(SIZE_DEFAULT);
 
 	// parse (xxxx)
-	if(g_CurrentToken.Token == '(')
+	if(lex_Current.token == '(')
 	{
 		parse_GetToken();
 
@@ -736,7 +736,7 @@ static bool parse_GetAddrMode(SAddrMode* pMode)
 
 	if(pMode->Outer.pDisp != NULL)
 	{
-		if(g_CurrentToken.Token == T_68K_REG_PC_IND)
+		if(lex_Current.token == T_68K_REG_PC_IND)
 		{
 			pMode->eMode = AM_PCDISP;
 			pMode->Outer.nBaseReg = REG_PC;
@@ -744,13 +744,13 @@ static bool parse_GetAddrMode(SAddrMode* pMode)
 			parse_GetToken();
 			return true;
 		}
-		else if(g_CurrentToken.Token >= T_68K_REG_A0_IND
-		&& g_CurrentToken.Token <= T_68K_REG_A7_IND)
+		else if(lex_Current.token >= T_68K_REG_A0_IND
+		&& lex_Current.token <= T_68K_REG_A7_IND)
 		{
 			if((pMode->Outer.pDisp = parse_Check16bit(pMode->Outer.pDisp)) != NULL)
 			{
 				pMode->eMode = AM_ADISP;
-				pMode->Outer.nBaseReg = REG_A0 + (g_CurrentToken.Token - T_68K_REG_A0_IND);
+				pMode->Outer.nBaseReg = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);
 				pMode->Outer.eDispSize = SIZE_WORD;
 				parse_GetToken();
 				return true;

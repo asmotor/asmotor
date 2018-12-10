@@ -40,8 +40,8 @@ SMachineOptions* locopt_Alloc(void)
 
 void locopt_Open(void)
 {
-	g_pOptions->pMachine->nCpu = CPUF_68000;
-	g_pOptions->pMachine->nFpu = 0;
+	opt_Current->machineOptions->nCpu = CPUF_68000;
+	opt_Current->machineOptions->nFpu = 0;
 }
 
 void locopt_Update(void)
@@ -61,22 +61,22 @@ bool locopt_Parse(char* s)
 				switch(s[1] - '0')
 				{
 					case 0:
-						g_pOptions->pMachine->nCpu = CPUF_68000;
+						opt_Current->machineOptions->nCpu = CPUF_68000;
 						return true;
 					case 1:
-						g_pOptions->pMachine->nCpu = CPUF_68010;
+						opt_Current->machineOptions->nCpu = CPUF_68010;
 						return true;
 					case 2:
-						g_pOptions->pMachine->nCpu = CPUF_68020;
+						opt_Current->machineOptions->nCpu = CPUF_68020;
 						return true;
 					case 3:
-						g_pOptions->pMachine->nCpu = CPUF_68030;
+						opt_Current->machineOptions->nCpu = CPUF_68030;
 						return true;
 					case 4:
-						g_pOptions->pMachine->nCpu = CPUF_68040;
+						opt_Current->machineOptions->nCpu = CPUF_68040;
 						return true;
 					case 6:
-						g_pOptions->pMachine->nCpu = CPUF_68060;
+						opt_Current->machineOptions->nCpu = CPUF_68060;
 						return true;
 					default:
 						break;
@@ -92,13 +92,13 @@ bool locopt_Parse(char* s)
 					case '1':
 					case '2':
 					case 'x':
-						g_pOptions->pMachine->nCpu = FPUF_6888X;
+						opt_Current->machineOptions->nCpu = FPUF_6888X;
 						return true;
 					case '4':
-						g_pOptions->pMachine->nCpu = FPUF_68040;
+						opt_Current->machineOptions->nCpu = FPUF_68040;
 						return true;
 					case '6':
-						g_pOptions->pMachine->nCpu = FPUF_68060;
+						opt_Current->machineOptions->nCpu = FPUF_68060;
 						return true;
 					default:
 						break;

@@ -16,13 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_TOKENS_H
-#define	INCLUDE_TOKENS_H
+#ifndef XASM_COMMON_TOKENS_H_INCLUDED_
+#define XASM_COMMON_TOKENS_H_INCLUDED_
 
-typedef	enum
-{
-	T_NONE = 0,
-	T_LINEFEED = '\n',
+typedef enum {
+    T_NONE = 0,
+    T_LINEFEED = '\n',
     T_LEFT_PARENS = '(',
     T_COMMA = ',',
     T_AT = '@',
@@ -115,12 +114,12 @@ typedef	enum
     T_POP_INCBIN,
 
     T_POP_MACRO,
-    T_POP_ENDM,		/* Not needed but we have it here just to protect the name */
+    T_POP_ENDM,        /* Not needed but we have it here just to protect the name */
     T_POP_SHIFT,
     T_POP_MEXIT,
 
     T_POP_REPT,
-    T_POP_ENDR,		/* Not needed but we have it here just to protect the name */
+    T_POP_ENDR,        /* Not needed but we have it here just to protect the name */
     T_POP_REXIT,
 
     T_POP_IF,
@@ -151,10 +150,16 @@ typedef	enum
     T_FUNC_HIGHLIMIT,
 
     T_MACROARG0,
-    
+
     T_POP_CNOP,
     T_POP_EVEN,
     T_POP_END
 } EToken;
 
-#endif	/*INCLUDE_TOKENS_H*/
+extern void
+tokens_Init(void);
+
+extern bool tokens_expandStrings;
+extern uint32_t tokens_binaryConstId;
+
+#endif /* XASM_COMMON_TOKENS_H_INCLUDED_ */

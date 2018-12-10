@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef INCLUDE_LEXER_H
-#define INCLUDE_LEXER_H
+#ifndef XASM_COMMON_LEXER_H_INCLUDED_
+#define XASM_COMMON_LEXER_H_INCLUDED_
 
 #include <stdio.h>
 #include <str.h>
@@ -27,74 +27,113 @@
 #include "lexervariadics.h"
 
 typedef struct {
-	char* name;
-	uint32_t token;
-} SLexInitString;
+    const char* name;
+    uint32_t token;
+} SLexerTokenDefinition;
 
 typedef enum {
-	LEX_STATE_NORMAL, LEX_STATE_MACRO_ARG0, LEX_STATE_MACRO_ARGS
+    LEX_STATE_NORMAL,
+    LEX_STATE_MACRO_ARG0,
+    LEX_STATE_MACRO_ARGS
 } ELexerState;
 
 typedef struct CharStack {
-	char stack[MAXSTRINGSYMBOLSIZE];
-	size_t count;
+    char stack[MAXSTRINGSYMBOLSIZE];
+    size_t count;
 } SCharStack;
 
-typedef struct LexBuffer {
-	SCharStack charStack;
-	char* buffer;
-	size_t index;
-	size_t bufferSize;
-	bool atLineStart;
-	ELexerState State;
-} SLexBuffer;
+typedef struct LexerBuffer {
+    SCharStack charStack;
+    char* buffer;
+    size_t index;
+    size_t bufferSize;
+    bool atLineStart;
+    ELexerState State;
+} SLexerBuffer;
 
 typedef struct {
-	uint32_t Token;
-	size_t TokenLength;
-	union {
-		char aString[MAXTOKENLENGTH + 1];
-		int32_t nInteger;
-	} Value;
-} SLexToken;
+    uint32_t token;
+    size_t length;
+    union {
+        char string[MAXTOKENLENGTH + 1];
+        int32_t integer;
+    } value;
+} SLexerToken;
 
 typedef struct {
-	SLexBuffer Buffer;
-	SLexToken Token;
-} SLexBookmark;
+    SLexerBuffer Buffer;
+    SLexerToken Token;
+} SLexerBookmark;
 
-extern SLexToken g_CurrentToken;
+extern SLexerToken lex_Current;
 
-extern void lex_Init(void);
+extern void
+lex_Init(void);
 
-extern void lex_AddString(const char* pszName, uint32_t nToken);
-extern void lex_AddStrings(SLexInitString* lex);
-extern void lex_RemoveString(const char* pszName, uint32_t nToken);
-extern void lex_RemoveStrings(SLexInitString* lex);
+extern void
+lex_DefineToken(const char* name, uint32_t token);
 
-extern SLexBuffer* lex_CreateMemoryBuffer(const char* mem, size_t size);
-extern SLexBuffer* lex_CreateFileBuffer(FILE* f);
-extern void lex_FreeBuffer(SLexBuffer* buf);
-extern void lex_SetBuffer(SLexBuffer* buf);
+extern void
+lex_DefineTokens(const SLexerTokenDefinition* lex);
 
-extern char lex_PeekChar(size_t index);
-extern char lex_GetChar(void);
-extern size_t lex_GetChars(char* dest, size_t length);
-extern bool lex_MatchChar(char ch);
-extern bool lex_CompareNoCase(size_t index, const char* str, size_t length);
-extern bool lex_StartsWithNoCase(const char* str, size_t length);
-extern bool lex_StartsWithStringNoCase(const string* str);
+extern void
+lex_UndefineToken(const char* name, uint32_t token);
 
-extern size_t lex_SkipBytes(size_t count);
-extern void lex_RewindBytes(size_t count);
+extern void
+lex_UndefineTokens(SLexerTokenDefinition* lex);
 
-extern void lex_UnputString(const char* s);
+extern SLexerBuffer*
+lex_CreateMemoryBuffer(const char* memory, size_t size);
 
-extern uint32_t lex_GetNextToken(void);
+extern SLexerBuffer*
+lex_CreateFileBuffer(FILE* f);
 
-extern void lex_SetState(ELexerState i);
+extern void
+lex_FreeBuffer(SLexerBuffer* buffer);
 
-extern void lex_Bookmark(SLexBookmark* pBookmark);
-extern void lex_Goto(SLexBookmark* pBookmark);
+extern void
+lex_SetBuffer(SLexerBuffer* buffer);
 
-#endif    /*INCLUDE_LEXER_H*/
+extern char
+lex_PeekChar(size_t index);
+
+extern char
+lex_GetChar(void);
+
+extern size_t
+lex_GetChars(char* dest, size_t length);
+
+extern bool
+lex_MatchChar(char ch);
+
+extern bool
+lex_CompareNoCase(size_t index, const char* str, size_t length);
+
+extern bool
+lex_StartsWithNoCase(const char* str, size_t length);
+
+extern bool
+lex_StartsWithStringNoCase(const string* str);
+
+extern size_t
+lex_SkipBytes(size_t count);
+
+extern void
+lex_RewindBytes(size_t count);
+
+extern void
+lex_UnputString(const char* str);
+
+extern uint32_t
+lex_GetNextToken(void);
+
+extern void
+lex_SetState(ELexerState state);
+
+extern void
+lex_Bookmark(SLexerBookmark* bookmark);
+
+extern void
+lex_Goto(SLexerBookmark* bookmark);
+
+#endif /* XASM_COMMON_LEXER_H_INCLUDED_ */

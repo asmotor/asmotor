@@ -22,10 +22,10 @@
 
 static int parse_GetRegister(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_REG_R0
-	&& g_CurrentToken.Token <= T_MIPS_REG_R31)
+	if(lex_Current.token >= T_MIPS_REG_R0
+	&& lex_Current.token <= T_MIPS_REG_R31)
 	{
-		int r = g_CurrentToken.Token - T_MIPS_REG_R0;
+		int r = lex_Current.token - T_MIPS_REG_R0;
 		parse_GetToken();
 
 		return r;
@@ -71,10 +71,10 @@ static uint32_t s_InstructionsRRR[T_MIPS_INTEGER_RRR_LAST - T_MIPS_INTEGER_RRR_F
 
 static bool parse_IntegerInstructionRRR(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_INTEGER_RRR_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_INTEGER_RRR_LAST)
+	if(lex_Current.token >= T_MIPS_INTEGER_RRR_FIRST
+	&& lex_Current.token <= T_MIPS_INTEGER_RRR_LAST)
 	{
-		uint32_t ins = s_InstructionsRRR[g_CurrentToken.Token - T_MIPS_INTEGER_RRR_FIRST];
+		uint32_t ins = s_InstructionsRRR[lex_Current.token - T_MIPS_INTEGER_RRR_FIRST];
 		int rd;
 		int rs;
 		int rt;
@@ -128,10 +128,10 @@ static SInstructionRRI s_InstructionsRRI[T_MIPS_INTEGER_RRI_LAST - T_MIPS_INTEGE
 
 static bool parse_IntegerInstructionRRI(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_INTEGER_RRI_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_INTEGER_RRI_LAST)
+	if(lex_Current.token >= T_MIPS_INTEGER_RRI_FIRST
+	&& lex_Current.token <= T_MIPS_INTEGER_RRI_LAST)
 	{
-		SInstructionRRI* pIns = &s_InstructionsRRI[g_CurrentToken.Token - T_MIPS_INTEGER_RRI_FIRST];
+		SInstructionRRI* pIns = &s_InstructionsRRI[lex_Current.token - T_MIPS_INTEGER_RRI_FIRST];
 		int rt;
 		int rs;
 		SExpression* pExpr;
@@ -208,10 +208,10 @@ static SInstructionBranch s_InstructionBranches[T_MIPS_BRANCH_LAST - T_MIPS_BRAN
 
 static bool parse_Branch(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_BRANCH_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_BRANCH_LAST)
+	if(lex_Current.token >= T_MIPS_BRANCH_FIRST
+	&& lex_Current.token <= T_MIPS_BRANCH_LAST)
 	{
-		SInstructionBranch* pIns = &s_InstructionBranches[g_CurrentToken.Token - T_MIPS_BRANCH_FIRST];
+		SInstructionBranch* pIns = &s_InstructionBranches[lex_Current.token - T_MIPS_BRANCH_FIRST];
 		int rs = -1;
 		int rt = -1;
 		SExpression* pExpr;
@@ -278,10 +278,10 @@ static uint32_t s_ShiftInstructions[T_MIPS_SHIFT_LAST - T_MIPS_SHIFT_FIRST + 1] 
 
 static bool parse_Shift(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_SHIFT_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_SHIFT_LAST)
+	if(lex_Current.token >= T_MIPS_SHIFT_FIRST
+	&& lex_Current.token <= T_MIPS_SHIFT_LAST)
 	{
-		uint32_t ins = s_ShiftInstructions[g_CurrentToken.Token - T_MIPS_SHIFT_FIRST];
+		uint32_t ins = s_ShiftInstructions[lex_Current.token - T_MIPS_SHIFT_FIRST];
 		int rd;
 		int rt;
 		SExpression* pExpr;
@@ -348,10 +348,10 @@ static uint32_t s_LoadStoreInstructions[T_MIPS_LOADSTORE_LAST - T_MIPS_LOADSTORE
 
 static bool parse_LoadStore(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_LOADSTORE_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_LOADSTORE_LAST)
+	if(lex_Current.token >= T_MIPS_LOADSTORE_FIRST
+	&& lex_Current.token <= T_MIPS_LOADSTORE_LAST)
 	{
-		uint32_t ins = s_LoadStoreInstructions[g_CurrentToken.Token - T_MIPS_LOADSTORE_FIRST];
+		uint32_t ins = s_LoadStoreInstructions[lex_Current.token - T_MIPS_LOADSTORE_FIRST];
 		int rt;
 		int base;
 		SExpression* pExpr;
@@ -403,10 +403,10 @@ static uint32_t s_RSRTInstructions[T_MIPS_RSRT_LAST - T_MIPS_RSRT_FIRST + 1] =
 
 static bool parse_IntegerInstructionRSRT(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_RSRT_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_RSRT_LAST)
+	if(lex_Current.token >= T_MIPS_RSRT_FIRST
+	&& lex_Current.token <= T_MIPS_RSRT_LAST)
 	{
-		uint32_t ins = s_RSRTInstructions[g_CurrentToken.Token - T_MIPS_RSRT_FIRST];
+		uint32_t ins = s_RSRTInstructions[lex_Current.token - T_MIPS_RSRT_FIRST];
 		int rs;
 		int rt;
 		
@@ -443,10 +443,10 @@ static uint32_t s_RDRTInstructions[T_MIPS_RDRT_LAST - T_MIPS_RDRT_FIRST + 1] =
 
 static bool parse_IntegerInstructionRDRT(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_RDRT_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_RDRT_LAST)
+	if(lex_Current.token >= T_MIPS_RDRT_FIRST
+	&& lex_Current.token <= T_MIPS_RDRT_LAST)
 	{
-		uint32_t ins = s_RDRTInstructions[g_CurrentToken.Token - T_MIPS_RDRT_FIRST];
+		uint32_t ins = s_RDRTInstructions[lex_Current.token - T_MIPS_RDRT_FIRST];
 		int rd;
 		int rt;
 		
@@ -484,10 +484,10 @@ static uint32_t s_RSRTCodeInstructions[T_MIPS_RSRTCODE_LAST - T_MIPS_RSRTCODE_FI
 
 static bool parse_IntegerInstructionRSRTCode(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_RSRTCODE_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_RSRTCODE_LAST)
+	if(lex_Current.token >= T_MIPS_RSRTCODE_FIRST
+	&& lex_Current.token <= T_MIPS_RSRTCODE_LAST)
 	{
-		uint32_t ins = s_RSRTCodeInstructions[g_CurrentToken.Token - T_MIPS_RSRTCODE_FIRST];
+		uint32_t ins = s_RSRTCodeInstructions[lex_Current.token - T_MIPS_RSRTCODE_FIRST];
 		int rs;
 		int rt;
 		
@@ -503,7 +503,7 @@ static bool parse_IntegerInstructionRSRTCode(void)
 		rt = parse_ExpectRegister();
 		if(rt != -1)
 		{
-			if(g_CurrentToken.Token == ',')
+			if(lex_Current.token == ',')
 			{
 				SExpression* pExpr;
 				parse_GetToken();
@@ -551,10 +551,10 @@ static SInstructionRRI s_RIInstructions[T_MIPS_INTEGER_RI_LAST - T_MIPS_INTEGER_
 
 static bool parse_IntegerInstructionRI(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_INTEGER_RI_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_INTEGER_RI_LAST)
+	if(lex_Current.token >= T_MIPS_INTEGER_RI_FIRST
+	&& lex_Current.token <= T_MIPS_INTEGER_RI_LAST)
 	{
-		SInstructionRRI* pIns = &s_RIInstructions[g_CurrentToken.Token - T_MIPS_INTEGER_RI_FIRST];
+		SInstructionRRI* pIns = &s_RIInstructions[lex_Current.token - T_MIPS_INTEGER_RI_FIRST];
 		int rs;
 		SExpression* pExpr;
 		
@@ -592,10 +592,10 @@ static uint32_t s_RDRSRTCopyInstructions[T_MIPS_INTEGER_RDRS_RTCOPY_LAST - T_MIP
 
 static bool parse_IntegerInstructionRDRSRTCopy(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_INTEGER_RDRS_RTCOPY_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_INTEGER_RDRS_RTCOPY_LAST)
+	if(lex_Current.token >= T_MIPS_INTEGER_RDRS_RTCOPY_FIRST
+	&& lex_Current.token <= T_MIPS_INTEGER_RDRS_RTCOPY_LAST)
 	{
-		uint32_t ins = s_RDRSRTCopyInstructions[g_CurrentToken.Token - T_MIPS_INTEGER_RDRS_RTCOPY_FIRST];
+		uint32_t ins = s_RDRSRTCopyInstructions[lex_Current.token - T_MIPS_INTEGER_RDRS_RTCOPY_FIRST];
 		int rd;
 		int rs;
 		
@@ -636,10 +636,10 @@ static uint32_t s_NoParameterInstructions[T_MIPS_INTEGER_NO_PARAMETER_LAST - T_M
 
 static bool parse_IntegerNoParameter(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_INTEGER_NO_PARAMETER_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_INTEGER_NO_PARAMETER_LAST)
+	if(lex_Current.token >= T_MIPS_INTEGER_NO_PARAMETER_FIRST
+	&& lex_Current.token <= T_MIPS_INTEGER_NO_PARAMETER_LAST)
 	{
-		uint32_t ins = s_NoParameterInstructions[g_CurrentToken.Token - T_MIPS_INTEGER_NO_PARAMETER_FIRST];
+		uint32_t ins = s_NoParameterInstructions[lex_Current.token - T_MIPS_INTEGER_NO_PARAMETER_FIRST];
 		
 		parse_GetToken();
 		
@@ -660,10 +660,10 @@ static uint32_t s_RTInstructions[T_MIPS_INTEGER_RT_LAST - T_MIPS_INTEGER_RT_FIRS
 
 static bool parse_IntegerRT(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_INTEGER_RT_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_INTEGER_RT_LAST)
+	if(lex_Current.token >= T_MIPS_INTEGER_RT_FIRST
+	&& lex_Current.token <= T_MIPS_INTEGER_RT_LAST)
 	{
-		uint32_t ins = s_RTInstructions[g_CurrentToken.Token - T_MIPS_INTEGER_RT_FIRST];
+		uint32_t ins = s_RTInstructions[lex_Current.token - T_MIPS_INTEGER_RT_FIRST];
 		int rt;
 		
 		parse_GetToken();
@@ -689,10 +689,10 @@ static uint32_t s_RDInstructions[T_MIPS_INTEGER_RD_LAST - T_MIPS_INTEGER_RD_FIRS
 
 static bool parse_IntegerRD(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_INTEGER_RD_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_INTEGER_RD_LAST)
+	if(lex_Current.token >= T_MIPS_INTEGER_RD_FIRST
+	&& lex_Current.token <= T_MIPS_INTEGER_RD_LAST)
 	{
-		uint32_t ins = s_RDInstructions[g_CurrentToken.Token - T_MIPS_INTEGER_RD_FIRST];
+		uint32_t ins = s_RDInstructions[lex_Current.token - T_MIPS_INTEGER_RD_FIRST];
 		int rd;
 		
 		parse_GetToken();
@@ -719,10 +719,10 @@ static uint32_t s_RSInstructions[T_MIPS_INTEGER_RS_LAST - T_MIPS_INTEGER_RS_FIRS
 
 static bool parse_IntegerRS(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_INTEGER_RS_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_INTEGER_RS_LAST)
+	if(lex_Current.token >= T_MIPS_INTEGER_RS_FIRST
+	&& lex_Current.token <= T_MIPS_INTEGER_RS_LAST)
 	{
-		uint32_t ins = s_RSInstructions[g_CurrentToken.Token - T_MIPS_INTEGER_RS_FIRST];
+		uint32_t ins = s_RSInstructions[lex_Current.token - T_MIPS_INTEGER_RS_FIRST];
 		int rs;
 		
 		parse_GetToken();
@@ -748,10 +748,10 @@ static uint32_t s_JumpAbsInstructions[T_MIPS_INTEGER_J_ABS_LAST - T_MIPS_INTEGER
 
 static bool parse_IntegerJumpAbs(void)
 {
-	if(g_CurrentToken.Token >= T_MIPS_INTEGER_J_ABS_FIRST
-	&& g_CurrentToken.Token <= T_MIPS_INTEGER_J_ABS_LAST)
+	if(lex_Current.token >= T_MIPS_INTEGER_J_ABS_FIRST
+	&& lex_Current.token <= T_MIPS_INTEGER_J_ABS_LAST)
 	{
-		uint32_t ins = s_JumpAbsInstructions[g_CurrentToken.Token - T_MIPS_INTEGER_J_ABS_FIRST];
+		uint32_t ins = s_JumpAbsInstructions[lex_Current.token - T_MIPS_INTEGER_J_ABS_FIRST];
 		SExpression* pExpr;
 		
 		parse_GetToken();
@@ -772,7 +772,7 @@ static bool parse_IntegerJumpAbs(void)
 
 static bool parse_LUI(void)
 {
-	if(g_CurrentToken.Token == T_MIPS_LUI)
+	if(lex_Current.token == T_MIPS_LUI)
 	{
 		int rd;
 		parse_GetToken();
@@ -931,9 +931,9 @@ fpParser_t g_fpParsers[T_MIPS_LUI - T_MIPS_ADD + 1] =
 
 bool parse_IntegerInstruction(void)
 {
-	if(T_MIPS_ADD <= g_CurrentToken.Token && g_CurrentToken.Token <= T_MIPS_LUI)
+	if(T_MIPS_ADD <= lex_Current.token && lex_Current.token <= T_MIPS_LUI)
 	{
-		return g_fpParsers[g_CurrentToken.Token - T_MIPS_ADD]();
+		return g_fpParsers[lex_Current.token - T_MIPS_ADD]();
 	}
 
 	return false;

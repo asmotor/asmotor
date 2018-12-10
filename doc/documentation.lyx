@@ -939,7 +939,7 @@ Symbol
 \begin_inset Text
 
 \begin_layout Plain Layout
-Value
+value
 \end_layout
 
 \end_inset
@@ -2772,7 +2772,7 @@ Tab ($09)
 \begin_inset Text
 
 \begin_layout Plain Layout
-Value of macro argument
+value of macro argument
 \end_layout
 
 \end_inset

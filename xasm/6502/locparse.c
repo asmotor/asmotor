@@ -72,7 +72,7 @@ SExpression* parse_ExpressionSU8(void)
 
 SExpression* parse_TargetFunction(void)
 {
-	switch(g_CurrentToken.Token)
+	switch(lex_Current.token)
 	{
 		default:
 			return NULL;

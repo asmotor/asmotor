@@ -16,36 +16,45 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_OPTIONS_H
-#define	INCLUDE_OPTIONS_H
+#ifndef XASM_COMMON_OPTIONS_H_INCLUDED_
+#define XASM_COMMON_OPTIONS_H_INCLUDED_
 
 #include "lists.h"
 #include "xasm.h"
 
-
-#define MAXDISABLEDWARNINGS 16
+#define MAX_DISABLED_WARNINGS 32
 
 struct MachineOptions;
 
-struct Options
-{
-	list_Data(struct Options);
-	EEndian	Endian;
-	char	BinaryChar[2];
-	int		UninitChar;
-	int		nTotalDisabledWarnings;
-	uint16_t	aDisabledWarnings[MAXDISABLEDWARNINGS];
-	struct MachineOptions*	pMachine;
-	bool	bAllowReservedIdentifierLabels;
-};
-typedef	struct Options SOptions;
+typedef struct Options {
+    list_Data(struct Options);
 
-extern void	opt_Push(void);
-extern void	opt_Pop(void);
-extern void	opt_Parse(char* s);
-extern void	opt_Open(void);
-extern void	opt_Close(void);
+    EEndianness endianness;
+    uint8_t binaryLiteralCharacters[2];
+    uint8_t uninitializedValue;
 
-extern SOptions* g_pOptions;
+    uint8_t disabledWarningsCount;
+    uint16_t disabledWarnings[MAX_DISABLED_WARNINGS];
 
-#endif	/*INCLUDE_OPTIONS_H*/
+    struct MachineOptions* machineOptions;
+    bool allowReservedKeywordLabels;
+} SOptions;
+
+extern void
+opt_Push(void);
+
+extern void
+opt_Pop(void);
+
+extern void
+opt_Parse(char* s);
+
+extern void
+opt_Open(void);
+
+extern void
+opt_Close(void);
+
+extern SOptions* opt_Current;
+
+#endif /* XASM_COMMON_OPTIONS_H_INCLUDED_ */

@@ -23,20 +23,44 @@
 
 #include "types.h"
 
-extern bool fexists(const char* filename);
-extern size_t fsize(FILE* fileHandle);
+/* Determine whether a file exists */
+extern bool
+fexists(const char* filename);
 
-extern void fputll(uint32_t value, FILE* fileHandle);
-extern uint32_t fgetll(FILE* fileHandle);
+/* Return the size of a file in bytes */
+extern size_t
+fsize(FILE* fileHandle);
 
-extern void fputbl(uint32_t value, FILE* fileHandle);
+/* Write a little endian 32 bit value to a file */
+extern void
+fputll(uint32_t value, FILE* fileHandle);
 
-extern uint16_t fgetbw(FILE* fileHandle);
-extern void fputbw(uint16_t value, FILE* fileHandle);
+/* Retrieve a little endian 32 bit value from a file */
+extern uint32_t
+fgetll(FILE* fileHandle);
 
-extern void fputlw(uint16_t value, FILE* fileHandle);
+/* Write a big endian 32 bit value to a file */
+extern void
+fputbl(uint32_t value, FILE* fileHandle);
 
-extern void fgetsz(char* destination, size_t maxLength, FILE* fileHandle);
-extern void fputsz(const char* str, FILE* fileHandle);
+/* Retrieve a big endian 16 bit value from a file */
+extern uint16_t
+fgetbw(FILE* fileHandle);
+
+/* Write a big endian 16 bit value to a file */
+extern void
+fputbw(uint16_t value, FILE* fileHandle);
+
+/* Write a little endian 16 bit value to a file */
+extern void
+fputlw(uint16_t value, FILE* fileHandle);
+
+/* Retrieve a zero terminated string from a file */
+extern void
+fgetsz(char* destination, size_t maxLength, FILE* fileHandle);
+
+/* Write zero terminated string to a file */
+extern void
+fputsz(const char* str, FILE* fileHandle);
 
 #endif /* UTIL_FILE_H_INCLUDED_ */

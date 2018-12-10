@@ -21,22 +21,58 @@
 
 #include "types.h"
 
-extern int32_t imuldiv(int32_t a, int32_t b, int32_t c);
+/* Calculate a*b/c */
+extern int32_t
+imuldiv(int32_t a, int32_t b, int32_t c);
 
-extern int32_t fmul(int32_t a, int32_t b);
-extern int32_t fdiv(int32_t a, int32_t b);
-extern int32_t fsin(int32_t a);
-extern int32_t fcos(int32_t a);
-extern int32_t ftan(int32_t a);
-extern int32_t fasin(int32_t a);
-extern int32_t facos(int32_t a);
-extern int32_t fatan(int32_t a);
-extern int32_t fatan2(int32_t a, int32_t b);
+/* Fixed point (16.16) multiplication */
+extern int32_t
+fmul(int32_t a, int32_t b);
 
-extern uint32_t log2n(size_t value);
+/* Fixed point (16.16) division */
+extern int32_t
+fdiv(int32_t a, int32_t b);
 
-extern int32_t asr(int32_t lhs, int32_t rhs);
+/* Fixed point (16.16) sine. Parameters and results are not in radians, a full period is from 0 to 1.0 (65536) */
+extern int32_t
+fsin(int32_t a);
 
-bool exactlyOneBitSet(int32_t d);
+/* Fixed point (16.16) cosine. Parameters and results are not in radians, a full period is from 0 to 1.0 (65536) */
+extern int32_t
+fcos(int32_t a);
+
+/* Fixed point (16.16) tangent. Parameters and results are not in radians, a full period is from 0 to 1.0 (65536) */
+extern int32_t
+ftan(int32_t a);
+
+/* Fixed point (16.16) arcsine. Parameters and results are not in radians, a full period is from 0 to 1.0 (65536) */
+extern int32_t
+fasin(int32_t a);
+
+/* Fixed point (16.16) arccosine. Parameters and results are not in radians, a full period is from 0 to 1.0 (65536) */
+extern int32_t
+facos(int32_t a);
+
+/* Fixed point (16.16) arctangent. Parameters and results are not in radians, a full period is from 0 to 1.0 (65536) */
+extern int32_t
+fatan(int32_t a);
+
+/* Fixed point (16.16) value of the arc tangent of y/x, using the signs of both arguments to determine the quadrant
+ * of the return value. Parameters and results are not in radians, a full period is from 0 to 1.0 (65536)
+ * */
+extern int32_t
+fatan2(int32_t a, int32_t b);
+
+/* Apply the log2 function to value. This is also the number of the highest bit set in value. */
+extern uint32_t
+log2n(size_t value);
+
+/* Arithmetic right shift */
+extern int32_t
+asr(int32_t lhs, int32_t rhs);
+
+/* Determine if value is a power of two (the value has exactly one bit set.) */
+bool
+isPowerOfTwo(int32_t d);
 
 #endif /* UTIL_FMATH_H_INCLUDED_ */

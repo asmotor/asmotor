@@ -49,7 +49,7 @@ typedef	enum
 {
 	ASM_LITTLE_ENDIAN,
 	ASM_BIG_ENDIAN
-} EEndian;
+} EEndianness;
 
 typedef enum
 {
@@ -63,7 +63,7 @@ typedef struct Configuration
 	char* pszExecutable;
 	char* pszBackendVersion;
 	uint32_t nMaxSectionSize;
-	EEndian eDefaultEndianness;
+	EEndianness eDefaultEndianness;
 	bool bSupportBanks;
 	bool bSupportAmiga;
 	EMinimumWordSize eMinimumWordSize;

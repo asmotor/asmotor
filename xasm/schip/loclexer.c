@@ -21,7 +21,7 @@
 
 #include "localasm.h"
 
-static SLexInitString localstrings[]=
+static SLexerTokenDefinition localstrings[]=
 {
 	/* reg */
 	{ "bcd", T_CHIP_BCD },
@@ -89,5 +89,5 @@ static SLexInitString localstrings[]=
 
 void	loclexer_Init(void)
 {
-	lex_AddStrings(localstrings);
+	lex_DefineTokens(localstrings);
 }

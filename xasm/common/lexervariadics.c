@@ -98,7 +98,7 @@ uint32_t lex_VariadicCreateWord(SVariadicWordDefinition* tok) {
 	return 1U << g_nextVariadicId++;
 }
 
-void lex_FloatRemoveAll(uint32_t id) {
+void lex_VariadicRemoveAll(uint32_t id) {
 	SVariadicWordsPerChar* chars = g_variadicWordsPerChar;
 
 	while (chars) {
@@ -111,14 +111,12 @@ void lex_FloatRemoveAll(uint32_t id) {
 	}
 }
 
-void lex_FloatAddRangeAndBeyond(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber) {
+void lex_VariadicAddCharRangeRepeating(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber) {
 	if (charNumber >= 0) {
 		SVariadicWordsPerChar* chars = variadicWordsAt(charNumber);
 
 		while (chars) {
-			uint16_t c;
-
-			c = start;
+			uint16_t c = start;
 
 			while (c <= end)
 				chars->idBits[c++] |= id;
@@ -128,7 +126,7 @@ void lex_FloatAddRangeAndBeyond(uint32_t id, uint8_t start, uint8_t end, uint32_
 	}
 }
 
-void lex_FloatAddRange(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber) {
+void lex_VariadicAddCharRange(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber) {
 	if (charNumber >= 0) {
 		SVariadicWordsPerChar* chars = variadicWordsAt(charNumber);
 
@@ -137,7 +135,7 @@ void lex_FloatAddRange(uint32_t id, uint8_t start, uint8_t end, uint32_t charNum
 	}
 }
 
-void lex_FloatSetSuffix(uint32_t id, uint8_t ch) {
+void lex_VariadicAddSuffix(uint32_t id, uint8_t ch) {
 	g_variadicHasSuffixFlags |= id;
 	g_variadicSuffix[ch] |= id;
 }

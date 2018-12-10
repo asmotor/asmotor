@@ -22,55 +22,82 @@
 #include "lists.h"
 #include "str.h"
 
-struct LexBuffer;
+#include "lexer.h"
 
 typedef enum {
-	CONTEXT_FILE,
-	CONTEXT_REPT,
-	CONTEXT_MACRO
+    CONTEXT_FILE,
+    CONTEXT_REPT,
+    CONTEXT_MACRO
 } EContextType;
 
 typedef struct FileStackEntry {
-	list_Data(struct FileStackEntry);
+    list_Data(struct FileStackEntry);
 
-	EContextType Type;
-	string* pName;
-	struct LexBuffer* pLexBuffer;
-	int32_t LineNumber;
+    EContextType type;
+    string* name;
+    SLexerBuffer* lexBuffer;
+    int32_t lineNumber;
 
-	/*	This is for repeating block type stuff. Currently only REPT */
-	string* uniqueId;    /*	For the \@ symbol */
-	union {
-		struct {
-			char* pOriginalBuffer;
-			uint32_t OriginalSize;
-			uint32_t RemainingRuns;
-		} Rept;
-		struct {
-			string* Arg0;
-			string** Args;
-			uint32_t ArgCount;
-		} Macro;
-	} BlockInfo;
+    string* uniqueId;    /*	The \@ symbol */
+    union {
+        struct {
+            char* buffer;
+            size_t size;
+            uint32_t remaining;
+        } repeat;
+        struct {
+            string* argument0;
+            string** arguments;
+            uint32_t argumentCount;
+        } macro;
+    } block;
 } SFileStackEntry;
 
-extern string* fstk_GetMacroUniqueId(void);
-extern string* fstk_GetMacroArgValue(char argNumber);
-extern int32_t fstk_GetMacroArgCount(void);
-extern void fstk_AddMacroArg(char* str);
-extern void fstk_SetMacroArg0(char* str);
+extern string*
+fstk_GetMacroUniqueId(void);
 
-extern void fstk_RunMacro(string* pName);
-extern void fstk_RunInclude(string* pFile);
-extern void fstk_RunRept(char* buffer, size_t size, uint32_t count);
-extern bool fstk_RunNextBuffer(void);
-extern bool fstk_Init(string* pFile);
-extern void fstk_Cleanup(void);
-extern void fstk_Dump(void);
-extern string* fstk_FindFile(string* pFile);
-extern void fstk_ShiftMacroArgs(int32_t count);
-extern void fstk_AddIncludePath(string* pFile);
+extern string*
+fstk_GetMacroArgValue(char argumentId);
 
-extern SFileStackEntry* g_currentContext;
+extern int32_t
+fstk_GetMacroArgumentCount(void);
+
+extern void
+fstk_AddMacroArgument(const char* str);
+
+extern void
+fstk_SetMacroArgument0(const char* str);
+
+extern void
+fstk_ProcessMacro(string* macroName);
+
+extern void
+fstk_ProcessIncludeFile(string* filename);
+
+extern void
+fstk_ProcessRepeatBlock(char* buffer, size_t size, uint32_t count);
+
+extern bool
+fstk_ProcessNextBuffer(void);
+
+extern bool
+fstk_Init(string* filename);
+
+extern void
+fstk_Cleanup(void);
+
+extern void
+fstk_Dump(void);
+
+extern string*
+fstk_FindFile(string* filename);
+
+extern void
+fstk_ShiftMacroArgs(int32_t count);
+
+extern void
+fstk_AddIncludePath(string* pathname);
+
+extern SFileStackEntry* fstk_Current;
 
 #endif /* XASM_COMMON_FILESTACK_H_INCLUDED_ */

@@ -19,21 +19,21 @@
 #ifndef UTIL_AMITIME_INCLUDED_
 #define UTIL_AMITIME_INCLUDED_
 
-
 #if defined(__VBCC__)
 #define __CLOCK_T 1
 typedef unsigned long clock_t;
+
 #include <time.h>
 #include "../../amitime.h"
+
 #define clock time_GetMicroSeconds
 #undef CLOCKS_PER_SEC
 #define CLOCKS_PER_SEC 1000000
 
-
 #include <exec/types.h>
 
-
-extern uint32_t time_GetMicroSeconds(void);
+extern uint32_t
+time_GetMicroSeconds(void);
 
 #else /* __VBCC__ */
 

@@ -21,7 +21,7 @@
 
 #include "localasm.h"
 
-static SLexInitString localstrings[]=
+static SLexerTokenDefinition localstrings[]=
 {
 	{ "add",	T_MIPS_ADD		},
 	{ "addu",	T_MIPS_ADDU		},
@@ -228,5 +228,5 @@ static SLexInitString localstrings[]=
 
 void	loclexer_Init(void)
 {
-	lex_AddStrings(localstrings);
+	lex_DefineTokens(localstrings);
 }

@@ -1014,7 +1014,7 @@ static bool parse_Bcc(uint16_t ins, ESize sz, SAddrMode* src, SAddrMode* dest)
 	{
 		SExpression* expr;
 
-		if(g_pOptions->pMachine->nCpu < CPUF_68020)
+		if(opt_Current->machineOptions->nCpu < CPUF_68020)
 		{
 			prj_Error(MERROR_INSTRUCTION_SIZE);
 			return true;
@@ -1296,7 +1296,7 @@ static bool parse_CAS(ESize sz, SAddrMode* dc, SAddrMode* du)
 	uint16_t ins;
 	SAddrMode ea;
 
-	if(g_pOptions->pMachine->nCpu == CPUF_68060
+	if(opt_Current->machineOptions->nCpu == CPUF_68060
 	&& sz != SIZE_BYTE)
 	{
 		prj_Warn(MERROR_MISALIGNED_FAIL_68060);
@@ -1325,10 +1325,10 @@ static bool parse_CAS(ESize sz, SAddrMode* dc, SAddrMode* du)
 
 static bool parse_GetDataRegister(uint16_t* pReg)
 {
-	if(g_CurrentToken.Token >= T_68K_REG_D0
-	&& g_CurrentToken.Token <= T_68K_REG_D7)
+	if(lex_Current.token >= T_68K_REG_D0
+	&& lex_Current.token <= T_68K_REG_D7)
 	{
-		*pReg = (uint16_t)(g_CurrentToken.Token - T_68K_REG_D0);
+		*pReg = (uint16_t)(lex_Current.token - T_68K_REG_D0);
 		parse_GetToken();
 		return true;
 	}
@@ -1338,10 +1338,10 @@ static bool parse_GetDataRegister(uint16_t* pReg)
 
 static bool parse_GetAddressRegister(uint16_t* pReg)
 {
-	if(g_CurrentToken.Token >= T_68K_REG_A0
-	&& g_CurrentToken.Token <= T_68K_REG_A7)
+	if(lex_Current.token >= T_68K_REG_A0
+	&& lex_Current.token <= T_68K_REG_A7)
 	{
-		*pReg = (uint16_t)(g_CurrentToken.Token - T_68K_REG_A0);
+		*pReg = (uint16_t)(lex_Current.token - T_68K_REG_A0);
 		parse_GetToken();
 		return true;
 	}
@@ -1365,10 +1365,10 @@ static bool parse_GetRegister(uint16_t* pReg)
 
 static bool parse_ExpectDataRegister(uint16_t* pReg)
 {
-	if(g_CurrentToken.Token >= T_68K_REG_D0
-	&& g_CurrentToken.Token <= T_68K_REG_D7)
+	if(lex_Current.token >= T_68K_REG_D0
+	&& lex_Current.token <= T_68K_REG_D7)
 	{
-		*pReg = (uint16_t)(g_CurrentToken.Token - T_68K_REG_D0);
+		*pReg = (uint16_t)(lex_Current.token - T_68K_REG_D0);
 		parse_GetToken();
 		return true;
 	}
@@ -1379,10 +1379,10 @@ static bool parse_ExpectDataRegister(uint16_t* pReg)
 
 static bool parse_ExpectIndirectRegister(uint16_t* pReg)
 {
-	if(g_CurrentToken.Token >= T_68K_REG_A0_IND
-	&& g_CurrentToken.Token <= T_68K_REG_A7_IND)
+	if(lex_Current.token >= T_68K_REG_A0_IND
+	&& lex_Current.token <= T_68K_REG_A7_IND)
 	{
-		*pReg = (uint16_t)(g_CurrentToken.Token - T_68K_REG_A0_IND + 8);
+		*pReg = (uint16_t)(lex_Current.token - T_68K_REG_A0_IND + 8);
 		parse_GetToken();
 		return true;
 	}
@@ -1439,7 +1439,7 @@ static bool parse_CAS2(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 	if(!parse_ExpectIndirectRegister(&rn2))
 		return false;
 
-	if(g_pOptions->pMachine->nCpu == CPUF_68060)
+	if(opt_Current->machineOptions->nCpu == CPUF_68060)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return true;
@@ -1457,7 +1457,7 @@ static bool parse_CHK(ESize sz, SAddrMode* src, SAddrMode* dest)
 	uint16_t ins;
 
 	if(sz == SIZE_LONG
-	&& g_pOptions->pMachine->nCpu < CPUF_68020)
+	&& opt_Current->machineOptions->nCpu < CPUF_68020)
 	{
 		prj_Error(MERROR_INSTRUCTION_SIZE);
 		return true;
@@ -1477,7 +1477,7 @@ static bool parse_CHK2(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	uint16_t ins;
 
-	if(g_pOptions->pMachine->nCpu == CPUF_68060)
+	if(opt_Current->machineOptions->nCpu == CPUF_68060)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return true;
@@ -1496,7 +1496,7 @@ static bool parse_CMP2(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	uint16_t ins;
 	
-	if(g_pOptions->pMachine->nCpu == CPUF_68060)
+	if(opt_Current->machineOptions->nCpu == CPUF_68060)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return true;
@@ -1622,7 +1622,7 @@ static bool parse_DIVxx(bool sign, bool l, ESize sz, SAddrMode* src, SAddrMode* 
 	{
 		bool div64;
 		int dq, dr;
-		if(g_CurrentToken.Token == ':')
+		if(lex_Current.token == ':')
 		{
 			uint16_t reg;
 			parse_GetToken();
@@ -1640,7 +1640,7 @@ static bool parse_DIVxx(bool sign, bool l, ESize sz, SAddrMode* src, SAddrMode* 
 			div64 = false;
 		}
 
-		if(g_pOptions->pMachine->nCpu >= CPUF_68060
+		if(opt_Current->machineOptions->nCpu >= CPUF_68060
 		&& div64)
 		{
 			prj_Error(MERROR_INSTRUCTION_CPU);
@@ -1830,7 +1830,7 @@ static bool parse_LEA(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool parse_LINK(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(sz == SIZE_LONG
-	&& g_pOptions->pMachine->nCpu < CPUF_68020)
+	&& opt_Current->machineOptions->nCpu < CPUF_68020)
 	{
 		prj_Error(MERROR_INSTRUCTION_SIZE);
 		return true;
@@ -1876,7 +1876,7 @@ static bool parse_MOVEfromSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 		EAddrMode allow;
 
 		allow = AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG;
-		if(g_pOptions->pMachine->nCpu >= CPUF_68020)
+		if(opt_Current->machineOptions->nCpu >= CPUF_68020)
 			allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
 
 		if((dest->eMode & allow) == 0)
@@ -1887,7 +1887,7 @@ static bool parse_MOVEfromSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 
 		if(src->nDirectReg == T_68K_REG_CCR)
 		{
-			if(g_pOptions->pMachine->nCpu < CPUF_68010)
+			if(opt_Current->machineOptions->nCpu < CPUF_68010)
 			{
 				prj_Error(MERROR_INSTRUCTION_CPU);
 				return true;
@@ -1904,7 +1904,7 @@ static bool parse_MOVEfromSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 		}
 		else if(src->nDirectReg == T_68K_REG_SR)
 		{
-			if(g_pOptions->pMachine->nCpu >= CPUF_68010)
+			if(opt_Current->machineOptions->nCpu >= CPUF_68010)
 				prj_Warn(MERROR_INSTRUCTION_PRIV);
 
 			if(sz != SIZE_WORD)
@@ -1947,7 +1947,7 @@ static bool parse_MOVEtoSYSREG(ESize sz, SAddrMode* src, SAddrMode* dest)
 		EAddrMode allow;
 
 		allow = AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP;
-		if(g_pOptions->pMachine->nCpu >= CPUF_68020)
+		if(opt_Current->machineOptions->nCpu >= CPUF_68020)
 			allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
 
 		if((src->eMode & allow) == 0)
@@ -2096,7 +2096,7 @@ static bool parse_GetRegisterRange(uint16_t* pStart, uint16_t* pEnd)
 {
 	if(parse_GetRegister(pStart))
 	{
-		if(g_CurrentToken.Token == T_OP_SUB)
+		if(lex_Current.token == T_OP_SUB)
 		{
 			parse_GetToken();
 			if(!parse_GetRegister(pEnd))
@@ -2118,7 +2118,7 @@ static uint32_t parse_RegisterList(void)
 	uint16_t end;
 
 
-	if(g_CurrentToken.Token == '#')
+	if(lex_Current.token == '#')
 	{
 		int32_t expr;
 		parse_GetToken();
@@ -2142,7 +2142,7 @@ static uint32_t parse_RegisterList(void)
 		while(start <= end)
 			r |= 1 << start++;
 
-		if(g_CurrentToken.Token != T_OP_DIV)
+		if(lex_Current.token != T_OP_DIV)
 			return r;
 
 		parse_GetToken();
@@ -2183,7 +2183,7 @@ static bool parse_MOVEM(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 		if(!parse_GetAddrMode(&mode))
 			return false;
 
-		if(g_pOptions->pMachine->nCpu >= CPUF_68020)
+		if(opt_Current->machineOptions->nCpu >= CPUF_68020)
 			allowdest |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
 
 		if((mode.eMode & allowdest) == 0)
@@ -2200,7 +2200,7 @@ static bool parse_MOVEM(ESize sz, SAddrMode* unused1, SAddrMode* unused2)
 		if(!parse_GetAddrMode(&mode))
 			return false;
 
-		if(g_pOptions->pMachine->nCpu >= CPUF_68020)
+		if(opt_Current->machineOptions->nCpu >= CPUF_68020)
 			allowsrc |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
 
 		if((mode.eMode & allowsrc) == 0)
@@ -2243,7 +2243,7 @@ static bool parse_MOVEP(ESize sz, SAddrMode* src, SAddrMode* dest)
 	uint16_t opmode;
 	SExpression* disp;
 
-	if(g_pOptions->pMachine->nCpu == CPUF_68060)
+	if(opt_Current->machineOptions->nCpu == CPUF_68060)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return true;
@@ -2318,7 +2318,7 @@ static bool parse_MOVEQ(ESize sz, SAddrMode* src, SAddrMode* dest)
 static bool parse_MULx(uint16_t sign, ESize sz, SAddrMode* src, SAddrMode* dest)
 {
 	if(sz == SIZE_LONG
-	&& g_pOptions->pMachine->nCpu < CPUF_68020)
+	&& opt_Current->machineOptions->nCpu < CPUF_68020)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return true;
@@ -2327,7 +2327,7 @@ static bool parse_MULx(uint16_t sign, ESize sz, SAddrMode* src, SAddrMode* dest)
 	if(sz == SIZE_LONG)
 	{
 		uint16_t dh, dl, mul64;
-		if(g_CurrentToken.Token == ':')
+		if(lex_Current.token == ':')
 		{
 			parse_GetToken();
 			if(!parse_ExpectDataRegister(&dl))
@@ -2337,7 +2337,7 @@ static bool parse_MULx(uint16_t sign, ESize sz, SAddrMode* src, SAddrMode* dest)
 			if(dh == dl)
 				prj_Warn(MERROR_UNDEFINED_RESULT);
 
-			if(g_pOptions->pMachine->nCpu == CPUF_68060)
+			if(opt_Current->machineOptions->nCpu == CPUF_68060)
 			{
 				prj_Error(MERROR_INSTRUCTION_CPU);
 				return true;
@@ -3019,7 +3019,7 @@ static bool parse_MOVEC(ESize sz, SAddrMode* src, SAddrMode* dest)
 	}
 
 	pReg = &g_ControlRegister[control - T_68K_REG_SFC];
-	if((pReg->nCpu & g_pOptions->pMachine->nCpu) == 0)
+	if((pReg->nCpu & opt_Current->machineOptions->nCpu) == 0)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return true;
@@ -4240,7 +4240,7 @@ static bool parse_OpCore(SInstruction* pIns, ESize inssz, SAddrMode* src, SAddrM
 	EAddrMode allowdest;
 
 	allowsrc = pIns->nAllowSrc;
-	if(g_pOptions->pMachine->nCpu >= CPUF_68020)
+	if(opt_Current->machineOptions->nCpu >= CPUF_68020)
 		allowsrc |= pIns->nAllowSrc020;
 
 	if((allowsrc & src->eMode) == 0
@@ -4251,7 +4251,7 @@ static bool parse_OpCore(SInstruction* pIns, ESize inssz, SAddrMode* src, SAddrM
 	}
 
 	allowdest = pIns->nAllowDest;
-	if(g_pOptions->pMachine->nCpu >= CPUF_68020)
+	if(opt_Current->machineOptions->nCpu >= CPUF_68020)
 		allowdest |= pIns->nAllowDest020;
 
 	if((allowdest & dest->eMode) == 0
@@ -4276,10 +4276,10 @@ bool parse_GetBitfield(SAddrMode* pMode)
 	{
 		pMode->bBitfield = true;
 
-		if(g_CurrentToken.Token >= T_68K_REG_D0
-		&& g_CurrentToken.Token <= T_68K_REG_D7)
+		if(lex_Current.token >= T_68K_REG_D0
+		&& lex_Current.token <= T_68K_REG_D7)
 		{
-			pMode->nBFOffsetReg = g_CurrentToken.Token - T_68K_REG_D0;
+			pMode->nBFOffsetReg = lex_Current.token - T_68K_REG_D0;
 			pMode->pBFOffsetExpr = NULL;
 			parse_GetToken();
 		}
@@ -4297,10 +4297,10 @@ bool parse_GetBitfield(SAddrMode* pMode)
 		if(!parse_ExpectChar(':'))
 			return false;
 
-		if(g_CurrentToken.Token >= T_68K_REG_D0
-		&& g_CurrentToken.Token <= T_68K_REG_D7)
+		if(lex_Current.token >= T_68K_REG_D0
+		&& lex_Current.token <= T_68K_REG_D7)
 		{
-			pMode->nBFWidthReg = g_CurrentToken.Token - T_68K_REG_D0;
+			pMode->nBFWidthReg = lex_Current.token - T_68K_REG_D0;
 			pMode->pBFWidthExpr = NULL;
 			parse_GetToken();
 		}
@@ -4367,7 +4367,7 @@ bool parse_CommonCpuFpu(SInstruction* pIns)
 
 	if(pIns->nAllowDest != 0)
 	{
-		if(g_CurrentToken.Token == ',')
+		if(lex_Current.token == ',')
 		{
 			parse_GetToken();
 			if(!parse_GetAddrMode(&dest))
@@ -4400,17 +4400,17 @@ bool parse_IntegerInstruction(void)
 	int op;
 	SInstruction* pIns;
 
-	if(g_CurrentToken.Token < T_68K_INTEGER_FIRST
-	|| g_CurrentToken.Token > T_68K_INTEGER_LAST)
+	if(lex_Current.token < T_68K_INTEGER_FIRST
+	|| lex_Current.token > T_68K_INTEGER_LAST)
 	{
 		return false;
 	}
 
-	op = g_CurrentToken.Token - T_68K_INTEGER_FIRST;
+	op = lex_Current.token - T_68K_INTEGER_FIRST;
 	parse_GetToken();
 
 	pIns = &sIntegerInstructions[op];
-	if((pIns->nCPU & g_pOptions->pMachine->nCpu) == 0)
+	if((pIns->nCPU & opt_Current->machineOptions->nCpu) == 0)
 	{
 		prj_Error(MERROR_INSTRUCTION_CPU);
 		return true;

@@ -21,7 +21,10 @@
 
 #include "str.h"
 
-extern bool ami_WriteObject(string* destFilename, string* sourceFilename);
-extern bool ami_WriteExecutable(string* destFilename, bool writeDebugInfo);
+extern bool
+ami_WriteObject(string* destFilename, string* sourceFilename);
+
+extern bool
+ami_WriteExecutable(string* destFilename, bool writeDebugInfo);
 
 #endif /* XASM_COMMON_AMIGAOBJECT_H_INCLUDED_ */

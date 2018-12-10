@@ -8,10 +8,10 @@
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/motor68k",
-            "args": ["test.68k"],
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/gameboy/motorgb",
+            "args": ["test_ldd.asm"],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/test/680x0",
+            "cwd": "${workspaceFolder}/test/gameboy",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"

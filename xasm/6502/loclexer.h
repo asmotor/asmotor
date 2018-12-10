@@ -18,5 +18,5 @@
 
 #include "lexer.h"
 
-extern SLexInitString* loclexer_GetUndocumentedInstructions(int n);
+extern SLexerTokenDefinition* loclexer_GetUndocumentedInstructions(int n);
 

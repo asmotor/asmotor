@@ -25,62 +25,61 @@
 
 #include "mem.h"
 
-char* _strdup(const char* str) {
-	size_t l = strlen(str);
-	char* r = mem_Alloc(l + 1);
-	memcpy(r, str, l + 1);
-	return r;
+char*
+_strdup(const char* str) {
+    size_t l = strlen(str);
+    char* r = mem_Alloc(l + 1);
+    memcpy(r, str, l + 1);
+    return r;
 }
 
-char* _strupr(char* str) {
-	char* r = str;
-	while (*r) {
-		*r = (char) toupper((unsigned char) *r);
-		++r;
-	}
-	return str;
+char*
+_strupr(char* str) {
+    char* r = str;
+    while (*r) {
+        *r = (char) toupper((unsigned char) *r);
+        ++r;
+    }
+    return str;
 }
 
-char* _strlwr(char* str) {
-	char* r = str;
-	while (*r) {
-		*r = (char) tolower((unsigned char) *r);
-		++r;
-	}
-	return str;
+char*
+_strlwr(char* str) {
+    char* r = str;
+    while (*r) {
+        *r = (char) tolower((unsigned char) *r);
+        ++r;
+    }
+    return str;
 }
 
-int _strnicmp(const char* string1, const char* string2, size_t length) {
-	char l1 = 0;
-	char l2 = 0;
+int
+_strnicmp(const char* string1, const char* string2, size_t length) {
+    while (*string1 && *string2 && length-- > 0) {
+        char l1 = (char) tolower((unsigned char) *string1++);
+        char l2 = (char) tolower((unsigned char) *string2++);
 
-	while (*string1 && *string2 && length-- > 0) {
-		l1 = (char) tolower((unsigned char) *string1++);
-		l2 = (char) tolower((unsigned char) *string2++);
+        if (l1 != l2)
+            return l1 - l2;
+    }
 
-		if (l1 != l2)
-			return l1 - l2;
-	}
+    if (length == 0)
+        return 0;
 
-	if (length == 0)
-		return 0;
-
-	return *string1 - *string2;
+    return *string1 - *string2;
 }
 
-int _stricmp(const char* string1, const char* string2) {
-	char l1 = 0;
-	char l2 = 0;
+int
+_stricmp(const char* string1, const char* string2) {
+    while (*string1 && *string2) {
+        char l1 = (char) tolower((unsigned char) *string1++);
+        char l2 = (char) tolower((unsigned char) *string2++);
 
-	while (*string1 && *string2) {
-		l1 = (char) tolower((unsigned char) *string1++);
-		l2 = (char) tolower((unsigned char) *string2++);
+        if (l1 != l2)
+            return l1 - l2;
+    }
 
-		if (l1 != l2)
-			return l1 - l2;
-	}
-
-	return *string1 - *string2;
+    return *string1 - *string2;
 }
 
 #endif

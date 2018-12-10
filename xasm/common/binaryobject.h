@@ -19,7 +19,10 @@
 #ifndef XASM_COMMON_BINARYOBJECT_H_INCLUDED_
 #define XASM_COMMON_BINARYOBJECT_H_INCLUDED_
 
-extern bool bin_Write(string* filename);
-extern bool bin_WriteVerilog(string* filename);
+extern bool
+bin_Write(string* filename);
+
+extern bool
+bin_WriteVerilog(string* filename);
 
 #endif /* XASM_COMMON_BINARYOBJECT_H_INCLUDED_ */

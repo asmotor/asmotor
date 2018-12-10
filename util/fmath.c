@@ -25,75 +25,90 @@
 # define PI acos(-1.0)
 #endif
 
-double f2d(int32_t a) {
-	return a * (1.0 / 65536.0);
+double
+fixedToDouble(int32_t a) {
+    return a * (1.0 / 65536.0);
 }
 
-int32_t d2f(double a) {
-	return (int32_t) (a * 65536);
+int32_t
+doubleToFixed(double a) {
+    return (int32_t) (a * 65536);
 }
 
-int32_t imuldiv(int32_t a, int32_t b, int32_t c) {
-	return (int32_t) ((int64_t) a * b / c);
+int32_t
+imuldiv(int32_t a, int32_t b, int32_t c) {
+    return (int32_t) ((int64_t) a * b / c);
 }
 
-int32_t fmul(int32_t a, int32_t b) {
-	return (int32_t) (((int64_t) a * b) / 65536);
+int32_t
+fmul(int32_t a, int32_t b) {
+    return (int32_t) (((int64_t) a * b) / 65536);
 }
 
-int32_t fdiv(int32_t a, int32_t b) {
-	return (int32_t) (((int64_t) a * 65536) / b);
+int32_t
+fdiv(int32_t a, int32_t b) {
+    return (int32_t) (((int64_t) a * 65536) / b);
 }
 
-int32_t fsin(int32_t a) {
-	return d2f(sin(f2d(a) * 2 * PI));
+int32_t
+fsin(int32_t a) {
+    return doubleToFixed(sin(fixedToDouble(a) * 2 * PI));
 }
 
-int32_t fasin(int32_t a) {
-	return d2f(asin(f2d(a)) / (2 * PI));
+int32_t
+fasin(int32_t a) {
+    return doubleToFixed(asin(fixedToDouble(a)) / (2 * PI));
 }
 
-int32_t fcos(int32_t a) {
-	return d2f(cos(f2d(a) * 2 * PI));
+int32_t
+fcos(int32_t a) {
+    return doubleToFixed(cos(fixedToDouble(a) * 2 * PI));
 }
 
-int32_t facos(int32_t a) {
-	return d2f(acos(f2d(a)) / (2 * PI));
+int32_t
+facos(int32_t a) {
+    return doubleToFixed(acos(fixedToDouble(a)) / (2 * PI));
 }
 
-int32_t ftan(int32_t a) {
-	return d2f(tan(f2d(a) * 2 * PI));
+int32_t
+ftan(int32_t a) {
+    return doubleToFixed(tan(fixedToDouble(a) * 2 * PI));
 }
 
-int32_t fatan(int32_t a) {
-	return d2f(atan(f2d(a)) / (2 * PI));
+int32_t
+fatan(int32_t a) {
+    return doubleToFixed(atan(fixedToDouble(a)) / (2 * PI));
 }
 
-int32_t fatan2(int32_t a, int32_t b) {
-	return d2f(atan2(f2d(a), f2d(b)) / (2 * PI));
+int32_t
+fatan2(int32_t a, int32_t b) {
+    return doubleToFixed(atan2(fixedToDouble(a), fixedToDouble(b)) / (2 * PI));
 }
 
-uint32_t log2n(size_t value) {
-	uint32_t r = sizeof(value) * 8 - 1;
-	size_t mask = (size_t) 1 << (sizeof(value) * 8 - 1);
-	while (r > 0) {
-		if (value & mask)
-			return r;
+uint32_t
+log2n(size_t value) {
+    uint32_t r = sizeof(value) * 8 - 1;
+    size_t mask = (size_t) 1 << (sizeof(value) * 8 - 1);
+    while (r > 0) {
+        if (value & mask)
+            return r;
 
-		r -= 1;
-		mask = mask >> 1u;
-	}
+        r -= 1;
+        mask = mask >> 1u;
+    }
 
-	return 0;
+    return 0;
 }
 
-int32_t asr(int32_t lhs, int32_t rhs) {
-	if (lhs < 0)
-		return (uint32_t) lhs >> (int32_t) rhs | ~(UINT32_MAX >> (int32_t) rhs);
-	else
-		return lhs >> rhs;
+int32_t
+asr(int32_t lhs, int32_t rhs) {
+    if (lhs < 0)
+        return (uint32_t) lhs >> (int32_t) rhs | ~(UINT32_MAX >> (int32_t) rhs);
+    else
+        return lhs >> rhs;
 }
 
-bool exactlyOneBitSet(int32_t d) {
+bool
+isPowerOfTwo(int32_t d) {
     return ((uint32_t) d & (uint32_t) -d) == (uint32_t) d && d != 0;
 }

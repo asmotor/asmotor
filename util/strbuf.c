@@ -21,35 +21,39 @@
 
 #define INITIAL_SIZE 32U
 
-string_buffer* strbuf_Create(void) {
-	string_buffer* buffer = mem_Alloc(sizeof(string_buffer));
-	buffer->size = 0;
-	buffer->data = mem_Alloc(buffer->allocated = INITIAL_SIZE);
+string_buffer*
+strbuf_Create(void) {
+    string_buffer* buffer = mem_Alloc(sizeof(string_buffer));
+    buffer->size = 0;
+    buffer->data = mem_Alloc(buffer->allocated = INITIAL_SIZE);
 
-	return buffer;
+    return buffer;
 }
 
-void strbuf_Free(string_buffer* buffer) {
-	mem_Free(buffer->data);
-	mem_Free(buffer);
+void
+strbuf_Free(string_buffer* buffer) {
+    mem_Free(buffer->data);
+    mem_Free(buffer);
 }
 
-string* strbuf_String(string_buffer* buffer) {
-	return str_CreateLength(buffer->data, buffer->size);
+string*
+strbuf_String(string_buffer* buffer) {
+    return str_CreateLength(buffer->data, buffer->size);
 }
 
-void strbuf_AppendChars(string_buffer* buffer, const char* data, size_t length) {
-	if (data == NULL)
-		return;
+void
+strbuf_AppendChars(string_buffer* buffer, const char* data, size_t length) {
+    if (data == NULL)
+        return;
 
-	if (length + buffer->size > buffer->allocated) {
-		size_t newSize = length + buffer->size;
-		newSize += newSize >> 1u;
+    if (length + buffer->size > buffer->allocated) {
+        size_t newSize = length + buffer->size;
+        newSize += newSize >> 1u;
 
-		buffer->data = mem_Realloc(buffer->data, newSize);
-		buffer->allocated = newSize;
-	}
+        buffer->data = mem_Realloc(buffer->data, newSize);
+        buffer->allocated = newSize;
+    }
 
-	memcpy(buffer->data + buffer->size, data, length);
-	buffer->size += length;
+    memcpy(buffer->data + buffer->size, data, length);
+    buffer->size += length;
 }

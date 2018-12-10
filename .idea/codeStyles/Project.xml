@@ -1,6 +1,8 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
     <Objective-C>
+      <option name="FUNCTION_NON_TOP_AFTER_RETURN_TYPE_WRAP" value="2" />
+      <option name="FUNCTION_TOP_AFTER_RETURN_TYPE_WRAP" value="2" />
       <option name="SPACE_BEFORE_POINTER_IN_DECLARATION" value="false" />
       <option name="SPACE_AFTER_POINTER_IN_DECLARATION" value="true" />
     </Objective-C>
@@ -18,9 +20,6 @@
       <option name="ARRAY_INITIALIZER_RBRACE_ON_NEXT_LINE" value="true" />
       <option name="ASSIGNMENT_WRAP" value="1" />
       <option name="ENUM_CONSTANTS_WRAP" value="2" />
-      <indentOptions>
-        <option name="USE_TAB_CHARACTER" value="true" />
-      </indentOptions>
     </codeStyleSettings>
   </code_scheme>
 </component>

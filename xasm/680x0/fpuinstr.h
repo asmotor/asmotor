@@ -84,17 +84,17 @@ bool parse_FpuInstruction(void)
 	int op;
 	SInstruction* pIns;
 
-	if(g_CurrentToken.Token < T_FPU_FIRST
-	|| g_CurrentToken.Token > T_FPU_LAST)
+	if(lex_Current.token < T_FPU_FIRST
+	|| lex_Current.token > T_FPU_LAST)
 	{
 		return false;
 	}
 
-	op = g_CurrentToken.Token - T_FPU_FIRST;
+	op = lex_Current.token - T_FPU_FIRST;
 	parse_GetToken();
 
 	pIns = &s_FpuInstructions[op];
-	if((pIns->nCPU & g_pOptions->pMachine->nFpu) == 0)
+	if((pIns->nCPU & opt_Current->machineOptions->nFpu) == 0)
 	{
 		prj_Error(MERROR_INSTRUCTION_FPU);
 		return true;

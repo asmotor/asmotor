@@ -39,10 +39,10 @@ typedef struct
 
 static int parse_GetRegister(void)
 {
-	if(g_CurrentToken.Token >= T_CHIP_REG_V0
-	&& g_CurrentToken.Token <= T_CHIP_REG_V15)
+	if(lex_Current.token >= T_CHIP_REG_V0
+	&& lex_Current.token <= T_CHIP_REG_V15)
 	{
-		int r = g_CurrentToken.Token - T_CHIP_REG_V0;
+		int r = lex_Current.token - T_CHIP_REG_V0;
 		parse_GetToken();
 
 		return r;
@@ -57,7 +57,7 @@ static bool parse_AddressMode(SAddressMode* pMode)
 	if((pMode->nRegister = (uint8_t)parse_GetRegister()) != 0xFF)
 	{
 		pMode->nMode = MODE_REG;
-		if(g_CurrentToken.Token != T_OP_ADD)
+		if(lex_Current.token != T_OP_ADD)
 			return true;
 
 		parse_GetToken();
@@ -67,31 +67,31 @@ static bool parse_AddressMode(SAddressMode* pMode)
 			return true;
 		}
 	}
-	else if(g_CurrentToken.Token == T_CHIP_REG_I)
+	else if(lex_Current.token == T_CHIP_REG_I)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_I;
 		return true;
 	}
-	else if(g_CurrentToken.Token == T_CHIP_REG_RPL)
+	else if(lex_Current.token == T_CHIP_REG_RPL)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_RPL;
 		return true;
 	}
-	else if(g_CurrentToken.Token == T_CHIP_REG_DT)
+	else if(lex_Current.token == T_CHIP_REG_DT)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_DT;
 		return true;
 	}
-	else if(g_CurrentToken.Token == T_CHIP_REG_ST)
+	else if(lex_Current.token == T_CHIP_REG_ST)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_ST;
 		return true;
 	}
-	else if(g_CurrentToken.Token == T_CHIP_REG_I_IND)
+	else if(lex_Current.token == T_CHIP_REG_I_IND)
 	{
 		parse_GetToken();
 		pMode->nMode = MODE_I_IND;
@@ -350,10 +350,10 @@ SInstruction g_Parsers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] =
 
 bool parse_IntegerInstruction(void)
 {
-	if(T_CHIP_INSTR_FIRST <= g_CurrentToken.Token && g_CurrentToken.Token <= T_CHIP_INSTR_LAST)
+	if(T_CHIP_INSTR_FIRST <= lex_Current.token && lex_Current.token <= T_CHIP_INSTR_LAST)
 	{
 		bool r;
-		SInstruction* pInstr = &g_Parsers[g_CurrentToken.Token - T_CHIP_INSTR_FIRST];
+		SInstruction* pInstr = &g_Parsers[lex_Current.token - T_CHIP_INSTR_FIRST];
 		SAddressMode mode1 = {0, 0, NULL};
 		SAddressMode mode2 = {0, 0, NULL};
 		SAddressMode mode3 = {0, 0, NULL};

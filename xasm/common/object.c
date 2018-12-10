@@ -42,7 +42,7 @@
  *									;3=LOCALEXPORT
  *									;4=LOCALIMPORT
  *					IF Type==EXPORT or LOCAL or LOCALEXPORT
- *						int32_t	Value
+ *						int32_t	value
  *					ENDC
  *			ENDR
  *			uint32_t	Size
@@ -60,6 +60,7 @@
  *
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -74,431 +75,381 @@
 #include "file.h"
 
 
+/* Private functions */
 
+static uint32_t
+writeSymbols(SSection* section, FILE* fileHandle, SExpression* expression, uint32_t nextId) {
+    if (expression != NULL) {
+        nextId = writeSymbols(section, fileHandle, expression->left, nextId);
+        nextId = writeSymbols(section, fileHandle, expression->right, nextId);
 
-//	Private routines
-
-static uint32_t calc_symbol_ids(SSection* sect, FILE* f, SExpression* expr, uint32_t ID) {
-	if (expr) {
-		ID = calc_symbol_ids(sect, f, expr->left, ID);
-		ID = calc_symbol_ids(sect, f, expr->right, ID);
-
-		if (expr_Type(expr) == EXPR_SYMBOL ||
-			(g_pConfiguration->bSupportBanks && expr_IsOperator(expr, T_FUNC_BANK))) {
-			if (expr->value.symbol->ID == UINT32_MAX) {
-				expr->value.symbol->ID = ID++;
-				fputsz(str_String(expr->value.symbol->pName), f);
-				if (expr->value.symbol->pSection == sect) {
-					if (expr->value.symbol->nFlags & SYMF_LOCALEXPORT) {
-						fputll(3, f);    //	LOCALEXPORT
-						fputll((uint32_t)expr->value.symbol->Value.Value, f);
-					} else if (expr->value.symbol->nFlags & SYMF_EXPORT) {
-						fputll(0, f);    //	EXPORT
-						fputll((uint32_t)expr->value.symbol->Value.Value, f);
-					} else {
-						fputll(2, f);    //	LOCAL
-						fputll((uint32_t)expr->value.symbol->Value.Value, f);
-					}
-				} else if (expr->value.symbol->eType == SYM_IMPORT || expr->value.symbol->eType == SYM_GLOBAL) {
-					fputll(1, f);    //	IMPORT
-				} else {
-					fputll(4, f);    //	LOCALIMPORT
-				}
-			}
-		}
-	}
-	return ID;
+        if (expr_Type(expression) == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr_IsOperator(expression, T_FUNC_BANK))) {
+            if (expression->value.symbol->ID == UINT32_MAX) {
+                expression->value.symbol->ID = nextId++;
+                fputsz(str_String(expression->value.symbol->pName), fileHandle);
+                if (expression->value.symbol->pSection == section) {
+                    if (expression->value.symbol->nFlags & SYMF_LOCALEXPORT) {
+                        fputll(3, fileHandle);    //	LOCALEXPORT
+                        fputll((uint32_t) expression->value.symbol->Value.Value, fileHandle);
+                    } else if (expression->value.symbol->nFlags & SYMF_EXPORT) {
+                        fputll(0, fileHandle);    //	EXPORT
+                        fputll((uint32_t) expression->value.symbol->Value.Value, fileHandle);
+                    } else {
+                        fputll(2, fileHandle);    //	LOCAL
+                        fputll((uint32_t) expression->value.symbol->Value.Value, fileHandle);
+                    }
+                } else if (expression->value.symbol->eType == SYM_IMPORT || expression->value.symbol->eType == SYM_GLOBAL) {
+                    fputll(1, fileHandle);    //	IMPORT
+                } else {
+                    fputll(4, fileHandle);    //	LOCALIMPORT
+                }
+            }
+        }
+    }
+    return nextId;
 }
 
-static void fix_local_exports(SSection* sect, SExpression* expr) {
-	if (expr) {
-		fix_local_exports(sect, expr->left);
-		fix_local_exports(sect, expr->right);
+static uint32_t
+writeExportedSymbols(FILE* fileHandle, SSection* section, uint32_t symbolId) {
+    for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
+        for (SSymbol* sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym)) {
+            if (sym->eType != SYM_GROUP)
+                sym->ID = (uint32_t) -1;
 
-		if ((expr_Type(expr) == EXPR_SYMBOL ||
-			 (g_pConfiguration->bSupportBanks && expr_IsOperator(expr, T_FUNC_BANK))) &&
-			(expr->value.symbol->nFlags & SYMF_EXPORTABLE) && expr->value.symbol->pSection != sect) {
-			expr->value.symbol->nFlags |= SYMF_LOCALEXPORT;
-		}
-	}
+            if (sym->pSection == section && (sym->nFlags & (SYMF_EXPORT | SYMF_LOCALEXPORT))) {
+                sym->ID = symbolId++;
+
+                fputsz(str_String(sym->pName), fileHandle);
+                if (sym->nFlags & SYMF_EXPORT)
+                    fputll(0, fileHandle);    //	EXPORT
+                else if (sym->nFlags & SYMF_LOCALEXPORT)
+                    fputll(3, fileHandle);    //	LOCALEXPORT
+                fputll((uint32_t) sym->Value.Value, fileHandle);
+            }
+        }
+    }
+
+    return symbolId;
 }
 
-static int write_expr(FILE* f, SExpression* expr) {
-	int r = 0;
+static void
+markLocalExportsInExpression(SSection* section, SExpression* expression) {
+    if (expression != NULL) {
+        markLocalExportsInExpression(section, expression->left);
+        markLocalExportsInExpression(section, expression->right);
 
-	if (expr) {
-		r += write_expr(f, expr->left);
-		r += write_expr(f, expr->right);
-
-		switch (expr_Type(expr)) {
-			case EXPR_PARENS: {
-				return write_expr(f, expr->right);
-			}
-			case EXPR_OPERATION: {
-				switch (expr->operation) {
-					default:
-						internalerror("Unknown operator");
-						break;
-					case T_OP_SUB:
-						fputc(OBJ_OP_SUB, f);
-						++r;
-						break;
-					case T_OP_ADD:
-						fputc(OBJ_OP_ADD, f);
-						++r;
-						break;
-					case T_OP_XOR:
-						fputc(OBJ_OP_XOR, f);
-						++r;
-						break;
-					case T_OP_OR:
-						fputc(OBJ_OP_OR, f);
-						++r;
-						break;
-					case T_OP_AND:
-						fputc(OBJ_OP_AND, f);
-						++r;
-						break;
-					case T_OP_SHL:
-						fputc(OBJ_OP_SHL, f);
-						++r;
-						break;
-					case T_OP_SHR:
-						fputc(OBJ_OP_SHR, f);
-						++r;
-						break;
-					case T_OP_MUL:
-						fputc(OBJ_OP_MUL, f);
-						++r;
-						break;
-					case T_OP_DIV:
-						fputc(OBJ_OP_DIV, f);
-						++r;
-						break;
-					case T_OP_MOD:
-						fputc(OBJ_OP_MOD, f);
-						++r;
-						break;
-					case T_OP_LOGICOR:
-						fputc(OBJ_OP_LOGICOR, f);
-						++r;
-						break;
-					case T_OP_LOGICAND:
-						fputc(OBJ_OP_LOGICAND, f);
-						++r;
-						break;
-					case T_OP_LOGICNOT:
-						fputc(OBJ_OP_LOGICNOT, f);
-						++r;
-						break;
-					case T_OP_LOGICGE:
-						fputc(OBJ_OP_LOGICGE, f);
-						++r;
-						break;
-					case T_OP_LOGICGT:
-						fputc(OBJ_OP_LOGICGT, f);
-						++r;
-						break;
-					case T_OP_LOGICLE:
-						fputc(OBJ_OP_LOGICLE, f);
-						++r;
-						break;
-					case T_OP_LOGICLT:
-						fputc(OBJ_OP_LOGICLT, f);
-						++r;
-						break;
-					case T_OP_LOGICEQU:
-						fputc(OBJ_OP_LOGICEQU, f);
-						++r;
-						break;
-					case T_OP_LOGICNE:
-						fputc(OBJ_OP_LOGICNE, f);
-						++r;
-						break;
-					case T_FUNC_LOWLIMIT:
-						fputc(OBJ_FUNC_LOWLIMIT, f);
-						++r;
-						break;
-					case T_FUNC_HIGHLIMIT:
-						fputc(OBJ_FUNC_HIGHLIMIT, f);
-						++r;
-						break;
-					case T_FUNC_FDIV:
-						fputc(OBJ_FUNC_FDIV, f);
-						++r;
-						break;
-					case T_FUNC_FMUL:
-						fputc(OBJ_FUNC_FMUL, f);
-						++r;
-						break;
-					case T_FUNC_ATAN2:
-						fputc(OBJ_FUNC_ATAN2, f);
-						++r;
-						break;
-					case T_FUNC_SIN:
-						fputc(OBJ_FUNC_SIN, f);
-						++r;
-						break;
-					case T_FUNC_COS:
-						fputc(OBJ_FUNC_COS, f);
-						++r;
-						break;
-					case T_FUNC_TAN:
-						fputc(OBJ_FUNC_TAN, f);
-						++r;
-						break;
-					case T_FUNC_ASIN:
-						fputc(OBJ_FUNC_ASIN, f);
-						++r;
-						break;
-					case T_FUNC_ACOS:
-						fputc(OBJ_FUNC_ACOS, f);
-						++r;
-						break;
-					case T_FUNC_ATAN:
-						fputc(OBJ_FUNC_ATAN, f);
-						++r;
-						break;
-					case T_FUNC_BANK: {
-						if (g_pConfiguration->bSupportBanks) {
-							fputc(OBJ_FUNC_BANK, f);
-							fputll(expr->value.symbol->ID, f);
-							r += 5;
-						} else
-							internalerror("Banks not supported");
-						break;
-					}
-				}
-
-				break;
-			}
-			case EXPR_CONSTANT: {
-				fputc(OBJ_CONSTANT, f);
-				fputll(expr->value.integer, f);
-				r += 5;
-				break;
-			}
-			case EXPR_SYMBOL: {
-				fputc(OBJ_SYMBOL, f);
-				fputll(expr->value.symbol->ID, f);
-				r += 5;
-				break;
-			}
-			case EXPR_PC_RELATIVE: {
-				fputc(OBJ_PCREL, f);
-				++r;
-				break;
-			}
-			default: {
-				internalerror("Unknown expression");
-				break;
-			}
-		}
-	}
-
-	return r;
+        if ((expr_Type(expression) == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr_IsOperator(expression, T_FUNC_BANK)))
+            && (expression->value.symbol->nFlags & SYMF_EXPORTABLE) && expression->value.symbol->pSection != section) {
+            expression->value.symbol->nFlags |= SYMF_LOCALEXPORT;
+        }
+    }
 }
 
-static void write_patch(FILE* f, SPatch* patch) {
-/*
- *	uint32_t	Offset
- *	uint32_t	Type
- *	uint32_t	ExprSize
- *	uint8_t	Expr[ExprSize]
- */
+static void
+markLocalExports() {
+    for (SSection* section = g_pSectionList; section; section = list_GetNext(section)) {
+        for (SPatch* patch = section->pPatches; patch; patch = list_GetNext(patch)) {
+            if (patch->pSection == section) {
+                markLocalExportsInExpression(section, patch->pExpression);
+            }
+        }
+    }
+}
 
-	long size;
-	long here;
-	int newsize;
+static void
+writeExpression(FILE* fileHandle, SExpression* expression) {
+    if (expression != NULL) {
+        writeExpression(fileHandle, expression->left);
+        writeExpression(fileHandle, expression->right);
 
-	fputll(patch->Offset, f);
-	fputll(patch->Type, f);
-	size = ftell(f);
-	fputll(0, f);
-	newsize = write_expr(f, patch->pExpression);
-	here = ftell(f);
-	fseek(f, size, SEEK_SET);
-	fputll(newsize, f);
-	fseek(f, here, SEEK_SET);
+        switch (expr_Type(expression)) {
+            case EXPR_PARENS: {
+                writeExpression(fileHandle, expression->right);
+                break;
+            }
+            case EXPR_OPERATION: {
+                switch (expression->operation) {
+                    default:
+                        internalerror("Unknown operator");
+                        break;
+                    case T_OP_SUB:
+                        fputc(OBJ_OP_SUB, fileHandle);
+                        break;
+                    case T_OP_ADD:
+                        fputc(OBJ_OP_ADD, fileHandle);
+                        break;
+                    case T_OP_XOR:
+                        fputc(OBJ_OP_XOR, fileHandle);
+                        break;
+                    case T_OP_OR:
+                        fputc(OBJ_OP_OR, fileHandle);
+                        break;
+                    case T_OP_AND:
+                        fputc(OBJ_OP_AND, fileHandle);
+                        break;
+                    case T_OP_SHL:
+                        fputc(OBJ_OP_ASL, fileHandle);
+                        break;
+                    case T_OP_SHR:
+                        fputc(OBJ_OP_ASR, fileHandle);
+                        break;
+                    case T_OP_MUL:
+                        fputc(OBJ_OP_MUL, fileHandle);
+                        break;
+                    case T_OP_DIV:
+                        fputc(OBJ_OP_DIV, fileHandle);
+                        break;
+                    case T_OP_MOD:
+                        fputc(OBJ_OP_MOD, fileHandle);
+                        break;
+                    case T_OP_LOGICOR:
+                        fputc(OBJ_OP_BOOLEAN_OR, fileHandle);
+                        break;
+                    case T_OP_LOGICAND:
+                        fputc(OBJ_OP_BOOLEAN_AND, fileHandle);
+                        break;
+                    case T_OP_LOGICNOT:
+                        fputc(OBJ_OP_BOOLEAN_NOT, fileHandle);
+                        break;
+                    case T_OP_LOGICGE:
+                        fputc(OBJ_OP_GREATER_OR_EQUAL, fileHandle);
+                        break;
+                    case T_OP_LOGICGT:
+                        fputc(OBJ_OP_GREATER_THAN, fileHandle);
+                        break;
+                    case T_OP_LOGICLE:
+                        fputc(OBJ_OP_LESS_OR_EQUAL, fileHandle);
+                        break;
+                    case T_OP_LOGICLT:
+                        fputc(OBJ_OP_LESS_THAN, fileHandle);
+                        break;
+                    case T_OP_LOGICEQU:
+                        fputc(OBJ_OP_EQUALS, fileHandle);
+                        break;
+                    case T_OP_LOGICNE:
+                        fputc(OBJ_OP_NOT_EQUALS, fileHandle);
+                        break;
+                    case T_FUNC_LOWLIMIT:
+                        fputc(OBJ_FUNC_LOW_LIMIT, fileHandle);
+                        break;
+                    case T_FUNC_HIGHLIMIT:
+                        fputc(OBJ_FUNC_HIGH_LIMIT, fileHandle);
+                        break;
+                    case T_FUNC_FDIV:
+                        fputc(OBJ_FUNC_FDIV, fileHandle);
+                        break;
+                    case T_FUNC_FMUL:
+                        fputc(OBJ_FUNC_FMUL, fileHandle);
+                        break;
+                    case T_FUNC_ATAN2:
+                        fputc(OBJ_FUNC_ATAN2, fileHandle);
+                        break;
+                    case T_FUNC_SIN:
+                        fputc(OBJ_FUNC_SIN, fileHandle);
+                        break;
+                    case T_FUNC_COS:
+                        fputc(OBJ_FUNC_COS, fileHandle);
+                        break;
+                    case T_FUNC_TAN:
+                        fputc(OBJ_FUNC_TAN, fileHandle);
+                        break;
+                    case T_FUNC_ASIN:
+                        fputc(OBJ_FUNC_ASIN, fileHandle);
+                        break;
+                    case T_FUNC_ACOS:
+                        fputc(OBJ_FUNC_ACOS, fileHandle);
+                        break;
+                    case T_FUNC_ATAN:
+                        fputc(OBJ_FUNC_ATAN, fileHandle);
+                        break;
+                    case T_FUNC_BANK: {
+                        assert (g_pConfiguration->bSupportBanks);
+                        fputc(OBJ_FUNC_BANK, fileHandle);
+                        fputll(expression->value.symbol->ID, fileHandle);
+                        break;
+                    }
+                }
+
+                break;
+            }
+            case EXPR_CONSTANT: {
+                fputc(OBJ_CONSTANT, fileHandle);
+                fputll((uint32_t) expression->value.integer, fileHandle);
+                break;
+            }
+            case EXPR_SYMBOL: {
+                fputc(OBJ_SYMBOL, fileHandle);
+                fputll(expression->value.symbol->ID, fileHandle);
+                break;
+            }
+            case EXPR_PC_RELATIVE: {
+                fputc(OBJ_PC_REL, fileHandle);
+                break;
+            }
+            default: {
+                internalerror("Unknown expression");
+                break;
+            }
+        }
+    }
+}
+
+static void
+writePatch(FILE* fileHandle, SPatch* patch) {
+    fputll(patch->Offset, fileHandle);
+    fputll(patch->Type, fileHandle);
+    off_t sizePosition = ftello(fileHandle);
+    fputll(0, fileHandle);
+
+    off_t expressionStart = ftello(fileHandle);
+    writeExpression(fileHandle, patch->pExpression);
+    off_t expressionEnd = ftell(fileHandle);
+
+    fseek(fileHandle, sizePosition, SEEK_SET);
+    fputll((uint32_t) (expressionEnd - expressionStart), fileHandle);
+    fseek(fileHandle, expressionEnd, SEEK_SET);
+}
+
+static void
+writeGroups(FILE* fileHandle) {
+    off_t sizePos = ftello(fileHandle);
+    fputll(0, fileHandle);
+
+    uint32_t groupCount = 0;
+    for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
+        for (SSymbol* sym = g_pHashedSymbols[i]; sym != NULL; sym = list_GetNext(sym)) {
+            if (sym->eType == SYM_GROUP) {
+                sym->ID = groupCount++;
+                fputsz(str_String(sym->pName), fileHandle);
+                fputll(sym->Value.GroupType | (sym->nFlags & (SYMF_CHIP | SYMF_DATA)), fileHandle);
+            }
+        }
+    }
+
+    fseeko(fileHandle, sizePos, SEEK_SET);
+    fputll(groupCount, fileHandle);
+
+    fseeko(fileHandle, 0, SEEK_END);
+}
+
+static void
+writeExportedConstantsSection(FILE* fileHandle) {
+    fputll(UINT32_MAX, fileHandle);  //	GroupID , -1 for EQU symbols
+    fputc(0, fileHandle);            //	Name
+    fputll(UINT32_MAX, fileHandle);  //	Bank
+    fputll(UINT32_MAX, fileHandle);  //	Org
+    fputll(UINT32_MAX, fileHandle);  //	BasePC
+
+    off_t symbolCountPos = ftell(fileHandle);
+    fputll(0, fileHandle);        //	Number of symbols
+    uint32_t integerExportCount = 0;
+
+    for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
+        for (SSymbol* sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym)) {
+            if ((sym->eType == SYM_EQU || sym->eType == SYM_SET) && (sym->nFlags & SYMF_EXPORT)) {
+                ++integerExportCount;
+                fputsz(str_String(sym->pName), fileHandle);
+                fputll(0, fileHandle);    /* EXPORT */
+                fputll((uint32_t) sym->Value.Value, fileHandle);
+            }
+        }
+    }
+
+    fseek(fileHandle, symbolCountPos, SEEK_SET);
+    fputll(integerExportCount, fileHandle);
+    fseek(fileHandle, 0, SEEK_END);
+
+    fputll(0, fileHandle); // Size
+}
+
+static void
+writeSectionSymbols(FILE* fileHandle, SSection* section) {
+    off_t symbolCountPosition = ftello(fileHandle);
+    fputll(0, fileHandle);
+
+    uint32_t symbolId = writeExportedSymbols(fileHandle, section, 0);
+
+    // Calculate and export symbols IDs by going through patches
+    for (SPatch* patch = section->pPatches; patch; patch = list_GetNext(patch)) {
+        if (patch->pSection == section) {
+            symbolId = writeSymbols(section, fileHandle, patch->pExpression, symbolId);
+        }
+    }
+
+    // Fix up number of symbols
+    fseeko(fileHandle, symbolCountPosition, SEEK_SET);
+    fputll(symbolId, fileHandle);
+    fseeko(fileHandle, 0, SEEK_END);
+}
+
+static void
+writeSectionPatches(FILE* fileHandle, SSection* section) {
+    off_t patchCountPos = ftell(fileHandle);
+    fputll(0, fileHandle);
+
+    uint32_t totalPatches = 0;
+    for (SPatch* patch = section->pPatches; patch; patch = list_GetNext(patch)) {
+        if (patch->pSection == section) {
+            writePatch(fileHandle, patch);
+            totalPatches += 1;
+        }
+    }
+
+    fseek(fileHandle, patchCountPos, SEEK_SET);
+    fputll(totalPatches, fileHandle);
+    fseek(fileHandle, 0, SEEK_END);
+}
+
+static void
+writeSection(FILE* fileHandle, SSection* section) {
+    fputll(section->pGroup->ID, fileHandle);
+    fputsz(str_String(section->Name), fileHandle);
+    if (section->Flags & SECTF_BANKFIXED) {
+        assert(g_pConfiguration->bSupportBanks);
+        fputll(section->Bank, fileHandle);
+    } else {
+        fputll(UINT32_MAX, fileHandle);
+    }
+
+    fputll(section->Flags & SECTF_LOADFIXED ? section->Position : UINT32_MAX, fileHandle);
+    fputll(section->Flags & SECTF_LOADFIXED ? section->BasePC : UINT32_MAX, fileHandle);
+
+    writeSectionSymbols(fileHandle, section);
+
+    fputll(section->UsedSpace, fileHandle);
+    if (section->pGroup->Value.GroupType == GROUP_TEXT) {
+        fwrite(section->pData, 1, section->UsedSpace, fileHandle);
+        writeSectionPatches(fileHandle, section);
+    }
 }
 
 
+/* Public functions */
 
+bool
+obj_Write(string* pName) {
+    FILE* fileHandle;
+    if ((fileHandle = fopen(str_String(pName), "wb")) == NULL)
+        return false;
 
-//	Public routines
+    fwrite("XOB\1", 1, 4, fileHandle);
+    fputc(g_pConfiguration->eMinimumWordSize, fileHandle);
 
-bool obj_Write(string* pName) {
-	FILE* f;
-	uint32_t groupcount = 0;
-	uint32_t equsetcount = 0;
-	uint32_t sectioncount = 0;
-	long pos;
-	long pos2;
-	SSection* sect;
+    writeGroups(fileHandle);
 
-	if ((f = fopen(str_String(pName), "wb")) == NULL)
-		return false;
+    //	Output sections
 
-	fwrite("XOB\1", 1, 4, f);
-	fputc(g_pConfiguration->eMinimumWordSize, f);
-	fputll(0, f);
+    uint32_t sectionCount = sect_TotalSections();
+    fputll(sectionCount + 1, fileHandle);
 
-	for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-		SSymbol* sym = g_pHashedSymbols[i];
+    writeExportedConstantsSection(fileHandle);
 
-		while (sym) {
-			if (sym->eType == SYM_GROUP) {
-				sym->ID = groupcount++;
-				fputsz(str_String(sym->pName), f);
-				fputll((sym->Value.GroupType) | (sym->nFlags & (SYMF_CHIP | SYMF_DATA)), f);
-			}
-			sym = list_GetNext(sym);
-		}
-	}
+    markLocalExports();
 
-	pos = ftell(f);
-	fseek(f, 5, SEEK_SET);
-	fputll(groupcount, f);
-	fseek(f, pos, SEEK_SET);
+    for (SSection* section = g_pSectionList; section; section = list_GetNext(section)) {
+        writeSection(fileHandle, section);
+    }
 
-	//	Output sections
-
-	for (sect = g_pSectionList; sect; sect = list_GetNext(sect))
-		++sectioncount;
-
-	fputll(sectioncount + 1, f);
-
-	//	Output exported EQU and SET section
-	fputll(UINT32_MAX, f);  //	GroupID , -1 for EQU symbols
-	fputc(0, f);            //	Name
-	fputll(UINT32_MAX, f);  //	Bank
-	fputll(UINT32_MAX, f);  //	Org
-	fputll(UINT32_MAX, f);  //	BasePC
-	pos = ftell(f);
-	fputll(0, f);        //	Number of symbols
-
-	for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-		SSymbol* sym;
-
-		for (sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym)) {
-			if ((sym->eType == SYM_EQU || sym->eType == SYM_SET) && (sym->nFlags & SYMF_EXPORT)) {
-				++equsetcount;
-				fputsz(str_String(sym->pName), f);
-				fputll(0, f);    /* EXPORT */
-				fputll(sym->Value.Value, f);
-			}
-		}
-	}
-
-	pos2 = ftell(f);
-	fseek(f, pos, SEEK_SET);
-	fputll(equsetcount, f);
-	fseek(f, pos2, SEEK_SET);
-	fputll(0, f);        //	Size
-
-	//	Fix symbols that should be locally exported
-
-	for (sect = g_pSectionList; sect; sect = list_GetNext(sect)) {
-		SPatch* patch;
-
-		for (patch = sect->pPatches; patch; patch = list_GetNext(patch)) {
-			if (patch->pSection == sect)
-				fix_local_exports(sect, patch->pExpression);
-		}
-	}
-
-
-	//	Output other sections
-
-	for (sect = g_pSectionList; sect; sect = list_GetNext(sect)) {
-		SPatch* patch;
-		long sympos;
-		long oldpos;
-		uint32_t ID;
-		long totalpatches;
-
-		fputll(sect->pGroup->ID, f);
-		fputsz(str_String(sect->Name), f);
-		if (sect->Flags & SECTF_BANKFIXED) {
-			if (!g_pConfiguration->bSupportBanks)
-				internalerror("Banks not supported");
-			fputll(sect->Bank, f);
-		} else
-			fputll(UINT32_MAX, f);
-
-		fputll(sect->Flags & SECTF_LOADFIXED ? sect->Position : -1, f);
-		fputll(sect->Flags & SECTF_LOADFIXED ? sect->BasePC : -1, f);
-
-		//	Reset symbol IDs
-
-		sympos = ftell(f);
-		fputll(0, f);
-
-		ID = 0;
-
-		for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-			SSymbol* sym;
-
-			for (sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym)) {
-				if (sym->eType != SYM_GROUP)
-					sym->ID = (uint32_t) -1;
-
-				if (sym->pSection == sect && (sym->nFlags & (SYMF_EXPORT | SYMF_LOCALEXPORT))) {
-					sym->ID = ID++;
-
-					fputsz(str_String(sym->pName), f);
-					if (sym->nFlags & SYMF_EXPORT)
-						fputll(0, f);    //	EXPORT
-					else if (sym->nFlags & SYMF_LOCALEXPORT)
-						fputll(3, f);    //	LOCALEXPORT
-					fputll(sym->Value.Value, f);
-				}
-			}
-		}
-
-		//	Calculate and export symbols IDs by going through patches
-
-		for (totalpatches = 0, patch = sect->pPatches; patch; patch = list_GetNext(patch)) {
-			if (patch->pSection == sect) {
-				ID = calc_symbol_ids(sect, f, patch->pExpression, ID);
-				++totalpatches;
-			}
-		}
-
-		//	Fix up number of symbols
-
-		oldpos = ftell(f);
-		fseek(f, sympos, SEEK_SET);
-		fputll(ID, f);
-		fseek(f, oldpos, SEEK_SET);
-
-/*
-*			uint32_t	Size
-*			IF	SectionCanContainData
-*					uint8_t	Data[Size]
-*					uint32_t	NumberOfPatches
-*					REPT	NumberOfPatches
-*							uint32_t	Offset
-*							uint32_t	Type
-*							uint32_t	ExprSize
-*							uint8_t	Expr[ExprSize]
-*					ENDR
-*			ENDC
-*/
-
-		fputll(sect->UsedSpace, f);
-
-		if (sect->pGroup->Value.GroupType == GROUP_TEXT) {
-			fwrite(sect->pData, 1, sect->UsedSpace, f);
-			fputll(totalpatches, f);
-
-			for (patch = sect->pPatches; patch; patch = list_GetNext(patch)) {
-				if (patch->pSection == sect)
-					write_patch(f, patch);
-			}
-		}
-	}
-
-	fclose(f);
-	return true;
+    fclose(fileHandle);
+    return true;
 }

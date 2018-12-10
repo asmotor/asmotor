@@ -40,7 +40,7 @@ void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
 
 void locopt_Open(void)
 {
-	g_pOptions->pMachine->nCpu = CPUF_SCHIP;
+	opt_Current->machineOptions->nCpu = CPUF_SCHIP;
 }
 
 void locopt_Update(void)
@@ -60,10 +60,10 @@ bool locopt_Parse(char* s)
 				switch(s[1] - '0')
 				{
 					case 0:
-						g_pOptions->pMachine->nCpu = CPUF_CHIP8;
+						opt_Current->machineOptions->nCpu = CPUF_CHIP8;
 						return true;
 					case 1:
-						g_pOptions->pMachine->nCpu = CPUF_SCHIP;
+						opt_Current->machineOptions->nCpu = CPUF_SCHIP;
 						return true;
 					default:
 						break;

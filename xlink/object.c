@@ -46,7 +46,7 @@
  *									;3=LOCALEXPORT
  *									;4=LOCALIMPORT
  *					IF Type==EXPORT or LOCAL or LOCALEXPORT
- *						int32_t	Value
+ *						int32_t	value
  *					ENDC
  *			ENDR
  *			uint32_t	Size

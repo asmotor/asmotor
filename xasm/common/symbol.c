@@ -65,18 +65,18 @@ SSymbol* g_pHashedSymbols[HASHSIZE];
 static int32_t Callback__NARG(SSymbol* pSym) {
 	assert(pSym != NULL);
 
-	return fstk_GetMacroArgCount();
+	return fstk_GetMacroArgumentCount();
 }
 
 static int32_t Callback__LINE(SSymbol* pSym) {
 	assert(pSym != NULL);
 
-	SFileStackEntry* p = g_currentContext;
+	SFileStackEntry* p = fstk_Current;
 	while (list_GetNext(p)) {
 		p = list_GetNext(p);
 	}
 
-	return p->LineNumber;
+	return p->lineNumber;
 }
 
 static string* Callback__DATE(SSymbol* pSym) {

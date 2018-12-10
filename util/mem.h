@@ -22,15 +22,23 @@
 #include <stdlib.h>
 
 #if defined(_DEBUG)
-extern void* mem_AllocImpl(size_t size, char* filename, int lineNumber);
-extern void* mem_ReallocImpl(void* pMem, size_t size, char* filename, int lineNumber);
+extern void*
+mem_AllocImpl(size_t size, char* filename, int lineNumber);
+
+extern void*
+mem_ReallocImpl(void* memory, size_t size, char* filename, int lineNumber);
+
 #define mem_Alloc(size) mem_AllocImpl(size, __FILE__, __LINE__)
-#define mem_Realloc(mem, size) mem_ReallocImpl(mem, size, __FILE__, __LINE__)
+#define mem_Realloc(memory, size) mem_ReallocImpl(memory, size, __FILE__, __LINE__)
 #else
-extern void* mem_Alloc(size_t size);
-extern void* mem_Realloc(void* memory, size_t size);
+extern void*
+mem_Alloc(size_t size);
+
+extern void*
+mem_Realloc(void* memory, size_t size);
 #endif
 
-extern void mem_Free(void* memory);
+extern void
+mem_Free(void* memory);
 
 #endif

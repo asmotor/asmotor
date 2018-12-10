@@ -20,7 +20,7 @@
 #include "lexer.h"
 #include "localasm.h"
 
-static SLexInitString localstrings[]=
+static SLexerTokenDefinition localstrings[]=
 {
 	{ "abcd",	T_68K_ABCD	},
 	{ "add",	T_68K_ADD	},
@@ -508,5 +508,5 @@ static SLexInitString localstrings[]=
 
 void	loclexer_Init(void)
 {
-	lex_AddStrings(localstrings);
+	lex_DefineTokens(localstrings);
 }

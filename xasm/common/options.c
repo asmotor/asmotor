@@ -25,180 +25,160 @@
 #include "mem.h"
 #include "options.h"
 #include "lexer.h"
-#include "globlex.h"
+#include "tokens.h"
 #include "project.h"
 #include "filestack.h"
 
-extern void locopt_Update(void);
-extern bool locopt_Parse(char*);
-extern void locopt_Open(void);
+extern void
+locopt_Update(void);
 
-SOptions* g_pOptions;
+extern bool
+locopt_Parse(char*);
 
-static void opt_Update(void)
-{
-	lex_FloatRemoveAll(BinaryConstID);
+extern void
+locopt_Open(void);
 
-	lex_FloatAddRange(BinaryConstID, '%', '%', 0);
-    lex_FloatAddRangeAndBeyond(BinaryConstID, g_pOptions->BinaryChar[0], g_pOptions->BinaryChar[0], 1);
-    lex_FloatAddRangeAndBeyond(BinaryConstID, g_pOptions->BinaryChar[1], g_pOptions->BinaryChar[1], 1);
+SOptions* opt_Current;
 
-	locopt_Update();
+static void
+opt_Update(void) {
+    lex_VariadicRemoveAll(tokens_binaryConstId);
+
+    lex_VariadicAddCharRange(tokens_binaryConstId, '%', '%', 0);
+    lex_VariadicAddCharRangeRepeating(tokens_binaryConstId, opt_Current->binaryLiteralCharacters[0], opt_Current->binaryLiteralCharacters[0], 1);
+    lex_VariadicAddCharRangeRepeating(tokens_binaryConstId, opt_Current->binaryLiteralCharacters[1], opt_Current->binaryLiteralCharacters[1], 1);
+
+    locopt_Update();
 }
 
-static SOptions* opt_Alloc(void)
-{
-	SOptions* nopt = (SOptions*)mem_Alloc(sizeof(SOptions));
-	memset(nopt, 0, sizeof(SOptions));
-	nopt->pMachine = locopt_Alloc();
-	return nopt;
+static SOptions*
+opt_Alloc(void) {
+    SOptions* nopt = (SOptions*) mem_Alloc(sizeof(SOptions));
+    memset(nopt, 0, sizeof(SOptions));
+    nopt->machineOptions = locopt_Alloc();
+    return nopt;
 }
 
-static void opt_Copy(SOptions* pDest, SOptions* pSrc)
-{
-	struct MachineOptions* p = pDest->pMachine;
+static void
+opt_Copy(SOptions* pDest, SOptions* pSrc) {
+    struct MachineOptions* p = pDest->machineOptions;
 
-	*pDest = *pSrc;
-	pDest->pMachine = p;
+    *pDest = *pSrc;
+    pDest->machineOptions = p;
 
-	locopt_Copy(pDest->pMachine, pSrc->pMachine);
+    locopt_Copy(pDest->machineOptions, pSrc->machineOptions);
 }
 
-void opt_Push(void)
-{
-	SOptions* nopt = opt_Alloc();
-	opt_Copy(nopt, g_pOptions);
+void
+opt_Push(void) {
+    SOptions* nopt = opt_Alloc();
+    opt_Copy(nopt, opt_Current);
 
-	list_Insert(g_pOptions, nopt);
+    list_Insert(opt_Current, nopt);
 }
 
-void	opt_Pop(void)
-{
-	if(!list_isLast(g_pOptions))
-	{
-		SOptions* nopt = g_pOptions;
+void
+opt_Pop(void) {
+    if (!list_isLast(opt_Current)) {
+        SOptions* nopt = opt_Current;
 
-		list_Remove(g_pOptions, g_pOptions);
-		mem_Free(nopt);
-		opt_Update();
-	}
-	else
-	{
-		prj_Warn(WARN_OPTION_POP);
-	}
+        list_Remove(opt_Current, opt_Current);
+        mem_Free(nopt);
+        opt_Update();
+    } else {
+        prj_Warn(WARN_OPTION_POP);
+    }
 }
 
-void	opt_Parse(char* s)
-{
-	switch(s[0])
-	{
-		case 'w':
-		{
-			int w;
-			if(g_pOptions->nTotalDisabledWarnings < MAXDISABLEDWARNINGS
-			&& 1 == sscanf(&s[1], "%d", &w))
-			{
-				g_pOptions->aDisabledWarnings[g_pOptions->nTotalDisabledWarnings++] = (uint16_t)w;
-			}
-			else
-				prj_Warn(WARN_OPTION, s);
-			break;
-		}
-		case 'i':
-		{
-			string* pPath = str_Create(&s[1]);
-			fstk_AddIncludePath(pPath);
-			str_Free(pPath);
-			break;
-		}
-		case 'e':
-		{
-			switch(s[1])
-			{
-				case 'b':
-					g_pOptions->Endian = ASM_BIG_ENDIAN;
-					break;
-				case 'l':
-					g_pOptions->Endian = ASM_LITTLE_ENDIAN;
-					break;
-				default:
-					prj_Warn(WARN_OPTION, s);
-					break;
-			}
-			break;
-		}
-		case 'm':
-		{
-			locopt_Parse(&s[1]);
-			break;
-		}
-		case 'b':
-		{
-			if(strlen(&s[1]) == 2)
-			{
-				g_pOptions->BinaryChar[0] = s[1];
-				g_pOptions->BinaryChar[1] = s[2];
-			}
-			else
-			{
-				prj_Warn(WARN_OPTION, s);
-			}
-			break;
-		}
-		case 'z':
-		{
-			if(strlen(&s[1]) <= 2)
-			{
-				if(strcmp(&s[1], "?") == 0)
-				{
-					g_pOptions->UninitChar = -1;
-				}
-				else
-				{
-					unsigned int nUninitChar;
-					int	result = sscanf(&s[1], "%x", &nUninitChar);
-					g_pOptions->UninitChar = (int)nUninitChar;
-					if(result == EOF || result != 1)
-					{
-						prj_Warn(WARN_OPTION, s);
-					}
-				}
-			}
-			else
-			{
-				prj_Warn(WARN_OPTION, s);
-			}
-			break;
-		}
-		default:
-		{
-			prj_Warn(WARN_OPTION, s);
-			break;
-		}
-	}
-	opt_Update();
+void
+opt_Parse(char* s) {
+    switch (s[0]) {
+        case 'w': {
+            int w;
+            if (opt_Current->disabledWarningsCount < MAX_DISABLED_WARNINGS && 1 == sscanf(&s[1], "%d", &w)) {
+                opt_Current->disabledWarnings[opt_Current->disabledWarningsCount++] = (uint16_t) w;
+            } else {
+                prj_Warn(WARN_OPTION, s);
+            }
+            break;
+        }
+        case 'i': {
+            string* pPath = str_Create(&s[1]);
+            fstk_AddIncludePath(pPath);
+            str_Free(pPath);
+            break;
+        }
+        case 'e': {
+            switch (s[1]) {
+                case 'b':
+                    opt_Current->endianness = ASM_BIG_ENDIAN;
+                    break;
+                case 'l':
+                    opt_Current->endianness = ASM_LITTLE_ENDIAN;
+                    break;
+                default:
+                    prj_Warn(WARN_OPTION, s);
+                    break;
+            }
+            break;
+        }
+        case 'm': {
+            locopt_Parse(&s[1]);
+            break;
+        }
+        case 'b': {
+            if (strlen(&s[1]) == 2) {
+                opt_Current->binaryLiteralCharacters[0] = (uint8_t) s[1];
+                opt_Current->binaryLiteralCharacters[1] = (uint8_t) s[2];
+            } else {
+                prj_Warn(WARN_OPTION, s);
+            }
+            break;
+        }
+        case 'z': {
+            if (strlen(&s[1]) <= 2) {
+                if (strcmp(&s[1], "?") == 0) {
+                    opt_Current->uninitializedValue = 0xFF;
+                } else {
+                    int uninitializedValue;
+                    int result = sscanf(&s[1], "%x", &uninitializedValue);
+                    opt_Current->uninitializedValue = (uint8_t) uninitializedValue;
+                    if (result == EOF || result != 1) {
+                        prj_Warn(WARN_OPTION, s);
+                    }
+                }
+            } else {
+                prj_Warn(WARN_OPTION, s);
+            }
+            break;
+        }
+        default: {
+            prj_Warn(WARN_OPTION, s);
+            break;
+        }
+    }
+    opt_Update();
 }
 
-void opt_Open(void)
-{
-	g_pOptions = opt_Alloc();
+void
+opt_Open(void) {
+    opt_Current = opt_Alloc();
 
-	g_pOptions->Endian = g_pConfiguration->eDefaultEndianness;
-	g_pOptions->BinaryChar[0] = '0';
-	g_pOptions->BinaryChar[1] = '1';
-	g_pOptions->UninitChar = -1;
-	g_pOptions->nTotalDisabledWarnings = 0;
-	g_pOptions->bAllowReservedIdentifierLabels = true;
-	locopt_Open();
-	opt_Update();
+    opt_Current->endianness = g_pConfiguration->eDefaultEndianness;
+    opt_Current->binaryLiteralCharacters[0] = '0';
+    opt_Current->binaryLiteralCharacters[1] = '1';
+    opt_Current->uninitializedValue = 0xFF;
+    opt_Current->disabledWarningsCount = 0;
+    opt_Current->allowReservedKeywordLabels = true;
+    locopt_Open();
+    opt_Update();
 }
 
-void opt_Close(void)
-{
-	while(g_pOptions != NULL)
-	{
-		SOptions* t = g_pOptions;
-		list_Remove(g_pOptions, g_pOptions);
-		mem_Free(t);
-	}
+void
+opt_Close(void) {
+    while (opt_Current != NULL) {
+        SOptions* t = opt_Current;
+        list_Remove(opt_Current, opt_Current);
+        mem_Free(t);
+    }
 }

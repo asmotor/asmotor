@@ -60,10 +60,10 @@ bool locopt_Parse(char* s)
 				switch(s[1] - '0')
 				{
 					case 0:
-						g_pOptions->pMachine->bOptimize = false;
+						opt_Current->machineOptions->bOptimize = false;
 						return true;
 					case 1:
-						g_pOptions->pMachine->bOptimize = true;
+						opt_Current->machineOptions->bOptimize = true;
 						return true;
 					default:
 						break;

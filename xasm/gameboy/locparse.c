@@ -188,8 +188,8 @@ static SAddrMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
 #define MODE_GROUP_IY_IND_DISP (MODE_REG_IY_IND | MODE_REG_IY_IND_DISP)
 #define MODE_GROUP_I_IND_DISP (MODE_GROUP_IX_IND_DISP | MODE_GROUP_IY_IND_DISP)
 
-#define IS_Z80 (g_pOptions->pMachine->nCpu & CPUF_Z80)
-#define IS_GB  (g_pOptions->pMachine->nCpu & CPUF_GB)
+#define IS_Z80 (opt_Current->machineOptions->nCpu & CPUF_Z80)
+#define IS_GB  (opt_Current->machineOptions->nCpu & CPUF_GB)
 
 static SExpression* parse_CreateExpressionNBit(SExpression* pExpr, int nLowLimit, int nHighLimit, int nBits)
 {
@@ -960,14 +960,14 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 
 static bool parse_AddrMode(SAddrMode* pAddrMode)
 {
-	if(g_CurrentToken.Token >= T_MODE_B
-	&& g_CurrentToken.Token <= T_CC_M)
+	if(lex_Current.token >= T_MODE_B
+	&& lex_Current.token <= T_CC_M)
 	{
-		int mode = g_CurrentToken.Token;
+		int mode = lex_Current.token;
 
 		parse_GetToken();
 
-		if(mode == T_MODE_SP && (g_CurrentToken.Token == T_OP_ADD || g_CurrentToken.Token == T_OP_SUB))
+		if(mode == T_MODE_SP && (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUB))
 		{
 			SExpression* pExpr = parse_CreateExpression8S(parse_Expression(1));
 			if(pExpr != NULL)
@@ -982,23 +982,23 @@ static bool parse_AddrMode(SAddrMode* pAddrMode)
 		return true;
 	}
 
-	if(g_CurrentToken.Token == '[' || g_CurrentToken.Token == '(')
+	if(lex_Current.token == '[' || lex_Current.token == '(')
 	{
-		char endToken = (char) (g_CurrentToken.Token == '[' ? ']' : ')');
-		SLexBookmark bm;
+		char endToken = (char) (lex_Current.token == '[' ? ']' : ')');
+		SLexerBookmark bm;
 
 		lex_Bookmark(&bm);
 		parse_GetToken();
 
-		if(g_CurrentToken.Token == T_MODE_IX
-		|| g_CurrentToken.Token == T_MODE_IY)
+		if(lex_Current.token == T_MODE_IX
+		|| lex_Current.token == T_MODE_IY)
 		{
-			int regToken = g_CurrentToken.Token;
+			int regToken = lex_Current.token;
 
 			parse_GetToken();
 
-			if(g_CurrentToken.Token == T_OP_ADD
-			|| g_CurrentToken.Token == T_OP_SUB)
+			if(lex_Current.token == T_OP_ADD
+			|| lex_Current.token == T_OP_SUB)
 			{
 				SExpression* pExpr = parse_CreateExpression8S(parse_Expression(1));
 
@@ -1024,7 +1024,7 @@ static bool parse_AddrMode(SAddrMode* pAddrMode)
 		lex_Goto(&bm);
 	}
 
-	if(g_CurrentToken.Token == '[')
+	if(lex_Current.token == '[')
 	{
 		SExpression* pExpr;
 
@@ -1044,7 +1044,7 @@ static bool parse_AddrMode(SAddrMode* pAddrMode)
 
 	/* Try expression */
 	{
-		SLexBookmark bm;
+		SLexerBookmark bm;
 		SExpression* pExpr;
 
 		lex_Bookmark(&bm);
@@ -1072,10 +1072,10 @@ static bool parse_AddrMode(SAddrMode* pAddrMode)
 
 bool parse_TargetSpecific(void)
 {
-	if((g_CurrentToken.Token >= T_Z80_ADC && g_CurrentToken.Token <= T_Z80_XOR)
-	|| g_CurrentToken.Token == T_POP_SET)
+	if((lex_Current.token >= T_Z80_ADC && lex_Current.token <= T_Z80_XOR)
+	|| lex_Current.token == T_POP_SET)
 	{
-		int nToken = (g_CurrentToken.Token == T_POP_SET ? T_Z80_SET : g_CurrentToken.Token) - T_Z80_ADC;
+		int nToken = (lex_Current.token == T_POP_SET ? T_Z80_SET : lex_Current.token) - T_Z80_ADC;
 		SOpcode* pOpcode = &g_aOpcodes[nToken];
 		SAddrMode addrMode1;
 		SAddrMode addrMode2;
@@ -1091,7 +1091,7 @@ bool parse_TargetSpecific(void)
 		{
 			if(parse_AddrMode(&addrMode1))
 			{
-				if(g_CurrentToken.Token == ',')
+				if(lex_Current.token == ',')
 				{
 					parse_GetToken();
 					if(!parse_AddrMode(&addrMode2))
@@ -1122,9 +1122,9 @@ bool parse_TargetSpecific(void)
 			if((addrMode2.nMode & pOpcode->nAddrMode2)
 			|| (addrMode2.nMode == 0 && ((pOpcode->nAddrMode2 == 0) || (pOpcode->nAddrMode2 & MODE_NONE))))
 			{
-				if((g_pOptions->pMachine->nCpu & pOpcode->nCpu)
-				&& (g_pOptions->pMachine->nCpu & addrMode1.nCpu)
-				&& (g_pOptions->pMachine->nCpu & addrMode2.nCpu))
+				if((opt_Current->machineOptions->nCpu & pOpcode->nCpu)
+				&& (opt_Current->machineOptions->nCpu & addrMode1.nCpu)
+				&& (opt_Current->machineOptions->nCpu & addrMode2.nCpu))
 				{
 					return pOpcode->pParser(pOpcode, pOpcode->nAddrMode1 != 0 ? &addrMode1 : NULL, pOpcode->nAddrMode2 != 0 ? &addrMode2 : NULL);
 				}

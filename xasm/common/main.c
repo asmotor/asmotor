@@ -29,7 +29,7 @@
 #include "amigaobject.h"
 #include "section.h"
 #include "symbol.h"
-#include "globlex.h"
+#include "tokens.h"
 #include "options.h"
 #include "project.h"
 #include "filestack.h"
@@ -39,232 +39,199 @@
 #include "binaryobject.h"
 #include "xasm.h"
 
-
-
-
-/*	Some global variables*/
+/* Some global variables */
 
 uint32_t g_nTotalLines = 0;
 uint32_t g_nTotalErrors = 0;
 uint32_t g_nTotalWarnings = 0;
 
-
-
-
 /*	Help text*/
 
-void printUsage(void)
-{
-    printf(
-		"%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
-   		"Options:\n"
-   		"    -b<AS>  Change the two characters used for binary constants\n"
-		"            (default is 01)\n"
-   		"    -e(l|b) Change endianness (CAUTION!)\n"
-		"    -f<f>   Output format, one of\n"
-		"                x - xobj (default)\n"
-		"                b - binary file\n"
-		"                v - verilog readmemh file\n",
-		g_pConfiguration->pszExecutable, g_pConfiguration->pszBackendVersion, g_pConfiguration->pszExecutable);
+void
+printUsage(void) {
+    printf("%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
+           "Options:\n"
+           "    -b<AS>  Change the two characters used for binary constants\n"
+           "            (default is 01)\n"
+           "    -e(l|b) Change endianness (CAUTION!)\n"
+           "    -f<f>   Output format, one of\n"
+           "                x - xobj (default)\n"
+           "                b - binary file\n"
+           "                v - verilog readmemh file\n", g_pConfiguration->pszExecutable,
+           g_pConfiguration->pszBackendVersion, g_pConfiguration->pszExecutable);
 
-	if(g_pConfiguration->bSupportAmiga)
-	{
-		printf(
-		"                g - Amiga executable file\n"
-		"                h - Amiga object file\n");
-	}
+    if (g_pConfiguration->bSupportAmiga) {
+        printf("                g - Amiga executable file\n"
+               "                h - Amiga object file\n");
+    }
 
-	printf(
-		"    -h      This text\n"
-   		"    -i<dir> Extra include path (can appear more than once)\n"
-   		"    -o<f>   Write assembly output to <file>\n"
-		"    -v      Verbose text output\n"
-		"    -w<d>   Disable warning <d> (four digits)\n"
-   		"    -z<XX>  Set the byte value (hex format) used for uninitialised\n"
-		"            data (default is ? for random)\n"
-		"\n"
-		"Machine specific options:\n");
-	locopt_PrintOptions();
+    printf("    -h      This text\n"
+           "    -i<dir> Extra include path (can appear more than once)\n"
+           "    -o<f>   Write assembly output to <file>\n"
+           "    -v      Verbose text output\n"
+           "    -w<d>   Disable warning <d> (four digits)\n"
+           "    -z<XX>  Set the byte value (hex format) used for uninitialised\n"
+           "            data (default is ? for random)\n"
+           "\n"
+           "Machine specific options:\n");
+    locopt_PrintOptions();
     exit(EXIT_SUCCESS);
 }
 
-
-
-
 /*	This thing runs the show*/
 
-extern int xasm_Main(int argc, char* argv[])
-{
-	char format = 'x';
-	int	argn = 1;
-	int	rcode;
-	clock_t	StartClock;
-	clock_t EndClock;
-	string* pOutname = NULL;
-	bool debuginfo = false;
-	bool verbose = false;
+extern int
+xasm_Main(int argc, char* argv[]) {
+    char format = 'x';
+    int argn = 1;
+    int rcode;
+    clock_t StartClock;
+    clock_t EndClock;
+    string* pOutname = NULL;
+    bool debuginfo = false;
+    bool verbose = false;
 
 #if defined(_DEBUG)
-	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG)| _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
-	atexit(getchar);
+    _CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG)| _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
+    atexit(getchar);
 #endif
 
     StartClock = clock();
 
-	argc -= 1;
-	if(argc == 0)
-		printUsage();
+    argc -= 1;
+    if (argc == 0)
+        printUsage();
 
-	sect_Init();
-	sym_Init();
-	globlex_Init();
-	loclexer_Init();
+    sect_Init();
+    sym_Init();
+    tokens_Init();
+    loclexer_Init();
 
-	opt_Open();
+    opt_Open();
 
-	while(argc && argv[argn][0] == '-')
-	{
-		switch(argv[argn][1])
-		{
-			case '?':
-			case 'h':
-				printUsage();
-				break;
-			case 'g':
-				debuginfo = true;
-				break;
-			case 'v':
-				verbose = true;
-				break;
-			case 'f':
-				if(strlen(argv[argn]) > 2)
-				{
-					switch(argv[argn][2])
-					{
-						case 'x':
-						case 'b':
-						case 'v':
-							format = argv[argn][2];
-							break;
-						case 'g':
-						case 'h':
-							if(g_pConfiguration->bSupportAmiga)
-							{
-								format = argv[argn][2];
-								break;
-							}
-						default:
-							prj_Warn(WARN_OPTION, argv[argn]);
-							break;
-					}
-				}
-				break;
-			case 'o':
-				pOutname = str_Create(&argv[argn][2]);
-				break;
-			case 'i':
-			case 'e':
-			case 'm':
-			case 'b':
-			case 'w':
-			case 'z':
-				opt_Parse(&argv[argn][1]);
-				break;
-			default:
-				prj_Warn(WARN_OPTION, argv[argn]);
-				break;
-		}
-		++argn;
-		--argc;
-	}
+    while (argc && argv[argn][0] == '-') {
+        switch (argv[argn][1]) {
+            case '?':
+            case 'h':
+                printUsage();
+                break;
+            case 'g':
+                debuginfo = true;
+                break;
+            case 'v':
+                verbose = true;
+                break;
+            case 'f':
+                if (strlen(argv[argn]) > 2) {
+                    switch (argv[argn][2]) {
+                        case 'x':
+                        case 'b':
+                        case 'v':
+                            format = argv[argn][2];
+                            break;
+                        case 'g':
+                        case 'h':
+                            if (g_pConfiguration->bSupportAmiga) {
+                                format = argv[argn][2];
+                                break;
+                            }
+                        default:
+                            prj_Warn(WARN_OPTION, argv[argn]);
+                            break;
+                    }
+                }
+                break;
+            case 'o':
+                pOutname = str_Create(&argv[argn][2]);
+                break;
+            case 'i':
+            case 'e':
+            case 'm':
+            case 'b':
+            case 'w':
+            case 'z':
+                opt_Parse(&argv[argn][1]);
+                break;
+            default:
+                prj_Warn(WARN_OPTION, argv[argn]);
+                break;
+        }
+        ++argn;
+        --argc;
+    }
 
-	rcode = EXIT_SUCCESS;
+    rcode = EXIT_SUCCESS;
 
-	if(argc == 1)
-	{
-		string* source = str_Create(argv[argn]);
-		if(fstk_Init(source))
-		{
-			bool b = parse_Do();
+    if (argc == 1) {
+        string* source = str_Create(argv[argn]);
+        if (fstk_Init(source)) {
+            bool b = parse_Do();
 
-			if(b)
-			{
-				patch_OptimizeAll();
-				patch_BackPatch();
-			}
+            if (b) {
+                patch_OptimizeAll();
+                patch_BackPatch();
+            }
 
-			if(b && g_nTotalErrors == 0)
-			{
-				float timespent;
-				bool wr = false;
+            if (b && g_nTotalErrors == 0) {
+                float timespent;
+                bool wr = false;
 
-				if(verbose)
-				{
-					EndClock = clock();
+                if (verbose) {
+                    EndClock = clock();
 
-					timespent = ((float)(EndClock - StartClock))/CLOCKS_PER_SEC;
-					printf("Success! %u lines in %.02f seconds ", g_nTotalLines, timespent);
-					if(timespent == 0)
-					{
-						printf("\n");
-					}
-					else
-					{
-						printf("(%d lines/minute)\n", (int)(60/timespent*g_nTotalLines));
-					}
-					if(g_nTotalWarnings != 0)
-					{
-						printf("Encountered %u warnings\n", g_nTotalWarnings);
-					}
-				}
+                    timespent = ((float) (EndClock - StartClock)) / CLOCKS_PER_SEC;
+                    printf("Success! %u lines in %.02f seconds ", g_nTotalLines, timespent);
+                    if (timespent == 0) {
+                        printf("\n");
+                    } else {
+                        printf("(%d lines/minute)\n", (int) (60 / timespent * g_nTotalLines));
+                    }
+                    if (g_nTotalWarnings != 0) {
+                        printf("Encountered %u warnings\n", g_nTotalWarnings);
+                    }
+                }
 
-				if(pOutname != NULL)
-				{
-					switch(format)
-					{
-						case 'x':
-							wr = obj_Write(pOutname);
-							break;
-						case 'b':
-							wr = bin_Write(pOutname);
-							break;
-						case 'v':
-							wr = bin_WriteVerilog(pOutname);
-							break;
-						case 'g':
-							wr = ami_WriteExecutable(pOutname, debuginfo);
-							break;
-						case 'h':
-							wr = ami_WriteObject(pOutname, source);
-							break;
-						default:
-							break;
-					}
-					if(!wr)
-					{
-						remove(str_String(pOutname));
-					}
-				}
-			}
-			else
-			{
-				if(verbose)
-				{
-					printf("Encountered %u error%s", g_nTotalErrors, g_nTotalErrors > 1 ? "s" : "");
-					if(g_nTotalWarnings != 0)
-						printf(" and %u warning%s\n", g_nTotalWarnings, g_nTotalWarnings > 1 ? "s" : "");
-					else
-						printf("\n");
-				}
-				rcode = EXIT_FAILURE;
-			}
-			fstk_Cleanup();
-		}
-		str_Free(source);
-	}
+                if (pOutname != NULL) {
+                    switch (format) {
+                        case 'x':
+                            wr = obj_Write(pOutname);
+                            break;
+                        case 'b':
+                            wr = bin_Write(pOutname);
+                            break;
+                        case 'v':
+                            wr = bin_WriteVerilog(pOutname);
+                            break;
+                        case 'g':
+                            wr = ami_WriteExecutable(pOutname, debuginfo);
+                            break;
+                        case 'h':
+                            wr = ami_WriteObject(pOutname, source);
+                            break;
+                        default:
+                            break;
+                    }
+                    if (!wr) {
+                        remove(str_String(pOutname));
+                    }
+                }
+            } else {
+                if (verbose) {
+                    printf("Encountered %u error%s", g_nTotalErrors, g_nTotalErrors > 1 ? "s" : "");
+                    if (g_nTotalWarnings != 0)
+                        printf(" and %u warning%s\n", g_nTotalWarnings, g_nTotalWarnings > 1 ? "s" : "");
+                    else
+                        printf("\n");
+                }
+                rcode = EXIT_FAILURE;
+            }
+            fstk_Cleanup();
+        }
+        str_Free(source);
+    }
 
-	str_Free(pOutname);
-	opt_Close();
+    str_Free(pOutname);
+    opt_Close();
 
-	return rcode;
+    return rcode;
 }
