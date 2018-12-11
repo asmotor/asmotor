@@ -24,6 +24,7 @@
 #include "asmotor.h"
 #include "file.h"
 #include "mem.h"
+#include "strbuf.h"
 #include "lists.h"
 #include "lexer.h"
 #include "filestack.h"

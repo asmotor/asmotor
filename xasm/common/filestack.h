@@ -36,7 +36,7 @@ typedef struct FileStackEntry {
     EContextType type;
     string* name;
     SLexerBuffer* lexBuffer;
-    int32_t lineNumber;
+    uint32_t lineNumber;
 
     string* uniqueId;    /*	The \@ symbol */
     union {

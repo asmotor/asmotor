@@ -103,6 +103,10 @@ lex_GetChar(void);
 extern size_t
 lex_GetChars(char* dest, size_t length);
 
+INLINE string* lex_GetString(size_t length) {
+    return str_CreateStream(lex_GetChar, length);
+}
+
 extern bool
 lex_MatchChar(char ch);
 

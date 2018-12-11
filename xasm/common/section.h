@@ -55,11 +55,11 @@ extern	SSection* g_pSectionList;
 
 extern uint32_t sect_TotalSections(void);
 
-extern bool sect_SwitchTo(char* sectname, struct Symbol* group);
-extern bool sect_SwitchTo_LOAD(char* sectname, struct Symbol* group, uint32_t load);
-extern bool sect_SwitchTo_BANK(char* sectname, struct Symbol* group, uint32_t bank);
-extern bool sect_SwitchTo_LOAD_BANK(char* sectname, struct Symbol* group, uint32_t org, uint32_t bank);
-extern bool sect_SwitchTo_NAMEONLY(char* sectname);
+extern bool sect_SwitchTo(const string* sectname, struct Symbol* group);
+extern bool sect_SwitchTo_LOAD(const string* sectname, struct Symbol* group, uint32_t load);
+extern bool sect_SwitchTo_BANK(const string* sectname, struct Symbol* group, uint32_t bank);
+extern bool sect_SwitchTo_LOAD_BANK(const string* sectname, struct Symbol* group, uint32_t org, uint32_t bank);
+extern bool sect_SwitchTo_NAMEONLY(const string* sectname);
 extern bool sect_Init(void);
 extern void	sect_SetOrgAddress(uint32_t org);
 extern void	sect_SkipBytes(uint32_t count);

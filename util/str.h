@@ -33,6 +33,9 @@ extern string*
 str_CreateLength(const char* data, size_t length);
 
 extern string*
+str_CreateStream(char (*nextChar)(void), size_t length);
+
+extern string*
 str_Empty(void);
 
 extern void
@@ -44,8 +47,14 @@ str_Concat(const string* str1, const string* str2);
 extern string*
 str_Slice(const string* str1, ssize_t index, size_t length);
 
+extern uint32_t
+str_Find(const string* haystack, const string* needle);
+
 extern bool
 str_Equal(const string* str1, const string* str2);
+
+extern int
+str_Compare(const string* str1, const string* str2);
 
 extern bool
 str_EqualConst(const string* str1, const char* str2);
@@ -57,7 +66,13 @@ extern string*
 str_ToLower(const string* str);
 
 extern void
+str_TransformReplace(string** str, char (*transform)(char));
+
+extern void
 str_ToUpperReplace(string** str);
+
+extern void
+str_ToLowerReplace(string** str);
 
 INLINE string*
 str_Create(const char* data) {
@@ -65,10 +80,10 @@ str_Create(const char* data) {
 }
 
 INLINE string*
-str_Copy(string* str) {
+str_Copy(const string* str) {
     if (str != NULL)
-        ++str->refCount;
-    return str;
+        ++((string*) str)->refCount;
+    return (string*) str;
 }
 
 INLINE size_t
@@ -89,7 +104,7 @@ str_CharAt(const string* str, ssize_t index) {
 }
 
 INLINE void
-str_Assign(string** dest, string* src) {
+str_Assign(string** dest, const string* src) {
     str_Free(*dest);
     *dest = str_Copy(src);
 }

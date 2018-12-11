@@ -58,6 +58,15 @@ str_CreateLength(const char* data, size_t length) {
 }
 
 string*
+str_CreateStream(char (*nextChar)(void), size_t length) {
+    string* str = str_Alloc(length);
+    for (size_t i = 0; i < length; ++i) {
+        str_Set(str, i, nextChar());
+    }
+    str->data[length] = 0;
+}
+
+string*
 str_Empty() {
     if (g_emptyString == NULL) {
         g_emptyString = str_Alloc(0);
@@ -101,6 +110,16 @@ str_Slice(const string* str1, ssize_t index, size_t length) {
     return str_CreateLength(str_String(str1) + index, length);
 }
 
+uint32_t
+str_Find(const string* haystack, const string* needle) {
+    char* p = strstr(str_String(haystack), str_String(needle));
+    if (p != NULL) {
+        return (uint32_t)(p - str_String(haystack));
+    } else {
+        return UINT32_MAX;
+    }
+}
+
 bool
 str_Equal(const string* str1, const string* str2) {
     size_t length1 = str_Length(str1);
@@ -114,6 +133,22 @@ str_Equal(const string* str1, const string* str2) {
     }
 
     return true;
+}
+
+int
+str_Compare(const string* str1, const string* str2) {
+    const char* string1 = str_String(str1);
+    const char* string2 = str_String(str2);
+
+    while (*string1 && *string2) {
+        uint8_t l1 = (uint8_t) *string1++;
+        uint8_t l2 = (uint8_t) *string2++;
+
+        if (l1 != l2)
+            return l1 - l2;
+    }
+
+    return *string1 - *string2;
 }
 
 bool
@@ -158,11 +193,29 @@ str_ToLower(const string* str) {
 }
 
 void
-str_ToUpperReplace(string** str) {
+str_TransformReplace(string** str, char (*transform)(char)) {
     copyOnWrite(str);
 
     size_t len = str_Length(*str);
     for (size_t i = 0; i < len; ++i) {
-        str_Set(*str, i, (char) toupper(str_CharAt(*str, i)));
+        str_Set(*str, i, transform(str_CharAt(*str, i)));
     }
+}
+
+INLINE char charToUpper(char ch) {
+    return (char) toupper(ch);
+}
+
+INLINE char charToLower(char ch) {
+    return (char) tolower(ch);
+}
+
+void
+str_ToUpperReplace(string** str) {
+    str_TransformReplace(str, charToUpper);
+}
+
+void
+str_ToLowerReplace(string** str) {
+    str_TransformReplace(str, charToLower);
 }

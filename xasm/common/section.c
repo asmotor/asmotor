@@ -67,11 +67,11 @@ static EGroupType sect_GetCurrentType(void) {
 	return g_pCurrentSection->pGroup->Value.GroupType;
 }
 
-static SSection* sect_Create(const char* name) {
+static SSection* sect_Create(const string* name) {
 	SSection* sect = mem_Alloc(sizeof(SSection));
 	memset(sect, 0, sizeof(SSection));
 
-	sect->Name = str_Create(name);
+	sect->Name = str_Copy(name);
 	sect->FreeSpace = g_pConfiguration->nMaxSectionSize;
 
 	if (g_pSectionList) {
@@ -85,12 +85,12 @@ static SSection* sect_Create(const char* name) {
 	return sect;
 }
 
-static SSection* sect_Find(const char* name, SSymbol* group) {
+static SSection* sect_Find(const string* name, SSymbol* group) {
 	SSection* sect;
 
 	sect = g_pSectionList;
 	while (sect) {
-		if (str_EqualConst(sect->Name, name)) {
+		if (str_Equal(sect->Name, name)) {
 			if (group) {
 				if (sect->pGroup == group) {
 					return sect;
@@ -448,7 +448,7 @@ void sect_SkipBytes(uint32_t count) {
 	}
 }
 
-bool sect_SwitchTo(char* sectname, SSymbol* group) {
+bool sect_SwitchTo(const string* sectname, SSymbol* group) {
 	SSection* sect;
 
 	sect = sect_Find(sectname, group);
@@ -466,7 +466,7 @@ bool sect_SwitchTo(char* sectname, SSymbol* group) {
 	}
 }
 
-bool sect_SwitchTo_LOAD(char* sectname, SSymbol* group, uint32_t load) {
+bool sect_SwitchTo_LOAD(const string* sectname, SSymbol* group, uint32_t load) {
 	SSection* sect;
 
 	if ((sect = sect_Find(sectname, group)) != NULL) {
@@ -489,7 +489,7 @@ bool sect_SwitchTo_LOAD(char* sectname, SSymbol* group, uint32_t load) {
 	}
 }
 
-bool sect_SwitchTo_BANK(char* sectname, SSymbol* group, uint32_t bank) {
+bool sect_SwitchTo_BANK(const string* sectname, SSymbol* group, uint32_t bank) {
 	SSection* sect;
 
 	if (!g_pConfiguration->bSupportBanks)
@@ -516,7 +516,7 @@ bool sect_SwitchTo_BANK(char* sectname, SSymbol* group, uint32_t bank) {
 	return sect != NULL;
 }
 
-bool sect_SwitchTo_LOAD_BANK(char* sectname, SSymbol* group, uint32_t load, uint32_t bank) {
+bool sect_SwitchTo_LOAD_BANK(const string* sectname, SSymbol* group, uint32_t load, uint32_t bank) {
 	SSection* sect;
 
 	if (!g_pConfiguration->bSupportBanks)
@@ -544,7 +544,7 @@ bool sect_SwitchTo_LOAD_BANK(char* sectname, SSymbol* group, uint32_t load, uint
 	return sect != NULL;
 }
 
-bool sect_SwitchTo_NAMEONLY(char* sectname) {
+bool sect_SwitchTo_NAMEONLY(const string* sectname) {
 	if ((g_pCurrentSection = sect_Find(sectname, NULL)) != NULL) {
 		return true;
 	} else {

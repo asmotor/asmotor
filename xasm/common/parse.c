@@ -385,81 +385,79 @@ expressionPriority9(size_t maxStringConstLength) {
     }
 }
 
-static char*
+static string*
 stringExpression(void);
 
 static int32_t
-stringCompare(char* s) {
+stringCompare(string* s) {
     int32_t r = 0;
-    char* t;
 
     parse_GetToken();
-    if ((t = stringExpression()) != NULL) {
-        r = strcmp(s, t);
-        mem_Free(t);
+
+    string* t = stringExpression();
+    if (t != NULL) {
+        r = str_Compare(s, t);
+    } else {
+        prj_Error(ERROR_EXPR_STRING);
     }
-    mem_Free(s);
+
+    str_Free(t);
+    str_Free(s);
 
     return r;
 }
 
-static char*
+static string*
 parse_StringExpressionRaw_Pri0(void);
 
 static SExpression*
 parse_ExprPri8(size_t maxStringConstLength) {
     SLexerBookmark bm;
-    char* s;
-
     lex_Bookmark(&bm);
+
+    string* s;
     if ((s = parse_StringExpressionRaw_Pri0()) != NULL) {
         if (isDot(NULL)) {
             switch (lex_Current.token) {
                 case T_FUNC_COMPARETO: {
-                    SExpression* r = NULL;
-                    char* t;
-
                     parse_GetToken();
 
+                    SExpression* r = NULL;
                     if (parse_ExpectChar('(')) {
-                        if ((t = stringExpression()) != NULL) {
+                        string* t = stringExpression();
+                        if (t != NULL) {
                             if (parse_ExpectChar(')'))
-                                r = expr_Const(strcmp(s, t));
+                                r = expr_Const(str_Compare(s, t));
 
-                            mem_Free(t);
+                            str_Free(t);
                         }
                     }
 
-                    mem_Free(s);
+                    str_Free(s);
                     return r;
                 }
                 case T_FUNC_LENGTH: {
-                    SExpression* r = expr_Const((int32_t) strlen(s));
-                    mem_Free(s);
                     parse_GetToken();
 
+                    SExpression* r = expr_Const((int32_t) str_Length(s));
+                    str_Free(s);
                     return r;
                 }
                 case T_FUNC_INDEXOF: {
-                    SExpression* r = NULL;
                     parse_GetToken();
 
+                    SExpression* r = NULL;
                     if (parse_ExpectChar('(')) {
-                        char* needle;
-                        if ((needle = stringExpression()) != NULL) {
+                        string* needle = stringExpression();
+                        if (needle != NULL) {
                             if (parse_ExpectChar(')')) {
-                                char* p;
-                                int32_t val = -1;
-
-                                if ((p = strstr(s, needle)) != NULL)
-                                    val = (int32_t) (p - s);
-
-                                r = expr_Const(val);
+                                uint32_t val = str_Find(s, needle);
+                                r = expr_Const(val == UINT32_MAX ? -1 : val);
                             }
-                            mem_Free(needle);
+                            str_Free(needle);
                         }
                     }
-                    mem_Free(s);
+                    str_Free(s);
                     return r;
                 }
                 case T_OP_LOGICEQU: {
@@ -492,7 +490,7 @@ parse_ExprPri8(size_t maxStringConstLength) {
         }
     }
 
-    mem_Free(s);
+    str_Free(s);
     lex_Goto(&bm);
     return expressionPriority9(maxStringConstLength);
 }
@@ -855,30 +853,28 @@ parse_ConstantExpression() {
     return 0;
 }
 
-static char*
+static string*
 parse_StringExpressionRaw_Pri2(void) {
     SLexerBookmark bm;
     lex_Bookmark(&bm);
 
     switch (lex_Current.token) {
         case T_STRING: {
-            char* r = mem_Alloc(strlen(lex_Current.value.string) + 1);
-            strcpy(r, lex_Current.value.string);
+            string* r = str_CreateLength(lex_Current.value.string, lex_Current.length);
             parse_GetToken();
             return r;
         }
         case (EToken) '(': {
-            char* r;
-
             parse_GetToken();
-            r = parse_StringExpressionRaw_Pri0();
+
+            string* r = parse_StringExpressionRaw_Pri0();
             if (r != NULL) {
                 if (parse_ExpectChar(')'))
                     return r;
             }
 
             lex_Goto(&bm);
-            mem_Free(r);
+            str_Free(r);
             return NULL;
         }
         default:
@@ -887,67 +883,65 @@ parse_StringExpressionRaw_Pri2(void) {
     return NULL;
 }
 
-static char*
+static bool expectEmptyParens() {
+    if (!parse_ExpectChar('(')) {
+        return false;
+    }
+    return parse_ExpectChar(')');
+}
+
+static string*
 parse_StringExpressionRaw_Pri1(void) {
     SLexerBookmark bm;
-    char* t = parse_StringExpressionRaw_Pri2();
+    string* t = parse_StringExpressionRaw_Pri2();
 
     while (isDot(&bm)) {
         switch (lex_Current.token) {
             case T_FUNC_SLICE: {
-                int32_t start;
-                int32_t count;
-                int32_t len = (int32_t) strlen(t);
-
                 parse_GetToken();
 
                 if (!parse_ExpectChar('('))
                     return NULL;
 
-                start = parse_ConstantExpression();
+                int32_t len = (int32_t) str_Length(t);
+                int32_t start = parse_ConstantExpression();
                 if (start < 0) {
                     start = len + start;
                     if (start < 0)
                         start = 0;
                 }
 
+                int32_t count;
                 if (lex_Current.token == ',') {
                     parse_GetToken();
                     count = parse_ConstantExpression();
-                } else
+                } else {
                     count = len - start;
+                }
 
                 if (parse_ExpectChar(')')) {
-                    char* r = mem_Alloc((size_t) count + 1);
-
                     if (start + count >= len)
                         count = len - start;
 
-                    strncpy(r, t + start, count);
-                    r[count] = 0;
+                    string* r = str_Slice(t, start, (uint32_t) count);
 
-                    mem_Free(t);
-                    t = r;
+                    STR_MOVE(t, r);
                 }
                 break;
             }
             case T_FUNC_TOUPPER: {
                 parse_GetToken();
-                if (!parse_ExpectChar('('))
-                    return NULL;
-
-                if (parse_ExpectChar(')'))
-                    _strupr(t);
+                if (expectEmptyParens()) {
+                    str_ToUpperReplace(&t);
+                }
 
                 break;
             }
             case T_FUNC_TOLOWER: {
                 parse_GetToken();
-                if (!parse_ExpectChar('('))
-                    return NULL;
-
-                if (parse_ExpectChar(')'))
-                    _strlwr(t);
+                if (expectEmptyParens()) {
+                    str_ToLowerReplace(&t);
+                }
 
                 break;
             }
@@ -961,25 +955,21 @@ parse_StringExpressionRaw_Pri1(void) {
     return t;
 }
 
-static char*
+static string*
 parse_StringExpressionRaw_Pri0(void) {
-    char* t1 = parse_StringExpressionRaw_Pri1();
+    string* t1 = parse_StringExpressionRaw_Pri1();
 
     while (lex_Current.token == T_OP_ADD) {
-        char* r = NULL;
-        char* t2;
-
         parse_GetToken();
 
+        string* t2;
         if ((t2 = parse_StringExpressionRaw_Pri1()) == NULL)
             return NULL;
 
-        r = mem_Alloc(strlen(t1) + strlen(t2) + 1);
-        strcpy(r, t1);
-        strcat(r, t2);
+        string* r = str_Concat(t1, t2);
 
-        mem_Free(t2);
-        mem_Free(t1);
+        str_Free(t2);
+        str_Free(t1);
 
         return r;
     }
@@ -987,9 +977,9 @@ parse_StringExpressionRaw_Pri0(void) {
     return t1;
 }
 
-static char*
+static string*
 stringExpression(void) {
-    char* s = parse_StringExpressionRaw_Pri0();
+    string* s = parse_StringExpressionRaw_Pri0();
 
     if (s == NULL)
         prj_Error(ERROR_EXPR_STRING);
@@ -1023,59 +1013,62 @@ parse_Symbol(void) {
     bool r = false;
 
     if (lex_Current.token == T_LABEL) {
-        string* pName = str_Create(lex_Current.value.string);
-        uint32_t coloncount;
+        string* symbolName = str_Create(lex_Current.value.string);
 
         parse_GetToken();
-        coloncount = colonCount();
+        uint32_t totalColons = colonCount();
 
         switch (lex_Current.token) {
-            default:
-                sym_CreateLabel(pName);
-                if (coloncount == 2)
-                    sym_Export(pName);
+            default: {
+                sym_CreateLabel(symbolName);
+                if (totalColons == 2)
+                    sym_Export(symbolName);
                 r = true;
                 break;
-            case T_POP_RB:
+            }
+            case T_POP_RB: {
                 parse_GetToken();
-                parse_RS(pName, parse_ConstantExpression(), coloncount);
+                parse_RS(symbolName, parse_ConstantExpression(), totalColons);
                 r = true;
                 break;
-            case T_POP_RW:
+            }
+            case T_POP_RW: {
                 parse_GetToken();
-                parse_RS(pName, parse_ConstantExpression() * 2, coloncount);
+                parse_RS(symbolName, parse_ConstantExpression() * 2, totalColons);
                 r = true;
                 break;
-            case T_POP_RL:
+            }
+            case T_POP_RL: {
                 parse_GetToken();
-                parse_RS(pName, parse_ConstantExpression() * 4, coloncount);
+                parse_RS(symbolName, parse_ConstantExpression() * 4, totalColons);
                 r = true;
                 break;
-            case T_POP_EQU:
+            }
+            case T_POP_EQU: {
                 parse_GetToken();
-                sym_CreateEQU(pName, parse_ConstantExpression());
-                if (coloncount == 2)
-                    sym_Export(pName);
+                sym_CreateEQU(symbolName, parse_ConstantExpression());
+                if (totalColons == 2)
+                    sym_Export(symbolName);
                 r = true;
                 break;
-            case T_POP_SET:
+            }
+            case T_POP_SET: {
                 parse_GetToken();
-                sym_CreateSET(pName, parse_ConstantExpression());
-                if (coloncount == 2)
-                    sym_Export(pName);
+                sym_CreateSET(symbolName, parse_ConstantExpression());
+                if (totalColons == 2)
+                    sym_Export(symbolName);
                 r = true;
                 break;
+            }
             case T_POP_EQUS: {
-                char* pExpr;
-
                 parse_GetToken();
-                if ((pExpr = stringExpression()) != NULL) {
-                    string* pValue = str_Create(pExpr);
-                    sym_CreateEQUS(pName, pValue);
-                    mem_Free(pExpr);
-                    str_Free(pValue);
-                    if (coloncount == 2)
-                        sym_Export(pName);
+
+                string* value = stringExpression();
+                if (value != NULL) {
+                    sym_CreateEQUS(symbolName, value);
+                    str_Free(value);
+                    if (totalColons == 2)
+                        sym_Export(symbolName);
                     r = true;
                 }
                 break;
@@ -1084,11 +1077,11 @@ parse_Symbol(void) {
                 parse_GetToken();
                 switch (lex_Current.token) {
                     case T_GROUP_TEXT:
-                        sym_CreateGROUP(pName, GROUP_TEXT);
+                        sym_CreateGROUP(symbolName, GROUP_TEXT);
                         r = true;
                         break;
                     case T_GROUP_BSS:
-                        sym_CreateGROUP(pName, GROUP_BSS);
+                        sym_CreateGROUP(symbolName, GROUP_BSS);
                         r = true;
                         break;
                     default:
@@ -1096,26 +1089,26 @@ parse_Symbol(void) {
                         r = false;
                         break;
                 }
-                if (coloncount == 2)
-                    sym_Export(pName);
+                if (totalColons == 2)
+                    sym_Export(symbolName);
                 break;
             }
             case T_POP_MACRO: {
+                uint32_t lineNumber = fstk_Current->lineNumber;
+
                 size_t reptSize;
                 char* reptBlock;
-                int32_t lineno = fstk_Current->lineNumber;
-                const char* pszfile = str_String(fstk_Current->name);
-
                 if (copyMacroBlock(&reptBlock, &reptSize)) {
-                    sym_CreateMACRO(pName, reptBlock, reptSize);
+                    sym_CreateMACRO(symbolName, reptBlock, reptSize);
                     parse_GetToken();
                     r = true;
-                } else
-                    prj_Fail(ERROR_NEED_ENDM, pszfile, lineno);
+                } else {
+                    prj_Fail(ERROR_NEED_ENDM, str_String(fstk_Current->name), lineNumber);
+                }
                 break;
             }
         }
-        str_Free(pName);
+        str_Free(symbolName);
     }
 
     return r;
@@ -1211,29 +1204,21 @@ parse_PseudoOp(void) {
             return true;
         }
         case T_POP_SECTION: {
-            int32_t loadAddress;
-            char* name;
-            char r[MAXSYMNAMELENGTH + 1];
-            SSymbol* sym;
-            string* pGroup;
-
             parse_GetToken();
-            if ((name = stringExpression()) == NULL)
+            string* name = stringExpression();
+            if (name == NULL)
                 return true;
 
-            strcpy(r, name);
-            mem_Free(name);
-
             if (!parse_ExpectChar(','))
-                return sect_SwitchTo_NAMEONLY(r);
+                return sect_SwitchTo_NAMEONLY(name);
 
             if (lex_Current.token != T_ID) {
                 prj_Error(ERROR_EXPECT_IDENTIFIER);
                 return false;
             }
 
-            pGroup = str_Create(lex_Current.value.string);
-            sym = sym_FindSymbol(pGroup);
+            string* pGroup = str_Create(lex_Current.value.string);
+            SSymbol* sym = sym_FindSymbol(pGroup);
             str_Free(pGroup);
 
             if (sym->eType != SYM_GROUP) {
@@ -1250,11 +1235,13 @@ parse_PseudoOp(void) {
                 if (bank == -1)
                     return true;
 
-                return sect_SwitchTo_BANK(r, sym, bank);
+                return sect_SwitchTo_BANK(name, sym, bank);
             } else if (lex_Current.token != '[') {
-                return sect_SwitchTo(r, sym);
+                return sect_SwitchTo(name, sym);
             }
             parse_GetToken();
+
+            int32_t loadAddress;
 
             loadAddress = parse_ConstantExpression();
             if (!parse_ExpectChar(']'))
@@ -1268,28 +1255,26 @@ parse_PseudoOp(void) {
                 if (bank == -1)
                     return true;
 
-                return sect_SwitchTo_LOAD_BANK(r, sym, loadAddress, bank);
+                return sect_SwitchTo_LOAD_BANK(name, sym, loadAddress, bank);
             }
 
-            return sect_SwitchTo_LOAD(r, sym, loadAddress);
+            return sect_SwitchTo_LOAD(name, sym, loadAddress);
         }
         case T_POP_ORG: {
-            uint32_t orgAddress;
-
             parse_GetToken();
-            orgAddress = (uint32_t) parse_ConstantExpression();
 
+            uint32_t orgAddress = (uint32_t) parse_ConstantExpression();
             sect_SetOrgAddress(orgAddress);
 
             return true;
         }
         case T_POP_PRINTT: {
-            char* r;
-
             parse_GetToken();
-            if ((r = stringExpression()) != NULL) {
-                printf("%s", r);
-                mem_Free(r);
+
+            string* r = stringExpression();
+            if (r != NULL) {
+                printf("%s", str_String(r));
+                str_Free(r);
                 return true;
             }
 
@@ -1301,10 +1286,9 @@ parse_PseudoOp(void) {
             return true;
         }
         case T_POP_PRINTF: {
-            int32_t i;
-
             parse_GetToken();
-            i = parse_ConstantExpression();
+
+            int32_t i = parse_ConstantExpression();
             if (i < 0) {
                 printf("-");
                 i = -i;
@@ -1323,10 +1307,8 @@ parse_PseudoOp(void) {
             return parse_SymbolOp(parse_Global);
         }
         case T_POP_PURGE: {
-            bool r;
-
             tokens_expandStrings = false;
-            r = parse_SymbolOp(sym_Purge);
+            bool r = parse_SymbolOp(sym_Purge);
             tokens_expandStrings = true;
 
             return r;
@@ -1340,10 +1322,8 @@ parse_PseudoOp(void) {
         }
         case T_POP_RSSET: {
             string* pRS = str_Create("__RS");
-            int32_t val;
-
             parse_GetToken();
-            val = parse_ConstantExpression();
+            int32_t val = parse_ConstantExpression();
             sym_CreateSET(pRS, val);
             str_Free(pRS);
             return true;
@@ -1361,22 +1341,22 @@ parse_PseudoOp(void) {
             return true;
         }
         case T_POP_FAIL: {
-            char* r;
-
             parse_GetToken();
-            if ((r = stringExpression()) != NULL) {
-                prj_Fail(WARN_USER_GENERIC, r);
+
+            string* r = stringExpression();
+            if (r != NULL) {
+                prj_Fail(WARN_USER_GENERIC, str_String(r));
                 return true;
             } else {
                 internalerror("String expression is NULL");
             }
         }
         case T_POP_WARN: {
-            char* r;
-
             parse_GetToken();
-            if ((r = stringExpression()) != NULL) {
-                prj_Warn(WARN_USER_GENERIC, r);
+
+            string* r = stringExpression();
+            if (r != NULL) {
+                prj_Warn(WARN_USER_GENERIC, str_String(r));
                 return true;
             } else {
                 internalerror("String expression is NULL");
@@ -1389,6 +1369,7 @@ parse_PseudoOp(void) {
         }
         case T_POP_CNOP: {
             parse_GetToken();
+
             int32_t offset = parse_ConstantExpression();
             if (offset < 0) {
                 prj_Error(ERROR_EXPR_POSITIVE);
@@ -1444,84 +1425,89 @@ parse_PseudoOp(void) {
             }
         }
         case T_POP_DB: {
-            SExpression* expr;
-            char* s;
-
             do {
                 parse_GetToken();
+
+                SExpression* expr;
+                string* str;
+
                 if ((expr = parse_Expression(1)) != NULL) {
                     expr = expr_CheckRange(expr, -128, 255);
-                    if (expr)
+                    if (expr != NULL) {
                         sect_OutputExpr8(expr);
-                    else
+                    } else {
                         prj_Error(ERROR_EXPRESSION_N_BIT, 8);
-                } else if ((s = parse_StringExpressionRaw_Pri0()) != NULL) {
-                    while (*s)
+                    }
+                } else if ((str = parse_StringExpressionRaw_Pri0()) != NULL) {
+                    const char* s = str_String(str);
+                    while (*s) {
                         sect_OutputConst8((uint8_t) *s++);
-                } else
+                    }
+
+                    str_Free(str);
+                } else {
                     sect_SkipBytes(1); //prj_Error(ERROR_INVALID_EXPRESSION);
+                }
             } while (lex_Current.token == ',');
 
             return true;
         }
         case T_POP_DW: {
-            SExpression* expr;
-
             do {
                 parse_GetToken();
-                expr = parse_Expression(2);
-                if (expr) {
+                SExpression* expr = parse_Expression(2);
+                if (expr != NULL) {
                     expr = expr_CheckRange(expr, -32768, 65535);
-                    if (expr)
+                    if (expr != NULL) {
                         sect_OutputExpr16(expr);
-                    else
+                    } else {
                         prj_Error(ERROR_EXPRESSION_N_BIT, 16);
-                } else
+                    }
+                } else {
                     sect_SkipBytes(2); // prj_Error(ERROR_INVALID_EXPRESSION);
+                }
             } while (lex_Current.token == ',');
 
             return true;
         }
         case T_POP_DL: {
-            SExpression* expr;
-
             do {
                 parse_GetToken();
-                expr = parse_Expression(4);
-                if (expr)
+
+                SExpression* expr = parse_Expression(4);
+                if (expr != NULL) {
                     sect_OutputExpr32(expr);
-                else
+                } else {
                     sect_SkipBytes(4); //prj_Error(ERROR_INVALID_EXPRESSION);
+                }
             } while (lex_Current.token == ',');
 
             return true;
         }
         case T_POP_INCLUDE: {
             SLexerBookmark mark;
-            char* r;
-
             lex_Bookmark(&mark);
+
             parse_GetToken();
-            if ((r = parse_StringExpressionRaw_Pri0()) == NULL) {
-                size_t pEnd = 0;
 
-                while (lex_PeekChar(pEnd) == ' ' || lex_PeekChar(pEnd) == '\t')
-                    ++pEnd;
+            string* filename = parse_StringExpressionRaw_Pri0();
 
-                while (!isspace((unsigned char) lex_PeekChar(pEnd)))
-                    ++pEnd;
+            if (filename == NULL) {
+                size_t endIndex = 0;
 
-                r = mem_Alloc(pEnd + 1);
-                fstk_Current->lineNumber += lex_GetChars(r, pEnd);
-                r[pEnd] = 0;
+                while (lex_PeekChar(endIndex) == ' ' || lex_PeekChar(endIndex) == '\t')
+                    ++endIndex;
+
+                while (!isspace((unsigned char) lex_PeekChar(endIndex)))
+                    ++endIndex;
+
+                filename = lex_GetString(endIndex);
                 parse_GetToken();
             }
 
-            if (r != NULL) {
-                string* pFile = str_Create(r);
-                fstk_ProcessIncludeFile(pFile);
-                str_Free(pFile);
-                mem_Free(r);
+            if (filename != NULL) {
+                fstk_ProcessIncludeFile(filename);
+                str_Free(filename);
                 return true;
             } else {
                 prj_Error(ERROR_EXPR_STRING);
@@ -1529,14 +1515,12 @@ parse_PseudoOp(void) {
             }
         }
         case T_POP_INCBIN: {
-            char* r;
-
             parse_GetToken();
-            if ((r = stringExpression()) != NULL) {
-                string* pFile = str_Create(r);
-                sect_OutputBinaryFile(pFile);
-                mem_Free(r);
-                str_Free(pFile);
+
+            string* filename = stringExpression();
+            if (filename != NULL) {
+                sect_OutputBinaryFile(filename);
+                str_Free(filename);
                 return true;
             }
             return false;
@@ -1563,11 +1547,10 @@ parse_PseudoOp(void) {
             }
         }
         case T_POP_SHIFT: {
-            SExpression* expr;
-
             parse_GetToken();
-            expr = parse_Expression(4);
-            if (expr) {
+
+            SExpression* expr = parse_Expression(4);
+            if (expr != NULL) {
                 if (expr_IsConstant(expr)) {
                     fstk_ShiftMacroArgs(expr->value.integer);
                     expr_Free(expr);
@@ -1582,54 +1565,54 @@ parse_PseudoOp(void) {
             }
         }
         case T_POP_IFC: {
-            char* s1;
-
             parse_GetToken();
-            s1 = stringExpression();
+
+            string * s1 = stringExpression();
             if (s1 != NULL) {
                 if (parse_ExpectComma()) {
-                    char* s2;
-
-                    s2 = stringExpression();
+                    string* s2 = stringExpression();
                     if (s2 != NULL) {
-                        if (strcmp(s1, s2) != 0)
+                        if (!str_Equal(s1, s2)) {
                             skipToElse();
+                        }
 
-                        mem_Free(s1);
-                        mem_Free(s2);
+                        str_Free(s1);
+                        str_Free(s2);
                         return true;
-                    } else
+                    } else {
                         prj_Error(ERROR_EXPR_STRING);
+                    }
                 }
-                mem_Free(s1);
-            } else
+                str_Free(s1);
+            } else {
                 prj_Error(ERROR_EXPR_STRING);
+            }
 
             return false;
         }
         case T_POP_IFNC: {
-            char* s1;
-
             parse_GetToken();
-            s1 = stringExpression();
+
+            string* s1 = stringExpression();
             if (s1 != NULL) {
                 if (parse_ExpectComma()) {
-                    char* s2;
-
-                    s2 = stringExpression();
+                    string* s2 = stringExpression();
                     if (s2 != NULL) {
-                        if (strcmp(s1, s2) == 0)
+                        if (str_Equal(s1, s2)) {
                             skipToElse();
+                        }
 
-                        mem_Free(s1);
-                        mem_Free(s2);
+                        str_Free(s1);
+                        str_Free(s2);
                         return true;
-                    } else
+                    } else {
                         prj_Error(ERROR_EXPR_STRING);
+                    }
                 }
                 mem_Free(s1);
-            } else
+            } else {
                 prj_Error(ERROR_EXPR_STRING);
+            }
 
             return false;
         }
