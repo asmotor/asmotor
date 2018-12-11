@@ -293,14 +293,6 @@ size_t lex_SkipBytes(size_t count) {
 	return linesSkipped;
 }
 
-void lex_RewindBytes(size_t count) {
-	if (g_pCurrentBuffer) {
-		g_pCurrentBuffer->index -= count;
-	} else {
-		internalerror("g_pCurrentBuffer not initialized");
-	}
-}
-
 void lex_UnputString(const char* str) {
 	size_t length = strlen(str);
 	str += length;

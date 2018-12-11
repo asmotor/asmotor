@@ -119,9 +119,6 @@ extern size_t
 lex_SkipBytes(size_t count);
 
 extern void
-lex_RewindBytes(size_t count);
-
-extern void
 lex_UnputString(const char* str);
 
 extern uint32_t

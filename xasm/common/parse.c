@@ -34,13 +34,19 @@
 #include "tokens.h"
 #include "options.h"
 
+#define REPT_LEN 4
+#define ENDR_LEN 4
+#define ENDC_LEN 4
+#define MACRO_LEN 5
+#define ENDM_LEN 4
+
 extern bool
 parse_TargetSpecific(void);
 
 extern SExpression*
 parse_TargetFunction(void);
 
-/*	Private routines*/
+/* Private functions */
 
 static bool
 isWhiteSpace(char s) {
@@ -121,92 +127,82 @@ findControlToken(size_t index) {
 }
 
 static size_t
-parse_GetIfLength(size_t index);
+getReptBodySize(size_t index);
 
 static size_t
-getReptLength(size_t index) {
-    size_t start = index;
-    size_t token;
-
-    index = skipLine(index);
-    while (index != SIZE_MAX && (token = findControlToken(index)) != SIZE_MAX) {
-        if (isRept(token)) {
-            token += 4;
-            index = token + getReptLength(token);
-            index = skipLine(index);
-        } else if (isEndr(token)) {
-            return token - start;
-        } else {
-            index = skipLine(index);
-        }
-    }
-
-    return 0;
-}
+getIfBodySize(size_t index);
 
 static size_t
-parse_GetMacroLength(size_t index) {
-    size_t start = index;
-    size_t token;
+getMacroBodySize(size_t index);
 
-    index = skipLine(index);
-    while ((token = findControlToken(index)) != SIZE_MAX) {
-        if (isRept(token)) {
-            token += 4;    // 4 = strlen("REPT")
-            index = token + getReptLength(token) + 4; // 4 = strlen("ENDR")
-            index = skipLine(index);
-        } else if (isIf(token)) {
-            while (!isWhiteSpace(lex_PeekChar(token)))
-                ++token;
-            index = token + parse_GetIfLength(token) + 4;    // 4 = strlen("ENDC")
-            index = skipLine(index);
-        } else if (isMacro(token)) {
-            token += 5;
-            index = token + parse_GetMacroLength(token) + 4;
-            index = skipLine(index);
-        } else if (isEndm(token)) {
-            return token - start;
-        } else {
-            index = skipLine(index);
-        }
-    }
-
-    return 0;
-}
-
-static size_t
-parse_GetIfLength(size_t index) {
-    size_t start = index;
-    size_t token;
-
-    index = skipLine(index);
-    while ((token = findControlToken(index)) != SIZE_MAX) {
-        if (isRept(token)) {
-            token += 4;    // 4 = strlen("REPT")
-            index = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDR")
-            index = skipLine(index);
-        } else if (isMacro(token)) {
-            token += 5;    // 5 = strlen("MACRO")
-            index = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDM")
-            index = skipLine(index);
-        } else if (isIf(token)) {
-            while (!isWhiteSpace(token))
-                ++token;
-            index = token + parse_GetIfLength(token) + 4;    // 4 = strlen("ENDC")
-            index = skipLine(index);
-        } else if (lex_CompareNoCase(token, "ENDC", 4)) {
-            return token - start;
-        } else {
-            index = skipLine(index);
-        }
-    }
-
-    return 0;
+static bool
+skipRept(size_t* index) {
+    if (isRept(*index)) {
+		*index = skipLine(*index + getReptBodySize(*index + REPT_LEN) + REPT_LEN + ENDR_LEN);
+		return true;
+	} else {
+		return false;
+	}
 }
 
 static bool
-parse_CopyRept(char** reptBlock, size_t* size) {
-    size_t len = getReptLength(0);
+skipIf(size_t* index) {
+	if (isIf(*index)) {
+		while (!isWhiteSpace(lex_PeekChar(*index)))
+			*index += 1;
+		*index = skipLine(*index + getIfBodySize(*index) + ENDC_LEN);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+static bool
+skipMacro(size_t* index) {
+    if (isMacro(*index)) {
+		*index = skipLine(*index + getMacroBodySize(*index + MACRO_LEN) + MACRO_LEN + ENDM_LEN);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+static size_t
+getBlockBodySize(size_t index, bool (*endPredicate)(size_t)) {
+    size_t start = index;
+
+    index = skipLine(index);
+    while ((index = findControlToken(index)) != SIZE_MAX) {
+        if (!skipRept(&index) && !skipIf(&index) && !skipMacro(&index)) {
+            if (endPredicate(index)) {
+                return index - start;
+            } else {
+                index = skipLine(index);
+            }
+        }
+    }
+
+    return 0;
+}
+
+static size_t
+getReptBodySize(size_t index) {
+    return getBlockBodySize(index, isEndr);
+}
+
+static size_t
+getMacroBodySize(size_t index) {
+    return getBlockBodySize(index, isEndm);
+}
+
+static size_t
+getIfBodySize(size_t index) {
+    return getBlockBodySize(index, isEndc);
+}
+
+static bool
+copyReptBlock(char** reptBlock, size_t* size) {
+    size_t len = getReptBodySize(0);
 
     if (len == 0)
         return false;
@@ -221,65 +217,46 @@ parse_CopyRept(char** reptBlock, size_t* size) {
     return true;
 }
 
-bool
-parse_IfSkipToElse(void) {
-    size_t token;
-
+static bool
+skipToElse(void) {
     size_t index = skipLine(0);
-    while ((token = findControlToken(index)) != SIZE_MAX) {
-        if (isRept(token)) {
-            token += 4;
-            index = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDR")
-            index = skipLine(index);
-        } else if (isMacro(token)) {
-            token += 5;
-            index = token + parse_GetMacroLength(token) + 4; // 4 = strlen("ENDM")
-            index = skipLine(index);
-        } else if (isIf(token)) {
-            while (!isWhiteSpace(lex_PeekChar(token)))
-                ++token;
-            index = token + parse_GetIfLength(token) + 4; // 4 = strlen("ENDC");
-            index = skipLine(index);
-        } else if (lex_CompareNoCase(token, "ENDC", 4)) {
-            fstk_Current->lineNumber += lex_SkipBytes(token);
-            fstk_Current->lineNumber++;
-            return true;
-        } else if (lex_CompareNoCase(token, "ELSE", 4)) {
-            fstk_Current->lineNumber += lex_SkipBytes(token + 4);
-            fstk_Current->lineNumber++;
-            return true;
-        } else {
-            index = skipLine(index);
-        }
+    while ((index = findControlToken(index)) != SIZE_MAX) {
+        if (!skipRept(&index) && !skipIf(&index) && !skipMacro(&index)) {
+			if (isEndc(index)) {
+				fstk_Current->lineNumber += lex_SkipBytes(index) + 1;
+				return true;
+			} else if (isElse(index)) {
+				fstk_Current->lineNumber += lex_SkipBytes(index + 4) + 1;
+				return true;
+			} else {
+				index = skipLine(index);
+			}
+		}
     }
 
     return false;
 }
 
-bool
-parse_IfSkipToEndc(void) {
-    size_t token;
+static bool
+skipToEndc(void) {
     size_t index = skipLine(0);
-    while ((token = findControlToken(index)) != SIZE_MAX) {
-        if (isIf(token)) {
-            while (!isWhiteSpace(lex_PeekChar(token)))
-                ++token;
-            index = token + parse_GetIfLength(token);
-            index = skipLine(index);
-        } else if (lex_CompareNoCase(token, "ENDC", 4)) {
-            fstk_Current->lineNumber += lex_SkipBytes(token);
-            return true;
-        } else {
-            index = skipLine(index);
-        }
+    while ((index = findControlToken(index)) != SIZE_MAX) {
+        if (!skipRept(&index) && !skipIf(&index) && !skipMacro(&index)) {
+			if (isEndc(index)) {
+				fstk_Current->lineNumber += lex_SkipBytes(index);
+				return true;
+			} else {
+				index = skipLine(index);
+			}
+		}
     }
 
     return 0;
 }
 
-bool
-parse_CopyMacro(char** dest, size_t* size) {
-    size_t len = parse_GetMacroLength(0);
+static bool
+copyMacroBlock(char** dest, size_t* size) {
+    size_t len = getMacroBodySize(0);
 
     *size = len;
 
@@ -290,7 +267,7 @@ parse_CopyMacro(char** dest, size_t* size) {
 }
 
 static uint32_t
-parse_ColonCount(void) {
+colonCount(void) {
     if (lex_Current.token == ':') {
         parse_GetToken();
         if (lex_Current.token == ':') {
@@ -301,8 +278,8 @@ parse_ColonCount(void) {
     return 1;
 }
 
-bool
-parse_IsDot(SLexerBookmark* pBookmark) {
+static bool
+isDot(SLexerBookmark* pBookmark) {
     if (pBookmark)
         lex_Bookmark(pBookmark);
 
@@ -312,13 +289,16 @@ parse_IsDot(SLexerBookmark* pBookmark) {
     }
 
     if (lex_Current.token == T_ID && lex_Current.value.string[0] == '.') {
-        lex_RewindBytes(strlen(lex_Current.value.string) - 1);
+        lex_UnputString(lex_Current.value.string + 1);
         parse_GetToken();
         return true;
     }
 
     return false;
 }
+
+
+/* Public functions */
 
 bool
 parse_ExpectChar(char ch) {
@@ -336,16 +316,15 @@ parse_ExpectChar(char ch) {
  */
 
 static SExpression*
-parse_ExprPri0(size_t maxStringConstLength);
+expressionPriority0(size_t maxStringConstLength);
 
 static SExpression*
-parse_ExprPri9(size_t maxStringConstLength) {
+expressionPriority9(size_t maxStringConstLength) {
     switch (lex_Current.token) {
         case T_STRING: {
-            size_t len = strlen(lex_Current.value.string);
-            if (len <= maxStringConstLength) {
+            if (lex_Current.length <= maxStringConstLength) {
                 uint32_t val = 0;
-                for (size_t i = 0; i < len; ++i) {
+                for (size_t i = 0; i < lex_Current.length; ++i) {
                     val = val << 8u;
                     val |= (uint8_t) lex_Current.value.string[i];
                 }
@@ -360,13 +339,12 @@ parse_ExprPri9(size_t maxStringConstLength) {
             return expr_Const(val);
         }
         case T_LEFT_PARENS: {
-            SExpression* expr;
             SLexerBookmark bookmark;
-
             lex_Bookmark(&bookmark);
 
             parse_GetToken();
-            expr = parse_ExprPri0(maxStringConstLength);
+
+            SExpression* expr = expressionPriority0(maxStringConstLength);
             if (expr != NULL) {
                 if (lex_Current.token == ')') {
                     parse_GetToken();
@@ -408,18 +386,15 @@ parse_ExprPri9(size_t maxStringConstLength) {
 }
 
 static char*
-parse_StringExpression(void);
+stringExpression(void);
 
-static char*
-parse_StringExpressionRaw_Pri0(void);
-
-int32_t
-parse_StringCompare(char* s) {
+static int32_t
+stringCompare(char* s) {
     int32_t r = 0;
     char* t;
 
     parse_GetToken();
-    if ((t = parse_StringExpression()) != NULL) {
+    if ((t = stringExpression()) != NULL) {
         r = strcmp(s, t);
         mem_Free(t);
     }
@@ -428,6 +403,9 @@ parse_StringCompare(char* s) {
     return r;
 }
 
+static char*
+parse_StringExpressionRaw_Pri0(void);
+
 static SExpression*
 parse_ExprPri8(size_t maxStringConstLength) {
     SLexerBookmark bm;
@@ -435,7 +413,7 @@ parse_ExprPri8(size_t maxStringConstLength) {
 
     lex_Bookmark(&bm);
     if ((s = parse_StringExpressionRaw_Pri0()) != NULL) {
-        if (parse_IsDot(NULL)) {
+        if (isDot(NULL)) {
             switch (lex_Current.token) {
                 case T_FUNC_COMPARETO: {
                     SExpression* r = NULL;
@@ -444,7 +422,7 @@ parse_ExprPri8(size_t maxStringConstLength) {
                     parse_GetToken();
 
                     if (parse_ExpectChar('(')) {
-                        if ((t = parse_StringExpression()) != NULL) {
+                        if ((t = stringExpression()) != NULL) {
                             if (parse_ExpectChar(')'))
                                 r = expr_Const(strcmp(s, t));
 
@@ -468,7 +446,7 @@ parse_ExprPri8(size_t maxStringConstLength) {
 
                     if (parse_ExpectChar('(')) {
                         char* needle;
-                        if ((needle = parse_StringExpression()) != NULL) {
+                        if ((needle = stringExpression()) != NULL) {
                             if (parse_ExpectChar(')')) {
                                 char* p;
                                 int32_t val = -1;
@@ -485,27 +463,27 @@ parse_ExprPri8(size_t maxStringConstLength) {
                     return r;
                 }
                 case T_OP_LOGICEQU: {
-                    int32_t v = parse_StringCompare(s);
+                    int32_t v = stringCompare(s);
                     return expr_Const(v == 0 ? true : false);
                 }
                 case T_OP_LOGICNE: {
-                    int32_t v = parse_StringCompare(s);
+                    int32_t v = stringCompare(s);
                     return expr_Const(v != 0 ? true : false);
                 }
                 case T_OP_LOGICGE: {
-                    int32_t v = parse_StringCompare(s);
+                    int32_t v = stringCompare(s);
                     return expr_Const(v >= 0 ? true : false);
                 }
                 case T_OP_LOGICGT: {
-                    int32_t v = parse_StringCompare(s);
+                    int32_t v = stringCompare(s);
                     return expr_Const(v > 0 ? true : false);
                 }
                 case T_OP_LOGICLE: {
-                    int32_t v = parse_StringCompare(s);
+                    int32_t v = stringCompare(s);
                     return expr_Const(v <= 0 ? true : false);
                 }
                 case T_OP_LOGICLT: {
-                    int32_t v = parse_StringCompare(s);
+                    int32_t v = stringCompare(s);
                     return expr_Const(v < 0 ? true : false);
                 }
                 default:
@@ -516,7 +494,7 @@ parse_ExprPri8(size_t maxStringConstLength) {
 
     mem_Free(s);
     lex_Goto(&bm);
-    return parse_ExprPri9(maxStringConstLength);
+    return expressionPriority9(maxStringConstLength);
 }
 
 static SExpression*
@@ -528,12 +506,12 @@ parse_TwoArgFunc(SExpression* (* pFunc)(SExpression*, SExpression*), size_t maxS
     if (!parse_ExpectChar('('))
         return NULL;
 
-    t1 = parse_ExprPri0(maxStringConstLength);
+    t1 = expressionPriority0(maxStringConstLength);
 
     if (!parse_ExpectChar(','))
         return NULL;
 
-    t2 = parse_ExprPri0(maxStringConstLength);
+    t2 = expressionPriority0(maxStringConstLength);
 
     if (!parse_ExpectChar(')'))
         return NULL;
@@ -550,7 +528,7 @@ parse_SingleArgFunc(SExpression* (* pFunc)(SExpression*), size_t maxStringConstL
     if (!parse_ExpectChar('('))
         return NULL;
 
-    t1 = parse_ExprPri0(maxStringConstLength);
+    t1 = expressionPriority0(maxStringConstLength);
 
     if (!parse_ExpectChar(')'))
         return NULL;
@@ -831,7 +809,7 @@ parse_ExprPri1(size_t maxStringConstLength) {
 }
 
 static SExpression*
-parse_ExprPri0(size_t maxStringConstLength) {
+expressionPriority0(size_t maxStringConstLength) {
     SExpression* t1 = parse_ExprPri1(maxStringConstLength);
 
     while (lex_Current.token == T_OP_LOGICOR || lex_Current.token == T_OP_LOGICAND) {
@@ -856,7 +834,7 @@ parse_ExprPri0(size_t maxStringConstLength) {
 
 SExpression*
 parse_Expression(size_t maxStringConstLength) {
-    return parse_ExprPri0(maxStringConstLength);
+    return expressionPriority0(maxStringConstLength);
 }
 
 int32_t
@@ -914,7 +892,7 @@ parse_StringExpressionRaw_Pri1(void) {
     SLexerBookmark bm;
     char* t = parse_StringExpressionRaw_Pri2();
 
-    while (parse_IsDot(&bm)) {
+    while (isDot(&bm)) {
         switch (lex_Current.token) {
             case T_FUNC_SLICE: {
                 int32_t start;
@@ -1010,7 +988,7 @@ parse_StringExpressionRaw_Pri0(void) {
 }
 
 static char*
-parse_StringExpression(void) {
+stringExpression(void) {
     char* s = parse_StringExpressionRaw_Pri0();
 
     if (s == NULL)
@@ -1049,7 +1027,7 @@ parse_Symbol(void) {
         uint32_t coloncount;
 
         parse_GetToken();
-        coloncount = parse_ColonCount();
+        coloncount = colonCount();
 
         switch (lex_Current.token) {
             default:
@@ -1091,7 +1069,7 @@ parse_Symbol(void) {
                 char* pExpr;
 
                 parse_GetToken();
-                if ((pExpr = parse_StringExpression()) != NULL) {
+                if ((pExpr = stringExpression()) != NULL) {
                     string* pValue = str_Create(pExpr);
                     sym_CreateEQUS(pName, pValue);
                     mem_Free(pExpr);
@@ -1128,7 +1106,7 @@ parse_Symbol(void) {
                 int32_t lineno = fstk_Current->lineNumber;
                 const char* pszfile = str_String(fstk_Current->name);
 
-                if (parse_CopyMacro(&reptBlock, &reptSize)) {
+                if (copyMacroBlock(&reptBlock, &reptSize)) {
                     sym_CreateMACRO(pName, reptBlock, reptSize);
                     parse_GetToken();
                     r = true;
@@ -1240,7 +1218,7 @@ parse_PseudoOp(void) {
             string* pGroup;
 
             parse_GetToken();
-            if ((name = parse_StringExpression()) == NULL)
+            if ((name = stringExpression()) == NULL)
                 return true;
 
             strcpy(r, name);
@@ -1309,7 +1287,7 @@ parse_PseudoOp(void) {
             char* r;
 
             parse_GetToken();
-            if ((r = parse_StringExpression()) != NULL) {
+            if ((r = stringExpression()) != NULL) {
                 printf("%s", r);
                 mem_Free(r);
                 return true;
@@ -1386,7 +1364,7 @@ parse_PseudoOp(void) {
             char* r;
 
             parse_GetToken();
-            if ((r = parse_StringExpression()) != NULL) {
+            if ((r = stringExpression()) != NULL) {
                 prj_Fail(WARN_USER_GENERIC, r);
                 return true;
             } else {
@@ -1397,7 +1375,7 @@ parse_PseudoOp(void) {
             char* r;
 
             parse_GetToken();
-            if ((r = parse_StringExpression()) != NULL) {
+            if ((r = stringExpression()) != NULL) {
                 prj_Warn(WARN_USER_GENERIC, r);
                 return true;
             } else {
@@ -1554,7 +1532,7 @@ parse_PseudoOp(void) {
             char* r;
 
             parse_GetToken();
-            if ((r = parse_StringExpression()) != NULL) {
+            if ((r = stringExpression()) != NULL) {
                 string* pFile = str_Create(r);
                 sect_OutputBinaryFile(pFile);
                 mem_Free(r);
@@ -1569,7 +1547,7 @@ parse_PseudoOp(void) {
 
             size_t reptSize;
             char* reptBlock;
-            if (parse_CopyRept(&reptBlock, &reptSize)) {
+            if (copyReptBlock(&reptBlock, &reptSize)) {
                 if (reptCount > 0) {
                     fstk_ProcessRepeatBlock(reptBlock, reptSize, (uint32_t) reptCount);
                 } else if (reptCount < 0) {
@@ -1607,15 +1585,15 @@ parse_PseudoOp(void) {
             char* s1;
 
             parse_GetToken();
-            s1 = parse_StringExpression();
+            s1 = stringExpression();
             if (s1 != NULL) {
                 if (parse_ExpectComma()) {
                     char* s2;
 
-                    s2 = parse_StringExpression();
+                    s2 = stringExpression();
                     if (s2 != NULL) {
                         if (strcmp(s1, s2) != 0)
-                            parse_IfSkipToElse();
+                            skipToElse();
 
                         mem_Free(s1);
                         mem_Free(s2);
@@ -1633,15 +1611,15 @@ parse_PseudoOp(void) {
             char* s1;
 
             parse_GetToken();
-            s1 = parse_StringExpression();
+            s1 = stringExpression();
             if (s1 != NULL) {
                 if (parse_ExpectComma()) {
                     char* s2;
 
-                    s2 = parse_StringExpression();
+                    s2 = stringExpression();
                     if (s2 != NULL) {
                         if (strcmp(s1, s2) == 0)
-                            parse_IfSkipToElse();
+                            skipToElse();
 
                         mem_Free(s1);
                         mem_Free(s2);
@@ -1665,7 +1643,7 @@ parse_PseudoOp(void) {
                 } else {
                     parse_GetToken();
                     /* will continue parsing just after ELSE or just at ENDC keyword */
-                    parse_IfSkipToElse();
+                    skipToElse();
                 }
                 str_Free(pName);
                 return true;
@@ -1683,7 +1661,7 @@ parse_PseudoOp(void) {
                 } else {
                     parse_GetToken();
                     /* will continue parsing just after ELSE or just at ENDC keyword */
-                    parse_IfSkipToElse();
+                    skipToElse();
                 }
                 str_Free(pName);
                 return true;
@@ -1696,7 +1674,7 @@ parse_PseudoOp(void) {
 
             if (parse_ConstantExpression() == 0) {
                 /* will continue parsing just after ELSE or just at ENDC keyword */
-                parse_IfSkipToElse();
+                skipToElse();
                 parse_GetToken();
             }
             return true;
@@ -1706,7 +1684,7 @@ parse_PseudoOp(void) {
 
             if (parse_ConstantExpression() != 0) {
                 /* will continue parsing just after ELSE or just at ENDC keyword */
-                parse_IfSkipToElse();
+                skipToElse();
             }
             return true;
         }
@@ -1715,7 +1693,7 @@ parse_PseudoOp(void) {
 
             if (parse_ConstantExpression() <= 0) {
                 /* will continue parsing just after ELSE or just at ENDC keyword */
-                parse_IfSkipToElse();
+                skipToElse();
             }
             return true;
         }
@@ -1724,7 +1702,7 @@ parse_PseudoOp(void) {
 
             if (parse_ConstantExpression() < 0) {
                 /* will continue parsing just after ELSE or just at ENDC keyword */
-                parse_IfSkipToElse();
+                skipToElse();
             }
             return true;
         }
@@ -1733,7 +1711,7 @@ parse_PseudoOp(void) {
 
             if (parse_ConstantExpression() >= 0) {
                 /* will continue parsing just after ELSE or just at ENDC keyword */
-                parse_IfSkipToElse();
+                skipToElse();
             }
             return true;
         }
@@ -1742,13 +1720,13 @@ parse_PseudoOp(void) {
 
             if (parse_ConstantExpression() > 0) {
                 /* will continue parsing just after ELSE or just at ENDC keyword */
-                parse_IfSkipToElse();
+                skipToElse();
             }
             return true;
         }
         case T_POP_ELSE: {
             /* will continue parsing just at ENDC keyword */
-            parse_IfSkipToEndc();
+            skipToEndc();
             parse_GetToken();
             return true;
         }
@@ -1787,7 +1765,7 @@ parse_PseudoOp(void) {
     }
 }
 
-bool
+static bool
 parse_Misc(void) {
     switch (lex_Current.token) {
         case T_ID: {
@@ -1834,7 +1812,6 @@ parse_Misc(void) {
     }
 }
 
-/*	Public routines*/
 
 void
 parse_GetToken(void) {
@@ -1844,6 +1821,7 @@ parse_GetToken(void) {
 
     prj_Fail(ERROR_END_OF_FILE);
 }
+
 
 bool
 parse_Do(void) {
