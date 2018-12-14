@@ -557,13 +557,12 @@ static uint32_t lex_LexStateNormal() {
 					prj_Error(ERROR_STRING_TERM);
 				}
 				lex_Current.token = T_STRING;
+				lex_Current.length = strlen(lex_Current.value.string);
 				return T_STRING;
 			} else if (p == '{') {
-				char sym[MAXSYMNAMELENGTH];
-
-				if (expandStringUntil(sym, "}\n", false)) {
+				if (expandStringUntil(lex_Current.value.string, "}\n", false)) {
 					lex_Current.token = T_STRING;
-					strcpy(lex_Current.value.string, sym);
+					lex_Current.length = strlen(lex_Current.value.string);
 					lex_MatchChar('}');
 					return T_STRING;
 				}

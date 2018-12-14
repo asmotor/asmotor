@@ -415,8 +415,8 @@ parse_ExprPri8(size_t maxStringConstLength) {
     SLexerBookmark bm;
     lex_Bookmark(&bm);
 
-    string* s;
-    if ((s = parse_StringExpressionRaw_Pri0()) != NULL) {
+    string* s = parse_StringExpressionRaw_Pri0();
+    if (s != NULL) {
         if (isDot(NULL)) {
             switch (lex_Current.token) {
                 case T_FUNC_COMPARETO: {

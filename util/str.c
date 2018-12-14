@@ -16,6 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -64,6 +65,7 @@ str_CreateStream(char (*nextChar)(void), size_t length) {
         str_Set(str, i, nextChar());
     }
     str->data[length] = 0;
+    return str;
 }
 
 string*
@@ -78,8 +80,12 @@ str_Empty() {
 
 void
 str_Free(string* str) {
-    if (str != NULL && --str->refCount == 0)
-        mem_Free(str);
+    if (str != NULL) {
+        assert (str->refCount != 0);
+
+        if (--str->refCount == 0)
+            mem_Free(str);
+    }
 }
 
 string*

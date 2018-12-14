@@ -86,6 +86,9 @@ fixPathSeparators(string* filename) {
 
 static string*
 replaceFileComponent(string* fullPath, string* filename) {
+    if (fullPath == NULL)
+        return filename;
+
     const char* lastSlash = str_String(fullPath) + str_Length(fullPath) - 1;
 
     while (lastSlash > str_String(fullPath) && *lastSlash != '/' && *lastSlash != '\\')
@@ -171,11 +174,11 @@ fstk_FindFile(string* filename) {
 
     if (fstk_Current->name == NULL) {
         if (fexists(str_String(filename))) {
-            STR_MOVE(fullPath, filename);
+            fullPath = str_Copy(filename);
         }
     }
 
-    if (fullPath != NULL) {
+    if (fullPath == NULL) {
         string* candidate = replaceFileComponent(fstk_Current->name, filename);
         if (candidate != NULL) {
             if (fexists(str_String(candidate))) {
@@ -184,7 +187,7 @@ fstk_FindFile(string* filename) {
         }
     }
 
-    if (fullPath != NULL) {
+    if (fullPath == NULL) {
         for (uint32_t count = 0; count < g_totalIncludePaths; count += 1) {
             string* candidate = str_Concat(g_includePaths[count], filename);
 
