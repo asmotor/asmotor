@@ -19,6 +19,7 @@
 #ifndef XASM_COMMON_EXPR_H_INCLUDED_
 #define XASM_COMMON_EXPR_H_INCLUDED_
 
+#include "str.h"
 #include "asmotor.h"
 #include "tokens.h"
 
@@ -165,10 +166,10 @@ extern void
 expr_SetConst(SExpression* expression, int32_t value);
 
 extern SExpression*
-expr_Symbol(const char* symbolName);
+expr_Symbol(string* symbolName);
 
 extern SExpression*
-expr_Bank(const char* symbolName);
+expr_Bank(string* symbolName);
 
 extern void
 expr_Free(SExpression* expression);

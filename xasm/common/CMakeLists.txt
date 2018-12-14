@@ -18,6 +18,10 @@ add_library (xasm
     options.h
     parse.c
     parse.h
+    parse_expression.c
+    parse_expression.h
+    parse_string.c
+    parse_string.h
     patch.c
     patch.h
     project.c

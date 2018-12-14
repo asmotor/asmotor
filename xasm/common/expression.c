@@ -17,6 +17,7 @@
 */
 
 #include <stdio.h>
+#include <assert.h>
 
 // From util
 #include "asmotor.h"
@@ -349,31 +350,24 @@ expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
 }
 
 SExpression*
-expr_Bank(const char* symbolName) {
-    if (!g_pConfiguration->bSupportBanks)
-        internalerror("Banks not supported");
-
-    string* nameString = str_Create(symbolName);
+expr_Bank(string* symbolName) {
+    assert(g_pConfiguration->bSupportBanks);
 
     SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
     r->right = NULL;
     r->left = NULL;
-    r->value.symbol = sym_FindSymbol(nameString);
+    r->value.symbol = sym_FindSymbol(symbolName);
     r->value.symbol->nFlags |= SYMF_REFERENCED;
     r->isConstant = false;
     r->type = EXPR_OPERATION;
     r->operation = T_FUNC_BANK;
 
-    str_Free(nameString);
-
     return r;
 }
 
 SExpression*
-expr_Symbol(const char* symbolName) {
-    string* nameString = str_Create(symbolName);
-    SSymbol* symbol = sym_FindSymbol(nameString);
-    str_Free(nameString);
+expr_Symbol(string* symbolName) {
+    SSymbol* symbol = sym_FindSymbol(symbolName);
 
     if (symbol->nFlags & SYMF_EXPR) {
         symbol->nFlags |= SYMF_REFERENCED;

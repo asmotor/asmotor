@@ -20,6 +20,7 @@
 #define XASM_COMMON_PARSE_H_INCLUDED_
 
 #include "expression.h"
+#include "lexer.h"
 
 extern bool
 parse_Do(void);
@@ -35,6 +36,9 @@ parse_ConstantExpression(void);
 
 extern bool
 parse_ExpectChar(char ch);
+
+extern bool
+parse_IsDot(SLexerBookmark* pBookmark);
 
 INLINE bool
 parse_ExpectComma(void) {
