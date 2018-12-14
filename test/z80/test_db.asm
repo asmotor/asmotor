@@ -4,4 +4,5 @@ VDP_RGB		MACRO
 
         SECTION "Data",DATA
         VDP_RGB 0,0,0
+        VDP_RGB 1,2,3
         
