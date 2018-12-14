@@ -9,9 +9,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/gameboy/motorgb",
-            "args": ["test_ldd.asm"],
+            "args": ["test_db.asm"],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/test/gameboy",
+            "cwd": "${workspaceFolder}/test/z80",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"
