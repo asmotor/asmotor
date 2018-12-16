@@ -18,12 +18,16 @@ add_library (xasm
     options.h
     parse.c
     parse.h
-        parse_block.c
-        parse_block.h
+    parse_block.c
+    parse_block.h
+    parse_directive.c
+    parse_directive.h
     parse_expression.c
     parse_expression.h
     parse_string.c
     parse_string.h
+    parse_symbol.c
+    parse_symbol.h
     patch.c
     patch.h
     project.c
@@ -34,4 +38,4 @@ add_library (xasm
     symbol.h
     tokens.c
     tokens.h
-    xasm.h parse_directive.c parse_directive.h parse_symbol.c parse_symbol.h)
+    xasm.h)

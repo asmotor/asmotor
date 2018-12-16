@@ -21,6 +21,7 @@
 
 #include "str.h"
 #include "asmotor.h"
+#include "section.h"
 #include "tokens.h"
 
 struct Symbol;
@@ -176,5 +177,17 @@ expr_Free(SExpression* expression);
 
 extern void
 expr_Clear(SExpression* expression);
+
+extern bool
+expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resultOffset);
+
+extern bool
+expr_IsRelativeToSection(SExpression* expression, SSection* section);
+
+extern SSection*
+expr_GetSectionAndOffset(SExpression* expression, uint32_t* resultOffset);
+
+extern void
+expr_Optimize(SExpression* expression);
 
 #endif /* XASM_COMMON_EXPR_H_INCLUDED_ */

@@ -149,39 +149,39 @@ isSymbol(SExpression* expression) {
 
 /* Expression creation functions */
 
-CREATE_EXPR_DIV(Div, /, T_OP_DIV)
+CREATE_EXPR_DIV(Div, /, T_OP_DIVIDE)
 
-CREATE_EXPR_DIV(Mod, %, T_OP_MOD)
+CREATE_EXPR_DIV(Mod, %, T_OP_MODULO)
 
-CREATE_UNARY_FUNC(BooleanNot, !, T_OP_LOGICNOT)
+CREATE_UNARY_FUNC(BooleanNot, !, T_OP_BOOLEAN_NOT)
 
-COMBINE_BITWISE(Xor, ^, T_OP_XOR)
+COMBINE_BITWISE(Xor, ^, T_OP_BITWISE_XOR)
 
-COMBINE_BITWISE(Or, |, T_OP_OR)
+COMBINE_BITWISE(Or, |, T_OP_BITWISE_OR)
 
-COMBINE_BITWISE(And, &, T_OP_AND)
+COMBINE_BITWISE(And, &, T_OP_BITWISE_AND)
 
-COMBINE_BITWISE(Asl, <<, T_OP_SHL)
+COMBINE_BITWISE(Asl, <<, T_OP_BITWISE_ASL)
 
 COMBINE_ARITHMETIC(Add, +, T_OP_ADD)
 
 COMBINE_ARITHMETIC(Mul, *, T_OP_ADD)
 
-COMBINE_ARITHMETIC(BooleanOr, ||, T_OP_LOGICOR)
+COMBINE_ARITHMETIC(BooleanOr, ||, T_OP_BOOLEAN_OR)
 
-COMBINE_ARITHMETIC(BooleanAnd, &&, T_OP_LOGICAND)
+COMBINE_ARITHMETIC(BooleanAnd, &&, T_OP_BOOLEAN_AND)
 
-COMBINE_ARITHMETIC(GreaterEqual, >=, T_OP_LOGICGE)
+COMBINE_ARITHMETIC(GreaterEqual, >=, T_OP_GREATER_OR_EQUAL)
 
-COMBINE_ARITHMETIC(GreaterThan, >, T_OP_LOGICGT)
+COMBINE_ARITHMETIC(GreaterThan, >, T_OP_GREATER_THAN)
 
-COMBINE_ARITHMETIC(LessEqual, <=, T_OP_LOGICLE)
+COMBINE_ARITHMETIC(LessEqual, <=, T_OP_LESS_OR_EQUAL)
 
-COMBINE_ARITHMETIC(LessThan, <, T_OP_LOGICLT)
+COMBINE_ARITHMETIC(LessThan, <, T_OP_LESS_THAN)
 
-COMBINE_ARITHMETIC(Equal, ==, T_OP_LOGICEQU)
+COMBINE_ARITHMETIC(Equal, ==, T_OP_EQUAL)
 
-COMBINE_ARITHMETIC(NotEqual, !=, T_OP_LOGICNE)
+COMBINE_ARITHMETIC(NotEqual, !=, T_OP_NOT_EQUAL)
 
 CREATE_LIMIT(LowLimit, <, T_FUNC_LOWLIMIT)
 
@@ -191,7 +191,7 @@ CREATE_BINARY_FUNC(FixedMultiplication, fmul, T_FUNC_FMUL)
 
 CREATE_BINARY_FUNC(Atan2, fatan2, T_FUNC_ATAN2)
 
-CREATE_BINARY_FUNC(Asr, asr, T_OP_SHR)
+CREATE_BINARY_FUNC(Asr, asr, T_OP_BITWISE_ASR)
 
 CREATE_UNARY_FUNC(Sin, fsin, T_FUNC_SIN)
 
@@ -309,7 +309,7 @@ expr_Sub(SExpression* left, SExpression* right) {
 
     int32_t value = left->value.integer - right->value.integer;
 
-    left = mergeExpressions(left, right, T_OP_SUB);
+    left = mergeExpressions(left, right, T_OP_SUBTRACT);
     left->value.integer = value;
 
     if (!expr_IsConstant(left) && isSymbol(left->left) && isSymbol(left->right)
@@ -421,3 +421,109 @@ expr_Free(SExpression* expression) {
         mem_Free(expression);
     }
 }
+
+bool
+expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resultOffset) {
+    if (expression == NULL)
+        return false;
+
+    if (expr_Type(expression) == EXPR_PARENS) {
+        return expr_GetSectionOffset(expression->right, section, resultOffset);
+    }
+
+    if (expr_Type(expression) == EXPR_CONSTANT && (section->Flags & SECTF_LOADFIXED)) {
+        *resultOffset = expression->value.integer - section->BasePC;
+        return true;
+    }
+
+    if (expr_Type(expression) == EXPR_SYMBOL) {
+        SSymbol* symbol = expression->value.symbol;
+        if ((symbol->eType == SYM_EQU) && (section->Flags & SECTF_LOADFIXED)) {
+            *resultOffset = symbol->Value.Value - section->BasePC;
+            return true;
+        } else if (symbol->pSection == section) {
+            if ((symbol->nFlags & SYMF_CONSTANT) && (section->Flags & SECTF_LOADFIXED)) {
+                *resultOffset = symbol->Value.Value - section->BasePC;
+                return true;
+            } else if ((symbol->nFlags & SYMF_RELOC) && (section->Flags == 0)) {
+                *resultOffset = (uint32_t) symbol->Value.Value;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    if (expr_IsOperator(expression, T_OP_ADD) || expr_IsOperator(expression, T_OP_SUBTRACT)) {
+        uint32_t offset;
+        if (expr_GetSectionOffset(expression->left, section, &offset)) {
+            if (expr_IsConstant(expression->right)) {
+                if (expr_IsOperator(expression, T_OP_ADD))
+                    *resultOffset = offset + expression->right->value.integer;
+                else
+                    *resultOffset = offset - expression->right->value.integer;
+                return true;
+            }
+        }
+    }
+
+    if (expr_IsOperator(expression, T_OP_ADD)) {
+        uint32_t offset;
+        if (expr_GetSectionOffset(expression->right, section, &offset)) {
+            if (expr_IsConstant(expression->left)) {
+                *resultOffset = expression->left->value.integer + offset;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool
+expr_IsRelativeToSection(SExpression* expression, SSection* section) {
+    uint32_t throwAway;
+    return expr_GetSectionOffset(expression, section, &throwAway);
+}
+
+SSection*
+expr_GetSectionAndOffset(SExpression* expression, uint32_t* resultOffset) {
+    for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+        if (expr_GetSectionOffset(expression, section, resultOffset))
+            return section;
+    }
+
+    *resultOffset = 0;
+    return NULL;
+}
+
+void
+expr_Optimize(SExpression* expression) {
+    if (expression->left != NULL)
+        expr_Optimize(expression->left);
+
+    if (expression->right != NULL)
+        expr_Optimize(expression->right);
+
+    if (expr_Type(expression) == EXPR_PARENS) {
+        SExpression* pToFree = expression->right;
+        *expression = *(expression->right);
+        mem_Free(pToFree);
+    }
+
+    if ((expression->type == EXPR_SYMBOL) && (expression->value.symbol->nFlags & SYMF_CONSTANT)) {
+        expression->type = EXPR_CONSTANT;
+        expression->isConstant = true;
+        expression->value.integer = expression->value.symbol->Value.Value;
+    }
+
+    if (expr_IsConstant(expression)) {
+        expr_Free(expression->left);
+        expression->left = NULL;
+        expr_Free(expression->right);
+        expression->right = NULL;
+
+        expression->type = EXPR_CONSTANT;
+        expression->operation = T_NONE;
+    }
+}
+

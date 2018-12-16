@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_COMMON_PARSE_BLOCKS_H_INCLUDED_
-#define XASM_COMMON_PARSE_BLOCKS_H_INCLUDED_
+#ifndef XASM_COMMON_PARSE_BLOCK_H_INCLUDED_
+#define XASM_COMMON_PARSE_BLOCK_H_INCLUDED_
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -34,4 +34,4 @@ parse_SkipToElse(void);
 extern bool
 parse_SkipToEndc(void);
 
-#endif //XASM_COMMON_PARSE_BLOCKS_H_INCLUDED_
+#endif // XASM_COMMON_PARSE_BLOCK_H_INCLUDED_

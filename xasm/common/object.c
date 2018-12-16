@@ -172,61 +172,61 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
                     default:
                         internalerror("Unknown operator");
                         break;
-                    case T_OP_SUB:
+                    case T_OP_SUBTRACT:
                         fputc(OBJ_OP_SUB, fileHandle);
                         break;
                     case T_OP_ADD:
                         fputc(OBJ_OP_ADD, fileHandle);
                         break;
-                    case T_OP_XOR:
+                    case T_OP_BITWISE_XOR:
                         fputc(OBJ_OP_XOR, fileHandle);
                         break;
-                    case T_OP_OR:
+                    case T_OP_BITWISE_OR:
                         fputc(OBJ_OP_OR, fileHandle);
                         break;
-                    case T_OP_AND:
+                    case T_OP_BITWISE_AND:
                         fputc(OBJ_OP_AND, fileHandle);
                         break;
-                    case T_OP_SHL:
+                    case T_OP_BITWISE_ASL:
                         fputc(OBJ_OP_ASL, fileHandle);
                         break;
-                    case T_OP_SHR:
+                    case T_OP_BITWISE_ASR:
                         fputc(OBJ_OP_ASR, fileHandle);
                         break;
-                    case T_OP_MUL:
+                    case T_OP_MULTIPLY:
                         fputc(OBJ_OP_MUL, fileHandle);
                         break;
-                    case T_OP_DIV:
+                    case T_OP_DIVIDE:
                         fputc(OBJ_OP_DIV, fileHandle);
                         break;
-                    case T_OP_MOD:
+                    case T_OP_MODULO:
                         fputc(OBJ_OP_MOD, fileHandle);
                         break;
-                    case T_OP_LOGICOR:
+                    case T_OP_BOOLEAN_OR:
                         fputc(OBJ_OP_BOOLEAN_OR, fileHandle);
                         break;
-                    case T_OP_LOGICAND:
+                    case T_OP_BOOLEAN_AND:
                         fputc(OBJ_OP_BOOLEAN_AND, fileHandle);
                         break;
-                    case T_OP_LOGICNOT:
+                    case T_OP_BOOLEAN_NOT:
                         fputc(OBJ_OP_BOOLEAN_NOT, fileHandle);
                         break;
-                    case T_OP_LOGICGE:
+                    case T_OP_GREATER_OR_EQUAL:
                         fputc(OBJ_OP_GREATER_OR_EQUAL, fileHandle);
                         break;
-                    case T_OP_LOGICGT:
+                    case T_OP_GREATER_THAN:
                         fputc(OBJ_OP_GREATER_THAN, fileHandle);
                         break;
-                    case T_OP_LOGICLE:
+                    case T_OP_LESS_OR_EQUAL:
                         fputc(OBJ_OP_LESS_OR_EQUAL, fileHandle);
                         break;
-                    case T_OP_LOGICLT:
+                    case T_OP_LESS_THAN:
                         fputc(OBJ_OP_LESS_THAN, fileHandle);
                         break;
-                    case T_OP_LOGICEQU:
+                    case T_OP_EQUAL:
                         fputc(OBJ_OP_EQUALS, fileHandle);
                         break;
-                    case T_OP_LOGICNE:
+                    case T_OP_NOT_EQUAL:
                         fputc(OBJ_OP_NOT_EQUALS, fileHandle);
                         break;
                     case T_FUNC_LOWLIMIT:

@@ -132,7 +132,7 @@ static bool parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes) {
 		if (!parse_IndirectComponent(&nRegister, &pAddress))
 			return false;
 
-		while (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUB) {
+		while (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUBTRACT) {
 			if (lex_Current.token == T_OP_ADD) {
 				uint32_t nRegister2 = UINT32_MAX;
 				SExpression* pAddress2 = NULL;
@@ -151,7 +151,7 @@ static bool parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes) {
 				} else {
 					prj_Error(MERROR_ILLEGAL_ADDRMODE);
 				}
-			} else if (lex_Current.token == T_OP_SUB) {
+			} else if (lex_Current.token == T_OP_SUBTRACT) {
 				uint32_t nRegister2 = UINT32_MAX;
 				SExpression* pAddress2 = NULL;
 

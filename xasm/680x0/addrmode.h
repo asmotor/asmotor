@@ -228,7 +228,7 @@ static bool parse_GetIndexReg(SModeRegs* pMode)
 		return false;
 	}
 
-	if(lex_Current.token == T_OP_MUL)
+	if(lex_Current.token == T_OP_MULTIPLY)
 	{
 		parse_GetToken();
 		if((pMode->pIndexScale = parse_Expression(1)) == NULL)

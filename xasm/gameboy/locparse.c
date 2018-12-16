@@ -967,7 +967,7 @@ static bool parse_AddrMode(SAddrMode* pAddrMode)
 
 		parse_GetToken();
 
-		if(mode == T_MODE_SP && (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUB))
+		if(mode == T_MODE_SP && (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUBTRACT))
 		{
 			SExpression* pExpr = parse_CreateExpression8S(parse_Expression(1));
 			if(pExpr != NULL)
@@ -998,7 +998,7 @@ static bool parse_AddrMode(SAddrMode* pAddrMode)
 			parse_GetToken();
 
 			if(lex_Current.token == T_OP_ADD
-			|| lex_Current.token == T_OP_SUB)
+			|| lex_Current.token == T_OP_SUBTRACT)
 			{
 				SExpression* pExpr = parse_CreateExpression8S(parse_Expression(1));
 

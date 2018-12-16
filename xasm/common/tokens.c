@@ -40,27 +40,27 @@ uint32_t tokens_BinaryVariadicId;
 /*	Private data */
 
 static SLexerTokenDefinition staticTokens[] = {
-        {"||",        T_OP_LOGICOR},
-        {"&&",        T_OP_LOGICAND},
-        {"==",        T_OP_LOGICEQU},
-        {">",         T_OP_LOGICGT},
-        {"<",         T_OP_LOGICLT},
-        {">=",        T_OP_LOGICGE},
-        {"<=",        T_OP_LOGICLE},
-        {"~=",        T_OP_LOGICNE},
-        {"~!",        T_OP_LOGICNOT},
-        {"|",         T_OP_OR},
-        {"!",         T_OP_OR},
-        {"^",         T_OP_XOR},
-        {"&",         T_OP_AND},
-        {"<<",        T_OP_SHL},
-        {">>",        T_OP_SHR},
+        {"||",        T_OP_BOOLEAN_OR},
+        {"&&",        T_OP_BOOLEAN_AND},
+        {"==",        T_OP_EQUAL},
+        {">",         T_OP_GREATER_THAN},
+        {"<",         T_OP_LESS_THAN},
+        {">=",        T_OP_GREATER_OR_EQUAL},
+        {"<=",        T_OP_LESS_OR_EQUAL},
+        {"~=",        T_OP_NOT_EQUAL},
+        {"~!",        T_OP_BOOLEAN_NOT},
+        {"|",         T_OP_BITWISE_OR},
+        {"!",         T_OP_BITWISE_OR},
+        {"^",         T_OP_BITWISE_XOR},
+        {"&",         T_OP_BITWISE_AND},
+        {"<<",        T_OP_BITWISE_ASL},
+        {">>",        T_OP_BITWISE_ASR},
         {"+",         T_OP_ADD},
-        {"-",         T_OP_SUB},
-        {"*",         T_OP_MUL},
-        {"/",         T_OP_DIV},
-        {"~/",        T_OP_MOD},
-        {"~",         T_OP_NOT},
+        {"-",         T_OP_SUBTRACT},
+        {"*",         T_OP_MULTIPLY},
+        {"/",         T_OP_DIVIDE},
+        {"~/",        T_OP_MODULO},
+        {"~",         T_OP_BITWISE_NOT},
 
         {"def",       T_FUNC_DEF},
 
@@ -82,73 +82,73 @@ static SLexerTokenDefinition staticTokens[] = {
         {"toupper",   T_FUNC_TOUPPER},
         {"tolower",   T_FUNC_TOLOWER},
 
-        {"printt",    T_POP_PRINTT},
-        {"printv",    T_POP_PRINTV},
-        {"printf",    T_POP_PRINTF},
-        {"export",    T_POP_EXPORT},
-        {"xdef",      T_POP_EXPORT},
-        {"import",    T_POP_IMPORT},
-        {"xref",      T_POP_IMPORT},
-        {"global",    T_POP_GLOBAL},
+        {"printt",    T_DIRECTIVE_PRINTT},
+        {"printv",    T_DIRECTIVE_PRINTV},
+        {"printf",    T_DIRECTIVE_PRINTF},
+        {"export",    T_DIRECTIVE_EXPORT},
+        {"xdef",      T_DIRECTIVE_EXPORT},
+        {"import",    T_DIRECTIVE_IMPORT},
+        {"xref",      T_DIRECTIVE_IMPORT},
+        {"global",    T_DIRECTIVE_GLOBAL},
 
-        {"rsreset",   T_POP_RSRESET},
-        {"rsset",     T_POP_RSSET},
+        {"rsreset",   T_DIRECTIVE_RSRESET},
+        {"rsset",     T_DIRECTIVE_RSSET},
 
         {"set",       T_POP_SET},
         {"=",         T_POP_SET},
 
-        {"section",   T_POP_SECTION},
+        {"section",   T_DIRECTIVE_SECTION},
         {"group",     T_POP_GROUP},
         {"text",      T_GROUP_TEXT},
         {"ram",       T_GROUP_BSS},
-        {"org",       T_POP_ORG},
+        {"org",       T_DIRECTIVE_ORG},
 
         {"equ",       T_POP_EQU},
         {"equs",      T_POP_EQUS},
 
-        {"purge",     T_POP_PURGE},
+        {"purge",     T_DIRECTIVE_PURGE},
 
-        {"fail",      T_POP_FAIL},
-        {"warn",      T_POP_WARN},
+        {"fail",      T_DIRECTIVE_FAIL},
+        {"warn",      T_DIRECTIVE_WARN},
 
-        {"include",   T_POP_INCLUDE},
-        {"incbin",    T_POP_INCBIN},
+        {"include",   T_DIRECTIVE_INCLUDE},
+        {"incbin",    T_DIRECTIVE_INCBIN},
 
-        {"rept",      T_POP_REPT},
+        {"rept",      T_DIRECTIVE_REPT},
         {"endr",      T_POP_ENDR},    /*	Not needed but we have it here just to protect the name */
-        {"rexit",     T_POP_REXIT},
+        {"rexit",     T_DIRECTIVE_REXIT},
 
-        {"if",        T_POP_IF},
-        {"ifc",       T_POP_IFC},
-        {"ifd",       T_POP_IFD},
-        {"ifnc",      T_POP_IFNC},
-        {"ifnd",      T_POP_IFND},
-        {"ifne",      T_POP_IF},
-        {"ifeq",      T_POP_IFEQ},
-        {"ifgt",      T_POP_IFGT},
-        {"ifge",      T_POP_IFGE},
-        {"iflt",      T_POP_IFLT},
-        {"ifle",      T_POP_IFLE},
-        {"else",      T_POP_ELSE},
-        {"endc",      T_POP_ENDC},
+        {"if",        T_DIRECTIVE_IF},
+        {"ifc",       T_DIRECTIVE_IFC},
+        {"ifd",       T_DIRECTIVE_IFD},
+        {"ifnc",      T_DIRECTIVE_IFNC},
+        {"ifnd",      T_DIRECTIVE_IFND},
+        {"ifne",      T_DIRECTIVE_IF},
+        {"ifeq",      T_DIRECTIVE_IFEQ},
+        {"ifgt",      T_DIRECTIVE_IFGT},
+        {"ifge",      T_DIRECTIVE_IFGE},
+        {"iflt",      T_DIRECTIVE_IFLT},
+        {"ifle",      T_DIRECTIVE_IFLE},
+        {"else",      T_DIRECTIVE_ELSE},
+        {"endc",      T_DIRECTIVE_ENDC},
 
         {"macro",     T_POP_MACRO},
         {"endm",      T_POP_ENDM},    /*	Not needed but we have it here just to protect the name */
-        {"shift",     T_POP_SHIFT},
-        {"mexit",     T_POP_MEXIT},
+        {"shift",     T_DIRECTIVE_SHIFT},
+        {"mexit",     T_DIRECTIVE_MEXIT},
 
-        {"pushs",     T_POP_PUSHS},
-        {"pops",      T_POP_POPS},
-        {"pusho",     T_POP_PUSHO},
-        {"popo",      T_POP_POPO},
+        {"pushs",     T_DIRECTIVE_PUSHS},
+        {"pops",      T_DIRECTIVE_POPS},
+        {"pusho",     T_DIRECTIVE_PUSHO},
+        {"popo",      T_DIRECTIVE_POPO},
 
-        {"opt",       T_POP_OPT},
+        {"opt",       T_DIRECTIVE_OPT},
 
         {"lowlimit",  T_FUNC_LOWLIMIT},
         {"highlimit", T_FUNC_HIGHLIMIT},
 
-        {"even",      T_POP_EVEN},
-        {"cnop",      T_POP_CNOP},
+        {"even",      T_DIRECTIVE_EVEN},
+        {"cnop",      T_DIRECTIVE_CNOP},
 
         {"end",       T_POP_END},
 
@@ -370,46 +370,46 @@ tokens_Init(void) {
     lex_DefineTokens(staticTokens);
 
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken("__RSB", T_POP_RB);
+        lex_DefineToken("__RSB", T_DIRECTIVE_RB);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken("__RSW", T_POP_RW);
+        lex_DefineToken("__RSW", T_DIRECTIVE_RW);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken("__RSL", T_POP_RL);
+        lex_DefineToken("__RSL", T_DIRECTIVE_RL);
 
     if (g_pConfiguration->pszNameRB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken(g_pConfiguration->pszNameRB, T_POP_RB);
+        lex_DefineToken(g_pConfiguration->pszNameRB, T_DIRECTIVE_RB);
     if (g_pConfiguration->pszNameRW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken(g_pConfiguration->pszNameRW, T_POP_RW);
+        lex_DefineToken(g_pConfiguration->pszNameRW, T_DIRECTIVE_RW);
     if (g_pConfiguration->pszNameRL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken(g_pConfiguration->pszNameRL, T_POP_RL);
+        lex_DefineToken(g_pConfiguration->pszNameRL, T_DIRECTIVE_RL);
 
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken("__DSB", T_POP_DSB);
+        lex_DefineToken("__DSB", T_DIRECTIVE_DSB);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken("__DSW", T_POP_DSW);
+        lex_DefineToken("__DSW", T_DIRECTIVE_DSW);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken("__DSL", T_POP_DSL);
+        lex_DefineToken("__DSL", T_DIRECTIVE_DSL);
 
     if (g_pConfiguration->pszNameDSB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDSB, T_POP_DSB);
+        lex_DefineToken(g_pConfiguration->pszNameDSB, T_DIRECTIVE_DSB);
     if (g_pConfiguration->pszNameDSW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDSW, T_POP_DSW);
+        lex_DefineToken(g_pConfiguration->pszNameDSW, T_DIRECTIVE_DSW);
     if (g_pConfiguration->pszNameDSL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDSL, T_POP_DSL);
+        lex_DefineToken(g_pConfiguration->pszNameDSL, T_DIRECTIVE_DSL);
 
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken("__DCB", T_POP_DB);
+        lex_DefineToken("__DCB", T_DIRECTIVE_DB);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken("__DCW", T_POP_DW);
+        lex_DefineToken("__DCW", T_DIRECTIVE_DW);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken("__DCL", T_POP_DL);
+        lex_DefineToken("__DCL", T_DIRECTIVE_DL);
 
     if (g_pConfiguration->pszNameDB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDB, T_POP_DB);
+        lex_DefineToken(g_pConfiguration->pszNameDB, T_DIRECTIVE_DB);
     if (g_pConfiguration->pszNameDW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDW, T_POP_DW);
+        lex_DefineToken(g_pConfiguration->pszNameDW, T_DIRECTIVE_DW);
     if (g_pConfiguration->pszNameDL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDL, T_POP_DL);
+        lex_DefineToken(g_pConfiguration->pszNameDL, T_DIRECTIVE_DL);
 
     if (g_pConfiguration->bSupportBanks)
         lex_DefineToken("bank", T_FUNC_BANK);

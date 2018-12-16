@@ -104,15 +104,15 @@ parse_SymbolDefinition(void) {
                     sym_CreateLabel(symbolName);
                     break;
                 }
-                case T_POP_RB: {
+                case T_DIRECTIVE_RB: {
                     createRsSymbol(symbolName, 1);
                     break;
                 }
-                case T_POP_RW: {
+                case T_DIRECTIVE_RW: {
                     createRsSymbol(symbolName, 2);
                     break;
                 }
-                case T_POP_RL: {
+                case T_DIRECTIVE_RL: {
                     createRsSymbol(symbolName, 4);
                     break;
                 }

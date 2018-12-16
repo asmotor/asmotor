@@ -102,7 +102,7 @@ expressionPriority9(size_t maxStringConstLength) {
             }
             // fall through to @
         }
-        case T_OP_MUL:
+        case T_OP_MULTIPLY:
         case T_AT: {
             SExpression* expr = expr_Pc();
             parse_GetToken();
@@ -174,27 +174,27 @@ expressionPriority8(size_t maxStringConstLength) {
                     str_Free(s);
                     return r;
                 }
-                case T_OP_LOGICEQU: {
+                case T_OP_EQUAL: {
                     int32_t v = stringCompare(s);
                     return expr_Const(v == 0 ? true : false);
                 }
-                case T_OP_LOGICNE: {
+                case T_OP_NOT_EQUAL: {
                     int32_t v = stringCompare(s);
                     return expr_Const(v != 0 ? true : false);
                 }
-                case T_OP_LOGICGE: {
+                case T_OP_GREATER_OR_EQUAL: {
                     int32_t v = stringCompare(s);
                     return expr_Const(v >= 0 ? true : false);
                 }
-                case T_OP_LOGICGT: {
+                case T_OP_GREATER_THAN: {
                     int32_t v = stringCompare(s);
                     return expr_Const(v > 0 ? true : false);
                 }
-                case T_OP_LOGICLE: {
+                case T_OP_LESS_OR_EQUAL: {
                     int32_t v = stringCompare(s);
                     return expr_Const(v <= 0 ? true : false);
                 }
-                case T_OP_LOGICLT: {
+                case T_OP_LESS_THAN: {
                     int32_t v = stringCompare(s);
                     return expr_Const(v < 0 ? true : false);
                 }
@@ -329,11 +329,11 @@ expressionPriority7(size_t maxStringConstLength) {
 static SExpression*
 expressionPriority6(size_t maxStringConstLength) {
     switch (lex_Current.token) {
-        case T_OP_SUB: {
+        case T_OP_SUBTRACT: {
             parse_GetToken();
             return expr_Sub(expr_Const(0), expressionPriority6(maxStringConstLength));
         }
-        case T_OP_NOT: {
+        case T_OP_BOOLEAN_NOT: {
             parse_GetToken();
             return expr_Xor(expr_Const(0xFFFFFFFF), expressionPriority6(maxStringConstLength));
         }
@@ -352,16 +352,14 @@ static SExpression*
 expressionPriority5(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority6(maxStringConstLength);
 
-    while (lex_Current.token == T_OP_SHL || lex_Current.token == T_OP_SHR || lex_Current.token == T_OP_MUL
-           || lex_Current.token == T_OP_DIV || lex_Current.token == T_FUNC_FMUL || lex_Current.token == T_FUNC_FDIV
-           || lex_Current.token == T_OP_MOD) {
+    for (;;) {
         switch (lex_Current.token) {
-            case T_OP_SHL: {
+            case T_OP_BITWISE_ASL: {
                 parse_GetToken();
                 t1 = expr_Asl(t1, expressionPriority6(maxStringConstLength));
                 break;
             }
-            case T_OP_SHR: {
+            case T_OP_BITWISE_ASR: {
                 parse_GetToken();
                 t1 = expr_Asr(t1, expressionPriority6(maxStringConstLength));
                 break;
@@ -371,7 +369,7 @@ expressionPriority5(size_t maxStringConstLength) {
                 t1 = expr_FixedMultiplication(t1, expressionPriority6(maxStringConstLength));
                 break;
             }
-            case T_OP_MUL: {
+            case T_OP_MULTIPLY: {
                 parse_GetToken();
                 t1 = expr_Mul(t1, expressionPriority6(maxStringConstLength));
                 break;
@@ -381,58 +379,56 @@ expressionPriority5(size_t maxStringConstLength) {
                 t1 = expr_FixedDivision(t1, expressionPriority6(maxStringConstLength));
                 break;
             }
-            case T_OP_DIV: {
+            case T_OP_DIVIDE: {
                 parse_GetToken();
                 t1 = expr_Div(t1, expressionPriority6(maxStringConstLength));
                 break;
             }
-            case T_OP_MOD: {
+            case T_OP_MODULO: {
                 parse_GetToken();
                 t1 = expr_Mod(t1, expressionPriority6(maxStringConstLength));
                 break;
             }
             default:
-                break;
+                return t1;
         }
     }
-
-    return t1;
 }
+
+
 
 static SExpression*
 expressionPriority4(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority5(maxStringConstLength);
 
-    while (lex_Current.token == T_OP_XOR || lex_Current.token == T_OP_OR || lex_Current.token == T_OP_AND) {
+    for (;;) {
         switch (lex_Current.token) {
-            case T_OP_XOR: {
+            case T_OP_BITWISE_XOR: {
                 parse_GetToken();
                 t1 = expr_Xor(t1, expressionPriority5(maxStringConstLength));
                 break;
             }
-            case T_OP_OR: {
+            case T_OP_BITWISE_OR: {
                 parse_GetToken();
                 t1 = expr_Or(t1, expressionPriority5(maxStringConstLength));
                 break;
             }
-            case T_OP_AND: {
+            case T_OP_BITWISE_AND: {
                 parse_GetToken();
                 t1 = expr_And(t1, expressionPriority5(maxStringConstLength));
                 break;
             }
             default:
-                break;
+                return t1;
         }
     }
-
-    return t1;
 }
 
 static SExpression*
 expressionPriority3(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority4(maxStringConstLength);
 
-    while (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUB) {
+    for (;;) {
         switch (lex_Current.token) {
             case T_OP_ADD: {
                 SExpression* t2;
@@ -449,69 +445,64 @@ expressionPriority3(size_t maxStringConstLength) {
                 }
                 break;
             }
-            case T_OP_SUB: {
+            case T_OP_SUBTRACT: {
                 parse_GetToken();
                 t1 = expr_Sub(t1, expressionPriority4(maxStringConstLength));
                 break;
             }
             default:
-                break;
+                return t1;
         }
     }
-    return t1;
 }
 
 static SExpression*
 expressionPriority2(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority3(maxStringConstLength);
 
-    while (lex_Current.token == T_OP_LOGICEQU || lex_Current.token == T_OP_LOGICGT || lex_Current.token == T_OP_LOGICLT
-           || lex_Current.token == T_OP_LOGICGE || lex_Current.token == T_OP_LOGICLE
-           || lex_Current.token == T_OP_LOGICNE) {
+    for (;;) {
         switch (lex_Current.token) {
-            case T_OP_LOGICEQU: {
+            case T_OP_EQUAL: {
                 parse_GetToken();
                 t1 = expr_Equal(t1, expressionPriority3(maxStringConstLength));
                 break;
             }
-            case T_OP_LOGICGT: {
+            case T_OP_GREATER_THAN: {
                 parse_GetToken();
                 t1 = expr_GreaterThan(t1, expressionPriority3(maxStringConstLength));
                 break;
             }
-            case T_OP_LOGICLT: {
+            case T_OP_LESS_THAN: {
                 parse_GetToken();
                 t1 = expr_LessThan(t1, expressionPriority3(maxStringConstLength));
                 break;
             }
-            case T_OP_LOGICGE: {
+            case T_OP_GREATER_OR_EQUAL: {
                 parse_GetToken();
                 t1 = expr_GreaterEqual(t1, expressionPriority3(maxStringConstLength));
                 break;
             }
-            case T_OP_LOGICLE: {
+            case T_OP_LESS_OR_EQUAL: {
                 parse_GetToken();
                 t1 = expr_LessEqual(t1, expressionPriority3(maxStringConstLength));
                 break;
             }
-            case T_OP_LOGICNE: {
+            case T_OP_NOT_EQUAL: {
                 parse_GetToken();
                 t1 = expr_NotEqual(t1, expressionPriority3(maxStringConstLength));
                 break;
             }
             default:
-                break;
+                return t1;
         }
     }
-
-    return t1;
 }
 
 static SExpression*
 expressionPriority1(size_t maxStringConstLength) {
     switch (lex_Current.token) {
-        case T_OP_OR:
-        case T_OP_LOGICNOT: {
+        case T_OP_BITWISE_OR:
+        case T_OP_BOOLEAN_NOT: {
             parse_GetToken();
             return expr_BooleanNot(expressionPriority1(maxStringConstLength));
         }
@@ -526,24 +517,22 @@ static SExpression*
 expressionPriority0(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority1(maxStringConstLength);
 
-    while (lex_Current.token == T_OP_LOGICOR || lex_Current.token == T_OP_LOGICAND) {
+    for (;;) {
         switch (lex_Current.token) {
-            case T_OP_LOGICOR: {
+            case T_OP_BOOLEAN_OR: {
                 parse_GetToken();
                 t1 = expr_BooleanOr(t1, expressionPriority1(maxStringConstLength));
                 break;
             }
-            case T_OP_LOGICAND: {
+            case T_OP_BOOLEAN_AND: {
                 parse_GetToken();
                 t1 = expr_BooleanAnd(t1, expressionPriority1(maxStringConstLength));
                 break;
             }
             default:
-                break;
+                return t1;
         }
     }
-
-    return t1;
 }
 
 

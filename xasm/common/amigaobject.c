@@ -177,7 +177,7 @@ writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSection
 
             for (SPatch* patch = patchesPerSection[i]; patch != NULL; patch = list_GetNext(patch)) {
                 uint32_t value;
-                patch_GetSectionPcOffset(&value, patch->pExpression, offsetToSection);
+                expr_GetSectionOffset(patch->pExpression, offsetToSection, &value);
 
                 off_t currentPosition = ftello(fileHandle);
                 fseek(fileHandle, patch->Offset + hunkPosition, SEEK_SET);
@@ -220,7 +220,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
 
                 for (SSection* originSection = g_pSectionList;
                      originSection != NULL; originSection = list_GetNext(originSection)) {
-                    if (patch_IsRelativeToSection(patch->pExpression, originSection)) {
+                    if (expr_IsRelativeToSection(patch->pExpression, originSection)) {
                         if (patch->pPrev)
                             patch->pPrev->pNext = patch->pNext;
                         else

@@ -2096,7 +2096,7 @@ static bool parse_GetRegisterRange(uint16_t* pStart, uint16_t* pEnd)
 {
 	if(parse_GetRegister(pStart))
 	{
-		if(lex_Current.token == T_OP_SUB)
+		if(lex_Current.token == T_OP_SUBTRACT)
 		{
 			parse_GetToken();
 			if(!parse_GetRegister(pEnd))
@@ -2142,7 +2142,7 @@ static uint32_t parse_RegisterList(void)
 		while(start <= end)
 			r |= 1 << start++;
 
-		if(lex_Current.token != T_OP_DIV)
+		if(lex_Current.token != T_OP_DIVIDE)
 			return r;
 
 		parse_GetToken();
