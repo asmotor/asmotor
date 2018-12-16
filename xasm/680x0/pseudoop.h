@@ -19,7 +19,7 @@
 #ifndef ASMOTOR_R68KASM_PSEUDOOP_H_INCLUDED_
 #define ASMOTOR_R68KASM_PSEUDOOP_H_INCLUDED_
 
-static bool parse_PseudoOp()
+static bool parse_Directive()
 {
 	switch(lex_Current.token)
 	{

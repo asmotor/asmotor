@@ -34,8 +34,8 @@
 #include "project.h"
 #include "symbol.h"
 
-bool tokens_expandStrings;
-uint32_t tokens_binaryConstId;
+bool tokens_ExpandStrings;
+uint32_t tokens_BinaryVariadicId;
 
 /*	Private data */
 
@@ -157,7 +157,7 @@ static SLexerTokenDefinition staticTokens[] = {
 
 static int32_t
 binaryCharToInt(char ch) {
-    for (int32_t i = 0; i <= 1; ++i) {
+    for (uint32_t i = 0; i <= 1; ++i) {
         if (opt_Current->binaryLiteralCharacters[i] == ch)
             return i;
     }
@@ -257,9 +257,7 @@ parseDecimal(size_t size) {
 
 static bool
 parseSymbol(size_t size) {
-    string_buffer* pBuffer = strbuf_Create();
-    string* pString;
-    bool r;
+    string_buffer* symbolBuffer = strbuf_Create();
 
     for (size_t index = 0; index < size; ++index) {
         char ch = lex_PeekChar(index);
@@ -275,43 +273,44 @@ parseSymbol(size_t size) {
                     marg = fstk_GetMacroArgValue(ch);
 
                 if (marg != NULL) {
-                    strbuf_AppendString(pBuffer, marg);
+                    strbuf_AppendString(symbolBuffer, marg);
                     str_Free(marg);
                     continue;
                 }
             }
 
             prj_Fail(ERROR_ID_MALFORMED);
-            strbuf_Free(pBuffer);
+            strbuf_Free(symbolBuffer);
             return false;
         }
 
-        strbuf_AppendChar(pBuffer, ch);
+        strbuf_AppendChar(symbolBuffer, ch);
     }
 
-    pString = strbuf_String(pBuffer);
-    strbuf_Free(pBuffer);
+    string* symbolName = strbuf_String(symbolBuffer);
+    strbuf_Free(symbolBuffer);
 
-    if (tokens_expandStrings && sym_IsString(pString)) {
-        string* pValue = sym_GetStringValueByName(pString);
-        size_t len = str_Length(pValue);
+    bool r;
+    if (tokens_ExpandStrings && sym_IsString(symbolName)) {
+        string* value = sym_GetStringValueByName(symbolName);
+        size_t len = str_Length(value);
 
         lex_SkipBytes(size);
-        lex_UnputString(str_String(pValue));
+        lex_UnputString(str_String(value));
 
         for (size_t i = 0; i < len; ++i) {
-            if (str_CharAt(pValue, i) == '\n')
+            if (str_CharAt(value, i) == '\n')
                 fstk_Current->lineNumber -= 1;
         }
 
         r = false;
-        str_Free(pValue);
+        str_Free(value);
     } else {
-        strcpy(lex_Current.value.string, str_String(pString));
+        strcpy(lex_Current.value.string, str_String(symbolName));
         r = true;
     }
 
-    str_Free(pString);
+    str_Free(symbolName);
     return r;
 }
 
@@ -364,7 +363,7 @@ static SVariadicWordDefinition s_sIDToken = {
 
 void
 tokens_Init(void) {
-    tokens_expandStrings = true;
+    tokens_ExpandStrings = true;
 
     lex_Init();
 
@@ -482,7 +481,7 @@ tokens_Init(void) {
 
     /* Binary constants */
 
-    tokens_binaryConstId = id = lex_VariadicCreateWord(&s_sNumberToken);
+    tokens_BinaryVariadicId = id = lex_VariadicCreateWord(&s_sNumberToken);
     lex_VariadicAddCharRange(id, '%', '%', 0);
     lex_VariadicAddCharRangeRepeating(id, '0', '1', 1);
 }

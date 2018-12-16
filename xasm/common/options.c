@@ -42,11 +42,11 @@ SOptions* opt_Current;
 
 static void
 opt_Update(void) {
-    lex_VariadicRemoveAll(tokens_binaryConstId);
+    lex_VariadicRemoveAll(tokens_BinaryVariadicId);
 
-    lex_VariadicAddCharRange(tokens_binaryConstId, '%', '%', 0);
-    lex_VariadicAddCharRangeRepeating(tokens_binaryConstId, opt_Current->binaryLiteralCharacters[0], opt_Current->binaryLiteralCharacters[0], 1);
-    lex_VariadicAddCharRangeRepeating(tokens_binaryConstId, opt_Current->binaryLiteralCharacters[1], opt_Current->binaryLiteralCharacters[1], 1);
+    lex_VariadicAddCharRange(tokens_BinaryVariadicId, '%', '%', 0);
+    lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[0], opt_Current->binaryLiteralCharacters[0], 1);
+    lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[1], opt_Current->binaryLiteralCharacters[1], 1);
 
     locopt_Update();
 }

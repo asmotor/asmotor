@@ -64,7 +64,7 @@ bool parse_TargetSpecific(void)
 		return true;
 	else if(parse_FpuInstruction())
 		return true;
-	else if(parse_PseudoOp())
+	else if(parse_Directive())
 		return false;
 
 	return false;

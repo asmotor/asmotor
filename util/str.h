@@ -74,6 +74,11 @@ str_ToUpperReplace(string** str);
 extern void
 str_ToLowerReplace(string** str);
 
+INLINE bool
+str_NotEqual(const string* str1, const string* str2) {
+    return !str_Equal(str1, str2);
+}
+
 INLINE string*
 str_Create(const char* data) {
     return str_CreateLength(data, strlen(data));

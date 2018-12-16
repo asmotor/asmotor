@@ -89,7 +89,7 @@ typedef enum
 } EError;
 
 
-extern void	prj_Warn(int n, ...);
+extern bool	prj_Warn(int n, ...);
 extern bool prj_Error(int n, ...);
 extern bool prj_Fail(int n, ...);
 

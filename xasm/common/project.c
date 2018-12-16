@@ -124,7 +124,7 @@ static void	prj_Common(SPatch* patch, char severity, int n, va_list args)
 
 
 
-void prj_Warn(int n, ...)
+bool prj_Warn(int n, ...)
 {
     va_list	args;
 
@@ -132,7 +132,7 @@ void prj_Warn(int n, ...)
     for(i = 0; i < opt_Current->disabledWarningsCount; ++i)
     {
         if(opt_Current->disabledWarnings[i] == n)
-            return;
+            return true;
     }
 
     va_start(args, n);
@@ -140,6 +140,7 @@ void prj_Warn(int n, ...)
     va_end(args);
 
     ++g_nTotalWarnings;
+    return true;
 }
 
 bool prj_Error(int n, ...)

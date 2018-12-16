@@ -22,6 +22,12 @@
 #include "expression.h"
 #include "lexer.h"
 
+extern string*
+parse_GetRsName();
+
+extern bool
+parse_IncrementRs(int32_t size);
+
 extern bool
 parse_Do(void);
 

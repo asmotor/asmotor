@@ -75,29 +75,36 @@ typedef enum {
     T_FUNC_TOUPPER,
     T_FUNC_TOLOWER,
 
+    T_POP_MACRO,
+    T_POP_ENDM,        /* Not needed but we have it here just to protect the name */
+    T_POP_EQU,
+    T_POP_EQUS,
+    T_POP_SET,
+    T_POP_GROUP,
+    T_GROUP_TEXT,
+    T_GROUP_BSS,
+
+    T_POP_RSRESET,
+    T_DIRECTIVE_FIRST = T_POP_RSRESET,
+    T_POP_RSSET,
     T_POP_RB,
     T_POP_RW,
     T_POP_RL,
 
-    T_POP_EQU,
-    T_POP_EQUS,
-    T_POP_SET,
-
     T_POP_PRINTT,
     T_POP_PRINTV,
     T_POP_PRINTF,
+
     T_POP_EXPORT,
     T_POP_IMPORT,
     T_POP_GLOBAL,
-    T_POP_RSRESET,
-    T_POP_RSSET,
+    T_POP_PURGE,
 
     T_POP_FAIL,
     T_POP_WARN,
 
-    T_POP_PURGE,
-
     T_POP_INCLUDE,
+    T_POP_INCBIN,
 
     T_POP_DSB,
     T_POP_DSW,
@@ -111,22 +118,17 @@ typedef enum {
 
     T_POP_ORG,
 
-    T_POP_INCBIN,
-
-    T_POP_MACRO,
-    T_POP_ENDM,        /* Not needed but we have it here just to protect the name */
     T_POP_SHIFT,
     T_POP_MEXIT,
 
     T_POP_REPT,
-    T_POP_ENDR,        /* Not needed but we have it here just to protect the name */
     T_POP_REXIT,
 
-    T_POP_IF,
     T_POP_IFC,
-    T_POP_IFD,
     T_POP_IFNC,
+    T_POP_IFD,
     T_POP_IFND,
+    T_POP_IF,
     T_POP_IFEQ,
     T_POP_IFGT,
     T_POP_IFGE,
@@ -135,31 +137,33 @@ typedef enum {
     T_POP_ELSE,
     T_POP_ENDC,
 
-    T_POP_GROUP,
-    T_GROUP_TEXT,
-    T_GROUP_BSS,
+    T_POP_EVEN,
+    T_POP_CNOP,
 
-    T_POP_PUSHS,
-    T_POP_POPS,
     T_POP_PUSHO,
     T_POP_POPO,
 
     T_POP_OPT,
+
+    T_POP_PUSHS,
+    T_POP_POPS,
+
+    T_DIRECTIVE_LAST = T_POP_POPS,
+
+    T_POP_ENDR,        /* Not needed but we have it here just to protect the name */
 
     T_FUNC_LOWLIMIT,
     T_FUNC_HIGHLIMIT,
 
     T_MACROARG0,
 
-    T_POP_CNOP,
-    T_POP_EVEN,
     T_POP_END
 } EToken;
 
 extern void
 tokens_Init(void);
 
-extern bool tokens_expandStrings;
-extern uint32_t tokens_binaryConstId;
+extern bool tokens_ExpandStrings;
+extern uint32_t tokens_BinaryVariadicId;
 
 #endif /* XASM_COMMON_TOKENS_H_INCLUDED_ */

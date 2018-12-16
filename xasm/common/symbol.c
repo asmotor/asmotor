@@ -122,7 +122,7 @@ static string* Callback__AMIGADATE(SSymbol* pSym) {
 /* ----------------------------------------------------------------------- */
 
 
-static uint32_t sym_CalcHash(string* pName) {
+static uint32_t sym_CalcHash(const string* pName) {
 	uint32_t hash = 0;
 	size_t len = str_Length(pName);
 
@@ -139,7 +139,7 @@ static uint32_t sym_CalcHash(string* pName) {
 	return hash & (HASHSIZE - 1);
 }
 
-static SSymbol* sym_Find(string* pName, SSymbol* pScope) {
+static SSymbol* sym_Find(const string* pName, SSymbol* pScope) {
 	SSymbol* pSym;
 
 	for (pSym = g_pHashedSymbols[sym_CalcHash(pName)]; pSym; pSym = list_GetNext(pSym)) {
@@ -164,7 +164,7 @@ static SSymbol* sym_Create(string* pName) {
 	return pSym;
 }
 
-static SSymbol* sym_GetScope(string* pName) {
+static SSymbol* sym_GetScope(const string* pName) {
 	if (str_CharAt(pName, 0) == '.' || str_CharAt(pName, -1) == '$')
 		return s_pCurrentScope;
 
@@ -429,7 +429,7 @@ bool sym_IsMacro(string* pName) {
 	return pSym != NULL && pSym->eType == SYM_MACRO;
 }
 
-bool sym_IsDefined(string* pName) {
+bool sym_IsDefined(const string* pName) {
 	SSymbol* pSym = sym_Find(pName, sym_GetScope(pName));
 
 	return pSym != NULL && pSym->eType != SYM_UNDEFINED;

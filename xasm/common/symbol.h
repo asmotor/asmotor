@@ -106,9 +106,14 @@ extern string*	sym_GetStringValueByName(string* pName);
 extern int32_t	sym_GetValue(SSymbol* pSym);
 extern int32_t	sym_GetValueByName(string* pName);
 
-extern bool	sym_IsDefined(string* pName);
+extern bool	sym_IsDefined(const string* pName);
 extern bool	sym_IsString(string* pName);
 extern bool	sym_IsMacro(string* pName);
+
+INLINE bool
+sym_IsNotDefined(const string* symbolName) {
+	return !sym_IsDefined((symbolName));
+}
 
 extern SSymbol* g_pHashedSymbols[HASHSIZE];
 
