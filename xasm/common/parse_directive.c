@@ -31,10 +31,11 @@
 #include "project.h"
 #include "symbol.h"
 
-#include "parse_blocks.h"
+#include "parse_block.h"
 #include "parse_directive.h"
 #include "parse_expression.h"
 #include "parse_string.h"
+#include "parse_symbol.h"
 
 static bool
 handleImport(string* pName) {
@@ -239,7 +240,7 @@ defineSpace(intptr_t multiplier) {
 static bool
 handleRsreset() {
     parse_GetToken();
-    sym_CreateSET(parse_GetRsName(), 0);
+    parse_SetRs(0);
     return true;
 }
 
@@ -247,7 +248,7 @@ static bool
 handleRsset() {
     parse_GetToken();
     int32_t val = parse_ConstantExpression();
-    sym_CreateSET(parse_GetRsName(), val);
+    parse_SetRs(val);
     return true;
 }
 
@@ -590,7 +591,8 @@ handlePops() {
 
 static bool
 handleRs(intptr_t multiplier) {
-    return parse_IncrementRs(parse_ConstantExpression() * (int32_t) multiplier);
+    parse_GetRs(parse_ConstantExpression() * (int32_t) multiplier);
+    return true;
 }
 
 typedef struct Directive {

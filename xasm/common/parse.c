@@ -25,139 +25,15 @@
 #include "filestack.h"
 #include "lexer.h"
 #include "parse.h"
-#include "parse_blocks.h"
+#include "parse_block.h"
 #include "parse_directive.h"
 #include "parse_string.h"
+#include "parse_symbol.h"
 #include "project.h"
 #include "symbol.h"
 
 extern bool
 parse_TargetSpecific(void);
-
-static string* rsName = NULL;
-
-/* Private functions */
-
-static uint32_t
-colonCount(void) {
-    if (lex_Current.token == ':') {
-        parse_GetToken();
-        if (lex_Current.token == ':') {
-            parse_GetToken();
-            return 2;
-        }
-    }
-    return 1;
-}
-
-static void
-createRsSymbol(string* symbolName, int32_t size) {
-    int32_t rsValue = sym_GetValueByName(parse_GetRsName());
-    sym_CreateSET(symbolName, rsValue);
-    sym_CreateSET(rsName, rsValue + size);
-}
-
-static bool
-symbolDefinition(void) {
-    bool r = false;
-
-    if (lex_Current.token == T_LABEL) {
-        string* symbolName = str_Create(lex_Current.value.string);
-
-        parse_GetToken();
-
-        uint32_t totalColons = colonCount();
-
-        if (lex_Current.token == T_POP_MACRO) {
-            if (totalColons != 1) {
-                prj_Error(ERROR_SYMBOL_EXPORT);
-                return false;
-            } else {
-                uint32_t lineNumber = fstk_Current->lineNumber;
-
-                size_t reptSize;
-                char* reptBlock;
-                if (parse_BlockCopyMacro(&reptBlock, &reptSize)) {
-                    sym_CreateMACRO(symbolName, reptBlock, reptSize);
-                    parse_GetToken();
-                    r = true;
-                } else {
-                    prj_Fail(ERROR_NEED_ENDM, str_String(fstk_Current->name), lineNumber);
-                    return false;
-                }
-            }
-        } else {
-            switch (lex_Current.token) {
-                default: {
-                    sym_CreateLabel(symbolName);
-                    break;
-                }
-                case T_POP_RB: {
-                    parse_GetToken();
-                    createRsSymbol(symbolName, parse_ConstantExpression());
-                    break;
-                }
-                case T_POP_RW: {
-                    parse_GetToken();
-                    createRsSymbol(symbolName, parse_ConstantExpression() * 2);
-                    break;
-                }
-                case T_POP_RL: {
-                    parse_GetToken();
-                    createRsSymbol(symbolName, parse_ConstantExpression() * 4);
-                    break;
-                }
-                case T_POP_EQU: {
-                    parse_GetToken();
-                    sym_CreateEQU(symbolName, parse_ConstantExpression());
-                    break;
-                }
-                case T_POP_SET: {
-                    parse_GetToken();
-                    sym_CreateSET(symbolName, parse_ConstantExpression());
-                    break;
-                }
-                case T_POP_EQUS: {
-                    parse_GetToken();
-
-                    string* value = parse_ExpectStringExpression();
-                    if (value != NULL) {
-                        sym_CreateEQUS(symbolName, value);
-                        str_Free(value);
-                    }
-                    break;
-                }
-                case T_POP_GROUP: {
-                    EGroupType groupType;
-
-                    parse_GetToken();
-                    switch (lex_Current.token) {
-                        case T_GROUP_TEXT:
-                            groupType = GROUP_TEXT;
-                            break;
-                        case T_GROUP_BSS:
-                            groupType = GROUP_BSS;
-                            break;
-                        default:
-                            prj_Error(ERROR_EXPECT_TEXT_BSS);
-                            return false;
-                    }
-                    sym_CreateGROUP(symbolName, groupType);
-                    break;
-                }
-            }
-
-            if (totalColons == 2)
-                sym_Export(symbolName);
-
-            r = true;
-        }
-        str_Free(symbolName);
-    }
-
-    return r;
-}
-
 
 /* Public functions */
 
@@ -192,16 +68,13 @@ parse_ExpectChar(char ch) {
 }
 
 static bool
-parse_Misc(void) {
+handleMacroInvocation(void) {
     switch (lex_Current.token) {
         case T_ID: {
-            string* pName = str_Create(lex_Current.value.string);
-            bool bIsMacro = sym_IsMacro(pName);
-            str_Free(pName);
+            bool r;
+            string* symbolName = str_Create(lex_Current.value.string);
 
-            if (bIsMacro) {
-                string* s = str_Create(lex_Current.value.string);
-
+            if (sym_IsMacro(symbolName)) {
                 lex_SetState(LEX_STATE_MACRO_ARG0);
                 parse_GetToken();
                 while (lex_Current.token != '\n') {
@@ -224,13 +97,14 @@ parse_Misc(void) {
                     }
                 }
                 lex_SetState(LEX_STATE_NORMAL);
-                fstk_ProcessMacro(s);
-                str_Free(s);
-                return true;
+                fstk_ProcessMacro(symbolName);
+                r = true;
             } else {
                 prj_Error(ERROR_INSTR_UNKNOWN, lex_Current.value.string);
-                return false;
+                r = false;
             }
+            str_Free(symbolName);
+            return r;
         }
         default: {
             return false;
@@ -249,27 +123,11 @@ parse_GetToken(void) {
 }
 
 bool
-parse_IncrementRs(int32_t size) {
-    string* rs = parse_GetRsName();
-    sym_CreateSET(rs, sym_GetValueByName(rs) + size);
-    return true;
-}
-
-string*
-parse_GetRsName() {
-    if (rsName == NULL)
-        rsName = str_Create("__RS");
-    return rsName;
-}
-
-bool
 parse_Do(void) {
-    bool r = true;
-
     lex_GetNextToken();
 
-    while (lex_Current.token && r) {
-        if (!parse_TargetSpecific() && !symbolDefinition() && !parse_Directive() && !parse_Misc()) {
+    while (lex_Current.token) {
+        if (!parse_TargetSpecific() && !parse_SymbolDefinition() && !parse_Directive() && !handleMacroInvocation()) {
             if (lex_Current.token == '\n') {
                 lex_GetNextToken();
                 fstk_Current->lineNumber += 1;
@@ -277,12 +135,10 @@ parse_Do(void) {
             } else if (lex_Current.token == T_POP_END) {
                 return true;
             } else {
-                prj_Error(ERROR_SYNTAX);
-                r = false;
+                return prj_Error(ERROR_SYNTAX);
             }
         }
     }
 
-    return r;
+    return true;
 }
-

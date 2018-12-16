@@ -22,7 +22,7 @@
 #include "mem.h"
 
 /* From xasm */
-#include "parse_blocks.h"
+#include "parse_block.h"
 #include "lexer.h"
 #include "filestack.h"
 
