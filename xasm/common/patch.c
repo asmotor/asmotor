@@ -33,11 +33,11 @@
 
 /* Private functions */
 
-typedef int32_t (* binaryPredicate)(int32_t nLeft, int32_t nRight);
-typedef int32_t (* unaryPredicate)(int32_t nValue);
+typedef int32_t (* binaryOperation)(int32_t nLeft, int32_t nRight);
+typedef int32_t (* unaryOperation)(int32_t nValue);
 
 static bool
-evaluatePatch(SPatch* patch, SExpression* expression, int32_t* result);
+reduceExpression(const SPatch* patch, SExpression* expression, int32_t* result);
 
 static int32_t
 subtract(int32_t lhs, int32_t rhs) {
@@ -135,30 +135,30 @@ booleanNot(int32_t value) {
 }
 
 static bool
-reduceBinary(SPatch* pPatch, SExpression* pExpr, int32_t* v, binaryPredicate pPred) {
-    int32_t vl;
-    int32_t vr;
+reduceBinary(const SPatch* patch, SExpression* expression, int32_t* result, binaryOperation operation) {
+    int32_t lhs;
+    int32_t rhs;
 
-    if (evaluatePatch(pPatch, pExpr->left, &vl) && evaluatePatch(pPatch, pExpr->right, &vr)) {
-        expr_Clear(pExpr);
-        expr_SetConst(pExpr, *v = pPred(vl, vr));
+    if (reduceExpression(patch, expression->left, &lhs) && reduceExpression(patch, expression->right, &rhs)) {
+        expr_Clear(expression);
+        expr_SetConst(expression, *result = operation(lhs, rhs));
         return true;
     }
     return false;
 }
 
 static bool
-reduceUnary(SPatch* pPatch, SExpression* pExpr, int32_t* v, unaryPredicate pPred) {
-    int32_t vr;
+reduceUnary(const SPatch* patch, SExpression* expression, int32_t* result, unaryOperation operation) {
+    int32_t value;
 
-    if (evaluatePatch(pPatch, pExpr->right, &vr)) {
-        expr_Free(pExpr->right);
-        pExpr->right = NULL;
+    if (reduceExpression(patch, expression->right, &value)) {
+        expr_Free(expression->right);
+        expression->right = NULL;
 
-        pExpr->type = EXPR_CONSTANT;
-        pExpr->isConstant = true;
+        expression->type = EXPR_CONSTANT;
+        expression->isConstant = true;
 
-        *v = pExpr->value.integer = pPred(vr);
+        *result = expression->value.integer = operation(value);
         return true;
     }
 
@@ -166,13 +166,13 @@ reduceUnary(SPatch* pPatch, SExpression* pExpr, int32_t* v, unaryPredicate pPred
 }
 
 static bool
-evaluatePcRelative(SPatch* patch, SExpression* expression, int32_t* result) {
+reducePcRelative(const SPatch* patch, SExpression* expression, int32_t* result) {
     uint32_t offset;
-    if (expr_GetSectionOffset(expression->right, patch->pSection, &offset)) {
+    if (expr_GetSectionOffset(expression->right, patch->section, &offset)) {
         int32_t adjustment;
-        if (evaluatePatch(patch, expression->left, &adjustment)) {
+        if (reduceExpression(patch, expression->left, &adjustment)) {
             expr_Clear(expression);
-            expr_SetConst(expression, *result = offset + adjustment - patch->Offset);
+            expr_SetConst(expression, *result = offset + adjustment - patch->offset);
             return true;
         }
     }
@@ -180,22 +180,80 @@ evaluatePcRelative(SPatch* patch, SExpression* expression, int32_t* result) {
 }
 
 static bool
-patch_EvaluateOperator(SPatch* patch, SExpression* expression, int32_t* result) {
-    switch (expression->operation) {
-        case T_OP_SUBTRACT: {
-            uint32_t l, r;
+reduceBit(const SPatch* patch, SExpression* expression, int32_t* result) {
+    int32_t value;
+    if (!reduceExpression(patch, expression->right, &value))
+        return false;
 
-            SSection* pLeftSect = expr_GetSectionAndOffset(expression->left, &l);
-            SSection* pRightSect = expr_GetSectionAndOffset(expression->right, &r);
+    if (isPowerOfTwo(value)) {
+        int32_t bit = log2n((size_t) value);
 
-            if (pLeftSect && pRightSect && pLeftSect == pRightSect) {
-                expr_Clear(expression);
-                expr_SetConst(expression, *result = l - r);
-                return true;
-            }
+        expr_Free(expression->right);
+        expression->right = NULL;
 
-            return reduceBinary(patch, expression, result, subtract);
+        expression->type = EXPR_CONSTANT;
+        expression->isConstant = true;
+
+        expression->value.integer = *result = bit;
+        return true;
+    }
+
+    prj_PatchError(patch, ERROR_EXPR_TWO_POWER);
+    return false;
+}
+
+static bool
+reduceSubtract(const SPatch* patch, SExpression* expression, int32_t* result) {
+    uint32_t l, r;
+
+    SSection* pLeftSect = expr_GetSectionAndOffset(expression->left, &l);
+    SSection* pRightSect = expr_GetSectionAndOffset(expression->right, &r);
+
+    if (pLeftSect && pRightSect && pLeftSect == pRightSect) {
+        expr_Clear(expression);
+        expr_SetConst(expression, *result = l - r);
+        return true;
+    }
+
+    return reduceBinary(patch, expression, result, subtract);
+}
+
+static bool
+reduceLowLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
+    int32_t lhs, rhs;
+
+    if (reduceExpression(patch, expression->right, &rhs) && reduceExpression(patch, expression->left, &lhs)) {
+        if (lhs >= rhs) {
+            expr_Clear(expression);
+            expr_SetConst(expression, *result = lhs);
+
+            return true;
         }
+        prj_PatchFail(patch, ERROR_OPERAND_RANGE);
+    }
+    return false;
+}
+
+static bool
+reduceHighLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
+    int32_t lhs, rhs;
+
+    if (reduceExpression(patch, expression->right, &rhs) && reduceExpression(patch, expression->left, &lhs)) {
+        if (lhs <= rhs) {
+            expr_Clear(expression);
+            expr_SetConst(expression, *result = lhs);
+            return true;
+        }
+        prj_PatchFail(patch, ERROR_OPERAND_RANGE);
+    }
+    return false;
+}
+
+static bool
+reduceOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
+    switch (expression->operation) {
+        case T_OP_SUBTRACT:
+            return reduceSubtract(patch, expression, result);
         case T_OP_ADD:
             return reduceBinary(patch, expression, result, add);
         case T_OP_BITWISE_XOR:
@@ -250,57 +308,12 @@ patch_EvaluateOperator(SPatch* patch, SExpression* expression, int32_t* result) 
             return reduceUnary(patch, expression, result, facos);
         case T_FUNC_ATAN:
             return reduceUnary(patch, expression, result, fatan);
-
-        case T_OP_BIT: {
-            int32_t value;
-            if (!evaluatePatch(patch, expression->right, &value))
-                return false;
-
-            if (isPowerOfTwo(value)) {
-                int32_t bit = log2n((size_t) value);
-
-                expr_Free(expression->right);
-                expression->right = NULL;
-
-                expression->type = EXPR_CONSTANT;
-                expression->isConstant = true;
-
-                expression->value.integer = *result = bit;
-                return true;
-            }
-
-            prj_PatchError(patch, ERROR_EXPR_TWO_POWER);
-            break;
-        }
-
-        case T_FUNC_LOWLIMIT: {
-            int32_t lhs, rhs;
-
-            if (evaluatePatch(patch, expression->right, &rhs) && evaluatePatch(patch, expression->left, &lhs)) {
-                if (lhs >= rhs) {
-                    expr_Clear(expression);
-                    expr_SetConst(expression, *result = lhs);
-
-                    return true;
-                }
-                prj_PatchFail(patch, ERROR_OPERAND_RANGE);
-            }
-            return false;
-        }
-
-        case T_FUNC_HIGHLIMIT: {
-            int32_t lhs, rhs;
-
-            if (evaluatePatch(patch, expression->right, &rhs) && evaluatePatch(patch, expression->left, &lhs)) {
-                if (lhs <= rhs) {
-                    expr_Clear(expression);
-                    expr_SetConst(expression, *result = lhs);
-                    return true;
-                }
-                prj_PatchFail(patch, ERROR_OPERAND_RANGE);
-            }
-            return false;
-        }
+        case T_OP_BIT:
+            return reduceBit(patch, expression, result);
+       case T_FUNC_LOWLIMIT:
+            return reduceLowLimit(patch, expression, result);
+        case T_FUNC_HIGHLIMIT:
+            return reduceHighLimit(patch, expression, result);
 
         case T_FUNC_BANK: {
             if (!g_pConfiguration->bSupportBanks)
@@ -312,11 +325,10 @@ patch_EvaluateOperator(SPatch* patch, SExpression* expression, int32_t* result) 
         default:
             internalerror("Unknown operator");
     }
-    return false;
 }
 
 static bool
-evaluatePatch(SPatch* patch, SExpression* expression, int32_t* result) {
+reduceExpression(const SPatch* patch, SExpression* expression, int32_t* result) {
     if (expression == NULL)
         return false;
 
@@ -335,11 +347,11 @@ evaluatePatch(SPatch* patch, SExpression* expression, int32_t* result) {
 
     switch (expr_Type(expression)) {
         case EXPR_PARENS:
-            return evaluatePatch(patch, expression->right, result);
+            return reduceExpression(patch, expression->right, result);
         case EXPR_PC_RELATIVE:
-            return evaluatePcRelative(patch, expression, result);
+            return reducePcRelative(patch, expression, result);
         case EXPR_OPERATION:
-            return patch_EvaluateOperator(patch, expression, result);
+            return reduceOperation(patch, expression, result);
         case EXPR_CONSTANT:
             *result = expression->value.integer;
             return true;
@@ -356,119 +368,93 @@ evaluatePatch(SPatch* patch, SExpression* expression, int32_t* result) {
     }
 }
 
+static void
+patch_8(const SSection* sect, const SPatch* patch, int32_t value) {
+    if (value >= -128 && value <= 255) {
+        sect->pData[patch->offset] = (uint8_t) value;
+    } else {
+        prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 8);
+    }
+}
+
+static void
+patch_le_16(const SSection* sect, const SPatch* patch, int32_t value) {
+    if (value >= -32768 && value <= 65535) {
+        sect->pData[patch->offset] = (uint8_t) value;
+        sect->pData[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
+    } else {
+        prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
+    }
+}
+
+static void
+patch_be_16(const SSection* sect, const SPatch* patch, int32_t value) {
+    if (value >= -32768 && value <= 65535) {
+        sect->pData[patch->offset] = (uint8_t) ((uint32_t) value >> 8u);
+        sect->pData[patch->offset + 1] = (uint8_t) value;
+    } else {
+        prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
+    }
+}
+
+static void
+patch_le_32(const SSection* sect, const SPatch* patch, int32_t value) {
+    sect->pData[patch->offset] = (uint8_t) value;
+    sect->pData[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
+    sect->pData[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 16u);
+    sect->pData[patch->offset + 3] = (uint8_t) ((uint32_t) value >> 24u);
+}
+
+static void
+patch_be_32(const SSection* sect, const SPatch* patch, int32_t value) {
+    sect->pData[patch->offset] = (uint8_t) ((uint32_t) value >> 24u);
+    sect->pData[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 16u);
+    sect->pData[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 8u);
+    sect->pData[patch->offset + 3] = (uint8_t) value;
+}
+
+typedef void (* applyPatch)(const SSection*, const SPatch*, int32_t);
+
+static applyPatch g_patchFunctions[PATCH_BE_32 - PATCH_8 + 1] = {
+        patch_8,
+        patch_le_16,
+        patch_be_16,
+        patch_le_32,
+        patch_be_32,
+};
+
 
 /* Public functions */
 
-bool
-patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExpr) {
-    if (pExpr == NULL)
-        return false;
-
-    if (expr_Type(pExpr) == EXPR_SYMBOL) {
-        SSymbol* pSym = pExpr->value.symbol;
-        if (pSym->eType == SYM_IMPORT || pSym->eType == SYM_GLOBAL) {
-            if (*ppSym != NULL)
-                return false;
-
-            *ppSym = pSym;
-            *pOffset = 0;
-            return true;
-        }
-        return false;
-    } else if (expr_IsOperator(pExpr, T_OP_ADD) || expr_IsOperator(pExpr, T_OP_SUBTRACT)) {
-        uint32_t offset;
-        if (patch_GetImportOffset(&offset, ppSym, pExpr->left)) {
-            if (expr_IsConstant(pExpr->right)) {
-                if (expr_IsOperator(pExpr, T_OP_ADD))
-                    *pOffset = offset + pExpr->right->value.integer;
-                else
-                    *pOffset = offset - pExpr->right->value.integer;
-                return true;
-            }
-        }
-        if (patch_GetImportOffset(&offset, ppSym, pExpr->right)) {
-            if (expr_IsConstant(pExpr->left)) {
-                if (expr_IsOperator(pExpr, T_OP_ADD))
-                    *pOffset = pExpr->left->value.integer + offset;
-                else
-                    *pOffset = pExpr->left->value.integer - offset;
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 void
-patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType type) {
+patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatchType type) {
     SPatch* patch = mem_Alloc(sizeof(SPatch));
     memset(patch, 0, sizeof(SPatch));
 
-    if (sect->pPatches) {
-        list_InsertAfter(sect->pPatches, patch);
+    if (section->pPatches) {
+        list_InsertAfter(section->pPatches, patch);
     } else {
-        sect->pPatches = patch;
+        section->pPatches = patch;
     }
 
-    patch->pSection = sect;
-    patch->Offset = offset;
-    patch->Type = type;
-    patch->pExpression = expr;
-    patch->pFile = str_Copy(fstk_Current->name);
-    patch->nLine = fstk_Current->lineNumber;
+    patch->section = section;
+    patch->offset = offset;
+    patch->type = type;
+    patch->expression = expression;
+    patch->filename = str_Copy(fstk_Current->name);
+    patch->lineNumber = fstk_Current->lineNumber;
 }
 
 void
 patch_BackPatch(void) {
     for (SSection* sect = g_pSectionList; sect != NULL; sect = list_GetNext(sect)) {
         for (SPatch* patch = sect->pPatches; patch != NULL; patch = list_GetNext(patch)) {
-            int32_t v;
+            int32_t value;
 
-            if (evaluatePatch(patch, patch->pExpression, &v)) {
+            if (reduceExpression(patch, patch->expression, &value)) {
                 list_Remove(sect->pPatches, patch);
-                str_Free(patch->pFile);
-
-                switch (patch->Type) {
-                    case PATCH_BYTE:
-                        if (v >= -128 && v <= 255)
-                            sect->pData[patch->Offset] = (uint8_t) v;
-                        else
-                            prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 8);
-                        break;
-
-                    case PATCH_LWORD:
-                        if (v >= -32768 && v <= 65535) {
-                            sect->pData[patch->Offset] = (uint8_t) v;
-                            sect->pData[patch->Offset + 1] = (uint8_t) ((uint32_t) v >> 8u);
-                        } else
-                            prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
-                        break;
-
-                    case PATCH_BWORD:
-                        if (v >= -32768 && v <= 65535) {
-                            sect->pData[patch->Offset] = (uint8_t) ((uint32_t) v >> 8u);
-                            sect->pData[patch->Offset + 1] = (uint8_t) v;
-                        } else
-                            prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
-                        break;
-
-                    case PATCH_LLONG:
-                        sect->pData[patch->Offset] = (uint8_t) v;
-                        sect->pData[patch->Offset + 1] = (uint8_t) ((uint32_t) v >> 8u);
-                        sect->pData[patch->Offset + 2] = (uint8_t) ((uint32_t) v >> 16u);
-                        sect->pData[patch->Offset + 3] = (uint8_t) ((uint32_t) v >> 24u);
-                        break;
-
-                    case PATCH_BLONG:
-                        sect->pData[patch->Offset] = (uint8_t) ((uint32_t) v >> 24u);
-                        sect->pData[patch->Offset + 1] = (uint8_t) ((uint32_t) v >> 16u);
-                        sect->pData[patch->Offset + 2] = (uint8_t) ((uint32_t) v >> 8u);
-                        sect->pData[patch->Offset + 3] = (uint8_t) v;
-                        break;
-
-                    default:
-                        internalerror("Unknown patch type");
-                }
+                str_Free(patch->filename);
+                g_patchFunctions[patch->type](sect, patch, value);
             }
         }
     }
@@ -476,18 +462,9 @@ patch_BackPatch(void) {
 
 void
 patch_OptimizeAll(void) {
-    SSection* sect;
-
-    sect = g_pSectionList;
-    while (sect) {
-        SPatch* patch;
-
-        patch = sect->pPatches;
-        while (patch) {
-            expr_Optimize(patch->pExpression);
-            patch = list_GetNext(patch);
+    for (SSection* sect = g_pSectionList; sect != NULL; sect = list_GetNext(sect)) {
+        for (SPatch* patch = sect->pPatches; patch != NULL; patch = list_GetNext(patch)) {
+            expr_Optimize(patch->expression);
         }
-
-        sect = list_GetNext(sect);
     }
 }

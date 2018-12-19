@@ -149,8 +149,8 @@ static void
 markLocalExports() {
     for (SSection* section = g_pSectionList; section; section = list_GetNext(section)) {
         for (SPatch* patch = section->pPatches; patch; patch = list_GetNext(patch)) {
-            if (patch->pSection == section) {
-                markLocalExportsInExpression(section, patch->pExpression);
+            if (patch->section == section) {
+                markLocalExportsInExpression(section, patch->expression);
             }
         }
     }
@@ -296,13 +296,13 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
 
 static void
 writePatch(FILE* fileHandle, SPatch* patch) {
-    fputll(patch->Offset, fileHandle);
-    fputll(patch->Type, fileHandle);
+    fputll(patch->offset, fileHandle);
+    fputll(patch->type, fileHandle);
     off_t sizePosition = ftello(fileHandle);
     fputll(0, fileHandle);
 
     off_t expressionStart = ftello(fileHandle);
-    writeExpression(fileHandle, patch->pExpression);
+    writeExpression(fileHandle, patch->expression);
     off_t expressionEnd = ftell(fileHandle);
 
     fseek(fileHandle, sizePosition, SEEK_SET);
@@ -371,8 +371,8 @@ writeSectionSymbols(FILE* fileHandle, SSection* section) {
 
     // Calculate and export symbols IDs by going through patches
     for (SPatch* patch = section->pPatches; patch; patch = list_GetNext(patch)) {
-        if (patch->pSection == section) {
-            symbolId = writeSymbols(section, fileHandle, patch->pExpression, symbolId);
+        if (patch->section == section) {
+            symbolId = writeSymbols(section, fileHandle, patch->expression, symbolId);
         }
     }
 
@@ -389,7 +389,7 @@ writeSectionPatches(FILE* fileHandle, SSection* section) {
 
     uint32_t totalPatches = 0;
     for (SPatch* patch = section->pPatches; patch; patch = list_GetNext(patch)) {
-        if (patch->pSection == section) {
+        if (patch->section == section) {
             writePatch(fileHandle, patch);
             totalPatches += 1;
         }

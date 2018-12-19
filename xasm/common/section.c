@@ -174,7 +174,7 @@ void sect_OutputReloc8(SExpression* expr) {
 	if (sect_CheckAvailableSpace(1)) {
 		switch (sect_GetCurrentType()) {
 			case GROUP_TEXT: {
-				patch_Create(g_pCurrentSection, g_pCurrentSection->UsedSpace, expr, PATCH_BYTE);
+				patch_Create(g_pCurrentSection, g_pCurrentSection->UsedSpace, expr, PATCH_8);
 				g_pCurrentSection->PC += 1;
 				g_pCurrentSection->UsedSpace += 1;
 				g_pCurrentSection->FreeSpace -= 1;
@@ -251,7 +251,7 @@ void sect_OutputReloc16(SExpression* expr) {
 		switch (sect_GetCurrentType()) {
 			case GROUP_TEXT: {
 				patch_Create(g_pCurrentSection, g_pCurrentSection->UsedSpace, expr,
-							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LWORD : PATCH_BWORD);
+							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_16 : PATCH_BE_16);
 				g_pCurrentSection->FreeSpace -= 2;
 				g_pCurrentSection->UsedSpace += 2;
 				g_pCurrentSection->PC += 2 / g_pConfiguration->eMinimumWordSize;
@@ -332,7 +332,7 @@ void sect_OutputRel32(SExpression* expr) {
 		switch (sect_GetCurrentType()) {
 			case GROUP_TEXT: {
 				patch_Create(g_pCurrentSection, g_pCurrentSection->UsedSpace, expr,
-							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LLONG : PATCH_BLONG);
+							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_32 : PATCH_BE_32);
 				g_pCurrentSection->FreeSpace -= 4;
 				g_pCurrentSection->PC += 4 / g_pConfiguration->eMinimumWordSize;
 				g_pCurrentSection->UsedSpace += 4;

@@ -1073,9 +1073,9 @@ static bool parse_AddrMode(SAddrMode* pAddrMode)
 bool parse_TargetSpecific(void)
 {
 	if((lex_Current.token >= T_Z80_ADC && lex_Current.token <= T_Z80_XOR)
-	|| lex_Current.token == T_POP_SET)
+	|| lex_Current.token == T_SYM_SET)
 	{
-		int nToken = (lex_Current.token == T_POP_SET ? T_Z80_SET : lex_Current.token) - T_Z80_ADC;
+		int nToken = (lex_Current.token == T_SYM_SET ? T_Z80_SET : lex_Current.token) - T_Z80_ADC;
 		SOpcode* pOpcode = &g_aOpcodes[nToken];
 		SAddrMode addrMode1;
 		SAddrMode addrMode2;

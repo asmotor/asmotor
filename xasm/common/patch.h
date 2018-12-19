@@ -26,28 +26,28 @@
 struct Section;
 
 typedef enum {
-    PATCH_BYTE,
-    PATCH_LWORD,
-    PATCH_BWORD,
-    PATCH_LLONG,
-    PATCH_BLONG,
+    PATCH_8,
+    PATCH_LE_16,
+    PATCH_BE_16,
+    PATCH_LE_32,
+    PATCH_BE_32,
 } EPatchType;
 
 typedef struct Patch {
     list_Data(struct Patch);
-    struct Section* pSection;
-    uint32_t Offset;
-    EPatchType Type;
-    SExpression* pExpression;
-    string* pFile;
-    int nLine;
+    struct Section* section;
+    uint32_t offset;
+    EPatchType type;
+    SExpression* expression;
+    string* filename;
+    uint32_t lineNumber;
 } SPatch;
 
 #include "section.h"
 #include "symbol.h"
 
 extern void
-patch_Create(SSection* sect, uint32_t offset, SExpression* expr, EPatchType type);
+patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatchType type);
 
 extern void
 patch_BackPatch(void);
@@ -55,7 +55,4 @@ patch_BackPatch(void);
 extern void
 patch_OptimizeAll(void);
 
-extern bool
-patch_GetImportOffset(uint32_t* pOffset, SSymbol** ppSym, SExpression* pExpr);
-
-#endif    /*XASM_COMMON_PATCH_H_INCLUDED_*/
+#endif /* XASM_COMMON_PATCH_H_INCLUDED_ */

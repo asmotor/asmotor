@@ -684,7 +684,7 @@ static void patchSection(Section* section, bool allowReloc, bool onlySectionRela
 
                 switch (patch->type)
                 {
-                    case PATCH_BYTE:
+                    case PATCH_8:
                     {
                         if (valueSymbol == NULL && value >= -128 && value <= 255)
                             section->data[patch->offset] = (uint8_t)value;
@@ -693,7 +693,7 @@ static void patchSection(Section* section, bool allowReloc, bool onlySectionRela
 
                         break;
                     }
-                    case PATCH_LWORD:
+                    case PATCH_LE_16:
                     {
                         if (valueSymbol == NULL && value >= -32768 && value <= 65535)
                         {
@@ -706,7 +706,7 @@ static void patchSection(Section* section, bool allowReloc, bool onlySectionRela
                         }
                         break;
                     }
-                    case PATCH_BWORD:
+                    case PATCH_BE_16:
                     {
                         if (valueSymbol == NULL && value >= -32768 && value <= 65535)
                         {
@@ -719,7 +719,7 @@ static void patchSection(Section* section, bool allowReloc, bool onlySectionRela
                         }
                         break;
                     }
-                    case PATCH_LLONG:
+                    case PATCH_LE_32:
                     {
                         section->data[patch->offset + 0] = (uint8_t) value;
                         section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
@@ -727,7 +727,7 @@ static void patchSection(Section* section, bool allowReloc, bool onlySectionRela
                         section->data[patch->offset + 3] = (uint8_t) ((uint32_t) value >> 24u);
                         break;
                     }
-                    case PATCH_BLONG:
+                    case PATCH_BE_32:
                     {
                         section->data[patch->offset + 0] = (uint8_t) ((uint32_t) value >> 24u);
                         section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 16u);

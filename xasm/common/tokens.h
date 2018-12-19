@@ -75,12 +75,12 @@ typedef enum {
     T_FUNC_TOUPPER,
     T_FUNC_TOLOWER,
 
-    T_POP_MACRO,
-    T_POP_ENDM,        /* Not needed but we have it here just to protect the name */
-    T_POP_EQU,
-    T_POP_EQUS,
-    T_POP_SET,
-    T_POP_GROUP,
+    T_SYM_MACRO,
+    T_SYM_ENDM,        /* Not needed but we have it here just to protect the name */
+    T_SYM_EQU,
+    T_SYM_EQUS,
+    T_SYM_SET,
+    T_SYM_GROUP,
 
     T_GROUP_TEXT,
     T_GROUP_BSS,

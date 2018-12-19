@@ -93,7 +93,7 @@ extern bool	prj_Warn(int n, ...);
 extern bool prj_Error(int n, ...);
 extern bool prj_Fail(int n, ...);
 
-extern bool prj_PatchError(SPatch* patch, int n, ...);
-extern bool prj_PatchFail(SPatch* patch, int n, ...);
+extern bool prj_PatchError(const SPatch* patch, int n, ...);
+extern bool prj_PatchFail(const SPatch* patch, int n, ...);
 
 #endif	/*INCLUDE_PROJECT_H*/

@@ -94,17 +94,17 @@ static SLexerTokenDefinition staticTokens[] = {
         {"rsreset",   T_DIRECTIVE_RSRESET},
         {"rsset",     T_DIRECTIVE_RSSET},
 
-        {"set",       T_POP_SET},
-        {"=",         T_POP_SET},
+        {"set",       T_SYM_SET},
+        {"=",         T_SYM_SET},
 
         {"section",   T_DIRECTIVE_SECTION},
-        {"group",     T_POP_GROUP},
+        {"group",     T_SYM_GROUP},
         {"text",      T_GROUP_TEXT},
         {"ram",       T_GROUP_BSS},
         {"org",       T_DIRECTIVE_ORG},
 
-        {"equ",       T_POP_EQU},
-        {"equs",      T_POP_EQUS},
+        {"equ",       T_SYM_EQU},
+        {"equs",      T_SYM_EQUS},
 
         {"purge",     T_DIRECTIVE_PURGE},
 
@@ -132,8 +132,8 @@ static SLexerTokenDefinition staticTokens[] = {
         {"else",      T_DIRECTIVE_ELSE},
         {"endc",      T_DIRECTIVE_ENDC},
 
-        {"macro",     T_POP_MACRO},
-        {"endm",      T_POP_ENDM},    /*	Not needed but we have it here just to protect the name */
+        {"macro",     T_SYM_MACRO},
+        {"endm",      T_SYM_ENDM},    /*	Not needed but we have it here just to protect the name */
         {"shift",     T_DIRECTIVE_SHIFT},
         {"mexit",     T_DIRECTIVE_MEXIT},
 

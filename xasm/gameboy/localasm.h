@@ -95,7 +95,7 @@ typedef	enum
 	T_Z80_SCF,
 
 // Handled by globallex.c
-// "set"        ,       T_POP_SET,
+// "set"        ,       T_SYM_SET,
 	T_Z80_SET,
 
 	T_Z80_SLA,

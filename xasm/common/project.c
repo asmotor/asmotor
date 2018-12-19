@@ -108,13 +108,13 @@ static char* geterror(size_t n)
         return g_pszError[n - 100];
 }
 
-static void	prj_Common(SPatch* patch, char severity, int n, va_list args)
+static void	prj_Common(const SPatch* patch, char severity, int n, va_list args)
 {
     char* s = geterror(n);
 
     printf("%c%04d ", severity, n);
     if (patch != NULL)
-        printf("%s(%d): ", str_String(patch->pFile), patch->nLine);
+        printf("%s(%d): ", str_String(patch->filename), patch->lineNumber);
     else
         fstk_Dump();
     
@@ -155,7 +155,7 @@ bool prj_Error(int n, ...)
     return false;
 }
 
-bool prj_PatchError(SPatch* patch, int n, ...)
+bool prj_PatchError(const SPatch* patch, int n, ...)
 {
     va_list	args;
 

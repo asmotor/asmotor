@@ -22,6 +22,7 @@
 #include "str.h"
 #include "asmotor.h"
 #include "section.h"
+#include "symbol.h"
 #include "tokens.h"
 
 struct Symbol;
@@ -47,7 +48,7 @@ typedef struct Expression {
 } SExpression;
 
 INLINE EExpressionType
-expr_Type(SExpression* expression) {
+expr_Type(const SExpression* expression) {
     return expression->type;
 }
 
@@ -57,7 +58,7 @@ expr_IsOperator(SExpression* expression, EToken operation) {
 }
 
 INLINE bool
-expr_IsConstant(SExpression* expression) {
+expr_IsConstant(const SExpression* expression) {
     return expression != NULL && expression->isConstant;
 }
 
@@ -189,5 +190,9 @@ expr_GetSectionAndOffset(SExpression* expression, uint32_t* resultOffset);
 
 extern void
 expr_Optimize(SExpression* expression);
+
+extern bool
+expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression);
+
 
 #endif /* XASM_COMMON_EXPR_H_INCLUDED_ */

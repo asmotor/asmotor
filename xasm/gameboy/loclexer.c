@@ -92,7 +92,7 @@ static SLexerTokenDefinition localstrings[]=
 	{ "scf",	T_Z80_SCF	},
 
 // Handled by globallex.c
-// "set"        ,       T_POP_SET,
+// "set"        ,       T_SYM_SET,
 
 	{ "sla",	T_Z80_SLA	},
 	{ "sll",	T_Z80_SLL	},

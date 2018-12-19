@@ -80,7 +80,7 @@ parse_SymbolDefinition(void) {
 
         uint32_t totalColons = colonCount();
 
-        if (lex_Current.token == T_POP_MACRO) {
+        if (lex_Current.token == T_SYM_MACRO) {
             if (totalColons != 1) {
                 prj_Error(ERROR_SYMBOL_EXPORT);
                 return false;
@@ -116,17 +116,17 @@ parse_SymbolDefinition(void) {
                     createRsSymbol(symbolName, 4);
                     break;
                 }
-                case T_POP_EQU: {
+                case T_SYM_EQU: {
                     parse_GetToken();
                     sym_CreateEQU(symbolName, parse_ConstantExpression());
                     break;
                 }
-                case T_POP_SET: {
+                case T_SYM_SET: {
                     parse_GetToken();
                     sym_CreateSET(symbolName, parse_ConstantExpression());
                     break;
                 }
-                case T_POP_EQUS: {
+                case T_SYM_EQUS: {
                     parse_GetToken();
 
                     string* value = parse_ExpectStringExpression();
@@ -136,7 +136,7 @@ parse_SymbolDefinition(void) {
                     }
                     break;
                 }
-                case T_POP_GROUP: {
+                case T_SYM_GROUP: {
                     EGroupType groupType;
 
                     parse_GetToken();

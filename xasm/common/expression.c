@@ -35,6 +35,24 @@
 
 /* Internal functions */
 
+static bool
+getSymbolSectionOffset(const SExpression* expression, const SSection* section, uint32_t* resultOffset) {
+    SSymbol* symbol = expression->value.symbol;
+    if ((symbol->eType == SYM_EQU) && (section->Flags & SECTF_LOADFIXED)) {
+        *resultOffset = symbol->Value.Value - section->BasePC;
+        return true;
+    } else if (symbol->pSection == section) {
+        if ((symbol->nFlags & SYMF_CONSTANT) && (section->Flags & SECTF_LOADFIXED)) {
+            *resultOffset = symbol->Value.Value - section->BasePC;
+            return true;
+        } else if ((symbol->nFlags & SYMF_RELOC) && (section->Flags == 0)) {
+            *resultOffset = (uint32_t) symbol->Value.Value;
+            return true;
+        }
+    }
+    return false;
+}
+
 #define COMBINE(NAME, OP, TOKEN) \
 SExpression*                                     \
 expr_ ## NAME(SExpression* left, SExpression* right) { \
@@ -437,20 +455,7 @@ expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resu
     }
 
     if (expr_Type(expression) == EXPR_SYMBOL) {
-        SSymbol* symbol = expression->value.symbol;
-        if ((symbol->eType == SYM_EQU) && (section->Flags & SECTF_LOADFIXED)) {
-            *resultOffset = symbol->Value.Value - section->BasePC;
-            return true;
-        } else if (symbol->pSection == section) {
-            if ((symbol->nFlags & SYMF_CONSTANT) && (section->Flags & SECTF_LOADFIXED)) {
-                *resultOffset = symbol->Value.Value - section->BasePC;
-                return true;
-            } else if ((symbol->nFlags & SYMF_RELOC) && (section->Flags == 0)) {
-                *resultOffset = (uint32_t) symbol->Value.Value;
-                return true;
-            }
-        }
-        return false;
+        return getSymbolSectionOffset(expression, section, resultOffset);
     }
 
     if (expr_IsOperator(expression, T_OP_ADD) || expr_IsOperator(expression, T_OP_SUBTRACT)) {
@@ -527,3 +532,42 @@ expr_Optimize(SExpression* expression) {
     }
 }
 
+bool
+expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
+    if (expression == NULL)
+        return false;
+
+    if (expr_Type(expression) == EXPR_SYMBOL) {
+        SSymbol* symbol = expression->value.symbol;
+        if (symbol->eType == SYM_IMPORT || symbol->eType == SYM_GLOBAL) {
+            if (*resultSymbol != NULL)
+                return false;
+
+            *resultSymbol = symbol;
+            *resultOffset = 0;
+            return true;
+        }
+        return false;
+    } else if (expr_IsOperator(expression, T_OP_ADD) || expr_IsOperator(expression, T_OP_SUBTRACT)) {
+        uint32_t offset;
+        if (expr_GetImportOffset(&offset, resultSymbol, expression->left)) {
+            if (expr_IsConstant(expression->right)) {
+                if (expr_IsOperator(expression, T_OP_ADD))
+                    *resultOffset = offset + expression->right->value.integer;
+                else
+                    *resultOffset = offset - expression->right->value.integer;
+                return true;
+            }
+        }
+        if (expr_GetImportOffset(&offset, resultSymbol, expression->right)) {
+            if (expr_IsConstant(expression->left)) {
+                if (expr_IsOperator(expression, T_OP_ADD))
+                    *resultOffset = expression->left->value.integer + offset;
+                else
+                    *resultOffset = expression->left->value.integer - offset;
+                return true;
+            }
+        }
+    }
+    return false;
+}

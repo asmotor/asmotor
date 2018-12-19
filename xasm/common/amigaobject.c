@@ -99,7 +99,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
     while (importPatches != NULL) {
         uint32_t offset;
         SSymbol* patchSymbol = NULL;
-        if (patch_GetImportOffset(&offset, &patchSymbol, importPatches->pExpression)) {
+        if (expr_GetImportOffset(&offset, &patchSymbol, importPatches->expression)) {
             uint32_t patchCount = 0;
 
             fputstr(patchSymbol->pName, fileHandle, EXT_REF32);
@@ -110,18 +110,18 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
             do {
                 off_t offsetPosition = ftello(fileHandle);
 
-                fseeko(fileHandle, patch->Offset + hunkPosition, SEEK_SET);
+                fseeko(fileHandle, patch->offset + hunkPosition, SEEK_SET);
                 fputbl(offset, fileHandle);
                 fseeko(fileHandle, offsetPosition, SEEK_SET);
 
-                fputbl(patch->Offset, fileHandle);
+                fputbl(patch->offset, fileHandle);
 
                 ++patchCount;
                 dataWritten = true;
 
                 for (patch = list_GetNext(patch); patch != NULL; patch = list_GetNext(patch)) {
                     SSymbol* symbol = NULL;
-                    if (patch_GetImportOffset(&offset, &symbol, patch->pExpression) && symbol == patchSymbol) {
+                    if (expr_GetImportOffset(&offset, &symbol, patch->expression) && symbol == patchSymbol) {
                         assert (patch->pPrev != NULL);
 
                         patch->pPrev->pNext = patch->pNext;
@@ -177,13 +177,13 @@ writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSection
 
             for (SPatch* patch = patchesPerSection[i]; patch != NULL; patch = list_GetNext(patch)) {
                 uint32_t value;
-                expr_GetSectionOffset(patch->pExpression, offsetToSection, &value);
+                expr_GetSectionOffset(patch->expression, offsetToSection, &value);
 
                 off_t currentPosition = ftello(fileHandle);
-                fseek(fileHandle, patch->Offset + hunkPosition, SEEK_SET);
+                fseek(fileHandle, patch->offset + hunkPosition, SEEK_SET);
                 fputbl(value, fileHandle);
                 fseeko(fileHandle, currentPosition, SEEK_SET);
-                fputbl(patch->Offset, fileHandle);
+                fputbl(patch->offset, fileHandle);
             }
         }
 
@@ -214,13 +214,13 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
 
         while (patch) {
             SPatch* nextPatch = list_GetNext(patch);
-            if (patch->Type == PATCH_BLONG) {
+            if (patch->type == PATCH_BE_32) {
                 bool foundSection = false;
                 int sectionIndex = 0;
 
                 for (SSection* originSection = g_pSectionList;
                      originSection != NULL; originSection = list_GetNext(originSection)) {
-                    if (expr_IsRelativeToSection(patch->pExpression, originSection)) {
+                    if (expr_IsRelativeToSection(patch->expression, originSection)) {
                         if (patch->pPrev)
                             patch->pPrev->pNext = patch->pNext;
                         else
@@ -244,7 +244,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
                 if ((!foundSection) && isLinkObject) {
                     uint32_t offset;
                     SSymbol* symbol = NULL;
-                    if (patch_GetImportOffset(&offset, &symbol, patch->pExpression)) {
+                    if (expr_GetImportOffset(&offset, &symbol, patch->expression)) {
                         if (patch->pPrev)
                             patch->pPrev->pNext = patch->pNext;
                         else
