@@ -95,6 +95,7 @@ static char* g_pszError[]=
     "MACRO doesn't exist",
     "Symbol %s is undefined",
     "Object file does not support expression",
+    "Invalid MACRO argument"
 };
 
 static char* geterror(size_t n)

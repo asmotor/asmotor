@@ -35,6 +35,67 @@
 extern bool
 parse_TargetSpecific(void);
 
+static bool
+handleMacroArgument() {
+    if (lex_Current.token == T_STRING) {
+        fstk_AddMacroArgument(lex_Current.value.string);
+        parse_GetToken();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static bool
+handleMacroArguments() {
+    lex_SetState(LEX_STATE_MACRO_ARG0);
+    parse_GetToken();
+
+    if (lex_Current.token == T_MACROARG0) {
+        fstk_SetMacroArgument0(lex_Current.value.string);
+        parse_GetToken();
+    }
+
+    if (handleMacroArgument()) {
+        while (lex_Current.token == ',') {
+            parse_GetToken();
+            if (!handleMacroArgument()) {
+                prj_Error(ERROR_INVALID_MACRO_ARGUMENT);
+                break;
+            }
+        }
+    }
+
+    lex_SetState(LEX_STATE_NORMAL);
+    return lex_Current.token == '\n';
+}
+
+static bool
+handleMacroInvocation(void) {
+    switch (lex_Current.token) {
+        case T_ID: {
+            bool r = false;
+            string* symbolName = str_Create(lex_Current.value.string);
+
+            if (sym_IsMacro(symbolName)) {
+                if (handleMacroArguments()) {
+                    fstk_ProcessMacro(symbolName);
+                    parse_GetToken();
+                    r = true;
+                }
+            } else {
+                prj_Error(ERROR_INSTR_UNKNOWN, lex_Current.value.string);
+            }
+            str_Free(symbolName);
+            return r;
+        }
+        default: {
+            return false;
+        }
+    }
+}
+
+
 /* Public functions */
 
 bool
@@ -66,52 +127,6 @@ parse_ExpectChar(char ch) {
         return false;
     }
 }
-
-static bool
-handleMacroInvocation(void) {
-    switch (lex_Current.token) {
-        case T_ID: {
-            bool r;
-            string* symbolName = str_Create(lex_Current.value.string);
-
-            if (sym_IsMacro(symbolName)) {
-                lex_SetState(LEX_STATE_MACRO_ARG0);
-                parse_GetToken();
-                while (lex_Current.token != '\n') {
-                    if (lex_Current.token == T_STRING) {
-                        fstk_AddMacroArgument(lex_Current.value.string);
-                        parse_GetToken();
-                        if (lex_Current.token == ',') {
-                            parse_GetToken();
-                        } else if (lex_Current.token != '\n') {
-                            prj_Error(ERROR_CHAR_EXPECTED, ',');
-                            lex_SetState(LEX_STATE_NORMAL);
-                            parse_GetToken();
-                            return false;
-                        }
-                    } else if (lex_Current.token == T_MACROARG0) {
-                        fstk_SetMacroArgument0(lex_Current.value.string);
-                        parse_GetToken();
-                    } else {
-                        internalerror("Must be T_STRING");
-                    }
-                }
-                lex_SetState(LEX_STATE_NORMAL);
-                fstk_ProcessMacro(symbolName);
-                r = true;
-            } else {
-                prj_Error(ERROR_INSTR_UNKNOWN, lex_Current.value.string);
-                r = false;
-            }
-            str_Free(symbolName);
-            return r;
-        }
-        default: {
-            return false;
-        }
-    }
-}
-
 
 void
 parse_GetToken(void) {

@@ -1,11 +1,4 @@
 #!/bin/sh
-mkdir -p build/cmake/release
-cd build/cmake/release
-cmake -DCMAKE_BUILD_TYPE=Release ../../..
-cd ../../..
-
-mkdir -p build/cmake/debug
-cd build/cmake/debug
-cmake -DCMAKE_BUILD_TYPE=Debug ../../..
-cd ../../..
-
+rm -rf build/cmake
+cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build/cmake/debug -G Ninja
+cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/cmake/release -G Ninja
