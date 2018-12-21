@@ -53,3 +53,5 @@ xasm/schip/motorschip
 xgbfix/xgbfix
 xlib/xlib
 xlink/xlink
+build/cmake/debug
+build/cmake/release

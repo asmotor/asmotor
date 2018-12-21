@@ -103,96 +103,119 @@ static void skip(size_t count) {
 }
 
 static size_t charsAvailable(void) {
-	return g_pCurrentBuffer->bufferSize - g_pCurrentBuffer->index;
+	return g_pCurrentBuffer->bufferSize - g_pCurrentBuffer->index + g_pCurrentBuffer->charStack.count;
 }
 
-static bool expandStringUntil(char* dst, char* stopChars, bool allowUndefinedSymbols) {
+static bool
+expandMacroArguments(char** dst, char argument) {
+	switch (argument) {
+		case '0': case '1': case '2': case '3': case '4':
+		case '5': case '6': case '7': case '8': case '9': {
+			*dst += appendAndFreeString(*dst, fstk_GetMacroArgValue(argument));
+			return true;
+		}
+		case '@': {
+			*dst += appendAndFreeString(*dst, fstk_GetMacroUniqueId());
+			return true;
+		}
+	}	
+
+	return false;
+}
+
+static bool
+expandEscapeSequence(char** dst, char escapeSymbol) {
+	switch (escapeSymbol) {
+		default: {
+			return expandMacroArguments(dst, escapeSymbol);
+		}
+		case 'n': {
+			*(*dst)++ = ASM_CRLF;
+			return true;
+		}
+		case 't': {
+			*(*dst)++ = ASM_TAB;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static bool
+expandSymbolRecursive(char** dst, size_t* index, bool allowUndefinedSymbols);
+
+static void
+expandSymbolName(char* dst, size_t* index, bool allowUndefinedSymbols) {
+	for (;;) {
+		char ch = lex_PeekChar((*index)++);
+		if (ch == 0 || ch == '}') {
+			*dst = 0;
+			break;
+		} else {
+			if (ch == '\\') {
+				expandEscapeSequence(&dst, lex_PeekChar(*index));
+			} else if (ch == '{') {
+				expandSymbolRecursive(&dst, index, allowUndefinedSymbols);
+			} else {
+				*dst++ = ch;
+			}
+		}
+	}
+}
+
+static bool
+expandSymbolRecursive(char** dst, size_t* index, bool allowUndefinedSymbols) {
+	bool result = false;
+
+	char symbolNameArray[MAXSYMNAMELENGTH];
+	expandSymbolName(symbolNameArray, index, allowUndefinedSymbols);
+
+	string* symbolName = str_Create(symbolNameArray);
+
+	if (allowUndefinedSymbols || sym_IsDefined(symbolName)) {
+		*dst = sym_GetValueAsStringByName(*dst, symbolName);
+		result = true;
+	}
+
+	str_Free(symbolName);
+	return result;
+}
+
+static bool
+expandStringUntil(char* dst, char* stopChars, bool allowUndefinedSymbols) {
 	size_t index = 0;
 	for (;;) {
-		char ch = lex_PeekChar(index);
+		char ch = lex_PeekChar(index++);
 		if (ch == 0 || strchr(stopChars, ch) != NULL) {
 			break;
 		}
-		index += 1;
+
 		if (ch == '\\') {
-			/* Handle escape sequences */
-
-			switch (ch = lex_PeekChar(index++)) {
-				default:
-					break;
-				case 'n': {
-					*dst++ = ASM_CRLF;
-					break;
-				}
-				case 't': {
-					*dst++ = ASM_TAB;
-					break;
-				}
-				case '0': case '1': case '2': case '3': case '4':
-				case '5': case '6': case '7': case '8': case '9': {
-					dst += appendAndFreeString(dst, fstk_GetMacroArgValue(ch));
-					break;
-				}
-				case '@': {
-					dst += appendAndFreeString(dst, fstk_GetMacroUniqueId());
-					break;
-				}
-			}
+			expandEscapeSequence(&dst, lex_PeekChar(index++));
 		} else if (ch == '{') {
-			char sym[MAXSYMNAMELENGTH];
-			size_t i = 0;
-
-			for (;;) {
-				ch = lex_PeekChar(index);
-				if (ch == 0 || ch == '}' || strchr(stopChars, ch) != NULL) {
-					break;
-				}
-				index += 1;
-				if (ch == '\\') {
-					switch (ch = lex_PeekChar(index++)) {
-						default:
-							break;
-						case '0': case '1': case '2': case '3': case '4':
-						case '5': case '6': case '7': case '8': case '9': {
-							i += appendAndFreeString(&sym[i], fstk_GetMacroArgValue(ch));
-							break;
-						}
-						case '@': {
-							i += appendAndFreeString(&sym[i], fstk_GetMacroUniqueId());
-							break;
-						}
-					}
-				} else {
-					sym[i++] = ch;
-				}
-			}
-
-			string* pSymName = str_CreateLength(sym, i);
-			bool bSymDefined = sym_IsDefined(pSymName);
-
-			if (!allowUndefinedSymbols && !bSymDefined) {
-				str_Free(pSymName);
-				return false;
-			}
-
-			dst = sym_GetValueAsStringByName(dst, pSymName);
-			str_Free(pSymName);
-
-			if (ch != '}') {
-				prj_Error(ERROR_CHAR_EXPECTED, '}');
-				return false;
-			} else {
-				ch = lex_PeekChar(index++);
+			if (!expandSymbolRecursive(&dst, &index, allowUndefinedSymbols)) {
+				break;
 			}
 		} else {
 			*dst++ = ch;
 		}
 	}
-	lex_SkipBytes(index);
 
+	lex_SkipBytes(index);
 	*dst = 0;
 
 	return true;
+}
+
+static bool
+expandSymbol(char* dst, size_t index, bool allowUndefinedSymbols) {
+	if (expandSymbolRecursive(&dst, &index, allowUndefinedSymbols)) {
+		lex_SkipBytes(index);
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -553,17 +576,13 @@ static uint32_t lex_LexStateNormal() {
 				lex_GetChar();
 				char term[3] = { p, '\n', 0 };
 				expandStringUntil(lex_Current.value.string, term, true);
-				if (lex_GetChar() != term[0]) {
-					prj_Error(ERROR_STRING_TERM);
-				}
 				lex_Current.token = T_STRING;
 				lex_Current.length = strlen(lex_Current.value.string);
 				return T_STRING;
 			} else if (p == '{') {
-				if (expandStringUntil(lex_Current.value.string, "}\n", false)) {
+				if (expandSymbol(lex_Current.value.string, 1, false)) {
 					lex_Current.token = T_STRING;
 					lex_Current.length = strlen(lex_Current.value.string);
-					lex_MatchChar('}');
 					return T_STRING;
 				}
 			}

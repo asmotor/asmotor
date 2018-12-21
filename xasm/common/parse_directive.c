@@ -404,7 +404,7 @@ handleRept() {
 
     size_t reptSize;
     char* reptBlock;
-    if (parse_BlockCopyRept(&reptBlock, &reptSize)) {
+    if (parse_CopyReptBlock(&reptBlock, &reptSize)) {
         if (reptCount > 0) {
             fstk_ProcessRepeatBlock(reptBlock, reptSize, (uint32_t) reptCount);
         } else if (reptCount < 0) {
@@ -452,7 +452,7 @@ handleIfStrings(intptr_t intPredicate) {
             string* s2 = parse_ExpectStringExpression();
             if (s2 != NULL) {
                 if (!predicate(s1, s2)) {
-                    parse_SkipToElse();
+                    parse_SkipTrueBranch();
                 }
 
                 str_Free(s1);
@@ -482,7 +482,7 @@ handleIfSymbol(intptr_t intPredicate) {
             parse_GetToken();
         } else {
             parse_GetToken();
-            parse_SkipToElse();
+            parse_SkipTrueBranch();
         }
         str_Free(symbolName);
         return true;
@@ -498,7 +498,7 @@ handleIfExpr(intptr_t intPredicate) {
     parse_GetToken();
 
     if (!predicate(parse_ConstantExpression())) {
-        parse_SkipToElse();
+        parse_SkipTrueBranch();
     }
     return true;
 }

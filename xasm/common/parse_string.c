@@ -66,10 +66,10 @@ stringExpressionPri2(void) {
 
 static string*
 stringExpressionPri1(void) {
-    SLexerBookmark bm;
     string* t = stringExpressionPri2();
 
-    while (parse_IsDot(&bm)) {
+    SLexerBookmark bm;
+    for (lex_Bookmark(&bm); parse_IsDot(); lex_Bookmark(&bm)) {
         switch (lex_Current.token) {
             case T_FUNC_SLICE: {
                 parse_GetToken();

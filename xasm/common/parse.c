@@ -72,37 +72,40 @@ handleMacroArguments() {
 
 static bool
 handleMacroInvocation(void) {
-    switch (lex_Current.token) {
-        case T_ID: {
-            bool r = false;
-            string* symbolName = str_Create(lex_Current.value.string);
+    bool r = false;
+    if (lex_Current.token == T_ID) {
+        string* symbolName = str_Create(lex_Current.value.string);
 
-            if (sym_IsMacro(symbolName)) {
-                if (handleMacroArguments()) {
-                    fstk_ProcessMacro(symbolName);
-                    parse_GetToken();
-                    r = true;
-                }
-            } else {
-                prj_Error(ERROR_INSTR_UNKNOWN, lex_Current.value.string);
+        if (sym_IsMacro(symbolName)) {
+            if (handleMacroArguments()) {
+                fstk_ProcessMacro(symbolName);
+                parse_GetToken();
+                r = true;
             }
-            str_Free(symbolName);
-            return r;
+        } else {
+            prj_Error(ERROR_INSTR_UNKNOWN, lex_Current.value.string);
         }
-        default: {
-            return false;
-        }
+        str_Free(symbolName);
     }
+    return r;
+}
+
+static bool
+handleLineBreak() {
+    if (lex_Current.token == '\n') {
+        lex_GetNextToken();
+        fstk_Current->lineNumber += 1;
+        g_nTotalLines += 1;
+        return true;
+    }
+    return false;
 }
 
 
 /* Public functions */
 
 bool
-parse_IsDot(SLexerBookmark* pBookmark) {
-    if (pBookmark)
-        lex_Bookmark(pBookmark);
-
+parse_IsDot(void) {
     if (lex_Current.token == '.') {
         parse_GetToken();
         return true;
@@ -130,11 +133,9 @@ parse_ExpectChar(char ch) {
 
 void
 parse_GetToken(void) {
-    if (lex_GetNextToken()) {
-        return;
+    if (!lex_GetNextToken()) {
+        prj_Fail(ERROR_END_OF_FILE);
     }
-
-    prj_Fail(ERROR_END_OF_FILE);
 }
 
 bool
@@ -142,17 +143,25 @@ parse_Do(void) {
     lex_GetNextToken();
 
     while (lex_Current.token) {
-        if (!parse_TargetSpecific() && !parse_SymbolDefinition() && !parse_Directive() && !handleMacroInvocation()) {
-            if (lex_Current.token == '\n') {
-                lex_GetNextToken();
-                fstk_Current->lineNumber += 1;
-                g_nTotalLines += 1;
-            } else if (lex_Current.token == T_POP_END) {
-                return true;
-            } else {
-                return prj_Error(ERROR_SYNTAX);
-            }
-        }
+        if (parse_TargetSpecific())
+            continue;
+
+        if (parse_SymbolDefinition())
+            continue;
+
+        if (parse_Directive())
+            continue;
+
+        if (handleMacroInvocation())
+            continue;
+
+        if (handleLineBreak())
+            continue;
+
+        if (lex_Current.token == T_POP_END)
+            return true;
+
+        return prj_Error(ERROR_SYNTAX);
     }
 
     return true;

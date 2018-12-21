@@ -32,6 +32,8 @@ Test	EQUS	"This is a test"
 	PRINTV	{Test}.slice({Test}.indexof(" is"),20).toupper().length
 	PRINTT	"\n"
 
+	PRINTT	"0123".slice(4,1)+"No character before this text\n"
+
 	PRINTT	"\{Test\}\.length == "
 	PRINTV	{Test}.length
 	PRINTT	"\n"

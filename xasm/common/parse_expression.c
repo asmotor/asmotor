@@ -131,7 +131,7 @@ expressionPriority8(size_t maxStringConstLength) {
 
     string* s = parse_StringExpression();
     if (s != NULL) {
-        if (parse_IsDot(NULL)) {
+        if (parse_IsDot()) {
             switch (lex_Current.token) {
                 case T_FUNC_COMPARETO: {
                     parse_GetToken();

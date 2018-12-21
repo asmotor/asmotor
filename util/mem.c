@@ -16,8 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "asmotor.h"
 #include "mem.h"
 #include "lists.h"
@@ -102,8 +104,7 @@ mem_Free(void* memory) {
     if (memory != NULL) {
         SMemoryChunk* chunk = (SMemoryChunk*) ((char*) memory - HEADERSIZE);
 
-        if (chunk->size == 0)
-            internalerror("Chunk not allocated");
+        assert (chunk->size != 0);
 
         list_Remove(g_memoryList, chunk);
         chunk->size = 0;

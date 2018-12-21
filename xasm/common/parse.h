@@ -38,7 +38,7 @@ extern bool
 parse_ExpectChar(char ch);
 
 extern bool
-parse_IsDot(SLexerBookmark* pBookmark);
+parse_IsDot(void);
 
 INLINE bool
 parse_ExpectComma(void) {

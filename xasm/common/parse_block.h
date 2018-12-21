@@ -23,13 +23,13 @@
 #include <stdlib.h>
 
 extern bool
-parse_BlockCopyRept(char** reptBlock, size_t* size);
+parse_CopyReptBlock(char** reptBlock, size_t* size);
 
 extern bool
-parse_BlockCopyMacro(char** dest, size_t* size);
+parse_CopyMacroBlock(char** dest, size_t* size);
 
 extern bool
-parse_SkipToElse(void);
+parse_SkipTrueBranch(void);
 
 extern bool
 parse_SkipToEndc(void);

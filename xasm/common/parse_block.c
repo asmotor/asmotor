@@ -192,7 +192,7 @@ getIfBodySize(size_t index) {
 /* Public functions */
 
 bool
-parse_SkipToElse(void) {
+parse_SkipTrueBranch(void) {
     size_t index = skipLine(0);
     while ((index = findControlToken(index)) != SIZE_MAX) {
         if (!skipRept(&index) && !skipIf(&index) && !skipMacro(&index)) {
@@ -229,7 +229,7 @@ parse_SkipToEndc(void) {
 }
 
 bool
-parse_BlockCopyRept(char** reptBlock, size_t* size) {
+parse_CopyReptBlock(char** reptBlock, size_t* size) {
     size_t len = getReptBodySize(0);
 
     if (len == 0)
@@ -237,23 +237,22 @@ parse_BlockCopyRept(char** reptBlock, size_t* size) {
 
     *size = len;
 
-    *reptBlock = (char*) mem_Alloc(len + 1);
-    (*reptBlock)[len] = 0;
+    *reptBlock = (char*) mem_Alloc(len);
     lex_GetChars(*reptBlock, len);
-    fstk_Current->lineNumber += lex_SkipBytes(4);
+    fstk_Current->lineNumber += lex_SkipBytes(ENDR_LEN);
 
     return true;
 }
 
 bool
-parse_BlockCopyMacro(char** dest, size_t* size) {
+parse_CopyMacroBlock(char** dest, size_t* size) {
     size_t len = getMacroBodySize(0);
 
     *size = len;
 
-    *dest = (char*) mem_Alloc(len + 1);
+    *dest = (char*) mem_Alloc(len);
     fstk_Current->lineNumber += lex_GetChars(*dest, len);
-    fstk_Current->lineNumber += lex_SkipBytes(4);
+    fstk_Current->lineNumber += lex_SkipBytes(ENDM_LEN);
     return true;
 }
 

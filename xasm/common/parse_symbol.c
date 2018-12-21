@@ -89,7 +89,7 @@ parse_SymbolDefinition(void) {
 
                 size_t reptSize;
                 char* reptBlock;
-                if (parse_BlockCopyMacro(&reptBlock, &reptSize)) {
+                if (parse_CopyMacroBlock(&reptBlock, &reptSize)) {
                     sym_CreateMACRO(symbolName, reptBlock, reptSize);
                     parse_GetToken();
                     r = true;
