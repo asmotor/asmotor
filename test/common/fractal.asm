@@ -1,7 +1,7 @@
 	SECTION	"Mandelbrot",CODE
 
 PlotChar:	MACRO
-	PRINTT	"-:=+*o#!|?%&S$ ".slice(\1&$F,1)
+	PRINTT	"-:;=+*o#!|?%&S$ ".slice(\1&$F,1)
 	ENDM
 
 Iterate:	MACRO

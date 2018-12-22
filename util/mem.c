@@ -67,6 +67,7 @@ mem_AllocImpl(size_t size, const char *filename, int lineNumber) {
 
 void*
 mem_Alloc(size_t size) {
+    assert (size != 0);
     return checkMemPointer(malloc(size + HEADERSIZE), size);
 }
 

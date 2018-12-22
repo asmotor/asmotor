@@ -23,10 +23,10 @@
 
 #if defined(_DEBUG)
 extern void*
-mem_AllocImpl(size_t size, char* filename, int lineNumber);
+mem_AllocImpl(size_t size, const char* filename, int lineNumber);
 
 extern void*
-mem_ReallocImpl(void* memory, size_t size, char* filename, int lineNumber);
+mem_ReallocImpl(void* memory, size_t size, const char* filename, int lineNumber);
 
 #define mem_Alloc(size) mem_AllocImpl(size, __FILE__, __LINE__)
 #define mem_Realloc(memory, size) mem_ReallocImpl(memory, size, __FILE__, __LINE__)

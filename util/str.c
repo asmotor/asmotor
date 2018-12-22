@@ -73,7 +73,6 @@ str_Empty() {
     if (g_emptyString == NULL) {
         g_emptyString = str_Alloc(0);
         g_emptyString->data[0] = 0;
-        return g_emptyString;
     }
     return str_Copy(g_emptyString);
 }

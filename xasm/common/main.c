@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_WIN32)
 #include <crtdbg.h>
 #endif
 
@@ -91,7 +91,7 @@ xasm_Main(int argc, char* argv[]) {
     bool debuginfo = false;
     bool verbose = false;
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_WIN32)
     _CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG)| _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
     atexit(getchar);
 #endif

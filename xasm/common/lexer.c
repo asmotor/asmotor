@@ -183,13 +183,15 @@ expandSymbolRecursive(char** dst, size_t* index, bool allowUndefinedSymbols) {
 }
 
 static bool
-expandStringUntil(char* dst, char* stopChars, bool allowUndefinedSymbols) {
+expandStringUntil(char* dst, char stopChar, bool allowUndefinedSymbols) {
 	size_t index = 0;
 	for (;;) {
-		char ch = lex_PeekChar(index++);
-		if (ch == 0 || strchr(stopChars, ch) != NULL) {
+		char ch = lex_PeekChar(index);
+		if (ch == 0 || ch == '\n' || ch == stopChar) {
 			break;
 		}
+
+		index += 1;
 
 		if (ch == '\\') {
 			expandEscapeSequence(&dst, lex_PeekChar(index++));
@@ -574,8 +576,8 @@ static uint32_t lex_LexStateNormal() {
 			char p = lex_PeekChar(0);
 			if (p == '"' || p == '\'') {
 				lex_GetChar();
-				char term[3] = { p, '\n', 0 };
-				expandStringUntil(lex_Current.value.string, term, true);
+				expandStringUntil(lex_Current.value.string, p, true);
+				lex_MatchChar(p);
 				lex_Current.token = T_STRING;
 				lex_Current.length = strlen(lex_Current.value.string);
 				return T_STRING;
@@ -662,10 +664,10 @@ uint32_t lex_GetNextToken(void) {
 			size_t tokenStart = g_pCurrentBuffer->index;
 
 			if (lex_MatchChar('<')) {
-				expandStringUntil(lex_Current.value.string, ">\n", true);
+				expandStringUntil(lex_Current.value.string, '>', true);
 				lex_MatchChar('>');
 			} else {
-				expandStringUntil(lex_Current.value.string, ",\n", true);
+				expandStringUntil(lex_Current.value.string, ',', true);
 			}
 
 			if (g_pCurrentBuffer->index > tokenStart) {

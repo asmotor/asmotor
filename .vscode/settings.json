@@ -3,7 +3,9 @@
   "editor.insertSpaces": true,
   "files.associations": {
     "exec.h": "c",
-    "xlink.h": "c"
+    "xlink.h": "c",
+    "limits": "c",
+    "type_traits": "c"
   },
   "files.exclude": {
     "**/.git": true,

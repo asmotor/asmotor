@@ -38,6 +38,9 @@ needsOrg() {
 
 static bool
 commonPatch() {
+    if (g_pSectionList == NULL)
+        return false;
+
     // Check first section
     if (needsOrg() && (g_pSectionList->Flags & SECTF_LOADFIXED) == 0) {
         prj_Error(ERROR_SECTION_MUST_LOAD);

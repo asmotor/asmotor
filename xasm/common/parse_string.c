@@ -16,6 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
+
 /* From xasm */
 #include "lexer.h"
 #include "parse_string.h"
@@ -83,6 +85,8 @@ stringExpressionPri1(void) {
                     start = len + start;
                     if (start < 0)
                         start = 0;
+                } else if (start > len) {
+                    start = len;
                 }
 
                 int32_t count;
@@ -97,9 +101,18 @@ stringExpressionPri1(void) {
                     if (start + count >= len)
                         count = len - start;
 
-                    string* r = str_Slice(t, start, (uint32_t) count);
+                    if (start >= len || count <= 0) {
+                        str_Free(t);
+                        t = str_Empty();
+                    } else  {
+                        assert (start >= 0);
+                        assert (start < len);
+                        assert (start + count <= len);
+                        
+                        string* r = str_Slice(t, start, (uint32_t) count);
 
-                    STR_MOVE(t, r);
+                        STR_MOVE(t, r);
+                    }
                 }
                 break;
             }
