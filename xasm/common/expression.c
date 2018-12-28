@@ -38,14 +38,14 @@
 static bool
 getSymbolSectionOffset(const SExpression* expression, const SSection* section, uint32_t* resultOffset) {
     SSymbol* symbol = expression->value.symbol;
-    if ((symbol->eType == SYM_EQU) && (section->Flags & SECTF_LOADFIXED)) {
-        *resultOffset = symbol->Value.Value - section->BasePC;
+    if ((symbol->eType == SYM_EQU) && (section->flags & SECTF_LOADFIXED)) {
+        *resultOffset = symbol->Value.Value - section->cpuOrigin;
         return true;
     } else if (symbol->pSection == section) {
-        if ((symbol->nFlags & SYMF_CONSTANT) && (section->Flags & SECTF_LOADFIXED)) {
-            *resultOffset = symbol->Value.Value - section->BasePC;
+        if ((symbol->nFlags & SYMF_CONSTANT) && (section->flags & SECTF_LOADFIXED)) {
+            *resultOffset = symbol->Value.Value - section->cpuOrigin;
             return true;
-        } else if ((symbol->nFlags & SYMF_RELOC) && (section->Flags == 0)) {
+        } else if ((symbol->nFlags & SYMF_RELOC) && (section->flags == 0)) {
             *resultOffset = (uint32_t) symbol->Value.Value;
             return true;
         }
@@ -265,13 +265,13 @@ expr_PcRelative(SExpression* pExpr, int adjustment) {
     if (!assertExpression(pExpr))
         return NULL;
 
-    if (expr_IsConstant(pExpr) && (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
+    if (expr_IsConstant(pExpr) && (g_pCurrentSection->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
         pExpr->value.integer -=
-                (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset - adjustment);
+                (g_pCurrentSection->cpuProgramCounter + g_pCurrentSection->cpuOrigin + g_pCurrentSection->cpuAdjust - adjustment);
         return pExpr;
-    } else if (g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
+    } else if (g_pCurrentSection->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
         return expr_Add(pExpr, expr_Const(
-                adjustment - (g_pCurrentSection->PC + g_pCurrentSection->BasePC + g_pCurrentSection->OrgOffset)));
+                adjustment - (g_pCurrentSection->cpuProgramCounter + g_pCurrentSection->cpuOrigin + g_pCurrentSection->cpuAdjust)));
     } else {
         SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 
@@ -287,7 +287,7 @@ expr_PcRelative(SExpression* pExpr, int adjustment) {
 SExpression*
 expr_Pc() {
     char symbolName[MAXSYMNAMELENGTH + 20];
-    sprintf(symbolName, "$%s%u", str_String(g_pCurrentSection->Name), g_pCurrentSection->PC);
+    sprintf(symbolName, "$%s%u", str_String(g_pCurrentSection->name), g_pCurrentSection->cpuProgramCounter);
 
     string* nameString = str_Create(symbolName);
     SSymbol* symbol = sym_CreateLabel(nameString);
@@ -449,8 +449,8 @@ expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resu
         return expr_GetSectionOffset(expression->right, section, resultOffset);
     }
 
-    if (expr_Type(expression) == EXPR_CONSTANT && (section->Flags & SECTF_LOADFIXED)) {
-        *resultOffset = expression->value.integer - section->BasePC;
+    if (expr_Type(expression) == EXPR_CONSTANT && (section->flags & SECTF_LOADFIXED)) {
+        *resultOffset = expression->value.integer - section->cpuOrigin;
         return true;
     }
 

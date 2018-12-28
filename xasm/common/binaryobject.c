@@ -30,7 +30,7 @@
 static bool
 needsOrg() {
     for (const SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
-        if (section->pPatches != NULL)
+        if (section->patches != NULL)
             return true;
     }
     return false;
@@ -42,28 +42,28 @@ commonPatch() {
         return false;
 
     // Check first section
-    if (needsOrg() && (g_pSectionList->Flags & SECTF_LOADFIXED) == 0) {
+    if (needsOrg() && (g_pSectionList->flags & SECTF_LOADFIXED) == 0) {
         prj_Error(ERROR_SECTION_MUST_LOAD);
         return false;
     }
 
-    uint32_t nAddress = g_pSectionList->Position;
+    uint32_t nAddress = g_pSectionList->imagePosition;
     SSection* section = g_pSectionList;
     do {
         uint32_t alignment = g_pConfiguration->nSectionAlignment - 1u;
-        nAddress += (section->UsedSpace + alignment) & ~alignment;
+        nAddress += (section->usedSpace + alignment) & ~alignment;
         section = list_GetNext(section);
         if (section != NULL) {
-            if (section->Flags & SECTF_LOADFIXED) {
-                if (section->Position < nAddress) {
-                    prj_Error(ERROR_SECTION_LOAD, section->Name, section->BasePC);
+            if (section->flags & SECTF_LOADFIXED) {
+                if (section->imagePosition < nAddress) {
+                    prj_Error(ERROR_SECTION_LOAD, section->name, section->cpuOrigin);
                     return false;
                 }
-                nAddress = section->Position;
+                nAddress = section->imagePosition;
             } else {
-                section->Flags |= SECTF_LOADFIXED;
-                section->Position = nAddress;
-                section->BasePC = nAddress / g_pConfiguration->eMinimumWordSize;
+                section->flags |= SECTF_LOADFIXED;
+                section->imagePosition = nAddress;
+                section->cpuOrigin = nAddress / g_pConfiguration->eMinimumWordSize;
             }
         }
     } while (section != NULL);
@@ -75,7 +75,7 @@ commonPatch() {
             } else if (symbol->nFlags & SYMF_RELOC) {
                 symbol->nFlags &= ~SYMF_RELOC;
                 symbol->nFlags |= SYMF_CONSTANT;
-                symbol->Value.Value += symbol->pSection->BasePC;
+                symbol->Value.Value += symbol->pSection->cpuOrigin;
             }
         }
     }
@@ -91,19 +91,19 @@ bin_Write(string* filename) {
 
     FILE* fileHandle;
     if ((fileHandle = fopen(str_String(filename), "wb")) != NULL) {
-        uint32_t position = g_pSectionList->Position;
+        uint32_t position = g_pSectionList->imagePosition;
 
         for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
-            if (section->pData) {
-                while (position < section->Position) {
+            if (section->data) {
+                while (position < section->imagePosition) {
                     ++position;
                     fputc(0, fileHandle);
                 }
 
-                fwrite(section->pData, 1, section->UsedSpace, fileHandle);
+                fwrite(section->data, 1, section->usedSpace, fileHandle);
             }
 
-            position += section->UsedSpace;
+            position += section->usedSpace;
         }
 
         fclose(fileHandle);
@@ -120,19 +120,19 @@ bin_WriteVerilog(string* filename) {
 
     FILE* fileHandle;
     if ((fileHandle = fopen(str_String(filename), "wt")) != NULL) {
-        uint32_t position = g_pSectionList->Position;
+        uint32_t position = g_pSectionList->imagePosition;
 
         for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
-            while (position < section->Position) {
+            while (position < section->imagePosition) {
                 ++position;
                 fprintf(fileHandle, "00\n");
             }
 
-            for (uint32_t i = 0; i < section->UsedSpace; ++i) {
-                uint8_t b = (uint8_t) (section->pData ? section->pData[i] : 0u);
+            for (uint32_t i = 0; i < section->usedSpace; ++i) {
+                uint8_t b = (uint8_t) (section->data ? section->data[i] : 0u);
                 fprintf(fileHandle, "%02X\n", b);
             }
-            position += section->UsedSpace;
+            position += section->usedSpace;
         }
 
         fclose(fileHandle);

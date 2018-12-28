@@ -148,7 +148,7 @@ markLocalExportsInExpression(SSection* section, SExpression* expression) {
 static void
 markLocalExports() {
     for (SSection* section = g_pSectionList; section; section = list_GetNext(section)) {
-        for (SPatch* patch = section->pPatches; patch; patch = list_GetNext(patch)) {
+        for (SPatch* patch = section->patches; patch; patch = list_GetNext(patch)) {
             if (patch->section == section) {
                 markLocalExportsInExpression(section, patch->expression);
             }
@@ -370,7 +370,7 @@ writeSectionSymbols(FILE* fileHandle, SSection* section) {
     uint32_t symbolId = writeExportedSymbols(fileHandle, section, 0);
 
     // Calculate and export symbols IDs by going through patches
-    for (SPatch* patch = section->pPatches; patch; patch = list_GetNext(patch)) {
+    for (SPatch* patch = section->patches; patch; patch = list_GetNext(patch)) {
         if (patch->section == section) {
             symbolId = writeSymbols(section, fileHandle, patch->expression, symbolId);
         }
@@ -388,7 +388,7 @@ writeSectionPatches(FILE* fileHandle, SSection* section) {
     fputll(0, fileHandle);
 
     uint32_t totalPatches = 0;
-    for (SPatch* patch = section->pPatches; patch; patch = list_GetNext(patch)) {
+    for (SPatch* patch = section->patches; patch; patch = list_GetNext(patch)) {
         if (patch->section == section) {
             writePatch(fileHandle, patch);
             totalPatches += 1;
@@ -402,23 +402,23 @@ writeSectionPatches(FILE* fileHandle, SSection* section) {
 
 static void
 writeSection(FILE* fileHandle, SSection* section) {
-    fputll(section->pGroup->ID, fileHandle);
-    fputsz(str_String(section->Name), fileHandle);
-    if (section->Flags & SECTF_BANKFIXED) {
+    fputll(section->group->ID, fileHandle);
+    fputsz(str_String(section->name), fileHandle);
+    if (section->flags & SECTF_BANKFIXED) {
         assert(g_pConfiguration->bSupportBanks);
-        fputll(section->Bank, fileHandle);
+        fputll(section->bank, fileHandle);
     } else {
         fputll(UINT32_MAX, fileHandle);
     }
 
-    fputll(section->Flags & SECTF_LOADFIXED ? section->Position : UINT32_MAX, fileHandle);
-    fputll(section->Flags & SECTF_LOADFIXED ? section->BasePC : UINT32_MAX, fileHandle);
+    fputll(section->flags & SECTF_LOADFIXED ? section->imagePosition : UINT32_MAX, fileHandle);
+    fputll(section->flags & SECTF_LOADFIXED ? section->cpuOrigin : UINT32_MAX, fileHandle);
 
     writeSectionSymbols(fileHandle, section);
 
-    fputll(section->UsedSpace, fileHandle);
-    if (section->pGroup->Value.GroupType == GROUP_TEXT) {
-        fwrite(section->pData, 1, section->UsedSpace, fileHandle);
+    fputll(section->usedSpace, fileHandle);
+    if (section->group->Value.GroupType == GROUP_TEXT) {
+        fwrite(section->data, 1, section->usedSpace, fileHandle);
         writeSectionPatches(fileHandle, section);
     }
 }

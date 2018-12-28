@@ -300,16 +300,16 @@ SSymbol* sym_CreateLabel(string* pName) {
 			if (str_CharAt(pName, 0) != '$' && str_CharAt(pName, 0) != '.' && str_CharAt(pName, -1) != '$')
 				s_pCurrentScope = pSym;
 
-			if ((g_pCurrentSection->Flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) == 0) {
+			if ((g_pCurrentSection->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) == 0) {
 				pSym->eType = SYM_LABEL;
 				SET_FLAGS(pSym->nFlags, SYM_LABEL);
 				pSym->pSection = g_pCurrentSection;
-				pSym->Value.Value = g_pCurrentSection->PC;
+				pSym->Value.Value = g_pCurrentSection->cpuProgramCounter;
 				return pSym;
 			} else {
 				pSym->eType = SYM_EQU;
 				SET_FLAGS(pSym->nFlags, SYM_EQU);
-				pSym->Value.Value = g_pCurrentSection->PC + g_pCurrentSection->OrgOffset + g_pCurrentSection->BasePC;
+				pSym->Value.Value = g_pCurrentSection->cpuProgramCounter + g_pCurrentSection->cpuAdjust + g_pCurrentSection->cpuOrigin;
 				return pSym;
 			}
 		} else

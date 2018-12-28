@@ -194,21 +194,21 @@ writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSection
 
 static bool
 writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t totalSections, bool isLinkObject) {
-    if (section->pGroup->Value.GroupType == GROUP_TEXT) {
+    if (section->group->Value.GroupType == GROUP_TEXT) {
         SPatch** patchesPerSection = mem_Alloc(sizeof(SPatch*) * totalSections);
         for (uint32_t i = 0; i < totalSections; ++i)
             patchesPerSection[i] = NULL;
 
         uint32_t hunkType =
-                (g_pConfiguration->bSupportAmiga && (section->pGroup->nFlags & SYMF_DATA)) ? HUNK_DATA : HUNK_CODE;
+                (g_pConfiguration->bSupportAmiga && (section->group->nFlags & SYMF_DATA)) ? HUNK_DATA : HUNK_CODE;
 
         fputbl(hunkType, fileHandle);
-        fputbl((section->UsedSpace + 3) / 4, fileHandle);
+        fputbl((section->usedSpace + 3) / 4, fileHandle);
         off_t hunkPosition = ftello(fileHandle);
-        fputbuf(section->pData, section->UsedSpace, fileHandle);
+        fputbuf(section->data, section->usedSpace, fileHandle);
 
         // Move the patches into the patchesPerSection array according the section to which their value is relative
-        SPatch* patch = section->pPatches;
+        SPatch* patch = section->patches;
         SPatch* importPatches = NULL;
         bool hasReloc32 = false;
 
@@ -224,7 +224,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
                         if (patch->pPrev)
                             patch->pPrev->pNext = patch->pNext;
                         else
-                            section->pPatches = patch->pNext;
+                            section->patches = patch->pNext;
                         if (patch->pNext)
                             patch->pNext->pPrev = patch->pPrev;
 
@@ -248,7 +248,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
                         if (patch->pPrev)
                             patch->pPrev->pNext = patch->pNext;
                         else
-                            section->pPatches = patch->pNext;
+                            section->patches = patch->pNext;
 
                         if (patch->pNext)
                             patch->pNext->pPrev = patch->pPrev;
@@ -264,7 +264,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
             patch = nextPatch;
         }
 
-        if (section->pPatches != NULL) {
+        if (section->patches != NULL) {
             prj_Error(ERROR_OBJECTFILE_PATCH);
             return false;
         }
@@ -279,7 +279,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
     } else {
         uint32_t hunkType = HUNK_BSS;
         fputbl(hunkType, fileHandle);
-        fputbl((section->UsedSpace + 3) / 4, fileHandle);
+        fputbl((section->usedSpace + 3) / 4, fileHandle);
 
         if (isLinkObject)
             writeExtHunk(fileHandle, section, NULL, 0);
@@ -296,7 +296,7 @@ static void
 writeSectionNames(FILE* fileHandle, bool writeDebugInfo) {
     if (writeDebugInfo) {
         for (const SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
-            fputstr(section->Name, fileHandle, 0);
+            fputstr(section->name, fileHandle, 0);
         }
     }
 
@@ -319,7 +319,7 @@ ami_WriteObject(string* destFilename, string* sourceFilename) {
 
     for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
         fputbl(HUNK_NAME, fileHandle);
-        fputstr(section->Name, fileHandle, 0);
+        fputstr(section->name, fileHandle, 0);
         if (!writeSection(fileHandle, section, true, totalSections, true)) {
             r = false;
             break;
@@ -347,8 +347,8 @@ ami_WriteExecutable(string* destFilename, bool writeDebugInfo) {
     fputbl(totalSections - 1, fileHandle);
 
     for (const SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
-        uint32_t size = (section->UsedSpace + 3) / 4;
-        if (g_pConfiguration->bSupportAmiga && (section->pGroup->nFlags & SYMF_CHIP))
+        uint32_t size = (section->usedSpace + 3) / 4;
+        if (g_pConfiguration->bSupportAmiga && (section->group->nFlags & SYMF_CHIP))
             size |= HUNKF_CHIP;
         fputbl(size, fileHandle);
     }

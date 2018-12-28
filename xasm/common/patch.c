@@ -369,48 +369,48 @@ reduceExpression(const SPatch* patch, SExpression* expression, int32_t* result) 
 }
 
 static void
-patch_8(const SSection* sect, const SPatch* patch, int32_t value) {
+patch_8(const SSection* section, const SPatch* patch, int32_t value) {
     if (value >= -128 && value <= 255) {
-        sect->pData[patch->offset] = (uint8_t) value;
+        section->data[patch->offset] = (uint8_t) value;
     } else {
         prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 8);
     }
 }
 
 static void
-patch_le_16(const SSection* sect, const SPatch* patch, int32_t value) {
+patch_le_16(const SSection* section, const SPatch* patch, int32_t value) {
     if (value >= -32768 && value <= 65535) {
-        sect->pData[patch->offset] = (uint8_t) value;
-        sect->pData[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
+        section->data[patch->offset] = (uint8_t) value;
+        section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
     } else {
         prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
     }
 }
 
 static void
-patch_be_16(const SSection* sect, const SPatch* patch, int32_t value) {
+patch_be_16(const SSection* section, const SPatch* patch, int32_t value) {
     if (value >= -32768 && value <= 65535) {
-        sect->pData[patch->offset] = (uint8_t) ((uint32_t) value >> 8u);
-        sect->pData[patch->offset + 1] = (uint8_t) value;
+        section->data[patch->offset] = (uint8_t) ((uint32_t) value >> 8u);
+        section->data[patch->offset + 1] = (uint8_t) value;
     } else {
         prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
     }
 }
 
 static void
-patch_le_32(const SSection* sect, const SPatch* patch, int32_t value) {
-    sect->pData[patch->offset] = (uint8_t) value;
-    sect->pData[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
-    sect->pData[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 16u);
-    sect->pData[patch->offset + 3] = (uint8_t) ((uint32_t) value >> 24u);
+patch_le_32(const SSection* section, const SPatch* patch, int32_t value) {
+    section->data[patch->offset] = (uint8_t) value;
+    section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
+    section->data[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 16u);
+    section->data[patch->offset + 3] = (uint8_t) ((uint32_t) value >> 24u);
 }
 
 static void
-patch_be_32(const SSection* sect, const SPatch* patch, int32_t value) {
-    sect->pData[patch->offset] = (uint8_t) ((uint32_t) value >> 24u);
-    sect->pData[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 16u);
-    sect->pData[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 8u);
-    sect->pData[patch->offset + 3] = (uint8_t) value;
+patch_be_32(const SSection* section, const SPatch* patch, int32_t value) {
+    section->data[patch->offset] = (uint8_t) ((uint32_t) value >> 24u);
+    section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 16u);
+    section->data[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 8u);
+    section->data[patch->offset + 3] = (uint8_t) value;
 }
 
 typedef void (* applyPatch)(const SSection*, const SPatch*, int32_t);
@@ -431,10 +431,10 @@ patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatch
     SPatch* patch = mem_Alloc(sizeof(SPatch));
     memset(patch, 0, sizeof(SPatch));
 
-    if (section->pPatches) {
-        list_InsertAfter(section->pPatches, patch);
+    if (section->patches) {
+        list_InsertAfter(section->patches, patch);
     } else {
-        section->pPatches = patch;
+        section->patches = patch;
     }
 
     patch->section = section;
@@ -447,14 +447,14 @@ patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatch
 
 void
 patch_BackPatch(void) {
-    for (SSection* sect = g_pSectionList; sect != NULL; sect = list_GetNext(sect)) {
-        for (SPatch* patch = sect->pPatches; patch != NULL; patch = list_GetNext(patch)) {
+    for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+        for (SPatch* patch = section->patches; patch != NULL; patch = list_GetNext(patch)) {
             int32_t value;
 
             if (reduceExpression(patch, patch->expression, &value)) {
-                list_Remove(sect->pPatches, patch);
+                list_Remove(section->patches, patch);
                 str_Free(patch->filename);
-                g_patchFunctions[patch->type](sect, patch, value);
+                g_patchFunctions[patch->type](section, patch, value);
             }
         }
     }
@@ -462,8 +462,8 @@ patch_BackPatch(void) {
 
 void
 patch_OptimizeAll(void) {
-    for (SSection* sect = g_pSectionList; sect != NULL; sect = list_GetNext(sect)) {
-        for (SPatch* patch = sect->pPatches; patch != NULL; patch = list_GetNext(patch)) {
+    for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+        for (SPatch* patch = section->patches; patch != NULL; patch = list_GetNext(patch)) {
             expr_Optimize(patch->expression);
         }
     }

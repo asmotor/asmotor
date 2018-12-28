@@ -16,13 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_PROJECT_H
-#define	INCLUDE_PROJECT_H
+#ifndef XASM_COMMON_PROJECT_H_INCLUDED_
+#define XASM_COMMON_PROJECT_H_INCLUDED_
 
 #include "patch.h"
 
-typedef enum
-{
+typedef enum {
     WARN_CANNOT_PURGE = 0,
     WARN_OPTION,
     WARN_OPTION_POP,
@@ -89,12 +88,19 @@ typedef enum
     ERROR_INVALID_MACRO_ARGUMENT
 } EError;
 
+extern bool
+prj_Warn(uint32_t errorNumber, ...);
 
-extern bool	prj_Warn(int n, ...);
-extern bool prj_Error(int n, ...);
-extern bool prj_Fail(int n, ...);
+extern bool
+prj_Error(uint32_t errorNumber, ...);
 
-extern bool prj_PatchError(const SPatch* patch, int n, ...);
-extern bool prj_PatchFail(const SPatch* patch, int n, ...);
+extern bool
+prj_Fail(uint32_t errorNumber, ...);
 
-#endif	/*INCLUDE_PROJECT_H*/
+extern bool
+prj_PatchError(const SPatch* patch, uint32_t errorNumber, ...);
+
+extern bool
+prj_PatchFail(const SPatch* patch, uint32_t errorNumber, ...);
+
+#endif    /*XASM_COMMON_PROJECT_H_INCLUDED_*/

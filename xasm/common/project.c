@@ -25,167 +25,170 @@
 #include "options.h"
 #include "patch.h"
 
-extern char* loc_GetError(int n);
+extern char*
+loc_GetError(size_t errorNumber);
 
-static char* g_pszWarning[]=
-{
-    "Cannot PURGE non-existant symbol",
-    "Error in option %s, ignored",
-    "Cannot pop options from an empty stack",
-    "%s",
-    "SHIFT used outside MACRO, ignored",
-    "MEXIT used outside MACRO, ignored",
-    "REXIT used outside REPT, ignored",
-    "Error in machine option %s",
+static char* g_warnings[] = {
+        "Cannot PURGE non-existant symbol",
+        "Error in option %s, ignored",
+        "Cannot pop options from an empty stack",
+        "%s",
+        "SHIFT used outside MACRO, ignored",
+        "MEXIT used outside MACRO, ignored",
+        "REXIT used outside REPT, ignored",
+        "Error in machine option %s",
 };
 
-static char* g_pszError[]=
-{
-    "%c expected",
-    "Expression must be %d bit",
-    "Invalid expression",
-    "Invalid source operand",
-    "Invalid destination operand",
-    "Invalid first operand",
-    "Invalid second operand",
-    "Invalid operand",
-    "Expression expected",
-    "Operand out of range",
-    "Cannot modify symbol",
-    "Label before SECTION",
-    "Cannot export symbol",
-    "SECTION cannot contain initialised data",
-    "Cannot import already defined symbol",
-    "Available SECTION space exhausted",
-    "No SECTION defined",
-    "Expression is neither constant nor relocatable",
-    "Expression must be a power of two",
-    "Expression must be constant",
-    "Expression must be relocatable",
-    "Invalid string expression",
-    "Bad expression",
-    "BANK expected",
-    "TEXT or BSS expected",
-    "Identifier must be a GROUP symbol",
-    "Identifier expected",
-    "Expression must be positive",
-    "Syntax error",
-    "Unknown instruction \"%s\"",
-    "When writing binary file only PC relative addressing must be used, or first section must be LOAD fixed.\n",
-    "Section \"%s\" cannot be placed at $%X",
-    "Symbol must be constant",
-    "Symbol must be EQUS",
-    "SECTION already exist in a different GROUP",
-    "Read error",
-    "File not found",
-    "SECTION already exists but it's not LOAD fixed to the same address",
-    "SECTION already exists but it's not BANK fixed to the same bank",
-    "SECTION already exists but it's not LOAD/BANK fixed to the same address/bank",
-    "SECTION does not exist",
-    "Divide by zero",
-    "Symbol cannot be used in an expression",
-    "DEF() needs a symbol",
-    "BANK() needs a symbol",
-    "Unterminated MACRO block (started at %s, line %d)",
-    "Unterminated REPT block",
-    "Unexpected end of file reached",
-    "Unterminated string",
-    "Malformed identifier",
-    "Maximum number of include paths reached",
-    "MACRO doesn't exist",
-    "Symbol %s is undefined",
-    "Object file does not support expression",
-    "Invalid MACRO argument"
+static char* g_errors[] = {
+        "%c expected",
+        "Expression must be %d bit",
+        "Invalid expression",
+        "Invalid source operand",
+        "Invalid destination operand",
+        "Invalid first operand",
+        "Invalid second operand",
+        "Invalid operand",
+        "Expression expected",
+        "Operand out of range",
+        "Cannot modify symbol",
+        "Label before SECTION",
+        "Cannot export symbol",
+        "SECTION cannot contain initialised data",
+        "Cannot import already defined symbol",
+        "Available SECTION space exhausted",
+        "No SECTION defined",
+        "Expression is neither constant nor relocatable",
+        "Expression must be a power of two",
+        "Expression must be constant",
+        "Expression must be relocatable",
+        "Invalid string expression",
+        "Bad expression",
+        "BANK expected",
+        "TEXT or BSS expected",
+        "Identifier must be a GROUP symbol",
+        "Identifier expected",
+        "Expression must be positive",
+        "Syntax error",
+        "Unknown instruction \"%s\"",
+        "When writing binary file only PC relative addressing must be used, or first section must be LOAD fixed.",
+        "Section \"%s\" cannot be placed at $%X",
+        "Symbol must be constant",
+        "Symbol must be EQUS",
+        "SECTION already exist in a different GROUP",
+        "Read error",
+        "File not found",
+        "SECTION already exists but it's not LOAD fixed to the same address",
+        "SECTION already exists but it's not BANK fixed to the same bank",
+        "SECTION already exists but it's not LOAD/BANK fixed to the same address/bank",
+        "SECTION does not exist",
+        "Divide by zero",
+        "Symbol cannot be used in an expression",
+        "DEF() needs a symbol",
+        "BANK() needs a symbol",
+        "Unterminated MACRO block (started at %s, line %d)",
+        "Unterminated REPT block",
+        "Unexpected end of file reached",
+        "Unterminated string",
+        "Malformed identifier",
+        "Maximum number of include paths reached",
+        "MACRO doesn't exist",
+        "Symbol %s is undefined",
+        "Object file does not support expression",
+        "Invalid MACRO argument"
 };
 
-static char* geterror(size_t n)
-{
-    if(n >= 1000)
-        return loc_GetError(n);
+static char*
+getError(size_t errorNumber) {
+    if (errorNumber >= 1000)
+        return loc_GetError(errorNumber);
 
-    if(n < sizeof(g_pszWarning) / sizeof(char*))
-        return g_pszWarning[n];
-    else
-        return g_pszError[n - 100];
+    if (errorNumber < sizeof(g_warnings) / sizeof(char*)) {
+        return g_warnings[errorNumber];
+    } else {
+        return g_errors[errorNumber - 100];
+    }
 }
 
-static void	prj_Common(const SPatch* patch, char severity, int n, va_list args)
-{
-    char* s = geterror(n);
+static void
+printError(const SPatch* patch, char severity, size_t errorNumber, va_list args) {
+    char* errorString = getError(errorNumber);
 
-    printf("%c%04d ", severity, n);
-    if (patch != NULL)
+    printf("%c%04d ", severity, (int) errorNumber);
+    if (patch != NULL) {
         printf("%s(%d): ", str_String(patch->filename), patch->lineNumber);
-    else
+    } else {
         fstk_Dump();
-    
-    vprintf(s, args);
+    }
+
+    vprintf(errorString, args);
     printf("\n");
 }
 
-
-
-bool prj_Warn(int n, ...)
-{
-    va_list	args;
-
-    int i = 0;
-    for(i = 0; i < opt_Current->disabledWarningsCount; ++i)
-    {
-        if(opt_Current->disabledWarnings[i] == n)
-            return true;
+bool
+warningEnabled(uint32_t errorNumber) {
+    for (uint32_t i = 0; i < opt_Current->disabledWarningsCount; ++i) {
+        if (opt_Current->disabledWarnings[i] == errorNumber)
+            return false;
     }
-
-    va_start(args, n);
-    prj_Common(NULL, 'W', n, args);
-    va_end(args);
-
-    ++g_nTotalWarnings;
     return true;
 }
 
-bool prj_Error(int n, ...)
-{
-    va_list	args;
+bool
+prj_Warn(uint32_t errorNumber, ...) {
+    if (warningEnabled(errorNumber)) {
+        va_list args;
+
+        va_start(args, errorNumber);
+        printError(NULL, 'W', errorNumber, args);
+        va_end(args);
+
+        ++g_nTotalWarnings;
+    }
+    return true;
+}
+
+bool
+prj_Error(int n, ...) {
+    va_list args;
 
     va_start(args, n);
-    prj_Common(NULL, 'E', n, args);
+    printError(NULL, 'E', n, args);
     va_end(args);
 
     ++g_nTotalErrors;
     return false;
 }
 
-bool prj_PatchError(const SPatch* patch, int n, ...)
-{
-    va_list	args;
+bool
+prj_PatchError(const SPatch* patch, int n, ...) {
+    va_list args;
 
     va_start(args, n);
-    prj_Common(patch, 'E', n, args);
+    printError(patch, 'E', n, args);
     va_end(args);
 
     ++g_nTotalErrors;
     return false;
 }
 
-bool prj_Fail(int n, ...)
-{
-    va_list	args;
+bool
+prj_Fail(int n, ...) {
+    va_list args;
 
     va_start(args, n);
-    prj_Common(NULL, 'F', n, args);
+    printError(NULL, 'F', n, args);
     va_end(args);
 
     printf("Bailing out.\n");
     exit(EXIT_FAILURE);
 }
 
-bool prj_PatchFail(SPatch* patch, int n, ...)
-{
-    va_list	args;
+bool
+prj_PatchFail(SPatch* patch, int n, ...) {
+    va_list args;
 
     va_start(args, n);
-    prj_Common(patch, 'F', n, args);
+    printError(patch, 'F', n, args);
     va_end(args);
 
     printf("Bailing out.\n");

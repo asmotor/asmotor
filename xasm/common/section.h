@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_SECTION_H
-#define	INCLUDE_SECTION_H
+#ifndef XASM_COMMON_SECTION_H_INCLUDED_
+#define XASM_COMMON_SECTION_H_INCLUDED_
 
 #include "str.h"
 #include "lists.h"
@@ -27,49 +27,87 @@ struct Patch;
 struct Symbol;
 struct Expression;
 
-struct Section
-{
+struct Section {
     list_Data(struct Section);
-    string*	Name;
-    struct Symbol* pGroup;
-    uint32_t	PC;
-    uint32_t	Flags;
-    uint32_t	UsedSpace;		/*	How many bytes are used in the section */
-    uint32_t	FreeSpace;		/*	How many bytes are free */
-    uint32_t	AllocatedSpace;	/*	How big a chunk of memory pData is pointing to */
-    uint32_t	Position;
-    uint32_t	BasePC;
-    uint32_t	OrgOffset;
-    uint32_t	Bank;
-    struct Patch* pPatches;
-    uint8_t* pData;
+
+    string* name;
+    struct Symbol* group;
+    uint32_t flags;
+
+    uint32_t usedSpace;         // How many bytes are used in the section
+    uint32_t freeSpace;         // How many bytes are free
+    uint32_t allocatedSpace;    // How big a chunk of memory pData is pointing to
+
+    uint32_t imagePosition;     // Where the section is placed in the final image
+
+    uint32_t cpuOrigin;         // Where the CPU sees the first CPU word of this section
+    uint32_t cpuProgramCounter; // The CPU word offset into the section
+    uint32_t cpuAdjust;
+
+    uint32_t bank;
+
+    struct Patch* patches;
+
+    uint8_t* data;
 };
-typedef	struct Section SSection;
+typedef struct Section SSection;
 
-#define	SECTF_LOADFIXED	0x01u
-#define	SECTF_BANKFIXED	0x02u
-#define	SECTF_ORGFIXED	0x04u
+#define    SECTF_LOADFIXED    0x01u
+#define    SECTF_BANKFIXED    0x02u
+#define    SECTF_ORGFIXED    0x04u
 
-extern	SSection* g_pCurrentSection;
-extern	SSection* g_pSectionList;
+extern SSection* g_pCurrentSection;
+extern SSection* g_pSectionList;
 
-extern uint32_t sect_TotalSections(void);
+extern uint32_t
+sect_TotalSections(void);
 
-extern bool sect_SwitchTo(const string* sectname, struct Symbol* group);
-extern bool sect_SwitchTo_LOAD(const string* sectname, struct Symbol* group, uint32_t load);
-extern bool sect_SwitchTo_BANK(const string* sectname, struct Symbol* group, uint32_t bank);
-extern bool sect_SwitchTo_LOAD_BANK(const string* sectname, struct Symbol* group, uint32_t org, uint32_t bank);
-extern bool sect_SwitchTo_NAMEONLY(const string* sectname);
-extern bool sect_Init(void);
-extern void	sect_SetOrgAddress(uint32_t org);
-extern void	sect_SkipBytes(uint32_t count);
-extern void	sect_Align(uint32_t align);
-extern void	sect_OutputExpr8(struct Expression* expr);
-extern void	sect_OutputExpr16(struct Expression* expr);
-extern void	sect_OutputExpr32(struct Expression* expr);
-extern void	sect_OutputBinaryFile(string* pFile);
-extern void	sect_OutputConst8(uint8_t value);
-extern void	sect_OutputConst16(uint16_t value);
-extern void	sect_OutputConst32(uint32_t value);
+extern bool
+sect_SwitchTo(const string* sectname, struct Symbol* group);
 
-#endif	/*INCLUDE_SECTION_H*/
+extern bool
+sect_SwitchTo_LOAD(const string* sectname, struct Symbol* group, uint32_t load);
+
+extern bool
+sect_SwitchTo_BANK(const string* sectname, struct Symbol* group, uint32_t bank);
+
+extern bool
+sect_SwitchTo_LOAD_BANK(const string* sectname, struct Symbol* group, uint32_t org, uint32_t bank);
+
+extern bool
+sect_SwitchTo_NAMEONLY(const string* sectname);
+
+extern bool
+sect_Init(void);
+
+extern void
+sect_SetOrgAddress(uint32_t org);
+
+extern void
+sect_SkipBytes(uint32_t count);
+
+extern void
+sect_Align(uint32_t align);
+
+extern void
+sect_OutputExpr8(struct Expression* expr);
+
+extern void
+sect_OutputExpr16(struct Expression* expr);
+
+extern void
+sect_OutputExpr32(struct Expression* expr);
+
+extern void
+sect_OutputBinaryFile(string* pFile);
+
+extern void
+sect_OutputConst8(uint8_t value);
+
+extern void
+sect_OutputConst16(uint16_t value);
+
+extern void
+sect_OutputConst32(uint32_t value);
+
+#endif    /*XASM_COMMON_SECTION_H_INCLUDED_*/

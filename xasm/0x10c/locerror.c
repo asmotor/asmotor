@@ -25,10 +25,10 @@ static char* g_pszLocalError[]=
 	"Registers cannot be subtracted in addressing mode",
 };
 
-char* loc_GetError(int n)
+char* loc_GetError(size_t errorNumber)
 {
-	if(n < 1000)
+	if(errorNumber < 1000)
 		return NULL;
 
-	return g_pszLocalError[n - 1000];
+	return g_pszLocalError[errorNumber - 1000];
 }
