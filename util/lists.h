@@ -28,8 +28,8 @@
 #define list_Init(e)    {(e)->pPrev=NULL;(e)->pNext=NULL;}
 #define list_GetNext(e) ((e)->pNext)
 #define list_GetPrev(e) ((e)->pPrev)
-#define list_isLast(e)  (list_GetNext(e)==NULL?true:false)
-#define list_isFirst(e) (list_GetPrev(e)==NULL?true:false)
+#define list_IsLast(e)  (list_GetNext(e)==NULL?true:false)
+#define list_IsFirst(e) (list_GetPrev(e)==NULL?true:false)
 
 #define list_Remove(head, e) {           \
     if ((head) == (e)) {                 \
@@ -38,7 +38,7 @@
             list_GetPrev(head) = NULL;   \
     } else {                                                 \
         list_GetNext(list_GetPrev(e)) = list_GetNext(e);     \
-        if((e) && !list_isLast(e)) {                         \
+        if((e) && !list_IsLast(e)) {                         \
             list_GetPrev(list_GetNext(e)) = list_GetPrev(e); \
         }                                                    \
     }                                                        \
@@ -55,7 +55,7 @@
 #define list_InsertAfter(where, e) {             \
     list_GetPrev(e) = (where);                   \
     list_GetNext(e) = list_GetNext(where);       \
-    if (!list_isLast(where))                     \
+    if (!list_IsLast(where))                     \
         list_GetPrev(list_GetNext(where)) = (e); \
     list_GetNext(where) = (e);                   \
 }

@@ -53,19 +53,19 @@ getRsName() {
 static void
 createRsSymbol(string* symbolName, int32_t multiplier) {
     parse_GetToken();
-    sym_CreateSET(symbolName, parse_GetRs(multiplier * parse_ConstantExpression()));
+    sym_CreateSet(symbolName, parse_GetRs(multiplier * parse_ConstantExpression()));
 }
 
 void
 parse_SetRs(int32_t rsValue) {
-    sym_CreateSET(getRsName(), rsValue);
+    sym_CreateSet(getRsName(), rsValue);
 }
 
 int32_t
 parse_GetRs(int32_t size) {
     string* rs = getRsName();
     int32_t rsValue = sym_GetValueByName(rs);
-    sym_CreateSET(rs, rsValue + size);
+    sym_CreateSet(rs, rsValue + size);
     return rsValue;
 }
 
@@ -90,7 +90,7 @@ parse_SymbolDefinition(void) {
                 size_t reptSize;
                 char* reptBlock;
                 if (parse_CopyMacroBlock(&reptBlock, &reptSize)) {
-                    sym_CreateMACRO(symbolName, reptBlock, reptSize);
+                    sym_CreateMacro(symbolName, reptBlock, reptSize);
                     parse_GetToken();
                     r = true;
                 } else {
@@ -118,12 +118,12 @@ parse_SymbolDefinition(void) {
                 }
                 case T_SYM_EQU: {
                     parse_GetToken();
-                    sym_CreateEQU(symbolName, parse_ConstantExpression());
+                    sym_CreateEqu(symbolName, parse_ConstantExpression());
                     break;
                 }
                 case T_SYM_SET: {
                     parse_GetToken();
-                    sym_CreateSET(symbolName, parse_ConstantExpression());
+                    sym_CreateSet(symbolName, parse_ConstantExpression());
                     break;
                 }
                 case T_SYM_EQUS: {
@@ -131,7 +131,7 @@ parse_SymbolDefinition(void) {
 
                     string* value = parse_ExpectStringExpression();
                     if (value != NULL) {
-                        sym_CreateEQUS(symbolName, value);
+                        sym_CreateEqus(symbolName, value);
                         str_Free(value);
                     }
                     break;
@@ -151,7 +151,7 @@ parse_SymbolDefinition(void) {
                             prj_Error(ERROR_EXPECT_TEXT_BSS);
                             return false;
                     }
-                    sym_CreateGROUP(symbolName, groupType);
+                    sym_CreateGroup(symbolName, groupType);
                     break;
                 }
             }

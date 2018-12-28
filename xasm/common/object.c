@@ -84,21 +84,21 @@ writeSymbols(SSection* section, FILE* fileHandle, SExpression* expression, uint3
         nextId = writeSymbols(section, fileHandle, expression->right, nextId);
 
         if (expr_Type(expression) == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr_IsOperator(expression, T_FUNC_BANK))) {
-            if (expression->value.symbol->ID == UINT32_MAX) {
-                expression->value.symbol->ID = nextId++;
-                fputsz(str_String(expression->value.symbol->pName), fileHandle);
-                if (expression->value.symbol->pSection == section) {
-                    if (expression->value.symbol->nFlags & SYMF_LOCALEXPORT) {
+            if (expression->value.symbol->id == UINT32_MAX) {
+                expression->value.symbol->id = nextId++;
+                fputsz(str_String(expression->value.symbol->name), fileHandle);
+                if (expression->value.symbol->section == section) {
+                    if (expression->value.symbol->flags & SYMF_FILE_EXPORT) {
                         fputll(3, fileHandle);    //	LOCALEXPORT
-                        fputll((uint32_t) expression->value.symbol->Value.Value, fileHandle);
-                    } else if (expression->value.symbol->nFlags & SYMF_EXPORT) {
+                        fputll((uint32_t) expression->value.symbol->value.integer, fileHandle);
+                    } else if (expression->value.symbol->flags & SYMF_EXPORT) {
                         fputll(0, fileHandle);    //	EXPORT
-                        fputll((uint32_t) expression->value.symbol->Value.Value, fileHandle);
+                        fputll((uint32_t) expression->value.symbol->value.integer, fileHandle);
                     } else {
                         fputll(2, fileHandle);    //	LOCAL
-                        fputll((uint32_t) expression->value.symbol->Value.Value, fileHandle);
+                        fputll((uint32_t) expression->value.symbol->value.integer, fileHandle);
                     }
-                } else if (expression->value.symbol->eType == SYM_IMPORT || expression->value.symbol->eType == SYM_GLOBAL) {
+                } else if (expression->value.symbol->type == SYM_IMPORT || expression->value.symbol->type == SYM_GLOBAL) {
                     fputll(1, fileHandle);    //	IMPORT
                 } else {
                     fputll(4, fileHandle);    //	LOCALIMPORT
@@ -111,20 +111,20 @@ writeSymbols(SSection* section, FILE* fileHandle, SExpression* expression, uint3
 
 static uint32_t
 writeExportedSymbols(FILE* fileHandle, SSection* section, uint32_t symbolId) {
-    for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-        for (SSymbol* sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym)) {
-            if (sym->eType != SYM_GROUP)
-                sym->ID = (uint32_t) -1;
+    for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+        for (SSymbol* sym = sym_hashedSymbols[i]; sym; sym = list_GetNext(sym)) {
+            if (sym->type != SYM_GROUP)
+                sym->id = (uint32_t) -1;
 
-            if (sym->pSection == section && (sym->nFlags & (SYMF_EXPORT | SYMF_LOCALEXPORT))) {
-                sym->ID = symbolId++;
+            if (sym->section == section && (sym->flags & (SYMF_EXPORT | SYMF_FILE_EXPORT))) {
+                sym->id = symbolId++;
 
-                fputsz(str_String(sym->pName), fileHandle);
-                if (sym->nFlags & SYMF_EXPORT)
+                fputsz(str_String(sym->name), fileHandle);
+                if (sym->flags & SYMF_EXPORT)
                     fputll(0, fileHandle);    //	EXPORT
-                else if (sym->nFlags & SYMF_LOCALEXPORT)
+                else if (sym->flags & SYMF_FILE_EXPORT)
                     fputll(3, fileHandle);    //	LOCALEXPORT
-                fputll((uint32_t) sym->Value.Value, fileHandle);
+                fputll((uint32_t) sym->value.integer, fileHandle);
             }
         }
     }
@@ -139,15 +139,15 @@ markLocalExportsInExpression(SSection* section, SExpression* expression) {
         markLocalExportsInExpression(section, expression->right);
 
         if ((expr_Type(expression) == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr_IsOperator(expression, T_FUNC_BANK)))
-            && (expression->value.symbol->nFlags & SYMF_EXPORTABLE) && expression->value.symbol->pSection != section) {
-            expression->value.symbol->nFlags |= SYMF_LOCALEXPORT;
+            && (expression->value.symbol->flags & SYMF_EXPORTABLE) && expression->value.symbol->section != section) {
+            expression->value.symbol->flags |= SYMF_FILE_EXPORT;
         }
     }
 }
 
 static void
 markLocalExports() {
-    for (SSection* section = g_pSectionList; section; section = list_GetNext(section)) {
+    for (SSection* section = sect_Sections; section; section = list_GetNext(section)) {
         for (SPatch* patch = section->patches; patch; patch = list_GetNext(patch)) {
             if (patch->section == section) {
                 markLocalExportsInExpression(section, patch->expression);
@@ -265,7 +265,7 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
                     case T_FUNC_BANK: {
                         assert (g_pConfiguration->bSupportBanks);
                         fputc(OBJ_FUNC_BANK, fileHandle);
-                        fputll(expression->value.symbol->ID, fileHandle);
+                        fputll(expression->value.symbol->id, fileHandle);
                         break;
                     }
                 }
@@ -279,7 +279,7 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
             }
             case EXPR_SYMBOL: {
                 fputc(OBJ_SYMBOL, fileHandle);
-                fputll(expression->value.symbol->ID, fileHandle);
+                fputll(expression->value.symbol->id, fileHandle);
                 break;
             }
             case EXPR_PC_RELATIVE: {
@@ -316,12 +316,12 @@ writeGroups(FILE* fileHandle) {
     fputll(0, fileHandle);
 
     uint32_t groupCount = 0;
-    for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-        for (SSymbol* sym = g_pHashedSymbols[i]; sym != NULL; sym = list_GetNext(sym)) {
-            if (sym->eType == SYM_GROUP) {
-                sym->ID = groupCount++;
-                fputsz(str_String(sym->pName), fileHandle);
-                fputll(sym->Value.GroupType | (sym->nFlags & (SYMF_CHIP | SYMF_DATA)), fileHandle);
+    for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+        for (SSymbol* sym = sym_hashedSymbols[i]; sym != NULL; sym = list_GetNext(sym)) {
+            if (sym->type == SYM_GROUP) {
+                sym->id = groupCount++;
+                fputsz(str_String(sym->name), fileHandle);
+                fputll(sym->value.groupType | (sym->flags & (SYMF_CHIP | SYMF_DATA)), fileHandle);
             }
         }
     }
@@ -344,13 +344,13 @@ writeExportedConstantsSection(FILE* fileHandle) {
     fputll(0, fileHandle);        //	Number of symbols
     uint32_t integerExportCount = 0;
 
-    for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-        for (SSymbol* sym = g_pHashedSymbols[i]; sym; sym = list_GetNext(sym)) {
-            if ((sym->eType == SYM_EQU || sym->eType == SYM_SET) && (sym->nFlags & SYMF_EXPORT)) {
+    for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+        for (SSymbol* sym = sym_hashedSymbols[i]; sym; sym = list_GetNext(sym)) {
+            if ((sym->type == SYM_EQU || sym->type == SYM_SET) && (sym->flags & SYMF_EXPORT)) {
                 ++integerExportCount;
-                fputsz(str_String(sym->pName), fileHandle);
+                fputsz(str_String(sym->name), fileHandle);
                 fputll(0, fileHandle);    /* EXPORT */
-                fputll((uint32_t) sym->Value.Value, fileHandle);
+                fputll((uint32_t) sym->value.integer, fileHandle);
             }
         }
     }
@@ -402,7 +402,7 @@ writeSectionPatches(FILE* fileHandle, SSection* section) {
 
 static void
 writeSection(FILE* fileHandle, SSection* section) {
-    fputll(section->group->ID, fileHandle);
+    fputll(section->group->id, fileHandle);
     fputsz(str_String(section->name), fileHandle);
     if (section->flags & SECTF_BANKFIXED) {
         assert(g_pConfiguration->bSupportBanks);
@@ -417,7 +417,7 @@ writeSection(FILE* fileHandle, SSection* section) {
     writeSectionSymbols(fileHandle, section);
 
     fputll(section->usedSpace, fileHandle);
-    if (section->group->Value.GroupType == GROUP_TEXT) {
+    if (section->group->value.groupType == GROUP_TEXT) {
         fwrite(section->data, 1, section->usedSpace, fileHandle);
         writeSectionPatches(fileHandle, section);
     }
@@ -446,7 +446,7 @@ obj_Write(string* pName) {
 
     markLocalExports();
 
-    for (SSection* section = g_pSectionList; section; section = list_GetNext(section)) {
+    for (SSection* section = sect_Sections; section; section = list_GetNext(section)) {
         writeSection(fileHandle, section);
     }
 

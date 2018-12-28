@@ -103,4 +103,4 @@ prj_PatchError(const SPatch* patch, uint32_t errorNumber, ...);
 extern bool
 prj_PatchFail(const SPatch* patch, uint32_t errorNumber, ...);
 
-#endif    /*XASM_COMMON_PROJECT_H_INCLUDED_*/
+#endif /* XASM_COMMON_PROJECT_H_INCLUDED_ */

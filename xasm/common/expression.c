@@ -38,15 +38,15 @@
 static bool
 getSymbolSectionOffset(const SExpression* expression, const SSection* section, uint32_t* resultOffset) {
     SSymbol* symbol = expression->value.symbol;
-    if ((symbol->eType == SYM_EQU) && (section->flags & SECTF_LOADFIXED)) {
-        *resultOffset = symbol->Value.Value - section->cpuOrigin;
+    if ((symbol->type == SYM_EQU) && (section->flags & SECTF_LOADFIXED)) {
+        *resultOffset = symbol->value.integer - section->cpuOrigin;
         return true;
-    } else if (symbol->pSection == section) {
-        if ((symbol->nFlags & SYMF_CONSTANT) && (section->flags & SECTF_LOADFIXED)) {
-            *resultOffset = symbol->Value.Value - section->cpuOrigin;
+    } else if (symbol->section == section) {
+        if ((symbol->flags & SYMF_CONSTANT) && (section->flags & SECTF_LOADFIXED)) {
+            *resultOffset = symbol->value.integer - section->cpuOrigin;
             return true;
-        } else if ((symbol->nFlags & SYMF_RELOC) && (section->flags == 0)) {
-            *resultOffset = (uint32_t) symbol->Value.Value;
+        } else if ((symbol->flags & SYMF_RELOC) && (section->flags == 0)) {
+            *resultOffset = (uint32_t) symbol->value.integer;
             return true;
         }
     }
@@ -265,13 +265,13 @@ expr_PcRelative(SExpression* pExpr, int adjustment) {
     if (!assertExpression(pExpr))
         return NULL;
 
-    if (expr_IsConstant(pExpr) && (g_pCurrentSection->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
+    if (expr_IsConstant(pExpr) && (sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
         pExpr->value.integer -=
-                (g_pCurrentSection->cpuProgramCounter + g_pCurrentSection->cpuOrigin + g_pCurrentSection->cpuAdjust - adjustment);
+                (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin + sect_Current->cpuAdjust - adjustment);
         return pExpr;
-    } else if (g_pCurrentSection->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
+    } else if (sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
         return expr_Add(pExpr, expr_Const(
-                adjustment - (g_pCurrentSection->cpuProgramCounter + g_pCurrentSection->cpuOrigin + g_pCurrentSection->cpuAdjust)));
+                adjustment - (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin + sect_Current->cpuAdjust)));
     } else {
         SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 
@@ -287,7 +287,7 @@ expr_PcRelative(SExpression* pExpr, int adjustment) {
 SExpression*
 expr_Pc() {
     char symbolName[MAXSYMNAMELENGTH + 20];
-    sprintf(symbolName, "$%s%u", str_String(g_pCurrentSection->name), g_pCurrentSection->cpuProgramCounter);
+    sprintf(symbolName, "$%s%u", str_String(sect_Current->name), sect_Current->cpuProgramCounter);
 
     string* nameString = str_Create(symbolName);
     SSymbol* symbol = sym_CreateLabel(nameString);
@@ -295,8 +295,8 @@ expr_Pc() {
 
     SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 
-    if (symbol->nFlags & SYMF_CONSTANT) {
-        r->value.integer = symbol->Value.Value;
+    if (symbol->flags & SYMF_CONSTANT) {
+        r->value.integer = symbol->value.integer;
         r->type = EXPR_CONSTANT;
         r->isConstant = true;
         r->left = NULL;
@@ -331,8 +331,8 @@ expr_Sub(SExpression* left, SExpression* right) {
     left->value.integer = value;
 
     if (!expr_IsConstant(left) && isSymbol(left->left) && isSymbol(left->right)
-        && left->left->value.symbol->pSection == left->right->value.symbol->pSection) {
-        left->value.integer = left->left->value.symbol->Value.Value - left->right->value.symbol->Value.Value;
+        && left->left->value.symbol->section == left->right->value.symbol->section) {
+        left->value.integer = left->left->value.symbol->value.integer - left->right->value.symbol->value.integer;
     }
     return left;
 }
@@ -374,8 +374,7 @@ expr_Bank(string* symbolName) {
     SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
     r->right = NULL;
     r->left = NULL;
-    r->value.symbol = sym_FindSymbol(symbolName);
-    r->value.symbol->nFlags |= SYMF_REFERENCED;
+    r->value.symbol = sym_GetSymbol(symbolName);
     r->isConstant = false;
     r->type = EXPR_OPERATION;
     r->operation = T_FUNC_BANK;
@@ -385,12 +384,10 @@ expr_Bank(string* symbolName) {
 
 SExpression*
 expr_Symbol(string* symbolName) {
-    SSymbol* symbol = sym_FindSymbol(symbolName);
+    SSymbol* symbol = sym_GetSymbol(symbolName);
 
-    if (symbol->nFlags & SYMF_EXPR) {
-        symbol->nFlags |= SYMF_REFERENCED;
-
-        if (symbol->nFlags & SYMF_CONSTANT) {
+    if (symbol->flags & SYMF_EXPRESSION) {
+        if (symbol->flags & SYMF_CONSTANT) {
             return expr_Const(sym_GetValue(symbol));
         } else {
             SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
@@ -492,7 +489,7 @@ expr_IsRelativeToSection(SExpression* expression, SSection* section) {
 
 SSection*
 expr_GetSectionAndOffset(SExpression* expression, uint32_t* resultOffset) {
-    for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+    for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         if (expr_GetSectionOffset(expression, section, resultOffset))
             return section;
     }
@@ -515,10 +512,10 @@ expr_Optimize(SExpression* expression) {
         mem_Free(pToFree);
     }
 
-    if ((expression->type == EXPR_SYMBOL) && (expression->value.symbol->nFlags & SYMF_CONSTANT)) {
+    if ((expression->type == EXPR_SYMBOL) && (expression->value.symbol->flags & SYMF_CONSTANT)) {
         expression->type = EXPR_CONSTANT;
         expression->isConstant = true;
-        expression->value.integer = expression->value.symbol->Value.Value;
+        expression->value.integer = expression->value.symbol->value.integer;
     }
 
     if (expr_IsConstant(expression)) {
@@ -539,7 +536,7 @@ expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression
 
     if (expr_Type(expression) == EXPR_SYMBOL) {
         SSymbol* symbol = expression->value.symbol;
-        if (symbol->eType == SYM_IMPORT || symbol->eType == SYM_GLOBAL) {
+        if (symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL) {
             if (*resultSymbol != NULL)
                 return false;
 

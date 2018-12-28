@@ -98,6 +98,9 @@ fstk_ShiftMacroArgs(int32_t count);
 extern void
 fstk_AddIncludePath(string* pathname);
 
+extern SFileStackEntry*
+fstk_GetLastStackEntry(void);
+
 extern SFileStackEntry* fstk_Current;
 
 #endif /* XASM_COMMON_FILESTACK_H_INCLUDED_ */

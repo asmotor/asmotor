@@ -73,11 +73,11 @@ writeSymbolHunk(FILE* fileHandle, const SSection* section) {
 
     fputbl(HUNK_SYMBOL, fileHandle);
 
-    for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-        for (const SSymbol* symbol = g_pHashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
-            if ((symbol->nFlags & SYMF_RELOC) != 0 && symbol->pSection == section) {
-                fputstr(symbol->pName, fileHandle, 0);
-                fputbl((uint32_t) symbol->Value.Value, fileHandle);
+    for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+        for (const SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+            if ((symbol->flags & SYMF_RELOC) != 0 && symbol->section == section) {
+                fputstr(symbol->name, fileHandle, 0);
+                fputbl((uint32_t) symbol->value.integer, fileHandle);
                 ++symbolCount;
             }
         }
@@ -102,7 +102,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
         if (expr_GetImportOffset(&offset, &patchSymbol, importPatches->expression)) {
             uint32_t patchCount = 0;
 
-            fputstr(patchSymbol->pName, fileHandle, EXT_REF32);
+            fputstr(patchSymbol->name, fileHandle, EXT_REF32);
             long symbolCountPosition = ftell(fileHandle);
             fputbl(0, fileHandle);
 
@@ -141,12 +141,12 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
         importPatches = list_GetNext(importPatches);
     }
 
-    for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-        for (SSymbol* symbol = g_pHashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
-            if ((symbol->nFlags & (SYMF_RELOC | SYMF_EXPORT)) == (SYMF_RELOC | SYMF_EXPORT)
-                && symbol->pSection == section) {
-                fputstr(symbol->pName, fileHandle, EXT_DEF);
-                fputbl((uint32_t) symbol->Value.Value, fileHandle);
+    for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+        for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+            if ((symbol->flags & (SYMF_RELOC | SYMF_EXPORT)) == (SYMF_RELOC | SYMF_EXPORT)
+                && symbol->section == section) {
+                fputstr(symbol->name, fileHandle, EXT_DEF);
+                fputbl((uint32_t) symbol->value.integer, fileHandle);
 
                 dataWritten = true;
             }
@@ -163,7 +163,7 @@ static void
 writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSections, long hunkPosition) {
     fputbl(HUNK_RELOC32, fileHandle);
 
-    SSection* offsetToSection = g_pSectionList;
+    SSection* offsetToSection = sect_Sections;
     for (uint32_t i = 0; i < totalSections; ++i) {
         uint32_t totalRelocations = 0;
 
@@ -194,13 +194,13 @@ writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSection
 
 static bool
 writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t totalSections, bool isLinkObject) {
-    if (section->group->Value.GroupType == GROUP_TEXT) {
+    if (section->group->value.groupType == GROUP_TEXT) {
         SPatch** patchesPerSection = mem_Alloc(sizeof(SPatch*) * totalSections);
         for (uint32_t i = 0; i < totalSections; ++i)
             patchesPerSection[i] = NULL;
 
         uint32_t hunkType =
-                (g_pConfiguration->bSupportAmiga && (section->group->nFlags & SYMF_DATA)) ? HUNK_DATA : HUNK_CODE;
+                (g_pConfiguration->bSupportAmiga && (section->group->flags & SYMF_DATA)) ? HUNK_DATA : HUNK_CODE;
 
         fputbl(hunkType, fileHandle);
         fputbl((section->usedSpace + 3) / 4, fileHandle);
@@ -218,7 +218,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
                 bool foundSection = false;
                 int sectionIndex = 0;
 
-                for (SSection* originSection = g_pSectionList;
+                for (SSection* originSection = sect_Sections;
                      originSection != NULL; originSection = list_GetNext(originSection)) {
                     if (expr_IsRelativeToSection(patch->expression, originSection)) {
                         if (patch->pPrev)
@@ -295,7 +295,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
 static void
 writeSectionNames(FILE* fileHandle, bool writeDebugInfo) {
     if (writeDebugInfo) {
-        for (const SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+        for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
             fputstr(section->name, fileHandle, 0);
         }
     }
@@ -317,7 +317,7 @@ ami_WriteObject(string* destFilename, string* sourceFilename) {
 
     uint32_t totalSections = sect_TotalSections();
 
-    for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+    for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         fputbl(HUNK_NAME, fileHandle);
         fputstr(section->name, fileHandle, 0);
         if (!writeSection(fileHandle, section, true, totalSections, true)) {
@@ -346,14 +346,14 @@ ami_WriteExecutable(string* destFilename, bool writeDebugInfo) {
     fputbl(0, fileHandle);
     fputbl(totalSections - 1, fileHandle);
 
-    for (const SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+    for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         uint32_t size = (section->usedSpace + 3) / 4;
-        if (g_pConfiguration->bSupportAmiga && (section->group->nFlags & SYMF_CHIP))
+        if (g_pConfiguration->bSupportAmiga && (section->group->flags & SYMF_CHIP))
             size |= HUNKF_CHIP;
         fputbl(size, fileHandle);
     }
 
-    for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+    for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         if (!writeSection(fileHandle, section, writeDebugInfo, totalSections, false)) {
             r = false;
             break;

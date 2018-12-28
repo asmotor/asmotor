@@ -57,13 +57,13 @@ typedef struct ConstantWord {
 static SConstantWord* g_wordsHashTable[WORDS_HASH_SIZE];
 static size_t g_maxWordLength;
 
-static SLexerBuffer* g_pCurrentBuffer;
+static SLexerBuffer* g_currentBuffer;
 
 
 /* Private functions */
 
 static void unputChar(char c) {
-	g_pCurrentBuffer->charStack.stack[g_pCurrentBuffer->charStack.count++] = c;
+	g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = c;
 }
 
 static uint32_t hashString(const char* s) {
@@ -88,22 +88,22 @@ static size_t appendAndFreeString(char* dst, string* str) {
 }
 
 static void skip(size_t count) {
-	if (g_pCurrentBuffer->charStack.count > 0) {
-		if (count >= g_pCurrentBuffer->charStack.count) {
-			count -= g_pCurrentBuffer->charStack.count;
-			g_pCurrentBuffer->charStack.count = 0;
+	if (g_currentBuffer->charStack.count > 0) {
+		if (count >= g_currentBuffer->charStack.count) {
+			count -= g_currentBuffer->charStack.count;
+			g_currentBuffer->charStack.count = 0;
 		} else {
-			g_pCurrentBuffer->charStack.count -= count;
+			g_currentBuffer->charStack.count -= count;
 			return;
 		}
 	}
-	g_pCurrentBuffer->index += count;
-	if (g_pCurrentBuffer->index > g_pCurrentBuffer->bufferSize)
-		g_pCurrentBuffer->index = g_pCurrentBuffer->bufferSize;
+	g_currentBuffer->index += count;
+	if (g_currentBuffer->index > g_currentBuffer->bufferSize)
+		g_currentBuffer->index = g_currentBuffer->bufferSize;
 }
 
 static size_t charsAvailable(void) {
-	return g_pCurrentBuffer->bufferSize - g_pCurrentBuffer->index + g_pCurrentBuffer->charStack.count;
+	return g_currentBuffer->bufferSize - g_currentBuffer->index + g_currentBuffer->charStack.count;
 }
 
 static bool
@@ -229,25 +229,25 @@ SLexerToken lex_Current;
 /*	Public functions */
 
 char lex_PeekChar(size_t index) {
-	if (index < g_pCurrentBuffer->charStack.count) {
-		return g_pCurrentBuffer->charStack.stack[g_pCurrentBuffer->charStack.count - index - 1];
+	if (index < g_currentBuffer->charStack.count) {
+		return g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count - index - 1];
 	} else {
-		index -= g_pCurrentBuffer->charStack.count;
+		index -= g_currentBuffer->charStack.count;
 	}
-	index += g_pCurrentBuffer->index;
-	if (index < g_pCurrentBuffer->bufferSize) {
-		return g_pCurrentBuffer->buffer[index];
+	index += g_currentBuffer->index;
+	if (index < g_currentBuffer->bufferSize) {
+		return g_currentBuffer->buffer[index];
 	} else {
 		return 0;
 	}
 }
 
 char lex_GetChar(void) {
-	if (g_pCurrentBuffer->charStack.count > 0) {
-		return g_pCurrentBuffer->charStack.stack[--(g_pCurrentBuffer->charStack.count)];
+	if (g_currentBuffer->charStack.count > 0) {
+		return g_currentBuffer->charStack.stack[--(g_currentBuffer->charStack.count)];
 	}
-	if (g_pCurrentBuffer->index < g_pCurrentBuffer->bufferSize) {
-		return g_pCurrentBuffer->buffer[g_pCurrentBuffer->index++];
+	if (g_currentBuffer->index < g_currentBuffer->bufferSize) {
+		return g_currentBuffer->buffer[g_currentBuffer->index++];
 	} else {
 		return 0;
 	}
@@ -291,19 +291,19 @@ bool lex_StartsWithStringNoCase(const string* str) {
 }
 
 void lex_Bookmark(SLexerBookmark* bookmark) {
-	bookmark->Buffer = *g_pCurrentBuffer;
+	bookmark->Buffer = *g_currentBuffer;
 	bookmark->Token = lex_Current;
 }
 
 void lex_Goto(SLexerBookmark* bookmark) {
-	*g_pCurrentBuffer = bookmark->Buffer;
+	*g_currentBuffer = bookmark->Buffer;
 	lex_Current = bookmark->Token;
 }
 
 size_t lex_SkipBytes(size_t count) {
 	size_t linesSkipped = 0;
 
-	if (g_pCurrentBuffer) {
+	if (g_currentBuffer) {
 		for (size_t i = 0; i < count; ++i) {
 			char ch = lex_GetChar();
 			if (ch == 0) {
@@ -329,15 +329,15 @@ void lex_UnputString(const char* str) {
 
 void lex_SetBuffer(SLexerBuffer* buffer) {
 	if (buffer) {
-		g_pCurrentBuffer = buffer;
+		g_currentBuffer = buffer;
 	} else {
 		internalerror("Argument must not be NULL");
 	}
 }
 
 void lex_SetState(ELexerState state) {
-	if (g_pCurrentBuffer) {
-		g_pCurrentBuffer->State = state;
+	if (g_currentBuffer) {
+		g_currentBuffer->State = state;
 	} else {
 		internalerror("g_pCurrentBuffer not initialized");
 	}
@@ -515,10 +515,10 @@ void lex_DefineTokens(const SLexerTokenDefinition* lex) {
 
 
 static uint32_t lex_LexStateNormal() {
-	bool bLineStart = g_pCurrentBuffer->atLineStart;
+	bool bLineStart = g_currentBuffer->atLineStart;
 	SConstantWord* pLongestFixed = NULL;
 
-	g_pCurrentBuffer->atLineStart = false;
+	g_currentBuffer->atLineStart = false;
 
 	for (;;) {
 		/* Skip whitespace but stop at line break */
@@ -535,8 +535,8 @@ static uint32_t lex_LexStateNormal() {
 		/* Check if we're done with this buffer */
 		if (lex_PeekChar(0) == 0) {
 			if (fstk_ProcessNextBuffer()) {
-				bLineStart = g_pCurrentBuffer->atLineStart;
-				g_pCurrentBuffer->atLineStart = false;
+				bLineStart = g_currentBuffer->atLineStart;
+				g_currentBuffer->atLineStart = false;
 				continue;
 			} else {
 				lex_Current.token = T_NONE;
@@ -592,7 +592,7 @@ static uint32_t lex_LexStateNormal() {
 			uint8_t ch = (uint8_t) lex_GetChar();
 
 			if (ch == '\n') {
-				g_pCurrentBuffer->atLineStart = true;
+				g_currentBuffer->atLineStart = true;
 			}
 
 			lex_Current.length = 1;
@@ -636,13 +636,13 @@ static uint32_t lex_LexStateNormal() {
 }
 
 uint32_t lex_GetNextToken(void) {
-	switch (g_pCurrentBuffer->State) {
+	switch (g_currentBuffer->State) {
 		case LEX_STATE_NORMAL: {
 			return lex_LexStateNormal();
 			break;
 		}
 		case LEX_STATE_MACRO_ARG0: {
-			g_pCurrentBuffer->State = LEX_STATE_MACRO_ARGS;
+			g_currentBuffer->State = LEX_STATE_MACRO_ARGS;
 
 			if (lex_MatchChar('.')) {
 				int i = 0;
@@ -661,7 +661,7 @@ uint32_t lex_GetNextToken(void) {
 				lex_GetChar();
 			}
 
-			size_t tokenStart = g_pCurrentBuffer->index;
+			size_t tokenStart = g_currentBuffer->index;
 
 			if (lex_MatchChar('<')) {
 				expandStringUntil(lex_Current.value.string, '>', true);
@@ -670,8 +670,8 @@ uint32_t lex_GetNextToken(void) {
 				expandStringUntil(lex_Current.value.string, ',', true);
 			}
 
-			if (g_pCurrentBuffer->index > tokenStart) {
-				size_t length = g_pCurrentBuffer->index - tokenStart;
+			if (g_currentBuffer->index > tokenStart) {
+				size_t length = g_currentBuffer->index - tokenStart;
 				if (lex_PeekChar(0) == '\n') {
 					while (lex_Current.value.string[length - 1] == ' ') {
 						lex_Current.value.string[--length] = 0;
@@ -681,7 +681,7 @@ uint32_t lex_GetNextToken(void) {
 				lex_Current.token = T_STRING;
 				return T_STRING;
 			} else if (lex_MatchChar('\n')) {
-				g_pCurrentBuffer->atLineStart = true;
+				g_currentBuffer->atLineStart = true;
 				lex_Current.length = 1;
 				lex_Current.token = T_LINEFEED;
 				return '\n';

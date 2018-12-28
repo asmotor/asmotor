@@ -25,26 +25,26 @@ void locsym_Init(void)
 	string* pName;
 	
 	pName = str_Create("CODE");
-	sym_CreateGROUP(pName, GROUP_TEXT);
+    sym_CreateGroup(pName, GROUP_TEXT);
 	str_Free(pName);
 	
 	pName = str_Create("DATA");
-	sym_CreateGROUP(pName, GROUP_TEXT)->nFlags |= SYMF_DATA;
+    sym_CreateGroup(pName, GROUP_TEXT)->flags |= SYMF_DATA;
 	str_Free(pName);
 	
 	pName = str_Create("BSS");
-	sym_CreateGROUP(pName, GROUP_BSS);
+    sym_CreateGroup(pName, GROUP_BSS);
 	str_Free(pName);
 	
 	pName = str_Create("CODE_C");
-	sym_CreateGROUP(pName, GROUP_TEXT)->nFlags |= SYMF_CHIP;
+    sym_CreateGroup(pName, GROUP_TEXT)->flags |= SYMF_CHIP;
 	str_Free(pName);
 	
 	pName = str_Create("DATA_C");
-	sym_CreateGROUP(pName, GROUP_TEXT)->nFlags |= SYMF_DATA | SYMF_CHIP;
+    sym_CreateGroup(pName, GROUP_TEXT)->flags |= SYMF_DATA | SYMF_CHIP;
 	str_Free(pName);
 	
 	pName = str_Create("BSS_C");
-	sym_CreateGROUP(pName, GROUP_BSS)->nFlags |= SYMF_CHIP;
+    sym_CreateGroup(pName, GROUP_BSS)->flags |= SYMF_CHIP;
 	str_Free(pName);
 }

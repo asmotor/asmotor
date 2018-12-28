@@ -140,10 +140,10 @@ handleSection() {
     }
 
     string* pGroup = str_Create(lex_Current.value.string);
-    SSymbol* sym = sym_FindSymbol(pGroup);
+    SSymbol* sym = sym_GetSymbol(pGroup);
     str_Free(pGroup);
 
-    if (sym->eType != SYM_GROUP) {
+    if (sym->type != SYM_GROUP) {
         prj_Error(ERROR_IDENTIFIER_GROUP);
         return true;
     }

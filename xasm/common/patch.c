@@ -356,11 +356,11 @@ reduceExpression(const SPatch* patch, SExpression* expression, int32_t* result) 
             *result = expression->value.integer;
             return true;
         case EXPR_SYMBOL:
-            if (expression->value.symbol->nFlags & SYMF_CONSTANT) {
-                *result = expression->value.symbol->Value.Value;
+            if (expression->value.symbol->flags & SYMF_CONSTANT) {
+                *result = expression->value.symbol->value.integer;
                 return true;
-            } else if (expression->value.symbol->eType == SYM_UNDEFINED) {
-                prj_PatchError(patch, ERROR_SYMBOL_UNDEFINED, str_String(expression->value.symbol->pName));
+            } else if (expression->value.symbol->type == SYM_UNDEFINED) {
+                prj_PatchError(patch, ERROR_SYMBOL_UNDEFINED, str_String(expression->value.symbol->name));
             }
             return false;
         default:
@@ -447,7 +447,7 @@ patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatch
 
 void
 patch_BackPatch(void) {
-    for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+    for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         for (SPatch* patch = section->patches; patch != NULL; patch = list_GetNext(patch)) {
             int32_t value;
 
@@ -462,7 +462,7 @@ patch_BackPatch(void) {
 
 void
 patch_OptimizeAll(void) {
-    for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+    for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         for (SPatch* patch = section->patches; patch != NULL; patch = list_GetNext(patch)) {
             expr_Optimize(patch->expression);
         }

@@ -52,12 +52,12 @@ struct Section {
 };
 typedef struct Section SSection;
 
-#define    SECTF_LOADFIXED    0x01u
-#define    SECTF_BANKFIXED    0x02u
-#define    SECTF_ORGFIXED    0x04u
+#define SECTF_LOADFIXED 0x01u
+#define SECTF_BANKFIXED 0x02u
+#define SECTF_ORGFIXED  0x04u
 
-extern SSection* g_pCurrentSection;
-extern SSection* g_pSectionList;
+extern SSection* sect_Current;
+extern SSection* sect_Sections;
 
 extern uint32_t
 sect_TotalSections(void);
@@ -72,7 +72,7 @@ extern bool
 sect_SwitchTo_BANK(const string* sectname, struct Symbol* group, uint32_t bank);
 
 extern bool
-sect_SwitchTo_LOAD_BANK(const string* sectname, struct Symbol* group, uint32_t org, uint32_t bank);
+sect_SwitchTo_LOAD_BANK(const string* sectname, struct Symbol* group, uint32_t origin, uint32_t bank);
 
 extern bool
 sect_SwitchTo_NAMEONLY(const string* sectname);
@@ -110,4 +110,4 @@ sect_OutputConst16(uint16_t value);
 extern void
 sect_OutputConst32(uint32_t value);
 
-#endif    /*XASM_COMMON_SECTION_H_INCLUDED_*/
+#endif /* XASM_COMMON_SECTION_H_INCLUDED_ */

@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_SYMBOL_H
-#define	INCLUDE_SYMBOL_H
+#ifndef XASM_COMMON_SYMBOL_H_INCLUDED_
+#define XASM_COMMON_SYMBOL_H_INCLUDED_
 
 #include <stdlib.h>
 
@@ -25,96 +25,125 @@
 #include "lists.h"
 #include "str.h"
 
-#define	HASHSIZE 1024U
+#define SYMBOL_HASH_SIZE 1024U
 
-typedef	enum
-{
-	SYM_LABEL = 0,
-	SYM_EQU,
-	SYM_SET,
-	SYM_EQUS,
-	SYM_MACRO,
-	SYM_IMPORT,
-	SYM_GROUP,
-	SYM_GLOBAL,
-	SYM_UNDEFINED
-}	ESymbolType;
+typedef enum {
+    SYM_LABEL = 0,
+    SYM_EQU,
+    SYM_SET,
+    SYM_EQUS,
+    SYM_MACRO,
+    SYM_IMPORT,
+    SYM_GROUP,
+    SYM_GLOBAL,
+    SYM_UNDEFINED
+} ESymbolType;
 
-typedef	enum
-{
-	GROUP_TEXT = 0,
-	GROUP_BSS = 1
-}	EGroupType;
+typedef enum {
+    GROUP_TEXT = 0,
+    GROUP_BSS = 1
+} EGroupType;
 
-#define	SYMF_CONSTANT		0x001u		/*	symbol has a constant value (the Value field is safe to use)	*/
-#define	SYMF_RELOC			0x002u		/*	symbol will change its value during linking						*/
-#define	SYMF_REFERENCED		0x004u		/*	symbol has been referenced										*/
-#define	SYMF_EXPORT			0x008u		/*	symbol should be exported										*/
-#define	SYMF_EXPORTABLE		0x010u		/*	symbol can be exported											*/
-#define	SYMF_LOCAL			0x020u		/*	symbol is a local symbol (the pScope field will be non-NULL)	*/
-#define	SYMF_EXPR			0x040u		/*	symbol can be used in expressions								*/
-#define	SYMF_MODIFY			0x080u		/*	symbol can be redefined											*/
-#define	SYMF_HASDATA		0x100u		/*	symbol has data attached (Macro.pData)							*/
-#define	SYMF_LOCALEXPORT	0x200u		/*	symbol should be exported to sections local to this file        */
-#define SYMF_DATA 			0x40000000u
-#define SYMF_CHIP 			0x20000000u
+#define SYMF_CONSTANT       0x001u      // symbol has a constant value (the Value field is safe to use)
+#define SYMF_RELOC          0x002u      // symbol will change its value during linking
+#define SYMF_EXPORT         0x008u      // symbol should be exported
+#define SYMF_EXPORTABLE     0x010u      // symbol can be exported
+#define SYMF_EXPRESSION     0x020u      // symbol can be used in expressions
+#define SYMF_MODIFIABLE     0x040u      // symbol can be redefined
+#define SYMF_HAS_DATA       0x080u      // symbol has data attached (Macro.pData)
+#define SYMF_FILE_EXPORT    0x100u      // symbol should be exported to sections local to this file
+#define SYMF_DATA           0x40000000u
+#define SYMF_CHIP           0x20000000u
 
-typedef struct Symbol
-{
-	list_Data(struct Symbol);
-	string*		pName;
-	ESymbolType	eType;
-	uint32_t	nFlags;
-	struct Symbol*	pScope;
-	struct Section*	pSection;
-	union
-	{
-		int32_t (*fpInteger)(struct Symbol*);
-		string*	(*fpString)(struct Symbol*);
-	} Callback;
-	union
-	{
-		int32_t		Value;
-		EGroupType	GroupType;
-		string*		pMacro;
-	} Value;
+typedef struct Symbol {
+    list_Data(struct Symbol);
 
-	uint32_t ID;	/*	Used by object output routines */
+    string* name;
+    ESymbolType type;
+    uint32_t flags;
+
+    struct Symbol* scope;
+    struct Section* section;
+
+    union {
+        int32_t (* integer)(struct Symbol*);
+        string* (* string)(struct Symbol*);
+    } callback;
+
+    union {
+        int32_t integer;
+        EGroupType groupType;
+        string* macro;
+    } value;
+
+    uint32_t id;    // used by object output routines
 } SSymbol;
 
+extern bool
+sym_Init(void);
 
-extern bool	sym_Init(void);
+extern SSymbol*
+sym_CreateLabel(string* name);
 
-extern SSymbol* sym_CreateLabel(string* pName);
-extern SSymbol* sym_CreateEQUS(string* pName, string* pValue);
-extern SSymbol* sym_CreateEQU(string* pName, int32_t value);
-extern SSymbol* sym_CreateSET(string* pName, int32_t value);
-extern SSymbol* sym_CreateGROUP(string* pName, EGroupType value);
-extern SSymbol* sym_CreateMACRO(string* pName, char* value, size_t size);
+extern SSymbol*
+sym_CreateEqus(string* name, string* value);
 
-extern SSymbol* sym_FindSymbol(string* name);
+extern SSymbol*
+sym_CreateEqu(string* name, int32_t value);
 
-extern bool	sym_Purge(string* pName);
+extern SSymbol*
+sym_CreateSet(string* name, int32_t value);
 
-extern SSymbol*	sym_Export(string* pName);
-extern SSymbol* sym_Import(string* pName);
-extern SSymbol* sym_Global(string* pName);
+extern SSymbol*
+sym_CreateGroup(string* name, EGroupType value);
 
-extern char*	sym_GetValueAsStringByName(char* pDest, string* pSym);
-extern string*	sym_GetStringValue(SSymbol* pSym);
-extern string*	sym_GetStringValueByName(string* pName);
-extern int32_t	sym_GetValue(SSymbol* pSym);
-extern int32_t	sym_GetValueByName(string* pName);
+extern SSymbol*
+sym_CreateMacro(string* name, char* macroData, size_t macroSize);
 
-extern bool	sym_IsDefined(const string* pName);
-extern bool	sym_IsString(string* pName);
-extern bool	sym_IsMacro(string* pName);
+extern SSymbol*
+sym_GetSymbol(string* name);
+
+extern bool
+sym_Purge(string* name);
+
+extern SSymbol*
+sym_Export(string* name);
+
+extern SSymbol*
+sym_Import(string* name);
+
+extern SSymbol*
+sym_Global(string* name);
+
+extern char*
+sym_GetValueAsStringByName(char* destination, string* name);
+
+extern string*
+sym_GetStringValue(SSymbol* symbol);
+
+extern string*
+sym_GetStringValueByName(const string* name);
+
+extern int32_t
+sym_GetValue(SSymbol* symbol);
+
+extern int32_t
+sym_GetValueByName(string* name);
+
+extern bool
+sym_IsDefined(const string* pName);
+
+extern bool
+sym_IsString(const string* name);
+
+extern bool
+sym_IsMacro(const string* name);
 
 INLINE bool
 sym_IsNotDefined(const string* symbolName) {
-	return !sym_IsDefined((symbolName));
+    return !sym_IsDefined((symbolName));
 }
 
-extern SSymbol* g_pHashedSymbols[HASHSIZE];
+extern SSymbol* sym_hashedSymbols[SYMBOL_HASH_SIZE];
 
-#endif	/*INCLUDE_SYMBOL_H*/
+#endif // XASM_COMMON_SYMBOL_H_INCLUDED_

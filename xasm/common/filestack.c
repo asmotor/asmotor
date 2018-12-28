@@ -228,7 +228,7 @@ fstk_Dump(void) {
 
 bool
 fstk_ProcessNextBuffer(void) {
-    if (list_isLast(fstk_Current)) {
+    if (list_IsLast(fstk_Current)) {
         return false;
     } else {
         SFileStackEntry* oldContext = fstk_Current;
@@ -335,14 +335,14 @@ void
 fstk_ProcessMacro(string* macroName) {
     SSymbol* sym;
 
-    if ((sym = sym_FindSymbol(macroName)) != NULL) {
+    if ((sym = sym_GetSymbol(macroName)) != NULL) {
         SFileStackEntry* newContext = mem_Alloc(sizeof(SFileStackEntry));
 
         memset(newContext, 0, sizeof(SFileStackEntry));
         newContext->type = CONTEXT_MACRO;
 
         newContext->name = str_Copy(macroName);
-        newContext->lexBuffer = lex_CreateMemoryBuffer(str_String(sym->Value.pMacro), str_Length(sym->Value.pMacro));
+        newContext->lexBuffer = lex_CreateMemoryBuffer(str_String(sym->value.macro), str_Length(sym->value.macro));
 
         lex_SetBuffer(newContext->lexBuffer);
         lex_SetState(LEX_STATE_NORMAL);
@@ -366,7 +366,7 @@ fstk_Init(string* filename) {
     g_newMacroArguments = NULL;
 
     string* symbolName = str_Create("__FILE");
-    sym_CreateEQUS(symbolName, filename);
+    sym_CreateEqus(symbolName, filename);
     str_Free(symbolName);
 
     fstk_Current = mem_Alloc(sizeof(SFileStackEntry));
@@ -392,4 +392,13 @@ fstk_Init(string* filename) {
 
 void
 fstk_Cleanup(void) {
+}
+
+SFileStackEntry*
+fstk_GetLastStackEntry(void) {
+    SFileStackEntry* stackEntry = fstk_Current;
+    while (!list_IsLast(stackEntry)) {
+        stackEntry = list_GetNext(stackEntry);
+    }
+    return stackEntry;
 }

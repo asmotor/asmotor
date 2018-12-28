@@ -29,7 +29,7 @@
 
 static bool
 needsOrg() {
-    for (const SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+    for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         if (section->patches != NULL)
             return true;
     }
@@ -38,17 +38,17 @@ needsOrg() {
 
 static bool
 commonPatch() {
-    if (g_pSectionList == NULL)
+    if (sect_Sections == NULL)
         return false;
 
     // Check first section
-    if (needsOrg() && (g_pSectionList->flags & SECTF_LOADFIXED) == 0) {
+    if (needsOrg() && (sect_Sections->flags & SECTF_LOADFIXED) == 0) {
         prj_Error(ERROR_SECTION_MUST_LOAD);
         return false;
     }
 
-    uint32_t nAddress = g_pSectionList->imagePosition;
-    SSection* section = g_pSectionList;
+    uint32_t nAddress = sect_Sections->imagePosition;
+    SSection* section = sect_Sections;
     do {
         uint32_t alignment = g_pConfiguration->nSectionAlignment - 1u;
         nAddress += (section->usedSpace + alignment) & ~alignment;
@@ -68,14 +68,14 @@ commonPatch() {
         }
     } while (section != NULL);
 
-    for (uint_fast16_t i = 0; i < HASHSIZE; ++i) {
-        for (SSymbol* symbol = g_pHashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
-            if (symbol->eType == SYM_IMPORT) {
-                prj_Fail(ERROR_SYMBOL_UNDEFINED, str_String(symbol->pName));
-            } else if (symbol->nFlags & SYMF_RELOC) {
-                symbol->nFlags &= ~SYMF_RELOC;
-                symbol->nFlags |= SYMF_CONSTANT;
-                symbol->Value.Value += symbol->pSection->cpuOrigin;
+    for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+        for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+            if (symbol->type == SYM_IMPORT) {
+                prj_Fail(ERROR_SYMBOL_UNDEFINED, str_String(symbol->name));
+            } else if (symbol->flags & SYMF_RELOC) {
+                symbol->flags &= ~SYMF_RELOC;
+                symbol->flags |= SYMF_CONSTANT;
+                symbol->value.integer += symbol->section->cpuOrigin;
             }
         }
     }
@@ -91,9 +91,9 @@ bin_Write(string* filename) {
 
     FILE* fileHandle;
     if ((fileHandle = fopen(str_String(filename), "wb")) != NULL) {
-        uint32_t position = g_pSectionList->imagePosition;
+        uint32_t position = sect_Sections->imagePosition;
 
-        for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+        for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
             if (section->data) {
                 while (position < section->imagePosition) {
                     ++position;
@@ -120,9 +120,9 @@ bin_WriteVerilog(string* filename) {
 
     FILE* fileHandle;
     if ((fileHandle = fopen(str_String(filename), "wt")) != NULL) {
-        uint32_t position = g_pSectionList->imagePosition;
+        uint32_t position = sect_Sections->imagePosition;
 
-        for (SSection* section = g_pSectionList; section != NULL; section = list_GetNext(section)) {
+        for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
             while (position < section->imagePosition) {
                 ++position;
                 fprintf(fileHandle, "00\n");

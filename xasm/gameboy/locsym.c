@@ -24,26 +24,26 @@ void locsym_Init(void)
 	string* pName;
 	
 	pName = str_Create("HOME");
-	sym_CreateGROUP(pName, GROUP_TEXT);
+    sym_CreateGroup(pName, GROUP_TEXT);
 	str_Free(pName);
 	
 	pName = str_Create("CODE");
-	sym_CreateGROUP(pName, GROUP_TEXT);
+    sym_CreateGroup(pName, GROUP_TEXT);
 	str_Free(pName);
 	
 	pName = str_Create("DATA");
-	sym_CreateGROUP(pName, GROUP_TEXT);
+    sym_CreateGroup(pName, GROUP_TEXT);
 	str_Free(pName);
 	
 	pName = str_Create("BSS");
-	sym_CreateGROUP(pName, GROUP_BSS);
+    sym_CreateGroup(pName, GROUP_BSS);
 	str_Free(pName);
 	
 	pName = str_Create("HRAM");
-	sym_CreateGROUP(pName, GROUP_BSS);
+    sym_CreateGroup(pName, GROUP_BSS);
 	str_Free(pName);
 	
 	pName = str_Create("VRAM");
-	sym_CreateGROUP(pName, GROUP_BSS);
+    sym_CreateGroup(pName, GROUP_BSS);
 	str_Free(pName);
 }

@@ -79,7 +79,7 @@ opt_Push(void) {
 
 void
 opt_Pop(void) {
-    if (!list_isLast(opt_Current)) {
+    if (!list_IsLast(opt_Current)) {
         SOptions* nopt = opt_Current;
 
         list_Remove(opt_Current, opt_Current);
