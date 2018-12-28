@@ -16,5 +16,6 @@
     "**/CMakeFiles": true,
     "**/cmake_install.cmake": true,
     "**/*.a": true
-  }
+  },
+  "cmake.configureOnOpen": true
 }

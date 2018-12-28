@@ -19,9 +19,13 @@
 #ifndef XASM_COMMON_PATCH_H_INCLUDED_
 #define XASM_COMMON_PATCH_H_INCLUDED_
 
-#include "expression.h"
 #include "lists.h"
 #include "str.h"
+
+#include "expression.h"
+#include "section.h"
+#include "symbol.h"
+
 
 struct Section;
 
@@ -42,9 +46,6 @@ typedef struct Patch {
     string* filename;
     uint32_t lineNumber;
 } SPatch;
-
-#include "section.h"
-#include "symbol.h"
 
 extern void
 patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatchType type);

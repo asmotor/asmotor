@@ -29,13 +29,13 @@ extern char*
 loc_GetError(size_t errorNumber);
 
 static char* g_warnings[] = {
-        "Cannot PURGE non-existant symbol",
+        "Cannot \"PURGE\" undefined symbol",
         "Error in option %s, ignored",
         "Cannot pop options from an empty stack",
         "%s",
-        "SHIFT used outside MACRO, ignored",
-        "MEXIT used outside MACRO, ignored",
-        "REXIT used outside REPT, ignored",
+        "\"SHIFT\" used outside MACRO, ignored",
+        "\"MEXIT\" used outside MACRO, ignored",
+        "\"REXIT\" used outside REPT, ignored",
         "Error in machine option %s",
 };
 
