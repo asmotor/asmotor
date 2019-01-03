@@ -31,9 +31,9 @@ static SConfiguration s_sConfiguration =
 	MINSIZE_8BIT,
 	1,
 
-	"rb", "rh", "rw",
-	"db", "dh", "dw",
-	"dsb", "dsh", "dsl"
+	"RB", "RH", "RW",
+	"DB", "DH", "DW",
+	"DSB", "DSH", "DSL"
 };
 
 SConfiguration* g_pConfiguration = &s_sConfiguration;

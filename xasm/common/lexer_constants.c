@@ -16,6 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <ctype.h>
 
 // From xasm
@@ -41,10 +42,27 @@
 
 /* Private structures */
 
+typedef struct ConstantWord {
+    list_Data(struct ConstantWord);
+    SLexConstantsWord definition;
+    size_t nameLength;
+} SConstantWord;
+
 /* Private variables */
 
 static SConstantWord* g_wordsHashTable[WORDS_HASH_SIZE];
 static size_t g_maxWordLength;
+
+/* Private functions */
+
+static bool isNotLowerCase(const char* str) {
+    while (*str != 0) {
+        if (islower(*str++))
+            return false;
+    }
+
+    return true;
+}
 
 static uint32_t
 hashString(const char* str) {
@@ -58,26 +76,35 @@ hashString(const char* str) {
     return result;
 }
 
-SConstantWord*
-lex_ConstantsMatchWord(size_t maxWordLength) {
+/* Public functions */
+
+void
+lex_ConstantsMatchWord(size_t maxWordLength, size_t* length, const SLexConstantsWord** word) {
     if (g_maxWordLength < maxWordLength) {
         maxWordLength = g_maxWordLength;
     }
 
-    SConstantWord* result = NULL;
     uint32_t hashCode = 0;
     size_t s = 0;
+    const SConstantWord* result = NULL;
 
     while (s < maxWordLength) {
         HASH(hashCode, toupper(lex_PeekChar(s)));
         ++s;
         for (SConstantWord* lex = g_wordsHashTable[hashCode]; lex != NULL; lex = list_GetNext(lex)) {
-            if (str_Length(lex->name) == s && lex_StartsWithStringNoCase(lex->name)) {
+            if (lex->nameLength == s && lex_StartsWithNoCase(lex->definition.name, lex->nameLength)) {
                 result = lex;
             }
         }
     }
-    return result;
+
+    if (result == NULL) {
+        *length = 0;
+        *word = NULL;
+    } else {
+        *length = result->nameLength;
+        *word = &result->definition;
+    }
 }
 
 
@@ -110,9 +137,8 @@ lex_ConstantsUndefineWord(const char* name, uint32_t token) {
     SConstantWord** pHash = &g_wordsHashTable[hashString(name)];
 
     for (SConstantWord* pToken = *pHash; pToken != NULL; pToken = list_GetNext(pToken)) {
-        if (pToken->token == token && str_EqualConst(pToken->name, name) == 0) {
+        if (pToken->definition.token == token && strcmp(pToken->definition.name, name) == 0) {
             list_Remove(*pHash, pToken);
-            str_Free(pToken->name);
             mem_Free(pToken);
             return;
         }
@@ -130,26 +156,27 @@ lex_ConstantsUndefineWords(SLexConstantsWord* lex) {
 
 void
 lex_ConstantsDefineWord(const char* name, uint32_t token) {
-    SConstantWord** pHash = &g_wordsHashTable[hashString(name)];
-    SConstantWord* pPrev = *pHash;
-    SConstantWord* pNew;
+    assert(isNotLowerCase(name));
+
+    SConstantWord** hashTableEntry = &g_wordsHashTable[hashString(name)];
+    SConstantWord* pPrev = *hashTableEntry;
 
     /*printf("%s has hashvalue %d\n", lex->tzName, hash);*/
 
-    pNew = (SConstantWord*) mem_Alloc(sizeof(SConstantWord));
-    memset(pNew, 0, sizeof(SConstantWord));
+    SConstantWord* pNew = (SConstantWord*) mem_Alloc(sizeof(SConstantWord));
+    list_Init(pNew);
 
-    pNew->name = str_Create(name);
-    str_ToUpperReplace(&pNew->name);
-    pNew->token = (EToken) token;
+    pNew->definition.name = name;
+    pNew->definition.token = (EToken) token;
+    pNew->nameLength = strlen(name);
 
-    if (str_Length(pNew->name) > g_maxWordLength)
-        g_maxWordLength = str_Length(pNew->name);
+    if (pNew->nameLength > g_maxWordLength)
+        g_maxWordLength = pNew->nameLength;
 
     if (pPrev) {
         list_InsertAfter(pPrev, pNew);
     } else {
-        *pHash = pNew;
+        *hashTableEntry = pNew;
     }
 }
 

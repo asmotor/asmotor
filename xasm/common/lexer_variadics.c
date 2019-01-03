@@ -93,7 +93,7 @@ void lex_VariadicInit(void) {
 	g_nextVariadicId = 0;
 }
 
-uint32_t lex_VariadicCreateWord(SVariadicWordDefinition* tok) {
+uint32_t lex_VariadicCreateWord(const SVariadicWordDefinition* tok) {
 	g_variadicWordDefinitions[g_nextVariadicId] = *tok;
 
 	return 1U << g_nextVariadicId++;
@@ -141,7 +141,7 @@ void lex_VariadicAddSuffix(uint32_t id, uint8_t ch) {
 	g_variadicSuffix[ch] |= id;
 }
 
-void lex_VariadicMatchString(size_t bufferLength, size_t* length, SVariadicWordDefinition** variadicWord) {
+void lex_VariadicMatchString(size_t bufferLength, size_t* length, const SVariadicWordDefinition** variadicWord) {
 	*length = 0;
 
 	SVariadicWordsPerChar* chars = g_variadicWordsPerChar;

@@ -31,9 +31,9 @@ static SConfiguration s_sConfiguration =
 	MINSIZE_16BIT,
 	2,
 	
-	NULL, "rw", "rl",
-	NULL, "dw", "dl",
-	NULL, "dw", NULL
+	NULL, "RW", "RL",
+	NULL, "DW", "DL",
+	NULL, "DW", NULL
 };
 
 SConfiguration* g_pConfiguration = &s_sConfiguration;

@@ -31,12 +31,6 @@ typedef struct {
     uint32_t token;
 } SLexConstantsWord;
 
-typedef struct ConstantWord {
-    string* name;
-    EToken token;
-    list_Data(struct ConstantWord);
-} SConstantWord;
-
 
 extern void
 lex_ConstantsDefineWord(const char* name, uint32_t token);
@@ -50,8 +44,8 @@ lex_ConstantsUndefineWord(const char* name, uint32_t token);
 extern void
 lex_ConstantsUndefineWords(SLexConstantsWord* lex);
 
-extern SConstantWord*
-lex_ConstantsMatchWord(size_t bufferLength);
+extern void
+lex_ConstantsMatchWord(size_t bufferLength, size_t* length, const SLexConstantsWord** word);
 
 extern void
 lex_ConstantsInit(void);

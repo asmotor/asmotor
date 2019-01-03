@@ -30,7 +30,7 @@ extern void
 lex_VariadicInit(void);
 
 extern uint32_t
-lex_VariadicCreateWord(SVariadicWordDefinition* tok);
+lex_VariadicCreateWord(const SVariadicWordDefinition* tok);
 
 extern void
 lex_VariadicAddCharRange(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber);
@@ -45,6 +45,6 @@ extern void
 lex_VariadicRemoveAll(uint32_t id);
 
 extern void
-lex_VariadicMatchString(size_t bufferLength, size_t* length, SVariadicWordDefinition** variadicWord);
+lex_VariadicMatchString(size_t bufferLength, size_t* length, const SVariadicWordDefinition** variadicWord);
 
 #endif

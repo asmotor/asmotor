@@ -96,7 +96,7 @@ extern bool
 lex_CompareNoCase(size_t index, const char* str, size_t length);
 
 extern bool
-lex_StartsWithStringNoCase(const string* str);
+lex_StartsWithNoCase(const char* str, size_t length);
 
 extern size_t
 lex_SkipBytes(size_t count);

@@ -63,95 +63,95 @@ static SLexConstantsWord staticTokens[] = {
         {"~/",        T_OP_MODULO},
         {"~",         T_OP_BITWISE_NOT},
 
-        {"def",       T_FUNC_DEF},
+        {"DEF",       T_FUNC_DEF},
 
         {"//",        T_FUNC_FDIV},
         {"**",        T_FUNC_FMUL},
 
-        {"sin",       T_FUNC_SIN},
-        {"cos",       T_FUNC_COS},
-        {"tan",       T_FUNC_TAN},
-        {"asin",      T_FUNC_ASIN},
-        {"acos",      T_FUNC_ACOS},
-        {"atan",      T_FUNC_ATAN},
-        {"atan2",     T_FUNC_ATAN2},
+        {"SIN",       T_FUNC_SIN},
+        {"COS",       T_FUNC_COS},
+        {"TAN",       T_FUNC_TAN},
+        {"ASIN",      T_FUNC_ASIN},
+        {"ACOS",      T_FUNC_ACOS},
+        {"ATAN",      T_FUNC_ATAN},
+        {"ATAN2",     T_FUNC_ATAN2},
 
-        {"compareto", T_FUNC_COMPARETO},
-        {"indexof",   T_FUNC_INDEXOF},
-        {"slice",     T_FUNC_SLICE},
-        {"length",    T_FUNC_LENGTH},
-        {"toupper",   T_FUNC_TOUPPER},
-        {"tolower",   T_FUNC_TOLOWER},
+        {"COMPARETO", T_FUNC_COMPARETO},
+        {"INDEXOF",   T_FUNC_INDEXOF},
+        {"SLICE",     T_FUNC_SLICE},
+        {"LENGTH",    T_FUNC_LENGTH},
+        {"TOUPPER",   T_FUNC_TOUPPER},
+        {"TOLOWER",   T_FUNC_TOLOWER},
 
-        {"printt",    T_DIRECTIVE_PRINTT},
-        {"printv",    T_DIRECTIVE_PRINTV},
-        {"printf",    T_DIRECTIVE_PRINTF},
-        {"export",    T_DIRECTIVE_EXPORT},
-        {"xdef",      T_DIRECTIVE_EXPORT},
-        {"import",    T_DIRECTIVE_IMPORT},
-        {"xref",      T_DIRECTIVE_IMPORT},
-        {"global",    T_DIRECTIVE_GLOBAL},
+        {"PRINTT",    T_DIRECTIVE_PRINTT},
+        {"PRINTV",    T_DIRECTIVE_PRINTV},
+        {"PRINTF",    T_DIRECTIVE_PRINTF},
+        {"EXPORT",    T_DIRECTIVE_EXPORT},
+        {"XDEF",      T_DIRECTIVE_EXPORT},
+        {"IMPORT",    T_DIRECTIVE_IMPORT},
+        {"XREF",      T_DIRECTIVE_IMPORT},
+        {"GLOBAL",    T_DIRECTIVE_GLOBAL},
 
-        {"rsreset",   T_DIRECTIVE_RSRESET},
-        {"rsset",     T_DIRECTIVE_RSSET},
+        {"RSRESET",   T_DIRECTIVE_RSRESET},
+        {"RSSET",     T_DIRECTIVE_RSSET},
 
-        {"set",       T_SYM_SET},
+        {"SET",       T_SYM_SET},
         {"=",         T_SYM_SET},
 
-        {"section",   T_DIRECTIVE_SECTION},
-        {"group",     T_SYM_GROUP},
-        {"text",      T_GROUP_TEXT},
-        {"ram",       T_GROUP_BSS},
-        {"org",       T_DIRECTIVE_ORG},
+        {"SECTION",   T_DIRECTIVE_SECTION},
+        {"GROUP",     T_SYM_GROUP},
+        {"TEXT",      T_GROUP_TEXT},
+        {"RAM",       T_GROUP_BSS},
+        {"ORG",       T_DIRECTIVE_ORG},
 
-        {"equ",       T_SYM_EQU},
-        {"equs",      T_SYM_EQUS},
+        {"EQU",       T_SYM_EQU},
+        {"EQUS",      T_SYM_EQUS},
 
-        {"purge",     T_DIRECTIVE_PURGE},
+        {"PURGE",     T_DIRECTIVE_PURGE},
 
-        {"fail",      T_DIRECTIVE_FAIL},
-        {"warn",      T_DIRECTIVE_WARN},
+        {"FAIL",      T_DIRECTIVE_FAIL},
+        {"WARN",      T_DIRECTIVE_WARN},
 
-        {"include",   T_DIRECTIVE_INCLUDE},
-        {"incbin",    T_DIRECTIVE_INCBIN},
+        {"INCLUDE",   T_DIRECTIVE_INCLUDE},
+        {"INCBIN",    T_DIRECTIVE_INCBIN},
 
-        {"rept",      T_DIRECTIVE_REPT},
-        {"endr",      T_POP_ENDR},    /*	Not needed but we have it here just to protect the name */
-        {"rexit",     T_DIRECTIVE_REXIT},
+        {"REPT",      T_DIRECTIVE_REPT},
+        {"ENDR",      T_POP_ENDR},    /*	NOT NEEDED BUT WE HAVE IT HERE JUST TO PROTECT THE NAME */
+        {"REXIT",     T_DIRECTIVE_REXIT},
 
-        {"if",        T_DIRECTIVE_IF},
-        {"ifc",       T_DIRECTIVE_IFC},
-        {"ifd",       T_DIRECTIVE_IFD},
-        {"ifnc",      T_DIRECTIVE_IFNC},
-        {"ifnd",      T_DIRECTIVE_IFND},
-        {"ifne",      T_DIRECTIVE_IF},
-        {"ifeq",      T_DIRECTIVE_IFEQ},
-        {"ifgt",      T_DIRECTIVE_IFGT},
-        {"ifge",      T_DIRECTIVE_IFGE},
-        {"iflt",      T_DIRECTIVE_IFLT},
-        {"ifle",      T_DIRECTIVE_IFLE},
-        {"else",      T_DIRECTIVE_ELSE},
-        {"endc",      T_DIRECTIVE_ENDC},
+        {"IF",        T_DIRECTIVE_IF},
+        {"IFC",       T_DIRECTIVE_IFC},
+        {"IFD",       T_DIRECTIVE_IFD},
+        {"IFNC",      T_DIRECTIVE_IFNC},
+        {"IFND",      T_DIRECTIVE_IFND},
+        {"IFNE",      T_DIRECTIVE_IF},
+        {"IFEQ",      T_DIRECTIVE_IFEQ},
+        {"IFGT",      T_DIRECTIVE_IFGT},
+        {"IFGE",      T_DIRECTIVE_IFGE},
+        {"IFLT",      T_DIRECTIVE_IFLT},
+        {"IFLE",      T_DIRECTIVE_IFLE},
+        {"ELSE",      T_DIRECTIVE_ELSE},
+        {"ENDC",      T_DIRECTIVE_ENDC},
 
-        {"macro",     T_SYM_MACRO},
-        {"endm",      T_SYM_ENDM},    /*	Not needed but we have it here just to protect the name */
-        {"shift",     T_DIRECTIVE_SHIFT},
-        {"mexit",     T_DIRECTIVE_MEXIT},
+        {"MACRO",     T_SYM_MACRO},
+        {"ENDM",      T_SYM_ENDM},    /*	NOT NEEDED BUT WE HAVE IT HERE JUST TO PROTECT THE NAME */
+        {"SHIFT",     T_DIRECTIVE_SHIFT},
+        {"MEXIT",     T_DIRECTIVE_MEXIT},
 
-        {"pushs",     T_DIRECTIVE_PUSHS},
-        {"pops",      T_DIRECTIVE_POPS},
-        {"pusho",     T_DIRECTIVE_PUSHO},
-        {"popo",      T_DIRECTIVE_POPO},
+        {"PUSHS",     T_DIRECTIVE_PUSHS},
+        {"POPS",      T_DIRECTIVE_POPS},
+        {"PUSHO",     T_DIRECTIVE_PUSHO},
+        {"POPO",      T_DIRECTIVE_POPO},
 
-        {"opt",       T_DIRECTIVE_OPT},
+        {"OPT",       T_DIRECTIVE_OPT},
 
-        {"lowlimit",  T_FUNC_LOWLIMIT},
-        {"highlimit", T_FUNC_HIGHLIMIT},
+        {"LOWLIMIT",  T_FUNC_LOWLIMIT},
+        {"HIGHLIMIT", T_FUNC_HIGHLIMIT},
 
-        {"even",      T_DIRECTIVE_EVEN},
-        {"cnop",      T_DIRECTIVE_CNOP},
+        {"EVEN",      T_DIRECTIVE_EVEN},
+        {"CNOP",      T_DIRECTIVE_CNOP},
 
-        {"end",       T_POP_END},
+        {"END",       T_POP_END},
 
         {NULL,        0}
 };
@@ -413,7 +413,7 @@ tokens_Init(void) {
         lex_ConstantsDefineWord(g_pConfiguration->pszNameDL, T_DIRECTIVE_DL);
 
     if (g_pConfiguration->bSupportBanks)
-        lex_ConstantsDefineWord("bank", T_FUNC_BANK);
+        lex_ConstantsDefineWord("BANK", T_FUNC_BANK);
 
     /* Local ID */
     uint32_t id;

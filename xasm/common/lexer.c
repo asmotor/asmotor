@@ -205,14 +205,19 @@ atBufferEnd(void) {
 }
 
 static bool 
-getMatches(bool lineStart, size_t* variadicLength, SVariadicWordDefinition** variadicWord, SConstantWord** constantWord) {
+getMatches(bool lineStart, size_t* variadicLength, const SVariadicWordDefinition** variadicWord, size_t* constantLength, const SLexConstantsWord** constantWord) {
     if (atBufferEnd())
         return false;
 
     lex_VariadicMatchString(charsAvailable(), variadicLength, variadicWord);
     bool doNotTryConstantWord = ((*variadicWord) != NULL && (*variadicWord)->token == T_ID && lineStart && lex_PeekChar(*variadicLength) == ':');
 
-    *constantWord = doNotTryConstantWord ? NULL : lex_ConstantsMatchWord(charsAvailable());
+    if (doNotTryConstantWord) {
+        *constantLength = 0;
+        *constantWord = NULL;
+    } else {
+        lex_ConstantsMatchWord(charsAvailable(), constantLength, constantWord);
+    }
     return true;
 }
 
@@ -220,7 +225,7 @@ static bool
 normalProcessCurrentBuffer(bool lineStart);
 
 static bool
-acceptVariadic(size_t variadicLength, SVariadicWordDefinition* variadicWord, bool lineStart) {
+acceptVariadic(size_t variadicLength, const SVariadicWordDefinition* variadicWord, bool lineStart) {
     lex_Current.length = variadicLength;
     if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
         return normalProcessCurrentBuffer(lineStart);
@@ -239,8 +244,8 @@ acceptVariadic(size_t variadicLength, SVariadicWordDefinition* variadicWord, boo
 }
 
 static bool
-acceptConstantWord(SConstantWord* constantWord) {
-    lex_Current.length = str_Length(constantWord->name);
+acceptConstantWord(size_t constantLength, const SLexConstantsWord* constantWord) {
+    lex_Current.length = constantLength;
     lex_GetChars(lex_Current.value.string, lex_Current.length);
     lex_Current.token = constantWord->token;
     return true;
@@ -284,14 +289,16 @@ normalProcessCurrentBuffer(bool lineStart) {
     lineStart = skipUnimportantWhitespace() && lineStart;
 
     size_t variadicLength;
-    SVariadicWordDefinition* variadicWord;
-    SConstantWord* constantWord;
+    const SVariadicWordDefinition* variadicWord;
 
-    if (!getMatches(lineStart, &variadicLength, &variadicWord, &constantWord))
+    size_t constantLength;
+    const SLexConstantsWord* constantWord;
+
+    if (!getMatches(lineStart, &variadicLength, &variadicWord, &constantLength, &constantWord))
         return false;
 
-    if (constantWord != NULL && str_Length(constantWord->name) >= variadicLength) {
-        return acceptConstantWord(constantWord);
+    if (constantWord != NULL && constantLength >= variadicLength) {
+        return acceptConstantWord(constantLength, constantWord);
     } else if (variadicLength > 0) {
         return acceptVariadic(variadicLength, variadicWord, lineStart);
     } else {
@@ -441,8 +448,8 @@ lex_CompareNoCase(size_t index, const char* str, size_t length) {
 }
 
 bool
-lex_StartsWithStringNoCase(const string* str) {
-    return lex_CompareNoCase(0, str_String(str), str_Length(str));
+lex_StartsWithNoCase(const char* str, size_t length) {
+    return lex_CompareNoCase(0, str, length);
 }
 
 void
