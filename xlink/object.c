@@ -142,18 +142,21 @@ static void readSymbol(FILE* fileHandle, Symbol* symbol)
 static uint32_t readSymbols(FILE* fileHandle, Symbol** outputSymbols)
 {
 	uint32_t totalSymbols = fgetll(fileHandle);
-	Symbol* symbol;
 
-	if ((symbol = mem_Alloc(totalSymbols * sizeof(Symbol))) != NULL)
-	{
-		uint32_t	i;
+	if (totalSymbols == 0) {
+		*outputSymbols = NULL;
+		return 0;
+	} else {
+		Symbol* symbol = mem_Alloc(totalSymbols * sizeof(Symbol));
+		if (symbol != NULL)
+		{
+			*outputSymbols = symbol;
 
-		*outputSymbols = symbol;
+			for (uint32_t i = 0; i < totalSymbols; i += 1)
+				readSymbol(fileHandle, symbol++);
 
-		for (i = 0; i < totalSymbols; i += 1)
-			readSymbol(fileHandle, symbol++);
-
-		return totalSymbols;
+			return totalSymbols;
+		}
 	}
 
 	Error("Out of memory");
