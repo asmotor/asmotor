@@ -301,71 +301,81 @@ handleConstantWord(void) {
 }
 
 static bool
+atBufferEnd(void) {
+    return lex_PeekChar(0) == 0;
+}
+
+static bool
+normalProcessCurrentBuffer(bool lineStart) {
+    lineStart = skipUnimportantWhitespace(lineStart);
+
+    if (atBufferEnd())
+        return false;
+
+    size_t variadicLength;
+    SVariadicWordDefinition* variadicWord;
+
+    lex_VariadicMatchString(lex_PeekChar, charsAvailable(), &variadicLength, &variadicWord);
+    bool doNotTryConstantWord = (variadicWord != NULL && variadicWord->token == T_ID && lineStart && lex_PeekChar(variadicLength) == ':');
+
+    SConstantWord* longestConstantWord = doNotTryConstantWord ? NULL : handleConstantWord();
+
+    if (variadicLength == 0) {
+        if (longestConstantWord == NULL) {
+            // Didn't find either variadic or constant token
+            
+            if (handleString())
+                return true;
+
+            return handleChar();
+        } else {
+            lex_Current.length = str_Length(longestConstantWord->name);
+            skip(lex_Current.length);
+            lex_Current.token = longestConstantWord->token;
+            return true;
+        }
+    }
+
+    if (longestConstantWord == NULL || variadicLength > str_Length(longestConstantWord->name)) {
+        lex_Current.length = variadicLength;
+        if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
+            return normalProcessCurrentBuffer(lineStart);
+        }
+
+        if (variadicWord->token == T_ID && lineStart) {
+            skip(lex_Current.length);
+            lex_Current.token = T_LABEL;
+            return true;
+        } else {
+            skip(lex_Current.length);
+            lex_Current.token = variadicWord->token;
+            return true;
+        }
+    } else {
+        lex_Current.length = str_Length(longestConstantWord->name);
+        lex_GetChars(lex_Current.value.string, lex_Current.length);
+        lex_Current.token = longestConstantWord->token;
+        return true;
+    }
+
+}
+
+static bool
 lexStateNormal() {
     bool lineStart = g_currentBuffer->atLineStart;
-
     g_currentBuffer->atLineStart = false;
 
     for (;;) {
-        lineStart = skipUnimportantWhitespace(lineStart);
-
-        /* Check if we're done with this buffer */
-
-        if (lex_PeekChar(0) == 0) {
+        if (normalProcessCurrentBuffer(lineStart)) {
+            return true;
+        } else {
             if (fstk_ProcessNextBuffer()) {
                 lineStart = g_currentBuffer->atLineStart;
                 g_currentBuffer->atLineStart = false;
-                continue;
             } else {
                 lex_Current.token = T_NONE;
-                return 0;
+                return false;
             }
-        }
-
-        size_t variadicLength;
-        SVariadicWordDefinition* variadicWord;
-
-        lex_VariadicMatchString(lex_PeekChar, charsAvailable(), &variadicLength, &variadicWord);
-        bool ignoreConstantWord = (variadicWord != NULL && variadicWord->token == T_ID && lineStart && lex_PeekChar(variadicLength) == ':');
-
-        SConstantWord* longestConstantWord = ignoreConstantWord ? NULL : handleConstantWord();
-
-        if (variadicLength == 0) {
-            if (longestConstantWord == NULL) {
-                // Didn't find either variadic or constant token
-                
-                if (handleString())
-                    return true;
-
-                return handleChar();
-            } else {
-                lex_Current.length = str_Length(longestConstantWord->name);
-                skip(lex_Current.length);
-                lex_Current.token = longestConstantWord->token;
-                return true;
-            }
-        }
-
-        if (longestConstantWord == NULL || variadicLength > str_Length(longestConstantWord->name)) {
-            lex_Current.length = variadicLength;
-            if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
-                continue;
-            }
-
-            if (variadicWord->token == T_ID && lineStart) {
-                skip(lex_Current.length);
-                lex_Current.token = T_LABEL;
-                return T_LABEL;
-            } else {
-                skip(lex_Current.length);
-                lex_Current.token = variadicWord->token;
-                return true;
-            }
-        } else {
-            lex_Current.length = str_Length(longestConstantWord->name);
-            lex_GetChars(lex_Current.value.string, lex_Current.length);
-            lex_Current.token = longestConstantWord->token;
-            return true;
         }
     }
 }
@@ -682,16 +692,14 @@ lex_PrintMaxTokensPerHash(void) {
 void
 lex_UndefineToken(const char* name, uint32_t token) {
     SConstantWord** pHash = &g_wordsHashTable[hashString(name)];
-    SConstantWord* pToken = *pHash;
 
-    while (pToken) {
-        if (pToken->token == (uint32_t) token && str_EqualConst(pToken->name, name) == 0) {
+    for (SConstantWord* pToken = *pHash; pToken != NULL; pToken = list_GetNext(pToken)) {
+        if (pToken->token == token && str_EqualConst(pToken->name, name) == 0) {
             list_Remove(*pHash, pToken);
             str_Free(pToken->name);
             mem_Free(pToken);
             return;
         }
-        pToken = list_GetNext(pToken);
     }
     internalerror("token not found");
 }
