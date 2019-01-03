@@ -324,28 +324,26 @@ lexStateNormal() {
 
         size_t variadicLength;
         SVariadicWordDefinition* variadicWord;
+
         lex_VariadicMatchString(lex_PeekChar, charsAvailable(), &variadicLength, &variadicWord);
+        bool ignoreConstantWord = (variadicWord != NULL && variadicWord->token == T_ID && lineStart && lex_PeekChar(variadicLength) == ':');
 
-        SConstantWord* longestConstantWord = handleConstantWord();
-
-        if (variadicLength == 0 && longestConstantWord == NULL) {
-            // Didn't find either variadic or constant token
-            
-            if (handleString())
-                return true;
-
-            return handleChar();
-        }
+        SConstantWord* longestConstantWord = ignoreConstantWord ? NULL : handleConstantWord();
 
         if (variadicLength == 0) {
-            lex_Current.length = str_Length(longestConstantWord->name);
-            skip(lex_Current.length);
-            lex_Current.token = longestConstantWord->token;
-            return longestConstantWord->token;
-        }
+            if (longestConstantWord == NULL) {
+                // Didn't find either variadic or constant token
+                
+                if (handleString())
+                    return true;
 
-        if (variadicWord && variadicWord->token == T_ID && lineStart && lex_PeekChar(variadicLength) == ':') {
-            longestConstantWord = NULL;
+                return handleChar();
+            } else {
+                lex_Current.length = str_Length(longestConstantWord->name);
+                skip(lex_Current.length);
+                lex_Current.token = longestConstantWord->token;
+                return true;
+            }
         }
 
         if (longestConstantWord == NULL || variadicLength > str_Length(longestConstantWord->name)) {
