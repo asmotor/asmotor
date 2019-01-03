@@ -78,6 +78,14 @@ modifySymbol(intptr_t intModification) {
     return true;
 }
 
+static bool
+purgeSymbol(intptr_t intModification) {
+    tokens_ExpandStrings = false;
+    bool result = modifySymbol(intModification);
+    tokens_ExpandStrings = true;
+    return result;
+}
+
 static uint32_t
 expectBankFixed(void) {
     assert(g_pConfiguration->bSupportBanks);
@@ -612,7 +620,7 @@ static SDirective g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
         {modifySymbol,    (intptr_t) handleExport},
         {modifySymbol,    (intptr_t) handleImport},
         {modifySymbol,    (intptr_t) handleGlobal},
-        {modifySymbol,    (intptr_t) sym_Purge},
+        {purgeSymbol,     (intptr_t) sym_Purge},
         {handleUserError, (intptr_t) prj_Fail},
         {handleUserError, (intptr_t) prj_Warn},
         {handleFile,      (intptr_t) fstk_ProcessIncludeFile},
