@@ -306,6 +306,28 @@ atBufferEnd(void) {
     return lex_PeekChar(0) == 0;
 }
 
+static bool
+normalProcessCurrentBuffer(bool lineStart);
+
+static bool
+acceptVariadic(size_t variadicLength, SVariadicWordDefinition* variadicWord, bool lineStart) {
+    lex_Current.length = variadicLength;
+    if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
+        return normalProcessCurrentBuffer(lineStart);
+    }
+
+    if (variadicWord->token == T_ID && lineStart) {
+        skip(lex_Current.length);
+        lex_Current.token = T_LABEL;
+        return true;
+    } else {
+        skip(lex_Current.length);
+        lex_Current.token = variadicWord->token;
+        return true;
+    }
+
+}
+
 static bool 
 getMatches(bool lineStart, size_t* variadicLength, SVariadicWordDefinition** variadicWord, SConstantWord** constantWord) {
     if (atBufferEnd())
@@ -346,20 +368,7 @@ normalProcessCurrentBuffer(bool lineStart) {
     }
 
     if (constantWord == NULL || variadicLength > str_Length(constantWord->name)) {
-        lex_Current.length = variadicLength;
-        if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
-            return normalProcessCurrentBuffer(lineStart);
-        }
-
-        if (variadicWord->token == T_ID && lineStart) {
-            skip(lex_Current.length);
-            lex_Current.token = T_LABEL;
-            return true;
-        } else {
-            skip(lex_Current.length);
-            lex_Current.token = variadicWord->token;
-            return true;
-        }
+        return acceptVariadic(variadicLength, variadicWord, lineStart);
     } else {
         lex_Current.length = str_Length(constantWord->name);
         lex_GetChars(lex_Current.value.string, lex_Current.length);
