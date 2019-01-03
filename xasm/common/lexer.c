@@ -341,6 +341,14 @@ getMatches(bool lineStart, size_t* variadicLength, SVariadicWordDefinition** var
 }
 
 static bool
+acceptConstantWord(SConstantWord* constantWord) {
+    lex_Current.length = str_Length(constantWord->name);
+    lex_GetChars(lex_Current.value.string, lex_Current.length);
+    lex_Current.token = constantWord->token;
+    return true;
+}
+
+static bool
 normalProcessCurrentBuffer(bool lineStart) {
     lineStart = skipUnimportantWhitespace() && lineStart;
 
@@ -351,31 +359,13 @@ normalProcessCurrentBuffer(bool lineStart) {
     if (!getMatches(lineStart, &variadicLength, &variadicWord, &constantWord))
         return false;
 
-    if (variadicLength == 0) {
-        if (constantWord == NULL) {
-            // Didn't find either variadic or constant token
-            
-            if (handleString())
-                return true;
-
-            return handleChar();
-        } else {
-            lex_Current.length = str_Length(constantWord->name);
-            skip(lex_Current.length);
-            lex_Current.token = constantWord->token;
-            return true;
-        }
-    }
-
-    if (constantWord == NULL || variadicLength > str_Length(constantWord->name)) {
+    if (constantWord != NULL && str_Length(constantWord->name) >= variadicLength) {
+        return acceptConstantWord(constantWord);
+    } else if (variadicLength > 0) {
         return acceptVariadic(variadicLength, variadicWord, lineStart);
     } else {
-        lex_Current.length = str_Length(constantWord->name);
-        lex_GetChars(lex_Current.value.string, lex_Current.length);
-        lex_Current.token = constantWord->token;
-        return true;
+        return handleString() || handleChar();
     }
-
 }
 
 static bool
