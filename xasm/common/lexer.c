@@ -231,14 +231,15 @@ expandSymbol(char* dst, size_t index, bool allowUndefinedSymbols) {
 }
 
 static
-bool skipUnimportantWhitespace(bool lineStart) {
+bool skipUnimportantWhitespace(void) {
+    bool possiblyLineStart = true;
     for (;;) {
         uint8_t ch = (uint8_t) lex_PeekChar(0);
         if (isspace(ch) && ch != '\n') {
-            lineStart = false;
+            possiblyLineStart = false;
             lex_GetChar();
         } else {
-            return lineStart;
+            return possiblyLineStart;
         }
     }
 
@@ -278,7 +279,7 @@ handleChar(void) {
 }
 
 static SConstantWord*
-handleConstantWord(void) {
+matchConstantWord(void) {
     size_t maxWordLength = charsAvailable();
     if (g_maxWordLength < maxWordLength) {
         maxWordLength = g_maxWordLength;
@@ -313,23 +314,23 @@ getMatches(bool lineStart, size_t* variadicLength, SVariadicWordDefinition** var
     lex_VariadicMatchString(lex_PeekChar, charsAvailable(), variadicLength, variadicWord);
     bool doNotTryConstantWord = ((*variadicWord) != NULL && (*variadicWord)->token == T_ID && lineStart && lex_PeekChar(*variadicLength) == ':');
 
-    *constantWord = doNotTryConstantWord ? NULL : handleConstantWord();
+    *constantWord = doNotTryConstantWord ? NULL : matchConstantWord();
     return true;
 }
 
 static bool
 normalProcessCurrentBuffer(bool lineStart) {
-    lineStart = skipUnimportantWhitespace(lineStart);
+    lineStart = skipUnimportantWhitespace() && lineStart;
 
     size_t variadicLength;
     SVariadicWordDefinition* variadicWord;
-    SConstantWord* longestConstantWord;
+    SConstantWord* constantWord;
 
-    if (!getMatches(lineStart, &variadicLength, &variadicWord, &longestConstantWord))
+    if (!getMatches(lineStart, &variadicLength, &variadicWord, &constantWord))
         return false;
 
     if (variadicLength == 0) {
-        if (longestConstantWord == NULL) {
+        if (constantWord == NULL) {
             // Didn't find either variadic or constant token
             
             if (handleString())
@@ -337,14 +338,14 @@ normalProcessCurrentBuffer(bool lineStart) {
 
             return handleChar();
         } else {
-            lex_Current.length = str_Length(longestConstantWord->name);
+            lex_Current.length = str_Length(constantWord->name);
             skip(lex_Current.length);
-            lex_Current.token = longestConstantWord->token;
+            lex_Current.token = constantWord->token;
             return true;
         }
     }
 
-    if (longestConstantWord == NULL || variadicLength > str_Length(longestConstantWord->name)) {
+    if (constantWord == NULL || variadicLength > str_Length(constantWord->name)) {
         lex_Current.length = variadicLength;
         if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
             return normalProcessCurrentBuffer(lineStart);
@@ -360,9 +361,9 @@ normalProcessCurrentBuffer(bool lineStart) {
             return true;
         }
     } else {
-        lex_Current.length = str_Length(longestConstantWord->name);
+        lex_Current.length = str_Length(constantWord->name);
         lex_GetChars(lex_Current.value.string, lex_Current.length);
-        lex_Current.token = longestConstantWord->token;
+        lex_Current.token = constantWord->token;
         return true;
     }
 
