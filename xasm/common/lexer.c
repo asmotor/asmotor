@@ -60,27 +60,27 @@ static SLexerBuffer* g_currentBuffer;
 /* Private functions */
 
 static void
-unputChar(char c) {
-    g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = c;
+unputChar(char ch) {
+    g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = ch;
 }
 
 static uint32_t
-hashString(const char* s) {
-    uint32_t r = 0;
+hashString(const char* str) {
+    uint32_t result = 0;
 
-    while (*s) {
-        HASH(r, toupper((uint8_t) *s));
-        ++s;
+    while (*str) {
+        HASH(result, toupper((uint8_t) *str));
+        ++str;
     }
 
-    return r;
+    return result;
 }
 
 static size_t
-appendAndFreeString(char* dst, string* str) {
+appendAndFreeString(char* destination, string* str) {
     if (str != NULL) {
         size_t length = str_Length(str);
-        memcpy(dst, str_String(str), length);
+        memcpy(destination, str_String(str), length);
         str_Free(str);
         return length;
     }
@@ -109,42 +109,30 @@ charsAvailable(void) {
 }
 
 static bool
-expandMacroArguments(char** dst, char argument) {
-    switch (argument) {
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9': {
-            *dst += appendAndFreeString(*dst, fstk_GetMacroArgValue(argument));
-            return true;
-        }
-        case '@': {
-            *dst += appendAndFreeString(*dst, fstk_GetMacroUniqueId());
-            return true;
-        }
+expandMacroArguments(char** destination, char argument) {
+    if (argument >= '0' && argument <= '9') {
+        *destination += appendAndFreeString(*destination, fstk_GetMacroArgValue(argument));
+        return true;
+    } else if (argument == '@') {
+        *destination += appendAndFreeString(*destination, fstk_GetMacroUniqueId());
+        return true;
     }
 
     return false;
 }
 
 static bool
-expandEscapeSequence(char** dst, char escapeSymbol) {
+expandEscapeSequence(char** destination, char escapeSymbol) {
     switch (escapeSymbol) {
         default: {
-            return expandMacroArguments(dst, escapeSymbol);
+            return expandMacroArguments(destination, escapeSymbol);
         }
         case 'n': {
-            *(*dst)++ = ASM_CRLF;
+            *(*destination)++ = ASM_CRLF;
             return true;
         }
         case 't': {
-            *(*dst)++ = ASM_TAB;
+            *(*destination)++ = ASM_TAB;
             return true;
         }
     }
@@ -153,29 +141,29 @@ expandEscapeSequence(char** dst, char escapeSymbol) {
 }
 
 static bool
-expandSymbolRecursive(char** dst, size_t* index, bool allowUndefinedSymbols);
+expandSymbolRecursive(char** destination, size_t* index, bool allowUndefinedSymbols);
 
 static void
-expandSymbolName(char* dst, size_t* index, bool allowUndefinedSymbols) {
+expandSymbolName(char* destination, size_t* index, bool allowUndefinedSymbols) {
     for (;;) {
         char ch = lex_PeekChar((*index)++);
         if (ch == 0 || ch == '}') {
-            *dst = 0;
+            *destination = 0;
             break;
         } else {
             if (ch == '\\') {
-                expandEscapeSequence(&dst, lex_PeekChar(*index));
+                expandEscapeSequence(&destination, lex_PeekChar(*index));
             } else if (ch == '{') {
-                expandSymbolRecursive(&dst, index, allowUndefinedSymbols);
+                expandSymbolRecursive(&destination, index, allowUndefinedSymbols);
             } else {
-                *dst++ = ch;
+                *destination++ = ch;
             }
         }
     }
 }
 
 static bool
-expandSymbolRecursive(char** dst, size_t* index, bool allowUndefinedSymbols) {
+expandSymbolRecursive(char** destination, size_t* index, bool allowUndefinedSymbols) {
     bool result = false;
 
     char symbolNameArray[MAXSYMNAMELENGTH];
@@ -184,7 +172,7 @@ expandSymbolRecursive(char** dst, size_t* index, bool allowUndefinedSymbols) {
     string* symbolName = str_Create(symbolNameArray);
 
     if (allowUndefinedSymbols || sym_IsDefined(symbolName)) {
-        *dst = sym_GetValueAsStringByName(*dst, symbolName);
+        *destination = sym_GetValueAsStringByName(*destination, symbolName);
         result = true;
     }
 
@@ -193,7 +181,7 @@ expandSymbolRecursive(char** dst, size_t* index, bool allowUndefinedSymbols) {
 }
 
 static bool
-expandStringUntil(char* dst, char stopChar, bool allowUndefinedSymbols) {
+expandStringUntil(char* destination, char stopChar, bool allowUndefinedSymbols) {
     size_t index = 0;
     for (;;) {
         char ch = lex_PeekChar(index);
@@ -204,25 +192,25 @@ expandStringUntil(char* dst, char stopChar, bool allowUndefinedSymbols) {
         index += 1;
 
         if (ch == '\\') {
-            expandEscapeSequence(&dst, lex_PeekChar(index++));
+            expandEscapeSequence(&destination, lex_PeekChar(index++));
         } else if (ch == '{') {
-            if (!expandSymbolRecursive(&dst, &index, allowUndefinedSymbols)) {
+            if (!expandSymbolRecursive(&destination, &index, allowUndefinedSymbols)) {
                 break;
             }
         } else {
-            *dst++ = ch;
+            *destination++ = ch;
         }
     }
 
     lex_SkipBytes(index);
-    *dst = 0;
+    *destination = 0;
 
     return true;
 }
 
 static bool
-expandSymbol(char* dst, size_t index, bool allowUndefinedSymbols) {
-    if (expandSymbolRecursive(&dst, &index, allowUndefinedSymbols)) {
+expandSymbol(char* destination, size_t index, bool allowUndefinedSymbols) {
+    if (expandSymbolRecursive(&destination, &index, allowUndefinedSymbols)) {
         lex_SkipBytes(index);
         return true;
     }
@@ -230,8 +218,8 @@ expandSymbol(char* dst, size_t index, bool allowUndefinedSymbols) {
     return false;
 }
 
-static
-bool skipUnimportantWhitespace(void) {
+static bool
+skipUnimportantWhitespace(void) {
     bool possiblyLineStart = true;
     for (;;) {
         uint8_t ch = (uint8_t) lex_PeekChar(0);
@@ -242,40 +230,6 @@ bool skipUnimportantWhitespace(void) {
             return possiblyLineStart;
         }
     }
-
-}
-
-static bool
-handleString(void) {
-    char p = lex_PeekChar(0);
-    if (p == '"' || p == '\'') {
-        lex_GetChar();
-        expandStringUntil(lex_Current.value.string, p, true);
-        lex_MatchChar(p);
-        lex_Current.token = T_STRING;
-        lex_Current.length = strlen(lex_Current.value.string);
-        return true;
-    } else if (p == '{') {
-        if (expandSymbol(lex_Current.value.string, 1, false)) {
-            lex_Current.token = T_STRING;
-            lex_Current.length = strlen(lex_Current.value.string);
-            return true;
-        }
-    }
-    return false;
-}
-
-static bool
-handleChar(void) {
-    uint8_t ch = (uint8_t) lex_GetChar();
-
-    if (ch == '\n') {
-        g_currentBuffer->atLineStart = true;
-    }
-
-    lex_Current.length = 1;
-    lex_Current.token = (EToken) ch;
-    return ch != 0;
 }
 
 static SConstantWord*
@@ -306,6 +260,18 @@ atBufferEnd(void) {
     return lex_PeekChar(0) == 0;
 }
 
+static bool 
+getMatches(bool lineStart, size_t* variadicLength, SVariadicWordDefinition** variadicWord, SConstantWord** constantWord) {
+    if (atBufferEnd())
+        return false;
+
+    lex_VariadicMatchString(lex_PeekChar, charsAvailable(), variadicLength, variadicWord);
+    bool doNotTryConstantWord = ((*variadicWord) != NULL && (*variadicWord)->token == T_ID && lineStart && lex_PeekChar(*variadicLength) == ':');
+
+    *constantWord = doNotTryConstantWord ? NULL : matchConstantWord();
+    return true;
+}
+
 static bool
 normalProcessCurrentBuffer(bool lineStart);
 
@@ -328,24 +294,45 @@ acceptVariadic(size_t variadicLength, SVariadicWordDefinition* variadicWord, boo
 
 }
 
-static bool 
-getMatches(bool lineStart, size_t* variadicLength, SVariadicWordDefinition** variadicWord, SConstantWord** constantWord) {
-    if (atBufferEnd())
-        return false;
-
-    lex_VariadicMatchString(lex_PeekChar, charsAvailable(), variadicLength, variadicWord);
-    bool doNotTryConstantWord = ((*variadicWord) != NULL && (*variadicWord)->token == T_ID && lineStart && lex_PeekChar(*variadicLength) == ':');
-
-    *constantWord = doNotTryConstantWord ? NULL : matchConstantWord();
-    return true;
-}
-
 static bool
 acceptConstantWord(SConstantWord* constantWord) {
     lex_Current.length = str_Length(constantWord->name);
     lex_GetChars(lex_Current.value.string, lex_Current.length);
     lex_Current.token = constantWord->token;
     return true;
+}
+
+static bool
+acceptString(void) {
+    char ch = lex_PeekChar(0);
+    if (ch == '"' || ch == '\'') {
+        lex_GetChar();
+        expandStringUntil(lex_Current.value.string, ch, true);
+        lex_MatchChar(ch);
+        lex_Current.token = T_STRING;
+        lex_Current.length = strlen(lex_Current.value.string);
+        return true;
+    } else if (ch == '{') {
+        if (expandSymbol(lex_Current.value.string, 1, false)) {
+            lex_Current.token = T_STRING;
+            lex_Current.length = strlen(lex_Current.value.string);
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool
+acceptChar(void) {
+    uint8_t ch = (uint8_t) lex_GetChar();
+
+    if (ch == '\n') {
+        g_currentBuffer->atLineStart = true;
+    }
+
+    lex_Current.length = 1;
+    lex_Current.token = (EToken) ch;
+    return ch != 0;
 }
 
 static bool
@@ -364,7 +351,7 @@ normalProcessCurrentBuffer(bool lineStart) {
     } else if (variadicLength > 0) {
         return acceptVariadic(variadicLength, variadicWord, lineStart);
     } else {
-        return handleString() || handleChar();
+        return acceptString() || acceptChar();
     }
 }
 
