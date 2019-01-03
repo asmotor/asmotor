@@ -305,20 +305,28 @@ atBufferEnd(void) {
     return lex_PeekChar(0) == 0;
 }
 
+static bool 
+getMatches(bool lineStart, size_t* variadicLength, SVariadicWordDefinition** variadicWord, SConstantWord** constantWord) {
+    if (atBufferEnd())
+        return false;
+
+    lex_VariadicMatchString(lex_PeekChar, charsAvailable(), variadicLength, variadicWord);
+    bool doNotTryConstantWord = ((*variadicWord) != NULL && (*variadicWord)->token == T_ID && lineStart && lex_PeekChar(*variadicLength) == ':');
+
+    *constantWord = doNotTryConstantWord ? NULL : handleConstantWord();
+    return true;
+}
+
 static bool
 normalProcessCurrentBuffer(bool lineStart) {
     lineStart = skipUnimportantWhitespace(lineStart);
 
-    if (atBufferEnd())
-        return false;
-
     size_t variadicLength;
     SVariadicWordDefinition* variadicWord;
+    SConstantWord* longestConstantWord;
 
-    lex_VariadicMatchString(lex_PeekChar, charsAvailable(), &variadicLength, &variadicWord);
-    bool doNotTryConstantWord = (variadicWord != NULL && variadicWord->token == T_ID && lineStart && lex_PeekChar(variadicLength) == ':');
-
-    SConstantWord* longestConstantWord = doNotTryConstantWord ? NULL : handleConstantWord();
+    if (!getMatches(lineStart, &variadicLength, &variadicWord, &longestConstantWord))
+        return false;
 
     if (variadicLength == 0) {
         if (longestConstantWord == NULL) {
