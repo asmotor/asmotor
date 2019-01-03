@@ -335,6 +335,10 @@ expressionPriority6(size_t maxStringConstLength) {
         }
         case T_OP_BOOLEAN_NOT: {
             parse_GetToken();
+            return expr_BooleanNot(expressionPriority6(maxStringConstLength));
+        }
+        case T_OP_BITWISE_NOT: {
+            parse_GetToken();
             return expr_Xor(expr_Const(0xFFFFFFFF), expressionPriority6(maxStringConstLength));
         }
         case T_OP_ADD: {
