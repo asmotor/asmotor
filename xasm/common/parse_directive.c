@@ -562,7 +562,7 @@ handlePopo() {
 
 static bool
 handleOpt() {
-    lex_SetState(LEX_STATE_MACRO_ARGS);
+    lex_SetState(LEX_STATE_MACRO_ARGUMENT);
     parse_GetToken();
     if (lex_Current.token == T_STRING) {
         opt_Parse(lex_Current.value.string);

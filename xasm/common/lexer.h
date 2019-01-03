@@ -33,8 +33,8 @@ typedef struct {
 
 typedef enum {
     LEX_STATE_NORMAL,
-    LEX_STATE_MACRO_ARG0,
-    LEX_STATE_MACRO_ARGS
+    LEX_STATE_MACRO_ARGUMENT0,
+    LEX_STATE_MACRO_ARGUMENT
 } ELexerState;
 
 typedef struct CharStack {
@@ -48,7 +48,7 @@ typedef struct LexerBuffer {
     size_t index;
     size_t bufferSize;
     bool atLineStart;
-    ELexerState State;
+    ELexerState state;
 } SLexerBuffer;
 
 typedef struct {
@@ -125,7 +125,7 @@ lex_SkipBytes(size_t count);
 extern void
 lex_UnputString(const char* str);
 
-extern uint32_t
+extern bool
 lex_GetNextToken(void);
 
 extern void

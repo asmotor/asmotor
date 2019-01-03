@@ -25,7 +25,6 @@
 #include "options.h"
 #include "localasm.h"
 #include "locopt.h"
-#include "loccpu.h"
 #include "project.h"
 #include "loclexer.h"
 
