@@ -16,7 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lexer.h"
+#include "lexer_constants.h"
 
-extern SLexerTokenDefinition* loclexer_GetUndocumentedInstructions(int n);
+extern SLexConstantsWord* loclexer_GetUndocumentedInstructions(int n);
 

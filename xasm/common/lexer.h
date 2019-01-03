@@ -24,12 +24,6 @@
 #include "types.h"
 #include "tokens.h"
 #include "xasm.h"
-#include "lexervariadics.h"
-
-typedef struct {
-    const char* name;
-    uint32_t token;
-} SLexerTokenDefinition;
 
 typedef enum {
     LEX_STATE_NORMAL,
@@ -70,18 +64,6 @@ extern SLexerToken lex_Current;
 extern void
 lex_Init(void);
 
-extern void
-lex_DefineToken(const char* name, uint32_t token);
-
-extern void
-lex_DefineTokens(const SLexerTokenDefinition* lex);
-
-extern void
-lex_UndefineToken(const char* name, uint32_t token);
-
-extern void
-lex_UndefineTokens(SLexerTokenDefinition* lex);
-
 extern SLexerBuffer*
 lex_CreateMemoryBuffer(const char* memory, size_t size);
 
@@ -112,9 +94,6 @@ lex_MatchChar(char ch);
 
 extern bool
 lex_CompareNoCase(size_t index, const char* str, size_t length);
-
-extern bool
-lex_StartsWithNoCase(const char* str, size_t length);
 
 extern bool
 lex_StartsWithStringNoCase(const string* str);

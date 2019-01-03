@@ -20,11 +20,13 @@
 
 #include "xasm.h"
 #include "lexer.h"
+#include "lexer_constants.h"
+#include "lexer_variadics.h"
 #include "localasm.h"
 #include "options.h"
 #include "locopt.h"
 
-static SLexerTokenDefinition localstrings[]=
+static SLexConstantsWord localstrings[]=
 {
 	{ "adc",	T_Z80_ADC	},
 	{ "add",	T_Z80_ADD	},
@@ -206,5 +208,5 @@ void	loclexer_Init(void)
     lex_VariadicAddCharRange(g_GameboyLiteralId, '`', '`', 0);
 	lex_VariadicAddCharRangeRepeating(g_GameboyLiteralId, '0', '3', 1);
 
-	lex_DefineTokens(localstrings);
+	lex_ConstantsDefineWords(localstrings);
 }

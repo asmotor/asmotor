@@ -17,10 +17,10 @@
 */
 
 #include "xasm.h"
-#include "lexer.h"
+#include "lexer_constants.h"
 #include "localasm.h"
 
-static SLexerTokenDefinition localstrings[]=
+static SLexConstantsWord localstrings[]=
 {
 	{ "abcd",	T_68K_ABCD	},
 	{ "add",	T_68K_ADD	},
@@ -508,5 +508,5 @@ static SLexerTokenDefinition localstrings[]=
 
 void	loclexer_Init(void)
 {
-	lex_DefineTokens(localstrings);
+	lex_ConstantsDefineWords(localstrings);
 }

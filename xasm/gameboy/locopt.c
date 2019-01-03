@@ -22,7 +22,7 @@
 #include "xasm.h"
 #include "mem.h"
 #include "options.h"
-#include "lexer.h"
+#include "lexer_variadics.h"
 #include "locopt.h"
 #include "tokens.h"
 #include "project.h"

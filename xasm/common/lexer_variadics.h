@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_COMMON_LEXERVARIADICS_H_INCLUDED_
-#define XASM_COMMON_LEXERVARIADICS_H_INCLUDED_
+#ifndef XASM_COMMON_LEXER_VARIADICS_H_INCLUDED_
+#define XASM_COMMON_LEXER_VARIADICS_H_INCLUDED_
 
 #include "tokens.h"
 
@@ -45,7 +45,6 @@ extern void
 lex_VariadicRemoveAll(uint32_t id);
 
 extern void
-lex_VariadicMatchString(char (* peek)(size_t), size_t bufferLength, size_t* length,
-                        SVariadicWordDefinition** variadicWord);
+lex_VariadicMatchString(size_t bufferLength, size_t* length, SVariadicWordDefinition** variadicWord);
 
 #endif

@@ -51,12 +51,12 @@ void locopt_Update(void)
 	int nNewSet = opt_Current->machineOptions->nUndocumented;
 	if(s_nPreviousInstructionSet != nNewSet)
 	{
-		SLexerTokenDefinition* pPrev = loclexer_GetUndocumentedInstructions(s_nPreviousInstructionSet);
-		SLexerTokenDefinition* pNew = loclexer_GetUndocumentedInstructions(nNewSet);
+		SLexConstantsWord* pPrev = loclexer_GetUndocumentedInstructions(s_nPreviousInstructionSet);
+		SLexConstantsWord* pNew = loclexer_GetUndocumentedInstructions(nNewSet);
 		if(pPrev)
-			lex_UndefineTokens(pPrev);
+			lex_ConstantsUndefineWords(pPrev);
 		if(pNew)
-			lex_DefineTokens(pNew);
+			lex_ConstantsDefineWords(pNew);
 			
 		s_nPreviousInstructionSet = nNewSet;
 	}

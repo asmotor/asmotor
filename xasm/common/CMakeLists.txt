@@ -9,8 +9,10 @@ add_library (xasm
     filestack.h
     lexer.c
     lexer.h
-    lexervariadics.c
-    lexervariadics.h
+    lexer_constants.c
+    lexer_constants.h
+    lexer_variadics.c
+    lexer_variadics.h
     main.c
     object.c
     object.h

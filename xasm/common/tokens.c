@@ -28,7 +28,8 @@
 
 // From xasm
 #include "xasm.h"
-#include "lexer.h"
+#include "lexer_constants.h"
+#include "lexer_variadics.h"
 #include "options.h"
 #include "filestack.h"
 #include "project.h"
@@ -39,7 +40,7 @@ uint32_t tokens_BinaryVariadicId;
 
 /*	Private data */
 
-static SLexerTokenDefinition staticTokens[] = {
+static SLexConstantsWord staticTokens[] = {
         {"||",        T_OP_BOOLEAN_OR},
         {"&&",        T_OP_BOOLEAN_AND},
         {"==",        T_OP_EQUAL},
@@ -367,52 +368,52 @@ tokens_Init(void) {
 
     lex_Init();
 
-    lex_DefineTokens(staticTokens);
+    lex_ConstantsDefineWords(staticTokens);
 
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken("__RSB", T_DIRECTIVE_RB);
+        lex_ConstantsDefineWord("__RSB", T_DIRECTIVE_RB);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken("__RSW", T_DIRECTIVE_RW);
+        lex_ConstantsDefineWord("__RSW", T_DIRECTIVE_RW);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken("__RSL", T_DIRECTIVE_RL);
+        lex_ConstantsDefineWord("__RSL", T_DIRECTIVE_RL);
 
     if (g_pConfiguration->pszNameRB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken(g_pConfiguration->pszNameRB, T_DIRECTIVE_RB);
+        lex_ConstantsDefineWord(g_pConfiguration->pszNameRB, T_DIRECTIVE_RB);
     if (g_pConfiguration->pszNameRW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken(g_pConfiguration->pszNameRW, T_DIRECTIVE_RW);
+        lex_ConstantsDefineWord(g_pConfiguration->pszNameRW, T_DIRECTIVE_RW);
     if (g_pConfiguration->pszNameRL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken(g_pConfiguration->pszNameRL, T_DIRECTIVE_RL);
+        lex_ConstantsDefineWord(g_pConfiguration->pszNameRL, T_DIRECTIVE_RL);
 
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken("__DSB", T_DIRECTIVE_DSB);
+        lex_ConstantsDefineWord("__DSB", T_DIRECTIVE_DSB);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken("__DSW", T_DIRECTIVE_DSW);
+        lex_ConstantsDefineWord("__DSW", T_DIRECTIVE_DSW);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken("__DSL", T_DIRECTIVE_DSL);
+        lex_ConstantsDefineWord("__DSL", T_DIRECTIVE_DSL);
 
     if (g_pConfiguration->pszNameDSB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDSB, T_DIRECTIVE_DSB);
+        lex_ConstantsDefineWord(g_pConfiguration->pszNameDSB, T_DIRECTIVE_DSB);
     if (g_pConfiguration->pszNameDSW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDSW, T_DIRECTIVE_DSW);
+        lex_ConstantsDefineWord(g_pConfiguration->pszNameDSW, T_DIRECTIVE_DSW);
     if (g_pConfiguration->pszNameDSL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDSL, T_DIRECTIVE_DSL);
+        lex_ConstantsDefineWord(g_pConfiguration->pszNameDSL, T_DIRECTIVE_DSL);
 
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken("__DCB", T_DIRECTIVE_DB);
+        lex_ConstantsDefineWord("__DCB", T_DIRECTIVE_DB);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken("__DCW", T_DIRECTIVE_DW);
+        lex_ConstantsDefineWord("__DCW", T_DIRECTIVE_DW);
     if (g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken("__DCL", T_DIRECTIVE_DL);
+        lex_ConstantsDefineWord("__DCL", T_DIRECTIVE_DL);
 
     if (g_pConfiguration->pszNameDB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDB, T_DIRECTIVE_DB);
+        lex_ConstantsDefineWord(g_pConfiguration->pszNameDB, T_DIRECTIVE_DB);
     if (g_pConfiguration->pszNameDW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDW, T_DIRECTIVE_DW);
+        lex_ConstantsDefineWord(g_pConfiguration->pszNameDW, T_DIRECTIVE_DW);
     if (g_pConfiguration->pszNameDL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_DefineToken(g_pConfiguration->pszNameDL, T_DIRECTIVE_DL);
+        lex_ConstantsDefineWord(g_pConfiguration->pszNameDL, T_DIRECTIVE_DL);
 
     if (g_pConfiguration->bSupportBanks)
-        lex_DefineToken("bank", T_FUNC_BANK);
+        lex_ConstantsDefineWord("bank", T_FUNC_BANK);
 
     /* Local ID */
     uint32_t id;

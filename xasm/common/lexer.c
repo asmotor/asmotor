@@ -27,33 +27,12 @@
 #include "strbuf.h"
 #include "lists.h"
 #include "lexer.h"
+#include "lexer_constants.h"
+#include "lexer_variadics.h"
 #include "filestack.h"
 #include "symbol.h"
 #include "project.h"
 
-
-/* Private defines */
-
-#define HASH(hash, key) {            \
-    (hash) = ((hash) << 1u) + (key); \
-    (hash) ^= (hash) >> 3u;          \
-    (hash) &= WORDS_HASH_SIZE - 1u;  \
-}
-
-#define WORDS_HASH_SIZE 1024u
-
-/* Private structures */
-
-typedef struct ConstantWord {
-    string* name;
-    EToken token;
-    list_Data(struct ConstantWord);
-} SConstantWord;
-
-/* Private variables */
-
-static SConstantWord* g_wordsHashTable[WORDS_HASH_SIZE];
-static size_t g_maxWordLength;
 
 static SLexerBuffer* g_currentBuffer;
 
@@ -62,18 +41,6 @@ static SLexerBuffer* g_currentBuffer;
 static void
 unputChar(char ch) {
     g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = ch;
-}
-
-static uint32_t
-hashString(const char* str) {
-    uint32_t result = 0;
-
-    while (*str) {
-        HASH(result, toupper((uint8_t) *str));
-        ++str;
-    }
-
-    return result;
 }
 
 static size_t
@@ -232,29 +199,6 @@ skipUnimportantWhitespace(void) {
     }
 }
 
-static SConstantWord*
-matchConstantWord(void) {
-    size_t maxWordLength = charsAvailable();
-    if (g_maxWordLength < maxWordLength) {
-        maxWordLength = g_maxWordLength;
-    }
-
-    SConstantWord* result = NULL;
-    uint32_t hashCode = 0;
-    size_t s = 0;
-
-    while (s < maxWordLength) {
-        HASH(hashCode, toupper(lex_PeekChar(s)));
-        ++s;
-        for (SConstantWord* lex = g_wordsHashTable[hashCode]; lex != NULL; lex = list_GetNext(lex)) {
-            if (str_Length(lex->name) == s && lex_StartsWithStringNoCase(lex->name)) {
-                result = lex;
-            }
-        }
-    }
-    return result;
-}
-
 static bool
 atBufferEnd(void) {
     return lex_PeekChar(0) == 0;
@@ -265,10 +209,10 @@ getMatches(bool lineStart, size_t* variadicLength, SVariadicWordDefinition** var
     if (atBufferEnd())
         return false;
 
-    lex_VariadicMatchString(lex_PeekChar, charsAvailable(), variadicLength, variadicWord);
+    lex_VariadicMatchString(charsAvailable(), variadicLength, variadicWord);
     bool doNotTryConstantWord = ((*variadicWord) != NULL && (*variadicWord)->token == T_ID && lineStart && lex_PeekChar(*variadicLength) == ':');
 
-    *constantWord = doNotTryConstantWord ? NULL : matchConstantWord();
+    *constantWord = doNotTryConstantWord ? NULL : lex_ConstantsMatchWord(charsAvailable());
     return true;
 }
 
@@ -497,11 +441,6 @@ lex_CompareNoCase(size_t index, const char* str, size_t length) {
 }
 
 bool
-lex_StartsWithNoCase(const char* str, size_t length) {
-    return lex_CompareNoCase(0, str, length);
-}
-
-bool
 lex_StartsWithStringNoCase(const string* str) {
     return lex_CompareNoCase(0, str_String(str), str_Length(str));
 }
@@ -653,93 +592,8 @@ lex_CreateFileBuffer(FILE* f) {
 
 void
 lex_Init(void) {
-    for (uint32_t i = 0; i < WORDS_HASH_SIZE; ++i)
-        g_wordsHashTable[i] = NULL;
-
-    g_maxWordLength = 0;
-
+    lex_ConstantsInit();
     lex_VariadicInit();
-}
-
-void
-lex_PrintMaxTokensPerHash(void) {
-    int nMax = 0;
-    int nInUse = 0;
-    int nTotal = 0;
-
-    for (uint32_t i = 0; i < WORDS_HASH_SIZE; ++i) {
-        int n = 0;
-        SConstantWord* p = g_wordsHashTable[i];
-        if (p)
-            ++nInUse;
-        while (p) {
-            ++nTotal;
-            ++n;
-            p = list_GetNext(p);
-        }
-        if (n > nMax)
-            nMax = n;
-    }
-
-    printf("Total strings %d, max %d strings with same hash, %d slots in use\n", nTotal, nMax, nInUse);
-}
-
-void
-lex_UndefineToken(const char* name, uint32_t token) {
-    SConstantWord** pHash = &g_wordsHashTable[hashString(name)];
-
-    for (SConstantWord* pToken = *pHash; pToken != NULL; pToken = list_GetNext(pToken)) {
-        if (pToken->token == token && str_EqualConst(pToken->name, name) == 0) {
-            list_Remove(*pHash, pToken);
-            str_Free(pToken->name);
-            mem_Free(pToken);
-            return;
-        }
-    }
-    internalerror("token not found");
-}
-
-void
-lex_UndefineTokens(SLexerTokenDefinition* lex) {
-    while (lex->name) {
-        lex_UndefineToken(lex->name, lex->token);
-        ++lex;
-    }
-}
-
-void
-lex_DefineToken(const char* name, uint32_t token) {
-    SConstantWord** pHash = &g_wordsHashTable[hashString(name)];
-    SConstantWord* pPrev = *pHash;
-    SConstantWord* pNew;
-
-    /*printf("%s has hashvalue %d\n", lex->tzName, hash);*/
-
-    pNew = (SConstantWord*) mem_Alloc(sizeof(SConstantWord));
-    memset(pNew, 0, sizeof(SConstantWord));
-
-    pNew->name = str_Create(name);
-    str_ToUpperReplace(&pNew->name);
-    pNew->token = (EToken) token;
-
-    if (str_Length(pNew->name) > g_maxWordLength)
-        g_maxWordLength = str_Length(pNew->name);
-
-    if (pPrev) {
-        list_InsertAfter(pPrev, pNew);
-    } else {
-        *pHash = pNew;
-    }
-}
-
-void
-lex_DefineTokens(const SLexerTokenDefinition* lex) {
-    while (lex->name) {
-        lex_DefineToken(lex->name, lex->token);
-        lex += 1;
-    }
-
-    /*lex_PrintMaxTokensPerHash();*/
 }
 
 bool

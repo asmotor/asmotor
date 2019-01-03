@@ -24,7 +24,7 @@
 #include "xasm.h"
 #include "mem.h"
 #include "options.h"
-#include "lexer.h"
+#include "lexer_variadics.h"
 #include "tokens.h"
 #include "project.h"
 #include "filestack.h"

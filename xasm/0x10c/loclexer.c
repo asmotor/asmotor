@@ -21,7 +21,7 @@
 #include "lexer.h"
 #include "loclexer.h"
 
-static SLexerTokenDefinition localstrings[] =
+static SLexConstantsWord localstrings[] =
 {
 	{ "add", T_0X10C_ADD },
 	{ "and", T_0X10C_AND },
@@ -63,6 +63,6 @@ static SLexerTokenDefinition localstrings[] =
 
 void loclexer_Init(void)
 {
-	lex_DefineTokens(localstrings);
+	lex_ConstantsDefineWords(localstrings);
 }
 
