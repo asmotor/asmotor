@@ -55,7 +55,8 @@ static size_t g_maxWordLength;
 
 /* Private functions */
 
-static bool isNotLowerCase(const char* str) {
+static bool
+isNotLowerCase(const char* str) {
     while (*str != 0) {
         if (islower(*str++))
             return false;
@@ -85,14 +86,14 @@ lex_ConstantsMatchWord(size_t maxWordLength, size_t* length, const SLexConstants
     }
 
     uint32_t hashCode = 0;
-    size_t s = 0;
+    size_t index = 0;
     const SConstantWord* result = NULL;
 
-    while (s < maxWordLength) {
-        HASH(hashCode, toupper(lex_PeekChar(s)));
-        ++s;
+    while (index < maxWordLength) {
+        HASH(hashCode, toupper(lex_PeekChar(index)));
+        ++index;
         for (SConstantWord* lex = g_wordsHashTable[hashCode]; lex != NULL; lex = list_GetNext(lex)) {
-            if (lex->nameLength == s && lex_StartsWithNoCase(lex->definition.name, lex->nameLength)) {
+            if (lex->nameLength == index && lex_StartsWithNoCase(lex->definition.name, lex->nameLength)) {
                 result = lex;
             }
         }
@@ -111,35 +112,36 @@ lex_ConstantsMatchWord(size_t maxWordLength, size_t* length, const SLexConstants
 
 void
 lex_PrintMaxTokensPerHash(void) {
-    int nMax = 0;
-    int nInUse = 0;
-    int nTotal = 0;
+    int maxWithSameHash = 0;
+    int slotsInUse = 0;
+    int totalStrings = 0;
 
     for (uint32_t i = 0; i < WORDS_HASH_SIZE; ++i) {
-        int n = 0;
-        SConstantWord* p = g_wordsHashTable[i];
-        if (p)
-            ++nInUse;
-        while (p) {
-            ++nTotal;
-            ++n;
-            p = list_GetNext(p);
+        int wordsInList = 0;
+        const SConstantWord* word = g_wordsHashTable[i];
+        if (word != NULL) {
+            ++slotsInUse;
+            while (word != NULL) {
+                ++totalStrings;
+                ++wordsInList;
+                word = list_GetNext(word);
+            }
         }
-        if (n > nMax)
-            nMax = n;
+        if (wordsInList > maxWithSameHash)
+            maxWithSameHash = wordsInList;
     }
 
-    printf("Total strings %d, max %d strings with same hash, %d slots in use\n", nTotal, nMax, nInUse);
+    printf("Total strings %d, max %d strings with same hash, %d slots in use\n", totalStrings, maxWithSameHash, slotsInUse);
 }
 
 void
 lex_ConstantsUndefineWord(const char* name, uint32_t token) {
-    SConstantWord** pHash = &g_wordsHashTable[hashString(name)];
+    SConstantWord** hashTableEntry = &g_wordsHashTable[hashString(name)];
 
-    for (SConstantWord* pToken = *pHash; pToken != NULL; pToken = list_GetNext(pToken)) {
-        if (pToken->definition.token == token && strcmp(pToken->definition.name, name) == 0) {
-            list_Remove(*pHash, pToken);
-            mem_Free(pToken);
+    for (SConstantWord* word = *hashTableEntry; word != NULL; word = list_GetNext(word)) {
+        if (word->definition.token == token && strcmp(word->definition.name, name) == 0) {
+            list_Remove(*hashTableEntry, word);
+            mem_Free(word);
             return;
         }
     }
@@ -147,10 +149,10 @@ lex_ConstantsUndefineWord(const char* name, uint32_t token) {
 }
 
 void
-lex_ConstantsUndefineWords(SLexConstantsWord* lex) {
-    while (lex->name) {
-        lex_ConstantsUndefineWord(lex->name, lex->token);
-        ++lex;
+lex_ConstantsUndefineWords(const SLexConstantsWord* words) {
+    while (words->name) {
+        lex_ConstantsUndefineWord(words->name, words->token);
+        ++words;
     }
 }
 
@@ -159,7 +161,6 @@ lex_ConstantsDefineWord(const char* name, uint32_t token) {
     assert(isNotLowerCase(name));
 
     SConstantWord** hashTableEntry = &g_wordsHashTable[hashString(name)];
-    SConstantWord* pPrev = *hashTableEntry;
 
     /*printf("%s has hashvalue %d\n", lex->tzName, hash);*/
 
@@ -173,6 +174,7 @@ lex_ConstantsDefineWord(const char* name, uint32_t token) {
     if (pNew->nameLength > g_maxWordLength)
         g_maxWordLength = pNew->nameLength;
 
+    SConstantWord* pPrev = *hashTableEntry;
     if (pPrev) {
         list_InsertAfter(pPrev, pNew);
     } else {

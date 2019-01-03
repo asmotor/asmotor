@@ -42,7 +42,7 @@ extern void
 lex_ConstantsUndefineWord(const char* name, uint32_t token);
 
 extern void
-lex_ConstantsUndefineWords(SLexConstantsWord* lex);
+lex_ConstantsUndefineWords(const SLexConstantsWord* lex);
 
 extern void
 lex_ConstantsMatchWord(size_t bufferLength, size_t* length, const SLexConstantsWord** word);
