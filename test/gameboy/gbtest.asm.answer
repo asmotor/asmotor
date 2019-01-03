@@ -187,12 +187,13 @@ EE
 A8
 A9
 This is a test
-Expect $23:$21
+Expect $21:$21
+Expect $28:$28
 2+2!=5
 2+2==4
-Expect $32:$30
+Expect $34:$34
 Yet another test
-Expect $45:$43
+Expect $47:$47
 Print the numbers $0-$5:
 $0
 $1
@@ -202,7 +203,7 @@ $4
 $5
 ...done!
 
-First line ($71) of the included file
+First line ($75) of the included file
 John!
 John!
 John!

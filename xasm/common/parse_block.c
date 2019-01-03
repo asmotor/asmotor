@@ -197,10 +197,10 @@ parse_SkipTrueBranch(void) {
     while ((index = findControlToken(index)) != SIZE_MAX) {
         if (!skipRept(&index) && !skipIf(&index) && !skipMacro(&index)) {
             if (isEndc(index)) {
-                fstk_Current->lineNumber += lex_SkipBytes(index) + 1;
+                fstk_Current->lineNumber += lex_SkipBytes(index);
                 return true;
             } else if (isElse(index)) {
-                fstk_Current->lineNumber += lex_SkipBytes(index + ELSE_LEN) + 1;
+                fstk_Current->lineNumber += lex_SkipBytes(index + ELSE_LEN);
                 return true;
             } else {
                 index = skipLine(index);

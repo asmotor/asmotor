@@ -29,22 +29,26 @@ Label_In_Macro	adc	a,$10
 
 	PRINTT	"This is a test\n"
 	
-	PRINTT	"Expect $23:"
+	PRINTT	"Expect $21:"
 	PRINTV	__LINE
 	PRINTT	"\n"
 
 	IF	2+2==5
-	PRINTT	"2+2==5\n"
+		PRINTT	"2+2==5\n"
 	ELSE
-	PRINTT	"2+2!=5\n"
+		PRINTT	"Expect $28:"
+		PRINTV	__LINE
+		PRINTT	"\n"
+
+		PRINTT	"2+2!=5\n"
 		IF	2+2~=4
-		PRINTT	"2+2~=4\n"
+			PRINTT	"2+2~=4\n"
 		ELSE
-		PRINTT	"2+2==4\n"
+			PRINTT	"2+2==4\n"
 		ENDC
 	ENDC
 
-	PRINTT	"Expect $32:"
+	PRINTT	"Expect $34:"
 	PRINTV	__LINE
 	PRINTT	"\n"
 
@@ -63,7 +67,7 @@ SETTest	SET	4
 ;testcomment:
 ; .test
 
-	PRINTT	"Expect $45:"
+	PRINTT	"Expect $47:"
 	PRINTV	__LINE
 	PRINTT	"\n"
 
