@@ -38,9 +38,30 @@ static SLexerBuffer* g_currentBuffer;
 
 /* Private functions */
 
-static void
+INLINE void
+copyCharStack(SCharStack* dest, const SCharStack* source) {
+    memcpy(dest->stack, source->stack, source->count);
+    dest->count = source->count;
+}
+
+INLINE void
+copyBuffer(SLexerBuffer* dest, const SLexerBuffer* source) {
+    copyCharStack(&dest->charStack, &source->charStack);
+    dest->buffer = source->buffer;
+    dest->index = source->index;
+    dest->bufferSize = source->bufferSize;
+    dest->atLineStart = source->atLineStart;
+    dest->state = source->state;
+}
+
+INLINE void
 unputChar(char ch) {
     g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = ch;
+}
+
+INLINE size_t
+charsAvailable(void) {
+    return g_currentBuffer->bufferSize - g_currentBuffer->index + g_currentBuffer->charStack.count;
 }
 
 static size_t
@@ -68,11 +89,6 @@ skip(size_t count) {
     g_currentBuffer->index += count;
     if (g_currentBuffer->index > g_currentBuffer->bufferSize)
         g_currentBuffer->index = g_currentBuffer->bufferSize;
-}
-
-static size_t
-charsAvailable(void) {
-    return g_currentBuffer->bufferSize - g_currentBuffer->index + g_currentBuffer->charStack.count;
 }
 
 static bool
@@ -454,7 +470,7 @@ lex_StartsWithNoCase(const char* str, size_t length) {
 
 void
 lex_Bookmark(SLexerBookmark* bookmark) {
-    bookmark->Buffer = *g_currentBuffer;
+    copyBuffer(&bookmark->Buffer, g_currentBuffer);
     bookmark->Token = lex_Current;
 }
 
