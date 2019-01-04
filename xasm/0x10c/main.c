@@ -33,7 +33,7 @@ static SConfiguration s_sConfiguration =
 	
 	NULL, "RW", "RL",
 	NULL, "DW", "DL",
-	NULL, "DW", NULL
+	NULL, "DSW", NULL
 };
 
 SConfiguration* g_pConfiguration = &s_sConfiguration;

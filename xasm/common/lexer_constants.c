@@ -77,6 +77,15 @@ hashString(const char* str) {
     return result;
 }
 
+static bool
+doesNotExist(const char* name) {
+    for (SConstantWord* word = g_wordsHashTable[hashString(name)]; word != NULL; word = list_GetNext(word)) {
+        if (strcmp(name, word->definition.name) == 0)
+            return false;
+    }
+    return true;
+}
+
 /* Public functions */
 
 void
@@ -159,8 +168,7 @@ lex_ConstantsUndefineWords(const SLexConstantsWord* words) {
 void
 lex_ConstantsDefineWord(const char* name, uint32_t token) {
     assert(isNotLowerCase(name));
-
-    SConstantWord** hashTableEntry = &g_wordsHashTable[hashString(name)];
+    assert(doesNotExist(name));
 
     /*printf("%s has hashvalue %d\n", lex->tzName, hash);*/
 
@@ -174,12 +182,17 @@ lex_ConstantsDefineWord(const char* name, uint32_t token) {
     if (pNew->nameLength > g_maxWordLength)
         g_maxWordLength = pNew->nameLength;
 
+    SConstantWord** hashTableEntry = &g_wordsHashTable[hashString(name)];
+    #if 0
     SConstantWord* pPrev = *hashTableEntry;
     if (pPrev) {
         list_InsertAfter(pPrev, pNew);
     } else {
         *hashTableEntry = pNew;
     }
+    #else
+    list_Insert(*hashTableEntry, pNew);
+    #endif
 }
 
 void
@@ -189,7 +202,7 @@ lex_ConstantsDefineWords(const SLexConstantsWord* lex) {
         lex += 1;
     }
 
-    /*lex_PrintMaxTokensPerHash();*/
+    // lex_PrintMaxTokensPerHash();
 }
 
 void

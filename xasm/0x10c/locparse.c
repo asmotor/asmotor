@@ -363,9 +363,19 @@ static SParser g_Parsers[T_0X10C_XOR - T_0X10C_ADD + 1] = {{0x2, parse_ADD,   AD
 														   {0xB, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_XOR
 };
 
+static uint32_t
+translateToken(uint32_t token) {
+	if (token == T_SYM_SET)
+		return T_0X10C_SET;
+	else
+		return token;
+}
+
 bool parse_IntegerInstruction(void) {
-	if (T_0X10C_ADD <= lex_Current.token && lex_Current.token <= T_0X10C_XOR) {
-		ETargetToken nToken = (ETargetToken) lex_Current.token;
+	uint32_t token = translateToken(lex_Current.token);
+
+	if (T_0X10C_ADD <= token && token <= T_0X10C_XOR) {
+		ETargetToken nToken = (ETargetToken) token;
 		SParser* pParser = &g_Parsers[nToken - T_0X10C_ADD];
 
 		parse_GetToken();

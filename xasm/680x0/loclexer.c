@@ -103,7 +103,7 @@ static SLexConstantsWord localstrings[]=
 	{ "DBPL",	T_68K_DBPL	},
 	{ "DBT",	T_68K_DBT	},
 	{ "DBVC",	T_68K_DBVC	},
-	{ "DBVC",	T_68K_DBVS	},
+	{ "DBVS",	T_68K_DBVS	},
 
 	{ "DIVS",	T_68K_DIVS	},
 	{ "DIVSL",	T_68K_DIVSL	},
@@ -169,7 +169,7 @@ static SLexConstantsWord localstrings[]=
 	{ "SPL",	T_68K_SPL	},
 	{ "ST",		T_68K_ST	},
 	{ "SVC",	T_68K_SVC	},
-	{ "SVC",	T_68K_SVS	},
+	{ "SVS",	T_68K_SVS	},
 
 	{ "STOP",	T_68K_STOP	},
 	{ "SUB",	T_68K_SUB	},
@@ -198,7 +198,7 @@ static SLexConstantsWord localstrings[]=
 	{ "TRAPPL",	T_68K_TRAPPL	},
 	{ "TRAPT",	T_68K_TRAPT		},
 	{ "TRAPVC",	T_68K_TRAPVC	},
-	{ "TRAPVC",	T_68K_TRAPVS	},
+	{ "TRAPVS",	T_68K_TRAPVS	},
 
 	{ "TRAPV",	T_68K_TRAPV	},
 	{ "TST",	T_68K_TST	},
@@ -230,7 +230,6 @@ static SLexConstantsWord localstrings[]=
 	{ "BC",		T_68K_REG_BC	},
 	{ "DC",		T_68K_REG_DC	},
 	{ "IC",		T_68K_REG_IC	},
-	{ "USP",	T_68K_REG_USP	},
 	{ "SFC",	T_68K_REG_SFC	},
 	{ "DFC",	T_68K_REG_DFC	},
 	{ "USP",	T_68K_REG_USP	},

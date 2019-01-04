@@ -34,7 +34,7 @@ static SLexConstantsWord localstrings[] =
 	{ "JSR", T_0X10C_JSR },
 	{ "MOD", T_0X10C_MOD },
 	{ "MUL", T_0X10C_MUL },
-	{ "SET", T_0X10C_SET },
+	// { "SET", T_SYM_SET },
 	{ "SHL", T_0X10C_SHL },
 	{ "SHR", T_0X10C_SHR },
 	{ "SUB", T_0X10C_SUB },
