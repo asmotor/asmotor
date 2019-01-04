@@ -88,7 +88,7 @@ purgeSymbol(intptr_t intModification) {
 
 static uint32_t
 expectBankFixed(void) {
-    assert(g_pConfiguration->bSupportBanks);
+    assert(xasm_Configuration->supportBanks);
 
     if (lex_Current.token == T_FUNC_BANK) {
         parse_GetToken();
@@ -157,7 +157,7 @@ handleSection() {
     }
     parse_GetToken();
 
-    if (g_pConfiguration->bSupportBanks && lex_Current.token == ',') {
+    if (xasm_Configuration->supportBanks && lex_Current.token == ',') {
         parse_GetToken();
 
         uint32_t bank = expectBankFixed();
@@ -175,7 +175,7 @@ handleSection() {
     if (!parse_ExpectChar(']'))
         return true;
 
-    if (g_pConfiguration->bSupportBanks && lex_Current.token == ',') {
+    if (xasm_Configuration->supportBanks && lex_Current.token == ',') {
         parse_GetToken();
 
         uint32_t bank = expectBankFixed();

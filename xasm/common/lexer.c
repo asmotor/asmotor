@@ -149,7 +149,7 @@ static bool
 expandSymbolRecursive(char** destination, size_t* index, bool allowUndefinedSymbols) {
     bool result = false;
 
-    char symbolNameArray[MAXSYMNAMELENGTH];
+    char symbolNameArray[MAX_SYMBOL_NAME_LENGTH];
     expandSymbolName(symbolNameArray, index, allowUndefinedSymbols);
 
     string* symbolName = str_Create(symbolNameArray);
@@ -203,14 +203,14 @@ expandSymbol(char* destination, size_t index, bool allowUndefinedSymbols) {
 
 static bool
 skipUnimportantWhitespace(void) {
-    bool possiblyLineStart = true;
+    bool didSkipCharacter = false;
     for (;;) {
         uint8_t ch = (uint8_t) lex_PeekChar(0);
         if (isspace(ch) && ch != '\n') {
-            possiblyLineStart = false;
+            didSkipCharacter = true;
             lex_GetChar();
         } else {
-            return possiblyLineStart;
+            return didSkipCharacter;
         }
     }
 }
@@ -238,13 +238,13 @@ getMatches(bool lineStart, size_t* variadicLength, const SVariadicWordDefinition
 }
 
 static bool
-normalProcessCurrentBuffer(bool lineStart);
+matchNext(bool lineStart);
 
 static bool
 acceptVariadic(size_t variadicLength, const SVariadicWordDefinition* variadicWord, bool lineStart) {
     lex_Current.length = variadicLength;
     if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
-        return normalProcessCurrentBuffer(lineStart);
+        return matchNext(lineStart);
     }
 
     if (variadicWord->token == T_ID && lineStart) {
@@ -301,8 +301,8 @@ acceptChar(void) {
 }
 
 static bool
-normalProcessCurrentBuffer(bool lineStart) {
-    lineStart = skipUnimportantWhitespace() && lineStart;
+matchNext(bool lineStart) {
+    lineStart = !skipUnimportantWhitespace() && lineStart;
 
     size_t variadicLength;
     const SVariadicWordDefinition* variadicWord;
@@ -323,12 +323,12 @@ normalProcessCurrentBuffer(bool lineStart) {
 }
 
 static bool
-lexStateNormal() {
+stateNormal() {
     bool lineStart = g_currentBuffer->atLineStart;
     g_currentBuffer->atLineStart = false;
 
     for (;;) {
-        if (normalProcessCurrentBuffer(lineStart)) {
+        if (matchNext(lineStart)) {
             return true;
         } else {
             if (fstk_ProcessNextBuffer()) {
@@ -343,7 +343,7 @@ lexStateNormal() {
 }
 
 static bool
-lexStateMacroArgument0(void) {
+stateMacroArgument0(void) {
     if (lex_MatchChar('.')) {
         int i = 0;
 
@@ -359,7 +359,7 @@ lexStateMacroArgument0(void) {
 }
 
 static bool
-lexStateMacroArguments() {
+stateMacroArguments() {
     while (isspace((unsigned char) lex_PeekChar(0)) && lex_PeekChar(0) != '\n') {
         lex_GetChar();
     }
@@ -476,7 +476,7 @@ lex_Bookmark(SLexerBookmark* bookmark) {
 
 void
 lex_Goto(SLexerBookmark* bookmark) {
-    *g_currentBuffer = bookmark->Buffer;
+    copyBuffer(g_currentBuffer, &bookmark->Buffer);
     lex_Current = bookmark->Token;
 }
 
@@ -623,18 +623,18 @@ bool
 lex_GetNextToken(void) {
     switch (g_currentBuffer->state) {
         case LEX_STATE_NORMAL: {
-            return lexStateNormal();
+            return stateNormal();
         }
         case LEX_STATE_MACRO_ARGUMENT0: {
             g_currentBuffer->state = LEX_STATE_MACRO_ARGUMENT;
 
-            if (lexStateMacroArgument0())
+            if (stateMacroArgument0())
                 return true;
 
             // fall through
         }
         case LEX_STATE_MACRO_ARGUMENT: {
-            return lexStateMacroArguments();
+            return stateMacroArguments();
         }
     }
 

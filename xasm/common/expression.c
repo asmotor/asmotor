@@ -286,7 +286,7 @@ expr_PcRelative(SExpression* pExpr, int adjustment) {
 
 SExpression*
 expr_Pc() {
-    char symbolName[MAXSYMNAMELENGTH + 20];
+    char symbolName[MAX_SYMBOL_NAME_LENGTH + 20];
     sprintf(symbolName, "$%s%u", str_String(sect_Current->name), sect_Current->cpuProgramCounter);
 
     string* nameString = str_Create(symbolName);
@@ -369,7 +369,7 @@ expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
 
 SExpression*
 expr_Bank(string* symbolName) {
-    assert(g_pConfiguration->bSupportBanks);
+    assert(xasm_Configuration->supportBanks);
 
     SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
     r->right = NULL;

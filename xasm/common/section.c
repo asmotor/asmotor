@@ -72,7 +72,7 @@ static SSection* sect_Create(const string* name) {
 	memset(sect, 0, sizeof(SSection));
 
 	sect->name = str_Copy(name);
-	sect->freeSpace = g_pConfiguration->nMaxSectionSize;
+	sect->freeSpace = xasm_Configuration->maxSectionSize;
 
 	if (sect_Sections) {
 		SSection* list = sect_Sections;
@@ -109,7 +109,7 @@ static SSection* sect_Find(const string* name, SSymbol* group) {
 }
 
 static void sect_GrowCurrent(uint32_t count) {
-	assert(g_pConfiguration->eMinimumWordSize <= count);
+	assert(xasm_Configuration->minimumWordSize <= count);
 
 	if (count + sect_Current->usedSpace > sect_Current->allocatedSpace) {
 		uint32_t allocate = (count + sect_Current->usedSpace + CHUNK_SIZE - 1) & -CHUNK_SIZE;
@@ -122,7 +122,7 @@ static void sect_GrowCurrent(uint32_t count) {
 }
 
 static bool sect_CheckAvailableSpace(uint32_t count) {
-	assert(g_pConfiguration->eMinimumWordSize <= count);
+	assert(xasm_Configuration->minimumWordSize <= count);
 
 	if (sect_Current) {
 		if (count <= sect_Current->freeSpace) {
@@ -146,7 +146,7 @@ static bool sect_CheckAvailableSpace(uint32_t count) {
 //	Public routines
 
 void sect_OutputConst8(uint8_t value) {
-	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT);
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);
 
 	if (sect_CheckAvailableSpace(1)) {
 		switch (sect_GetCurrentType()) {
@@ -169,7 +169,7 @@ void sect_OutputConst8(uint8_t value) {
 }
 
 void sect_OutputReloc8(SExpression* expr) {
-	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT);
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);
 
 	if (sect_CheckAvailableSpace(1)) {
 		switch (sect_GetCurrentType()) {
@@ -194,7 +194,7 @@ void sect_OutputReloc8(SExpression* expr) {
 }
 
 void sect_OutputExpr8(SExpression* expr) {
-	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT);
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);
 
 	if (expr == NULL) {
 		prj_Error(ERROR_EXPR_BAD);
@@ -207,7 +207,7 @@ void sect_OutputExpr8(SExpression* expr) {
 }
 
 void sect_OutputConst16(uint16_t value) {
-	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT);
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_16BIT);
 
 	if (sect_CheckAvailableSpace(2)) {
 		switch (sect_GetCurrentType()) {
@@ -229,7 +229,7 @@ void sect_OutputConst16(uint16_t value) {
 					}
 				}
 				sect_Current->freeSpace -= 2;
-				sect_Current->cpuProgramCounter += 2 / g_pConfiguration->eMinimumWordSize;
+				sect_Current->cpuProgramCounter += 2 / xasm_Configuration->minimumWordSize;
 				break;
 			}
 			case GROUP_BSS: {
@@ -245,7 +245,7 @@ void sect_OutputConst16(uint16_t value) {
 }
 
 void sect_OutputReloc16(SExpression* expr) {
-	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT);
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_16BIT);
 
 	if (sect_CheckAvailableSpace(2)) {
 		switch (sect_GetCurrentType()) {
@@ -254,7 +254,7 @@ void sect_OutputReloc16(SExpression* expr) {
 							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_16 : PATCH_BE_16);
 				sect_Current->freeSpace -= 2;
 				sect_Current->usedSpace += 2;
-				sect_Current->cpuProgramCounter += 2 / g_pConfiguration->eMinimumWordSize;
+				sect_Current->cpuProgramCounter += 2 / xasm_Configuration->minimumWordSize;
 				break;
 			}
 			case GROUP_BSS: {
@@ -271,7 +271,7 @@ void sect_OutputReloc16(SExpression* expr) {
 }
 
 void sect_OutputExpr16(SExpression* expr) {
-	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT);
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_16BIT);
 
 	if (expr == NULL) {
 		prj_Error(ERROR_EXPR_BAD);
@@ -284,7 +284,7 @@ void sect_OutputExpr16(SExpression* expr) {
 }
 
 void sect_OutputConst32(uint32_t value) {
-	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT);
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
 
 	if (sect_CheckAvailableSpace(4)) {
 		switch (sect_GetCurrentType()) {
@@ -310,7 +310,7 @@ void sect_OutputConst32(uint32_t value) {
 					}
 				}
 				sect_Current->freeSpace -= 4;
-				sect_Current->cpuProgramCounter += 4 / g_pConfiguration->eMinimumWordSize;
+				sect_Current->cpuProgramCounter += 4 / xasm_Configuration->minimumWordSize;
 				break;
 			}
 			case GROUP_BSS: {
@@ -326,7 +326,7 @@ void sect_OutputConst32(uint32_t value) {
 }
 
 void sect_OutputRel32(SExpression* expr) {
-	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT);
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
 
 	if (sect_CheckAvailableSpace(4)) {
 		switch (sect_GetCurrentType()) {
@@ -334,7 +334,7 @@ void sect_OutputRel32(SExpression* expr) {
 				patch_Create(sect_Current, sect_Current->usedSpace, expr,
 							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_32 : PATCH_BE_32);
 				sect_Current->freeSpace -= 4;
-				sect_Current->cpuProgramCounter += 4 / g_pConfiguration->eMinimumWordSize;
+				sect_Current->cpuProgramCounter += 4 / xasm_Configuration->minimumWordSize;
 				sect_Current->usedSpace += 4;
 				break;
 			}
@@ -352,7 +352,7 @@ void sect_OutputRel32(SExpression* expr) {
 }
 
 void sect_OutputExpr32(SExpression* expr) {
-	assert(g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT);
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
 
 	if (expr == NULL) {
 		prj_Error(ERROR_EXPR_BAD);
@@ -387,7 +387,7 @@ void sect_OutputBinaryFile(string* pFile) {
 					read = fread(&sect_Current->data[sect_Current->usedSpace], sizeof(uint8_t), size, f);
 					sect_Current->freeSpace -= size;
 					sect_Current->usedSpace += size;
-					sect_Current->cpuProgramCounter += size / g_pConfiguration->eMinimumWordSize;
+					sect_Current->cpuProgramCounter += size / xasm_Configuration->minimumWordSize;
 					if (read != size) {
 						prj_Fail(ERROR_READ);
 					}
@@ -413,7 +413,7 @@ void sect_OutputBinaryFile(string* pFile) {
 }
 
 void sect_Align(uint32_t align) {
-	assert(g_pConfiguration->eMinimumWordSize <= align);
+	assert(xasm_Configuration->minimumWordSize <= align);
 
 	uint32_t t = sect_Current->usedSpace + align - 1;
 	t -= t % align;
@@ -424,7 +424,7 @@ void sect_SkipBytes(uint32_t count) {
 	if (count == 0)
 		return;
 
-	assert(g_pConfiguration->eMinimumWordSize <= count);
+	assert(xasm_Configuration->minimumWordSize <= count);
 
 	if (sect_CheckAvailableSpace(count)) {
 		//printf("*DEBUG* skipping %d bytes\n", count);
@@ -438,7 +438,7 @@ void sect_SkipBytes(uint32_t count) {
 			case GROUP_BSS: {
 				sect_Current->freeSpace -= count;
 				sect_Current->usedSpace += count;
-				sect_Current->cpuProgramCounter += count / g_pConfiguration->eMinimumWordSize;
+				sect_Current->cpuProgramCounter += count / xasm_Configuration->minimumWordSize;
 				break;
 			}
 			default: {
@@ -482,7 +482,7 @@ bool sect_SwitchTo_LOAD(const string* sectname, SSymbol* group, uint32_t load) {
 			sect->group = group;
 			sect->flags = SECTF_LOADFIXED;
 			sect->cpuOrigin = load;
-			sect->imagePosition = load * g_pConfiguration->eMinimumWordSize;
+			sect->imagePosition = load * xasm_Configuration->minimumWordSize;
 		}
 		sect_Current = sect;
 		return sect != NULL;
@@ -492,7 +492,7 @@ bool sect_SwitchTo_LOAD(const string* sectname, SSymbol* group, uint32_t load) {
 bool sect_SwitchTo_BANK(const string* sectname, SSymbol* group, uint32_t bank) {
 	SSection* sect;
 
-	if (!g_pConfiguration->bSupportBanks)
+	if (!xasm_Configuration->supportBanks)
 		internalerror("Banks not supported");
 
 	sect = sect_Find(sectname, group);
@@ -519,7 +519,7 @@ bool sect_SwitchTo_BANK(const string* sectname, SSymbol* group, uint32_t bank) {
 bool sect_SwitchTo_LOAD_BANK(const string* sectname, SSymbol* group, uint32_t origin, uint32_t bank) {
 	SSection* sect;
 
-	if (!g_pConfiguration->bSupportBanks)
+	if (!xasm_Configuration->supportBanks)
 		internalerror("Banks not supported");
 
 	if ((sect = sect_Find(sectname, group)) != NULL) {
@@ -537,7 +537,7 @@ bool sect_SwitchTo_LOAD_BANK(const string* sectname, SSymbol* group, uint32_t or
 		sect->flags = SECTF_BANKFIXED | SECTF_LOADFIXED;
 		sect->bank = bank;
 		sect->cpuOrigin = origin;
-		sect->imagePosition = origin * g_pConfiguration->eMinimumWordSize;
+		sect->imagePosition = origin * xasm_Configuration->minimumWordSize;
 	}
 
 	sect_Current = sect;

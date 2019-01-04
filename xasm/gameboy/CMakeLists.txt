@@ -1,11 +1,13 @@
-add_executable (motorgb 
-    localasm.h
-    locerror.c
-    loclexer.c
-    locopt.c
-    locopt.h
-    locparse.c
-    locsym.c
-    main.c)
+add_executable(motorgb
+        z80errors.c
+        z80errors.h
+        z80main.c
+        z80options.c
+        z80options.h
+        z80parse.c
+        z80symbols.c
+        z80tokens.c
+        z80tokens.h
+        )
 
-target_link_libraries (motorgb xasm util)
+target_link_libraries(motorgb xasm util)

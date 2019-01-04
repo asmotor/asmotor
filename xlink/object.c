@@ -77,7 +77,7 @@ static void readGroup(FILE* fileHandle, Group* group)
 	uint32_t flags;
 	uint32_t type;
 
-	fgetsz(group->name, MAXSYMNAMELENGTH, fileHandle);
+	fgetsz(group->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
 
 	type = fgetll(fileHandle);
 	flags = type & (GROUP_FLAG_DATA | GROUP_FLAG_CHIP);
@@ -128,7 +128,7 @@ static Groups* readGroups(FILE* fileHandle)
 
 static void readSymbol(FILE* fileHandle, Symbol* symbol)
 {
-	fgetsz(symbol->name, MAXSYMNAMELENGTH, fileHandle);
+	fgetsz(symbol->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
 
 	symbol->type = (SymbolType) fgetll(fileHandle);
 
@@ -206,7 +206,7 @@ static Patches* readPatches(FILE* fileHandle)
 static void readSection(FILE* fileHandle, Section* section, Groups* groups, int version)
 {
 	section->group = groups_GetGroup(groups, fgetll(fileHandle));
-	fgetsz(section->name, MAXSYMNAMELENGTH, fileHandle);
+	fgetsz(section->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
 	section->cpuBank = fgetll(fileHandle);
 	section->cpuByteLocation = fgetll(fileHandle);
 	if (version >= 1)

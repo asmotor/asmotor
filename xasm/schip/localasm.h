@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	LOCALASM_H
-#define	LOCALASM_H
+#ifndef	XASM_GAMEBOY_TOKENS_H_INCLUDED_
+#define	XASM_GAMEBOY_TOKENS_H_INCLUDED_
 
 typedef enum
 {
@@ -110,4 +110,4 @@ typedef	enum
 
 }	ETargetToken;
 
-#endif	//LOCALASM_H
+#endif	//XASM_GAMEBOY_TOKENS_H_INCLUDED_

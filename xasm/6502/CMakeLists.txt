@@ -4,7 +4,7 @@ add_executable (motor6502
     loccpu.h
     locerror.c
     loclexer.c
-    loclexer.h
+        tokens.h
     locopt.c
     locopt.h
     locparse.c

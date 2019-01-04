@@ -45,6 +45,8 @@ uint32_t g_nTotalLines = 0;
 uint32_t g_nTotalErrors = 0;
 uint32_t g_nTotalWarnings = 0;
 
+const SConfiguration* xasm_Configuration = NULL;
+
 /*	Help text*/
 
 void
@@ -57,10 +59,10 @@ printUsage(void) {
            "    -f<f>   Output format, one of\n"
            "                x - xobj (default)\n"
            "                b - binary file\n"
-           "                v - verilog readmemh file\n", g_pConfiguration->pszExecutable,
-           g_pConfiguration->pszBackendVersion, g_pConfiguration->pszExecutable);
+           "                v - verilog readmemh file\n", xasm_Configuration->executableName,
+           xasm_Configuration->backendVersion, xasm_Configuration->executableName);
 
-    if (g_pConfiguration->bSupportAmiga) {
+    if (xasm_Configuration->supportAmiga) {
         printf("                g - Amiga executable file\n"
                "                h - Amiga object file\n");
     }
@@ -71,7 +73,7 @@ printUsage(void) {
            "    -v      Verbose text output\n"
            "    -w<d>   Disable warning <d> (four digits)\n"
            "    -z<XX>  Set the byte value (hex format) used for uninitialised\n"
-           "            data (default is ? for random)\n"
+           "            data (default is FF)\n"
            "\n"
            "Machine specific options:\n");
     locopt_PrintOptions();
@@ -81,7 +83,9 @@ printUsage(void) {
 /*	This thing runs the show*/
 
 extern int
-xasm_Main(int argc, char* argv[]) {
+xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
+    xasm_Configuration = configuration;
+
     char format = 'x';
     int argn = 1;
     int rcode;
@@ -131,7 +135,7 @@ xasm_Main(int argc, char* argv[]) {
                             break;
                         case 'g':
                         case 'h':
-                            if (g_pConfiguration->bSupportAmiga) {
+                            if (xasm_Configuration->supportAmiga) {
                                 format = argv[argn][2];
                                 break;
                             }

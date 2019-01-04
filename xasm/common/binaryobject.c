@@ -50,7 +50,7 @@ commonPatch() {
     uint32_t nAddress = sect_Sections->imagePosition;
     SSection* section = sect_Sections;
     do {
-        uint32_t alignment = g_pConfiguration->nSectionAlignment - 1u;
+        uint32_t alignment = xasm_Configuration->sectionAlignment - 1u;
         nAddress += (section->usedSpace + alignment) & ~alignment;
         section = list_GetNext(section);
         if (section != NULL) {
@@ -63,7 +63,7 @@ commonPatch() {
             } else {
                 section->flags |= SECTF_LOADFIXED;
                 section->imagePosition = nAddress;
-                section->cpuOrigin = nAddress / g_pConfiguration->eMinimumWordSize;
+                section->cpuOrigin = nAddress / xasm_Configuration->minimumWordSize;
             }
         }
     } while (section != NULL);

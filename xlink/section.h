@@ -34,7 +34,7 @@ typedef	struct Section_
 	int32_t	imageLocation;
 	int32_t minimumWordSize;
 
-	char name[MAXSYMNAMELENGTH];
+	char name[MAX_SYMBOL_NAME_LENGTH];
 
 	uint32_t totalSymbols;
 	Symbol* symbols;

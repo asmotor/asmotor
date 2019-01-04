@@ -19,7 +19,7 @@
 #include "xasm.h"
 #include "localasm.h"
 #include "lexer.h"
-#include "loclexer.h"
+#include "tokens.h"
 
 static SLexConstantsWord s_UndocumentedInstructions0[] =
 {

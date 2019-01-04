@@ -16,29 +16,17 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
-#include <stdlib.h>
-#include <stdio.h>
+#ifndef XASM_Z80_OPTIONS_H_INCLUDED_
+#define XASM_Z80_OPTIONS_H_INCLUDED_
 
-static SConfiguration s_sConfiguration =
-{
-	"motorgb",
-	"1.0",
-	0x4000,
-	ASM_LITTLE_ENDIAN,
-	true,
-	false,
-	MINSIZE_8BIT,
-	1,
+#define CPUF_GB  0x01u
+#define CPUF_Z80 0x02u
 
-	"RB", "RW", NULL,
-	"DB", "DW", NULL,
-	"DS", NULL, NULL
-};
+typedef struct MachineOptions {
+    char GameboyChar[4];
+    uint8_t nCpu;
+} SMachineOptions;
 
-SConfiguration* g_pConfiguration = &s_sConfiguration;
+extern uint32_t g_GameboyLiteralId;
 
-extern int main(int argc, char* argv[])
-{
-	return xasm_Main(argc, argv);
-}
+#endif

@@ -27,7 +27,7 @@
 #include "locopt.h"
 #include "loccpu.h"
 #include "project.h"
-#include "loclexer.h"
+#include "tokens.h"
 
 static int s_nPreviousInstructionSet = 0;
 

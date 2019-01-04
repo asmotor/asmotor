@@ -316,7 +316,7 @@ reduceOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
             return reduceHighLimit(patch, expression, result);
 
         case T_FUNC_BANK: {
-            if (!g_pConfiguration->bSupportBanks)
+            if (!xasm_Configuration->supportBanks)
                 internalerror("Banks not supported");
 
             return false;

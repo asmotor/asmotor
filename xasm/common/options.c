@@ -164,7 +164,7 @@ void
 opt_Open(void) {
     opt_Current = opt_Alloc();
 
-    opt_Current->endianness = g_pConfiguration->eDefaultEndianness;
+    opt_Current->endianness = xasm_Configuration->defaultEndianness;
     opt_Current->binaryLiteralCharacters[0] = '0';
     opt_Current->binaryLiteralCharacters[1] = '1';
     opt_Current->uninitializedValue = 0xFF;

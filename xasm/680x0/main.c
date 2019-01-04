@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static SConfiguration s_sConfiguration =
+static SConfiguration xasm_680x0Configuration =
 {
 	"motor68k",
 	"1.0",
@@ -36,9 +36,7 @@ static SConfiguration s_sConfiguration =
 	"DS.B", "DS.W", "DS.L"
 };
 
-SConfiguration* g_pConfiguration = &s_sConfiguration;
-
 extern int main(int argc, char* argv[])
 {
-	return xasm_Main(argc, argv);
+	return xasm_Main(&xasm_680x0Configuration, argc, argv);
 }

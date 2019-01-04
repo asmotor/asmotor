@@ -42,7 +42,7 @@ typedef	struct MemoryGroup_
 {
     struct MemoryGroup_* nextGroup;
 
-    char    name[MAXSYMNAMELENGTH];
+    char    name[MAX_SYMBOL_NAME_LENGTH];
     int32_t	totalPools;
 
     MemoryPool*	pools[];

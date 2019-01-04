@@ -183,16 +183,7 @@ lex_ConstantsDefineWord(const char* name, uint32_t token) {
         g_maxWordLength = pNew->nameLength;
 
     SConstantWord** hashTableEntry = &g_wordsHashTable[hashString(name)];
-    #if 0
-    SConstantWord* pPrev = *hashTableEntry;
-    if (pPrev) {
-        list_InsertAfter(pPrev, pNew);
-    } else {
-        *hashTableEntry = pNew;
-    }
-    #else
     list_Insert(*hashTableEntry, pNew);
-    #endif
 }
 
 void

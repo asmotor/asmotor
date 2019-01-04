@@ -200,7 +200,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
             patchesPerSection[i] = NULL;
 
         uint32_t hunkType =
-                (g_pConfiguration->bSupportAmiga && (section->group->flags & SYMF_DATA)) ? HUNK_DATA : HUNK_CODE;
+                (xasm_Configuration->supportAmiga && (section->group->flags & SYMF_DATA)) ? HUNK_DATA : HUNK_CODE;
 
         fputbl(hunkType, fileHandle);
         fputbl((section->usedSpace + 3) / 4, fileHandle);
@@ -348,7 +348,7 @@ ami_WriteExecutable(string* destFilename, bool writeDebugInfo) {
 
     for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         uint32_t size = (section->usedSpace + 3) / 4;
-        if (g_pConfiguration->bSupportAmiga && (section->group->flags & SYMF_CHIP))
+        if (xasm_Configuration->supportAmiga && (section->group->flags & SYMF_CHIP))
             size |= HUNKF_CHIP;
         fputbl(size, fileHandle);
     }

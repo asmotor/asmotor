@@ -32,7 +32,7 @@ typedef enum {
 } ELexerState;
 
 typedef struct CharStack {
-    char stack[MAXSTRINGSYMBOLSIZE];
+    char stack[MAX_STRING_SYMBOL_SIZE];
     size_t count;
 } SCharStack;
 
@@ -49,7 +49,7 @@ typedef struct {
     uint32_t token;
     size_t length;
     union {
-        char string[MAXTOKENLENGTH + 1];
+        char string[MAX_TOKEN_LENGTH + 1];
         int32_t integer;
     } value;
 } SLexerToken;

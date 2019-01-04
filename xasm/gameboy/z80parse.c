@@ -21,13 +21,15 @@
 
 #include "xasm.h"
 #include "expression.h"
-#include "parse.h"
-#include "section.h"
-#include "project.h"
 #include "lexer.h"
-#include "localasm.h"
-#include "locopt.h"
 #include "options.h"
+#include "parse.h"
+#include "project.h"
+#include "section.h"
+
+#include "z80errors.h"
+#include "z80tokens.h"
+#include "z80options.h"
 
 typedef enum
 {
@@ -1070,13 +1072,20 @@ static bool parse_AddrMode(SAddrMode* pAddrMode)
 	return false;
 }
 
+static uint32_t translateToken(uint32_t token) {
+	if (token == T_SYM_SET)
+		return T_Z80_SET;
+	else
+		return token;
+}
+
 bool parse_TargetSpecific(void)
 {
-	if((lex_Current.token >= T_Z80_ADC && lex_Current.token <= T_Z80_XOR)
-	|| lex_Current.token == T_SYM_SET)
+	uint32_t token = translateToken(lex_Current.token);
+	if(token >= T_Z80_ADC && token <= T_Z80_XOR)
 	{
-		int nToken = (lex_Current.token == T_SYM_SET ? T_Z80_SET : lex_Current.token) - T_Z80_ADC;
-		SOpcode* pOpcode = &g_aOpcodes[nToken];
+		token = token - T_Z80_ADC;
+		SOpcode* pOpcode = &g_aOpcodes[token];
 		SAddrMode addrMode1;
 		SAddrMode addrMode2;
 

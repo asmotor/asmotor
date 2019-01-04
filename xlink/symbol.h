@@ -30,7 +30,7 @@ typedef	enum
 
 typedef	struct Symbol_
 {
-	char       name[MAXSYMNAMELENGTH];
+	char       name[MAX_SYMBOL_NAME_LENGTH];
 	SymbolType type;
 	int32_t    value;
 	bool     resolved;

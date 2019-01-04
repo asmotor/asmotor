@@ -38,7 +38,7 @@
 bool tokens_ExpandStrings;
 uint32_t tokens_BinaryVariadicId;
 
-/*	Private data */
+// Private data
 
 static SLexConstantsWord staticTokens[] = {
         {"||",        T_OP_BOOLEAN_OR},
@@ -342,23 +342,23 @@ enum {
     T_LEX_MACROUNIQUE
 };
 
-static SVariadicWordDefinition s_sMacroArgToken = {
+static SVariadicWordDefinition g_macroArgumentWord = {
         parseMacroArgumentSymbol, T_LEX_MACROARG
 };
 
-static SVariadicWordDefinition s_sMacroUniqueToken = {
+static SVariadicWordDefinition g_macroUniqueWord = {
         parseUniqueIdSymbol, T_LEX_MACROUNIQUE
 };
 
-static SVariadicWordDefinition s_sDecimal = {
+static SVariadicWordDefinition g_fixedPointWord = {
         parseDecimal, T_NUMBER
 };
 
-static SVariadicWordDefinition s_sNumberToken = {
+static SVariadicWordDefinition g_integerWord = {
         ParseNumber, T_NUMBER
 };
 
-static SVariadicWordDefinition s_sIDToken = {
+static SVariadicWordDefinition g_identifierWord = {
         parseSymbol, T_ID
 };
 
@@ -370,55 +370,56 @@ tokens_Init(void) {
 
     lex_ConstantsDefineWords(staticTokens);
 
-    if (g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
         lex_ConstantsDefineWord("__RSB", T_DIRECTIVE_RB);
-    if (g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_16BIT)
         lex_ConstantsDefineWord("__RSW", T_DIRECTIVE_RW);
-    if (g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
         lex_ConstantsDefineWord("__RSL", T_DIRECTIVE_RL);
 
-    if (g_pConfiguration->pszNameRB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_ConstantsDefineWord(g_pConfiguration->pszNameRB, T_DIRECTIVE_RB);
-    if (g_pConfiguration->pszNameRW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_ConstantsDefineWord(g_pConfiguration->pszNameRW, T_DIRECTIVE_RW);
-    if (g_pConfiguration->pszNameRL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_ConstantsDefineWord(g_pConfiguration->pszNameRL, T_DIRECTIVE_RL);
+    if (xasm_Configuration->reserveByteName && xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->reserveByteName, T_DIRECTIVE_RB);
+    if (xasm_Configuration->reserveWordName && xasm_Configuration->minimumWordSize <= MINSIZE_16BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->reserveWordName, T_DIRECTIVE_RW);
+    if (xasm_Configuration->reserveLongName && xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->reserveLongName, T_DIRECTIVE_RL);
 
-    if (g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
         lex_ConstantsDefineWord("__DSB", T_DIRECTIVE_DSB);
-    if (g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_16BIT)
         lex_ConstantsDefineWord("__DSW", T_DIRECTIVE_DSW);
-    if (g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
         lex_ConstantsDefineWord("__DSL", T_DIRECTIVE_DSL);
 
-    if (g_pConfiguration->pszNameDSB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_ConstantsDefineWord(g_pConfiguration->pszNameDSB, T_DIRECTIVE_DSB);
-    if (g_pConfiguration->pszNameDSW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_ConstantsDefineWord(g_pConfiguration->pszNameDSW, T_DIRECTIVE_DSW);
-    if (g_pConfiguration->pszNameDSL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_ConstantsDefineWord(g_pConfiguration->pszNameDSL, T_DIRECTIVE_DSL);
+    if (xasm_Configuration->defineByteSpaceName && xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->defineByteSpaceName, T_DIRECTIVE_DSB);
+    if (xasm_Configuration->defineWordSpaceName && xasm_Configuration->minimumWordSize <= MINSIZE_16BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->defineWordSpaceName, T_DIRECTIVE_DSW);
+    if (xasm_Configuration->defineLongSpaceName && xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->defineLongSpaceName, T_DIRECTIVE_DSL);
 
-    if (g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
         lex_ConstantsDefineWord("__DCB", T_DIRECTIVE_DB);
-    if (g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_16BIT)
         lex_ConstantsDefineWord("__DCW", T_DIRECTIVE_DW);
-    if (g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
         lex_ConstantsDefineWord("__DCL", T_DIRECTIVE_DL);
 
-    if (g_pConfiguration->pszNameDB && g_pConfiguration->eMinimumWordSize <= MINSIZE_8BIT)
-        lex_ConstantsDefineWord(g_pConfiguration->pszNameDB, T_DIRECTIVE_DB);
-    if (g_pConfiguration->pszNameDW && g_pConfiguration->eMinimumWordSize <= MINSIZE_16BIT)
-        lex_ConstantsDefineWord(g_pConfiguration->pszNameDW, T_DIRECTIVE_DW);
-    if (g_pConfiguration->pszNameDL && g_pConfiguration->eMinimumWordSize <= MINSIZE_32BIT)
-        lex_ConstantsDefineWord(g_pConfiguration->pszNameDL, T_DIRECTIVE_DL);
+    if (xasm_Configuration->defineByteName && xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->defineByteName, T_DIRECTIVE_DB);
+    if (xasm_Configuration->defineWordName && xasm_Configuration->minimumWordSize <= MINSIZE_16BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->defineWordName, T_DIRECTIVE_DW);
+    if (xasm_Configuration->defineLongName && xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->defineLongName, T_DIRECTIVE_DL);
 
-    if (g_pConfiguration->bSupportBanks)
+    if (xasm_Configuration->supportBanks)
         lex_ConstantsDefineWord("BANK", T_FUNC_BANK);
 
-    /* Local ID */
     uint32_t id;
 
-    id = lex_VariadicCreateWord(&s_sIDToken);
+    // Local identifier
+
+    id = lex_VariadicCreateWord(&g_identifierWord);
     lex_VariadicAddCharRange(id, '.', '.', 0);
     lex_VariadicAddCharRange(id, 'a', 'z', 1);
     lex_VariadicAddCharRange(id, 'A', 'Z', 1);
@@ -433,15 +434,15 @@ tokens_Init(void) {
     lex_VariadicAddCharRangeRepeating(id, '@', '@', 2);
     lex_VariadicAddCharRangeRepeating(id, '#', '#', 2);
 
-    id = lex_VariadicCreateWord(&s_sIDToken);
+    id = lex_VariadicCreateWord(&g_identifierWord);
     lex_VariadicAddCharRangeRepeating(id, '0', '9', 0);
     lex_VariadicAddCharRangeRepeating(id, '\\', '\\', 0);
     lex_VariadicAddCharRangeRepeating(id, '@', '@', 1);
     lex_VariadicAddSuffix(id, '$');
 
-    /* ID's */
+    // Identifier
 
-    id = lex_VariadicCreateWord(&s_sIDToken);
+    id = lex_VariadicCreateWord(&g_identifierWord);
     lex_VariadicAddCharRange(id, 'a', 'z', 0);
     lex_VariadicAddCharRange(id, 'A', 'Z', 0);
     lex_VariadicAddCharRange(id, '_', '_', 0);
@@ -455,34 +456,34 @@ tokens_Init(void) {
     lex_VariadicAddCharRangeRepeating(id, '@', '@', 1);
     lex_VariadicAddCharRangeRepeating(id, '#', '#', 1);
 
-    /* Macro arguments */
+    // Macro argument
 
-    id = lex_VariadicCreateWord(&s_sMacroArgToken);
+    id = lex_VariadicCreateWord(&g_macroArgumentWord);
     lex_VariadicAddCharRange(id, '\\', '\\', 0);
     lex_VariadicAddCharRange(id, '0', '9', 1);
 
-    id = lex_VariadicCreateWord(&s_sMacroUniqueToken);
+    id = lex_VariadicCreateWord(&g_macroUniqueWord);
     lex_VariadicAddCharRange(id, '\\', '\\', 0);
     lex_VariadicAddCharRange(id, '@', '@', 1);
 
-    /* Decimal constants */
+    // Fixed point constant
 
-    id = lex_VariadicCreateWord(&s_sDecimal);
+    id = lex_VariadicCreateWord(&g_fixedPointWord);
     lex_VariadicAddCharRange(id, '0', '9', 0);
     lex_VariadicAddCharRangeRepeating(id, '0', '9', 1);
     lex_VariadicAddCharRangeRepeating(id, '.', '.', 1);
 
-    /* Hex constants */
+    // Hex constant
 
-    id = lex_VariadicCreateWord(&s_sNumberToken);
+    id = lex_VariadicCreateWord(&g_integerWord);
     lex_VariadicAddCharRange(id, '$', '$', 0);
     lex_VariadicAddCharRangeRepeating(id, '0', '9', 1);
     lex_VariadicAddCharRangeRepeating(id, 'A', 'F', 1);
     lex_VariadicAddCharRangeRepeating(id, 'a', 'f', 1);
 
-    /* Binary constants */
+    // Binary constant
 
-    tokens_BinaryVariadicId = id = lex_VariadicCreateWord(&s_sNumberToken);
+    tokens_BinaryVariadicId = id = lex_VariadicCreateWord(&g_integerWord);
     lex_VariadicAddCharRange(id, '%', '%', 0);
     lex_VariadicAddCharRangeRepeating(id, '0', '1', 1);
 }

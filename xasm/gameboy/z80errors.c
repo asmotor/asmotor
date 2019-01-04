@@ -18,19 +18,18 @@
 
 #include "xasm.h"
 
-static char* g_pszLocalError[]=
-{
-	"Register A expected",
-	"Register SP expected",
-	"Consider using %s instead",
-	"Expression must be in the $FF00-$FFFF range",
-    "Instruction not supported by selected CPU"
+static const char* g_errors[] = {
+        "Register A expected",
+        "Register SP expected",
+        "Consider using %s instead",
+        "Expression must be in the $FF00-$FFFF range",
+        "Instruction not supported by selected CPU"
 };
 
-char* loc_GetError(int n)
-{
-	if(n < 1000)
-		return NULL;
+const char*
+loc_GetError(uint32_t errorNumber) {
+    if (errorNumber < 1000)
+        return NULL;
 
-	return g_pszLocalError[n - 1000];
+    return g_errors[errorNumber - 1000];
 }

@@ -22,9 +22,10 @@
 #include "lexer.h"
 #include "lexer_constants.h"
 #include "lexer_variadics.h"
-#include "localasm.h"
 #include "options.h"
-#include "locopt.h"
+
+#include "z80tokens.h"
+#include "z80options.h"
 
 static SLexConstantsWord localstrings[]=
 {

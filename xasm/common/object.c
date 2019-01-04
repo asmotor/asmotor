@@ -83,7 +83,7 @@ writeSymbols(SSection* section, FILE* fileHandle, SExpression* expression, uint3
         nextId = writeSymbols(section, fileHandle, expression->left, nextId);
         nextId = writeSymbols(section, fileHandle, expression->right, nextId);
 
-        if (expr_Type(expression) == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr_IsOperator(expression, T_FUNC_BANK))) {
+        if (expr_Type(expression) == EXPR_SYMBOL || (xasm_Configuration->supportBanks && expr_IsOperator(expression, T_FUNC_BANK))) {
             if (expression->value.symbol->id == UINT32_MAX) {
                 expression->value.symbol->id = nextId++;
                 fputsz(str_String(expression->value.symbol->name), fileHandle);
@@ -138,7 +138,7 @@ markLocalExportsInExpression(SSection* section, SExpression* expression) {
         markLocalExportsInExpression(section, expression->left);
         markLocalExportsInExpression(section, expression->right);
 
-        if ((expr_Type(expression) == EXPR_SYMBOL || (g_pConfiguration->bSupportBanks && expr_IsOperator(expression, T_FUNC_BANK)))
+        if ((expr_Type(expression) == EXPR_SYMBOL || (xasm_Configuration->supportBanks && expr_IsOperator(expression, T_FUNC_BANK)))
             && (expression->value.symbol->flags & SYMF_EXPORTABLE) && expression->value.symbol->section != section) {
             expression->value.symbol->flags |= SYMF_FILE_EXPORT;
         }
@@ -263,7 +263,7 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
                         fputc(OBJ_FUNC_ATAN, fileHandle);
                         break;
                     case T_FUNC_BANK: {
-                        assert (g_pConfiguration->bSupportBanks);
+                        assert (xasm_Configuration->supportBanks);
                         fputc(OBJ_FUNC_BANK, fileHandle);
                         fputll(expression->value.symbol->id, fileHandle);
                         break;
@@ -405,7 +405,7 @@ writeSection(FILE* fileHandle, SSection* section) {
     fputll(section->group->id, fileHandle);
     fputsz(str_String(section->name), fileHandle);
     if (section->flags & SECTF_BANKFIXED) {
-        assert(g_pConfiguration->bSupportBanks);
+        assert(xasm_Configuration->supportBanks);
         fputll(section->bank, fileHandle);
     } else {
         fputll(UINT32_MAX, fileHandle);
@@ -433,7 +433,7 @@ obj_Write(string* pName) {
         return false;
 
     fwrite("XOB\1", 1, 4, fileHandle);
-    fputc(g_pConfiguration->eMinimumWordSize, fileHandle);
+    fputc(xasm_Configuration->minimumWordSize, fileHandle);
 
     writeGroups(fileHandle);
 

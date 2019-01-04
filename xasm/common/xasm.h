@@ -16,69 +16,88 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	INCLUDE_XASM_H
-#define	INCLUDE_XASM_H
+#ifndef XASM_COMMON_XASM_H_INCLUDED_
+#define XASM_COMMON_XASM_H_INCLUDED_
 
 #include "types.h"
 
-#define	MAXSYMNAMELENGTH		256
-#define	MAXSTRINGSYMBOLSIZE		256
-#define	ASM_CRLF				10
-#define	ASM_TAB					9
+#define MAX_SYMBOL_NAME_LENGTH 256
+#define MAX_STRING_SYMBOL_SIZE 256
+#define ASM_CRLF 10
+#define ASM_TAB 9
 
-#define	MAXTOKENLENGTH			256
+#define MAX_TOKEN_LENGTH 256
 
-#if	defined(__GNUC__) && !defined(__DJGPP__)
-extern void strupr(char* s);
-extern void strlwr(char* s);
+#if defined(__GNUC__) && !defined(__DJGPP__)
+extern void
+strupr(char* s);
+
+extern void
+strlwr(char* s);
 #endif
 
 extern uint32_t g_nTotalLines;
 extern uint32_t g_nTotalErrors;
 extern uint32_t g_nTotalWarnings;
 
-extern int xasm_Main(int argc, char* argv[]);
-
-extern void loclexer_Init(void);
-extern void locopt_PrintOptions(void);
-extern struct MachineOptions* locopt_Alloc(void);
-extern void locopt_Free(struct MachineOptions* pOptions);
-extern void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc);
-
-typedef	enum
-{
-	ASM_LITTLE_ENDIAN,
-	ASM_BIG_ENDIAN
+typedef enum {
+    ASM_LITTLE_ENDIAN,
+    ASM_BIG_ENDIAN
 } EEndianness;
 
-typedef enum
-{
-	MINSIZE_8BIT = 1,
-	MINSIZE_16BIT = 2,
-	MINSIZE_32BIT = 4,
+typedef enum {
+    MINSIZE_8BIT = 1,
+    MINSIZE_16BIT = 2,
+    MINSIZE_32BIT = 4,
 } EMinimumWordSize;
 
-typedef struct Configuration
-{
-	char* pszExecutable;
-	char* pszBackendVersion;
-	uint32_t nMaxSectionSize;
-	EEndianness eDefaultEndianness;
-	bool bSupportBanks;
-	bool bSupportAmiga;
-	EMinimumWordSize eMinimumWordSize;
-	uint32_t nSectionAlignment;
-	char* pszNameRB;
-	char* pszNameRW;
-	char* pszNameRL;
-	char* pszNameDB;
-	char* pszNameDW;
-	char* pszNameDL;
-	char* pszNameDSB;
-	char* pszNameDSW;
-	char* pszNameDSL;
+typedef struct Configuration {
+    const char* executableName;
+    const char* backendVersion;
+
+    uint32_t maxSectionSize;
+    EEndianness defaultEndianness;
+
+    bool supportBanks;
+    bool supportAmiga;
+
+    EMinimumWordSize minimumWordSize;
+
+    uint32_t sectionAlignment;
+
+    char* reserveByteName;
+    char* reserveWordName;
+    char* reserveLongName;
+
+    char* defineByteName;
+    char* defineWordName;
+    char* defineLongName;
+
+    char* defineByteSpaceName;
+    char* defineWordSpaceName;
+    char* defineLongSpaceName;
 } SConfiguration;
 
-extern SConfiguration* g_pConfiguration;
+extern const SConfiguration*
+xasm_Configuration;
 
-#endif	/*INCLUDE_XASM_H*/
+extern int
+xasm_Main(const SConfiguration* configuration, int argc, char* argv[]);
+
+extern void
+loclexer_Init(void);
+
+extern void
+locopt_PrintOptions(void);
+
+extern struct MachineOptions*
+locopt_Alloc(void);
+
+extern void
+locopt_Free(struct MachineOptions* pOptions);
+
+extern void
+locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc);
+
+
+#endif // XASM_COMMON_XASM_H_INCLUDED_

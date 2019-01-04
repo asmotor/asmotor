@@ -498,7 +498,7 @@ sym_Init(void) {
     createEqusCallback("__DATE", callback__DATE);
     createEqusCallback("__TIME", callback__TIME);
 
-    if (g_pConfiguration->bSupportAmiga) {
+    if (xasm_Configuration->supportAmiga) {
         createEqusCallback("__AMIGADATE", callback__AMIGADATE);
     }
 

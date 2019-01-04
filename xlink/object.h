@@ -30,7 +30,7 @@ typedef	enum
 
 typedef	struct
 {
-	char name[MAXSYMNAMELENGTH];
+	char name[MAX_SYMBOL_NAME_LENGTH];
 	GroupType  type;
     uint32_t flags;
 } Group;

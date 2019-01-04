@@ -19,7 +19,7 @@
 #ifndef	XLINK_H_INCLUDED_
 #define	XLINK_H_INCLUDED_
 
-#define	MAXSYMNAMELENGTH	256
+#define	MAX_SYMBOL_NAME_LENGTH	256
 
 #include "asmotor.h"
 #include "file.h"

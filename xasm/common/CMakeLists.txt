@@ -13,13 +13,13 @@ add_library (xasm
     lexer_constants.h
     lexer_variadics.c
     lexer_variadics.h
-    main.c
+        xasm.c
     object.c
     object.h
     options.c
     options.h
     parse.c
-    parse.h
+        parse.h
     parse_block.c
     parse_block.h
     parse_directive.c

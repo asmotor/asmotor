@@ -271,7 +271,7 @@ handleDefFunction() {
 
 SExpression*
 handleBankFunction() {
-    assert(g_pConfiguration->bSupportBanks);
+    assert(xasm_Configuration->supportBanks);
 
     parse_GetToken();
 

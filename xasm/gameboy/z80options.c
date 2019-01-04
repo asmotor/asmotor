@@ -19,13 +19,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xasm.h"
 #include "mem.h"
-#include "options.h"
+
+#include "xasm.h"
 #include "lexer_variadics.h"
-#include "locopt.h"
-#include "tokens.h"
+#include "options.h"
 #include "project.h"
+
+#include "z80options.h"
+#include "z80tokens.h"
+
+extern SConfiguration xasm_Z80Configuration;
 
 uint32_t g_GameboyLiteralId;
 
@@ -88,11 +92,11 @@ bool locopt_Parse(char* s)
                 {
                     case 'g':
                         opt_Current->machineOptions->nCpu = CPUF_GB;
-                        g_pConfiguration->nMaxSectionSize = 0x4000;
+                        xasm_Z80Configuration.maxSectionSize = 0x4000;
                         return true;
                     case 'z':
                         opt_Current->machineOptions->nCpu = CPUF_Z80;
-                        g_pConfiguration->nMaxSectionSize = 0x10000;
+                        xasm_Z80Configuration.maxSectionSize = 0x10000;
                         return true;
                     default:
                         break;
