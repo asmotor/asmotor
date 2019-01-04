@@ -16,7 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lexer_constants.h"
+#ifndef XASM_0X10C_OPTIONS_H_INCLUDED_
+#define XASM_0X10C_OPTIONS_H_INCLUDED_
 
-extern SLexConstantsWord* loclexer_GetUndocumentedInstructions(int n);
+typedef struct MachineOptions
+{
+	int	bOptimize;
+} SMachineOptions;
 
+#endif

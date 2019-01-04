@@ -16,12 +16,42 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LOCOPT_0X10C_H_
-#define LOCOPT_0X10C_H_
+#ifndef XASM_0X10C_TOKENS_H_INCLUDED_
+#define XASM_0X10C_TOKENS_H_INCLUDED_
 
-typedef struct MachineOptions
-{
-	int	bOptimize;
-} SMachineOptions;
+typedef enum {
+    T_0X10C_ADD = 6000,
+    T_0X10C_AND,
+    T_0X10C_BOR,
+    T_0X10C_DIV,
+    T_0X10C_IFB,
+    T_0X10C_IFE,
+    T_0X10C_IFG,
+    T_0X10C_IFN,
+    T_0X10C_JSR,
+    T_0X10C_MOD,
+    T_0X10C_MUL,
+    T_0X10C_SET,
+    T_0X10C_SHL,
+    T_0X10C_SHR,
+    T_0X10C_SUB,
+    T_0X10C_XOR,
 
-#endif
+    T_REG_A,
+    T_REG_B,
+    T_REG_C,
+    T_REG_X,
+    T_REG_Y,
+    T_REG_Z,
+    T_REG_I,
+    T_REG_J,
+    T_REG_POP,
+    T_REG_PEEK,
+    T_REG_PUSH,
+    T_REG_SP,
+    T_REG_PC,
+    T_REG_O,
+
+} ETargetToken;
+
+#endif    /* XASM_GAMEBOY_TOKENS_H_INCLUDED_ */

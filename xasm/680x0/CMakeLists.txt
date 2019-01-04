@@ -5,6 +5,7 @@ add_executable (motor68k
     localasm.h
     loccpu.h
     locerror.c
+    locerror.h
     loclexer.c
     locopt.c
     locopt.h

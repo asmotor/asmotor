@@ -3,6 +3,7 @@ add_executable (motorschip
     localasm.h
     loccpu.h
     locerror.c
+    locerror.h
     loclexer.c
     locopt.c
     locopt.h

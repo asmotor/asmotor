@@ -24,10 +24,10 @@ static char* g_pszLocalError[]=
 	"Undocumented instruction set must be 0, 1 or 2"
 };
 
-char* loc_GetError(int n)
+extern const char* loc_GetError(size_t errorNumber)
 {
-	if(n < 1000)
+	if(errorNumber < 1000)
 		return NULL;
 
-	return g_pszLocalError[n - 1000];
+	return g_pszLocalError[errorNumber - 1000];
 }

@@ -19,6 +19,7 @@
 #if !defined(INTEGER_INSTRUCTIONS_MIPS_)
 #define INTEGER_INSTRUCTIONS_MIPS_
 
+#include "locerror.h"
 
 static int parse_GetRegister(void)
 {

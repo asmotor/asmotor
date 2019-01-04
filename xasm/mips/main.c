@@ -16,9 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "xasm.h"
+
+#include "locerror.h"
 
 static SConfiguration xasm_MIPSConfiguration =
 {
@@ -33,7 +36,9 @@ static SConfiguration xasm_MIPSConfiguration =
 
 	"RB", "RH", "RW",
 	"DB", "DH", "DW",
-	"DSB", "DSH", "DSL"
+	"DSB", "DSH", "DSL",
+
+	loc_GetError
 };
 
 extern int main(int argc, char* argv[])

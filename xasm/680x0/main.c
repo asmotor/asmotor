@@ -16,9 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "xasm.h"
+
+#include "locerror.h"
 
 static SConfiguration xasm_680x0Configuration =
 {
@@ -33,7 +36,9 @@ static SConfiguration xasm_680x0Configuration =
 
 	"RS.B", "RS.W", "RS.L",
 	"DC.B", "DC.W", "DC.L",
-	"DS.B", "DS.W", "DS.L"
+	"DS.B", "DS.W", "DS.L",
+
+	loc_GetError
 };
 
 extern int main(int argc, char* argv[])

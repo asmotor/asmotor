@@ -20,13 +20,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xasm.h"
 #include "mem.h"
+
+#include "xasm.h"
 #include "options.h"
+#include "project.h"
+
 #include "localasm.h"
+#include "locerror.h"
 #include "locopt.h"
 #include "loccpu.h"
-#include "project.h"
 #include "tokens.h"
 
 static int s_nPreviousInstructionSet = 0;

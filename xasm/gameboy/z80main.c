@@ -16,9 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "xasm.h"
+
+#include "z80errors.h"
 
 SConfiguration
 xasm_Z80Configuration = {
@@ -33,7 +36,9 @@ xasm_Z80Configuration = {
 
 	"RB", "RW", NULL,
 	"DB", "DW", NULL,
-	"DS", NULL, NULL
+	"DS", NULL, NULL,
+
+	z80_GetError
 };
 
 extern int

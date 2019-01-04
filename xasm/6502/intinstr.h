@@ -21,6 +21,8 @@
 
 #include <assert.h>
 
+#include "locerror.h"
+
 #define MODE_NONE	0x001u
 #define MODE_IMM	0x002u
 #define MODE_ZP		0x004u

@@ -20,13 +20,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xasm.h"
 #include "mem.h"
+
+#include "xasm.h"
 #include "options.h"
-#include "localasm.h"
-#include "locopt.h"
 #include "project.h"
-#include "loclexer.h"
+
+#include "0x10c_options.h"
 
 void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc)
 {

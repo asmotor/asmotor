@@ -16,19 +16,17 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#ifndef XASM_MIPS_LOCERROR_H_INCLUDED_
+#define XASM_MIPS_LOCERROR_H_INCLUDED_
 
-static char* g_pszLocalError[]=
+#include <types.h>
+
+typedef enum
 {
-	"Illegal addressing mode",
-	"Only one register allowed for indirect addressing",
-	"Registers cannot be subtracted in addressing mode",
-};
+	MERROR_UNDEFINED_RESULT = 1000,
+	MERROR_REGISTER_EXPECTED
+} EMachineError;
 
-char* loc_GetError(size_t errorNumber)
-{
-	if(errorNumber < 1000)
-		return NULL;
+extern const char* loc_GetError(size_t errorNumber);
 
-	return g_pszLocalError[errorNumber - 1000];
-}
+#endif

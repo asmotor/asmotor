@@ -26,13 +26,15 @@ Thoughts on the ISA:
 
 #include "xasm.h"
 #include "expression.h"
+#include "lexer.h"
+#include "options.h"
 #include "parse.h"
 #include "project.h"
 #include "section.h"
-#include "lexer.h"
-#include "localasm.h"
-#include "options.h"
-#include "locopt.h"
+
+#include "0x10c_errors.h"
+#include "0x10c_options.h"
+#include "0x10c_tokens.h"
 
 static SExpression* parse_CheckSU16(SExpression* pExpr) {
 	pExpr = expr_CheckRange(pExpr, -32768, 65535);

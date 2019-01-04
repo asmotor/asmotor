@@ -16,9 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "xasm.h"
+
+#include "0x10c_errors.h"
 
 static SConfiguration xasm_0x10CConfiguration =
 {
@@ -33,7 +36,9 @@ static SConfiguration xasm_0x10CConfiguration =
 	
 	NULL, "RW", "RL",
 	NULL, "DW", "DL",
-	NULL, "DSW", NULL
+	NULL, "DSW", NULL,
+
+	loc_GetError	
 };
 
 extern int main(int argc, char* argv[])

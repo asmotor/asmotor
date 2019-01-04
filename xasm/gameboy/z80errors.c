@@ -27,7 +27,7 @@ static const char* g_errors[] = {
 };
 
 const char*
-loc_GetError(uint32_t errorNumber) {
+z80_GetError(size_t errorNumber) {
     if (errorNumber < 1000)
         return NULL;
 

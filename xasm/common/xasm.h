@@ -65,17 +65,19 @@ typedef struct Configuration {
 
     uint32_t sectionAlignment;
 
-    char* reserveByteName;
-    char* reserveWordName;
-    char* reserveLongName;
+    const char* reserveByteName;
+    const char* reserveWordName;
+    const char* reserveLongName;
 
-    char* defineByteName;
-    char* defineWordName;
-    char* defineLongName;
+    const char* defineByteName;
+    const char* defineWordName;
+    const char* defineLongName;
 
-    char* defineByteSpaceName;
-    char* defineWordSpaceName;
-    char* defineLongSpaceName;
+    const char* defineByteSpaceName;
+    const char* defineWordSpaceName;
+    const char* defineLongSpaceName;
+
+    const char* (*getMachineError)(size_t errorNumber);
 } SConfiguration;
 
 extern const SConfiguration*

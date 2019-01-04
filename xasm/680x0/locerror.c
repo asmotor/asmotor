@@ -35,10 +35,10 @@ static char* g_pszLocalError[]=
 	"Instruction not supported by selected FPU"
 };
 
-char* loc_GetError(int n)
+const char* loc_GetError(size_t errorNumber)
 {
-	if(n < 1000)
+	if(errorNumber < 1000)
 		return NULL;
 
-	return g_pszLocalError[n - 1000];
+	return g_pszLocalError[errorNumber - 1000];
 }

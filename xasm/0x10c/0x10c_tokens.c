@@ -17,9 +17,9 @@
 */
 
 #include "xasm.h"
-#include "localasm.h"
-#include "lexer.h"
-#include "loclexer.h"
+#include "lexer_constants.h"
+
+#include "0x10c_tokens.h"
 
 static SLexConstantsWord localstrings[] =
 {

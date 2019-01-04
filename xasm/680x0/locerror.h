@@ -16,16 +16,11 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#ifndef M68K_LOCOPT_H_
+#define M68K_LOCOPT_H_
 
-static char* g_pszLocalError[] = {
-		"Result of operation is undefined",
-		"Register expected"
-};
+#include "xasm.h"
 
-const char* loc_GetError(size_t errorNumber) {
-	if (errorNumber < 1000)
-		return NULL;
+extern const char* loc_GetError(size_t errorNumber);
 
-	return g_pszLocalError[errorNumber - 1000];
-}
+#endif

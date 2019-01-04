@@ -16,16 +16,17 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#ifndef XASM_6502_LOCERROR_H_INCLUDED_
+#define XASM_6502_LOCERROR_H_INCLUDED_
 
-static char* g_pszLocalError[] = {
-		"Result of operation is undefined",
-		"Register expected"
-};
+#include "xasm.h"
 
-const char* loc_GetError(size_t errorNumber) {
-	if (errorNumber < 1000)
-		return NULL;
+typedef enum
+{
+	MERROR_ILLEGAL_ADDRMODE = 1000,
+	ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE
+} EMachineError;
 
-	return g_pszLocalError[errorNumber - 1000];
-}
+extern const char* loc_GetError(size_t errorNumber);
+
+#endif

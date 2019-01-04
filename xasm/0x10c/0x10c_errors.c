@@ -16,15 +16,18 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../common/xasm.h"
+#include "xasm.h"
 
-static char* g_pszLocalError[] = {
-		"Result of operation is undefined",
-		"Register expected"
+static const char* g_pszLocalError[]=
+{
+	"Illegal addressing mode",
+	"Only one register allowed for indirect addressing",
+	"Registers cannot be subtracted in addressing mode",
 };
 
-const char* loc_GetError(size_t errorNumber) {
-	if (errorNumber < 1000)
+const char* loc_GetError(size_t errorNumber)
+{
+	if(errorNumber < 1000)
 		return NULL;
 
 	return g_pszLocalError[errorNumber - 1000];

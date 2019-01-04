@@ -31,6 +31,6 @@ typedef enum {
 } EMachineError;
 
 extern const char*
-loc_GetError(uint32_t errorNumber);
+z80_GetError(size_t errorNumber);
 
 #endif //XASM_GAMEBOY_ERRORS_H_INCLUDED_

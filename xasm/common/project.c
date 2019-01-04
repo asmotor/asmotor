@@ -25,9 +25,6 @@
 #include "options.h"
 #include "patch.h"
 
-extern char*
-loc_GetError(size_t errorNumber);
-
 static char* g_warnings[] = {
         "Cannot \"PURGE\" undefined symbol",
         "Error in option %s, ignored",
@@ -97,10 +94,10 @@ static char* g_errors[] = {
         "Invalid MACRO argument"
 };
 
-static char*
+static const char*
 getError(size_t errorNumber) {
     if (errorNumber >= 1000)
-        return loc_GetError(errorNumber);
+        return xasm_Configuration->getMachineError(errorNumber);
 
     if (errorNumber < sizeof(g_warnings) / sizeof(char*)) {
         return g_warnings[errorNumber];
@@ -111,7 +108,7 @@ getError(size_t errorNumber) {
 
 static void
 printError(const SPatch* patch, char severity, size_t errorNumber, va_list args) {
-    char* errorString = getError(errorNumber);
+    const char* errorString = getError(errorNumber);
 
     printf("%c%04d ", severity, (int) errorNumber);
     if (patch != NULL) {
