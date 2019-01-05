@@ -25,7 +25,7 @@
 
 SConfiguration
 xasm_Z80Configuration = {
-	"motorgb", "1.0",
+	"motorz80", "1.0",
 
 	0x4000,
 	ASM_LITTLE_ENDIAN,

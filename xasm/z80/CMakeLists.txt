@@ -1,4 +1,4 @@
-add_executable(motorgb
+add_executable(motorz80
         z80errors.c
         z80errors.h
         z80main.c
@@ -10,4 +10,4 @@ add_executable(motorgb
         z80tokens.h
         )
 
-target_link_libraries(motorgb xasm util)
+target_link_libraries(motorz80 xasm util)

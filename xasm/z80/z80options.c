@@ -49,7 +49,7 @@ void locopt_Open(void)
     opt_Current->machineOptions->GameboyChar[1] = '1';
     opt_Current->machineOptions->GameboyChar[2] = '2';
     opt_Current->machineOptions->GameboyChar[3] = '3';
-    opt_Current->machineOptions->nCpu = CPUF_GB;
+    opt_Current->machineOptions->nCpu = CPUF_Z80;
 }
 
 void locopt_Update(void)

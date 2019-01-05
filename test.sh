@@ -6,6 +6,10 @@ cd gameboy
 ./run.sh
 cd ..
 
+cd z80
+./run.sh
+cd ..
+
 cd common
 ./run.sh
 cd ..
