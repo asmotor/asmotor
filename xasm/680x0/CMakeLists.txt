@@ -1,17 +1,17 @@
 add_executable (motor68k
-    addrmode.h
-    fpuinstr.h
-    intinstr.h
-    localasm.h
-    loccpu.h
-    locerror.c
-    locerror.h
-    loclexer.c
-    locopt.c
-    locopt.h
-    locparse.c
-    locsym.c
-    main.c
-    pseudoop.h)
+    m68k_errors.c
+    m68k_errors.h
+    m68k_options.c
+    m68k_options.h
+    m68k_main.c
+    m68k_parse.c
+    m68k_parse_addrmode.c
+    m68k_parse_directive.c
+    m68k_parse_fpu.c
+    m68k_parse_integer.c
+    m68k_symbols.c
+    m68k_tokens.c
+    m68k_tokens.h
+    )
 
 target_link_libraries (motor68k xasm util)

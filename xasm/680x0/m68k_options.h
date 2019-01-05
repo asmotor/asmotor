@@ -16,8 +16,23 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef M68K_LOCOPT_H_
-#define M68K_LOCOPT_H_
+#ifndef XASM_M68K_OPTIONS_H_INCLUDED_
+#define XASM_M68K_OPTIONS_H_INCLUDED_
+
+#define CPUF_68000 0x01
+#define CPUF_68010 0x02
+#define CPUF_68020 0x04
+#define CPUF_68030 0x08
+#define CPUF_68040 0x10
+#define CPUF_68060 0x20
+
+#define CPUF_ALL 0x3F
+
+#define FPUF_6888X 0x01
+#define FPUF_68040 0x02
+#define FPUF_68060 0x04
+
+#define FPUF_ALL 0x07
 
 typedef struct MachineOptions
 {

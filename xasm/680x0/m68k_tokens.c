@@ -18,7 +18,8 @@
 
 #include "xasm.h"
 #include "lexer_constants.h"
-#include "localasm.h"
+
+#include "m68k_tokens.h"
 
 static SLexConstantsWord localstrings[]=
 {

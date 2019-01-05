@@ -18,7 +18,6 @@
 
 #include "xasm.h"
 #include "symbol.h"
-#include "localasm.h"
 
 void locsym_Init(void)
 {

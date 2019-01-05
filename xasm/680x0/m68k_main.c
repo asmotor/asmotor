@@ -21,7 +21,7 @@
 
 #include "xasm.h"
 
-#include "locerror.h"
+#include "m68k_errors.h"
 
 static SConfiguration xasm_680x0Configuration =
 {

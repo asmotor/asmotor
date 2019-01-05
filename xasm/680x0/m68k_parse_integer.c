@@ -16,16 +16,21 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(INTEGER_INSTRUCTIONS_M68K_)
-#define INTEGER_INSTRUCTIONS_M68K_
-
 #include <assert.h>
+#include <stdbool.h>
 
-#include "loccpu.h"
+#include "options.h"
+#include "parse.h"
+#include "project.h"
+
+#include "m68k_errors.h"
+#include "m68k_options.h"
+#include "m68k_parse.h"
+#include "m68k_tokens.h"
 
 static bool parse_IntegerOp(ETargetToken op, ESize inssz, SAddrMode* src, SAddrMode* dest);
 
-static bool parse_OutputExtWords(SAddrMode* mode)
+bool parse_OutputExtWords(SAddrMode* mode)
 {
 	switch(mode->eMode)
 	{
@@ -46,7 +51,7 @@ static bool parse_OutputExtWords(SAddrMode* mode)
 				default:
 				case SIZE_WORD:
 				{
-					mode->pImmediate = parse_Check16bit(mode->pImmediate);
+					mode->pImmediate = (mode->pImmediate);
 					if(mode->pImmediate)
 					{
 						sect_OutputExpr16(mode->pImmediate);
@@ -453,7 +458,7 @@ static bool parse_OutputExtWords(SAddrMode* mode)
 	return false;
 }
 
-static uint16_t parse_GetEAField(SAddrMode* mode)
+uint16_t parse_GetEAField(SAddrMode* mode)
 {
 	switch(mode->eMode)
 	{
@@ -2109,9 +2114,7 @@ static bool parse_GetRegisterRange(uint16_t* pStart, uint16_t* pEnd)
 	return false;
 }
 
-#define REGLIST_FAIL 65536
-
-static uint32_t parse_RegisterList(void)
+uint32_t parse_RegisterList(void)
 {
 	uint16_t r;
 	uint16_t start;
@@ -3070,18 +3073,6 @@ static bool parse_MOVES(ESize sz, SAddrMode* src, SAddrMode* dest)
 	return parse_OutputExtWords(ea);
 }
 
-
-typedef struct
-{
-	int	nCPU;
-	ESize nAllowSize;
-	ESize nDefaultSize;
-	EAddrMode nAllowSrc;
-	EAddrMode nAllowDest;
-	EAddrMode nAllowSrc020;
-	EAddrMode nAllowDest020;
-	bool (*pHandler)(ESize eSize, SAddrMode* pSrc, SAddrMode* pDest);
-} SInstruction;
 
 static SInstruction sIntegerInstructions[] =
 {
@@ -4418,5 +4409,3 @@ bool parse_IntegerInstruction(void)
 
 	return parse_CommonCpuFpu(pIns);
 }
-
-#endif

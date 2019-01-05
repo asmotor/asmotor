@@ -19,22 +19,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xasm.h"
 #include "asmotor.h"
-#include "parse.h"
-#include "project.h"
-#include "localasm.h"
+
+#include "xasm.h"
 #include "expression.h"
 #include "lexer.h"
 #include "options.h"
+#include "parse.h"
+#include "project.h"
 #include "section.h"
 
-#include "locopt.h"
-#include "loccpu.h"
-#include "addrmode.h"
-#include "intinstr.h"
-#include "fpuinstr.h"
-#include "pseudoop.h"
+#include "m68k_options.h"
+#include "m68k_parse.h"
+#include "m68k_tokens.h"
+
+extern bool m68k_ParseDirective();
 
 SExpression* parse_TargetFunction(void)
 {
@@ -64,7 +63,7 @@ bool parse_TargetSpecific(void)
 		return true;
 	else if(parse_FpuInstruction())
 		return true;
-	else if(parse_Directive())
+	else if(m68k_ParseDirective())
 		return false;
 
 	return false;

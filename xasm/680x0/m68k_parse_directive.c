@@ -16,10 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ASMOTOR_R68KASM_PSEUDOOP_H_INCLUDED_
-#define ASMOTOR_R68KASM_PSEUDOOP_H_INCLUDED_
+#include <stdbool.h>
 
-static bool parse_Directive()
+#include "lexer.h"
+#include "options.h"
+#include "parse.h"
+
+#include "m68k_options.h"
+#include "m68k_tokens.h"
+
+bool m68k_ParseDirective()
 {
 	switch(lex_Current.token)
 	{
@@ -63,5 +69,3 @@ static bool parse_Directive()
 			return false;
 	}
 }
-
-#endif

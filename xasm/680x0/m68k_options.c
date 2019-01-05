@@ -20,13 +20,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xasm.h"
 #include "mem.h"
+
+#include "xasm.h"
 #include "project.h"
 #include "options.h"
-#include "locopt.h"
 
-#include "loccpu.h"
+#include "m68k_options.h"
 
 void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
 {

@@ -16,12 +16,16 @@
 	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(FPU_INSTRUCTIONS_M68K_)
-#define FPU_INSTRUCTIONS_M68K_
+#include "project.h"
+
+#include "m68k_errors.h"
+#include "m68k_options.h"
+#include "m68k_parse.h"
 
 #define FPU_INS 0xF200u
 
 
+#if 0
 static uint16_t parse_GetSourceSpecifier(ESize sz)
 {
 	switch(sz)
@@ -64,7 +68,6 @@ static bool parse_FABS(ESize sz, SAddrMode* src, SAddrMode* dest)
 	return parse_FpuGeneric(sz, 0x18, src, dest);
 }
 
-
 static SInstruction s_FpuInstructions[] =
 {
 	{   // FABS
@@ -75,7 +78,7 @@ static SInstruction s_FpuInstructions[] =
 		parse_FABS
 	}
 };
-
+#endif
 
 bool parse_FpuInstruction(void)
 {
@@ -103,5 +106,3 @@ bool parse_FpuInstruction(void)
 	return parse_CommonCpuFpu(op, pIns);
 	*/
 }
-
-#endif
