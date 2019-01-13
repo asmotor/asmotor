@@ -21,7 +21,7 @@
 
 #include "xasm.h"
 
-#include "locerror.h"
+#include "x65_errors.h"
 
 static SConfiguration xasm_6502Configuration =
 {

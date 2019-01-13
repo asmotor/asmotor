@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XASM_GAMEBOY_TOKENS_H_INCLUDED_
-#define	XASM_GAMEBOY_TOKENS_H_INCLUDED_
+#ifndef	XASM_MIPS_TOKENS_H_INCLUDED_
+#define	XASM_MIPS_TOKENS_H_INCLUDED_
 
 typedef	enum
 {

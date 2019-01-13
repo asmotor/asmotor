@@ -16,7 +16,17 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lexer_constants.h"
+#ifndef XASM_MIPS_OPTIONS_H_INCLUDED_
+#define XASM_MIPS_OPTIONS_H_INCLUDED_
 
-extern SLexConstantsWord* loclexer_GetUndocumentedInstructions(int n);
+#define CPUF_MIPS32R1 0x01
+#define CPUF_MIPS32R2 0x02
 
+#define CPUF_ALL 0x03
+
+typedef struct MachineOptions
+{
+	int	nCpu;
+} SMachineOptions;
+
+#endif

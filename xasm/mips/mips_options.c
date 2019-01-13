@@ -20,13 +20,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xasm.h"
 #include "mem.h"
-#include "localasm.h"
+
+#include "xasm.h"
 #include "options.h"
 #include "project.h"
-#include "locopt.h"
-#include "loccpu.h"
+
+#include "mips_options.h"
 
 SMachineOptions* locopt_Alloc(void)
 {

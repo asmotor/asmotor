@@ -20,6 +20,7 @@
 
 /* From xasm */
 #include "lexer.h"
+#include "parse_expression.h"
 #include "parse_string.h"
 
 /* From util */

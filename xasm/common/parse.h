@@ -28,12 +28,6 @@ parse_Do(void);
 extern void
 parse_GetToken(void);
 
-extern SExpression*
-parse_Expression(size_t maxStringConstLength);
-
-extern int32_t
-parse_ConstantExpression(void);
-
 extern bool
 parse_ExpectChar(char ch);
 

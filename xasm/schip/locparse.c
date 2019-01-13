@@ -19,6 +19,7 @@
 #include "xasm.h"
 #include "expression.h"
 #include "parse.h"
+#include "parse_expression.h"
 #include "project.h"
 #include "localasm.h"
 #include "lexer.h"

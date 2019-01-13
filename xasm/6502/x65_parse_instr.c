@@ -16,31 +16,17 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(INTEGER_INSTRUCTIONS_65XX_)
-#define INTEGER_INSTRUCTIONS_65XX_
-
 #include <assert.h>
+#include <stdbool.h>
 
-#include "locerror.h"
+#include "expression.h"
+#include "lexer.h"
+#include "parse.h"
+#include "project.h"
 
-#define MODE_NONE	0x001u
-#define MODE_IMM	0x002u
-#define MODE_ZP		0x004u
-#define MODE_ZP_X	0x008u
-#define MODE_ZP_Y	0x010u
-#define MODE_ABS	0x020u
-#define MODE_ABS_X	0x040u
-#define MODE_ABS_Y	0x080u
-#define MODE_IND_X	0x100u
-#define MODE_IND_Y	0x200u
-#define MODE_A		0x400u
-#define MODE_IND	0x800u
-
-typedef struct
-{
-	int	nMode;
-	SExpression* expr;
-} SAddressingMode;
+#include "x65_errors.h"
+#include "x65_parse.h"
+#include "x65_tokens.h"
 
 typedef struct Parser
 {
@@ -352,156 +338,6 @@ static SParser g_Parsers[T_6502U_XAS - T_6502_ADC + 1] =
 };
 
 
-bool parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes)
-{
-	SLexerBookmark bm;
-	lex_Bookmark(&bm);
-
-	if((nAllowedModes & MODE_A) && lex_Current.token == T_6502_REG_A)
-	{
-		parse_GetToken();
-		pAddrMode->nMode = MODE_A;
-		pAddrMode->expr = NULL;
-		return true;
-	}
-	else if((nAllowedModes & MODE_IMM) && lex_Current.token == '#')
-	{
-		parse_GetToken();
-		pAddrMode->nMode = MODE_IMM;
-		pAddrMode->expr = parse_ExpressionSU8();
-		return true;
-	}
-
-	if((nAllowedModes & (MODE_IND_X | MODE_IND_Y)) && lex_Current.token == '(')
-	{
-		parse_GetToken();
-		pAddrMode->expr = parse_ExpressionSU8();
-
-		if(pAddrMode->expr != NULL)
-		{
-			if(lex_Current.token == ',')
-			{
-				parse_GetToken();
-				if(lex_Current.token == T_6502_REG_X)
-				{
-					parse_GetToken();
-					if(parse_ExpectChar(')'))
-					{
-						pAddrMode->nMode = MODE_IND_X;
-						return true;
-					}
-				}
-			}
-			else if(lex_Current.token == ')')
-			{
-				parse_GetToken();
-				if(lex_Current.token == ',')
-				{
-					parse_GetToken();
-					if(lex_Current.token == T_6502_REG_Y)
-					{
-						parse_GetToken();
-						pAddrMode->nMode = MODE_IND_Y;
-						return true;
-					}
-				}
-			}
-		}
-
-		lex_Goto(&bm);
-	}
-
-	if(nAllowedModes & MODE_IND)
-	{
-		if(lex_Current.token == '(')
-		{
-			parse_GetToken();
-
-			pAddrMode->expr = parse_Expression(2);
-			if(pAddrMode->expr != NULL)
-			{
-				if(parse_ExpectChar(')'))
-				{
-					pAddrMode->nMode = MODE_IND;
-					return true;
-				}
-			}
-		}
-		lex_Goto(&bm);
-	}
-
-	if(nAllowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y))
-	{
-		pAddrMode->expr = parse_Expression(2);
-
-		if(pAddrMode->expr != NULL)
-		{
-			if(expr_IsConstant(pAddrMode->expr)
-			&& 0 <= pAddrMode->expr->value.integer && pAddrMode->expr->value.integer <= 255)
-			{
-				if(lex_Current.token == ',')
-				{
-					parse_GetToken();
-					if(lex_Current.token == T_6502_REG_X)
-					{
-						parse_GetToken();
-						pAddrMode->nMode = MODE_ZP_X;
-						return true;
-					}
-					else if(lex_Current.token == T_6502_REG_Y)
-					{
-						parse_GetToken();
-						pAddrMode->nMode = MODE_ZP_Y;
-						return true;
-					}
-				}
-				pAddrMode->nMode = MODE_ZP;
-				return true;
-			}
-
-			if(lex_Current.token == ',')
-			{
-				parse_GetToken();
-
-				if(lex_Current.token == T_6502_REG_X)
-				{
-					parse_GetToken();
-					pAddrMode->nMode = MODE_ABS_X;
-					return true;
-				}
-				else if(lex_Current.token == T_6502_REG_Y)
-				{
-					parse_GetToken();
-					pAddrMode->nMode = MODE_ABS_Y;
-					return true;
-				}
-			}
-
-			pAddrMode->nMode = MODE_ABS;
-			return true;
-		}
-
-		lex_Goto(&bm);
-	}
-
-	if((nAllowedModes == 0) || (nAllowedModes & MODE_NONE))
-	{
-		pAddrMode->nMode = MODE_NONE;
-		pAddrMode->expr = NULL;
-		return true;
-	}
-
-	if(nAllowedModes & MODE_A)
-	{
-		pAddrMode->nMode = MODE_A;
-		pAddrMode->expr = NULL;
-		return true;
-	}
-
-	return false;
-}
-
-
 bool parse_IntegerInstruction(void)
 {
 	if(T_6502_ADC <= lex_Current.token && lex_Current.token <= T_6502U_XAS)
@@ -519,6 +355,3 @@ bool parse_IntegerInstruction(void)
 
 	return false;
 }
-
-
-#endif

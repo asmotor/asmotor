@@ -19,4 +19,18 @@
 #ifndef XASM_COMMON_PARSE_EXPRESSION_H_INCLUDED_
 #define XASM_COMMON_PARSE_EXPRESSION_H_INCLUDED_
 
+#include "expression.h"
+
+extern SExpression*
+parse_Expression(size_t maxStringConstLength);
+
+extern int32_t
+parse_ConstantExpression(void);
+
+extern SExpression*
+parse_ExpressionS16(void);
+
+extern SExpression*
+parse_ExpressionU16(void);
+
 #endif // XASM_COMMON_PARSE_EXPRESSION_H_INCLUDED_

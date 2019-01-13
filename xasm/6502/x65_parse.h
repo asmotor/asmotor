@@ -16,12 +16,34 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MIPS_LOCCPU_H_
-#define MIPS_LOCCPU_H_
+#ifndef XASM_X65_PARSE_H_INCLUDED_
+#define XASM_X65_PARSE_H_INCLUDED_
 
-#define CPUF_MIPS32R1 0x01
-#define CPUF_MIPS32R2 0x02
+#include "expression.h"
 
-#define CPUF_ALL 0x03
+#define MODE_NONE	0x001u
+#define MODE_IMM	0x002u
+#define MODE_ZP		0x004u
+#define MODE_ZP_X	0x008u
+#define MODE_ZP_Y	0x010u
+#define MODE_ABS	0x020u
+#define MODE_ABS_X	0x040u
+#define MODE_ABS_Y	0x080u
+#define MODE_IND_X	0x100u
+#define MODE_IND_Y	0x200u
+#define MODE_A		0x400u
+#define MODE_IND	0x800u
+
+typedef struct
+{
+	int	nMode;
+	SExpression* expr;
+} SAddressingMode;
+
+extern bool parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes);
+
+extern bool parse_IntegerInstruction(void);
+
+extern SExpression* parse_ExpressionSU8(void);
 
 #endif

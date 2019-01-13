@@ -17,58 +17,15 @@
 */
 
 #include "xasm.h"
+
 #include "expression.h"
+#include "lexer.h"
 #include "parse.h"
+#include "parse_expression.h"
 #include "project.h"
 #include "section.h"
-#include "lexer.h"
-#include "localasm.h"
 
-SExpression* parse_ExpressionS16(void)
-{
-	SExpression* pExpr = parse_Expression(2);
-	if(pExpr == NULL)
-		return NULL;
-		
-	pExpr = expr_CheckRange(pExpr, -32768, 32767);
-	if(pExpr == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
-	
-	return expr_And(pExpr, expr_Const(0xFFFF));
-}
-
-
-SExpression* parse_ExpressionU16(void)
-{
-	SExpression* pExpr = parse_Expression(2);
-	if(pExpr == NULL)
-		return NULL;
-		
-	pExpr = expr_CheckRange(pExpr, 0, 65535);
-	if(pExpr == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
-	return pExpr;
-}
-
-
-SExpression* parse_ExpressionSU8(void)
-{
-	SExpression* pExpr = parse_Expression(1);
-	if(pExpr == NULL)
-		return NULL;
-		
-	pExpr = expr_CheckRange(pExpr, -128, 255);
-	if(pExpr == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
-	
-	return expr_And(pExpr, expr_Const(0xFF));
-}
-
-
-
-
-
-#include "intinstr.h"
+#include "mips_parse.h"
 
 SExpression* parse_TargetFunction(void)
 {

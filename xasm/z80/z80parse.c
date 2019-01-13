@@ -24,6 +24,7 @@
 #include "lexer.h"
 #include "options.h"
 #include "parse.h"
+#include "parse_expression.h"
 #include "project.h"
 #include "section.h"
 

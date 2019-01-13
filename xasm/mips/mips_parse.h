@@ -16,7 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef X65XX_LOCCPU_H_
-#define X65XX_LOCCPU_H_
+#ifndef XASM_PARSE_LOCERROR_H_INCLUDED_
+#define XASM_PARSE_LOCERROR_H_INCLUDED_
+
+extern bool parse_IntegerInstruction(void);
 
 #endif

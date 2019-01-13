@@ -17,9 +17,10 @@
 */
 
 #include "xasm.h"
-#include "localasm.h"
-#include "lexer.h"
-#include "tokens.h"
+
+#include "lexer_constants.h"
+
+#include "x65_tokens.h"
 
 static SLexConstantsWord s_UndocumentedInstructions0[] =
 {

@@ -564,3 +564,31 @@ parse_ConstantExpression() {
 
     return 0;
 }
+
+SExpression* 
+parse_ExpressionS16(void) {
+	SExpression* expression = parse_Expression(2);
+	if (expression == NULL)
+		return NULL;
+		
+	expression = expr_CheckRange(expression, -32768, 32767);
+	if (expression == NULL)
+		prj_Error(ERROR_OPERAND_RANGE);
+	
+	return expr_And(expression, expr_Const(0xFFFF));
+}
+
+SExpression*
+parse_ExpressionU16(void) {
+	SExpression* expression = parse_Expression(2);
+	if (expression == NULL)
+		return NULL;
+		
+	expression = expr_CheckRange(expression, 0, 65535);
+	if (expression == NULL)
+		prj_Error(ERROR_OPERAND_RANGE);
+        
+	return expression;
+}
+
+

@@ -23,6 +23,7 @@
 #include "lexer.h"
 #include "parse.h"
 #include "parse_block.h"
+#include "parse_expression.h"
 #include "parse_string.h"
 #include "parse_symbol.h"
 #include "project.h"

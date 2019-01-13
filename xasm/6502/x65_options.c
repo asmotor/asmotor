@@ -23,14 +23,13 @@
 #include "mem.h"
 
 #include "xasm.h"
+#include "lexer_constants.h"
 #include "options.h"
 #include "project.h"
 
-#include "localasm.h"
-#include "locerror.h"
-#include "locopt.h"
-#include "loccpu.h"
-#include "tokens.h"
+#include "x65_errors.h"
+#include "x65_options.h"
+#include "x65_tokens.h"
 
 static int s_nPreviousInstructionSet = 0;
 

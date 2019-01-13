@@ -1,14 +1,14 @@
 add_executable (motormips
-    intinstr.h
-    localasm.h
-    loccpu.h
-    locerror.c
-    locerror.h
-    loclexer.c
-    locopt.c
-    locopt.h
-    locparse.c
-    locsym.c
-    main.c)
+    mips_errors.c
+    mips_errors.h
+    mips_main.c
+    mips_options.c
+    mips_options.h
+    mips_parse_instr.c
+    mips_parse.c
+    mips_symbols.c
+    mips_tokens.c
+    mips_tokens.h
+    )
 
 target_link_libraries (motormips xasm util)

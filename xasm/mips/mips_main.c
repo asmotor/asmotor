@@ -21,7 +21,7 @@
 
 #include "xasm.h"
 
-#include "locerror.h"
+#include "mips_errors.h"
 
 static SConfiguration xasm_MIPSConfiguration =
 {

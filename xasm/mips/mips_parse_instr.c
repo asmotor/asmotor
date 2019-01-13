@@ -16,10 +16,14 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(INTEGER_INSTRUCTIONS_MIPS_)
-#define INTEGER_INSTRUCTIONS_MIPS_
+#include "project.h"
+#include "lexer.h"
+#include "parse.h"
+#include "parse_expression.h"
+#include "section.h"
 
-#include "locerror.h"
+#include "mips_errors.h"
+#include "mips_tokens.h"
 
 static int parse_GetRegister(void)
 {
@@ -940,5 +944,3 @@ bool parse_IntegerInstruction(void)
 	return false;
 }
 
-
-#endif

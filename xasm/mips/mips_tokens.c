@@ -19,7 +19,7 @@
 #include "xasm.h"
 #include "lexer_constants.h"
 
-#include "localasm.h"
+#include "mips_tokens.h"
 
 static SLexConstantsWord localstrings[]=
 {

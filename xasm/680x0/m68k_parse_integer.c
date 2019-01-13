@@ -21,6 +21,7 @@
 
 #include "options.h"
 #include "parse.h"
+#include "parse_expression.h"
 #include "project.h"
 
 #include "m68k_errors.h"

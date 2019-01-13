@@ -16,8 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XASM_GAMEBOY_TOKENS_H_INCLUDED_
-#define	XASM_GAMEBOY_TOKENS_H_INCLUDED_
+#ifndef XASM_X65_TOKENS_H_INCLUDED_
+#define XASM_X65_TOKENS_H_INCLUDED_
+
+#include "lexer_constants.h"
 
 typedef	enum
 {
@@ -119,4 +121,6 @@ typedef	enum
 	
 }	ETargetToken;
 
-#endif	/* XASM_GAMEBOY_TOKENS_H_INCLUDED_ */
+extern SLexConstantsWord* loclexer_GetUndocumentedInstructions(int n);
+
+#endif
