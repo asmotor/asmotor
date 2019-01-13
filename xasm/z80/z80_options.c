@@ -26,8 +26,8 @@
 #include "options.h"
 #include "project.h"
 
-#include "z80options.h"
-#include "z80tokens.h"
+#include "z80_options.h"
+#include "z80_tokens.h"
 
 extern SConfiguration xasm_Z80Configuration;
 

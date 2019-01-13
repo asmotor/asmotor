@@ -21,7 +21,7 @@
 
 #include "xasm.h"
 
-#include "z80errors.h"
+#include "z80_errors.h"
 
 SConfiguration
 xasm_Z80Configuration = {

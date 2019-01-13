@@ -1,13 +1,13 @@
 add_executable(motorz80
-        z80errors.c
-        z80errors.h
-        z80main.c
-        z80options.c
-        z80options.h
-        z80parse.c
-        z80symbols.c
-        z80tokens.c
-        z80tokens.h
+        z80_errors.c
+        z80_errors.h
+        z80_main.c
+        z80_options.c
+        z80_options.h
+        z80_parse.c
+        z80_symbols.c
+        z80_tokens.c
+        z80_tokens.h
         )
 
 target_link_libraries(motorz80 xasm util)

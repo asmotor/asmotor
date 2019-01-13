@@ -28,9 +28,9 @@
 #include "project.h"
 #include "section.h"
 
-#include "z80errors.h"
-#include "z80tokens.h"
-#include "z80options.h"
+#include "z80_errors.h"
+#include "z80_tokens.h"
+#include "z80_options.h"
 
 typedef enum
 {

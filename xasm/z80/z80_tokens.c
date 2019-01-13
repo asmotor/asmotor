@@ -24,8 +24,8 @@
 #include "lexer_variadics.h"
 #include "options.h"
 
-#include "z80tokens.h"
-#include "z80options.h"
+#include "z80_tokens.h"
+#include "z80_options.h"
 
 static SLexConstantsWord localstrings[]=
 {
