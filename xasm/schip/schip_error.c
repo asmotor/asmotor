@@ -16,12 +16,20 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SCHIP_LOCOPT_H_
-#define SCHIP_LOCOPT_H_
+#include "xasm.h"
 
-typedef struct MachineOptions
+#include "schip_error.h"
+
+static const char* g_pszLocalError[]=
 {
-	int	nCpu;
-} SMachineOptions;
+	"Result of operation is undefined",
+	"Register expected"
+};
 
-#endif
+const char* loc_GetError(size_t errorNumber)
+{
+	if(errorNumber < 1000)
+		return NULL;
+
+	return g_pszLocalError[errorNumber - 1000];
+}

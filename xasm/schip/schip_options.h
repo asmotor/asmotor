@@ -16,22 +16,17 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
-#include "symbol.h"
+#ifndef SCHIP_LOCOPT_H_
+#define SCHIP_LOCOPT_H_
 
-void locsym_Init(void)
+#define CPUF_CHIP8	0x01
+#define CPUF_SCHIP	0x02
+
+#define CPUF_ALL 0x03
+
+typedef struct MachineOptions
 {
-	string* pName;
-	
-	pName = str_Create("CODE");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
+	int	nCpu;
+} SMachineOptions;
 
-	pName = str_Create("DATA");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
-
-	pName = str_Create("BSS");
-    sym_CreateGroup(pName, GROUP_BSS);
-	str_Free(pName);
-}
+#endif

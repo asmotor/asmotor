@@ -21,7 +21,7 @@
 
 #include "xasm.h"
 
-#include "locerror.h"
+#include "schip_error.h"
 
 static SConfiguration xasm_SuperChipConfiguration =
 {

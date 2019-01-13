@@ -16,12 +16,11 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SCHIP_LOCCPU_H_
-#define SCHIP_LOCCPU_H_
+#ifndef XASM_SCHIP_PARSE_H_INCLUDED_
+#define XASM_SCHIP_PARSE_H_INCLUDED_
 
-#define CPUF_CHIP8	0x01
-#define CPUF_SCHIP	0x02
+extern SExpression* parse_ExpressionU12(void);
 
-#define CPUF_ALL 0x03
+extern bool parse_IntegerInstruction(void);
 
 #endif

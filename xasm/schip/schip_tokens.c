@@ -19,7 +19,7 @@
 #include "xasm.h"
 #include "lexer_constants.h"
 
-#include "localasm.h"
+#include "schip_tokens.h"
 
 static SLexConstantsWord localstrings[]=
 {
@@ -87,7 +87,7 @@ static SLexConstantsWord localstrings[]=
 	{ NULL, 0 }
 };
 
-void	loclexer_Init(void)
+void loclexer_Init(void)
 {
 	lex_ConstantsDefineWords(localstrings);
 }

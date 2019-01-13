@@ -18,18 +18,41 @@
 
 #include "xasm.h"
 
-#include "locerror.h"
+#include "expression.h"
+#include "lexer.h"
+#include "parse.h"
+#include "parse_expression.h"
+#include "project.h"
+#include "section.h"
 
-static const char* g_pszLocalError[]=
-{
-	"Result of operation is undefined",
-	"Register expected"
-};
+#include "schip_parse.h"
+#include "schip_tokens.h"
 
-const char* loc_GetError(size_t errorNumber)
+SExpression* parse_ExpressionU12(void)
 {
-	if(errorNumber < 1000)
+	SExpression* pExpr = parse_Expression(1);
+	if(pExpr == NULL)
 		return NULL;
+		
+	pExpr = expr_CheckRange(pExpr, 0, 4095);
+	if(pExpr == NULL)
+		prj_Error(ERROR_OPERAND_RANGE);
+	return pExpr;
+}
 
-	return g_pszLocalError[errorNumber - 1000];
+SExpression* parse_TargetFunction(void)
+{
+	switch(lex_Current.token)
+	{
+		default:
+			return NULL;
+	}
+}
+
+bool parse_TargetSpecific(void)
+{
+	if(parse_IntegerInstruction())
+		return true;
+
+	return false;
 }

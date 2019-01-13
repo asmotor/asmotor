@@ -17,44 +17,22 @@
 */
 
 #include "xasm.h"
-#include "expression.h"
-#include "parse.h"
-#include "parse_expression.h"
-#include "project.h"
-#include "localasm.h"
-#include "lexer.h"
-#include "section.h"
 
+#include "symbol.h"
 
-SExpression* parse_ExpressionU12(void)
+void locsym_Init(void)
 {
-	SExpression* pExpr = parse_Expression(1);
-	if(pExpr == NULL)
-		return NULL;
-		
-	pExpr = expr_CheckRange(pExpr, 0, 4095);
-	if(pExpr == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
-	return pExpr;
-}
+	string* pName;
+	
+	pName = str_Create("CODE");
+    sym_CreateGroup(pName, GROUP_TEXT);
+	str_Free(pName);
 
+	pName = str_Create("DATA");
+    sym_CreateGroup(pName, GROUP_TEXT);
+	str_Free(pName);
 
-
-#include "intinstr.h"
-
-SExpression* parse_TargetFunction(void)
-{
-	switch(lex_Current.token)
-	{
-		default:
-			return NULL;
-	}
-}
-
-bool parse_TargetSpecific(void)
-{
-	if(parse_IntegerInstruction())
-		return true;
-
-	return false;
+	pName = str_Create("BSS");
+    sym_CreateGroup(pName, GROUP_BSS);
+	str_Free(pName);
 }

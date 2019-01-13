@@ -20,6 +20,17 @@
 #define INTEGER_INSTRUCTIONS_SCHIP_
 
 #include <assert.h>
+#include <stdbool.h>
+
+#include "lexer.h"
+#include "expression.h"
+#include "parse.h"
+#include "parse_expression.h"
+#include "project.h"
+#include "section.h"
+
+#include "schip_parse.h"
+#include "schip_tokens.h"
 
 #define	MODE_REG	0x01
 #define MODE_IMM	0x02
