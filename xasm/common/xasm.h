@@ -99,7 +99,7 @@ extern void
 locopt_Free(struct MachineOptions* pOptions);
 
 extern void
-locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc);
+locopt_Copy(struct MachineOptions* dest, struct MachineOptions* src);
 
 
 #endif // XASM_COMMON_XASM_H_INCLUDED_

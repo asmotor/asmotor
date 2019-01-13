@@ -33,7 +33,7 @@ extern void
 locopt_Update(void);
 
 extern bool
-locopt_Parse(char*);
+locopt_Parse(const char*);
 
 extern void
 locopt_Open(void);

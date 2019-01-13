@@ -217,7 +217,7 @@ static bool parse_SingleModePart(SModeRegs* pMode)
 	return false;
 }
 
-static bool parse_GetInnerMode(SAddrMode* pMode)
+static bool parse_GetInnerMode(SAddressingMode* pMode)
 {
 	for(;;)
 	{
@@ -240,7 +240,7 @@ static bool parse_GetInnerMode(SAddrMode* pMode)
 	}
 }
 
-static bool parse_GetOuterPart(SAddrMode* pMode)
+static bool parse_GetOuterPart(SAddressingMode* pMode)
 {
 	if(opt_Current->machineOptions->nCpu >= CPUF_68020 && lex_Current.token == '[')
 	{
@@ -251,7 +251,7 @@ static bool parse_GetOuterPart(SAddrMode* pMode)
 	return parse_SingleModePart(&pMode->Outer);
 }
 
-static bool parse_GetOuterMode(SAddrMode* pMode)
+static bool parse_GetOuterMode(SAddressingMode* pMode)
 {
 	for(;;)
 	{
@@ -312,7 +312,7 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 #define O_INDEX 0x10
 #define O_DISP  0x20
 
-static bool parse_OptimizeMode(SAddrMode* pMode)
+static bool parse_OptimizeMode(SAddressingMode* pMode)
 {
 	uint32_t inner = 0;
 
@@ -536,7 +536,7 @@ void parse_OptimizeDisp(SModeRegs* pRegs)
 }
 
 
-bool parse_GetAddrMode(SAddrMode* pMode)
+bool parse_GetAddrMode(SAddressingMode* pMode)
 {
 	pMode->Inner.nBaseReg = REG_NONE;
 	pMode->Inner.nIndexReg = REG_NONE;

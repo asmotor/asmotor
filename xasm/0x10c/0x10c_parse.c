@@ -37,391 +37,413 @@ Thoughts on the ISA:
 #include "0x10c_options.h"
 #include "0x10c_tokens.h"
 
-static SExpression* parse_CheckSU16(SExpression* pExpr) {
-	pExpr = expr_CheckRange(pExpr, -32768, 65535);
-	if (pExpr == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
+static SExpression*
+parse_CheckSU16(SExpression* expression) {
+    expression = expr_CheckRange(expression, -32768, 65535);
+    if (expression == NULL)
+        prj_Error(ERROR_OPERAND_RANGE);
 
-	return expr_And(pExpr, expr_Const(0xFFFF));
+    return expr_And(expression, expr_Const(0xFFFF));
 }
 
-static SExpression* parse_CheckU16(SExpression* pExpr) {
-	pExpr = expr_CheckRange(pExpr, 0, 65535);
-	if (pExpr == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
-	return pExpr;
+static SExpression*
+parse_CheckU16(SExpression* expression) {
+    expression = expr_CheckRange(expression, 0, 65535);
+    if (expression == NULL)
+        prj_Error(ERROR_OPERAND_RANGE);
+    return expression;
 }
 
 typedef enum {
-	ADDR_A,
-	ADDR_B,
-	ADDR_C,
-	ADDR_X,
-	ADDR_Y,
-	ADDR_Z,
-	ADDR_I,
-	ADDR_J,
-	ADDR_A_IND,
-	ADDR_B_IND,
-	ADDR_C_IND,
-	ADDR_X_IND,
-	ADDR_Y_IND,
-	ADDR_Z_IND,
-	ADDR_I_IND,
-	ADDR_J_IND,
-	ADDR_A_OFFSET_IND,
-	ADDR_B_OFFSET_IND,
-	ADDR_C_OFFSET_IND,
-	ADDR_X_OFFSET_IND,
-	ADDR_Y_OFFSET_IND,
-	ADDR_Z_OFFSET_IND,
-	ADDR_I_OFFSET_IND,
-	ADDR_J_OFFSET_IND,
-	ADDR_POP,
-	ADDR_PEEK,
-	ADDR_PUSH,
-	ADDR_SP,
-	ADDR_PC,
-	ADDR_O,
-	ADDR_ADDRESS_IND,
-	ADDR_LITERAL,
-	ADDR_LITERAL_00,
+    ADDR_A,
+    ADDR_B,
+    ADDR_C,
+    ADDR_X,
+    ADDR_Y,
+    ADDR_Z,
+    ADDR_I,
+    ADDR_J,
+    ADDR_A_IND,
+    ADDR_B_IND,
+    ADDR_C_IND,
+    ADDR_X_IND,
+    ADDR_Y_IND,
+    ADDR_Z_IND,
+    ADDR_I_IND,
+    ADDR_J_IND,
+    ADDR_A_OFFSET_IND,
+    ADDR_B_OFFSET_IND,
+    ADDR_C_OFFSET_IND,
+    ADDR_X_OFFSET_IND,
+    ADDR_Y_OFFSET_IND,
+    ADDR_Z_OFFSET_IND,
+    ADDR_I_OFFSET_IND,
+    ADDR_J_OFFSET_IND,
+    ADDR_POP,
+    ADDR_PEEK,
+    ADDR_PUSH,
+    ADDR_SP,
+    ADDR_PC,
+    ADDR_O,
+    ADDR_ADDRESS_IND,
+    ADDR_LITERAL,
+    ADDR_LITERAL_00,
 } EAddrMode;
 
 #define ADDRF_ALL 0xFFFFFFFFu
 #define ADDRF_LITERAL (1UL << (uint32_t)ADDR_LITERAL)
 
 typedef struct {
-	EAddrMode eMode;
-	SExpression* pAddress;
-} SAddrMode;
+    EAddrMode mode;
+    SExpression* address;
+} SAddressingMode;
 
-static SExpression* parse_ExpressionNoReservedIdentifiers() {
-	SExpression* pExpr;
+static SExpression*
+expressionNoReservedIdentifiers() {
+    opt_Push();
+    opt_Current->allowReservedKeywordLabels = false;
+    SExpression* expression = parse_Expression(4);
+    opt_Pop();
 
-	opt_Push();
-	opt_Current->allowReservedKeywordLabels = false;
-	pExpr = parse_Expression(4);
-	opt_Pop();
-
-	return pExpr;
+    return expression;
 }
 
-static bool parse_IndirectComponent(uint32_t* pRegister, SExpression** ppAddress) {
-	if (lex_Current.token >= T_REG_A && lex_Current.token <= T_REG_J) {
-		*pRegister = lex_Current.token - T_REG_A;
-		*ppAddress = NULL;
-		parse_GetToken();
-		return true;
-	} else {
-		SExpression* pExpr = parse_ExpressionNoReservedIdentifiers();
+static bool
+indirectComponent(uint32_t* reg, SExpression** address) {
+    if (lex_Current.token >= T_REG_A && lex_Current.token <= T_REG_J) {
+        *reg = lex_Current.token - T_REG_A;
+        *address = NULL;
+        parse_GetToken();
+        return true;
+    } else {
+        SExpression* expression = expressionNoReservedIdentifiers();
 
-		if (pExpr != NULL) {
-			*pRegister = UINT32_MAX;
-			*ppAddress = pExpr;
-			return true;
-		}
-	}
-	return false;
+        if (expression != NULL) {
+            *reg = UINT32_MAX;
+            *address = expression;
+            return true;
+        }
+    }
+    return false;
 }
 
-static bool parse_IndirectAddressing(SAddrMode* pMode, uint32_t nAllowedModes) {
-	if (lex_Current.token == '[') {
-		uint32_t nRegister = UINT32_MAX;
-		SExpression* pAddress = NULL;
+static bool
+indirectAdd(uint32_t* reg, SExpression** address) {
+    uint32_t newReg = UINT32_MAX;
+    SExpression* newAddress = NULL;
+    if (!indirectComponent(&newReg, &newAddress))
+        return false;
 
-		parse_GetToken();
-
-		if (!parse_IndirectComponent(&nRegister, &pAddress))
-			return false;
-
-		while (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUBTRACT) {
-			if (lex_Current.token == T_OP_ADD) {
-				uint32_t nRegister2 = UINT32_MAX;
-				SExpression* pAddress2 = NULL;
-
-				parse_GetToken();
-				if (!parse_IndirectComponent(&nRegister2, &pAddress2))
-					return false;
-
-				if (nRegister2 >= 0) {
-					if (nRegister == UINT32_MAX)
-						nRegister = nRegister2;
-					else
-						prj_Error(MERROR_ADDRMODE_ONE_REGISTER);
-				} else if (pAddress2 != NULL) {
-					pAddress = pAddress == NULL ? pAddress2 : expr_Add(pAddress, pAddress2);
-				} else {
-					prj_Error(MERROR_ILLEGAL_ADDRMODE);
-				}
-			} else if (lex_Current.token == T_OP_SUBTRACT) {
-				uint32_t nRegister2 = UINT32_MAX;
-				SExpression* pAddress2 = NULL;
-
-				parse_GetToken();
-				if (!parse_IndirectComponent(&nRegister2, &pAddress2))
-					return false;
-
-				if (nRegister2 >= 0) {
-					prj_Error(MERROR_ADDRMODE_SUBTRACT_REGISTER);
-				} else if (pAddress2 != NULL) {
-					pAddress = pAddress == NULL ? pAddress2 : expr_Sub(pAddress, pAddress2);
-				} else {
-					prj_Error(MERROR_ILLEGAL_ADDRMODE);
-				}
-			}
-		}
-
-		parse_ExpectChar(']');
-
-		if (nRegister != UINT32_MAX && pAddress == NULL) {
-			EAddrMode mode = ADDR_A_IND + nRegister;
-			if (nAllowedModes & (1u << mode)) {
-				pMode->eMode = mode;
-				pMode->pAddress = NULL;
-				return true;
-			}
-		}
-
-		if (nRegister != UINT32_MAX && pAddress != NULL) {
-			EAddrMode mode = ADDR_A_OFFSET_IND + nRegister;
-			if (nAllowedModes & (1u << mode)) {
-				pMode->eMode = mode;
-				pMode->pAddress = parse_CheckSU16(pAddress);
-				return true;
-			}
-		}
-
-		if (nRegister == UINT32_MAX && pAddress != NULL) {
-			EAddrMode mode = ADDR_ADDRESS_IND;
-			if (nAllowedModes & (1u << mode)) {
-				pMode->eMode = mode;
-				pMode->pAddress = parse_CheckU16(pAddress);
-				return true;
-			}
-		}
-	}
-
-	return false;
+    if (newReg >= 0) {
+        if (*reg == UINT32_MAX)
+            *reg = newReg;
+        else
+            prj_Error(MERROR_ADDRMODE_ONE_REGISTER);
+    } else if (newAddress != NULL) {
+        *address = *address == NULL ? newAddress : expr_Add(*address, newAddress);
+    } else {
+        prj_Error(MERROR_ILLEGAL_ADDRMODE);
+    }
+    return true;
 }
 
-static void parse_OptimizeAddressingMode(SAddrMode* pMode) {
-	if (opt_Current->machineOptions->bOptimize) {
-		/* Optimize literals <= 0x1F */
-		if (pMode->eMode == ADDR_LITERAL && expr_IsConstant(pMode->pAddress)) {
-			uint16_t v = (uint16_t) pMode->pAddress->value.integer;
-			if (v <= 0x1F) {
-				pMode->eMode = ADDR_LITERAL_00 + v;
-				expr_Free(pMode->pAddress);
-				pMode->pAddress = NULL;
-			}
-		}
+static bool indirectSubtract(SExpression** address) {
+    uint32_t newReg = UINT32_MAX;
+    SExpression* newAddress = NULL;
 
-		/* Optimize [reg+0] to [reg] */
-		if (pMode->eMode >= ADDR_A_OFFSET_IND && pMode->eMode <= ADDR_J_OFFSET_IND
-			&& expr_IsConstant(pMode->pAddress) && pMode->pAddress->value.integer == 0) {
-			pMode->eMode = pMode->eMode - ADDR_A_OFFSET_IND + ADDR_A_IND;
-			expr_Free(pMode->pAddress);
-			pMode->pAddress = NULL;
-		}
-	}
+    parse_GetToken();
+    if (!indirectComponent(&newReg, &newAddress))
+        return false;
+
+    if (newReg >= 0) {
+        prj_Error(MERROR_ADDRMODE_SUBTRACT_REGISTER);
+    } else if (newAddress != NULL) {
+        *address = address == NULL ? newAddress : expr_Sub(*address, newAddress);
+    } else {
+        prj_Error(MERROR_ILLEGAL_ADDRMODE);
+    }
+    return true;
 }
 
-static bool parse_AddressingMode(SAddrMode* pMode, uint32_t nAllowedModes) {
-	switch (lex_Current.token) {
-		case T_REG_A:
-		case T_REG_B:
-		case T_REG_C:
-		case T_REG_X:
-		case T_REG_Y:
-		case T_REG_Z:
-		case T_REG_I:
-		case T_REG_J: {
-			EAddrMode mode = ADDR_A + (lex_Current.token - T_REG_A);
-			parse_GetToken();
+static bool
+indirectAddressing(SAddressingMode* outMode, uint32_t allowedModes) {
+    if (lex_Current.token == '[') {
+        uint32_t reg = UINT32_MAX;
+        SExpression* address = NULL;
 
-			if (nAllowedModes & (1u << mode)) {
-				pMode->eMode = mode;
-				pMode->pAddress = NULL;
+        parse_GetToken();
 
-				return true;
-			}
-			break;
-		}
-		case T_REG_POP:
-		case T_REG_PEEK:
-		case T_REG_PUSH:
-		case T_REG_SP:
-		case T_REG_PC:
-		case T_REG_O: {
-			EAddrMode eMode = ADDR_POP + (lex_Current.token - T_REG_POP);
-			parse_GetToken();
+        if (!indirectComponent(&reg, &address))
+            return false;
 
-			if (nAllowedModes & (1u << eMode)) {
-				pMode->eMode = eMode;
-				pMode->pAddress = NULL;
+        while (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUBTRACT) {
+            if (lex_Current.token == T_OP_ADD) {
+                parse_GetToken();
+                if (!indirectAdd(&reg, &address))
+                    return false;
+            } else if (lex_Current.token == T_OP_SUBTRACT) {
+                parse_GetToken();
+                if (!indirectSubtract(&address))
+                    return false;
+            }
+        }
 
-				return true;
-			}
-			break;
-		}
-		default: {
-			if (parse_IndirectAddressing(pMode, nAllowedModes)) {
-				return true;
-			} else {
-				SExpression* pAddress = parse_Expression(2);
-				if (pAddress != NULL && (nAllowedModes & ADDRF_LITERAL)) {
-					pMode->eMode = ADDR_LITERAL;
-					pMode->pAddress = pAddress;
-					parse_OptimizeAddressingMode(pMode);
-					return true;
-				}
-			}
-			break;
-		}
-	}
+        parse_ExpectChar(']');
 
-	return false;
+        if (reg != UINT32_MAX && address == NULL) {
+            EAddrMode mode = ADDR_A_IND + reg;
+            if (allowedModes & (1u << mode)) {
+                outMode->mode = mode;
+                outMode->address = NULL;
+                return true;
+            }
+        }
+
+        if (reg != UINT32_MAX && address != NULL) {
+            EAddrMode mode = ADDR_A_OFFSET_IND + reg;
+            if (allowedModes & (1u << mode)) {
+                outMode->mode = mode;
+                outMode->address = parse_CheckSU16(address);
+                return true;
+            }
+        }
+
+        if (reg == UINT32_MAX && address != NULL) {
+            EAddrMode mode = ADDR_ADDRESS_IND;
+            if (allowedModes & (1u << mode)) {
+                outMode->mode = mode;
+                outMode->address = parse_CheckU16(address);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+static void
+optimizeAddressingMode(SAddressingMode* addrMode) {
+    if (opt_Current->machineOptions->optimize) {
+        // Optimize literals <= 0x1F
+        if (addrMode->mode == ADDR_LITERAL && expr_IsConstant(addrMode->address)) {
+            uint16_t v = (uint16_t) addrMode->address->value.integer;
+            if (v <= 0x1F) {
+                addrMode->mode = ADDR_LITERAL_00 + v;
+                expr_Free(addrMode->address);
+                addrMode->address = NULL;
+            }
+        }
+
+        // Optimize [reg+0] to [reg]
+        if (addrMode->mode >= ADDR_A_OFFSET_IND && addrMode->mode <= ADDR_J_OFFSET_IND && expr_IsConstant(addrMode->address)
+            && addrMode->address->value.integer == 0) {
+            addrMode->mode = addrMode->mode - ADDR_A_OFFSET_IND + ADDR_A_IND;
+            expr_Free(addrMode->address);
+            addrMode->address = NULL;
+        }
+    }
+}
+
+static bool
+addressingMode(SAddressingMode* outMode, uint32_t allowedModes) {
+    switch (lex_Current.token) {
+        case T_REG_A:
+        case T_REG_B:
+        case T_REG_C:
+        case T_REG_X:
+        case T_REG_Y:
+        case T_REG_Z:
+        case T_REG_I:
+        case T_REG_J: {
+            EAddrMode mode = ADDR_A + (lex_Current.token - T_REG_A);
+            parse_GetToken();
+
+            if (allowedModes & (1u << mode)) {
+                outMode->mode = mode;
+                outMode->address = NULL;
+
+                return true;
+            }
+            break;
+        }
+        case T_REG_POP:
+        case T_REG_PEEK:
+        case T_REG_PUSH:
+        case T_REG_SP:
+        case T_REG_PC:
+        case T_REG_O: {
+            EAddrMode eMode = ADDR_POP + (lex_Current.token - T_REG_POP);
+            parse_GetToken();
+
+            if (allowedModes & (1u << eMode)) {
+                outMode->mode = eMode;
+                outMode->address = NULL;
+
+                return true;
+            }
+            break;
+        }
+        default: {
+            if (indirectAddressing(outMode, allowedModes)) {
+                return true;
+            } else {
+                SExpression* pAddress = parse_Expression(2);
+                if (pAddress != NULL && (allowedModes & ADDRF_LITERAL)) {
+                    outMode->mode = ADDR_LITERAL;
+                    outMode->address = pAddress;
+                    optimizeAddressingMode(outMode);
+                    return true;
+                }
+            }
+            break;
+        }
+    }
+
+    return false;
 }
 
 typedef bool
-(* ParserFunc)(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData);
+(* ParserFunc)(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data);
 
 typedef struct {
-	uint32_t nData;
-	ParserFunc fpParser;
-	uint32_t nAllowedModes1;
-	uint32_t nAllowedModes2;
+    uint32_t data;
+    ParserFunc parser;
+    uint32_t allowedModes1;
+    uint32_t allowedModes2;
 } SParser;
 
-static bool parse_Basic(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
-	sect_OutputConst16((uint16_t) ((pMode2->eMode << 10u) | (pMode1->eMode << 4u) | nData));
-	if (pMode1->pAddress != NULL)
-		sect_OutputExpr16(pMode1->pAddress);
-	if (pMode2->pAddress != NULL)
-		sect_OutputExpr16(pMode2->pAddress);
+static bool
+genericInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data) {
+    sect_OutputConst16((uint16_t) ((mode2->mode << 10u) | (mode1->mode << 4u) | data));
+    if (mode1->address != NULL)
+        sect_OutputExpr16(mode1->address);
+    if (mode2->address != NULL)
+        sect_OutputExpr16(mode2->address);
 
-	return true;
+    return true;
 }
 
-static bool parse_ADD_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData, ParserFunc negatedParser) {
-	/* Optimize FUNC dest,-$1F */
-	if (opt_Current->machineOptions->bOptimize) {
-		if (pMode2->eMode == ADDR_LITERAL && (expr_IsConstant(pMode2->pAddress))
-			&& ((uint32_t) pMode2->pAddress->value.integer & 0xFFFFu) >= 0xFFE1u) {
+static bool
+addSubInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data, ParserFunc negatedParser) {
+    // Optimize FUNC dest,-$1F
+    if (opt_Current->machineOptions->optimize) {
+        if (mode2->mode == ADDR_LITERAL && (expr_IsConstant(mode2->address))
+            && ((uint32_t) mode2->address->value.integer & 0xFFFFu) >= 0xFFE1u) {
 
-			int v = (uint32_t) -pMode2->pAddress->value.integer & 0x1Fu;
-			expr_Free(pMode2->pAddress);
-			pMode2->eMode = ADDR_LITERAL_00 + v;
-			return negatedParser(pMode1, pMode2, nData);
-		}
-	}
+            int v = (uint32_t) -mode2->address->value.integer & 0x1Fu;
+            expr_Free(mode2->address);
+            mode2->mode = ADDR_LITERAL_00 + v;
+            return negatedParser(mode1, mode2, data);
+        }
+    }
 
-	sect_OutputConst16((uint16_t) ((pMode2->eMode << 10u) | (pMode1->eMode << 4u) | nData));
-	if (pMode1->pAddress != NULL)
-		sect_OutputExpr16(pMode1->pAddress);
-	if (pMode2->pAddress != NULL)
-		sect_OutputExpr16(pMode2->pAddress);
+    sect_OutputConst16((uint16_t) ((mode2->mode << 10u) | (mode1->mode << 4u) | data));
+    if (mode1->address != NULL)
+        sect_OutputExpr16(mode1->address);
+    if (mode2->address != NULL)
+        sect_OutputExpr16(mode2->address);
 
-	return true;
+    return true;
 }
 
-static bool parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData);
+static bool
+subInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data);
 
-static bool parse_ADD(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
-	assert(nData >= 0);
-	return parse_ADD_SUB(pMode1, pMode2, 0x2, parse_SUB);
+static bool
+addInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data) {
+    assert(data >= 0);
+    return addSubInstr(mode1, mode2, 0x2, subInstr);
 }
 
-static bool parse_SUB(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
-	assert(nData >= 0);
-	return parse_ADD_SUB(pMode1, pMode2, 0x3, parse_ADD);
+static bool
+subInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data) {
+    assert(data >= 0);
+    return addSubInstr(mode1, mode2, 0x3, addInstr);
 }
 
-static bool parse_JSR(SAddrMode* pMode1, SAddrMode* pMode2, uint32_t nData) {
-	assert(pMode2 == NULL);
+static bool
+jsrInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data) {
+    assert(mode2 == NULL);
 
-	sect_OutputConst16((uint16_t) ((nData << 4u) | (pMode1->eMode << 10u)));
-	if (pMode1->pAddress != NULL)
-		sect_OutputExpr16(pMode1->pAddress);
+    sect_OutputConst16((uint16_t) ((data << 4u) | (mode1->mode << 10u)));
+    if (mode1->address != NULL)
+        sect_OutputExpr16(mode1->address);
 
-	return true;
+    return true;
 }
 
-static SParser g_Parsers[T_0X10C_XOR - T_0X10C_ADD + 1] = {{0x2, parse_ADD,   ADDRF_ALL, ADDRF_ALL},    // T_0X10C_ADD
-														   {0x9, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_AND
-														   {0xA, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_BOR
-														   {0x5, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_DIV
-														   {0xF, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFB
-														   {0xC, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFE
-														   {0xE, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFG
-														   {0xD, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFN
-														   {0x1, parse_JSR,   ADDRF_ALL, 0},            // T_0X10C_JSR
-														   {0x6, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_MOD
-														   {0x4, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_MUL
-														   {0x1, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SET
-														   {0x7, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SHL
-														   {0x8, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SHR
-														   {0x3, parse_SUB,   ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SUB
-														   {0xB, parse_Basic, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_XOR
+static SParser g_Parsers[T_0X10C_XOR - T_0X10C_ADD + 1] = {
+    {0x2, addInstr,     ADDRF_ALL, ADDRF_ALL},    // T_0X10C_ADD
+    {0x9, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_AND
+    {0xA, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_BOR
+    {0x5, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_DIV
+    {0xF, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFB
+    {0xC, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFE
+    {0xE, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFG
+    {0xD, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFN
+    {0x1, jsrInstr,     ADDRF_ALL, 0},            // T_0X10C_JSR
+    {0x6, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_MOD
+    {0x4, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_MUL
+    {0x1, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SET
+    {0x7, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SHL
+    {0x8, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SHR
+    {0x3, subInstr,     ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SUB
+    {0xB, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_XOR
 };
 
 static uint32_t
 translateToken(uint32_t token) {
-	if (token == T_SYM_SET)
-		return T_0X10C_SET;
-	else
-		return token;
+    if (token == T_SYM_SET)
+        return T_0X10C_SET;
+    else
+        return token;
 }
 
-bool parse_IntegerInstruction(void) {
-	uint32_t token = translateToken(lex_Current.token);
+bool
+parse_IntegerInstruction(void) {
+    uint32_t token = translateToken(lex_Current.token);
 
-	if (T_0X10C_ADD <= token && token <= T_0X10C_XOR) {
-		ETargetToken nToken = (ETargetToken) token;
-		SParser* pParser = &g_Parsers[nToken - T_0X10C_ADD];
+    if (T_0X10C_ADD <= token && token <= T_0X10C_XOR) {
+        ETargetToken nToken = (ETargetToken) token;
+        SParser* pParser = &g_Parsers[nToken - T_0X10C_ADD];
 
-		parse_GetToken();
+        parse_GetToken();
 
-		if (pParser->nAllowedModes2 != 0) {
-			/* Two operands */
-			SAddrMode addrMode1;
-			SAddrMode addrMode2;
+        if (pParser->allowedModes2 != 0) {
+            /* Two operands */
+            SAddressingMode addrMode1;
+            SAddressingMode addrMode2;
 
-			if (!parse_AddressingMode(&addrMode1, pParser->nAllowedModes1))
-				return prj_Error(MERROR_ILLEGAL_ADDRMODE);
+            if (!addressingMode(&addrMode1, pParser->allowedModes1))
+                return prj_Error(MERROR_ILLEGAL_ADDRMODE);
 
-			if (!parse_ExpectComma())
-				return false;
+            if (!parse_ExpectComma())
+                return false;
 
-			if (!parse_AddressingMode(&addrMode2, pParser->nAllowedModes2))
-				return prj_Error(MERROR_ILLEGAL_ADDRMODE);
+            if (!addressingMode(&addrMode2, pParser->allowedModes2))
+                return prj_Error(MERROR_ILLEGAL_ADDRMODE);
 
-			return pParser->fpParser(&addrMode1, &addrMode2, pParser->nData);
-		} else {
-			/* One operand */
-			SAddrMode addrMode1;
+            return pParser->parser(&addrMode1, &addrMode2, pParser->data);
+        } else {
+            /* One operand */
+            SAddressingMode addrMode1;
 
-			if (!parse_AddressingMode(&addrMode1, pParser->nAllowedModes1))
-				return prj_Error(MERROR_ILLEGAL_ADDRMODE);
+            if (!addressingMode(&addrMode1, pParser->allowedModes1))
+                return prj_Error(MERROR_ILLEGAL_ADDRMODE);
 
-			return pParser->fpParser(&addrMode1, NULL, pParser->nData);
-		}
-	}
+            return pParser->parser(&addrMode1, NULL, pParser->data);
+        }
+    }
 
-	return false;
+    return false;
 }
 
-SExpression* parse_TargetFunction(void) {
-	switch (lex_Current.token) {
-		default:
-			return NULL;
-	}
+SExpression*
+parse_TargetFunction(void) {
+    return NULL;
 }
 
-bool parse_TargetSpecific(void) {
-	if (parse_IntegerInstruction())
-		return true;
-
-	return false;
+bool
+parse_TargetSpecific(void) {
+    return parse_IntegerInstruction();
 }

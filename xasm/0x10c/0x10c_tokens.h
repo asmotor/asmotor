@@ -50,8 +50,7 @@ typedef enum {
     T_REG_PUSH,
     T_REG_SP,
     T_REG_PC,
-    T_REG_O,
-
+    T_REG_O
 } ETargetToken;
 
-#endif    /* XASM_GAMEBOY_TOKENS_H_INCLUDED_ */
+#endif

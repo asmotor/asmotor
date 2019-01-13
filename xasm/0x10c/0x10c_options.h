@@ -19,9 +19,8 @@
 #ifndef XASM_0X10C_OPTIONS_H_INCLUDED_
 #define XASM_0X10C_OPTIONS_H_INCLUDED_
 
-typedef struct MachineOptions
-{
-	int	bOptimize;
+typedef struct MachineOptions {
+    int optimize;
 } SMachineOptions;
 
 #endif

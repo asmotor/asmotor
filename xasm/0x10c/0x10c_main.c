@@ -23,8 +23,8 @@
 
 #include "0x10c_errors.h"
 
-static SConfiguration xasm_0x10CConfiguration =
-{
+static SConfiguration
+g_0x10CConfiguration = {
 	"motor0x10c",
 	"1.0",
 	0x10000,
@@ -41,7 +41,7 @@ static SConfiguration xasm_0x10CConfiguration =
 	loc_GetError	
 };
 
-extern int main(int argc, char* argv[])
-{
-	return xasm_Main(&xasm_0x10CConfiguration, argc, argv);
+extern int
+main(int argc, char* argv[]) {
+	return xasm_Main(&g_0x10CConfiguration, argc, argv);
 }

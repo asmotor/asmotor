@@ -106,7 +106,7 @@ typedef struct _AddrMode
 	EModeF		eModeF;
 	EModeCtrl	eRegCtrl;
 
-} SAddrMode;
+} SAddressingMode;
 
 typedef struct _Opcode
 {
@@ -115,7 +115,7 @@ typedef struct _Opcode
 	uint8_t		nOpcode;
 	uint32_t	nAddrMode1;
 	uint32_t	nAddrMode2;
-	bool (*pParser)(struct _Opcode* pCode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2);
+	bool (*pParser)(struct _Opcode* pCode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2);
 } SOpcode;
 
 extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
@@ -150,7 +150,7 @@ extern SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1];
 #define MODE_CC_Z80				0x08000000u
 #define MODE_REG_CONTROL		0x10000000u
 
-static SAddrMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
+static SAddressingMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
 {
 	{ MODE_GROUP_D, NULL, CPUF_Z80 | CPUF_GB, REG_D_B, REG_SS_NONE, REG_RR_NONE, REG_HL_NONE, CC_NONE, CTRL_NONE },	// B
 	{ MODE_GROUP_D | MODE_CC_GB | MODE_CC_Z80, NULL, CPUF_Z80 | CPUF_GB, REG_D_C, REG_SS_NONE, REG_RR_NONE, REG_HL_NONE, CC_C, CTRL_NONE },	// C
@@ -243,7 +243,7 @@ static SExpression* parse_CreateExpressionImmHi(SExpression* pExpr)
 	return expr_And(pExpr, expr_Const(0xFF));
 }
 
-static void parse_OutputIXIY(SAddrMode* pAddrMode, uint8_t nOpcode)
+static void parse_OutputIXIY(SAddressingMode* pAddrMode, uint8_t nOpcode)
 {
 	sect_OutputConst8((uint8_t)(pAddrMode->nMode & MODE_GROUP_IX_IND_DISP ? 0xDDu : 0xFDu));
 	sect_OutputConst8(nOpcode);
@@ -253,13 +253,13 @@ static void parse_OutputIXIY(SAddrMode* pAddrMode, uint8_t nOpcode)
 		sect_OutputConst8(0);
 }
 
-static void parse_OutputGroupHL(SAddrMode* pAddrMode)
+static void parse_OutputGroupHL(SAddressingMode* pAddrMode)
 {
 	if((pAddrMode->nMode & MODE_GROUP_HL) && pAddrMode->eRegHL)
 		sect_OutputConst8(pAddrMode->eRegHL);
 }
 
-static bool parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Alu(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(pAddrMode1->nMode & MODE_REG_A)
 	{
@@ -288,7 +288,7 @@ static bool parse_Alu(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return true;
 }
 
-static bool parse_Alu_16bit(SOpcode* pOpcode, uint8_t nPrefix, uint8_t nOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Alu_16bit(SOpcode* pOpcode, uint8_t nPrefix, uint8_t nOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pOpcode != NULL);
 
@@ -315,7 +315,7 @@ static bool parse_Alu_16bit(SOpcode* pOpcode, uint8_t nPrefix, uint8_t nOpcode, 
 	return false;
 }
 
-static bool parse_Adc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Adc(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(IS_Z80 && parse_Alu_16bit(pOpcode, 0xED, 0x4A, pAddrMode1, pAddrMode2))
 		return true;
@@ -323,7 +323,7 @@ static bool parse_Adc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return parse_Alu(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static bool parse_Sbc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Sbc(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(IS_Z80 && parse_Alu_16bit(pOpcode, 0xED, 0x42, pAddrMode1, pAddrMode2))
 		return true;
@@ -332,7 +332,7 @@ static bool parse_Sbc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 }
 
 
-static bool parse_Add(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Add(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(parse_Alu_16bit(pOpcode, 0, 0x09, pAddrMode1, pAddrMode2))
 		return true;
@@ -347,7 +347,7 @@ static bool parse_Add(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return parse_Alu(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static bool parse_Bit(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Bit(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	uint8_t nOpcode = (uint8_t) pAddrMode2->eRegD | pOpcode->nOpcode;
 
@@ -378,7 +378,7 @@ static bool parse_Bit(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return true;
 }
 
-static bool parse_Call(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Call(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_IMM) && pAddrMode2->nMode == 0)
 	{
@@ -404,7 +404,7 @@ static bool parse_Call(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 	return true;
 }
 
-static bool parse_Jp(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Jp(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_REG_HL_IND) && pAddrMode2->nMode == 0)
 	{
@@ -427,7 +427,7 @@ static bool parse_Jp(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	return parse_Call(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static bool parse_Implied(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Implied(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pAddrMode1 == NULL);
 	assert(pAddrMode2 == NULL);
@@ -438,7 +438,7 @@ static bool parse_Implied(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pA
 	return true;
 }
 
-static bool parse_Dec(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Dec(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pAddrMode2 == NULL);
 
@@ -462,7 +462,7 @@ static bool parse_Dec(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return true;
 }
 
-static bool parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Jr(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pOpcode != NULL);
 
@@ -483,7 +483,7 @@ static bool parse_Jr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	return true;
 }
 
-static bool parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Ld(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pOpcode != NULL);
 
@@ -632,7 +632,7 @@ static bool parse_Ld(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	return true;
 }
 
-static bool parse_Ldd(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Ldd(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(IS_GB && (pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_REG_HL_IND))
 		sect_OutputConst8((uint8_t) (pOpcode->nOpcode | 0x08u));
@@ -650,7 +650,7 @@ static bool parse_Ldd(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return true;
 }
 
-static bool parse_Ldh(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Ldh(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if((pAddrMode1->nMode & MODE_REG_A) && (pAddrMode2->nMode & MODE_IMM_IND))
 	{
@@ -668,7 +668,7 @@ static bool parse_Ldh(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return true;
 }
 
-static bool parse_Ldhl(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Ldhl(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pAddrMode1 != NULL);
 
@@ -678,7 +678,7 @@ static bool parse_Ldhl(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 	return true;
 }
 
-static bool parse_Pop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Pop(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pAddrMode2 == NULL);
 
@@ -689,7 +689,7 @@ static bool parse_Pop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return true;
 }
 
-static bool parse_Rotate(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Rotate(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pAddrMode2 == NULL);
 
@@ -702,35 +702,35 @@ static bool parse_Rotate(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAd
 	return true;
 }
 
-static bool parse_Rr(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Rr(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(pAddrMode1->eRegD == REG_D_A)
 		prj_Warn(MERROR_SUGGEST_OPCODE, "RRA");
 	return parse_Rotate(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static bool parse_Rl(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Rl(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(pAddrMode1->eRegD == REG_D_A)
 		prj_Warn(MERROR_SUGGEST_OPCODE, "RLA");
 	return parse_Rotate(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static bool parse_Rrc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Rrc(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(pAddrMode1->eRegD == REG_D_A)
 		prj_Warn(MERROR_SUGGEST_OPCODE, "RRCA");
 	return parse_Rotate(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static bool parse_Rlc(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Rlc(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(pAddrMode1->eRegD == REG_D_A)
 		prj_Warn(MERROR_SUGGEST_OPCODE, "RLCA");
 	return parse_Rotate(pOpcode, pAddrMode1, pAddrMode2);
 }
 
-static bool parse_Ret(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2) {
+static bool parse_Ret(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2) {
 	assert(pOpcode != NULL);
 	assert(pAddrMode2 == NULL);
 
@@ -744,7 +744,7 @@ static bool parse_Ret(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return true;
 }
 
-static bool parse_Rst(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Rst(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pAddrMode2 == NULL);
 
@@ -762,7 +762,7 @@ static bool parse_Rst(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrM
 	return true;
 }
 
-static bool parse_Stop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Stop(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pOpcode != NULL);
 	assert(pAddrMode1 == NULL);
@@ -773,7 +773,7 @@ static bool parse_Stop(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 	return true;
 }
 
-static bool parse_Djnz(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Djnz(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pAddrMode2 == NULL);
 
@@ -785,7 +785,7 @@ static bool parse_Djnz(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddr
 #define EX_MATCH_MODE1(o1,o2) ((pAddrMode1->nMode & (o1)) && (pAddrMode2->nMode & (o2)))
 #define EX_MATCH_MODE(o1,o2) (EX_MATCH_MODE1(o1,o2) || EX_MATCH_MODE1(o2,o1))
 
-static bool parse_Ex(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Ex(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pOpcode != NULL);
 
@@ -816,7 +816,7 @@ static bool parse_Ex(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	return true;
 }
 
-static bool parse_Im(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Im(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	assert(pOpcode != NULL);
 	assert(pAddrMode2 == NULL);
@@ -845,7 +845,7 @@ static bool parse_Im(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMo
 	}
 }
 
-static bool parse_InOut(SOpcode* pOpcode, SAddrMode* pAddrMode, ERegD eReg)
+static bool parse_InOut(SOpcode* pOpcode, SAddressingMode* pAddrMode, ERegD eReg)
 {
 	if(pAddrMode->nMode & MODE_REG_C_IND)
 	{
@@ -861,17 +861,17 @@ static bool parse_InOut(SOpcode* pOpcode, SAddrMode* pAddrMode, ERegD eReg)
 	return true;
 }
 
-static bool parse_In(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_In(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	return parse_InOut(pOpcode, pAddrMode2, pAddrMode1->eRegD);
 }
 
-static bool parse_Out(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Out(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	return parse_InOut(pOpcode, pAddrMode1, pAddrMode2->eRegD);
 }
 
-static bool parse_Reti(SOpcode* pOpcode, SAddrMode* pAddrMode1, SAddrMode* pAddrMode2)
+static bool parse_Reti(SOpcode* pOpcode, SAddressingMode* pAddrMode1, SAddressingMode* pAddrMode2)
 {
 	if(IS_GB)
 		sect_OutputConst8(0xD9);
@@ -961,7 +961,7 @@ SOpcode g_aOpcodes[T_Z80_XOR - T_Z80_ADC + 1] =
 };
 
 
-static bool parse_AddrMode(SAddrMode* pAddrMode)
+static bool parse_AddrMode(SAddressingMode* pAddrMode)
 {
 	if(lex_Current.token >= T_MODE_B
 	&& lex_Current.token <= T_CC_M)
@@ -1087,8 +1087,8 @@ bool parse_TargetSpecific(void)
 	{
 		token = token - T_Z80_ADC;
 		SOpcode* pOpcode = &g_aOpcodes[token];
-		SAddrMode addrMode1;
-		SAddrMode addrMode2;
+		SAddressingMode addrMode1;
+		SAddressingMode addrMode2;
 
 		parse_GetToken();
 

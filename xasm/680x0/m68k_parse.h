@@ -121,7 +121,7 @@ typedef struct
 	int			nBFWidthReg;
 	SExpression* pBFWidthExpr;
 
-} SAddrMode;
+} SAddressingMode;
 
 typedef struct
 {
@@ -138,17 +138,17 @@ typedef struct
 	EAddrMode nAllowDest;
 	EAddrMode nAllowSrc020;
 	EAddrMode nAllowDest020;
-	bool (*pHandler)(ESize eSize, SAddrMode* pSrc, SAddrMode* pDest);
+	bool (*pHandler)(ESize eSize, SAddressingMode* pSrc, SAddressingMode* pDest);
 } SInstruction;
 
 extern SExpression* parse_Check8bit(SExpression* pExpr);
 extern SExpression* parse_Check16bit(SExpression* pExpr);
 
-extern bool parse_OutputExtWords(SAddrMode* mode);
+extern bool parse_OutputExtWords(SAddressingMode* mode);
 
 extern void parse_OptimizeDisp(SModeRegs* pRegs);
-extern uint16_t parse_GetEAField(SAddrMode* mode);
-extern bool parse_GetAddrMode(SAddrMode* pMode);
+extern uint16_t parse_GetEAField(SAddressingMode* mode);
+extern bool parse_GetAddrMode(SAddressingMode* pMode);
 extern ESize parse_GetSizeSpec(ESize eDefault);
 
 extern uint32_t parse_RegisterList(void);

@@ -28,56 +28,53 @@
 
 #include "0x10c_options.h"
 
-void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc)
-{
-	*pDest = *pSrc;
+void
+locopt_Copy(struct MachineOptions* dest, struct MachineOptions* src) {
+    *dest = *src;
 }
 
-struct MachineOptions* locopt_Alloc(void)
-{
-	return mem_Alloc(sizeof(SMachineOptions));
+struct MachineOptions*
+locopt_Alloc(void) {
+    return mem_Alloc(sizeof(SMachineOptions));
 }
 
-void locopt_Open(void)
-{
+void
+locopt_Open(void) {
 }
 
-void locopt_Update(void)
-{
+void
+locopt_Update(void) {
 }
 
-bool locopt_Parse(char* s)
-{
-	if(s == NULL || strlen(s) == 0)
-		return false;
+bool
+locopt_Parse(const char* s) {
+    if (s == NULL || strlen(s) == 0)
+        return false;
 
-	switch(s[0])
-	{
-		case 'o':
-			if(strlen(&s[1]) == 1)
-			{
-				switch(s[1] - '0')
-				{
-					case 0:
-						opt_Current->machineOptions->bOptimize = false;
-						return true;
-					case 1:
-						opt_Current->machineOptions->bOptimize = true;
-						return true;
-					default:
-						break;
-				}
-			}
-			break;
-		default:
-			break;
-	}
+    switch (s[0]) {
+        case 'o':
+            if (strlen(&s[1]) == 1) {
+                switch (s[1] - '0') {
+                    case 0:
+                        opt_Current->machineOptions->optimize = false;
+                        return true;
+                    case 1:
+                        opt_Current->machineOptions->optimize = true;
+                        return true;
+                    default:
+                        break;
+                }
+            }
+            break;
+        default:
+            break;
+    }
 
-	prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-	return false;
+    prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+    return false;
 }
 
-void locopt_PrintOptions(void)
-{
-	printf("    -mo<X>  Optimization level, 0 or 1\n");
+void
+locopt_PrintOptions(void) {
+    printf("    -mo<X>  Optimization level, 0 or 1\n");
 }

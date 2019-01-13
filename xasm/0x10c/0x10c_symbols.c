@@ -19,19 +19,16 @@
 #include "xasm.h"
 #include "symbol.h"
 
-void locsym_Init(void)
-{
-	string* pName;
-	
-	pName = str_Create("CODE");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
+static void
+createGroup(const char* name, EGroupType type) {
+    string* nameString = str_Create(name);
+    sym_CreateGroup(nameString, type);
+    str_Free(nameString);
+}
 
-	pName = str_Create("DATA");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
-
-	pName = str_Create("BSS");
-    sym_CreateGroup(pName, GROUP_BSS);
-	str_Free(pName);
+void
+locsym_Init(void) {
+    createGroup("CODE", GROUP_TEXT);
+    createGroup("DATA", GROUP_TEXT);
+    createGroup("BSS", GROUP_BSS);
 }
