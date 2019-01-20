@@ -405,7 +405,7 @@ parse_IntegerInstruction(void) {
 
     if (T_0X10C_ADD <= token && token <= T_0X10C_XOR) {
         ETargetToken nToken = (ETargetToken) token;
-        SParser* pParser = &g_Parsers[nToken - T_0X10C_ADD];
+        SParser* pParser = &g_instructionHandlers[nToken - T_0X10C_ADD];
 
         parse_GetToken();
 

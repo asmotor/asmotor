@@ -16,17 +16,17 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_6502_LOCERROR_H_INCLUDED_
-#define XASM_6502_LOCERROR_H_INCLUDED_
+#ifndef XASM_6502_ERRORS_H_INCLUDED_
+#define XASM_6502_ERRORS_H_INCLUDED_
 
 #include "xasm.h"
 
-typedef enum
-{
-	MERROR_ILLEGAL_ADDRMODE = 1000,
-	ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE
+typedef enum {
+    MERROR_ILLEGAL_ADDRMODE = 1000,
+    ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE
 } EMachineError;
 
-extern const char* loc_GetError(size_t errorNumber);
+extern const char*
+loc_GetError(size_t errorNumber);
 
 #endif

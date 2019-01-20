@@ -31,68 +31,65 @@
 #include "x65_options.h"
 #include "x65_tokens.h"
 
-static int s_nPreviousInstructionSet = 0;
+static int g_previousInstructionSet = 0;
 
-void locopt_Copy(struct MachineOptions* pDest, struct MachineOptions* pSrc)
-{
-	*pDest = *pSrc;
+void
+locopt_Copy(struct MachineOptions* dest, struct MachineOptions* pSrc) {
+    *dest = *pSrc;
 }
 
-struct MachineOptions* locopt_Alloc(void)
-{
-	return mem_Alloc(sizeof(SMachineOptions));
+struct MachineOptions*
+locopt_Alloc(void) {
+    return mem_Alloc(sizeof(SMachineOptions));
 }
 
-void locopt_Open(void)
-{
-	opt_Current->machineOptions->nUndocumented = 0;
+void
+locopt_Open(void) {
+    opt_Current->machineOptions->undocumentedInstructions = 0;
 }
 
-void locopt_Update(void)
-{
-	int nNewSet = opt_Current->machineOptions->nUndocumented;
-	if(s_nPreviousInstructionSet != nNewSet)
-	{
-		SLexConstantsWord* pPrev = loclexer_GetUndocumentedInstructions(s_nPreviousInstructionSet);
-		SLexConstantsWord* pNew = loclexer_GetUndocumentedInstructions(nNewSet);
-		if(pPrev)
-			lex_ConstantsUndefineWords(pPrev);
-		if(pNew)
-			lex_ConstantsDefineWords(pNew);
-			
-		s_nPreviousInstructionSet = nNewSet;
-	}
+void
+locopt_Update(void) {
+    int newSet = opt_Current->machineOptions->undocumentedInstructions;
+    if (g_previousInstructionSet != newSet) {
+        SLexConstantsWord* prev = loclexer_GetUndocumentedInstructions(g_previousInstructionSet);
+        if (prev)
+            lex_ConstantsUndefineWords(prev);
+
+        SLexConstantsWord* next = loclexer_GetUndocumentedInstructions(newSet);
+        if (next)
+            lex_ConstantsDefineWords(next);
+
+        g_previousInstructionSet = newSet;
+    }
 }
 
-bool locopt_Parse(char* s)
-{
-	if(s == NULL || strlen(s) == 0)
-		return false;
+bool
+locopt_Parse(const char* s) {
+    if (s == NULL || strlen(s) == 0)
+        return false;
 
-	switch(s[0])
-	{
-		case 'u':
-			if(strlen(&s[0]) >= 2)
-			{
-				int n = atoi(&s[1]);
-				if(n >= 0 && n <= 3)
-				{
-					opt_Current->machineOptions->nUndocumented = n;
-					return true;
-				}
-				prj_Error(ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE);
-				return false;
-			}
-			break;
-		default:
-			break;
-	}
+    switch (s[0]) {
+        case 'u':
+            if (strlen(&s[0]) >= 2) {
+                int n = atoi(&s[1]);
+                if (n >= 0 && n <= 3) {
+                    opt_Current->machineOptions->undocumentedInstructions = n;
+                    return true;
+                }
+                prj_Error(ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE);
+                return false;
+            }
+            break;
+        default:
+            break;
+    }
 
-	prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-	return false;
+    prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+    return false;
 }
 
-void locopt_PrintOptions(void)
-{
-	printf("    -mu<x>  Enable undocumented opcodes, name set x (0, 1 or 2)\n");
+void
+locopt_PrintOptions(void) {
+    printf("    -mu<x>  Enable undocumented opcodes, name set x (0, 1 or 2)\n");
 }

@@ -313,7 +313,7 @@ typedef struct
 	fpParser_t	fpParser;
 } SInstruction;
 
-SInstruction g_Parsers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] =
+SInstruction g_instructionHandlers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] =
 {
 	{ MODE_REG, 0, 0, 0xF033, parse_ModeReg },	// BCD
 	{ MODE_REG, 0, 0, 0xF029, parse_ModeReg },	// LDF
@@ -364,7 +364,7 @@ bool parse_IntegerInstruction(void)
 	if(T_CHIP_INSTR_FIRST <= lex_Current.token && lex_Current.token <= T_CHIP_INSTR_LAST)
 	{
 		bool r;
-		SInstruction* pInstr = &g_Parsers[lex_Current.token - T_CHIP_INSTR_FIRST];
+		SInstruction* pInstr = &g_instructionHandlers[lex_Current.token - T_CHIP_INSTR_FIRST];
 		SAddressMode mode1 = {0, 0, NULL};
 		SAddressMode mode2 = {0, 0, NULL};
 		SAddressMode mode3 = {0, 0, NULL};

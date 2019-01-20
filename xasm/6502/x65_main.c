@@ -23,8 +23,8 @@
 
 #include "x65_errors.h"
 
-static SConfiguration xasm_6502Configuration =
-{
+static SConfiguration
+xasm_6502Configuration = {
 	"motor6502",
 	"1.0",
 	0x10000,
@@ -41,7 +41,7 @@ static SConfiguration xasm_6502Configuration =
 	loc_GetError
 };
 
-extern int main(int argc, char* argv[])
-{
+extern int
+main(int argc, char* argv[]) {
 	return xasm_Main(&xasm_6502Configuration, argc, argv);
 }

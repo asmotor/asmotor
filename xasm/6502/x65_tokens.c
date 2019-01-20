@@ -22,8 +22,8 @@
 
 #include "x65_tokens.h"
 
-static SLexConstantsWord s_UndocumentedInstructions0[] =
-{
+static SLexConstantsWord
+g_undocumentedInstructions0[] = {
 	{ "AAC", T_6502U_AAC },
 	{ "AAX", T_6502U_AAX },
 	{ "ARR", T_6502U_ARR },
@@ -50,7 +50,8 @@ static SLexConstantsWord s_UndocumentedInstructions0[] =
 	{ NULL, 0 }
 };
 
-static SLexConstantsWord s_UndocumentedInstructions1[] =
+static SLexConstantsWord
+g_undocumentedInstructions1[] =
 {
 	{ "ANC", T_6502U_AAC },
 	{ "SAX", T_6502U_AAX },
@@ -78,7 +79,8 @@ static SLexConstantsWord s_UndocumentedInstructions1[] =
 	{ NULL, 0 }
 };
 
-static SLexConstantsWord s_UndocumentedInstructions2[] =
+static SLexConstantsWord
+g_undocumentedInstructions2[] =
 {
 	{ "ANC", T_6502U_AAC },
 	{ "AXS", T_6502U_AAX },
@@ -106,8 +108,8 @@ static SLexConstantsWord s_UndocumentedInstructions2[] =
 	{ NULL, 0 }
 };
 
-static SLexConstantsWord localstrings[] =
-{
+static SLexConstantsWord
+g_tokens[] = {
 	{ "ADC",	T_6502_ADC },
 	{ "AND",	T_6502_AND },
 	{ "ASL",	T_6502_ASL },
@@ -180,21 +182,20 @@ static SLexConstantsWord localstrings[] =
 	{ NULL, 0 }
 };
 
-void loclexer_Init(void)
-{
-	lex_ConstantsDefineWords(localstrings);
-}
-
-static SLexConstantsWord* s_pLexInitStrings[] =
-{
+static SLexConstantsWord*
+g_undocumentedInstructions[] = {
 	NULL,
-	&s_UndocumentedInstructions0[0],
-	&s_UndocumentedInstructions1[0],
-	&s_UndocumentedInstructions2[0]
+	&g_undocumentedInstructions0[0],
+	&g_undocumentedInstructions1[0],
+	&g_undocumentedInstructions2[0]
 };
 
-SLexConstantsWord* loclexer_GetUndocumentedInstructions(int n)
-{
-	return s_pLexInitStrings[n];
+void
+loclexer_Init(void) {
+	lex_ConstantsDefineWords(g_tokens);
 }
 
+SLexConstantsWord*
+loclexer_GetUndocumentedInstructions(int n) {
+	return g_undocumentedInstructions[n];
+}

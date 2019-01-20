@@ -18,16 +18,16 @@
 
 #include "xasm.h"
 
-static char* g_pszLocalError[]=
-{
+static char*
+g_errors[] = {
 	"Illegal addressing mode",
 	"Undocumented instruction set must be 0, 1 or 2"
 };
 
-extern const char* loc_GetError(size_t errorNumber)
-{
-	if(errorNumber < 1000)
+extern const char*
+loc_GetError(size_t errorNumber) {
+	if (errorNumber < 1000)
 		return NULL;
 
-	return g_pszLocalError[errorNumber - 1000];
+	return g_errors[errorNumber - 1000];
 }

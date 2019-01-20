@@ -16,12 +16,11 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MIPS_LOCOPT_H_
-#define MIPS_LOCOPT_H_
+#ifndef XASM_6502_OPTIONS_H_INCLUDED_
+#define XASM_6502_OPTIONS_H_INCLUDED_
 
-typedef struct MachineOptions
-{
-	int	nUndocumented;
+typedef struct MachineOptions {
+    int undocumentedInstructions;
 } SMachineOptions;
 
 #endif

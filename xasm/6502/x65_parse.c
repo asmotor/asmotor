@@ -26,32 +26,31 @@
 
 #include "x65_parse.h"
 
-SExpression* parse_ExpressionSU8(void)
-{
-	SExpression* pExpr = parse_Expression(1);
-	if(pExpr == NULL)
-		return NULL;
-		
-	pExpr = expr_CheckRange(pExpr, -128, 255);
-	if(pExpr == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
-	
-	return expr_And(pExpr, expr_Const(0xFF));
+SExpression*
+parse_ExpressionSU8(void) {
+    SExpression* expression = parse_Expression(1);
+    if (expression == NULL)
+        return NULL;
+
+    expression = expr_CheckRange(expression, -128, 255);
+    if (expression == NULL)
+        prj_Error(ERROR_OPERAND_RANGE);
+
+    return expr_And(expression, expr_Const(0xFF));
 }
 
-SExpression* parse_TargetFunction(void)
-{
-	switch(lex_Current.token)
-	{
-		default:
-			return NULL;
-	}
+SExpression*
+parse_TargetFunction(void) {
+    switch (lex_Current.token) {
+        default:
+            return NULL;
+    }
 }
 
-bool parse_TargetSpecific(void)
-{
-	if(parse_IntegerInstruction())
-		return true;
+bool
+parse_TargetSpecific(void) {
+    if (parse_IntegerInstruction())
+        return true;
 
-	return false;
+    return false;
 }

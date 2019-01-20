@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_X65_PARSE_H_INCLUDED_
-#define XASM_X65_PARSE_H_INCLUDED_
+#ifndef XASM_6502_PARSE_H_INCLUDED_
+#define XASM_6502_PARSE_H_INCLUDED_
 
 #include "expression.h"
 
@@ -34,15 +34,16 @@
 #define MODE_A		0x400u
 #define MODE_IND	0x800u
 
-typedef struct
-{
-	int	nMode;
+typedef struct {
+	uint16_t mode;
 	SExpression* expr;
 } SAddressingMode;
 
-extern bool parse_AddressingMode(SAddressingMode* pAddrMode, uint32_t nAllowedModes);
+extern bool
+parse_AddressingMode(SAddressingMode* addrMode, uint32_t allowedModes);
 
-extern bool parse_IntegerInstruction(void);
+extern bool
+parse_IntegerInstruction(void);
 
 extern SExpression* parse_ExpressionSU8(void);
 
