@@ -25,47 +25,46 @@
 #include "m68k_options.h"
 #include "m68k_tokens.h"
 
-bool m68k_ParseDirective()
-{
-	switch(lex_Current.token)
-	{
-		case T_68K_MC68000:
-			opt_Current->machineOptions->nCpu = CPUF_68000;
-			parse_GetToken();
-			return true;
-		case T_68K_MC68010:
-			opt_Current->machineOptions->nCpu = CPUF_68010;
-			parse_GetToken();
-			return true;
-		case T_68K_MC68020:
-			opt_Current->machineOptions->nCpu = CPUF_68020;
-			parse_GetToken();
-			return true;
-		case T_68K_MC68030:
-			opt_Current->machineOptions->nCpu = CPUF_68030;
-			parse_GetToken();
-			return true;
-		case T_68K_MC68040:
-			opt_Current->machineOptions->nCpu = CPUF_68040;
-			parse_GetToken();
-			return true;
-		case T_68K_MC68060:
-			opt_Current->machineOptions->nCpu = CPUF_68060;
-			parse_GetToken();
-			return true;
-		case T_68K_FPU6888X:
-			opt_Current->machineOptions->nFpu = FPUF_6888X;
-			parse_GetToken();
-			return true;
-		case T_68K_FPU68040:
-			opt_Current->machineOptions->nFpu = FPUF_68040;
-			parse_GetToken();
-			return true;
-		case T_68K_FPU68060:
-			opt_Current->machineOptions->nFpu = FPUF_68060;
-			parse_GetToken();
-			return true;
-		default:
-			return false;
-	}
+bool
+m68k_ParseDirective() {
+    switch (lex_Current.token) {
+        case T_68K_MC68000:
+            opt_Current->machineOptions->cpu = CPUF_68000;
+            parse_GetToken();
+            return true;
+        case T_68K_MC68010:
+            opt_Current->machineOptions->cpu = CPUF_68010;
+            parse_GetToken();
+            return true;
+        case T_68K_MC68020:
+            opt_Current->machineOptions->cpu = CPUF_68020;
+            parse_GetToken();
+            return true;
+        case T_68K_MC68030:
+            opt_Current->machineOptions->cpu = CPUF_68030;
+            parse_GetToken();
+            return true;
+        case T_68K_MC68040:
+            opt_Current->machineOptions->cpu = CPUF_68040;
+            parse_GetToken();
+            return true;
+        case T_68K_MC68060:
+            opt_Current->machineOptions->cpu = CPUF_68060;
+            parse_GetToken();
+            return true;
+        case T_68K_FPU6888X:
+            opt_Current->machineOptions->fpu = FPUF_6888X;
+            parse_GetToken();
+            return true;
+        case T_68K_FPU68040:
+            opt_Current->machineOptions->fpu = FPUF_68040;
+            parse_GetToken();
+            return true;
+        case T_68K_FPU68060:
+            opt_Current->machineOptions->fpu = FPUF_68060;
+            parse_GetToken();
+            return true;
+        default:
+            return false;
+    }
 }

@@ -24,85 +24,84 @@
 
 #define FPU_INS 0xF200u
 
-
 #if 0
 static uint16_t parse_GetSourceSpecifier(ESize sz)
 {
-	switch(sz)
-	{
-		case SIZE_LONG:		return 0 << 10;
-		case SIZE_SINGLE:	return 1 << 10;
-		case SIZE_EXTENDED: return 2 << 10;
-		case SIZE_PACKED:	return 3 << 10;
-		case SIZE_WORD:		return 4 << 10;
-		case SIZE_DOUBLE:	return 5 << 10;
-		case SIZE_BYTE:		return 6 << 10;
-		default:			internalerror("unknown size");
-	}
+    switch(sz)
+    {
+        case SIZE_LONG:		return 0 << 10;
+        case SIZE_SINGLE:	return 1 << 10;
+        case SIZE_EXTENDED: return 2 << 10;
+        case SIZE_PACKED:	return 3 << 10;
+        case SIZE_WORD:		return 4 << 10;
+        case SIZE_DOUBLE:	return 5 << 10;
+        case SIZE_BYTE:		return 6 << 10;
+        default:			internalerror("unknown size");
+    }
 }
 
 
 static bool parse_FpuGeneric(ESize sz, uint16_t opmode, SAddrMode* src, SAddrMode* dest)
 {
-	uint16_t rm = src->eMode == AM_FPUREG ? (uint16_t) 0x0000 : (uint16_t) 0x4000;
+    uint16_t rm = src->eMode == AM_FPUREG ? (uint16_t) 0x0000 : (uint16_t) 0x4000;
 
-	if(dest->eMode != AM_FPUREG)
-	{
-		prj_Error(MERROR_FPU_REGISTER_EXPECTED);
-		return true;
-	}
+    if(dest->eMode != AM_FPUREG)
+    {
+        prj_Error(MERROR_FPU_REGISTER_EXPECTED);
+        return true;
+    }
 
-	sect_OutputConst16(FPU_INS | (rm ? parse_GetEAField(src) : 0u));
-	sect_OutputConst16(rm | parse_GetSourceSpecifier(sz) | (dest->nDirectReg << 7) | opmode);
-	return parse_OutputExtWords(src);
+    sect_OutputConst16(FPU_INS | (rm ? parse_GetEAField(src) : 0u));
+    sect_OutputConst16(rm | parse_GetSourceSpecifier(sz) | (dest->nDirectReg << 7) | opmode);
+    return parse_OutputExtWords(src);
 }
 
 
 static bool parse_FABS(ESize sz, SAddrMode* src, SAddrMode* dest)
 {
-	if(dest == NULL && src->eMode == AM_FPUREG)
-	{
-		return parse_FABS(sz, src, src);
-	}
+    if(dest == NULL && src->eMode == AM_FPUREG)
+    {
+        return parse_FABS(sz, src, src);
+    }
 
-	return parse_FpuGeneric(sz, 0x18, src, dest);
+    return parse_FpuGeneric(sz, 0x18, src, dest);
 }
 
 static SInstruction s_FpuInstructions[] =
 {
-	{   // FABS
-		FPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_FPUREG | AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_NONE,
-		parse_FABS
-	}
+    {   // FABS
+        FPUF_ALL,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_FPUREG | AM_EMPTY,
+        AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_NONE,
+        parse_FABS
+    }
 };
 #endif
 
-bool parse_FpuInstruction(void)
-{
-	return false;
-	/*
-	int op;
-	SInstruction* pIns;
+bool
+parse_FpuInstruction(void) {
+    return false;
+    /*
+    int op;
+    SInstruction* pIns;
 
-	if(lex_Current.token < T_FPU_FIRST
-	|| lex_Current.token > T_FPU_LAST)
-	{
-		return false;
-	}
+    if(lex_Current.token < T_FPU_FIRST
+    || lex_Current.token > T_FPU_LAST)
+    {
+        return false;
+    }
 
-	op = lex_Current.token - T_FPU_FIRST;
-	parse_GetToken();
+    op = lex_Current.token - T_FPU_FIRST;
+    parse_GetToken();
 
-	pIns = &s_FpuInstructions[op];
-	if((pIns->nCPU & opt_Current->machineOptions->nFpu) == 0)
-	{
-		prj_Error(MERROR_INSTRUCTION_FPU);
-		return true;
-	}
+    pIns = &s_FpuInstructions[op];
+    if((pIns->nCPU & opt_Current->machineOptions->nFpu) == 0)
+    {
+        prj_Error(MERROR_INSTRUCTION_FPU);
+        return true;
+    }
 
-	return parse_CommonCpuFpu(op, pIns);
-	*/
+    return parse_CommonCpuFpu(op, pIns);
+    */
 }

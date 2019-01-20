@@ -191,8 +191,8 @@ static SAddressingMode s_AddressModes[T_CC_M - T_MODE_B + 1] =
 #define MODE_GROUP_IY_IND_DISP (MODE_REG_IY_IND | MODE_REG_IY_IND_DISP)
 #define MODE_GROUP_I_IND_DISP (MODE_GROUP_IX_IND_DISP | MODE_GROUP_IY_IND_DISP)
 
-#define IS_Z80 (opt_Current->machineOptions->nCpu & CPUF_Z80)
-#define IS_GB  (opt_Current->machineOptions->nCpu & CPUF_GB)
+#define IS_Z80 (opt_Current->machineOptions->cpu & CPUF_Z80)
+#define IS_GB  (opt_Current->machineOptions->cpu & CPUF_GB)
 
 static SExpression* parse_CreateExpressionNBit(SExpression* pExpr, int nLowLimit, int nHighLimit, int nBits)
 {
@@ -1132,9 +1132,9 @@ bool parse_TargetSpecific(void)
 			if((addrMode2.nMode & pOpcode->nAddrMode2)
 			|| (addrMode2.nMode == 0 && ((pOpcode->nAddrMode2 == 0) || (pOpcode->nAddrMode2 & MODE_NONE))))
 			{
-				if((opt_Current->machineOptions->nCpu & pOpcode->nCpu)
-				&& (opt_Current->machineOptions->nCpu & addrMode1.nCpu)
-				&& (opt_Current->machineOptions->nCpu & addrMode2.nCpu))
+				if((opt_Current->machineOptions->cpu & pOpcode->nCpu)
+				&& (opt_Current->machineOptions->cpu & addrMode1.nCpu)
+				&& (opt_Current->machineOptions->cpu & addrMode2.nCpu))
 				{
 					return pOpcode->pParser(pOpcode, pOpcode->nAddrMode1 != 0 ? &addrMode1 : NULL, pOpcode->nAddrMode2 != 0 ? &addrMode2 : NULL);
 				}

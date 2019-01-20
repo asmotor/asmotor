@@ -19,31 +19,19 @@
 #include "xasm.h"
 #include "symbol.h"
 
-void locsym_Init(void)
-{
-	string* pName;
-	
-	pName = str_Create("CODE");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
-	
-	pName = str_Create("DATA");
-    sym_CreateGroup(pName, GROUP_TEXT)->flags |= SYMF_DATA;
-	str_Free(pName);
-	
-	pName = str_Create("BSS");
-    sym_CreateGroup(pName, GROUP_BSS);
-	str_Free(pName);
-	
-	pName = str_Create("CODE_C");
-    sym_CreateGroup(pName, GROUP_TEXT)->flags |= SYMF_CHIP;
-	str_Free(pName);
-	
-	pName = str_Create("DATA_C");
-    sym_CreateGroup(pName, GROUP_TEXT)->flags |= SYMF_DATA | SYMF_CHIP;
-	str_Free(pName);
-	
-	pName = str_Create("BSS_C");
-    sym_CreateGroup(pName, GROUP_BSS)->flags |= SYMF_CHIP;
-	str_Free(pName);
+static void
+createGroup(const char* name, EGroupType type, uint32_t flags) {
+    string* nameString = str_Create(name);
+    sym_CreateGroup(nameString, type)->flags |= flags;
+    str_Free(nameString);
+}
+
+void
+locsym_Init(void) {
+    createGroup("CODE", GROUP_TEXT, 0);
+    createGroup("DATA", GROUP_TEXT, SYMF_DATA);
+    createGroup("BSS", GROUP_BSS, 0);
+    createGroup("CODE_C", GROUP_TEXT, SYMF_CHIP);
+    createGroup("DATA_C", GROUP_TEXT, SYMF_DATA | SYMF_CHIP);
+    createGroup("BSS_C", GROUP_BSS, SYMF_CHIP);
 }

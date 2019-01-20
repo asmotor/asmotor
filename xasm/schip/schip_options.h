@@ -26,7 +26,7 @@
 
 typedef struct MachineOptions
 {
-	int	nCpu;
+	int	cpu;
 } SMachineOptions;
 
 #endif

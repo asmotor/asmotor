@@ -16,13 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XASM_GAMEBOY_TOKENS_H_INCLUDED_
-#define	XASM_GAMEBOY_TOKENS_H_INCLUDED_
+#ifndef	XASM_M68K_TOKENS_H_INCLUDED_
+#define	XASM_M68K_TOKENS_H_INCLUDED_
 
-#define MAXSECTIONSIZE 0xFFFFFFFF
-
-typedef	enum
-{
+typedef	enum {
 	T_68K_ABCD = 6000,
 	T_68K_ADD,
 	T_68K_ADDA,
@@ -510,4 +507,4 @@ typedef	enum
 
 }	ETargetToken;
 
-#endif	//XASM_GAMEBOY_TOKENS_H_INCLUDED_
+#endif

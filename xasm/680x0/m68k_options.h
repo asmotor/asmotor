@@ -34,10 +34,9 @@
 
 #define FPUF_ALL 0x07
 
-typedef struct MachineOptions
-{
-	int	nCpu;
-    int nFpu;
+typedef struct MachineOptions {
+    int cpu;
+    int fpu;
 } SMachineOptions;
 
 #endif

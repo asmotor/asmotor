@@ -28,91 +28,86 @@
 
 #include "m68k_options.h"
 
-void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
-{
-	*pDest = *pSrc;
+void
+locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
+    *dest = *src;
 }
 
-SMachineOptions* locopt_Alloc(void)
-{
-	return mem_Alloc(sizeof(SMachineOptions));
+SMachineOptions*
+locopt_Alloc(void) {
+    return mem_Alloc(sizeof(SMachineOptions));
 }
 
-void locopt_Open(void)
-{
-	opt_Current->machineOptions->nCpu = CPUF_68000;
-	opt_Current->machineOptions->nFpu = 0;
+void
+locopt_Open(void) {
+    opt_Current->machineOptions->cpu = CPUF_68000;
+    opt_Current->machineOptions->fpu = 0;
 }
 
-void locopt_Update(void)
-{
+void
+locopt_Update(void) {
 }
 
-bool locopt_Parse(char* s)
-{
-	if(s == NULL || strlen(s) == 0)
-		return false;
+bool
+locopt_Parse(char* option) {
+    if (option == NULL || strlen(option) == 0)
+        return false;
 
-	switch(s[0])
-	{
-		case 'c':
-			if(strlen(&s[1]) == 1)
-			{
-				switch(s[1] - '0')
-				{
-					case 0:
-						opt_Current->machineOptions->nCpu = CPUF_68000;
-						return true;
-					case 1:
-						opt_Current->machineOptions->nCpu = CPUF_68010;
-						return true;
-					case 2:
-						opt_Current->machineOptions->nCpu = CPUF_68020;
-						return true;
-					case 3:
-						opt_Current->machineOptions->nCpu = CPUF_68030;
-						return true;
-					case 4:
-						opt_Current->machineOptions->nCpu = CPUF_68040;
-						return true;
-					case 6:
-						opt_Current->machineOptions->nCpu = CPUF_68060;
-						return true;
-					default:
-						break;
-				}
-			}
-			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return false;
-		case 'f':
-			if(strlen(&s[1]) == 1)
-			{
-				switch(s[1])
-				{
-					case '1':
-					case '2':
-					case 'x':
-						opt_Current->machineOptions->nCpu = FPUF_6888X;
-						return true;
-					case '4':
-						opt_Current->machineOptions->nCpu = FPUF_68040;
-						return true;
-					case '6':
-						opt_Current->machineOptions->nCpu = FPUF_68060;
-						return true;
-					default:
-						break;
-				}
-			}
-			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return false;
-		default:
-			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return false;
-	}
+    switch (option[0]) {
+        case 'c':
+            if (strlen(&option[1]) == 1) {
+                switch (option[1] - '0') {
+                    case 0:
+                        opt_Current->machineOptions->cpu = CPUF_68000;
+                        return true;
+                    case 1:
+                        opt_Current->machineOptions->cpu = CPUF_68010;
+                        return true;
+                    case 2:
+                        opt_Current->machineOptions->cpu = CPUF_68020;
+                        return true;
+                    case 3:
+                        opt_Current->machineOptions->cpu = CPUF_68030;
+                        return true;
+                    case 4:
+                        opt_Current->machineOptions->cpu = CPUF_68040;
+                        return true;
+                    case 6:
+                        opt_Current->machineOptions->cpu = CPUF_68060;
+                        return true;
+                    default:
+                        break;
+                }
+            }
+            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+            return false;
+        case 'f':
+            if (strlen(&option[1]) == 1) {
+                switch (option[1]) {
+                    case '1':
+                    case '2':
+                    case 'x':
+                        opt_Current->machineOptions->cpu = FPUF_6888X;
+                        return true;
+                    case '4':
+                        opt_Current->machineOptions->cpu = FPUF_68040;
+                        return true;
+                    case '6':
+                        opt_Current->machineOptions->cpu = FPUF_68060;
+                        return true;
+                    default:
+                        break;
+                }
+            }
+            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+            return false;
+        default:
+            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+            return false;
+    }
 }
 
-void locopt_PrintOptions(void)
-{
-	printf("    -mc<X>  Enable CPU 680X0\n");
+void
+locopt_PrintOptions(void) {
+    printf("    -mc<X>  Enable CPU 680X0\n");
 }

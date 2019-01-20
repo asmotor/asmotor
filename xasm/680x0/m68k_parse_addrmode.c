@@ -28,281 +28,277 @@
 #include "m68k_parse.h"
 #include "m68k_tokens.h"
 
-SExpression* parse_CheckScaleRange(SExpression* pExpr)
-{
-	if((pExpr = expr_CheckRange(pExpr,1,8)) == NULL)
-	{
-		prj_Error(MERROR_SCALE_RANGE);
-		return NULL;
-	}
+SExpression*
+expressionCheckScaleRange(SExpression* expression) {
+    if ((expression = expr_CheckRange(expression, 1, 8)) == NULL) {
+        prj_Error(MERROR_SCALE_RANGE);
+        return NULL;
+    }
 
-	return pExpr;
+    return expression;
 }
 
-SExpression* parse_Check16bit(SExpression* pExpr)
-{
-	if((pExpr = expr_CheckRange(pExpr,-32768,65535)) == NULL)
-	{
-		prj_Error(ERROR_EXPRESSION_N_BIT, 16);
-		return NULL;
-	}
+SExpression*
+parse_ExpressionCheck16Bit(SExpression* expression) {
+    if ((expression = expr_CheckRange(expression, -32768, 65535)) == NULL) {
+        prj_Error(ERROR_EXPRESSION_N_BIT, 16);
+        return NULL;
+    }
 
-	return pExpr;
+    return expression;
 }
 
-SExpression* parse_Check8bit(SExpression* pExpr)
-{
-	if((pExpr = expr_CheckRange(pExpr,-128,255)) == NULL)
-	{
-		prj_Error(ERROR_EXPRESSION_N_BIT, 8);
-		return NULL;
-	}
+SExpression*
+parse_ExpressionCheck8Bit(SExpression* expression) {
+    if ((expression = expr_CheckRange(expression, -128, 255)) == NULL) {
+        prj_Error(ERROR_EXPRESSION_N_BIT, 8);
+        return NULL;
+    }
 
-	return pExpr;
+    return expression;
 }
 
-ESize parse_GetSizeSpec(ESize eDefault)
-{
-	if(lex_Current.token == T_ID && strlen(lex_Current.value.string) == 2)
-	{
-		if(_strnicmp(lex_Current.value.string,".b",2) == 0)
-		{
-			parse_GetToken();
-			return SIZE_BYTE;
-		}
-		else if(_strnicmp(lex_Current.value.string,".w",2) == 0)
-		{
-			parse_GetToken();
-			return SIZE_WORD;
-		}
-		else if(_strnicmp(lex_Current.value.string,".l",2) == 0)
-		{
-			parse_GetToken();
-			return SIZE_LONG;
-		}
-		else if(_strnicmp(lex_Current.value.string,".s",2) == 0)
-		{
-			parse_GetToken();
-			return SIZE_SINGLE;
-		}
-		else if(_strnicmp(lex_Current.value.string,".d",2) == 0)
-		{
-			parse_GetToken();
-			return SIZE_DOUBLE;
-		}
-		else if(_strnicmp(lex_Current.value.string,".x",2) == 0)
-		{
-			parse_GetToken();
-			return SIZE_EXTENDED;
-		}
-		else if(_strnicmp(lex_Current.value.string,".p",2) == 0)
-		{
-			parse_GetToken();
-			return SIZE_PACKED;
-		}
-	}
+static bool
+getDataRegister(uint16_t* outRegister) {
+    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_D0);
+        parse_GetToken();
+        return true;
+    }
 
-	return eDefault;
+    return false;
 }
 
-static bool parse_GetIndexReg(SModeRegs* pMode)
-{
-	if(lex_Current.token >= T_68K_REG_D0
-	&& lex_Current.token <= T_68K_REG_D7)
-	{
-		pMode->nIndexReg = REG_D0 + (lex_Current.token - T_68K_REG_D0);
-	}
-	else if(lex_Current.token >= T_68K_REG_A0
-	&& lex_Current.token <= T_68K_REG_A7)
-	{
-		pMode->nIndexReg = REG_A0 + (lex_Current.token - T_68K_REG_A0);
-	}
+static bool
+getAddressRegister(uint16_t* outRegister) {
+    if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A7) {
+        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_A0);
+        parse_GetToken();
+        return true;
+    }
 
-	parse_GetToken();
-
-	pMode->eIndexSize = parse_GetSizeSpec(SIZE_WORD);
-
-	if(pMode->eIndexSize != SIZE_WORD
-	&& pMode->eIndexSize != SIZE_LONG)
-	{
-		prj_Error(MERROR_INDEXREG_SIZE);
-		return false;
-	}
-
-	if(lex_Current.token == T_OP_MULTIPLY)
-	{
-		parse_GetToken();
-		if((pMode->pIndexScale = parse_Expression(1)) == NULL)
-		{
-			prj_Error(ERROR_EXPECT_EXPR);
-			return false;
-		}
-		pMode->pIndexScale = parse_CheckScaleRange(pMode->pIndexScale);
-		pMode->pIndexScale = expr_Bit(pMode->pIndexScale);
-	}
-
-	return true;
+    return false;
 }
 
-static bool parse_SingleModePart(SModeRegs* pMode)
-{
-	// parses xxxx, Ax, PC, Xn.S*scale
-	SExpression* expr;
+static bool
+getRegister(uint16_t* outRegister) {
+    if (getDataRegister(outRegister))
+        return true;
 
-	if(lex_Current.token == T_68K_REG_PC)
-	{
-		if(pMode->nBaseReg != REG_NONE)
-			return false;
+    if (getAddressRegister(outRegister)) {
+        *outRegister += 8;
+        return true;
+    }
 
-		pMode->nBaseReg = REG_PC;
-		parse_GetToken();
-		return true;
-	}
-
-	if(lex_Current.token >= T_68K_REG_A0
-	&& lex_Current.token <= T_68K_REG_A7)
-	{
-		ESize sz;
-
-		if(pMode->nBaseReg != REG_NONE)
-		{
-			if(pMode->nIndexReg != REG_NONE)
-			{
-				return false;
-			}
-
-			return parse_GetIndexReg(pMode);
-		}
-
-		int addressRegister = lex_Current.token - T_68K_REG_A0;
-		parse_GetToken();
-		sz = parse_GetSizeSpec(SIZE_DEFAULT);
-		if(sz == SIZE_WORD)
-		{
-			if(pMode->nIndexReg == REG_NONE)
-			{
-				pMode->nIndexReg = REG_A0 + addressRegister;
-				pMode->eIndexSize = SIZE_WORD;
-				return true;
-			}
-			return false;
-		}
-
-		pMode->nBaseReg = REG_A0 + addressRegister;
-		return true;
-	}
-
-	if(lex_Current.token >= T_68K_REG_D0
-	&& lex_Current.token <= T_68K_REG_D7)
-	{
-		if(pMode->nIndexReg != REG_NONE)
-		{
-			return false;
-		}
-
-		return parse_GetIndexReg(pMode);
-	}
-
-	expr = parse_Expression(4);
-	if(expr != NULL)
-	{
-		if(pMode->pDisp != NULL)
-			return false;
-
-		pMode->pDisp = expr;
-		pMode->eDispSize = parse_GetSizeSpec(SIZE_DEFAULT);
-		return true;
-	}
-
-	return false;
+    return false;
 }
 
-static bool parse_GetInnerMode(SAddressingMode* pMode)
-{
-	for(;;)
-	{
-		if(!parse_SingleModePart(&pMode->Inner))
-			return false;
-
-		if(lex_Current.token == ']')
-		{
-			parse_GetToken();
-			return true;
-		}
-
-		if(lex_Current.token == ',')
-		{
-			parse_GetToken();
-			continue;
-		}
-
-		return false;
-	}
+static bool
+getRegisterRange(uint16_t* outStart, uint16_t* outEnd) {
+    if (getRegister(outStart)) {
+        if (lex_Current.token == T_OP_SUBTRACT) {
+            parse_GetToken();
+            if (!getRegister(outEnd))
+                return 0;
+            return true;
+        }
+        *outEnd = *outStart;
+        return true;
+    }
+    return false;
 }
 
-static bool parse_GetOuterPart(SAddressingMode* pMode)
-{
-	if(opt_Current->machineOptions->nCpu >= CPUF_68020 && lex_Current.token == '[')
-	{
-		parse_GetToken();
-		return parse_GetInnerMode(pMode);
-	}
+ESize
+getSizeSpecifier(ESize defaultSize) {
+    if (lex_Current.token == T_ID && strlen(lex_Current.value.string) == 2) {
+        if (_strnicmp(lex_Current.value.string, ".b", 2) == 0) {
+            parse_GetToken();
+            return SIZE_BYTE;
+        } else if (_strnicmp(lex_Current.value.string, ".w", 2) == 0) {
+            parse_GetToken();
+            return SIZE_WORD;
+        } else if (_strnicmp(lex_Current.value.string, ".l", 2) == 0) {
+            parse_GetToken();
+            return SIZE_LONG;
+        } else if (_strnicmp(lex_Current.value.string, ".s", 2) == 0) {
+            parse_GetToken();
+            return SIZE_SINGLE;
+        } else if (_strnicmp(lex_Current.value.string, ".d", 2) == 0) {
+            parse_GetToken();
+            return SIZE_DOUBLE;
+        } else if (_strnicmp(lex_Current.value.string, ".x", 2) == 0) {
+            parse_GetToken();
+            return SIZE_EXTENDED;
+        } else if (_strnicmp(lex_Current.value.string, ".p", 2) == 0) {
+            parse_GetToken();
+            return SIZE_PACKED;
+        }
+    }
 
-	return parse_SingleModePart(&pMode->Outer);
+    return defaultSize;
 }
 
-static bool parse_GetOuterMode(SAddressingMode* pMode)
-{
-	for(;;)
-	{
-		if(!parse_GetOuterPart(pMode))
-			return false;
+static bool
+getIndexReg(SModeRegisters* outMode) {
+    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+        outMode->indexRegister = REG_D0 + (lex_Current.token - T_68K_REG_D0);
+    } else if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A7) {
+        outMode->indexRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0);
+    }
 
-		if(lex_Current.token == ')')
-		{
-			parse_GetToken();
-			return true;
-		}
+    parse_GetToken();
 
-		if(lex_Current.token == ',')
-		{
-			parse_GetToken();
-			continue;
-		}
+    outMode->indexSize = getSizeSpecifier(SIZE_WORD);
 
-		return false;
-	}
+    if (outMode->indexSize != SIZE_WORD && outMode->indexSize != SIZE_LONG) {
+        prj_Error(MERROR_INDEXREG_SIZE);
+        return false;
+    }
 
-	return false;
+    if (lex_Current.token == T_OP_MULTIPLY) {
+        parse_GetToken();
+        if ((outMode->indexScale = parse_Expression(1)) == NULL) {
+            prj_Error(ERROR_EXPECT_EXPR);
+            return false;
+        }
+        outMode->indexScale = expressionCheckScaleRange(outMode->indexScale);
+        outMode->indexScale = expr_Bit(outMode->indexScale);
+    }
+
+    return true;
 }
 
+static bool
+singleModePart(SModeRegisters* outMode) {
+    // parses xxxx, Ax, PC, Xn.S*scale
+    SExpression* expr;
 
-static void parse_OptimizeFields(SModeRegs* pRegs)
-{
-	if(pRegs->pDisp != NULL
-	&& expr_IsConstant(pRegs->pDisp)
-	&& pRegs->pDisp->value.integer == 0)
-	{
-		expr_Free(pRegs->pDisp);
-		pRegs->pDisp = NULL;
-	}
+    if (lex_Current.token == T_68K_REG_PC) {
+        if (outMode->baseRegister != REG_NONE)
+            return false;
 
-	if(pRegs->pIndexScale != NULL
-	&& expr_IsConstant(pRegs->pIndexScale)
-	&& pRegs->pIndexScale->value.integer == 0)
-	{
-		expr_Free(pRegs->pIndexScale);
-		pRegs->pIndexScale = NULL;
-	}
+        outMode->baseRegister = REG_PC;
+        parse_GetToken();
+        return true;
+    }
 
-	if(pRegs->nBaseReg == REG_NONE
-	&& pRegs->nIndexReg >= REG_A0
-	&& pRegs->nIndexReg <= REG_A7
-	&& pRegs->eIndexSize == SIZE_LONG)
-	{
-		pRegs->nBaseReg = pRegs->nIndexReg;
-		pRegs->nIndexReg = REG_NONE;
-	}
+    if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A7) {
+        ESize sz;
+
+        if (outMode->baseRegister != REG_NONE) {
+            if (outMode->indexRegister != REG_NONE) {
+                return false;
+            }
+
+            return getIndexReg(outMode);
+        }
+
+        int addressRegister = lex_Current.token - T_68K_REG_A0;
+        parse_GetToken();
+        sz = getSizeSpecifier(SIZE_DEFAULT);
+        if (sz == SIZE_WORD) {
+            if (outMode->indexRegister == REG_NONE) {
+                outMode->indexRegister = REG_A0 + addressRegister;
+                outMode->indexSize = SIZE_WORD;
+                return true;
+            }
+            return false;
+        }
+
+        outMode->baseRegister = REG_A0 + addressRegister;
+        return true;
+    }
+
+    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+        if (outMode->indexRegister != REG_NONE) {
+            return false;
+        }
+
+        return getIndexReg(outMode);
+    }
+
+    expr = parse_Expression(4);
+    if (expr != NULL) {
+        if (outMode->displacement != NULL)
+            return false;
+
+        outMode->displacement = expr;
+        outMode->displacementSize = getSizeSpecifier(SIZE_DEFAULT);
+        return true;
+    }
+
+    return false;
+}
+
+static bool
+getInnerMode(SAddressingMode* outMode) {
+    for (;;) {
+        if (!singleModePart(&outMode->inner))
+            return false;
+
+        if (lex_Current.token == ']') {
+            parse_GetToken();
+            return true;
+        }
+
+        if (lex_Current.token == ',') {
+            parse_GetToken();
+            continue;
+        }
+
+        return false;
+    }
+}
+
+static bool
+getOuterPart(SAddressingMode* outMode) {
+    if (opt_Current->machineOptions->cpu >= CPUF_68020 && lex_Current.token == '[') {
+        parse_GetToken();
+        return getInnerMode(outMode);
+    }
+
+    return singleModePart(&outMode->outer);
+}
+
+static bool
+getOuterMode(SAddressingMode* outMode) {
+    for (;;) {
+        if (!getOuterPart(outMode))
+            return false;
+
+        if (lex_Current.token == ')') {
+            parse_GetToken();
+            return true;
+        }
+
+        if (lex_Current.token == ',') {
+            parse_GetToken();
+            continue;
+        }
+
+        return false;
+    }
+
+    return false;
+}
+
+static void
+optimizeFields(SModeRegisters* registers) {
+    if (registers->displacement != NULL && expr_IsConstant(registers->displacement) && registers->displacement->value.integer == 0) {
+        expr_Free(registers->displacement);
+        registers->displacement = NULL;
+    }
+
+    if (registers->indexScale != NULL && expr_IsConstant(registers->indexScale) && registers->indexScale->value.integer == 0) {
+        expr_Free(registers->indexScale);
+        registers->indexScale = NULL;
+    }
+
+    if (registers->baseRegister == REG_NONE && registers->indexRegister >= REG_A0 && registers->indexRegister <= REG_A7
+        && registers->indexSize == SIZE_LONG) {
+        registers->baseRegister = registers->indexRegister;
+        registers->indexRegister = REG_NONE;
+    }
 }
 
 #define I_BASE  0x01
@@ -312,375 +308,354 @@ static void parse_OptimizeFields(SModeRegs* pRegs)
 #define O_INDEX 0x10
 #define O_DISP  0x20
 
-static bool parse_OptimizeMode(SAddressingMode* pMode)
-{
-	uint32_t inner = 0;
+static bool
+optimizeMode(SAddressingMode* mode) {
+    uint32_t inner = 0;
 
-	parse_OptimizeFields(&pMode->Inner);
-	parse_OptimizeFields(&pMode->Outer);
+    optimizeFields(&mode->inner);
+    optimizeFields(&mode->outer);
 
-	if(pMode->Inner.nBaseReg != REG_NONE)
-		inner |= I_BASE;
+    if (mode->inner.baseRegister != REG_NONE)
+        inner |= I_BASE;
 
-	if(pMode->Inner.nIndexReg != REG_NONE)
-		inner |= I_INDEX;
+    if (mode->inner.indexRegister != REG_NONE)
+        inner |= I_INDEX;
 
-	if(pMode->Inner.pDisp != NULL)
-		inner |= I_DISP;
+    if (mode->inner.displacement != NULL)
+        inner |= I_DISP;
 
-	if(pMode->Outer.nBaseReg != REG_NONE)
-		inner |= O_BASE;
+    if (mode->outer.baseRegister != REG_NONE)
+        inner |= O_BASE;
 
-	if(pMode->Outer.nIndexReg != REG_NONE)
-		inner |= O_INDEX;
+    if (mode->outer.indexRegister != REG_NONE)
+        inner |= O_INDEX;
 
-	if(pMode->Outer.pDisp != NULL)
-		inner |= O_DISP;
+    if (mode->outer.displacement != NULL)
+        inner |= O_DISP;
 
-	if((inner & (I_BASE|I_INDEX|I_DISP)) != 0)
-	{
-		if(pMode->Inner.pDisp != NULL
-		&& pMode->Inner.eDispSize == SIZE_BYTE)
-			pMode->Inner.eDispSize = SIZE_WORD;
+    if ((inner & (I_BASE | I_INDEX | I_DISP)) != 0) {
+        if (mode->inner.displacement != NULL && mode->inner.displacementSize == SIZE_BYTE)
+            mode->inner.displacementSize = SIZE_WORD;
 
-		if(pMode->Outer.pDisp != NULL
-		&& pMode->Outer.eDispSize == SIZE_BYTE)
-			pMode->Outer.eDispSize = SIZE_WORD;
+        if (mode->outer.displacement != NULL && mode->outer.displacementSize == SIZE_BYTE)
+            mode->outer.displacementSize = SIZE_WORD;
 
-		if(pMode->Outer.nBaseReg != REG_NONE
-		&& pMode->Outer.nIndexReg != REG_NONE)
-			return false;
+        if (mode->outer.baseRegister != REG_NONE && mode->outer.indexRegister != REG_NONE)
+            return false;
 
-		if(pMode->Outer.nBaseReg != REG_NONE
-		&& pMode->Outer.nIndexReg == REG_NONE)
-		{
-			pMode->Outer.nIndexReg = pMode->Outer.nBaseReg;
-			pMode->Outer.eIndexSize = SIZE_LONG;
-			pMode->Outer.nBaseReg = REG_NONE;
-			pMode->Outer.pIndexScale = NULL;
-		}
+        if (mode->outer.baseRegister != REG_NONE && mode->outer.indexRegister == REG_NONE) {
+            mode->outer.indexRegister = mode->outer.baseRegister;
+            mode->outer.indexSize = SIZE_LONG;
+            mode->outer.baseRegister = REG_NONE;
+            mode->outer.indexScale = NULL;
+        }
 
-		switch(inner)
-		{
-			default:
-				return false;
-			case I_BASE:
-			case          I_INDEX:
-			case I_BASE | I_INDEX:
-			case                    I_DISP:
-			case I_BASE           | I_DISP:
-			case          I_INDEX | I_DISP:
-			case I_BASE | I_INDEX | I_DISP:
-			case                             O_DISP:
-			case I_BASE                    | O_DISP:
-			case          I_INDEX          | O_DISP:
-			case I_BASE | I_INDEX          | O_DISP:
-			case                    I_DISP | O_DISP:
-			case I_BASE           | I_DISP | O_DISP:
-			case          I_INDEX | I_DISP | O_DISP:
-			case I_BASE | I_INDEX | I_DISP | O_DISP:
-				// ([bd,An,Xn],od)
-				if(pMode->Inner.nBaseReg == REG_PC)
-					pMode->eMode = AM_PREINDPCXD020;
-				else
-					pMode->eMode = AM_PREINDAXD020;
-				return true;
+        switch (inner) {
+            default:
+                return false;
+            case I_BASE:
+            case          I_INDEX:
+            case I_BASE | I_INDEX:
+            case                    I_DISP:
+            case I_BASE |           I_DISP:
+            case          I_INDEX | I_DISP:
+            case I_BASE | I_INDEX | I_DISP:
+            case                             O_DISP:
+            case I_BASE |                    O_DISP:
+            case          I_INDEX |          O_DISP:
+            case I_BASE | I_INDEX |          O_DISP:
+            case                    I_DISP | O_DISP:
+            case I_BASE |           I_DISP | O_DISP:
+            case          I_INDEX | I_DISP | O_DISP:
+            case I_BASE | I_INDEX | I_DISP | O_DISP:
+                // ([bd,An,Xn],od)
+                if (mode->inner.baseRegister == REG_PC)
+                    mode->mode = AM_PREINDPCXD020;
+                else
+                    mode->mode = AM_PREINDAXD020;
+                return true;
 
-			//case I_BASE:
-			//case          I_DISP:
-			//case I_BASE | I_DISP:
-			case                   O_INDEX:
-			case I_BASE          | O_INDEX:
-			case          I_DISP | O_INDEX:
-			case I_BASE | I_DISP | O_INDEX:
-			//case                             O_DISP:
-			//case I_BASE                    | O_DISP:
-			//case          I_DISP           | O_DISP:
-			//case I_BASE | I_DISP           | O_DISP:
-			//case                 | O_INDEX | O_DISP:
-			case I_BASE          | O_INDEX | O_DISP:
-			case          I_DISP | O_INDEX | O_DISP:
-			case I_BASE | I_DISP | O_INDEX | O_DISP:
-				// ([bd,An],Xn,od)
-				if(pMode->Inner.nBaseReg == REG_PC)
-					pMode->eMode = AM_POSTINDPCXD020;
-				else
-					pMode->eMode = AM_POSTINDAXD020;
-				return true;
-		}
-	}
+                //case I_BASE:
+                //case          I_DISP:
+                //case I_BASE | I_DISP:
+            case                   O_INDEX:
+            case I_BASE |          O_INDEX:
+            case          I_DISP | O_INDEX:
+            case I_BASE | I_DISP | O_INDEX:
+                //case                             O_DISP:
+                //case I_BASE                    | O_DISP:
+                //case          I_DISP           | O_DISP:
+                //case I_BASE | I_DISP           | O_DISP:
+                //case                 | O_INDEX | O_DISP:
+            case I_BASE |          O_INDEX | O_DISP:
+            case          I_DISP | O_INDEX | O_DISP:
+            case I_BASE | I_DISP | O_INDEX | O_DISP:
+                // ([bd,An],Xn,od)
+                if (mode->inner.baseRegister == REG_PC)
+                    mode->mode = AM_POSTINDPCXD020;
+                else
+                    mode->mode = AM_POSTINDAXD020;
+                return true;
+        }
+    }
 
-	switch(inner)
-	{
-		default:
-			return false;
-		case O_BASE:
-			pMode->eMode = AM_AIND;
-			return true;
-		case          O_INDEX:
-		case          O_INDEX | O_DISP:
-			pMode->eMode = AM_AXDISP020;
-			return true;
-		case O_BASE | O_INDEX:
-			pMode->eMode = AM_AXDISP;
-			return true;
-		case                    O_DISP:
-			if(pMode->Outer.eDispSize == SIZE_BYTE)
-			{
-				prj_Error(MERROR_DISP_SIZE);
-				return false;
-			}
-			if(pMode->Outer.eDispSize == SIZE_WORD)
-				pMode->eMode = AM_WORD;
-			else
-				pMode->eMode = AM_LONG;
-			return true;
-		case O_BASE           | O_DISP:
-			if(pMode->Outer.eDispSize == SIZE_BYTE)
-			{
-				prj_Error(MERROR_DISP_SIZE);
-				return false;
-			}
+    switch (inner) {
+        default:
+            return false;
+        case O_BASE:
+            mode->mode = AM_AIND;
+            return true;
+        case O_INDEX:
+        case O_INDEX | O_DISP:
+            mode->mode = AM_AXDISP020;
+            return true;
+        case O_BASE | O_INDEX:
+            mode->mode = AM_AXDISP;
+            return true;
+        case O_DISP:
+            if (mode->outer.displacementSize == SIZE_BYTE) {
+                prj_Error(MERROR_DISP_SIZE);
+                return false;
+            }
+            if (mode->outer.displacementSize == SIZE_WORD)
+                mode->mode = AM_WORD;
+            else
+                mode->mode = AM_LONG;
+            return true;
+        case O_BASE | O_DISP:
+            if (mode->outer.displacementSize == SIZE_BYTE) {
+                prj_Error(MERROR_DISP_SIZE);
+                return false;
+            }
 
-			if(opt_Current->machineOptions->nCpu <= CPUF_68010)
-			{
-				if(pMode->Outer.eDispSize == SIZE_DEFAULT)
-					pMode->Outer.eDispSize = SIZE_WORD;
+            if (opt_Current->machineOptions->cpu <= CPUF_68010) {
+                if (mode->outer.displacementSize == SIZE_DEFAULT)
+                    mode->outer.displacementSize = SIZE_WORD;
 
-				if(pMode->Outer.nBaseReg == REG_PC)
-					pMode->eMode = AM_PCDISP;
-				else
-					pMode->eMode = AM_ADISP;
+                if (mode->outer.baseRegister == REG_PC)
+                    mode->mode = AM_PCDISP;
+                else
+                    mode->mode = AM_ADISP;
 
-				return true;
-			}
+                return true;
+            }
 
-			parse_OptimizeDisp(&pMode->Outer);
-			if(pMode->Outer.eDispSize == SIZE_WORD)
-			{
-				if(pMode->Outer.nBaseReg == REG_PC)
-					pMode->eMode = AM_PCDISP;
-				else
-					pMode->eMode = AM_ADISP;
+            parse_OptimizeDisp(&mode->outer);
+            if (mode->outer.displacementSize == SIZE_WORD) {
+                if (mode->outer.baseRegister == REG_PC)
+                    mode->mode = AM_PCDISP;
+                else
+                    mode->mode = AM_ADISP;
 
-				return true;
-			}
+                return true;
+            }
 
-			if(pMode->Outer.nBaseReg == REG_PC)
-				pMode->eMode = AM_PCXDISP020;
-			else
-				pMode->eMode = AM_AXDISP020;
+            if (mode->outer.baseRegister == REG_PC)
+                mode->mode = AM_PCXDISP020;
+            else
+                mode->mode = AM_AXDISP020;
 
-			return true;
-		case O_BASE | O_INDEX | O_DISP:
-			if(opt_Current->machineOptions->nCpu <= CPUF_68010)
-			{
-				if(pMode->Outer.eDispSize == SIZE_DEFAULT)
-					pMode->Outer.eDispSize = SIZE_BYTE;
-			}
-			else
-			{
-				if(pMode->Outer.eDispSize == SIZE_DEFAULT)
-				{
-					if(expr_IsConstant(pMode->Outer.pDisp))
-					{
-						if(pMode->Outer.pDisp->value.integer >= -128
-						&& pMode->Outer.pDisp->value.integer <= 127)
-							pMode->Outer.eDispSize = SIZE_BYTE;
-						else if(pMode->Outer.pDisp->value.integer >= -32768
-						&& pMode->Outer.pDisp->value.integer <= 32767)
-							pMode->Outer.eDispSize = SIZE_WORD;
-						else
-							pMode->Outer.eDispSize = SIZE_LONG;
-					}
-					else
-						pMode->Outer.eDispSize = SIZE_BYTE;
-				}
-			}
+            return true;
+        case O_BASE | O_INDEX | O_DISP:
+            if (opt_Current->machineOptions->cpu <= CPUF_68010) {
+                if (mode->outer.displacementSize == SIZE_DEFAULT)
+                    mode->outer.displacementSize = SIZE_BYTE;
+            } else {
+                if (mode->outer.displacementSize == SIZE_DEFAULT) {
+                    if (expr_IsConstant(mode->outer.displacement)) {
+                        if (mode->outer.displacement->value.integer >= -128 && mode->outer.displacement->value.integer <= 127)
+                            mode->outer.displacementSize = SIZE_BYTE;
+                        else if (mode->outer.displacement->value.integer >= -32768
+                                 && mode->outer.displacement->value.integer <= 32767)
+                            mode->outer.displacementSize = SIZE_WORD;
+                        else
+                            mode->outer.displacementSize = SIZE_LONG;
+                    } else
+                        mode->outer.displacementSize = SIZE_BYTE;
+                }
+            }
 
-			if(pMode->Outer.eDispSize == SIZE_BYTE)
-			{
-				if(pMode->Outer.nBaseReg == REG_PC)
-					pMode->eMode = AM_PCXDISP;
-				else
-					pMode->eMode = AM_AXDISP;
-			}
-			else
-			{
-				if(pMode->Outer.nBaseReg == REG_PC)
-					pMode->eMode = AM_PCXDISP020;
-				else
-					pMode->eMode = AM_AXDISP020;
-			}
-			return true;
-	}
+            if (mode->outer.displacementSize == SIZE_BYTE) {
+                if (mode->outer.baseRegister == REG_PC)
+                    mode->mode = AM_PCXDISP;
+                else
+                    mode->mode = AM_AXDISP;
+            } else {
+                if (mode->outer.baseRegister == REG_PC)
+                    mode->mode = AM_PCXDISP020;
+                else
+                    mode->mode = AM_AXDISP020;
+            }
+            return true;
+    }
 }
 
-
-void parse_OptimizeDisp(SModeRegs* pRegs)
-{
-	if(pRegs->pDisp != NULL
-	&& pRegs->eDispSize == SIZE_DEFAULT)
-	{
-		if(expr_IsConstant(pRegs->pDisp))
-		{
-			if(pRegs->pDisp->value.integer >= -32768
-			&& pRegs->pDisp->value.integer <= 32767)
-				pRegs->eDispSize = SIZE_WORD;
-			else
-				pRegs->eDispSize = SIZE_LONG;
-		}
-		else
-			pRegs->eDispSize = SIZE_LONG;
-	}
+void
+parse_OptimizeDisp(SModeRegisters* pRegs) {
+    if (pRegs->displacement != NULL && pRegs->displacementSize == SIZE_DEFAULT) {
+        if (expr_IsConstant(pRegs->displacement)) {
+            if (pRegs->displacement->value.integer >= -32768 && pRegs->displacement->value.integer <= 32767)
+                pRegs->displacementSize = SIZE_WORD;
+            else
+                pRegs->displacementSize = SIZE_LONG;
+        } else
+            pRegs->displacementSize = SIZE_LONG;
+    }
 }
 
+bool
+parse_GetAddrMode(SAddressingMode* addrMode) {
+    addrMode->inner.baseRegister = REG_NONE;
+    addrMode->inner.indexRegister = REG_NONE;
+    addrMode->inner.indexScale = NULL;
+    addrMode->inner.displacement = NULL;
+    addrMode->outer.baseRegister = REG_NONE;
+    addrMode->outer.indexRegister = REG_NONE;
+    addrMode->outer.indexScale = NULL;
+    addrMode->outer.displacement = NULL;
+    addrMode->hasBitfield = false;
 
-bool parse_GetAddrMode(SAddressingMode* pMode)
-{
-	pMode->Inner.nBaseReg = REG_NONE;
-	pMode->Inner.nIndexReg = REG_NONE;
-	pMode->Inner.pIndexScale = NULL;
-	pMode->Inner.pDisp = NULL;
-	pMode->Outer.nBaseReg = REG_NONE;
-	pMode->Outer.nIndexReg = REG_NONE;
-	pMode->Outer.pIndexScale = NULL;
-	pMode->Outer.pDisp = NULL;
-	pMode->bBitfield = false;
+    if (lex_Current.token >= T_68K_SYSREG_FIRST && lex_Current.token <= T_68K_SYSREG_LAST) {
+        addrMode->mode = AM_SYSREG;
+        addrMode->directRegister = lex_Current.token;
+        parse_GetToken();
+        return true;
+    }
 
-	if(lex_Current.token >= T_68K_SYSREG_FIRST
-	&& lex_Current.token <= T_68K_SYSREG_LAST)
-	{
-		pMode->eMode = AM_SYSREG;
-		pMode->nDirectReg = lex_Current.token;
-		parse_GetToken();
-		return true;
-	}
+    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+        addrMode->mode = AM_DREG;
+        addrMode->directRegister = lex_Current.token - T_68K_REG_D0;
+        parse_GetToken();
+        return true;
+    }
 
-	if(lex_Current.token >= T_68K_REG_D0
-	&& lex_Current.token <= T_68K_REG_D7)
-	{
-		pMode->eMode = AM_DREG;
-		pMode->nDirectReg = lex_Current.token - T_68K_REG_D0;
-		parse_GetToken();
-		return true;
-	}
+    if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A7) {
+        addrMode->mode = AM_AREG;
+        addrMode->directRegister = lex_Current.token - T_68K_REG_A0;
+        parse_GetToken();
+        return true;
+    }
 
-	if(lex_Current.token >= T_68K_REG_A0
-	&& lex_Current.token <= T_68K_REG_A7)
-	{
-		pMode->eMode = AM_AREG;
-		pMode->nDirectReg = lex_Current.token - T_68K_REG_A0;
-		parse_GetToken();
-		return true;
-	}
+    if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A7_IND) {
+        addrMode->mode = AM_AIND;
+        addrMode->outer.baseRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);
+        parse_GetToken();
+        return true;
+    }
 
-	if(lex_Current.token >= T_68K_REG_A0_IND
-	&& lex_Current.token <= T_68K_REG_A7_IND)
-	{
-		pMode->eMode = AM_AIND;
-		pMode->Outer.nBaseReg = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);
-		parse_GetToken();
-		return true;
-	}
+    if (lex_Current.token >= T_68K_REG_A0_DEC && lex_Current.token <= T_68K_REG_A7_DEC) {
+        addrMode->mode = AM_ADEC;
+        addrMode->outer.baseRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0_DEC);
+        parse_GetToken();
+        return true;
+    }
 
-	if(lex_Current.token >= T_68K_REG_A0_DEC
-	&& lex_Current.token <= T_68K_REG_A7_DEC)
-	{
-		pMode->eMode = AM_ADEC;
-		pMode->Outer.nBaseReg = REG_A0 + (lex_Current.token - T_68K_REG_A0_DEC);
-		parse_GetToken();
-		return true;
-	}
+    if (lex_Current.token >= T_68K_REG_A0_INC && lex_Current.token <= T_68K_REG_A7_INC) {
+        addrMode->mode = AM_AINC;
+        addrMode->outer.baseRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0_INC);
+        parse_GetToken();
+        return true;
+    }
 
-	if(lex_Current.token >= T_68K_REG_A0_INC
-	&& lex_Current.token <= T_68K_REG_A7_INC)
-	{
-		pMode->eMode = AM_AINC;
-		pMode->Outer.nBaseReg = REG_A0 + (lex_Current.token - T_68K_REG_A0_INC);
-		parse_GetToken();
-		return true;
-	}
+    if (lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
+        addrMode->mode = AM_FPUREG;
+        addrMode->outer.baseRegister = REG_FP0 + (lex_Current.token - T_FPUREG_0);
+        parse_GetToken();
+        return true;
+    }
 
-	if(lex_Current.token >= T_FPUREG_0
-	&& lex_Current.token <= T_FPUREG_7)
-	{
-		pMode->eMode = AM_FPUREG;
-		pMode->Outer.nBaseReg = REG_FP0 + (lex_Current.token - T_FPUREG_0);
-		parse_GetToken();
-		return true;
-	}
+    if (lex_Current.token == '#') {
+        parse_GetToken();
+        addrMode->mode = AM_IMM;
+        addrMode->immediate = parse_Expression(4);
+        return addrMode->immediate != NULL;
+    }
 
-	if(lex_Current.token == '#')
-	{
-		parse_GetToken();
-		pMode->eMode = AM_IMM;
-		pMode->pImmediate = parse_Expression(4);
-		return pMode->pImmediate != NULL;
-	}
+    addrMode->outer.displacement = parse_Expression(4);
+    if (addrMode->outer.displacement != NULL)
+        addrMode->outer.displacementSize = getSizeSpecifier(SIZE_DEFAULT);
 
-	pMode->Outer.pDisp = parse_Expression(4);
-	if(pMode->Outer.pDisp != NULL)
-		pMode->Outer.eDispSize = parse_GetSizeSpec(SIZE_DEFAULT);
+    // parse (xxxx)
+    if (lex_Current.token == '(') {
+        parse_GetToken();
 
-	// parse (xxxx)
-	if(lex_Current.token == '(')
-	{
-		parse_GetToken();
+        if (getOuterMode(addrMode)) {
+            return optimizeMode(addrMode);
+        }
+        return false;
+    }
 
-		if(parse_GetOuterMode(pMode))
-		{
-			return parse_OptimizeMode(pMode);
-		}
-		return false;
-	}
+    if (addrMode->outer.displacement != NULL) {
+        if (lex_Current.token == T_68K_REG_PC_IND) {
+            addrMode->mode = AM_PCDISP;
+            addrMode->outer.baseRegister = REG_PC;
+            addrMode->outer.displacementSize = SIZE_WORD;
+            parse_GetToken();
+            return true;
+        } else if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A7_IND) {
+            if ((addrMode->outer.displacement = parse_ExpressionCheck16Bit(addrMode->outer.displacement)) != NULL) {
+                addrMode->mode = AM_ADISP;
+                addrMode->outer.baseRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);
+                addrMode->outer.displacementSize = SIZE_WORD;
+                parse_GetToken();
+                return true;
+            }
+        }
+    }
 
-	if(pMode->Outer.pDisp != NULL)
-	{
-		if(lex_Current.token == T_68K_REG_PC_IND)
-		{
-			pMode->eMode = AM_PCDISP;
-			pMode->Outer.nBaseReg = REG_PC;
-			pMode->Outer.eDispSize = SIZE_WORD;
-			parse_GetToken();
-			return true;
-		}
-		else if(lex_Current.token >= T_68K_REG_A0_IND
-		&& lex_Current.token <= T_68K_REG_A7_IND)
-		{
-			if((pMode->Outer.pDisp = parse_Check16bit(pMode->Outer.pDisp)) != NULL)
-			{
-				pMode->eMode = AM_ADISP;
-				pMode->Outer.nBaseReg = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);
-				pMode->Outer.eDispSize = SIZE_WORD;
-				parse_GetToken();
-				return true;
-			}
-		}
-	}
+    if (getOuterMode(addrMode)) {
+        return optimizeMode(addrMode);
+    }
 
-	if(parse_GetOuterMode(pMode))
-	{
-		return parse_OptimizeMode(pMode);
-	}
+    parse_OptimizeDisp(&addrMode->outer);
 
-	parse_OptimizeDisp(&pMode->Outer);
+    if (addrMode->outer.displacement != NULL) {
+        if (addrMode->outer.displacementSize == SIZE_WORD) {
+            addrMode->mode = AM_WORD;
+            return true;
+        } else if (addrMode->outer.displacementSize == SIZE_LONG) {
+            addrMode->mode = AM_LONG;
+            return true;
+        } else
+            prj_Error(MERROR_DISP_SIZE);
+    }
 
-	if(pMode->Outer.pDisp != NULL)
-	{
-		if(pMode->Outer.eDispSize == SIZE_WORD)
-		{
-			pMode->eMode = AM_WORD;
-			return true;
-		}
-		else if(pMode->Outer.eDispSize == SIZE_LONG)
-		{
-			pMode->eMode = AM_LONG;
-			return true;
-		}
-		else
-			prj_Error(MERROR_DISP_SIZE);
-	}
-
-	return false;
+    return false;
 }
+
+uint32_t
+parse_RegisterList(void) {
+    uint16_t r;
+    uint16_t start;
+    uint16_t end;
+
+    if (lex_Current.token == '#') {
+        int32_t expr;
+        parse_GetToken();
+        expr = parse_ConstantExpression();
+        if (expr >= 0 && expr <= 65535)
+            return (uint16_t) expr;
+
+        return REGLIST_FAIL;
+    }
+
+    r = 0;
+
+    while (getRegisterRange(&start, &end)) {
+        if (start > end) {
+            prj_Error(ERROR_OPERAND);
+            return REGLIST_FAIL;
+        }
+
+        while (start <= end)
+            r |= 1 << start++;
+
+        if (lex_Current.token != T_OP_DIVIDE)
+            return r;
+
+        parse_GetToken();
+    }
+
+    return REGLIST_FAIL;
+}
+

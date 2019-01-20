@@ -21,8 +21,8 @@
 
 #include "m68k_tokens.h"
 
-static SLexConstantsWord localstrings[]=
-{
+static SLexConstantsWord
+g_tokens[] = {
 	{ "ABCD",	T_68K_ABCD	},
 	{ "ADD",	T_68K_ADD	},
 	{ "ADDA",	T_68K_ADD	},
@@ -299,7 +299,7 @@ static SLexConstantsWord localstrings[]=
 	{ "FPU68060",	T_68K_FPU68060	},
 
 	{ "REGMASK",	T_68K_REGMASK	},
-	
+
 	{ "FABS",	T_FPU_FABS		},
 	{ "FSABS",	T_FPU_FSABS		},
 	{ "FDABS",	T_FPU_FDABS		},
@@ -326,7 +326,7 @@ static SLexConstantsWord localstrings[]=
 	{ "FBULE",	T_FPU_FBULE	},
 	{ "FBNE",	T_FPU_FBNE	},
 	{ "FBT",	T_FPU_FBT	},
-	
+
 	{ "FBSF",	T_FPU_FBSF	},
 	{ "FBSEQ",	T_FPU_FBSEQ	},
 	{ "FBGT",	T_FPU_FBGT	},
@@ -348,7 +348,7 @@ static SLexConstantsWord localstrings[]=
 	{ "FCMP",	T_FPU_FCMP	},
 	{ "FCOS",	T_FPU_FCOS	},
 	{ "FCOSH",	T_FPU_FCOSH	},
-	
+
 	{ "FDBF",	T_FPU_FDBF		},
 	{ "FDBEQ",	T_FPU_FDBEQ		},
 	{ "FDBOGT",	T_FPU_FDBOGT	},
@@ -366,7 +366,7 @@ static SLexConstantsWord localstrings[]=
 	{ "FDBULE",	T_FPU_FDBULE	},
 	{ "FDBNE",	T_FPU_FDBNE		},
 	{ "FDBT",	T_FPU_FDBT		},
-	
+
 	{ "FDBSF",	T_FPU_FDBSF		},
 	{ "FDBSEQ",	T_FPU_FDBSEQ	},
 	{ "FDBGT",	T_FPU_FDBGT		},
@@ -384,7 +384,7 @@ static SLexConstantsWord localstrings[]=
 	{ "FDBNGT",		T_FPU_FDBNGT	},
 	{ "FDBSNE",		T_FPU_FDBSNE	},
 	{ "FDBST",		T_FPU_FDBST		},
-	
+
 	{ "FDIV",		T_FPU_FDIV		},
 	{ "FETOX",		T_FPU_FETOX		},
 	{ "FETOXM1",	T_FPU_FETOXM1	},
@@ -425,7 +425,7 @@ static SLexConstantsWord localstrings[]=
 	{ "FSULE",	T_FPU_FSULE	},
 	{ "FSNE",	T_FPU_FSNE	},
 	{ "FST",	T_FPU_FST	},
-	
+
 	{ "FSSF",	T_FPU_FSSF	},
 	{ "FSSEQ",	T_FPU_FSSEQ	},
 	{ "FSGT",	T_FPU_FSGT	},
@@ -454,7 +454,7 @@ static SLexConstantsWord localstrings[]=
 	{ "FTAN",		T_FPU_FTAN		},
 	{ "FTANH",		T_FPU_FTANH		},
 	{ "FTENTOX",	T_FPU_FTENTOX	},
-	
+
 	{ "FTRAPF",		T_FPU_FTRAPF	},
 	{ "FTRAPEQ",	T_FPU_FTRAPEQ	},
 	{ "FTRAPOGT",	T_FPU_FTRAPOGT	},
@@ -472,7 +472,7 @@ static SLexConstantsWord localstrings[]=
 	{ "FTRAPULE",	T_FPU_FTRAPULE	},
 	{ "FTRAPNE",	T_FPU_FTRAPNE	},
 	{ "FTRAPT",		T_FPU_FTRAPT	},
-	
+
 	{ "FTRAPSF",	T_FPU_FTRAPSF	},
 	{ "FTRAPSEQ",	T_FPU_FTRAPSEQ	},
 	{ "FTRAPGT",	T_FPU_FTRAPGT	},
@@ -493,7 +493,7 @@ static SLexConstantsWord localstrings[]=
 
 	{ "FTST",		T_FPU_FTST		},
 	{ "FTWOTOX",	T_FPU_FTWOTOX	},
-	
+
 	{ "FP0",	T_FPUREG_0 },
 	{ "FP1",	T_FPUREG_1 },
 	{ "FP2",	T_FPUREG_2 },
@@ -506,7 +506,7 @@ static SLexConstantsWord localstrings[]=
 	{ NULL, 0 }
 };
 
-void	loclexer_Init(void)
-{
-	lex_ConstantsDefineWords(localstrings);
+void
+loclexer_Init(void) {
+	lex_ConstantsDefineWords(g_tokens);
 }

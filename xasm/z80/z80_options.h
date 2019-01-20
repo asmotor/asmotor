@@ -24,7 +24,7 @@
 
 typedef struct MachineOptions {
     char GameboyChar[4];
-    uint8_t nCpu;
+    uint8_t cpu;
 } SMachineOptions;
 
 extern uint32_t g_GameboyLiteralId;

@@ -29,4384 +29,3339 @@
 #include "m68k_parse.h"
 #include "m68k_tokens.h"
 
-static bool parse_IntegerOp(ETargetToken op, ESize inssz, SAddressingMode* src, SAddressingMode* dest);
-
-bool parse_OutputExtWords(SAddressingMode* mode)
-{
-	switch(mode->eMode)
-	{
-		case AM_IMM:
-		{
-			switch(mode->eImmSize)
-			{
-				case SIZE_BYTE:
-				{
-					mode->pImmediate = parse_Check8bit(mode->pImmediate);
-					if(mode->pImmediate)
-					{
-						sect_OutputExpr16(mode->pImmediate);
-						return true;
-					}
-					return false;
-				}
-				default:
-				case SIZE_WORD:
-				{
-					mode->pImmediate = (mode->pImmediate);
-					if(mode->pImmediate)
-					{
-						sect_OutputExpr16(mode->pImmediate);
-						return true;
-					}
-					return false;
-				}
-				case SIZE_LONG:
-				{
-					if(mode->pImmediate)
-					{
-						sect_OutputExpr32(mode->pImmediate);
-						return true;
-					}
-					return false;
-				}
-			}
-		}
-		case AM_WORD:
-		{
-			if(mode->Outer.pDisp)
-			{
-				sect_OutputExpr16(mode->Outer.pDisp);
-				return true;
-			}
-			internalerror("no word");
-			break;
-		}
-		case AM_LONG:
-		{
-			if(mode->Outer.pDisp)
-			{
-				sect_OutputExpr32(mode->Outer.pDisp);
-				return true;
-			}
-			internalerror("no long");
-			break;
-		}
-		case AM_PCDISP:
-		{
-			if(mode->Outer.pDisp)
-				mode->Outer.pDisp = expr_PcRelative(mode->Outer.pDisp, 0);
-		}
-		// fall through
-		case AM_ADISP:
-		{
-			if(mode->Outer.pDisp)
-			{
-				if(mode->Outer.eDispSize == SIZE_WORD
-				|| mode->Outer.eDispSize == SIZE_DEFAULT)
-				{
-					sect_OutputExpr16(mode->Outer.pDisp);
-					return true;
-				}
-				prj_Error(MERROR_DISP_SIZE);
-				return false;
-			}
-			internalerror("no displacement word");
-			break;
-		}
-		case AM_PCXDISP:
-		{
-			if(mode->Outer.pDisp)
-				mode->Outer.pDisp = expr_PcRelative(mode->Outer.pDisp, 0);
-		}
-		// fall through
-		case AM_AXDISP:
-		{
-			SExpression* expr;
-			uint16_t ins = (uint16_t)(mode->Outer.nIndexReg << 12u);
-			if(mode->Outer.eIndexSize == SIZE_LONG)
-				ins |= 0x0800;
-
-			if(mode->Outer.pDisp != NULL)
-				expr = parse_Check8bit(mode->Outer.pDisp);
-			else
-				expr = expr_Const(0);
-
-			expr = expr_And(expr, expr_Const(0xFF));
-			if(expr != NULL)
-			{
-				expr = expr_Or(expr, expr_Const(ins));
-				if(mode->Outer.pIndexScale != NULL)
-				{
-					expr = expr_Or(expr, expr_Asl(mode->Outer.pIndexScale, expr_Const(9)));
-				}
-				sect_OutputExpr16(expr);
-				return true;
-			}
-			return false;
-		}
-
-		case AM_DREG:
-		case AM_AREG:
-		case AM_AIND:
-		case AM_AINC:
-		case AM_ADEC:
-			return true;
-
-		case AM_PCXDISP020:
-		{
-			if(mode->Outer.pDisp)
-				mode->Outer.pDisp = expr_PcRelative(mode->Outer.pDisp, 2);
-		}
-		// fall through
-		case AM_AXDISP020:
-		{
-			uint16_t ins = 0x0100;
-			SExpression* expr;
-
-			if(mode->Outer.nBaseReg == REG_NONE)
-			{
-				ins |= 0x0080;
-			}
-
-			if(mode->Outer.nIndexReg == REG_NONE)
-			{
-				ins |= 0x0040;
-			}
-			else
-			{
-				ins |= mode->Outer.nIndexReg << 12;
-				if(mode->Outer.eIndexSize == SIZE_LONG)
-					ins |= 0x0800;
-			}
-
-			if(mode->Outer.pDisp != NULL)
-			{
-				parse_OptimizeDisp(&mode->Outer);
-				switch(mode->Outer.eDispSize)
-				{
-					case SIZE_WORD:
-						ins |= 0x0020;
-						break;
-					case SIZE_LONG:
-						ins |= 0x0030;
-						break;
-					default:
-						internalerror("unknown BD size");
-						return false;
-				}
-			}
-			else
-			{
-				ins |= 0x0010;
-			}
-
-			expr = expr_Const(ins);
-			if(expr != NULL)
-			{
-				if(mode->Outer.pIndexScale != NULL)
-				{
-					expr = expr_Or(expr, expr_Asl(mode->Outer.pIndexScale, expr_Const(9)));
-				}
-				sect_OutputExpr16(expr);
-
-				if(mode->Outer.pDisp != NULL)
-				{
-					switch(mode->Outer.eDispSize)
-					{
-						default:
-						case SIZE_WORD:
-							sect_OutputExpr16(mode->Outer.pDisp);
-							break;
-						case SIZE_LONG:
-							sect_OutputExpr32(mode->Outer.pDisp);
-							break;
-					}
-				}
-
-				return true;
-			}
-			return false;
-		}
-
-		case AM_PREINDPCXD020:
-		{
-			if(mode->Inner.pDisp)
-				mode->Inner.pDisp = expr_PcRelative(mode->Inner.pDisp, 2);
-		}
-		// fall through
-		case AM_PREINDAXD020:
-		{
-			uint16_t ins = 0x0100;
-			SExpression* expr;
-
-			if(mode->Inner.nBaseReg == REG_NONE)
-			{
-				ins |= 0x0080;
-			}
-
-			if(mode->Inner.nIndexReg == REG_NONE)
-			{
-				ins |= 0x0040;
-			}
-			else
-			{
-				ins |= mode->Inner.nIndexReg << 12;
-				if(mode->Inner.nIndexReg == SIZE_LONG)
-					ins |= 0x0800;
-			}
-
-			if(mode->Inner.pDisp != NULL)
-			{
-				parse_OptimizeDisp(&mode->Inner);
-				switch(mode->Inner.eDispSize)
-				{
-					case SIZE_WORD:
-						ins |= 0x0020;
-						break;
-					case SIZE_LONG:
-						ins |= 0x0030;
-						break;
-					default:
-						internalerror("unknown BD size");
-						return false;
-				}
-			}
-			else
-			{
-				ins |= 0x0010;
-			}
-
-			if(mode->Outer.pDisp != NULL)
-			{
-				parse_OptimizeDisp(&mode->Outer);
-				switch(mode->Outer.eDispSize)
-				{
-					case SIZE_WORD:
-						ins |= 0x0002;
-						break;
-					case SIZE_LONG:
-						ins |= 0x0003;
-						break;
-					default:
-						internalerror("unknown OD size");
-						return false;
-				}
-			}
-			else
-			{
-				ins |= 0x0001;
-			}
-
-			expr = expr_Const(ins);
-			if(expr != NULL)
-			{
-				if(mode->Inner.pIndexScale != NULL)
-				{
-					expr = expr_Or(expr, expr_Asl(mode->Inner.pIndexScale, expr_Const(9)));
-				}
-				sect_OutputExpr16(expr);
-
-				if(mode->Inner.pDisp != NULL)
-				{
-					switch(mode->Inner.eDispSize)
-					{
-						default:
-						case SIZE_WORD:
-							sect_OutputExpr16(mode->Inner.pDisp);
-							break;
-						case SIZE_LONG:
-							sect_OutputExpr32(mode->Inner.pDisp);
-							break;
-					}
-				}
-
-				if(mode->Outer.pDisp != NULL)
-				{
-					switch(mode->Outer.eDispSize)
-					{
-						default:
-						case SIZE_WORD:
-							sect_OutputExpr16(mode->Outer.pDisp);
-							break;
-						case SIZE_LONG:
-							sect_OutputExpr32(mode->Outer.pDisp);
-							break;
-					}
-				}
-
-				return true;
-			}
-			return false;
-		}
-
-		case AM_POSTINDPCXD020:
-		{
-			if(mode->Inner.pDisp)
-				mode->Inner.pDisp = expr_PcRelative(mode->Inner.pDisp, 2);
-		}
-		// fall through
-		case AM_POSTINDAXD020:
-		{
-			uint16_t ins = 0x0100;
-			SExpression* expr;
-
-			if(mode->Inner.nBaseReg == REG_NONE)
-			{
-				ins |= 0x0080;
-			}
-
-			if(mode->Outer.nIndexReg == REG_NONE)
-			{
-				ins |= 0x0040;
-			}
-			else
-			{
-				ins |= mode->Outer.nIndexReg << 12;
-				if(mode->Outer.nIndexReg == SIZE_LONG)
-					ins |= 0x0800;
-			}
-
-			if(mode->Inner.pDisp != NULL)
-			{
-				parse_OptimizeDisp(&mode->Inner);
-				switch(mode->Inner.eDispSize)
-				{
-					case SIZE_WORD:
-						ins |= 0x0020;
-						break;
-					case SIZE_LONG:
-						ins |= 0x0030;
-						break;
-					default:
-						internalerror("unknown BD size");
-						return false;
-				}
-			}
-			else
-			{
-				ins |= 0x0010;
-			}
-
-			if(mode->Outer.pDisp != NULL)
-			{
-				parse_OptimizeDisp(&mode->Outer);
-				switch(mode->Outer.eDispSize)
-				{
-					case SIZE_WORD:
-						ins |= 0x0006;
-						break;
-					case SIZE_LONG:
-						ins |= 0x0007;
-						break;
-					default:
-						internalerror("unknown OD size");
-						return false;
-				}
-			}
-			else
-			{
-				ins |= 0x0005;
-			}
-
-			expr = expr_Const(ins);
-			if(expr != NULL)
-			{
-				if(mode->Outer.pIndexScale != NULL)
-				{
-					expr = expr_Or(expr, expr_Asl(mode->Outer.pIndexScale, expr_Const(9)));
-				}
-				sect_OutputExpr16(expr);
-
-				if(mode->Inner.pDisp != NULL)
-				{
-					switch(mode->Inner.eDispSize)
-					{
-						default:
-						case SIZE_WORD:
-							sect_OutputExpr16(mode->Inner.pDisp);
-							break;
-						case SIZE_LONG:
-							sect_OutputExpr32(mode->Inner.pDisp);
-							break;
-					}
-				}
-
-				if(mode->Outer.pDisp != NULL)
-				{
-					switch(mode->Outer.eDispSize)
-					{
-						default:
-						case SIZE_WORD:
-							sect_OutputExpr16(mode->Outer.pDisp);
-							break;
-						case SIZE_LONG:
-							sect_OutputExpr32(mode->Outer.pDisp);
-							break;
-					}
-				}
-
-				return true;
-			}
-			return false;
-		}
-
-		default:
-			internalerror("unsupported addressing mode");
-			return false;
-
-	}
-
-	return false;
-}
-
-uint16_t parse_GetEAField(SAddressingMode* mode)
-{
-	switch(mode->eMode)
-	{
-		case AM_DREG:
-			return mode->nDirectReg;
-		case AM_AREG:
-			return 0x1 << 3 | (mode->nDirectReg & 7u);
-		case AM_AIND:
-			return 0x2 << 3 | (mode->Outer.nBaseReg & 7u);
-		case AM_AINC:
-			return 0x3 << 3 | (mode->Outer.nBaseReg & 7u);
-		case AM_ADEC:
-			return 0x4 << 3 | (mode->Outer.nBaseReg & 7u);
-		case AM_ADISP:
-			return 0x5 << 3 | (mode->Outer.nBaseReg & 7u);
-		case AM_AXDISP:
-			return 0x6 << 3 | (mode->Outer.nBaseReg & 7u);
-		case AM_WORD:
-			return 0x7 << 3 | 0x0;
-		case AM_LONG:
-			return 0x7 << 3 | 0x1;
-		case AM_IMM:
-			return 0x7 << 3 | 0x4;
-		case AM_PCDISP:
-			return 0x7 << 3 | 0x2;
-		case AM_PCXDISP:
-			return 0x7 << 3 | 0x3;
-		case AM_AXDISP020:
-			if(mode->Outer.nBaseReg != REG_NONE)
-				return 0x6 << 3 | (mode->Outer.nBaseReg & 7u);
-			else
-				return 0x6 << 3 | 0;
-		case AM_PCXDISP020:
-		case AM_PREINDPCXD020:
-		case AM_POSTINDPCXD020:
-			return 0x7 << 3 | 0x3;
-		case AM_PREINDAXD020:
-		case AM_POSTINDAXD020:
-			if(mode->Inner.nBaseReg != REG_NONE)
-				return (uint16_t) ((0x6 << 3) | (mode->Inner.nBaseReg & 7u));
-			else
-				return 0x6 << 3 | 0;
-		default:
-			internalerror("Unknown addressing mode");
-	}
-
-	return 0;
-}
-
-
-static int parse_GetSizeField(ESize sz)
-{
-	switch(sz)
-	{
-		case SIZE_BYTE:
-			return 0x0;
-		case SIZE_WORD:
-			return 0x1;
-		case SIZE_LONG:
-			return 0x2;
-		default:
-			internalerror("Unknown size");
-	}
-
-	return -1;
-}
-
-
-static bool parse_SingleOpIns(uint16_t ins, ESize sz, SAddressingMode* src)
-{
-	// CLR, TST
-	sect_OutputConst16((uint16_t)(ins | parse_GetSizeField(sz) << 6 | parse_GetEAField(src)));
-	parse_OutputExtWords(src);
-	return true;
-}
-
-
-
-static bool parse_xBCD(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(src->eMode != dest->eMode)
-		prj_Error(ERROR_OPERAND);
-
-	if(src->eMode == AM_ADEC)
-	{
-		ins |= 0x0008;
-		ins |= (src->Outer.nBaseReg & 7u);
-		ins |= (dest->Outer.nBaseReg & 7u) << 9u;
-	}
-	else
-	{
-		ins |= src->nDirectReg;
-		ins |= dest->nDirectReg << 9;
-	}
-
-	ins |= parse_GetSizeField(sz) << 6;
-
-	sect_OutputConst16(ins);
-
-	return true;
-}
-
-static bool parse_ABCD(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_xBCD(0xC100, sz, src, dest);
-}
-
-static bool parse_SBCD(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_xBCD(0x8100, sz, src, dest);
-}
-
-static bool parse_ADDX(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_xBCD(0xD100, sz, src, dest);
-}
-
-static bool parse_SUBX(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_xBCD(0x9100, sz, src, dest);
-}
-
-static bool parse_xxxQ(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	SExpression* expr;
-
-	src->pImmediate = expr_CheckRange(src->pImmediate, 1, 8);
-	if(src->pImmediate == NULL)
-	{
-		prj_Error(ERROR_OPERAND_RANGE);
-		return true;
-	}
-
-	ins |= (uint16_t)(parse_GetEAField(dest) | (parse_GetSizeField(sz) << 6));
-
-	expr = expr_Const(ins);
-	expr = expr_Or(expr, expr_Asl(expr_And(src->pImmediate, expr_Const(7)), expr_Const(9)));
-
-	sect_OutputExpr16(expr);
-	return parse_OutputExtWords(dest);
-}
-
-static bool parse_ADDQ(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_xxxQ(0x5000, sz, src, dest);
-}
-
-static bool parse_SUBQ(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_xxxQ(0x5100, sz, src, dest);
-}
-
-static bool parse_ADDA(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins;
-
-	if(src->eMode == AM_IMM
-	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->value.integer >= 1
-	&& src->pImmediate->value.integer <= 8)
-	{
-		return parse_IntegerOp(T_68K_ADDQ, sz, src, dest);
-	}
-
-	ins = (uint16_t)(0xD000 | dest->nDirectReg << 9 | parse_GetEAField(src));
-	if(sz == SIZE_WORD)
-		ins |= 0x3 << 6;
-	else
-		ins |= 0x7 << 6;
-
-	sect_OutputConst16(ins);
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_SUBA(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins;
-
-	if(src->eMode == AM_IMM
-	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->value.integer >= 1
-	&& src->pImmediate->value.integer <= 8)
-	{
-		return parse_IntegerOp(T_68K_SUBQ, sz, src, dest);
-	}
-
-	ins = (uint16_t)(0x9000 | dest->nDirectReg << 9 | parse_GetEAField(src));
-	if(sz == SIZE_WORD)
-		ins |= 0x3 << 6;
-	else
-		ins |= 0x7 << 6;
-
-	sect_OutputConst16(ins);
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_ArithmeticLogicalI(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	ins |= parse_GetEAField(dest);
-	if(sz == SIZE_BYTE)
-	{
-		ins |= 0x0 << 6;
-		sect_OutputConst16(ins);
-		sect_OutputExpr16(expr_And(parse_Check8bit(src->pImmediate), expr_Const(0xFF)));
-	}
-	else if(sz == SIZE_WORD)
-	{
-		ins |= 0x1 << 6;
-		sect_OutputConst16(ins);
-		sect_OutputExpr16(parse_Check16bit(src->pImmediate));
-	}
-	else
-	{
-		ins |= 0x2 << 6;
-		sect_OutputConst16(ins);
-		sect_OutputExpr32(src->pImmediate);
-	}
-
-	return parse_OutputExtWords(dest);
-}
-
-static bool parse_ADDI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(src->eMode == AM_IMM
-	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->value.integer >= 1
-	&& src->pImmediate->value.integer <= 8)
-	{
-		return parse_IntegerOp(T_68K_ADDQ, sz, src, dest);
-	}
-
-	return parse_ArithmeticLogicalI(0x0600, sz, src, dest);
-}
-
-static bool parse_SUBI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(src->eMode == AM_IMM
-	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->value.integer >= 1
-	&& src->pImmediate->value.integer <= 8)
-	{
-		return parse_IntegerOp(T_68K_SUBQ, sz, src, dest);
-	}
-
-	return parse_ArithmeticLogicalI(0x0400, sz, src, dest);
-}
-
-static bool parse_ANDI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(dest->eMode == AM_SYSREG)
-	{
-		if(dest->nDirectReg == T_68K_REG_CCR)
-		{
-			if(sz != SIZE_BYTE)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-
-			sect_OutputConst16(0x023C);
-			sect_OutputExpr16(expr_And(src->pImmediate, expr_Const(0xFF)));
-			return true;
-		}
-		else if(dest->nDirectReg == T_68K_REG_SR)
-		{
-			if(sz != SIZE_WORD)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-
-			prj_Warn(MERROR_INSTRUCTION_PRIV);
-			sect_OutputConst16(0x027C);
-			sect_OutputExpr16(src->pImmediate);
-			return true;
-		}
-		prj_Error(ERROR_DEST_OPERAND);
-		return true;
-	}
-
-	return parse_ArithmeticLogicalI(0x0200, sz, src, dest);
-}
-
-static bool parse_ArithmeticLogical(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(dest->eMode == AM_DREG)
-	{
-		if(src->eMode == AM_AREG
-		&& sz != SIZE_WORD
-		&& sz != SIZE_LONG)
-		{
-			prj_Error(MERROR_INSTRUCTION_SIZE);
-			return true;
-		}
-
-		ins |= (uint16_t)(0x0000 | dest->nDirectReg << 9 | parse_GetSizeField(sz) << 6);
-		ins |= parse_GetEAField(src);
-		sect_OutputConst16(ins);
-		return parse_OutputExtWords(src);
-	}
-	else if(src->eMode == AM_DREG)
-	{
-		ins |= (uint16_t)(0x0100 | src->nDirectReg << 9 | parse_GetSizeField(sz) << 6);
-		ins |= parse_GetEAField(dest);
-		sect_OutputConst16(ins);
-		return parse_OutputExtWords(dest);
-	}
-
-	prj_Error(ERROR_OPERAND);
-	return true;
-}
-
-static bool parse_ADD(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(dest->eMode == AM_AREG)
-		return parse_IntegerOp(T_68K_ADDA, sz, src, dest);
-
-	if(src->eMode == AM_IMM)
-		return parse_IntegerOp(T_68K_ADDI, sz, src, dest);
-
-	return parse_ArithmeticLogical(0xD000, sz, src, dest);
-}
-
-static bool parse_SUB(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(dest->eMode == AM_AREG)
-		return parse_IntegerOp(T_68K_SUBA, sz, src, dest);
-
-	if(src->eMode == AM_IMM)
-		return parse_IntegerOp(T_68K_SUBI, sz, src, dest);
-
-	return parse_ArithmeticLogical(0x9000, sz, src, dest);
-}
-
-static bool parse_CMPA(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins;
-
-	ins = (uint16_t)(0xB040 | dest->nDirectReg << 9 | parse_GetEAField(src));
-	if(sz == SIZE_WORD)
-		ins |= 0x3 << 6;
-	else /*if(sz == SIZE_LONG)*/
-		ins |= 0x7 << 6;
-
-	sect_OutputConst16(ins);
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_CMPI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins;
-
-	ins = (uint16_t)(0x0C00 | parse_GetSizeField(sz) << 6 | parse_GetEAField(dest));
-	sect_OutputConst16(ins);
-	
-	if(sz == SIZE_BYTE)
-	{
-		SExpression* expr = parse_Check8bit(src->pImmediate);
-		if(expr == NULL)
-		{
-			prj_Error(ERROR_OPERAND_RANGE);
-			return true;
-		}
-		sect_OutputExpr16(expr_And(expr, expr_Const(0xFF)));
-	}
-	else if(sz == SIZE_WORD)
-	{
-		SExpression* expr = parse_Check16bit(src->pImmediate);
-		if(expr == NULL)
-		{
-			prj_Error(ERROR_OPERAND_RANGE);
-			return true;
-		}
-		sect_OutputExpr16(expr);
-	}
-	else if(sz == SIZE_WORD)
-	{
-		sect_OutputExpr32(src->pImmediate);
-	}
-	return parse_OutputExtWords(dest);
-}
-
-static bool parse_CMPM(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins;
-
-	ins = (uint16_t)(0xB108 | (dest->Outer.nBaseReg & 7u) << 9 | (src->Outer.nBaseReg & 7u) | parse_GetSizeField(sz) << 6);
-	sect_OutputConst16(ins);
-	return true;
-}
-
-static bool parse_CMP(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(src->eMode == AM_AINC && dest->eMode == AM_AINC)
-		return parse_IntegerOp(T_68K_CMPM, sz, src, dest);
-
-	if(dest->eMode == AM_AREG)
-		return parse_IntegerOp(T_68K_CMPA, sz, src, dest);
-
-	if(src->eMode == AM_IMM)
-		return parse_IntegerOp(T_68K_CMPI, sz, src, dest);
-
-	if(dest->eMode == AM_DREG)
-		return parse_ArithmeticLogical(0xB000, sz, src, dest);
-
-	prj_Fail(ERROR_DEST_OPERAND);
-	return false;
-}
-
-static bool parse_AND(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(src->eMode == AM_IMM || dest->eMode == AM_SYSREG)
-		return parse_IntegerOp(T_68K_ANDI, sz, src, dest);
-
-	return parse_ArithmeticLogical(0xC000, sz, src, dest);
-}
-
-static bool parse_CLR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(dest != NULL);
-	return parse_SingleOpIns(0x4200, sz, src);
-}
-
-static bool parse_TST(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(dest != NULL);
-
-	if(src->eMode == AM_AREG
-	&& sz == SIZE_BYTE)
-	{
-		prj_Error(MERROR_INSTRUCTION_SIZE);
-		return true;
-	}
-
-	return parse_SingleOpIns(0x4A00, sz, src);
-}
-
-static bool parse_Shift(uint16_t ins, uint16_t memins, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(dest->eMode == AM_DREG)
-	{
-		ins |= 0x0000 | parse_GetSizeField(sz) << 6 | dest->nDirectReg;
-		if(src->eMode == AM_IMM)
-		{
-			SExpression* expr;
-			expr = expr_CheckRange(src->pImmediate, 1, 8);
-			expr = expr_And(expr, expr_Const(7));
-			if(expr == NULL)
-			{
-				prj_Error(ERROR_OPERAND_RANGE);
-				return true;
-			}
-			expr = expr_Or(expr_Const(ins), expr_Asl(expr, expr_Const(9)));
-			sect_OutputExpr16(expr);
-		}
-		else if(src->eMode == AM_DREG)
-		{
-			ins |= 0x0020 | src->nDirectReg << 9;
-			sect_OutputConst16(ins);
-		}
-		return true;
-	}
-	if(dest->eMode != AM_EMPTY)
-	{
-		prj_Error(ERROR_DEST_OPERAND);
-		return true;
-	}
-	if(src->eMode & (AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_POSTINDAXD020 | AM_PREINDAXD020))
-	{
-		if(sz != SIZE_WORD)
-		{
-			prj_Error(MERROR_INSTRUCTION_SIZE);
-			return true;
-		}
-
-		memins |= parse_GetEAField(src);
-		sect_OutputConst16(memins);
-		return parse_OutputExtWords(src);
-	}
-
-	prj_Error(ERROR_SOURCE_OPERAND);
-	return true;
-}
-
-static bool parse_ASL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Shift(0xE100, 0xE1C0, sz, src, dest);
-}
-
-static bool parse_ASR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Shift(0xE000, 0xE0C0, sz, src, dest);
-}
-
-static bool parse_LSL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Shift(0xE108, 0xE3C0, sz, src, dest);
-}
-
-static bool parse_LSR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Shift(0xE008, 0xE2C0, sz, src, dest);
-}
-
-static bool parse_ROL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Shift(0xE118, 0xE7C0, sz, src, dest);
-}
-
-static bool parse_ROR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Shift(0xE018, 0xE6C0, sz, src, dest);
-}
-
-static bool parse_ROXL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Shift(0xE110, 0xE5C0, sz, src, dest);
-}
-
-static bool parse_ROXR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Shift(0xE010, 0xE4C0, sz, src, dest);
-}
-
-static bool parse_Bcc(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(dest != NULL);
-
-	ins = (uint16_t) 0x6000 | (ins << 8);
-	if(sz == SIZE_BYTE)
-	{
-		SExpression* expr = expr_CheckRange(expr_PcRelative(src->Outer.pDisp, -2), -128, 127);
-		if(expr != NULL)
-		{
-			expr = expr_And(expr, expr_Const(0xFF));
-			expr = expr_Or(expr, expr_Const(ins));
-			sect_OutputExpr16(expr);
-			return true;
-		}
-
-		prj_Error(ERROR_OPERAND_RANGE);
-		return true;
-	}
-	else if(sz == SIZE_WORD)
-	{
-		SExpression* expr = expr_CheckRange(expr_PcRelative(src->Outer.pDisp, 0), -32768, 32767);
-		if(expr != NULL)
-		{
-			sect_OutputConst16(ins);
-			sect_OutputExpr16(expr);
-			return true;
-		}
-
-		prj_Error(ERROR_OPERAND_RANGE);
-		return true;
-	}
-	else if(sz == SIZE_LONG)
-	{
-		SExpression* expr;
-
-		if(opt_Current->machineOptions->nCpu < CPUF_68020)
-		{
-			prj_Error(MERROR_INSTRUCTION_SIZE);
-			return true;
-		}
-
-		expr = expr_PcRelative(src->Outer.pDisp, 0);
-		sect_OutputConst16(ins | 0xFF);
-		sect_OutputExpr32(expr);
-		return true;
-	}
-
-
-	return true;
-}
-
-static bool parse_BRA(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x0, sz, src, dest);
-}
-
-static bool parse_BSR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x1, sz, src, dest);
-}
-
-static bool parse_BHI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x2, sz, src, dest);
-}
-
-static bool parse_BLS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x3, sz, src, dest);
-}
-
-static bool parse_BCC(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x4, sz, src, dest);
-}
-
-static bool parse_BCS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x5, sz, src, dest);
-}
-
-static bool parse_BNE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x6, sz, src, dest);
-}
-
-static bool parse_BEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x7, sz, src, dest);
-}
-
-static bool parse_BVC(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x8, sz, src, dest);
-}
-
-static bool parse_BVS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0x9, sz, src, dest);
-}
-
-static bool parse_BPL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0xA, sz, src, dest);
-}
-
-static bool parse_BMI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0xB, sz, src, dest);
-}
-
-static bool parse_BGE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0xC, sz, src, dest);
-}
-
-static bool parse_BLT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0xD, sz, src, dest);
-}
-
-static bool parse_BGT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0xE, sz, src, dest);
-}
-
-static bool parse_BLE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Bcc(0xF, sz, src, dest);
-}
-
-static bool parse_BitInstruction(uint16_t dins, uint16_t immins, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(src->eMode == AM_DREG)
-	{
-		dins |= src->nDirectReg << 9 | parse_GetEAField(dest);
-		sect_OutputConst16(dins);
-		return parse_OutputExtWords(dest);
-	}
-	else if(src->eMode == AM_IMM)
-	{
-		SExpression* expr;
-
-		immins |= parse_GetEAField(dest);
-		sect_OutputConst16(immins);
-
-		if(dest->eMode == AM_DREG)
-			expr = expr_CheckRange(src->pImmediate, 0, 31);
-		else
-			expr = expr_CheckRange(src->pImmediate, 0, 7);
-
-		if(expr != NULL)
-		{
-			sect_OutputExpr16(expr);
-			return parse_OutputExtWords(dest);
-		}
-		prj_Error(ERROR_OPERAND_RANGE);
-	}
-	return true;
-}
-
-static bool parse_BCHG(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_BitInstruction(0x0140, 0x0840, src, dest);
-}
-
-static bool parse_BCLR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_BitInstruction(0x0180, 0x0880, src, dest);
-}
-
-static bool parse_BSET(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_BitInstruction(0x01C0, 0x08C0, src, dest);
-}
-
-static bool parse_BTST(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_BitInstruction(0x0100, 0x0800, src, dest);
-}
-
-static bool parse_BitfieldInstruction(uint16_t ins, uint16_t ext, SAddressingMode* src)
-{
-	SExpression* expr = expr_Const(ext);
-
-	ins |= parse_GetEAField(src);
-	sect_OutputConst16(ins);
-
-	if(src->nBFOffsetReg != -1)
-		expr = expr_Or(expr, expr_Const(0x0800 | src->nBFOffsetReg << 6));
-	else
-	{
-		SExpression* bf = expr_CheckRange(src->pBFOffsetExpr, 0, 31);
-		if(bf == NULL)
-		{
-			prj_Error(ERROR_OPERAND_RANGE);
-			return true;
-		}
-		expr = expr_Or(expr, expr_Asl(bf, expr_Const(6)));
-	}
-
-	if(src->nBFWidthReg != -1)
-		expr = expr_Or(expr, expr_Const(0x0020 | src->nBFWidthReg));
-	else
-	{
-		SExpression* bf = expr_CheckRange(src->pBFWidthExpr, 0, 31);
-		if(bf == NULL)
-		{
-			prj_Error(ERROR_OPERAND_RANGE);
-			return true;
-		}
-		expr = expr_Or(expr, bf);
-	}
-
-	sect_OutputExpr16(expr);
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_SingleOpBitfieldInstruction(uint16_t ins, SAddressingMode* src)
-{
-	return parse_BitfieldInstruction(ins, 0, src);
-}
-
-static bool parse_BFCHG(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-	return parse_SingleOpBitfieldInstruction(0xEAC0, src);
-}
-
-static bool parse_BFCLR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-	return parse_SingleOpBitfieldInstruction(0xECC0, src);
-}
-
-static bool parse_BFSET(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-	return parse_SingleOpBitfieldInstruction(0xEEC0, src);
-}
-
-static bool parse_BFTST(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-	return parse_SingleOpBitfieldInstruction(0xE8C0, src);
-}
-
-static bool parse_BFEXTS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_BitfieldInstruction(0xEBC0, (uint16_t)(dest->nDirectReg << 12), src);
-}
-
-static bool parse_BFEXTU(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_BitfieldInstruction(0xE9C0, (uint16_t)(dest->nDirectReg << 12), src);
-}
-
-static bool parse_BFFFO(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_BitfieldInstruction(0xEDC0, (uint16_t)(dest->nDirectReg << 12), src);
-}
-
-static bool parse_BFINS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_BitfieldInstruction(0xEFC0, (uint16_t)(src->nDirectReg << 12), dest);
-}
-
-static bool parse_BKPT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-
-	SExpression* expr = expr_CheckRange(src->pImmediate, 0, 7);
-	if(expr == NULL)
-	{
-		prj_Error(ERROR_OPERAND_RANGE);
-		return true;
-	}
-
-	expr = expr_Or(expr, expr_Const(0x4848));
-	sect_OutputExpr16(expr);
-	return true;
-}
-
-static bool parse_CALLM(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-
-	SExpression* expr = expr_CheckRange(src->pImmediate, 0, 255);
-	if(expr == NULL)
-	{
-		prj_Error(ERROR_OPERAND_RANGE);
-		return true;
-	}
-
-	sect_OutputConst16((uint16_t) 0x06C0 | parse_GetEAField(dest));
-	sect_OutputExpr16(expr);
-	return parse_OutputExtWords(dest);
-}
-
-static bool parse_CAS(ESize sz, SAddressingMode* dc, SAddressingMode* du)
-{
-	uint16_t ins;
-	SAddressingMode ea;
-
-	if(opt_Current->machineOptions->nCpu == CPUF_68060
-	&& sz != SIZE_BYTE)
-	{
-		prj_Warn(MERROR_MISALIGNED_FAIL_68060);
-		return true;
-	}
-
-	if(!parse_ExpectComma())
-		return false;
-	if(!parse_GetAddrMode(&ea))
-		return false;
-
-	if((ea.eMode & (AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020)) == 0)
-	{
-		prj_Error(ERROR_OPERAND);
-		return true;
-	}
-
-	ins = (uint16_t)(0x08C0 | (parse_GetSizeField(sz) + 1) << 9 | parse_GetEAField(&ea));
-	sect_OutputConst16(ins);
-
-	ins = (uint16_t)(0x0000 | du->nDirectReg << 6 | dc->nDirectReg);
-	sect_OutputConst16(ins);
-
-	return parse_OutputExtWords(&ea);
-}
-
-static bool parse_GetDataRegister(uint16_t* pReg)
-{
-	if(lex_Current.token >= T_68K_REG_D0
-	&& lex_Current.token <= T_68K_REG_D7)
-	{
-		*pReg = (uint16_t)(lex_Current.token - T_68K_REG_D0);
-		parse_GetToken();
-		return true;
-	}
-
-	return false;
-}
-
-static bool parse_GetAddressRegister(uint16_t* pReg)
-{
-	if(lex_Current.token >= T_68K_REG_A0
-	&& lex_Current.token <= T_68K_REG_A7)
-	{
-		*pReg = (uint16_t)(lex_Current.token - T_68K_REG_A0);
-		parse_GetToken();
-		return true;
-	}
-
-	return false;
-}
-
-static bool parse_GetRegister(uint16_t* pReg)
-{
-	if(parse_GetDataRegister(pReg))
-		return true;
-
-	if(parse_GetAddressRegister(pReg))
-	{
-		*pReg += 8;
-		return true;
-	}
-
-	return false;
-}
-
-static bool parse_ExpectDataRegister(uint16_t* pReg)
-{
-	if(lex_Current.token >= T_68K_REG_D0
-	&& lex_Current.token <= T_68K_REG_D7)
-	{
-		*pReg = (uint16_t)(lex_Current.token - T_68K_REG_D0);
-		parse_GetToken();
-		return true;
-	}
-
-	prj_Error(ERROR_OPERAND);
-	return false;
-}
-
-static bool parse_ExpectIndirectRegister(uint16_t* pReg)
-{
-	if(lex_Current.token >= T_68K_REG_A0_IND
-	&& lex_Current.token <= T_68K_REG_A7_IND)
-	{
-		*pReg = (uint16_t)(lex_Current.token - T_68K_REG_A0_IND + 8);
-		parse_GetToken();
-		return true;
-	}
-
-	if(!parse_ExpectChar('('))
-		return false;
-
-	if(!parse_ExpectDataRegister(pReg))
-		return false;
-
-	if(!parse_ExpectChar(')'))
-		return false;
-
-	return true;
-}
-
-static bool parse_CAS2(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2)
-{
-	assert(unused1 != NULL);
-	assert(unused2 != NULL);
-
-	uint16_t dc1, dc2, du1, du2, rn1, rn2;
-
-	if(!parse_ExpectDataRegister(&dc1))
-		return false;
-
-	if(!parse_ExpectChar(':'))
-		return false;
-
-	if(!parse_ExpectDataRegister(&dc2))
-		return false;
-
-	if(!parse_ExpectComma())
-		return false;
-
-	if(!parse_ExpectDataRegister(&du1))
-		return false;
-
-	if(!parse_ExpectChar(':'))
-		return false;
-
-	if(!parse_ExpectDataRegister(&du2))
-		return false;
-
-	if(!parse_ExpectComma())
-		return false;
-
-	if(!parse_ExpectIndirectRegister(&rn1))
-		return false;
-
-	if(!parse_ExpectChar(':'))
-		return false;
-
-	if(!parse_ExpectIndirectRegister(&rn2))
-		return false;
-
-	if(opt_Current->machineOptions->nCpu == CPUF_68060)
-	{
-		prj_Error(MERROR_INSTRUCTION_CPU);
-		return true;
-	}
-
-	sect_OutputConst16(0x08FC | (uint16_t)(parse_GetSizeField(sz) + 1) << 9);
-	sect_OutputConst16(rn1 << 12 | du1 << 6 | dc1);
-	sect_OutputConst16(rn2 << 12 | du2 << 6 | dc2);
-
-	return true;
-}
-
-static bool parse_CHK(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins;
-
-	if(sz == SIZE_LONG
-	&& opt_Current->machineOptions->nCpu < CPUF_68020)
-	{
-		prj_Error(MERROR_INSTRUCTION_SIZE);
-		return true;
-	}
-
-	ins = (uint16_t)(0x4000 | dest->nDirectReg << 9 | parse_GetEAField(src));
-	if(sz == SIZE_WORD)
-		ins |= 0x3 << 7;
-	else /*if(sz == SIZE_LONG)*/
-		ins |= 0x2 << 7;
-
-	sect_OutputConst16(ins);
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_CHK2(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins;
-
-	if(opt_Current->machineOptions->nCpu == CPUF_68060)
-	{
-		prj_Error(MERROR_INSTRUCTION_CPU);
-		return true;
-	}
-
-	ins = (uint16_t)(0x00C0 | parse_GetSizeField(sz) << 9 | parse_GetEAField(src));
-	sect_OutputConst16(ins);
-
-	ins = (uint16_t)(0x0800 | dest->nDirectReg << 12);
-	sect_OutputConst16(ins);
-
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_CMP2(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins;
-	
-	if(opt_Current->machineOptions->nCpu == CPUF_68060)
-	{
-		prj_Error(MERROR_INSTRUCTION_CPU);
-		return true;
-	}
-
-	ins = (uint16_t)(0x00C0 | parse_GetSizeField(sz) << 9 | parse_GetEAField(src));
-	sect_OutputConst16(ins);
-
-	ins = (uint16_t)(dest->nDirectReg << 12);
-	if(dest->eMode == AM_AREG)
-		ins |= 0x8000;
-	sect_OutputConst16(ins);
-	return true;
-}
-
-static bool parse_DBcc(uint16_t code, SAddressingMode* src, SAddressingMode* dest)
-{
-	code = (uint16_t)(0x50C8 | code << 8 | src->nDirectReg);
-	sect_OutputConst16(code);
-	sect_OutputExpr16(expr_PcRelative(dest->Outer.pDisp, 0));
-	return true;
-}
-
-static bool parse_DBT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x0, src, dest);
-}
-
-static bool parse_DBF(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x1, src, dest);
-}
-
-static bool parse_DBHI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x2, src, dest);
-}
-
-static bool parse_DBLS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x3, src, dest);
-}
-
-static bool parse_DBCC(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x4, src, dest);
-}
-
-static bool parse_DBCS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x5, src, dest);
-}
-
-static bool parse_DBNE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x6, src, dest);
-}
-
-static bool parse_DBEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x7, src, dest);
-}
-
-static bool parse_DBVC(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x8, src, dest);
-}
-
-static bool parse_DBVS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0x9, src, dest);
-}
-
-static bool parse_DBPL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0xA, src, dest);
-}
-
-static bool parse_DBMI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0xB, src, dest);
-}
-
-static bool parse_DBGE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0xC, src, dest);
-}
-
-static bool parse_DBLT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0xD, src, dest);
-}
-
-static bool parse_DBGT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0xE, src, dest);
-}
-
-static bool parse_DBLE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	return parse_DBcc(0xF, src, dest);
-}
-
-static bool parse_DIVxx(bool sign, bool l, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(l || sz == SIZE_LONG)
-	{
-		bool div64;
-		int dq, dr;
-		if(lex_Current.token == ':')
-		{
-			uint16_t reg;
-			parse_GetToken();
-			if(!parse_ExpectDataRegister(&reg))
-				return false;
-
-			dq = reg;
-			dr = dest->nDirectReg;
-			div64 = !l;
-		}
-		else
-		{
-			dq = dest->nDirectReg;
-			dr = dq;
-			div64 = false;
-		}
-
-		if(opt_Current->machineOptions->nCpu >= CPUF_68060
-		&& div64)
-		{
-			prj_Error(MERROR_INSTRUCTION_CPU);
-			return true;
-		}
-
-		sect_OutputConst16((uint16_t)(0x4C40 | parse_GetEAField(src)));
-		sect_OutputConst16((uint16_t)(sign << 11 | div64 << 10 | dq << 12 | dr));
-		return parse_OutputExtWords(src);
-	}
-	else
-	{
-		uint16_t ins = (uint16_t)(0x80C0 | sign << 8 | dest->nDirectReg << 9 | parse_GetEAField(src));
-		sect_OutputConst16(ins);
-		return parse_OutputExtWords(src);
-	}
-}
-
-static bool parse_DIVS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_DIVxx(true, false, sz, src, dest);
-}
-
-static bool parse_DIVSL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_DIVxx(true, true, sz, src, dest);
-}
-
-static bool parse_DIVU(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_DIVxx(false, false, sz, src, dest);
-}
-
-static bool parse_DIVUL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_DIVxx(false, true, sz, src, dest);
-}
-
-static bool parse_EOR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins;
-
-	if(src->eMode == AM_IMM || dest->eMode == AM_SYSREG)
-		return parse_IntegerOp(T_68K_EORI, sz, src, dest);
-
-	ins = (uint16_t)(0xB100 | src->nDirectReg << 9 | parse_GetEAField(dest) | parse_GetSizeField(sz) << 6);
-	sect_OutputConst16(ins);
-	return parse_OutputExtWords(dest);
-}
-
-static bool parse_EORI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(dest->eMode == AM_SYSREG)
-	{
-		if(dest->nDirectReg == T_68K_REG_CCR)
-		{
-			if(sz != SIZE_BYTE)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-
-			sect_OutputConst16(0x0A3C);
-			sect_OutputExpr16(expr_And(src->pImmediate, expr_Const(0xFF)));
-			return true;
-		}
-		else if(dest->nDirectReg == T_68K_REG_SR)
-		{
-			if(sz != SIZE_WORD)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-
-			prj_Warn(MERROR_INSTRUCTION_PRIV);
-			sect_OutputConst16(0x0A7C);
-			sect_OutputExpr16(src->pImmediate);
-			return true;
-		}
-
-		prj_Error(ERROR_DEST_OPERAND);
-		return true;
-	}
-
-	return parse_ArithmeticLogicalI(0x0A00, sz, src, dest);
-}
-
-static bool parse_EXG(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_LONG);
-
-	uint16_t ins;
-	uint16_t rx, ry;
-
-	if(src->eMode != dest->eMode)
-	{
-		ins = 0x11 << 3;
-		if(src->eMode == AM_AREG)
-		{
-			rx = (uint16_t)dest->nDirectReg;
-			ry = (uint16_t)src->nDirectReg;
-		}
-		else
-		{
-			rx = (uint16_t)src->nDirectReg;
-			ry = (uint16_t)dest->nDirectReg;
-		}
-	}
-	else
-	{
-		rx = (uint16_t)src->nDirectReg;
-		ry = (uint16_t)dest->nDirectReg;
-		if(src->eMode == AM_DREG)
-			ins = 0x08 << 3;
-		else
-			ins = 0x09 << 3;
-	}
-
-	sect_OutputConst16(ins | 0xC100 | rx << 9 | ry);
-	return true;
-}
-
-static bool parse_EXT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(dest != NULL);
-	
-	uint16_t ins = (uint16_t)(0x4800 | src->nDirectReg);
-	if(sz == SIZE_WORD)
-		ins |= 0x2 << 6;
-	else
-		ins |= 0x3 << 6;
-
-	sect_OutputConst16(ins);
-	return true;
-}
-
-static bool parse_EXTB(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_LONG);
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x4800 | src->nDirectReg | 0x7 << 6));
-	return true;
-}
-
-static bool parse_ILLEGAL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(src != NULL);
-	assert(dest != NULL);
-
-	sect_OutputConst16(0x4AFC);
-	return true;
-}
-
-static bool parse_Jxx(uint16_t ins, SAddressingMode* src)
-{
-	ins |= parse_GetEAField(src);
-	sect_OutputConst16(ins);
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_JMP(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-
-	return parse_Jxx(0x4EC0, src);
-}
-
-static bool parse_JSR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-
-	return parse_Jxx(0x4E80, src);
-}
-
-static bool parse_LEA(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-
-	sect_OutputConst16((uint16_t)(0x41C0 | dest->nDirectReg << 9 | parse_GetEAField(src)));
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_LINK(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(sz == SIZE_LONG
-	&& opt_Current->machineOptions->nCpu < CPUF_68020)
-	{
-		prj_Error(MERROR_INSTRUCTION_SIZE);
-		return true;
-	}
-
-	if(sz == SIZE_WORD)
-	{
-		sect_OutputConst16((uint16_t)(0x4E50 | src->nDirectReg));
-		sect_OutputExpr16(dest->pImmediate);
-		return true;
-	}
-	else /*if(sz == SIZE_LONG)*/
-	{
-		sect_OutputConst16((uint16_t)(0x4808 | src->nDirectReg));
-		sect_OutputExpr32(dest->pImmediate);
-		return true;
-	}
-}
-
-static bool parse_MOVEfromSYSREG(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(src->nDirectReg == T_68K_REG_USP)
-	{
-		prj_Warn(MERROR_INSTRUCTION_PRIV);
-
-		if(sz != SIZE_LONG)
-		{
-			prj_Error(MERROR_INSTRUCTION_SIZE);
-			return true;
-		}
-
-		if(dest->eMode != AM_AREG)
-		{
-			prj_Error(ERROR_DEST_OPERAND);
-			return true;
-		}
-
-		sect_OutputConst16((uint16_t)(0x4E68 | dest->nDirectReg));
-		return true;
-	}
-	else
-	{
-		EAddrMode allow;
-
-		allow = AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG;
-		if(opt_Current->machineOptions->nCpu >= CPUF_68020)
-			allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
-
-		if((dest->eMode & allow) == 0)
-		{
-			prj_Error(ERROR_DEST_OPERAND);
-			return true;
-		}
-
-		if(src->nDirectReg == T_68K_REG_CCR)
-		{
-			if(opt_Current->machineOptions->nCpu < CPUF_68010)
-			{
-				prj_Error(MERROR_INSTRUCTION_CPU);
-				return true;
-			}
-
-			if(sz != SIZE_WORD)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-
-			sect_OutputConst16((uint16_t)(0x42C0 | parse_GetEAField(dest)));
-			return true;
-		}
-		else if(src->nDirectReg == T_68K_REG_SR)
-		{
-			if(opt_Current->machineOptions->nCpu >= CPUF_68010)
-				prj_Warn(MERROR_INSTRUCTION_PRIV);
-
-			if(sz != SIZE_WORD)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-
-			sect_OutputConst16((uint16_t)(0x40C0 | parse_GetEAField(dest)));
-			return true;
-		}
-	}
-
-	return true;
-}
-
-static bool parse_MOVEtoSYSREG(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(dest->nDirectReg == T_68K_REG_USP)
-	{
-		prj_Warn(MERROR_INSTRUCTION_PRIV);
-
-		if(sz != SIZE_LONG)
-		{
-			prj_Error(MERROR_INSTRUCTION_SIZE);
-			return true;
-		}
-
-		if(src->eMode != AM_AREG)
-		{
-			prj_Error(ERROR_SOURCE_OPERAND);
-			return true;
-		}
-
-		sect_OutputConst16((uint16_t)(0x4E60 | src->nDirectReg));
-		return true;
-	}
-	else
-	{
-		EAddrMode allow;
-
-		allow = AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP;
-		if(opt_Current->machineOptions->nCpu >= CPUF_68020)
-			allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
-
-		if((src->eMode & allow) == 0)
-		{
-			prj_Error(ERROR_SOURCE_OPERAND);
-			return true;
-		}
-
-		if(dest->nDirectReg == T_68K_REG_CCR)
-		{
-			if(sz != SIZE_WORD)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-
-			sect_OutputConst16((uint16_t)(0x44C0 | parse_GetEAField(src)));
-			return true;
-		}
-		else if(dest->nDirectReg == T_68K_REG_SR)
-		{
-			if(sz != SIZE_WORD)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-
-			prj_Warn(MERROR_INSTRUCTION_PRIV);
-
-			sect_OutputConst16((uint16_t)(0x46C0 | parse_GetEAField(src)));
-			return true;
-		}
-	}
-
-	return true;
-}
-
-		
-
-static bool parse_MOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t destea;
-	uint16_t ins;
-
-	if(src->eMode == AM_IMM
-	&& dest->eMode == AM_DREG && sz == SIZE_LONG
-	&& expr_IsConstant(src->pImmediate)
-	&& src->pImmediate->value.integer >= -128
-	&& src->pImmediate->value.integer < 127)
-	{
-		return parse_IntegerOp(T_68K_MOVEQ, sz, src, dest);
-	}
-
-	if(src->eMode == AM_SYSREG)
-		return parse_MOVEfromSYSREG(sz, src, dest);
-
-	if(dest->eMode == AM_SYSREG)
-		return parse_MOVEtoSYSREG(sz, src, dest);
-
-	if(dest->eMode == AM_AREG)
-		return parse_IntegerOp(T_68K_MOVEA, sz, src, dest);
-
-	destea = (uint16_t)parse_GetEAField(dest);
-	ins = (uint16_t)parse_GetEAField(src);
-
-	destea = (destea >> 3 | destea << 3) & 0x3F;
-
-	ins |= destea << 6;
-	if(sz == SIZE_BYTE)
-		ins |= 0x1 << 12;
-	else if(sz == SIZE_WORD)
-		ins |= 0x3 << 12;
-	else /*if(sz == SIZE_LONG)*/
-		ins |= 0x2 << 12;
-
-	sect_OutputConst16(ins);
-	if(!parse_OutputExtWords(src))
-		return false;
-	return parse_OutputExtWords(dest);
-}
-
-static bool parse_MOVEA(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t ins = (uint16_t)(0x0040 | parse_GetEAField(src) | dest->nDirectReg << 9);
-
-	if(sz == SIZE_WORD)
-		ins |= 0x3 << 12;
-	else /*if(sz == SIZE_LONG)*/
-		ins |= 0x2 << 12;
-
-	sect_OutputConst16(ins);
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_MOVE16(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-
-	uint16_t opmode;
-	SExpression *line;
-	uint16_t reg;
-
-	if(src->eMode == AM_AINC && dest->eMode == AM_AINC)
-	{
-		sect_OutputConst16((uint16_t)(0xF620 | (src->Outer.nBaseReg & 7u)));
-		sect_OutputConst16((uint16_t)(0x8000 | (dest->Outer.nBaseReg & 7u) << 12));
-		return true;
-	}
-
-	if(src->eMode == AM_AINC && dest->eMode == AM_LONG)
-	{
-		opmode = 0x0;
-		line = dest->Outer.pDisp;
-		reg = (uint16_t) (src->Outer.nBaseReg & 7u);
-	}
-	else if(src->eMode == AM_LONG && dest->eMode == AM_AINC)
-	{
-		opmode = 0x1;
-		line = src->Outer.pDisp;
-		reg = (uint16_t) (dest->Outer.nBaseReg & 7u);
-	}
-	else if(src->eMode == AM_AIND && dest->eMode == AM_LONG)
-	{
-		opmode = 0x2;
-		line = dest->Outer.pDisp;
-		reg = (uint16_t) (src->Outer.nBaseReg & 7u);
-	}
-	else if(src->eMode == AM_LONG && dest->eMode == AM_AIND)
-	{
-		opmode = 0x3;
-		line = src->Outer.pDisp;
-		reg = (uint16_t) (dest->Outer.nBaseReg & 7u);
-	}
-	else
-	{
-		prj_Error(ERROR_OPERAND);
-		return true;
-	}
-
-	sect_OutputConst16(0xF600 | opmode << 3 | reg);
-	sect_OutputExpr32(line);
-	return true;
-}
-
-static bool parse_GetRegisterRange(uint16_t* pStart, uint16_t* pEnd)
-{
-	if(parse_GetRegister(pStart))
-	{
-		if(lex_Current.token == T_OP_SUBTRACT)
-		{
-			parse_GetToken();
-			if(!parse_GetRegister(pEnd))
-				return 0;
-			return true;
-		}
-		*pEnd = *pStart;
-		return true;
-	}
-	return false;
-}
-
-uint32_t parse_RegisterList(void)
-{
-	uint16_t r;
-	uint16_t start;
-	uint16_t end;
-
-
-	if(lex_Current.token == '#')
-	{
-		int32_t expr;
-		parse_GetToken();
-		expr = parse_ConstantExpression();
-		if(expr >= 0 && expr <= 65535)
-			return (uint16_t)expr;
-
-		return REGLIST_FAIL;
-	}
-
-	r = 0;
-
-	while(parse_GetRegisterRange(&start, &end))
-	{
-		if(start > end)
-		{
-			prj_Error(ERROR_OPERAND);
-			return REGLIST_FAIL;
-		}
-
-		while(start <= end)
-			r |= 1 << start++;
-
-		if(lex_Current.token != T_OP_DIVIDE)
-			return r;
-
-		parse_GetToken();
-	}
-
-	return REGLIST_FAIL;
-}
-
-static uint16_t parse_SwapBits(uint16_t bits)
-{
-	uint16_t r = 0;
-	int i;
-
-	for(i = 0; i < 16; ++i)
-		r |= (bits & 1 << i) ? 1 << (15 - i) : 0;
-
-	return r;
-}
-
-static bool parse_MOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2)
-{
-	assert(unused1 != NULL);
-	assert(unused2 != NULL);
-
-	uint16_t ins;
-	uint16_t dr;
-	uint32_t reglist;
-	SAddressingMode mode;
-
-	reglist = parse_RegisterList();
-	if(reglist != REGLIST_FAIL)
-	{
-		EAddrMode allowdest = AM_AIND | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG;
-
-		if(!parse_ExpectComma())
-			return false;
-
-		if(!parse_GetAddrMode(&mode))
-			return false;
-
-		if(opt_Current->machineOptions->nCpu >= CPUF_68020)
-			allowdest |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
-
-		if((mode.eMode & allowdest) == 0)
-		{
-			prj_Error(ERROR_DEST_OPERAND);
-			return true;
-		}
-		dr = 0;
-	}
-	else
-	{
-		EAddrMode allowsrc = AM_AIND | AM_AINC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP;
-
-		if(!parse_GetAddrMode(&mode))
-			return false;
-
-		if(opt_Current->machineOptions->nCpu >= CPUF_68020)
-			allowsrc |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
-
-		if((mode.eMode & allowsrc) == 0)
-		{
-			prj_Error(ERROR_SOURCE_OPERAND);
-			return true;
-		}
-
-		if(!parse_ExpectComma())
-			return false;
-
-		reglist = parse_RegisterList();
-		if(reglist == REGLIST_FAIL)
-			return false;
-
-		dr = 1;
-	}
-
-	if(reglist == 0)
-	{
-		prj_Warn(MERROR_MOVEM_SKIPPED);
-		return true;
-	}
-
-	ins = (uint16_t)(0x4880 | dr << 10 | parse_GetEAField(&mode));
-	if(sz == SIZE_LONG)
-		ins |= 1 << 6;
-
-	sect_OutputConst16(ins);
-	if(mode.eMode == AM_ADEC)
-		reglist = parse_SwapBits((uint16_t)reglist);
-	sect_OutputConst16((uint16_t)reglist);
-	return parse_OutputExtWords(&mode);
-}
-
-static bool parse_MOVEP(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	uint16_t dr;
-	uint16_t ar;
-	uint16_t opmode;
-	SExpression* disp;
-
-	if(opt_Current->machineOptions->nCpu == CPUF_68060)
-	{
-		prj_Error(MERROR_INSTRUCTION_CPU);
-		return true;
-	}
-
-	if(src->eMode == AM_AIND)
-	{
-		src->eMode = AM_ADISP;
-		src->Outer.pDisp = NULL;
-	}
-
-	if(dest->eMode == AM_AIND)
-	{
-		dest->eMode = AM_ADISP;
-		dest->Outer.pDisp = NULL;
-	}
-
-	if(src->eMode == AM_ADISP && dest->eMode == AM_DREG)
-	{
-		if(sz == SIZE_WORD)
-			opmode = 0x4;
-		else
-			opmode = 0x5;
-
-		dr = (uint16_t)dest->nDirectReg;
-		ar = (uint16_t) (src->Outer.nBaseReg & 7u);
-		disp = src->Outer.pDisp;
-	}
-	else if(src->eMode == AM_DREG && dest->eMode == AM_ADISP)
-	{
-		if(sz == SIZE_WORD)
-			opmode = 0x6;
-		else
-			opmode = 0x7;
-
-		dr = (uint16_t)src->nDirectReg;
-		ar = (uint16_t) (dest->Outer.nBaseReg & 7u);
-		disp = dest->Outer.pDisp;
-	}
-	else
-	{
-		prj_Error(ERROR_OPERAND);
-		return true;
-	}
-
-	sect_OutputConst16(0x0008 | dr << 9 | opmode << 6 | ar);
-	if(disp != NULL)
-		sect_OutputExpr16(disp);
-	else
-		sect_OutputConst16(0);
-
-	return true;
-}
-
-static bool parse_MOVEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_LONG);
-
-	SExpression* expr = expr_CheckRange(src->pImmediate, -128, 127);
-	if(expr == NULL)
-	{
-		prj_Error(ERROR_OPERAND_RANGE);
-		return true;
-	}
-
-	expr = expr_And(expr, expr_Const(0xFF));
-	expr = expr_Or(expr, expr_Const(0x7000 | dest->nDirectReg << 9));
-	sect_OutputExpr16(expr);
-	return true;
-}
-
-static bool parse_MULx(uint16_t sign, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(sz == SIZE_LONG
-	&& opt_Current->machineOptions->nCpu < CPUF_68020)
-	{
-		prj_Error(MERROR_INSTRUCTION_CPU);
-		return true;
-	}
-
-	if(sz == SIZE_LONG)
-	{
-		uint16_t dh, dl, mul64;
-		if(lex_Current.token == ':')
-		{
-			parse_GetToken();
-			if(!parse_ExpectDataRegister(&dl))
-				return false;
-			dh = (uint16_t)dest->nDirectReg;
-			mul64 = 1;
-			if(dh == dl)
-				prj_Warn(MERROR_UNDEFINED_RESULT);
-
-			if(opt_Current->machineOptions->nCpu == CPUF_68060)
-			{
-				prj_Error(MERROR_INSTRUCTION_CPU);
-				return true;
-			}
-		}
-		else
-		{
-			dl = (uint16_t)dest->nDirectReg;
-			dh = 0;
-			mul64 = 0;
-		}
-
-		sect_OutputConst16((uint16_t)(0x4C00 | parse_GetEAField(src)));
-		sect_OutputConst16(0x0000 | sign << 11 | mul64 << 10 | dl << 12 | dh);
-		return parse_OutputExtWords(src);
-	}
-	else
-	{
-		sect_OutputConst16((uint16_t)(0xC0C0 | sign << 8 | dest->nDirectReg << 9 | parse_GetEAField(src)));
-		return parse_OutputExtWords(src);
-	}
-}
-
-
-static bool parse_MULS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_MULx(true, sz, src, dest);
-}
-
-static bool parse_MULU(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_MULx(false, sz, src, dest);
-}
-
-static bool parse_NBCD(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_BYTE);
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x4800 | parse_GetEAField(src)));
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_NEG(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x4400 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_NEGX(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x4000 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_NOP(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(src != NULL);
-	assert(dest != NULL);
-
-	sect_OutputConst16(0x4E71);
-	return true;
-}
-
-static bool parse_NOT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x4600 | parse_GetEAField(src) | parse_GetSizeField(sz) << 6));
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_ORI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(dest->eMode == AM_SYSREG)
-	{
-		if(dest->nDirectReg == T_68K_REG_CCR)
-		{
-			if(sz != SIZE_BYTE)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-			sect_OutputConst16(0x003C);
-			sect_OutputExpr16(expr_And(src->pImmediate, expr_Const(0xFF)));
-			return true;
-		}
-		else if(dest->nDirectReg == T_68K_REG_SR)
-		{
-			if(sz != SIZE_WORD)
-			{
-				prj_Error(MERROR_INSTRUCTION_SIZE);
-				return true;
-			}
-			prj_Warn(MERROR_INSTRUCTION_PRIV);
-			sect_OutputConst16(0x007C);
-			sect_OutputExpr16(src->pImmediate);
-			return true;
-		}
-		prj_Error(ERROR_DEST_OPERAND);
-		return true;
-	}
-
-	return parse_ArithmeticLogicalI(0x0000, sz, src, dest);
-}
-
-static bool parse_OR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	if(src->eMode == AM_IMM || dest->eMode == AM_SYSREG)
-		return parse_IntegerOp(T_68K_ORI, sz, src, dest);
-
-	return parse_ArithmeticLogical(0x8000, sz, src, dest);
-}
-
-static bool parse_PackUnpack(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-
-	uint16_t dy, dx;
-	uint16_t rm;
-	SAddressingMode adj;
-
-	if(!parse_ExpectComma())
-		return false;
-
-	if(!parse_GetAddrMode(&adj))
-		return false;
-
-	if(src->eMode != dest->eMode || adj.eMode != AM_IMM)
-	{
-		prj_Error(ERROR_OPERAND);
-		return true;
-	}
-
-	if(src->eMode == AM_DREG)
-	{
-		dx = (uint16_t)src->nDirectReg;
-		dy = (uint16_t)dest->nDirectReg;
-		rm = 0;
-	}
-	else
-	{
-		dx = (uint16_t) (src->Outer.nBaseReg & 7u);
-		dy = (uint16_t) (dest->Outer.nBaseReg & 7u);
-		rm = 1;
-	}
-
-	sect_OutputConst16(ins | dy << 9 | rm << 3 | dx);
-	sect_OutputExpr16(adj.pImmediate);
-	return true;
-}
-
-static bool parse_PACK(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_PackUnpack(0x8140, sz, src, dest);
-}
-
-static bool parse_UNPACK(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_PackUnpack(0x8180, sz, src, dest);
-}
-
-static bool parse_PEA(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_LONG);
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x4840 | parse_GetEAField(src)));
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_RTD(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-
-	sect_OutputConst16(0x4E74);
-	sect_OutputExpr16(src->pImmediate);
-	return true;
-}
-
-static bool parse_RTM(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-
-	uint16_t reg;
-
-	if(src->eMode == AM_DREG)
-		reg = (uint16_t)src->nDirectReg;
-	else /* if(src->eMode == AM_AREG) */
-		reg = (uint16_t)(src->nDirectReg + 8);
-
-	sect_OutputConst16((uint16_t)0x06C0 | reg);
-	return true;
-}
-
-static bool parse_RTR(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(src != NULL);
-	assert(dest != NULL);
-
-	sect_OutputConst16(0x4E77);
-	return true;
-}
-
-static bool parse_RTS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(src != NULL);
-	assert(dest != NULL);
-
-	sect_OutputConst16(0x4E75);
-	return true;
-}
-
-static bool parse_Scc(uint16_t code, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_BYTE);
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x50C0 | code << 8 | parse_GetEAField(src)));
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_ST(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x0, sz, src, dest);
-}
-
-static bool parse_SF(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x1, sz, src, dest);
-}
-
-static bool parse_SHI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x2, sz, src, dest);
-}
-
-static bool parse_SLS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x3, sz, src, dest);
-}
-
-static bool parse_SCC(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x4, sz, src, dest);
-}
-
-static bool parse_SCS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x5, sz, src, dest);
-}
-
-static bool parse_SNE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x6, sz, src, dest);
-}
-
-static bool parse_SEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x7, sz, src, dest);
-}
-
-static bool parse_SVC(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x8, sz, src, dest);
-}
-
-static bool parse_SVS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0x9, sz, src, dest);
-}
-
-static bool parse_SPL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0xA, sz, src, dest);
-}
-
-static bool parse_SMI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0xB, sz, src, dest);
-}
-
-static bool parse_SGE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0xC, sz, src, dest);
-}
-
-static bool parse_SLT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0xD, sz, src, dest);
-}
-
-static bool parse_SGT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0xE, sz, src, dest);
-}
-
-static bool parse_SLE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Scc(0xF, sz, src, dest);
-}
-
-static bool parse_SWAP(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_WORD);
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x4840 | src->nDirectReg));
-	return true;
-}
-
-static bool parse_TAS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_BYTE);
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x4AC0 | parse_GetEAField(src)));
-	return parse_OutputExtWords(src);
-}
-
-static bool parse_TRAP(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-
-	SExpression* expr;
-
-	expr = expr_CheckRange(src->pImmediate, 0, 15);
-	if(expr == NULL)
-	{
-		prj_Error(ERROR_OPERAND_RANGE);
-		return true;
-	}
-	expr = expr_Or(expr, expr_Const(0x4E40));
-	sect_OutputExpr16(expr);
-	return true;
-}
-
-static bool parse_TRAPcc(uint16_t code, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(dest != NULL);
-
-	uint16_t opmode;
-
-	if(sz == SIZE_DEFAULT && src->eMode == AM_EMPTY)
-		opmode = 0x4;
-	else if(sz == SIZE_WORD && src->eMode == AM_IMM)
-		opmode = 0x2;
-	else if(sz == SIZE_LONG && src->eMode == AM_IMM)
-		opmode = 0x3;
-	else
-	{
-		prj_Error(ERROR_OPERAND);
-		return true;
-	}
-
-	sect_OutputConst16(0x50F8 | opmode | code << 8);
-	if(sz == SIZE_WORD)
-		sect_OutputExpr16(src->pImmediate);
-	else if(sz == SIZE_LONG)
-		sect_OutputExpr32(src->pImmediate);
-
-	return true;
-}
-
-static bool parse_TRAPT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x0, sz, src, dest);
-}
-
-static bool parse_TRAPF(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x1, sz, src, dest);
-}
-
-static bool parse_TRAPHI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x2, sz, src, dest);
-}
-
-static bool parse_TRAPLS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x3, sz, src, dest);
-}
-
-static bool parse_TRAPCC(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x4, sz, src, dest);
-}
-
-static bool parse_TRAPCS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x5, sz, src, dest);
-}
-
-static bool parse_TRAPNE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x6, sz, src, dest);
-}
-
-static bool parse_TRAPEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x7, sz, src, dest);
-}
-
-static bool parse_TRAPVC(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x8, sz, src, dest);
-}
-
-static bool parse_TRAPVS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0x9, sz, src, dest);
-}
-
-static bool parse_TRAPPL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0xA, sz, src, dest);
-}
-
-static bool parse_TRAPMI(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0xB, sz, src, dest);
-}
-
-static bool parse_TRAPGE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0xC, sz, src, dest);
-}
-
-static bool parse_TRAPLT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0xD, sz, src, dest);
-}
-
-static bool parse_TRAPGT(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0xE, sz, src, dest);
-}
-
-static bool parse_TRAPLE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_TRAPcc(0xF, sz, src, dest);
-}
-
-static bool parse_TRAPV(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(src != NULL);
-	assert(dest != NULL);
-
-	sect_OutputConst16(0x4E76);
-	return true;
-}
-
-static bool parse_UNLK(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-
-	sect_OutputConst16((uint16_t)(0x4E58 | src->nDirectReg));
-	return true;
-}
-
-static bool parse_RESET(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(src != NULL);
-	assert(dest != NULL);
-
-	prj_Warn(MERROR_INSTRUCTION_PRIV);
-	sect_OutputConst16(0x4E70);
-	return true;
-}
-
-static bool parse_RTE(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(src != NULL);
-	assert(dest != NULL);
-
-	prj_Warn(MERROR_INSTRUCTION_PRIV);
-	sect_OutputConst16(0x4E73);
-	return true;
-}
-
-static bool parse_STOP(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-	assert(dest != NULL);
-
-	prj_Warn(MERROR_INSTRUCTION_PRIV);
-	sect_OutputConst16(0x4E72);
-	sect_OutputExpr16(src->pImmediate);
-	return true;
-}
-
-static bool parse_Cache040(uint16_t ins, uint16_t scope, ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_DEFAULT);
-
-	uint16_t cache = 0;
-	uint16_t reg;
-	
-	prj_Warn(MERROR_INSTRUCTION_PRIV);
-
-	if(src->nDirectReg == T_68K_REG_DC)
-		cache = 0x1;
-	else if(src->nDirectReg == T_68K_REG_IC)
-		cache = 0x2;
-	else if(src->nDirectReg == T_68K_REG_BC)
-		cache = 0x3;
-	else
-	{
-		prj_Error(ERROR_DEST_OPERAND);
-		return true;
-	}
-
-	if(scope == 3)
-		reg = 0;
-	else
-		reg = (uint16_t) (dest->Outer.nBaseReg & 7u);
-
-	sect_OutputConst16(ins | scope << 3 | cache << 6 | reg);
-	return true;
-}
-
-static bool parse_CINVA(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Cache040(0xF400, 0x3, sz, src, dest);
-}
-
-static bool parse_CINVL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Cache040(0xF400, 0x1, sz, src, dest);
-}
-
-static bool parse_CINVP(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Cache040(0xF400, 0x2, sz, src, dest);
-}
-
-static bool parse_CPUSHA(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Cache040(0xF420, 0x3, sz, src, dest);
-}
-
-static bool parse_CPUSHL(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Cache040(0xF420, 0x1, sz, src, dest);
-}
-
-static bool parse_CPUSHP(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	return parse_Cache040(0xF420, 0x2, sz, src, dest);
-}
-
-typedef struct
-{
-	uint16_t	nCpu;
-	uint16_t	nValue;
+static bool
+handleToken(ETargetToken token, ESize size, SAddressingMode* src, SAddressingMode* dest);
+
+static int
+getSizeField(ESize sz) {
+    switch (sz) {
+        case SIZE_BYTE:
+            return 0x0;
+        case SIZE_WORD:
+            return 0x1;
+        case SIZE_LONG:
+            return 0x2;
+        default:
+            internalerror("Unknown size");
+    }
+
+    return -1;
+}
+
+static bool
+outputOpcode(uint16_t opcode, SAddressingMode* addrMode) {
+    sect_OutputConst16(opcode | parse_GetEAField(addrMode));
+    return parse_OutputExtensionWords(addrMode);
+}
+
+
+static bool
+outputOpcodeSize(uint16_t opcode, ESize size, SAddressingMode* src) {
+    return outputOpcode((uint16_t) (opcode | getSizeField(size) << 6), src);
+}
+
+static bool
+handleXBCD(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    if (src->mode != dest->mode)
+        prj_Error(ERROR_OPERAND);
+
+    if (src->mode == AM_ADEC) {
+        opcode |= 0x0008;
+        opcode |= (src->outer.baseRegister & 7u);
+        opcode |= (dest->outer.baseRegister & 7u) << 9u;
+    } else {
+        opcode |= src->directRegister;
+        opcode |= dest->directRegister << 9;
+    }
+
+    opcode |= getSizeField(size) << 6;
+
+    sect_OutputConst16(opcode);
+
+    return true;
+}
+
+static bool
+handleABCD(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleXBCD(0xC100, size, src, dest);
+}
+
+static bool
+handleSBCD(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleXBCD(0x8100, sz, src, dest);
+}
+
+static bool
+handleADDX(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleXBCD(0xD100, sz, src, dest);
+}
+
+static bool
+handleSUBX(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleXBCD(0x9100, sz, src, dest);
+}
+
+static bool
+handleQuick(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    src->immediate = expr_CheckRange(src->immediate, 1, 8);
+    if (src->immediate == NULL) {
+        prj_Error(ERROR_OPERAND_RANGE);
+        return true;
+    }
+
+    ins |= (uint16_t) (parse_GetEAField(dest) | (getSizeField(sz) << 6));
+
+    SExpression* expr = expr_Const(ins);
+    expr = expr_Or(expr, expr_Asl(expr_And(src->immediate, expr_Const(7)), expr_Const(9)));
+
+    sect_OutputExpr16(expr);
+    return parse_OutputExtensionWords(dest);
+}
+
+static bool
+handleADDQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleQuick(0x5000, sz, src, dest);
+}
+
+static bool
+handleSUBQ(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleQuick(0x5100, size, src, dest);
+}
+
+static bool
+handleArithmeticA(ESize size, SAddressingMode* src, SAddressingMode* dest, ETargetToken quick, uint16_t opcode) {
+    if (src->mode == AM_IMM && expr_IsConstant(src->immediate) && src->immediate->value.integer >= 1
+        && src->immediate->value.integer <= 8) {
+        return handleToken(quick, size, src, dest);
+    }
+
+    opcode |= (uint16_t) (dest->directRegister << 9 | (size == SIZE_WORD ? 0x3 : 0x7) << 6);
+    return outputOpcode(opcode, src);
+}
+
+static bool
+handleADDA(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleArithmeticA(size, src, dest, T_68K_ADDQ, 0xD000);
+}
+
+static bool
+handleSUBA(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleArithmeticA(size, src, dest, T_68K_SUBQ, 0x9000);
+}
+
+static bool
+handleArithmeticLogicalI(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    opcode |= parse_GetEAField(dest);
+    if (size == SIZE_BYTE) {
+        opcode |= 0x0 << 6;
+        sect_OutputConst16(opcode);
+        sect_OutputExpr16(expr_And(parse_ExpressionCheck8Bit(src->immediate), expr_Const(0xFF)));
+    } else if (size == SIZE_WORD) {
+        opcode |= 0x1 << 6;
+        sect_OutputConst16(opcode);
+        sect_OutputExpr16(parse_ExpressionCheck16Bit(src->immediate));
+    } else {
+        opcode |= 0x2 << 6;
+        sect_OutputConst16(opcode);
+        sect_OutputExpr32(src->immediate);
+    }
+
+    return parse_OutputExtensionWords(dest);
+}
+
+static bool
+handleArithmeticI(ESize size, SAddressingMode* src, SAddressingMode* dest, ETargetToken quick, uint16_t opcode) {
+    if (src->mode == AM_IMM && expr_IsConstant(src->immediate) && src->immediate->value.integer >= 1
+        && src->immediate->value.integer <= 8) {
+        return handleToken(quick, size, src, dest);
+    }
+
+    return handleArithmeticLogicalI(opcode, size, src, dest);
+}
+
+static bool
+handleADDI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleArithmeticI(size, src, dest, T_68K_ADDQ, 0x0600);
+}
+
+static bool
+handleSUBI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleArithmeticI(size, src, dest, T_68K_SUBQ, 0x0400);
+}
+
+static bool
+handleBitwiseI(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t opcode) {
+    if (dest->mode == AM_SYSREG) {
+        if (dest->directRegister == T_68K_REG_CCR) {
+            if (size != SIZE_BYTE) {
+                prj_Error(MERROR_INSTRUCTION_SIZE);
+                return true;
+            }
+
+            sect_OutputConst16(opcode | 0x003C);
+            sect_OutputExpr16(expr_And(src->immediate, expr_Const(0xFF)));
+            return true;
+        } else if (dest->directRegister == T_68K_REG_SR) {
+            if (size != SIZE_WORD) {
+                prj_Error(MERROR_INSTRUCTION_SIZE);
+                return true;
+            }
+
+            prj_Warn(MERROR_INSTRUCTION_PRIV);
+            sect_OutputConst16(opcode | 0x007C);
+            sect_OutputExpr16(src->immediate);
+            return true;
+        }
+        prj_Error(ERROR_DEST_OPERAND);
+        return true;
+    }
+
+    return handleArithmeticLogicalI(opcode, size, src, dest);
+}
+
+static bool
+handleANDI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBitwiseI(size, src, dest, 0x0200);
+}
+
+static bool
+handleEORI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBitwiseI(size, src, dest, 0x0A00);
+}
+
+static bool
+handleORI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBitwiseI(size, src, dest, 0x0000);
+}
+
+static bool
+handleArithmeticLogical(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    if (dest->mode == AM_DREG) {
+        if (src->mode == AM_AREG && size != SIZE_WORD && size != SIZE_LONG) {
+            prj_Error(MERROR_INSTRUCTION_SIZE);
+            return true;
+        }
+
+        return outputOpcodeSize((uint16_t) (opcode | 0x0000 | dest->directRegister << 9), size, src);
+    } else if (src->mode == AM_DREG) {
+        return outputOpcodeSize((uint16_t) (opcode | 0x0100 | src->directRegister << 9), size, dest);
+    }
+
+    prj_Error(ERROR_OPERAND);
+    return true;
+}
+
+static bool
+handleArithmetic(ESize size, SAddressingMode* src, SAddressingMode* dest, ETargetToken address, ETargetToken immediate, uint16_t opcode) {
+    if (dest->mode == AM_AREG)
+        return handleToken(address, size, src, dest);
+
+    if (src->mode == AM_IMM)
+        return handleToken(immediate, size, src, dest);
+
+    return handleArithmeticLogical(opcode, size, src, dest);
+}
+
+static bool
+handleADD(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleArithmetic(size, src, dest, T_68K_ADDA, T_68K_ADDI, 0xD000);
+}
+
+static bool
+handleSUB(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleArithmetic(size, src, dest, T_68K_SUBA, T_68K_SUBI, 0x9000);
+}
+
+static bool
+handleCMPA(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    uint16_t opcode = (uint16_t) (0xB040 | dest->directRegister << 9 | (size == SIZE_WORD ? 0x3 : 0x7) << 6);
+    return outputOpcode(opcode, src);
+}
+
+static bool
+handleCMPI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    uint16_t opcode = (uint16_t) (0x0C00 | getSizeField(size) << 6 | parse_GetEAField(dest));
+    sect_OutputConst16(opcode);
+
+    if (size == SIZE_BYTE) {
+        SExpression* expr = parse_ExpressionCheck8Bit(src->immediate);
+        if (expr == NULL) {
+            prj_Error(ERROR_OPERAND_RANGE);
+            return true;
+        }
+        sect_OutputExpr16(expr_And(expr, expr_Const(0xFF)));
+    } else if (size == SIZE_WORD) {
+        SExpression* expr = parse_ExpressionCheck16Bit(src->immediate);
+        if (expr == NULL) {
+            prj_Error(ERROR_OPERAND_RANGE);
+            return true;
+        }
+        sect_OutputExpr16(expr);
+    } else if (size == SIZE_WORD) {
+        sect_OutputExpr32(src->immediate);
+    }
+    return parse_OutputExtensionWords(dest);
+}
+
+static bool
+handleCMPM(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    uint16_t opcode = (uint16_t) (0xB108 | (dest->outer.baseRegister & 7u) << 9 | (src->outer.baseRegister & 7u) | getSizeField(size) << 6);
+    sect_OutputConst16(opcode);
+    return true;
+}
+
+static bool
+handleCMP(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    if (src->mode == AM_AINC && dest->mode == AM_AINC)
+        return handleToken(T_68K_CMPM, size, src, dest);
+
+    if (dest->mode == AM_AREG)
+        return handleToken(T_68K_CMPA, size, src, dest);
+
+    if (src->mode == AM_IMM)
+        return handleToken(T_68K_CMPI, size, src, dest);
+
+    if (dest->mode == AM_DREG)
+        return handleArithmeticLogical(0xB000, size, src, dest);
+
+    prj_Fail(ERROR_DEST_OPERAND);
+    return false;
+}
+
+static bool
+handleAND(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    if (src->mode == AM_IMM || dest->mode == AM_SYSREG)
+        return handleToken(T_68K_ANDI, size, src, dest);
+
+    return handleArithmeticLogical(0xC000, size, src, dest);
+}
+
+static bool
+handleCLR(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    assert(dest != NULL);
+    return outputOpcodeSize(0x4200, size, src);
+}
+
+static bool
+handleTST(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    assert(dest != NULL);
+
+    if (src->mode == AM_AREG && size == SIZE_BYTE) {
+        prj_Error(MERROR_INSTRUCTION_SIZE);
+        return true;
+    }
+
+    return outputOpcodeSize(0x4A00, size, src);
+}
+
+static bool
+handleShift(uint16_t opcode, uint16_t memoryOpcode, ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    if (dest->mode == AM_DREG) {
+        opcode |= 0x0000 | getSizeField(size) << 6 | dest->directRegister;
+        if (src->mode == AM_IMM) {
+            SExpression* expr;
+            expr = expr_CheckRange(src->immediate, 1, 8);
+            expr = expr_And(expr, expr_Const(7));
+            if (expr == NULL) {
+                prj_Error(ERROR_OPERAND_RANGE);
+                return true;
+            }
+            expr = expr_Or(expr_Const(opcode), expr_Asl(expr, expr_Const(9)));
+            sect_OutputExpr16(expr);
+        } else if (src->mode == AM_DREG) {
+            opcode |= 0x0020 | src->directRegister << 9;
+            sect_OutputConst16(opcode);
+        }
+        return true;
+    }
+    if (dest->mode != AM_EMPTY) {
+        prj_Error(ERROR_DEST_OPERAND);
+        return true;
+    }
+    if (src->mode & (AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_POSTINDAXD020 | AM_PREINDAXD020)) {
+        if (size != SIZE_WORD) {
+            prj_Error(MERROR_INSTRUCTION_SIZE);
+            return true;
+        }
+        return outputOpcode(memoryOpcode, src);
+    }
+
+    prj_Error(ERROR_SOURCE_OPERAND);
+    return true;
+}
+
+static bool
+handleASL(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleShift(0xE100, 0xE1C0, size, src, dest);
+}
+
+static bool
+handleASR(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleShift(0xE000, 0xE0C0, size, src, dest);
+}
+
+static bool
+handleLSL(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleShift(0xE108, 0xE3C0, size, src, dest);
+}
+
+static bool
+handleLSR(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleShift(0xE008, 0xE2C0, size, src, dest);
+}
+
+static bool
+handleROL(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleShift(0xE118, 0xE7C0, size, src, dest);
+}
+
+static bool
+handleROR(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleShift(0xE018, 0xE6C0, size, src, dest);
+}
+
+static bool
+handleROXL(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleShift(0xE110, 0xE5C0, size, src, dest);
+}
+
+static bool
+handleROXR(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleShift(0xE010, 0xE4C0, size, src, dest);
+}
+
+static bool
+handleBcc(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    assert(dest != NULL);
+
+    opcode = (uint16_t) 0x6000 | (opcode << 8);
+    if (size == SIZE_BYTE) {
+        SExpression* expr = expr_CheckRange(expr_PcRelative(src->outer.displacement, -2), -128, 127);
+        if (expr != NULL) {
+            expr = expr_And(expr, expr_Const(0xFF));
+            expr = expr_Or(expr, expr_Const(opcode));
+            sect_OutputExpr16(expr);
+            return true;
+        }
+
+        prj_Error(ERROR_OPERAND_RANGE);
+        return true;
+    } else if (size == SIZE_WORD) {
+        SExpression* expr = expr_CheckRange(expr_PcRelative(src->outer.displacement, 0), -32768, 32767);
+        if (expr != NULL) {
+            sect_OutputConst16(opcode);
+            sect_OutputExpr16(expr);
+            return true;
+        }
+
+        prj_Error(ERROR_OPERAND_RANGE);
+        return true;
+    } else if (size == SIZE_LONG) {
+        SExpression* expr;
+
+        if (opt_Current->machineOptions->cpu < CPUF_68020) {
+            prj_Error(MERROR_INSTRUCTION_SIZE);
+            return true;
+        }
+
+        expr = expr_PcRelative(src->outer.displacement, 0);
+        sect_OutputConst16(opcode | 0xFFu);
+        sect_OutputExpr32(expr);
+        return true;
+    }
+
+    return true;
+}
+
+static bool
+handleBRA(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x0, size, src, dest);
+}
+
+static bool
+handleBSR(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x1, size, src, dest);
+}
+
+static bool
+handleBHI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x2, size, src, dest);
+}
+
+static bool
+handleBLS(ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x3, size, src, dest);
+}
+
+static bool
+handleBCC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x4, sz, src, dest);
+}
+
+static bool
+handleBCS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x5, sz, src, dest);
+}
+
+static bool
+handleBNE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x6, sz, src, dest);
+}
+
+static bool
+handleBEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x7, sz, src, dest);
+}
+
+static bool
+handleBVC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x8, sz, src, dest);
+}
+
+static bool
+handleBVS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0x9, sz, src, dest);
+}
+
+static bool
+handleBPL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0xA, sz, src, dest);
+}
+
+static bool
+handleBMI(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0xB, sz, src, dest);
+}
+
+static bool
+handleBGE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0xC, sz, src, dest);
+}
+
+static bool
+handleBLT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0xD, sz, src, dest);
+}
+
+static bool
+handleBGT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0xE, sz, src, dest);
+}
+
+static bool
+handleBLE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleBcc(0xF, sz, src, dest);
+}
+
+static bool
+handleBitInstruction(uint16_t dataOpcode, uint16_t immediateOpcode, SAddressingMode* src, SAddressingMode* dest) {
+    if (src->mode == AM_DREG) {
+        dataOpcode |= src->directRegister << 9 | parse_GetEAField(dest);
+        sect_OutputConst16(dataOpcode);
+        return parse_OutputExtensionWords(dest);
+    } else if (src->mode == AM_IMM) {
+        SExpression* expr;
+
+        immediateOpcode |= parse_GetEAField(dest);
+        sect_OutputConst16(immediateOpcode);
+
+        if (dest->mode == AM_DREG)
+            expr = expr_CheckRange(src->immediate, 0, 31);
+        else
+            expr = expr_CheckRange(src->immediate, 0, 7);
+
+        if (expr != NULL) {
+            sect_OutputExpr16(expr);
+            return parse_OutputExtensionWords(dest);
+        }
+        prj_Error(ERROR_OPERAND_RANGE);
+    }
+    return true;
+}
+
+static bool
+handleBCHG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleBitInstruction(0x0140, 0x0840, src, dest);
+}
+
+static bool
+handleBCLR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleBitInstruction(0x0180, 0x0880, src, dest);
+}
+
+static bool
+handleBSET(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleBitInstruction(0x01C0, 0x08C0, src, dest);
+}
+
+static bool
+handleBTST(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleBitInstruction(0x0100, 0x0800, src, dest);
+}
+
+static bool
+handleBitfieldInstruction(uint16_t opcode, uint16_t extension, SAddressingMode* src) {
+    SExpression* expr = expr_Const(extension);
+
+    opcode |= parse_GetEAField(src);
+    sect_OutputConst16(opcode);
+
+    if (src->bitfieldOffsetRegister != -1) {
+        expr = expr_Or(expr, expr_Const(0x0800 | src->bitfieldOffsetRegister << 6));
+    } else {
+        SExpression* bf = expr_CheckRange(src->bitfieldOffsetExpression, 0, 31);
+        if (bf == NULL) {
+            prj_Error(ERROR_OPERAND_RANGE);
+            return true;
+        }
+        expr = expr_Or(expr, expr_Asl(bf, expr_Const(6)));
+    }
+
+    if (src->bitfieldWidthRegister != -1) {
+        expr = expr_Or(expr, expr_Const(0x0020 | src->bitfieldWidthRegister));
+    } else {
+        SExpression* bf = expr_CheckRange(src->bitfieldWidthExpression, 0, 31);
+        if (bf == NULL) {
+            prj_Error(ERROR_OPERAND_RANGE);
+            return true;
+        }
+        expr = expr_Or(expr, bf);
+    }
+
+    sect_OutputExpr16(expr);
+    return parse_OutputExtensionWords(src);
+}
+
+static bool
+handleSingleOpBitfieldInstruction(uint16_t opcode, SAddressingMode* src) {
+    return handleBitfieldInstruction(opcode, 0, src);
+}
+
+static bool
+handleBFCHG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+    return handleSingleOpBitfieldInstruction(0xEAC0, src);
+}
+
+static bool
+handleBFCLR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+    return handleSingleOpBitfieldInstruction(0xECC0, src);
+}
+
+static bool
+handleBFSET(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+    return handleSingleOpBitfieldInstruction(0xEEC0, src);
+}
+
+static bool
+handleBFTST(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+    return handleSingleOpBitfieldInstruction(0xE8C0, src);
+}
+
+static bool
+handleBFEXTS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleBitfieldInstruction(0xEBC0, (uint16_t) (dest->directRegister << 12), src);
+}
+
+static bool
+handleBFEXTU(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleBitfieldInstruction(0xE9C0, (uint16_t) (dest->directRegister << 12), src);
+}
+
+static bool
+handleBFFFO(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleBitfieldInstruction(0xEDC0, (uint16_t) (dest->directRegister << 12), src);
+}
+
+static bool
+handleBFINS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleBitfieldInstruction(0xEFC0, (uint16_t) (src->directRegister << 12), dest);
+}
+
+static bool
+handleBKPT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+
+    SExpression* expr = expr_CheckRange(src->immediate, 0, 7);
+    if (expr == NULL) {
+        prj_Error(ERROR_OPERAND_RANGE);
+        return true;
+    }
+
+    expr = expr_Or(expr, expr_Const(0x4848));
+    sect_OutputExpr16(expr);
+    return true;
+}
+
+static bool
+handleCALLM(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+
+    SExpression* expr = expr_CheckRange(src->immediate, 0, 255);
+    if (expr == NULL) {
+        prj_Error(ERROR_OPERAND_RANGE);
+        return true;
+    }
+
+    sect_OutputConst16((uint16_t) 0x06C0 | parse_GetEAField(dest));
+    sect_OutputExpr16(expr);
+    return parse_OutputExtensionWords(dest);
+}
+
+static bool
+handleCAS(ESize sz, SAddressingMode* dc, SAddressingMode* du) {
+    if (opt_Current->machineOptions->cpu == CPUF_68060 && sz != SIZE_BYTE) {
+        prj_Warn(MERROR_MISALIGNED_FAIL_68060);
+        return true;
+    }
+
+    if (!parse_ExpectComma())
+        return false;
+
+    SAddressingMode ea;
+    if (!parse_GetAddrMode(&ea))
+        return false;
+
+    if ((ea.mode & (AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020)) == 0) {
+        prj_Error(ERROR_OPERAND);
+        return true;
+    }
+
+    uint16_t opcode;
+
+    opcode = (uint16_t) (0x08C0 | (getSizeField(sz) + 1) << 9 | parse_GetEAField(&ea));
+    sect_OutputConst16(opcode);
+
+    opcode = (uint16_t) (0x0000 | du->directRegister << 6 | dc->directRegister);
+    sect_OutputConst16(opcode);
+
+    return parse_OutputExtensionWords(&ea);
+}
+
+static bool
+expectDataRegister(uint16_t* outRegister) {
+    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_D0);
+        parse_GetToken();
+        return true;
+    }
+
+    prj_Error(ERROR_OPERAND);
+    return false;
+}
+
+static bool
+expectIndirectRegister(uint16_t* outRegister) {
+    if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A7_IND) {
+        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_A0_IND + 8);
+        parse_GetToken();
+        return true;
+    }
+
+    if (!parse_ExpectChar('('))
+        return false;
+
+    if (!expectDataRegister(outRegister))
+        return false;
+
+    if (!parse_ExpectChar(')'))
+        return false;
+
+    return true;
+}
+
+static bool
+handleCAS2(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
+    assert(unused1 != NULL);
+    assert(unused2 != NULL);
+
+    uint16_t dc1, dc2, du1, du2, rn1, rn2;
+
+    if (!expectDataRegister(&dc1))
+        return false;
+
+    if (!parse_ExpectChar(':'))
+        return false;
+
+    if (!expectDataRegister(&dc2))
+        return false;
+
+    if (!parse_ExpectComma())
+        return false;
+
+    if (!expectDataRegister(&du1))
+        return false;
+
+    if (!parse_ExpectChar(':'))
+        return false;
+
+    if (!expectDataRegister(&du2))
+        return false;
+
+    if (!parse_ExpectComma())
+        return false;
+
+    if (!expectIndirectRegister(&rn1))
+        return false;
+
+    if (!parse_ExpectChar(':'))
+        return false;
+
+    if (!expectIndirectRegister(&rn2))
+        return false;
+
+    if (opt_Current->machineOptions->cpu == CPUF_68060) {
+        prj_Error(MERROR_INSTRUCTION_CPU);
+        return true;
+    }
+
+    sect_OutputConst16(0x08FC | (uint16_t) (getSizeField(sz) + 1) << 9);
+    sect_OutputConst16(rn1 << 12 | du1 << 6 | dc1);
+    sect_OutputConst16(rn2 << 12 | du2 << 6 | dc2);
+
+    return true;
+}
+
+static bool
+handleCHK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (sz == SIZE_LONG && opt_Current->machineOptions->cpu < CPUF_68020) {
+        prj_Error(MERROR_INSTRUCTION_SIZE);
+        return true;
+    }
+
+    uint16_t opcode = (uint16_t) (0x4000 | dest->directRegister << 9 | (sz == SIZE_WORD ? 0x3 : 0x2) << 7);
+    return outputOpcode(opcode, src);
+}
+
+static bool
+handleCHK2(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (opt_Current->machineOptions->cpu == CPUF_68060) {
+        prj_Error(MERROR_INSTRUCTION_CPU);
+        return true;
+    }
+
+    uint16_t opcode = (uint16_t) (0x00C0 | getSizeField(sz) << 9 | parse_GetEAField(src));
+    sect_OutputConst16(opcode);
+
+    opcode = (uint16_t) (0x0800 | dest->directRegister << 12);
+    sect_OutputConst16(opcode);
+
+    return parse_OutputExtensionWords(src);
+}
+
+static bool
+handleCMP2(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (opt_Current->machineOptions->cpu == CPUF_68060) {
+        prj_Error(MERROR_INSTRUCTION_CPU);
+        return true;
+    }
+
+    uint16_t opcode = (uint16_t) (0x00C0 | getSizeField(sz) << 9 | parse_GetEAField(src));
+    sect_OutputConst16(opcode);
+
+    opcode = (uint16_t) (dest->directRegister << 12);
+    if (dest->mode == AM_AREG)
+        opcode |= 0x8000;
+    sect_OutputConst16(opcode);
+    return true;
+}
+
+static bool
+handleDBcc(uint16_t code, SAddressingMode* src, SAddressingMode* dest) {
+    code = (uint16_t) (0x50C8 | code << 8 | src->directRegister);
+    sect_OutputConst16(code);
+    sect_OutputExpr16(expr_PcRelative(dest->outer.displacement, 0));
+    return true;
+}
+
+static bool
+handleDBT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x0, src, dest);
+}
+
+static bool
+handleDBF(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x1, src, dest);
+}
+
+static bool
+handleDBHI(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x2, src, dest);
+}
+
+static bool
+handleDBLS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x3, src, dest);
+}
+
+static bool
+handleDBCC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x4, src, dest);
+}
+
+static bool
+handleDBCS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x5, src, dest);
+}
+
+static bool
+handleDBNE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x6, src, dest);
+}
+
+static bool
+handleDBEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x7, src, dest);
+}
+
+static bool
+handleDBVC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x8, src, dest);
+}
+
+static bool
+handleDBVS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0x9, src, dest);
+}
+
+static bool
+handleDBPL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0xA, src, dest);
+}
+
+static bool
+handleDBMI(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0xB, src, dest);
+}
+
+static bool
+handleDBGE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0xC, src, dest);
+}
+
+static bool
+handleDBLT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0xD, src, dest);
+}
+
+static bool
+handleDBGT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0xE, src, dest);
+}
+
+static bool
+handleDBLE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return handleDBcc(0xF, src, dest);
+}
+
+static bool
+handleDIVxx(bool sign, bool l, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (l || sz == SIZE_LONG) {
+        bool div64;
+        uint16_t dq, dr;
+        if (lex_Current.token == ':') {
+            uint16_t reg;
+            parse_GetToken();
+            if (!expectDataRegister(&reg))
+                return false;
+
+            dq = reg;
+            dr = dest->directRegister;
+            div64 = !l;
+        } else {
+            dq = dest->directRegister;
+            dr = dq;
+            div64 = false;
+        }
+
+        if (opt_Current->machineOptions->cpu >= CPUF_68060 && div64) {
+            prj_Error(MERROR_INSTRUCTION_CPU);
+            return true;
+        }
+
+        sect_OutputConst16((uint16_t) (0x4C40 | parse_GetEAField(src)));
+        sect_OutputConst16((uint16_t) (sign << 11 | div64 << 10 | dq << 12 | dr));
+        return parse_OutputExtensionWords(src);
+    } else {
+        uint16_t opcode = (uint16_t) (0x80C0 | sign << 8 | dest->directRegister << 9);
+        return outputOpcode(opcode, src);
+    }
+}
+
+static bool
+handleDIVS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleDIVxx(true, false, sz, src, dest);
+}
+
+static bool
+handleDIVSL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleDIVxx(true, true, sz, src, dest);
+}
+
+static bool
+handleDIVU(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleDIVxx(false, false, sz, src, dest);
+}
+
+static bool
+handleDIVUL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleDIVxx(false, true, sz, src, dest);
+}
+
+static bool
+handleEOR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (src->mode == AM_IMM || dest->mode == AM_SYSREG)
+        return handleToken(T_68K_EORI, sz, src, dest);
+
+    uint16_t opcode = (uint16_t) (0xB100 | src->directRegister << 9);
+    return outputOpcodeSize(opcode, sz, dest);
+}
+
+static bool
+handleEXG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_LONG);
+
+    uint16_t ins;
+    uint16_t rx, ry;
+
+    if (src->mode != dest->mode) {
+        ins = 0x11 << 3;
+        if (src->mode == AM_AREG) {
+            rx = (uint16_t) dest->directRegister;
+            ry = (uint16_t) src->directRegister;
+        } else {
+            rx = (uint16_t) src->directRegister;
+            ry = (uint16_t) dest->directRegister;
+        }
+    } else {
+        rx = (uint16_t) src->directRegister;
+        ry = (uint16_t) dest->directRegister;
+        if (src->mode == AM_DREG)
+            ins = 0x08 << 3;
+        else
+            ins = 0x09 << 3;
+    }
+
+    sect_OutputConst16(ins | 0xC100 | rx << 9 | ry);
+    return true;
+}
+
+static bool
+handleEXT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(dest != NULL);
+
+    uint16_t ins = (uint16_t) (0x4800 | src->directRegister);
+    if (sz == SIZE_WORD)
+        ins |= 0x2 << 6;
+    else
+        ins |= 0x3 << 6;
+
+    sect_OutputConst16(ins);
+    return true;
+}
+
+static bool
+handleEXTB(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_LONG);
+    assert(dest != NULL);
+
+    sect_OutputConst16((uint16_t) (0x4800 | src->directRegister | 0x7 << 6));
+    return true;
+}
+
+static bool
+handleILLEGAL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(src != NULL);
+    assert(dest != NULL);
+
+    sect_OutputConst16(0x4AFC);
+    return true;
+}
+
+static bool
+handleJMP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+
+    return outputOpcode(0x4EC0, src);
+}
+
+static bool
+handleJSR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+
+    return outputOpcode(0x4E80, src);
+}
+
+static bool
+handleLEA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    return outputOpcode((uint16_t) (0x41C0 | dest->directRegister << 9), src);
+}
+
+static bool
+handleLINK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (sz == SIZE_LONG && opt_Current->machineOptions->cpu < CPUF_68020) {
+        prj_Error(MERROR_INSTRUCTION_SIZE);
+        return true;
+    }
+
+    if (sz == SIZE_WORD) {
+        sect_OutputConst16((uint16_t) (0x4E50 | src->directRegister));
+        sect_OutputExpr16(dest->immediate);
+        return true;
+    } else /*if(sz == SIZE_LONG)*/ {
+        sect_OutputConst16((uint16_t) (0x4808 | src->directRegister));
+        sect_OutputExpr32(dest->immediate);
+        return true;
+    }
+}
+
+static bool
+handleMOVEfromSYSREG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (src->directRegister == T_68K_REG_USP) {
+        prj_Warn(MERROR_INSTRUCTION_PRIV);
+
+        if (sz != SIZE_LONG) {
+            prj_Error(MERROR_INSTRUCTION_SIZE);
+            return true;
+        }
+
+        if (dest->mode != AM_AREG) {
+            prj_Error(ERROR_DEST_OPERAND);
+            return true;
+        }
+
+        sect_OutputConst16((uint16_t) (0x4E68 | dest->directRegister));
+        return true;
+    } else {
+        EAddrMode allow =
+             AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG;
+
+        if (opt_Current->machineOptions->cpu >= CPUF_68020)
+            allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
+
+        if ((dest->mode & allow) == 0) {
+            prj_Error(ERROR_DEST_OPERAND);
+            return true;
+        }
+
+        if (src->directRegister == T_68K_REG_CCR) {
+            if (opt_Current->machineOptions->cpu < CPUF_68010) {
+                prj_Error(MERROR_INSTRUCTION_CPU);
+                return true;
+            }
+
+            if (sz != SIZE_WORD) {
+                prj_Error(MERROR_INSTRUCTION_SIZE);
+                return true;
+            }
+
+            return outputOpcode(0x42C0, dest);
+        } else if (src->directRegister == T_68K_REG_SR) {
+            if (opt_Current->machineOptions->cpu >= CPUF_68010)
+                prj_Warn(MERROR_INSTRUCTION_PRIV);
+
+            if (sz != SIZE_WORD) {
+                prj_Error(MERROR_INSTRUCTION_SIZE);
+                return true;
+            }
+
+            return outputOpcode(0x40C0, dest);
+        }
+    }
+
+    return true;
+}
+
+static bool
+handleMOVEtoSYSREG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (dest->directRegister == T_68K_REG_USP) {
+        prj_Warn(MERROR_INSTRUCTION_PRIV);
+
+        if (sz != SIZE_LONG) {
+            prj_Error(MERROR_INSTRUCTION_SIZE);
+            return true;
+        }
+
+        if (src->mode != AM_AREG) {
+            prj_Error(ERROR_SOURCE_OPERAND);
+            return true;
+        }
+
+        sect_OutputConst16((uint16_t) (0x4E60 | src->directRegister));
+        return true;
+    } else {
+        EAddrMode allow =
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP;
+
+        if (opt_Current->machineOptions->cpu >= CPUF_68020)
+            allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
+
+        if ((src->mode & allow) == 0) {
+            prj_Error(ERROR_SOURCE_OPERAND);
+            return true;
+        }
+
+        if (dest->directRegister == T_68K_REG_CCR) {
+            if (sz != SIZE_WORD) {
+                prj_Error(MERROR_INSTRUCTION_SIZE);
+                return true;
+            }
+
+            return outputOpcode(0x44C0, src);
+        } else if (dest->directRegister == T_68K_REG_SR) {
+            if (sz != SIZE_WORD) {
+                prj_Error(MERROR_INSTRUCTION_SIZE);
+                return true;
+            }
+
+            prj_Warn(MERROR_INSTRUCTION_PRIV);
+
+            return outputOpcode(0x46C0, src);
+        }
+    }
+
+    return true;
+}
+
+static bool
+handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    uint16_t destea;
+    uint16_t ins;
+
+    if (src->mode == AM_IMM && dest->mode == AM_DREG && sz == SIZE_LONG && expr_IsConstant(src->immediate)
+        && src->immediate->value.integer >= -128 && src->immediate->value.integer < 127) {
+        return handleToken(T_68K_MOVEQ, sz, src, dest);
+    }
+
+    if (src->mode == AM_SYSREG)
+        return handleMOVEfromSYSREG(sz, src, dest);
+
+    if (dest->mode == AM_SYSREG)
+        return handleMOVEtoSYSREG(sz, src, dest);
+
+    if (dest->mode == AM_AREG)
+        return handleToken(T_68K_MOVEA, sz, src, dest);
+
+    destea = (uint16_t) parse_GetEAField(dest);
+    ins = (uint16_t) parse_GetEAField(src);
+
+    destea = (destea >> 3 | destea << 3) & 0x3F;
+
+    ins |= destea << 6;
+    if (sz == SIZE_BYTE)
+        ins |= 0x1 << 12;
+    else if (sz == SIZE_WORD)
+        ins |= 0x3 << 12;
+    else /*if(sz == SIZE_LONG)*/
+        ins |= 0x2 << 12;
+
+    sect_OutputConst16(ins);
+    if (!parse_OutputExtensionWords(src))
+        return false;
+    return parse_OutputExtensionWords(dest);
+}
+
+static bool
+handleMOVEA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    uint16_t opcode = (uint16_t) (0x0040 | dest->directRegister << 9 | (sz == SIZE_WORD ? 0x3 : 0x2) << 12);
+    return outputOpcode(opcode, src);
+}
+
+static bool
+handleMOVE16(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+
+    if (src->mode == AM_AINC && dest->mode == AM_AINC) {
+        sect_OutputConst16((uint16_t) (0xF620 | (src->outer.baseRegister & 7u)));
+        sect_OutputConst16((uint16_t) (0x8000 | (dest->outer.baseRegister & 7u) << 12));
+        return true;
+    }
+
+    uint16_t opmode;
+    SExpression* line;
+    uint16_t reg;
+
+    if (src->mode == AM_AINC && dest->mode == AM_LONG) {
+        opmode = 0x0;
+        line = dest->outer.displacement;
+        reg = (uint16_t) (src->outer.baseRegister & 7u);
+    } else if (src->mode == AM_LONG && dest->mode == AM_AINC) {
+        opmode = 0x1;
+        line = src->outer.displacement;
+        reg = (uint16_t) (dest->outer.baseRegister & 7u);
+    } else if (src->mode == AM_AIND && dest->mode == AM_LONG) {
+        opmode = 0x2;
+        line = dest->outer.displacement;
+        reg = (uint16_t) (src->outer.baseRegister & 7u);
+    } else if (src->mode == AM_LONG && dest->mode == AM_AIND) {
+        opmode = 0x3;
+        line = src->outer.displacement;
+        reg = (uint16_t) (dest->outer.baseRegister & 7u);
+    } else {
+        prj_Error(ERROR_OPERAND);
+        return true;
+    }
+
+    sect_OutputConst16(0xF600 | opmode << 3 | reg);
+    sect_OutputExpr32(line);
+    return true;
+}
+
+static uint16_t
+reverseBits(uint16_t bits) {
+    uint16_t r = 0;
+    int i;
+
+    for (i = 0; i < 16; ++i)
+        r |= (bits & 1 << i) ? 1 << (15 - i) : 0;
+
+    return r;
+}
+
+static bool
+handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
+    assert(unused1 != NULL);
+    assert(unused2 != NULL);
+
+    uint16_t direction;
+    SAddressingMode mode;
+
+    uint32_t registerMask = parse_RegisterList();
+    if (registerMask != REGLIST_FAIL) {
+        EAddrMode allowedModes = AM_AIND | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG;
+
+        if (!parse_ExpectComma())
+            return false;
+
+        if (!parse_GetAddrMode(&mode))
+            return false;
+
+        if (opt_Current->machineOptions->cpu >= CPUF_68020)
+            allowedModes |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
+
+        if ((mode.mode & allowedModes) == 0) {
+            prj_Error(ERROR_DEST_OPERAND);
+            return true;
+        }
+        direction = 0;
+    } else {
+        EAddrMode allowedModes = AM_AIND | AM_AINC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP;
+
+        if (!parse_GetAddrMode(&mode))
+            return false;
+
+        if (opt_Current->machineOptions->cpu >= CPUF_68020)
+            allowedModes |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
+
+        if ((mode.mode & allowedModes) == 0) {
+            prj_Error(ERROR_SOURCE_OPERAND);
+            return true;
+        }
+
+        if (!parse_ExpectComma())
+            return false;
+
+        registerMask = parse_RegisterList();
+        if (registerMask == REGLIST_FAIL)
+            return false;
+
+        direction = 1;
+    }
+
+    if (registerMask == 0) {
+        prj_Warn(MERROR_MOVEM_SKIPPED);
+        return true;
+    }
+
+    uint16_t opcode = (uint16_t) (0x4880 | direction << 10 | parse_GetEAField(&mode));
+    if (sz == SIZE_LONG)
+        opcode |= 1 << 6;
+
+    sect_OutputConst16(opcode);
+    if (mode.mode == AM_ADEC)
+        registerMask = reverseBits((uint16_t) registerMask);
+    sect_OutputConst16((uint16_t) registerMask);
+    return parse_OutputExtensionWords(&mode);
+}
+
+static bool
+handleMOVEP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (opt_Current->machineOptions->cpu == CPUF_68060) {
+        prj_Error(MERROR_INSTRUCTION_CPU);
+        return true;
+    }
+
+    if (src->mode == AM_AIND) {
+        src->mode = AM_ADISP;
+        src->outer.displacement = NULL;
+    }
+
+    if (dest->mode == AM_AIND) {
+        dest->mode = AM_ADISP;
+        dest->outer.displacement = NULL;
+    }
+
+    uint16_t dr;
+    uint16_t ar;
+    uint16_t opmode;
+    SExpression* disp;
+
+    if (src->mode == AM_ADISP && dest->mode == AM_DREG) {
+        if (sz == SIZE_WORD)
+            opmode = 0x4;
+        else
+            opmode = 0x5;
+
+        dr = (uint16_t) dest->directRegister;
+        ar = (uint16_t) (src->outer.baseRegister & 7u);
+        disp = src->outer.displacement;
+    } else if (src->mode == AM_DREG && dest->mode == AM_ADISP) {
+        if (sz == SIZE_WORD)
+            opmode = 0x6;
+        else
+            opmode = 0x7;
+
+        dr = (uint16_t) src->directRegister;
+        ar = (uint16_t) (dest->outer.baseRegister & 7u);
+        disp = dest->outer.displacement;
+    } else {
+        prj_Error(ERROR_OPERAND);
+        return true;
+    }
+
+    sect_OutputConst16(0x0008 | dr << 9 | opmode << 6 | ar);
+    if (disp != NULL)
+        sect_OutputExpr16(disp);
+    else
+        sect_OutputConst16(0);
+
+    return true;
+}
+
+static bool
+handleMOVEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_LONG);
+
+    SExpression* expr = expr_CheckRange(src->immediate, -128, 127);
+    if (expr == NULL) {
+        prj_Error(ERROR_OPERAND_RANGE);
+        return true;
+    }
+
+    expr = expr_And(expr, expr_Const(0xFF));
+    expr = expr_Or(expr, expr_Const(0x7000 | dest->directRegister << 9));
+    sect_OutputExpr16(expr);
+    return true;
+}
+
+static bool
+handleMULx(uint16_t sign, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (sz == SIZE_LONG && opt_Current->machineOptions->cpu < CPUF_68020) {
+        prj_Error(MERROR_INSTRUCTION_CPU);
+        return true;
+    }
+
+    if (sz == SIZE_LONG) {
+        uint16_t dh, dl, mul64;
+        if (lex_Current.token == ':') {
+            parse_GetToken();
+            if (!expectDataRegister(&dl))
+                return false;
+            dh = dest->directRegister;
+            mul64 = 1;
+            if (dh == dl)
+                prj_Warn(MERROR_UNDEFINED_RESULT);
+
+            if (opt_Current->machineOptions->cpu == CPUF_68060) {
+                prj_Error(MERROR_INSTRUCTION_CPU);
+                return true;
+            }
+        } else {
+            dl = dest->directRegister;
+            dh = 0;
+            mul64 = 0;
+        }
+
+        sect_OutputConst16((uint16_t) (0x4C00 | parse_GetEAField(src)));
+        sect_OutputConst16(0x0000 | sign << 11 | mul64 << 10 | dl << 12 | dh);
+        return parse_OutputExtensionWords(src);
+    } else {
+        return outputOpcode((uint16_t) (0xC0C0 | sign << 8 | dest->directRegister << 9), src);
+    }
+}
+
+static bool
+handleMULS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleMULx(true, sz, src, dest);
+}
+
+static bool
+handleMULU(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handleMULx(false, sz, src, dest);
+}
+
+static bool
+handleNBCD(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_BYTE);
+    assert(dest != NULL);
+
+    return outputOpcode((uint16_t) 0x4800, src);
+}
+
+static bool
+handleNEG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(dest != NULL);
+
+    return outputOpcodeSize((uint16_t) 0x4400, sz, src);
+}
+
+static bool
+handleNEGX(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(dest != NULL);
+
+    return outputOpcodeSize((uint16_t) 0x4000, sz, src);
+}
+
+static bool
+handleNOP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(src != NULL);
+    assert(dest != NULL);
+
+    sect_OutputConst16(0x4E71);
+    return true;
+}
+
+static bool
+handleNOT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(dest != NULL);
+
+    return outputOpcodeSize((uint16_t) 0x4600, sz, src);
+}
+
+static bool
+handleOR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    if (src->mode == AM_IMM || dest->mode == AM_SYSREG)
+        return handleToken(T_68K_ORI, sz, src, dest);
+
+    return handleArithmeticLogical(0x8000, sz, src, dest);
+}
+
+static bool
+handlePackUnpack(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+
+    if (!parse_ExpectComma())
+        return false;
+
+    SAddressingMode adj;
+    if (!parse_GetAddrMode(&adj))
+        return false;
+
+    if (src->mode != dest->mode || adj.mode != AM_IMM) {
+        prj_Error(ERROR_OPERAND);
+        return true;
+    }
+
+    uint16_t dy, dx;
+    uint16_t rm;
+
+    if (src->mode == AM_DREG) {
+        dx = (uint16_t) src->directRegister;
+        dy = (uint16_t) dest->directRegister;
+        rm = 0;
+    } else {
+        dx = (uint16_t) (src->outer.baseRegister & 7u);
+        dy = (uint16_t) (dest->outer.baseRegister & 7u);
+        rm = 1;
+    }
+
+    sect_OutputConst16(ins | dy << 9 | rm << 3 | dx);
+    sect_OutputExpr16(adj.immediate);
+    return true;
+}
+
+static bool
+handlePACK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handlePackUnpack(0x8140, sz, src, dest);
+}
+
+static bool
+handleUNPACK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return handlePackUnpack(0x8180, sz, src, dest);
+}
+
+static bool
+parse_PEA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_LONG);
+    assert(dest != NULL);
+
+    return outputOpcode((uint16_t) 0x4840, src);
+}
+
+static bool
+parse_RTD(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+
+    sect_OutputConst16(0x4E74);
+    sect_OutputExpr16(src->immediate);
+    return true;
+}
+
+static bool
+parse_RTM(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+
+    uint16_t reg;
+
+    if (src->mode == AM_DREG)
+        reg = (uint16_t) src->directRegister;
+    else /* if(src->eMode == AM_AREG) */
+        reg = (uint16_t) (src->directRegister + 8);
+
+    sect_OutputConst16((uint16_t) 0x06C0 | reg);
+    return true;
+}
+
+static bool
+parse_RTR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(src != NULL);
+    assert(dest != NULL);
+
+    sect_OutputConst16(0x4E77);
+    return true;
+}
+
+static bool
+parse_RTS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(src != NULL);
+    assert(dest != NULL);
+
+    sect_OutputConst16(0x4E75);
+    return true;
+}
+
+static bool
+parse_Scc(uint16_t code, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_BYTE);
+    assert(dest != NULL);
+
+    sect_OutputConst16((uint16_t) (0x50C0 | code << 8 | parse_GetEAField(src)));
+    return parse_OutputExtensionWords(src);
+}
+
+static bool
+parse_ST(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x0, sz, src, dest);
+}
+
+static bool
+parse_SF(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x1, sz, src, dest);
+}
+
+static bool
+parse_SHI(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x2, sz, src, dest);
+}
+
+static bool
+parse_SLS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x3, sz, src, dest);
+}
+
+static bool
+parse_SCC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x4, sz, src, dest);
+}
+
+static bool
+parse_SCS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x5, sz, src, dest);
+}
+
+static bool
+parse_SNE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x6, sz, src, dest);
+}
+
+static bool
+parse_SEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x7, sz, src, dest);
+}
+
+static bool
+parse_SVC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x8, sz, src, dest);
+}
+
+static bool
+parse_SVS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0x9, sz, src, dest);
+}
+
+static bool
+parse_SPL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0xA, sz, src, dest);
+}
+
+static bool
+parse_SMI(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0xB, sz, src, dest);
+}
+
+static bool
+parse_SGE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0xC, sz, src, dest);
+}
+
+static bool
+parse_SLT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0xD, sz, src, dest);
+}
+
+static bool
+parse_SGT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0xE, sz, src, dest);
+}
+
+static bool
+parse_SLE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Scc(0xF, sz, src, dest);
+}
+
+static bool
+parse_SWAP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_WORD);
+    assert(dest != NULL);
+
+    sect_OutputConst16((uint16_t) (0x4840 | src->directRegister));
+    return true;
+}
+
+static bool
+parse_TAS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_BYTE);
+    assert(dest != NULL);
+
+    sect_OutputConst16((uint16_t) (0x4AC0 | parse_GetEAField(src)));
+    return parse_OutputExtensionWords(src);
+}
+
+static bool
+parse_TRAP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+
+    SExpression* expr;
+
+    expr = expr_CheckRange(src->immediate, 0, 15);
+    if (expr == NULL) {
+        prj_Error(ERROR_OPERAND_RANGE);
+        return true;
+    }
+    expr = expr_Or(expr, expr_Const(0x4E40));
+    sect_OutputExpr16(expr);
+    return true;
+}
+
+static bool
+parse_TRAPcc(uint16_t code, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(dest != NULL);
+
+    uint16_t opmode;
+
+    if (sz == SIZE_DEFAULT && src->mode == AM_EMPTY)
+        opmode = 0x4;
+    else if (sz == SIZE_WORD && src->mode == AM_IMM)
+        opmode = 0x2;
+    else if (sz == SIZE_LONG && src->mode == AM_IMM)
+        opmode = 0x3;
+    else {
+        prj_Error(ERROR_OPERAND);
+        return true;
+    }
+
+    sect_OutputConst16(0x50F8 | opmode | code << 8);
+    if (sz == SIZE_WORD)
+        sect_OutputExpr16(src->immediate);
+    else if (sz == SIZE_LONG)
+        sect_OutputExpr32(src->immediate);
+
+    return true;
+}
+
+static bool
+parse_TRAPT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x0, sz, src, dest);
+}
+
+static bool
+parse_TRAPF(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x1, sz, src, dest);
+}
+
+static bool
+parse_TRAPHI(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x2, sz, src, dest);
+}
+
+static bool
+parse_TRAPLS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x3, sz, src, dest);
+}
+
+static bool
+parse_TRAPCC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x4, sz, src, dest);
+}
+
+static bool
+parse_TRAPCS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x5, sz, src, dest);
+}
+
+static bool
+parse_TRAPNE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x6, sz, src, dest);
+}
+
+static bool
+parse_TRAPEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x7, sz, src, dest);
+}
+
+static bool
+parse_TRAPVC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x8, sz, src, dest);
+}
+
+static bool
+parse_TRAPVS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0x9, sz, src, dest);
+}
+
+static bool
+parse_TRAPPL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0xA, sz, src, dest);
+}
+
+static bool
+parse_TRAPMI(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0xB, sz, src, dest);
+}
+
+static bool
+parse_TRAPGE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0xC, sz, src, dest);
+}
+
+static bool
+parse_TRAPLT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0xD, sz, src, dest);
+}
+
+static bool
+parse_TRAPGT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0xE, sz, src, dest);
+}
+
+static bool
+parse_TRAPLE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_TRAPcc(0xF, sz, src, dest);
+}
+
+static bool
+parse_TRAPV(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(src != NULL);
+    assert(dest != NULL);
+
+    sect_OutputConst16(0x4E76);
+    return true;
+}
+
+static bool
+parse_UNLK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+
+    sect_OutputConst16((uint16_t) (0x4E58 | src->directRegister));
+    return true;
+}
+
+static bool
+parse_RESET(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(src != NULL);
+    assert(dest != NULL);
+
+    prj_Warn(MERROR_INSTRUCTION_PRIV);
+    sect_OutputConst16(0x4E70);
+    return true;
+}
+
+static bool
+parse_RTE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(src != NULL);
+    assert(dest != NULL);
+
+    prj_Warn(MERROR_INSTRUCTION_PRIV);
+    sect_OutputConst16(0x4E73);
+    return true;
+}
+
+static bool
+parse_STOP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+    assert(dest != NULL);
+
+    prj_Warn(MERROR_INSTRUCTION_PRIV);
+    sect_OutputConst16(0x4E72);
+    sect_OutputExpr16(src->immediate);
+    return true;
+}
+
+static bool
+parse_Cache040(uint16_t ins, uint16_t scope, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_DEFAULT);
+
+    uint16_t cache = 0;
+    uint16_t reg;
+
+    prj_Warn(MERROR_INSTRUCTION_PRIV);
+
+    if (src->directRegister == T_68K_REG_DC)
+        cache = 0x1;
+    else if (src->directRegister == T_68K_REG_IC)
+        cache = 0x2;
+    else if (src->directRegister == T_68K_REG_BC)
+        cache = 0x3;
+    else {
+        prj_Error(ERROR_DEST_OPERAND);
+        return true;
+    }
+
+    if (scope == 3)
+        reg = 0;
+    else
+        reg = (uint16_t) (dest->outer.baseRegister & 7u);
+
+    sect_OutputConst16(ins | scope << 3 | cache << 6 | reg);
+    return true;
+}
+
+static bool
+parse_CINVA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Cache040(0xF400, 0x3, sz, src, dest);
+}
+
+static bool
+parse_CINVL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Cache040(0xF400, 0x1, sz, src, dest);
+}
+
+static bool
+parse_CINVP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Cache040(0xF400, 0x2, sz, src, dest);
+}
+
+static bool
+parse_CPUSHA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Cache040(0xF420, 0x3, sz, src, dest);
+}
+
+static bool
+parse_CPUSHL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Cache040(0xF420, 0x1, sz, src, dest);
+}
+
+static bool
+parse_CPUSHP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    return parse_Cache040(0xF420, 0x2, sz, src, dest);
+}
+
+typedef struct {
+    uint16_t nCpu;
+    uint16_t nValue;
 } SControlRegister;
 
-SControlRegister g_ControlRegister[]=
-{
-	{// SFC
-		CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		0x000 },
-	{// DFC
-		CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		0x001 },
-	{// USP
-		CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		0x800 },
-	{// VBR
-		CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		0x801 },
-
-	{// CACR
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		0x002 },
-	{// CAAR
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		0x802 },
-	{// MSP
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		0x803 },
-	{// ISP
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		0x804 },
-
-	{// TC
-		CPUF_68040 | CPUF_68060,
-		0x003 },
-	{// ITT0
-		CPUF_68040 | CPUF_68060,
-		0x004 },
-	{// ITT1
-		CPUF_68040 | CPUF_68060,
-		0x005 },
-	{// DTT0
-		CPUF_68040 | CPUF_68060,
-		0x006 },
-	{// DTT1
-		CPUF_68040 | CPUF_68060,
-		0x007 },
-	{// MMUSR
-		CPUF_68040 | CPUF_68060,
-		0x805 },
-	{// URP
-		CPUF_68040 | CPUF_68060,
-		0x806 },
-	{// SRP
-		CPUF_68040 | CPUF_68060,
-		0x807 },
-
-	{// IACR0
-		CPUF_68040,
-		0x004 },
-	{// IACR1
-		CPUF_68040,
-		0x005 },
-	{// DACR0
-		CPUF_68040,
-		0x006 },
-	{// DACR1
-		CPUF_68040,
-		0x007 },
+SControlRegister g_ControlRegister[] = {
+        {// SFC
+            CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            0x000
+        },
+        {// DFC
+            CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            0x001
+        },
+        {// USP
+            CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            0x800
+        },
+        {// VBR
+            CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            0x801
+        },
+        {// CACR
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            0x002
+        },
+        {// CAAR
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            0x802
+        },
+        {// MSP
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            0x803
+        },
+        {// ISP
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            0x804
+        },
+        {// TC
+            CPUF_68040 | CPUF_68060,
+            0x003
+        },
+        {// ITT0
+            CPUF_68040 | CPUF_68060,
+            0x004
+        },
+        {// ITT1
+            CPUF_68040 | CPUF_68060,
+            0x005
+        },
+        {// DTT0
+            CPUF_68040 | CPUF_68060,
+            0x006
+        },
+        {// DTT1
+            CPUF_68040 | CPUF_68060,
+            0x007
+        },
+        {// MMUSR
+            CPUF_68040 | CPUF_68060,
+            0x805
+        },
+        {// URP
+            CPUF_68040 | CPUF_68060,
+            0x806
+        },
+        {// SRP
+            CPUF_68040 | CPUF_68060,
+            0x807
+        },
+        {// IACR0
+            CPUF_68040,
+            0x004
+        },
+        {// IACR1
+            CPUF_68040,
+            0x005
+        },
+        {// DACR0
+            CPUF_68040,
+            0x006
+        },
+        {// DACR1
+            CPUF_68040,
+            0x007
+        },
 };
 
-static bool parse_MOVEC(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	assert(sz == SIZE_LONG);
+static bool
+parse_MOVEC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    assert(sz == SIZE_LONG);
 
-	uint16_t dr;
-	int control;
-	uint16_t reg;
-	SControlRegister* pReg;
+    uint16_t dr;
+    int control;
+    uint16_t reg;
+    SControlRegister* pReg;
 
-	prj_Warn(MERROR_INSTRUCTION_PRIV);
+    prj_Warn(MERROR_INSTRUCTION_PRIV);
 
-	if(src->eMode == AM_SYSREG && (dest->eMode == AM_DREG || dest->eMode == AM_AREG))
-	{
-		dr = 0;
-		control = src->nDirectReg;
-		if(dest->eMode == AM_DREG)
-			reg = (uint16_t)dest->nDirectReg;
-		else
-			reg = (uint16_t)dest->nDirectReg + 8;
-	}
-	else if(dest->eMode == AM_SYSREG && (src->eMode == AM_DREG || src->eMode == AM_AREG))
-	{
-		dr = 1;
-		control = dest->nDirectReg;
-		if(src->eMode == AM_DREG)
-			reg = (uint16_t)src->nDirectReg;
-		else
-			reg = (uint16_t)src->nDirectReg + 8;
-	}
-	else
-	{
-		prj_Error(ERROR_OPERAND);
-		return true;
-	}
+    if (src->mode == AM_SYSREG && (dest->mode == AM_DREG || dest->mode == AM_AREG)) {
+        dr = 0;
+        control = src->directRegister;
+        if (dest->mode == AM_DREG)
+            reg = (uint16_t) dest->directRegister;
+        else
+            reg = (uint16_t) dest->directRegister + 8;
+    } else if (dest->mode == AM_SYSREG && (src->mode == AM_DREG || src->mode == AM_AREG)) {
+        dr = 1;
+        control = dest->directRegister;
+        if (src->mode == AM_DREG)
+            reg = (uint16_t) src->directRegister;
+        else
+            reg = (uint16_t) src->directRegister + 8;
+    } else {
+        prj_Error(ERROR_OPERAND);
+        return true;
+    }
 
-	if(control < T_68K_REG_SFC || control > T_68K_REG_DACR1)
-	{
-		prj_Error(ERROR_OPERAND);
-		return true;
-	}
+    if (control < T_68K_REG_SFC || control > T_68K_REG_DACR1) {
+        prj_Error(ERROR_OPERAND);
+        return true;
+    }
 
-	pReg = &g_ControlRegister[control - T_68K_REG_SFC];
-	if((pReg->nCpu & opt_Current->machineOptions->nCpu) == 0)
-	{
-		prj_Error(MERROR_INSTRUCTION_CPU);
-		return true;
-	}
+    pReg = &g_ControlRegister[control - T_68K_REG_SFC];
+    if ((pReg->nCpu & opt_Current->machineOptions->cpu) == 0) {
+        prj_Error(MERROR_INSTRUCTION_CPU);
+        return true;
+    }
 
-	sect_OutputConst16(0x4E7A | dr);
-	sect_OutputConst16(reg << 12 | pReg->nValue);
-	return true;
+    sect_OutputConst16(0x4E7A | dr);
+    sect_OutputConst16(reg << 12 | pReg->nValue);
+    return true;
 }
 
-static bool parse_MOVES(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-	int allow = AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_PCXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
-	uint16_t dr;
-	uint16_t reg;
-	SAddressingMode* ea;
+static bool
+parse_MOVES(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
+    int allow =
+            AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_PCXDISP020
+            | AM_PREINDAXD020 | AM_POSTINDAXD020;
+    uint16_t dr;
+    uint16_t reg;
+    SAddressingMode* ea;
 
-	prj_Warn(MERROR_INSTRUCTION_PRIV);
+    prj_Warn(MERROR_INSTRUCTION_PRIV);
 
-	if((src->eMode == AM_DREG || src->eMode == AM_AREG)
-	&& (dest->eMode & allow))
-	{
-		ea = dest;
-		dr = 1;
-		if(src->eMode == AM_DREG)
-			reg = (uint16_t)src->nDirectReg;
-		else
-			reg = (uint16_t)src->nDirectReg + 8;
-	}
-	else if((dest->eMode == AM_DREG || dest->eMode == AM_AREG)
-	&& (src->eMode & allow))
-	{
-		ea = src;
-		dr = 0;
-		if(dest->eMode == AM_DREG)
-			reg = (uint16_t)src->nDirectReg;
-		else
-			reg = (uint16_t)src->nDirectReg + 8;
-	}
-	else
-	{
-		prj_Error(ERROR_OPERAND);
-		return true;
-	}
+    if ((src->mode == AM_DREG || src->mode == AM_AREG) && (dest->mode & allow)) {
+        ea = dest;
+        dr = 1;
+        if (src->mode == AM_DREG)
+            reg = (uint16_t) src->directRegister;
+        else
+            reg = (uint16_t) src->directRegister + 8;
+    } else if ((dest->mode == AM_DREG || dest->mode == AM_AREG) && (src->mode & allow)) {
+        ea = src;
+        dr = 0;
+        if (dest->mode == AM_DREG)
+            reg = (uint16_t) src->directRegister;
+        else
+            reg = (uint16_t) src->directRegister + 8;
+    } else {
+        prj_Error(ERROR_OPERAND);
+        return true;
+    }
 
-	sect_OutputConst16((uint16_t)(0x0E00 | parse_GetSizeField(sz) << 6 | parse_GetEAField(ea)));
-	sect_OutputConst16(reg << 12 | dr << 11);
-	return parse_OutputExtWords(ea);
+    sect_OutputConst16((uint16_t) (0x0E00 | getSizeField(sz) << 6 | parse_GetEAField(ea)));
+    sect_OutputConst16(reg << 12 | dr << 11);
+    return parse_OutputExtensionWords(ea);
 }
 
+static SInstruction
+g_integerInstructions[] = {
+        {	// ABCD
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
+            AM_NONE, AM_NONE,
+            handleABCD
+        },
+        {	// ADD
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for adda */ | AM_AREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleADD
+        },
+        {	// ADDA
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_AREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
+            handleADDA
+        },
+        {	// ADDI
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleADDI
+        },
+        {	// ADDQ
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM, AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleADDQ
+        },
+        {	// ADDX
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
+            AM_NONE, AM_NONE,
+            handleADDX
+        },
+        {	// AND
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for ANDI */ | AM_SYSREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleAND
+        },
+        {	// ANDI
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleANDI
+        },
+        {	// ASL
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | (uint32_t)AM_EMPTY,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleASL
+        },
+        {	// ASR
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | (uint32_t)AM_EMPTY,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleASR
+        },
+        {	// BCC
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBCC
+        },
+        {	// BCS
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBCS
+        },
+        {	// BEQ
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBEQ
+        },
+        {	// BGE
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBGE
+        },
+        {	// BGT
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBGT
+        },
+        {	// BHI
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBHI
+        },
+        {	// BLE
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBLE
+        },
+        {	// BLS
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBLS
+        },
+        {	// BLT
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBLT
+        },
+        {	// BMI
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBMI
+        },
+        {	// BNE
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBNE
+        },
+        {	// BPL
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBPL
+        },
+        {	// BVC
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBVC
+        },
+        {	// BVS
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBVS
+        },
+        {	// BCHG
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_IMM, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleBCHG
+        },
+        {	// BCLR
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_IMM, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleBCLR
+        },
+        {	// BFCHG
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBFCHG
+        },
+        {	// BFCLR
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBFCLR
+        },
+        {	// BFEXTS
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, AM_DREG,
+            AM_NONE, AM_NONE,
+            handleBFEXTS
+        },
+        {	// BFEXTU
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, AM_DREG,
+            AM_NONE, AM_NONE,
+            handleBFEXTU
+        },
+        {	// BFFFO
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, AM_DREG,
+            AM_NONE, AM_NONE,
+            handleBFFFO
+        },
+        {	// BFINS
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD,
+            AM_NONE, AM_NONE,
+            handleBFINS
+        },
+        {	// BFSET
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBFSET
+        },
+        {	// BFTST
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBFTST
+        },
+        {	// BKPT
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBKPT
+        },
+        {	// BRA
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBRA
+        },
+        {	// BSET
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_IMM, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleBSET
+        },
+        {	// BSR
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_LONG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleBSR
+        },
+        {	// BTST
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_IMM, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleBTST
+        },
+        {	// CALLM
+            CPUF_68020,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_IMM, AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
+            AM_NONE, AM_NONE,
+            handleCALLM
+        },
+        {	// CAS
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG, AM_DREG,
+            AM_NONE, AM_NONE,
+            handleCAS
+        },
+        {	// CAS2
+            CPUF_68020 | CPUF_68030 | CPUF_68040,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_NONE, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleCAS2
+        },
+        {	// CHK
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
+            handleCHK
+        },
+        {	// CHK2
+            CPUF_68020 | CPUF_68030 | CPUF_68040,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_DREG | AM_AREG,
+            AM_NONE, AM_NONE,
+            handleCHK2
+        },
+        {	// CINVA
+            CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_SYSREG, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_CINVA
+        },
+        {	// CINVL
+            CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_SYSREG, AM_AIND,
+            AM_NONE, AM_NONE,
+            parse_CINVL
+        },
+        {	// CINVP
+            CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_SYSREG, AM_AIND,
+            AM_NONE, AM_NONE,
+            parse_CINVP
+        },
+        {	// CLR
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleCLR
+        },
+        {	// CMP
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG /* for CMPA */ | AM_AREG /* for CMPM */ | AM_AINC /* for CMPI */ | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
+            handleCMP
+        },
+        {	// CMPA
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_AREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
+            handleCMPA
+        },
+        {	// CMPI
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_NONE, AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
+            handleCMPI
+        },
+        {	// CMPM
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_AINC, AM_AINC,
+            AM_NONE, AM_NONE,
+            handleCMPM
+        },
+        {	// CMP2
+            CPUF_68020 | CPUF_68030 | CPUF_68040,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_DREG | AM_AREG,
+            AM_NONE, AM_NONE,
+            handleCMP2
+        },
+        {	// CPUSHA
+            CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_SYSREG, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_CPUSHA
+        },
+        {	// CPUSHL
+            CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_SYSREG, AM_AIND,
+            AM_NONE, AM_NONE,
+            parse_CPUSHL
+        },
+        {	// CPUSHP
+            CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_SYSREG, AM_AIND,
+            AM_NONE, AM_NONE,
+            parse_CPUSHP
+        },
+        {	// DBCC
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBCC
+        },
+        {	// DBCS
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBCS
+        },
+        {	// DBEQ
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBEQ
+        },
+        {	// DBF
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBF
+        },
+        {	// DBGE
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBGE
+        },
+        {	// DBGT
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBGT
+        },
+        {	// DBHI
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBHI
+        },
+        {	// DBLE
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBLE
+        },
+        {	// DBLS
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBLS
+        },
+        {	// DBLT
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBLT
+        },
+        {	// DBMI
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBMI
+        },
+        {	// DBNE
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBNE
+        },
+        {	// DBPL
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBPL
+        },
+        {	// DBT
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBT
+        },
+        {	// DBVC
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBVC
+        },
+        {	// DBVS
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG, AM_WORD | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleDBVS
+        },
+        {	// DIVS
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, AM_DREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
+            handleDIVS
+        },
+        {	// DIVSL
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_LONG, SIZE_LONG,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, AM_DREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
+            handleDIVSL
+        },
+        {	// DIVU
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, AM_DREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
+            handleDIVU
+        },
+        {	// DIVUL
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_LONG, SIZE_LONG,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, AM_DREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
+            handleDIVUL
+        },
+        {	// EOR
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM | AM_DREG, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleEOR
+        },
+        {	// EORI
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleEORI
+        },
+        {	// EXG
+            CPUF_ALL,
+            SIZE_LONG, SIZE_LONG,
+            AM_DREG | AM_AREG, AM_DREG | AM_AREG,
+            AM_NONE, AM_NONE,
+            handleEXG
+        },
+        {	// EXT
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleEXT
+        },
+        {	// EXTB
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_LONG, SIZE_LONG,
+            AM_DREG, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleEXTB
+        },
+        {	// ILLEGAL
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_NONE, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleILLEGAL
+        },
+        {	// JMP
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP, AM_NONE,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
+            handleJMP
+        },
+        {	// JSR
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP, AM_NONE,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
+            handleJSR
+        },
+        {	// LEA
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP, AM_AREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
+            handleLEA
+        },
+        {	// LINK
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_AREG, AM_IMM,
+            AM_NONE, AM_NONE,
+            handleLINK
+        },
+        {	// LSL
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleLSL
+        },
+        {	// LSR
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleLSR
+        },
+        {	// MOVE
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_SYSREG | AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for movea */ | AM_AREG /* for move to ccr */ | AM_SYSREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /* dest */ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleMOVE
+        },
+        {	// MOVEA
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /* dest */ AM_AREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /* dest */ AM_NONE,
+            handleMOVEA
+        },
+        {	// MOVEC
+            CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_LONG, SIZE_LONG,
+            AM_DREG | AM_AREG | AM_SYSREG, AM_DREG | AM_AREG | AM_SYSREG,
+            AM_NONE, AM_NONE,
+            parse_MOVEC
+        },
+        {	// MOVE16
+            CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_AIND | AM_AINC | AM_LONG, AM_AIND | AM_AINC | AM_LONG,
+            AM_NONE, AM_NONE,
+            handleMOVE16
+        },
+        {	// MOVEM
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_NONE, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleMOVEM
+        },
+        {	// MOVEP
+            CPUF_68000 | CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_ADISP, AM_DREG | AM_AIND | AM_ADISP,
+            AM_NONE, AM_NONE,
+            handleMOVEP
+        },
+        {	// MOVEQ
+            CPUF_ALL,
+            SIZE_LONG, SIZE_LONG,
+            AM_IMM, AM_DREG,
+            AM_NONE, AM_NONE,
+            handleMOVEQ
+        },
+        {	// MOVES
+            CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_LONG | SIZE_WORD | SIZE_BYTE, SIZE_WORD,
+            AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_PCXDISP | AM_WORD | AM_LONG, AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_PCXDISP | AM_WORD | AM_LONG,
+            AM_PCXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_PCXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            parse_MOVES
+        },
+        {	// MULS
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /* dest */ AM_DREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /* dest */ AM_NONE,
+            handleMULS
+        },
+        {	// MULU
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /* dest */ AM_DREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /* dest */ AM_NONE,
+            handleMULU
+        },
+        {	// NBCD
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleNBCD
+        },
+        {	// NEG
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleNEG
+        },
+        {	// NEGX
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleNEGX
+        },
+        {	// NOP
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_NONE, AM_NONE,
+            AM_NONE, AM_NONE,
+            handleNOP
+        },
+        {	// NOT
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleNOT
+        },
+        {	// OR
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for ORI */ | AM_SYSREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleOR
+        },
+        {	// ORI
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleORI
+        },
+        {	// PACK
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
+            AM_NONE, AM_NONE,
+            handlePACK
+        },
+        {	// PEA
+            CPUF_ALL,
+            SIZE_LONG, SIZE_LONG,
+            AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP, AM_NONE,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
+            parse_PEA
+        },
+        {	// RESET
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_NONE, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_RESET
+        },
+        {	// ROL
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleROL
+        },
+        {	// ROR
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleROR
+        },
+        {	// ROXL
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleROXL
+        },
+        {	// ROXR
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            handleROXR
+        },
+        {	// RTD
+            CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_RTD
+        },
+        {	// RTE
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_NONE, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_RTE
+        },
+        {	// RTM
+            CPUF_68020,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_AREG, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_RTM
+        },
+        {	// RTR
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_NONE, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_RTR
+        },
+        {	// RTS
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_NONE, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_RTS
+        },
+        {	// SBCD
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
+            AM_NONE, AM_NONE,
+            handleSBCD
+        },
+        {	// SCC
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SCC
+        },
+        {	// SCS
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SCS
+        },
+        {	// SEQ
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SEQ
+        },
+        {	// SF
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SF
+        },
+        {	// SGE
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SGE
+        },
+        {	// SGT
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SGT
+        },
+        {	// SHI
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SHI
+        },
+        {	// SLE
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SLE
+        },
+        {	// SLS
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SLS
+        },
+        {	// SLT
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SLT
+        },
+        {	// SMI
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SMI
+        },
+        {	// SNE
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SNE
+        },
+        {	// SPL
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SPL
+        },
+        {	// ST
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_ST
+        },
+        {	// SVC
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SVC
+        },
+        {	// SVS
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SVS
+        },
 
-static SInstruction sIntegerInstructions[] =
-{
-	{	// ABCD
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
-		AM_NONE, AM_NONE,
-		parse_ABCD
-	},
-	{	// ADD
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for adda */ | AM_AREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_ADD
-	},
-	{	// ADDA
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_AREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
-		parse_ADDA
-	},
-	{	// ADDI
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_ADDI
-	},
-	{	// ADDQ
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM, AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_ADDQ
-	},
-	{	// ADDX
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
-		AM_NONE, AM_NONE,
-		parse_ADDX
-	},
-	{	// AND
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for ANDI */ | AM_SYSREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_AND
-	},
-	{	// ANDI
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_ANDI
-	},
-	{	// ASL
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | (uint32_t)AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_ASL
-	},
-	{	// ASR
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | (uint32_t)AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_ASR
-	},
-	{	// BCC
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BCC
-	},
-	{	// BCS
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BCS
-	},
-	{	// BEQ
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BEQ
-	},
-	{	// BGE
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BGE
-	},
-	{	// BGT
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BGT
-	},
-	{	// BHI
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BHI
-	},
-	{	// BLE
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BLE
-	},
-	{	// BLS
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BLS
-	},
-	{	// BLT
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BLT
-	},
-	{	// BMI
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BMI
-	},
-	{	// BNE
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BNE
-	},
-	{	// BPL
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BPL
-	},
-	{	// BVC
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BVC
-	},
-	{	// BVS
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BVS
-	},
-	{	// BCHG
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_IMM, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_BCHG
-	},
-	{	// BCLR
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_IMM, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_BCLR
-	},
-	{	// BFCHG
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BFCHG
-	},
-	{	// BFCLR
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BFCLR
-	},
-	{	// BFEXTS
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, AM_DREG,
-		AM_NONE, AM_NONE,
-		parse_BFEXTS
-	},
-	{	// BFEXTU
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, AM_DREG,
-		AM_NONE, AM_NONE,
-		parse_BFEXTU
-	},
-	{	// BFFFO
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, AM_DREG,
-		AM_NONE, AM_NONE,
-		parse_BFFFO
-	},
-	{	// BFINS
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD,
-		AM_NONE, AM_NONE,
-		parse_BFINS
-	},
-	{	// BFSET
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BFSET
-	},
-	{	// BFTST
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BFTST
-	},
-	{	// BKPT
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BKPT
-	},
-	{	// BRA
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BRA
-	},
-	{	// BSET
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_IMM, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_BSET
-	},
-	{	// BSR
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_LONG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_BSR
-	},
-	{	// BTST
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_IMM, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_BTST
-	},
-	{	// CALLM
-		CPUF_68020,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_IMM, AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
-		AM_NONE, AM_NONE,
-		parse_CALLM
-	},
-	{	// CAS
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG, AM_DREG,
-		AM_NONE, AM_NONE,
-		parse_CAS
-	},
-	{	// CAS2
-		CPUF_68020 | CPUF_68030 | CPUF_68040,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_NONE, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_CAS2
-	},
-	{	// CHK
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
-		parse_CHK
-	},
-	{	// CHK2
-		CPUF_68020 | CPUF_68030 | CPUF_68040,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_DREG | AM_AREG,
-		AM_NONE, AM_NONE,
-		parse_CHK2
-	},
-	{	// CINVA
-		CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_SYSREG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_CINVA
-	},
-	{	// CINVL
-		CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_SYSREG, AM_AIND,
-		AM_NONE, AM_NONE,
-		parse_CINVL
-	},
-	{	// CINVP
-		CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_SYSREG, AM_AIND,
-		AM_NONE, AM_NONE,
-		parse_CINVP
-	},
-	{	// CLR
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_CLR
-	},
-	{	// CMP
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG /* for CMPA */ | AM_AREG /* for CMPM */ | AM_AINC /* for CMPI */ | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
-		parse_CMP
-	},
-	{	// CMPA
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_AREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
-		parse_CMPA
-	},
-	{	// CMPI
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_NONE, AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
-		parse_CMPI
-	},
-	{	// CMPM
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_AINC, AM_AINC,
-		AM_NONE, AM_NONE,
-		parse_CMPM
-	},
-	{	// CMP2
-		CPUF_68020 | CPUF_68030 | CPUF_68040,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_DREG | AM_AREG,
-		AM_NONE, AM_NONE,
-		parse_CMP2
-	},
-	{	// CPUSHA
-		CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_SYSREG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_CPUSHA
-	},
-	{	// CPUSHL
-		CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_SYSREG, AM_AIND,
-		AM_NONE, AM_NONE,
-		parse_CPUSHL
-	},
-	{	// CPUSHP
-		CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_SYSREG, AM_AIND,
-		AM_NONE, AM_NONE,
-		parse_CPUSHP
-	},
-	{	// DBCC
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBCC
-	},
-	{	// DBCS
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBCS
-	},
-	{	// DBEQ
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBEQ
-	},
-	{	// DBF
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBF
-	},
-	{	// DBGE
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBGE
-	},
-	{	// DBGT
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBGT
-	},
-	{	// DBHI
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBHI
-	},
-	{	// DBLE
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBLE
-	},
-	{	// DBLS
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBLS
-	},
-	{	// DBLT
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBLT
-	},
-	{	// DBMI
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBMI
-	},
-	{	// DBNE
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBNE
-	},
-	{	// DBPL
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBPL
-	},
-	{	// DBT
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBT
-	},
-	{	// DBVC
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBVC
-	},
-	{	// DBVS
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG, AM_WORD | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_DBVS
-	},
+        {	// STOP
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_STOP
+        },
+        {	// SUB
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for adda */ | AM_AREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleSUB
+        },
+        {	// SUBA
+            CPUF_ALL,
+            SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_AREG,
+            AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
+            handleSUBA
+        },
+        {	// SUBI
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleSUBI
+        },
+        {	// SUBQ
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_IMM, AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+            AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+            handleSUBQ
+        },
+        {	// SUBX
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
+            AM_NONE, AM_NONE,
+            handleSUBX
+        },
+        {	// SWAP
+            CPUF_ALL,
+            SIZE_WORD, SIZE_WORD,
+            AM_DREG, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_SWAP
+        },
+        {	// TAS
+            CPUF_ALL,
+            SIZE_BYTE, SIZE_BYTE,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TAS
+        },
+        {	// TRAP
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAP
+        },
 
-	{	// DIVS
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, AM_DREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
-		parse_DIVS
-	},
-	{	// DIVSL
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_LONG, SIZE_LONG,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, AM_DREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
-		parse_DIVSL
-	},
-	{	// DIVU
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, AM_DREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
-		parse_DIVU
-	},
-	{	// DIVUL
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_LONG, SIZE_LONG,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, AM_DREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
-		parse_DIVUL
-	},
-	{	// EOR
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM | AM_DREG, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_EOR
-	},
-	{	// EORI
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_EORI
-	},
-	{	// EXG
-		CPUF_ALL,
-		SIZE_LONG, SIZE_LONG,
-		AM_DREG | AM_AREG, AM_DREG | AM_AREG,
-		AM_NONE, AM_NONE,
-		parse_EXG
-	},
-	{	// EXT
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_EXT
-	},
-	{	// EXTB
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_LONG, SIZE_LONG,
-		AM_DREG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_EXTB
-	},
-	{	// ILLEGAL
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_NONE, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_ILLEGAL
-	},
-	{	// JMP
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP, AM_NONE,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
-		parse_JMP
-	},
-	{	// JSR
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP, AM_NONE,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
-		parse_JSR
-	},
-	{	// LEA
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP, AM_AREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
-		parse_LEA
-	},
-	{	// LINK
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_AREG, AM_IMM,
-		AM_NONE, AM_NONE,
-		parse_LINK
-	},
-	{	// LSL
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_LSL
-	},
-	{	// LSR
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_LSR
-	},
-	{	// MOVE
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_SYSREG | AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /* dest */ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for movea */ | AM_AREG /* for move to ccr */ | AM_SYSREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /* dest */ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_MOVE
-	},
-	{	// MOVEA
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /* dest */ AM_AREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /* dest */ AM_NONE,
-		parse_MOVEA
-	},
-	{	// MOVEC
-		CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_LONG, SIZE_LONG,
-		AM_DREG | AM_AREG | AM_SYSREG, AM_DREG | AM_AREG | AM_SYSREG,
-		AM_NONE, AM_NONE,
-		parse_MOVEC
-	},
-	{	// MOVE16
-		CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_AIND | AM_AINC | AM_LONG, AM_AIND | AM_AINC | AM_LONG,
-		AM_NONE, AM_NONE,
-		parse_MOVE16
-	},
-	{	// MOVEM
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_NONE, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_MOVEM
-	},
-	{	// MOVEP
-		CPUF_68000 | CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_ADISP, AM_DREG | AM_AIND | AM_ADISP,
-		AM_NONE, AM_NONE,
-		parse_MOVEP
-	},
-	{	// MOVEQ
-		CPUF_ALL,
-		SIZE_LONG, SIZE_LONG,
-		AM_IMM, AM_DREG,
-		AM_NONE, AM_NONE,
-		parse_MOVEQ
-	},
-	{	// MOVES
-		CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_LONG | SIZE_WORD | SIZE_BYTE, SIZE_WORD,
-		AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_PCXDISP | AM_WORD | AM_LONG, AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_PCXDISP | AM_WORD | AM_LONG,
-		AM_PCXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_PCXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_MOVES
-	},
-	{	// MULS
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /* dest */ AM_DREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /* dest */ AM_NONE,
-		parse_MULS
-	},
-	{	// MULU
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /* dest */ AM_DREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /* dest */ AM_NONE,
-		parse_MULU
-	},
-	{	// NBCD
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_NBCD
-	},
-	{	// NEG
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_NEG
-	},
-	{	// NEGX
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_NEGX
-	},
-	{	// NOP
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_NONE, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_NOP
-	},
-	{	// NOT
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_NOT
-	},
-	{	// OR
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for ORI */ | AM_SYSREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_OR
-	},
-	{	// ORI
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_ORI
-	},
-	{	// PACK
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
-		AM_NONE, AM_NONE,
-		parse_PACK
-	},
-	{	// PEA
-		CPUF_ALL,
-		SIZE_LONG, SIZE_LONG,
-		AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP, AM_NONE,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
-		parse_PEA
-	},
-	{	// RESET
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_NONE, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_RESET
-	},
-	{	// ROL
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_ROL
-	},
-	{	// ROR
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_ROR
-	},
-	{	// ROXL
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_ROXL
-	},
-	{	// ROXR
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_DREG | AM_EMPTY,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		parse_ROXR
-	},
-	{	// RTD
-		CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_RTD
-	},
-	{	// RTE
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_NONE, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_RTE
-	},
-	{	// RTM
-		CPUF_68020,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_AREG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_RTM
-	},
-	{	// RTR
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_NONE, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_RTR
-	},
-	{	// RTS
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_NONE, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_RTS
-	},
-	{	// SBCD
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
-		AM_NONE, AM_NONE,
-		parse_SBCD
-	},
+        {	// TRAPCC
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPCC
+        },
+        {	// TRAPCS
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPCS
+        },
+        {	// TRAPEQ
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPEQ
+        },
+        {	// TRAPF
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPF
+        },
+        {	// TRAPGE
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPGE
+        },
+        {	// TRAPGT
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPGT
+        },
+        {	// TRAPHI
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPHI
+        },
+        {	// TRAPLE
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPLE
+        },
+        {	// TRAPLS
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPLS
+        },
+        {	// TRAPLT
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPLT
+        },
+        {	// TRAPMI
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPMI
+        },
+        {	// TRAPNE
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPNE
+        },
+        {	// TRAPPL
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPPL
+        },
+        {	// TRAPT
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPT
+        },
+        {	// TRAPVC
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPVC
+        },
+        {	// TRAPVS
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+            AM_EMPTY | AM_IMM, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPVS
+        },
+        {	// TRAPV
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_NONE, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_TRAPV
+        },
 
-	{	// SCC
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SCC
-	},
-	{	// SCS
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SCS
-	},
-	{	// SEQ
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SEQ
-	},
-	{	// SF
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SF
-	},
-	{	// SGE
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SGE
-	},
-	{	// SGT
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SGT
-	},
-	{	// SHI
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SHI
-	},
-	{	// SLE
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SLE
-	},
-	{	// SLS
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SLS
-	},
-	{	// SLT
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SLT
-	},
-	{	// SMI
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SMI
-	},
-	{	// SNE
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SNE
-	},
-	{	// SPL
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SPL
-	},
-	{	// ST
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_ST
-	},
-	{	// SVC
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SVC
-	},
-	{	// SVS
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SVS
-	},
-		
-	{	// STOP
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_STOP
-	},
-	{	// SUB
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for adda */ | AM_AREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_SUB
-	},
-	{	// SUBA
-		CPUF_ALL,
-		SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_AREG,
-		AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, /*dest*/ AM_NONE,
-		parse_SUBA
-	},
-	{	// SUBI
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM, AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_SUBI
-	},
-	{	// SUBQ
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_IMM, AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
-		AM_NONE, AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
-		parse_SUBQ
-	},
-	{	// SUBX
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
-		AM_NONE, AM_NONE,
-		parse_SUBX
-	},
-	{	// SWAP
-		CPUF_ALL,
-		SIZE_WORD, SIZE_WORD,
-		AM_DREG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_SWAP
-	},
-	{	// TAS
-		CPUF_ALL,
-		SIZE_BYTE, SIZE_BYTE,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TAS
-	},
-	{	// TRAP
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAP
-	},
-
-	{	// TRAPCC
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPCC
-	},
-	{	// TRAPCS
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPCS
-	},
-	{	// TRAPEQ
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPEQ
-	},
-	{	// TRAPF
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPF
-	},
-	{	// TRAPGE
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPGE
-	},
-	{	// TRAPGT
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPGT
-	},
-	{	// TRAPHI
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPHI
-	},
-	{	// TRAPLE
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPLE
-	},
-	{	// TRAPLS
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPLS
-	},
-	{	// TRAPLT
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPLT
-	},
-	{	// TRAPMI
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPMI
-	},
-	{	// TRAPNE
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPNE
-	},
-	{	// TRAPPL
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPPL
-	},
-	{	// TRAPT
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPT
-	},
-	{	// TRAPVC
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPVC
-	},
-	{	// TRAPVS
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-		AM_EMPTY | AM_IMM, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPVS
-	},
-	{	// TRAPV
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_NONE, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_TRAPV
-	},
-
-	{	// TST
-		CPUF_ALL,
-		SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
-		AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
-		AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
-		parse_TST
-	},
-	{	// UNLK
-		CPUF_ALL,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_AREG, AM_NONE,
-		AM_NONE, AM_NONE,
-		parse_UNLK
-	},
-	{	// UNPACK
-		CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
-		SIZE_DEFAULT, SIZE_DEFAULT,
-		AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
-		AM_NONE, AM_NONE,
-		parse_UNPACK
-	},
-
+        {	// TST
+            CPUF_ALL,
+            SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
+            AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG, AM_NONE,
+            AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, AM_NONE,
+            handleTST
+        },
+        {	// UNLK
+            CPUF_ALL,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_AREG, AM_NONE,
+            AM_NONE, AM_NONE,
+            parse_UNLK
+        },
+        {	// UNPACK
+            CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+            SIZE_DEFAULT, SIZE_DEFAULT,
+            AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
+            AM_NONE, AM_NONE,
+            handleUNPACK
+        },
 };
 
-static bool parse_OpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest)
-{
-	EAddrMode allowsrc;
-	EAddrMode allowdest;
-
-	allowsrc = pIns->nAllowSrc;
-	if(opt_Current->machineOptions->nCpu >= CPUF_68020)
-		allowsrc |= pIns->nAllowSrc020;
-
-	if((allowsrc & src->eMode) == 0
-	&& !(allowsrc == 0 && src->eMode == AM_EMPTY))
-	{
-		prj_Error(ERROR_SOURCE_OPERAND);
-		return true;
-	}
-
-	allowdest = pIns->nAllowDest;
-	if(opt_Current->machineOptions->nCpu >= CPUF_68020)
-		allowdest |= pIns->nAllowDest020;
-
-	if((allowdest & dest->eMode) == 0
-	&& !(allowdest == 0 && dest->eMode == AM_EMPTY))
-	{
-		prj_Error(ERROR_DEST_OPERAND);
-		return true;
-	}
-
-	return pIns->pHandler(inssz, src, dest);
+static bool
+handleToken(ETargetToken token, ESize size, SAddressingMode* src, SAddressingMode* dest) {
+    SInstruction* instruction = &g_integerInstructions[token - T_68K_INTEGER_FIRST];
+    return parse_OpCore(instruction, size, src, dest);
 }
 
-bool parse_IntegerOp(ETargetToken op, ESize inssz, SAddressingMode* src, SAddressingMode* dest)
-{
-	SInstruction* pIns = &sIntegerInstructions[op - T_68K_INTEGER_FIRST];
-	return parse_OpCore(pIns, inssz, src, dest);
-}
+bool
+parse_IntegerInstruction(void) {
+    int op;
+    SInstruction* pIns;
 
-bool parse_GetBitfield(SAddressingMode* pMode)
-{
-	if(parse_ExpectChar('{'))
-	{
-		pMode->bBitfield = true;
+    if (lex_Current.token < T_68K_INTEGER_FIRST || lex_Current.token > T_68K_INTEGER_LAST) {
+        return false;
+    }
 
-		if(lex_Current.token >= T_68K_REG_D0
-		&& lex_Current.token <= T_68K_REG_D7)
-		{
-			pMode->nBFOffsetReg = lex_Current.token - T_68K_REG_D0;
-			pMode->pBFOffsetExpr = NULL;
-			parse_GetToken();
-		}
-		else
-		{
-			pMode->pBFOffsetExpr = parse_Expression(4);
-			if(pMode->pBFOffsetExpr == NULL)
-			{
-				prj_Error(ERROR_OPERAND);
-				return false;
-			}
-			pMode->nBFOffsetReg = -1;
-		}
+    op = lex_Current.token - T_68K_INTEGER_FIRST;
+    parse_GetToken();
 
-		if(!parse_ExpectChar(':'))
-			return false;
+    pIns = &g_integerInstructions[op];
+    if ((pIns->cpu & opt_Current->machineOptions->cpu) == 0) {
+        prj_Error(MERROR_INSTRUCTION_CPU);
+        return true;
+    }
 
-		if(lex_Current.token >= T_68K_REG_D0
-		&& lex_Current.token <= T_68K_REG_D7)
-		{
-			pMode->nBFWidthReg = lex_Current.token - T_68K_REG_D0;
-			pMode->pBFWidthExpr = NULL;
-			parse_GetToken();
-		}
-		else
-		{
-			pMode->pBFWidthExpr = parse_Expression(4);
-			if(pMode->pBFWidthExpr == NULL)
-			{
-				prj_Error(ERROR_OPERAND);
-				return true;
-			}
-			pMode->nBFWidthReg = -1;
-		}
-
-		return parse_ExpectChar('}');
-	}
-
-	return false;
-}
-
-bool parse_CommonCpuFpu(SInstruction* pIns)
-{
-	ESize insSz;
-	SAddressingMode src;
-	SAddressingMode dest;
-
-	if(pIns->nAllowSize == SIZE_DEFAULT)
-	{
-		if(parse_GetSizeSpec(SIZE_DEFAULT) != SIZE_DEFAULT)
-		{
-			prj_Warn(MERROR_IGNORING_SIZE);
-			parse_GetToken();
-		}
-		insSz = SIZE_DEFAULT;
-	}
-	else
-		insSz = parse_GetSizeSpec(pIns->nDefaultSize);
-
-	src.eMode = AM_EMPTY;
-	dest.eMode = AM_EMPTY;
-
-	if(pIns->nAllowSrc != 0 && pIns->nAllowSrc != AM_EMPTY)
-	{
-		if(parse_GetAddrMode(&src))
-		{
-			if(pIns->nAllowSrc & AM_BITFIELD)
-			{
-				if(!parse_GetBitfield(&src))
-				{
-					prj_Error(MERROR_EXPECT_BITFIELD);
-					return false;
-				}
-			}
-
-			if(src.eMode == AM_IMM)
-				src.eImmSize = insSz;
-		}
-		else
-		{
-			if((pIns->nAllowSrc & AM_EMPTY) == 0)
-				return true;
-		}
-	}
-
-	if(pIns->nAllowDest != 0)
-	{
-		if(lex_Current.token == ',')
-		{
-			parse_GetToken();
-			if(!parse_GetAddrMode(&dest))
-				return false;
-
-			if(pIns->nAllowDest & AM_BITFIELD)
-			{
-				if(!parse_GetBitfield(&dest))
-				{
-					prj_Error(MERROR_EXPECT_BITFIELD);
-					return false;
-				}
-			}
-		}
-	}
-
-	if((pIns->nAllowSize & insSz) == 0
-	&&	pIns->nAllowSize != 0
-	&&	pIns->nDefaultSize != 0)
-	{
-		prj_Error(MERROR_INSTRUCTION_SIZE);
-	}
-
-	return parse_OpCore(pIns, insSz, &src, &dest);
-
-}
-
-bool parse_IntegerInstruction(void)
-{
-	int op;
-	SInstruction* pIns;
-
-	if(lex_Current.token < T_68K_INTEGER_FIRST
-	|| lex_Current.token > T_68K_INTEGER_LAST)
-	{
-		return false;
-	}
-
-	op = lex_Current.token - T_68K_INTEGER_FIRST;
-	parse_GetToken();
-
-	pIns = &sIntegerInstructions[op];
-	if((pIns->nCPU & opt_Current->machineOptions->nCpu) == 0)
-	{
-		prj_Error(MERROR_INSTRUCTION_CPU);
-		return true;
-	}
-
-	return parse_CommonCpuFpu(pIns);
+    return parse_CommonCpuFpu(pIns);
 }

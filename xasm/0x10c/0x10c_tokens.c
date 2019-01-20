@@ -22,7 +22,7 @@
 #include "0x10c_tokens.h"
 
 static SLexConstantsWord
-s_tokens[] = {
+g_tokens[] = {
 	{ "ADD", T_0X10C_ADD },
 	{ "AND", T_0X10C_AND },
 	{ "BOR", T_0X10C_BOR },
@@ -63,6 +63,6 @@ s_tokens[] = {
 
 void
 loclexer_Init(void) {
-	lex_ConstantsDefineWords(s_tokens);
+	lex_ConstantsDefineWords(g_tokens);
 }
 

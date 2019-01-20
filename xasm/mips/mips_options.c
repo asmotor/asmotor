@@ -40,7 +40,7 @@ void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
 
 void locopt_Open(void)
 {
-	opt_Current->machineOptions->nCpu = CPUF_MIPS32R2;
+	opt_Current->machineOptions->cpu = CPUF_MIPS32R2;
 }
 
 void locopt_Update(void)
@@ -60,10 +60,10 @@ bool locopt_Parse(char* s)
 				switch(s[1] - '0')
 				{
 					case 0:
-						opt_Current->machineOptions->nCpu = CPUF_MIPS32R1;
+						opt_Current->machineOptions->cpu = CPUF_MIPS32R1;
 						return true;
 					case 1:
-						opt_Current->machineOptions->nCpu = CPUF_MIPS32R2;
+						opt_Current->machineOptions->cpu = CPUF_MIPS32R2;
 						return true;
 					default:
 						prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);

@@ -49,7 +49,7 @@ void locopt_Open(void)
     opt_Current->machineOptions->GameboyChar[1] = '1';
     opt_Current->machineOptions->GameboyChar[2] = '2';
     opt_Current->machineOptions->GameboyChar[3] = '3';
-    opt_Current->machineOptions->nCpu = CPUF_Z80;
+    opt_Current->machineOptions->cpu = CPUF_Z80;
 }
 
 void locopt_Update(void)
@@ -91,11 +91,11 @@ bool locopt_Parse(char* s)
                 switch(s[1])
                 {
                     case 'g':
-                        opt_Current->machineOptions->nCpu = CPUF_GB;
+                        opt_Current->machineOptions->cpu = CPUF_GB;
                         xasm_Z80Configuration.maxSectionSize = 0x4000;
                         return true;
                     case 'z':
-                        opt_Current->machineOptions->nCpu = CPUF_Z80;
+                        opt_Current->machineOptions->cpu = CPUF_Z80;
                         xasm_Z80Configuration.maxSectionSize = 0x10000;
                         return true;
                     default:

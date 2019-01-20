@@ -23,8 +23,8 @@
 
 #include "m68k_errors.h"
 
-static SConfiguration xasm_680x0Configuration =
-{
+static SConfiguration
+g_680x0Configuration = {
 	"motor68k",
 	"1.0",
 	0x7FFFFFFF,
@@ -41,7 +41,7 @@ static SConfiguration xasm_680x0Configuration =
 	loc_GetError
 };
 
-extern int main(int argc, char* argv[])
-{
-	return xasm_Main(&xasm_680x0Configuration, argc, argv);
+extern int
+main(int argc, char* argv[]) {
+	return xasm_Main(&g_680x0Configuration, argc, argv);
 }

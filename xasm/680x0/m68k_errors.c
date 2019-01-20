@@ -18,7 +18,8 @@
 
 #include "xasm.h"
 
-static char* g_pszLocalError[]=
+static const char*
+g_errors[]=
 {
 	"Result of operation is undefined",
 	"Instruction is unsized, ignoring size",
@@ -35,10 +36,11 @@ static char* g_pszLocalError[]=
 	"Instruction not supported by selected FPU"
 };
 
-const char* loc_GetError(size_t errorNumber)
+const char*
+loc_GetError(size_t errorNumber)
 {
-	if(errorNumber < 1000)
+	if (errorNumber < 1000)
 		return NULL;
 
-	return g_pszLocalError[errorNumber - 1000];
+	return g_errors[errorNumber - 1000];
 }
