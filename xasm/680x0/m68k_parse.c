@@ -481,23 +481,23 @@ parse_GetEAField(SAddressingMode* mode) {
 
 bool
 parse_OpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest) {
-    EAddrMode allowsrc;
-    EAddrMode allowdest;
+    EAddrMode allowedSrc;
+    EAddrMode allowedDest;
 
-    allowsrc = pIns->allowedSourceModes;
+    allowedSrc = pIns->allowedSourceModes;
     if (opt_Current->machineOptions->cpu >= CPUF_68020)
-        allowsrc |= pIns->allowedSourceModes020;
+        allowedSrc |= pIns->allowedSourceModes020;
 
-    if ((allowsrc & src->mode) == 0 && !(allowsrc == 0 && src->mode == AM_EMPTY)) {
+    if ((allowedSrc & src->mode) == 0 && !(allowedSrc == 0 && src->mode == AM_EMPTY)) {
         prj_Error(ERROR_SOURCE_OPERAND);
         return true;
     }
 
-    allowdest = pIns->allowedDestModes;
+    allowedDest = pIns->allowedDestModes;
     if (opt_Current->machineOptions->cpu >= CPUF_68020)
-        allowdest |= pIns->allowDestModes020;
+        allowedDest |= pIns->allowDestModes020;
 
-    if ((allowdest & dest->mode) == 0 && !(allowdest == 0 && dest->mode == AM_EMPTY)) {
+    if ((allowedDest & dest->mode) == 0 && !(allowedDest == 0 && dest->mode == AM_EMPTY)) {
         prj_Error(ERROR_DEST_OPERAND);
         return true;
     }
@@ -512,13 +512,13 @@ parse_CommonCpuFpu(SInstruction* pIns) {
     SAddressingMode dest;
 
     if (pIns->allowedSizes == SIZE_DEFAULT) {
-        if (getSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
+        if (parse_GetSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
             prj_Warn(MERROR_IGNORING_SIZE);
             parse_GetToken();
         }
         insSz = SIZE_DEFAULT;
     } else
-        insSz = getSizeSpecifier(pIns->defaultSize);
+        insSz = parse_GetSizeSpecifier(pIns->defaultSize);
 
     src.mode = AM_EMPTY;
     dest.mode = AM_EMPTY;

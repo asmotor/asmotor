@@ -149,7 +149,7 @@ extern bool
 parse_GetAddrMode(SAddressingMode* addrMode);
 
 extern ESize
-getSizeSpecifier(ESize defaultSize);
+parse_GetSizeSpecifier(ESize defaultSize);
 
 extern uint32_t
 parse_RegisterList(void);

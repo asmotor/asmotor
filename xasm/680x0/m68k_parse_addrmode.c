@@ -28,30 +28,10 @@
 #include "m68k_parse.h"
 #include "m68k_tokens.h"
 
-SExpression*
+static SExpression*
 expressionCheckScaleRange(SExpression* expression) {
     if ((expression = expr_CheckRange(expression, 1, 8)) == NULL) {
         prj_Error(MERROR_SCALE_RANGE);
-        return NULL;
-    }
-
-    return expression;
-}
-
-SExpression*
-parse_ExpressionCheck16Bit(SExpression* expression) {
-    if ((expression = expr_CheckRange(expression, -32768, 65535)) == NULL) {
-        prj_Error(ERROR_EXPRESSION_N_BIT, 16);
-        return NULL;
-    }
-
-    return expression;
-}
-
-SExpression*
-parse_ExpressionCheck8Bit(SExpression* expression) {
-    if ((expression = expr_CheckRange(expression, -128, 255)) == NULL) {
-        prj_Error(ERROR_EXPRESSION_N_BIT, 8);
         return NULL;
     }
 
@@ -108,36 +88,6 @@ getRegisterRange(uint16_t* outStart, uint16_t* outEnd) {
     return false;
 }
 
-ESize
-getSizeSpecifier(ESize defaultSize) {
-    if (lex_Current.token == T_ID && strlen(lex_Current.value.string) == 2) {
-        if (_strnicmp(lex_Current.value.string, ".b", 2) == 0) {
-            parse_GetToken();
-            return SIZE_BYTE;
-        } else if (_strnicmp(lex_Current.value.string, ".w", 2) == 0) {
-            parse_GetToken();
-            return SIZE_WORD;
-        } else if (_strnicmp(lex_Current.value.string, ".l", 2) == 0) {
-            parse_GetToken();
-            return SIZE_LONG;
-        } else if (_strnicmp(lex_Current.value.string, ".s", 2) == 0) {
-            parse_GetToken();
-            return SIZE_SINGLE;
-        } else if (_strnicmp(lex_Current.value.string, ".d", 2) == 0) {
-            parse_GetToken();
-            return SIZE_DOUBLE;
-        } else if (_strnicmp(lex_Current.value.string, ".x", 2) == 0) {
-            parse_GetToken();
-            return SIZE_EXTENDED;
-        } else if (_strnicmp(lex_Current.value.string, ".p", 2) == 0) {
-            parse_GetToken();
-            return SIZE_PACKED;
-        }
-    }
-
-    return defaultSize;
-}
-
 static bool
 getIndexReg(SModeRegisters* outMode) {
     if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
@@ -148,7 +98,7 @@ getIndexReg(SModeRegisters* outMode) {
 
     parse_GetToken();
 
-    outMode->indexSize = getSizeSpecifier(SIZE_WORD);
+    outMode->indexSize = parse_GetSizeSpecifier(SIZE_WORD);
 
     if (outMode->indexSize != SIZE_WORD && outMode->indexSize != SIZE_LONG) {
         prj_Error(MERROR_INDEXREG_SIZE);
@@ -195,7 +145,7 @@ singleModePart(SModeRegisters* outMode) {
 
         int addressRegister = lex_Current.token - T_68K_REG_A0;
         parse_GetToken();
-        sz = getSizeSpecifier(SIZE_DEFAULT);
+        sz = parse_GetSizeSpecifier(SIZE_DEFAULT);
         if (sz == SIZE_WORD) {
             if (outMode->indexRegister == REG_NONE) {
                 outMode->indexRegister = REG_A0 + addressRegister;
@@ -223,7 +173,7 @@ singleModePart(SModeRegisters* outMode) {
             return false;
 
         outMode->displacement = expr;
-        outMode->displacementSize = getSizeSpecifier(SIZE_DEFAULT);
+        outMode->displacementSize = parse_GetSizeSpecifier(SIZE_DEFAULT);
         return true;
     }
 
@@ -573,7 +523,7 @@ parse_GetAddrMode(SAddressingMode* addrMode) {
 
     addrMode->outer.displacement = parse_Expression(4);
     if (addrMode->outer.displacement != NULL)
-        addrMode->outer.displacementSize = getSizeSpecifier(SIZE_DEFAULT);
+        addrMode->outer.displacementSize = parse_GetSizeSpecifier(SIZE_DEFAULT);
 
     // parse (xxxx)
     if (lex_Current.token == '(') {
@@ -657,5 +607,55 @@ parse_RegisterList(void) {
     }
 
     return REGLIST_FAIL;
+}
+
+ESize
+parse_GetSizeSpecifier(ESize defaultSize) {
+    if (lex_Current.token == T_ID && strlen(lex_Current.value.string) == 2) {
+        if (_strnicmp(lex_Current.value.string, ".b", 2) == 0) {
+            parse_GetToken();
+            return SIZE_BYTE;
+        } else if (_strnicmp(lex_Current.value.string, ".w", 2) == 0) {
+            parse_GetToken();
+            return SIZE_WORD;
+        } else if (_strnicmp(lex_Current.value.string, ".l", 2) == 0) {
+            parse_GetToken();
+            return SIZE_LONG;
+        } else if (_strnicmp(lex_Current.value.string, ".s", 2) == 0) {
+            parse_GetToken();
+            return SIZE_SINGLE;
+        } else if (_strnicmp(lex_Current.value.string, ".d", 2) == 0) {
+            parse_GetToken();
+            return SIZE_DOUBLE;
+        } else if (_strnicmp(lex_Current.value.string, ".x", 2) == 0) {
+            parse_GetToken();
+            return SIZE_EXTENDED;
+        } else if (_strnicmp(lex_Current.value.string, ".p", 2) == 0) {
+            parse_GetToken();
+            return SIZE_PACKED;
+        }
+    }
+
+    return defaultSize;
+}
+
+SExpression*
+parse_ExpressionCheck16Bit(SExpression* expression) {
+    if ((expression = expr_CheckRange(expression, -32768, 65535)) == NULL) {
+        prj_Error(ERROR_EXPRESSION_N_BIT, 16);
+        return NULL;
+    }
+
+    return expression;
+}
+
+SExpression*
+parse_ExpressionCheck8Bit(SExpression* expression) {
+    if ((expression = expr_CheckRange(expression, -128, 255)) == NULL) {
+        prj_Error(ERROR_EXPRESSION_N_BIT, 8);
+        return NULL;
+    }
+
+    return expression;
 }
 
