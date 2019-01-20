@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_GAMEBOY_TOKENS_H_INCLUDED_
-#define XASM_GAMEBOY_TOKENS_H_INCLUDED_
+#ifndef XASM_Z80_TOKENS_H_INCLUDED_
+#define XASM_Z80_TOKENS_H_INCLUDED_
 
 typedef enum {
     T_Z80_ADC = 6000,
@@ -134,4 +134,4 @@ typedef enum {
     T_CC_M      // Z80 only
 } ETargetToken;
 
-#endif    //XASM_GAMEBOY_TOKENS_H_INCLUDED_
+#endif    //XASM_Z80_TOKENS_H_INCLUDED_

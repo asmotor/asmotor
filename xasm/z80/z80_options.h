@@ -23,10 +23,10 @@
 #define CPUF_Z80 0x02u
 
 typedef struct MachineOptions {
-    char GameboyChar[4];
+    char gameboyLiteralCharacters[4];
     uint8_t cpu;
 } SMachineOptions;
 
-extern uint32_t g_GameboyLiteralId;
+extern uint32_t opt_gameboyLiteralId;
 
 #endif

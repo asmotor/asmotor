@@ -47,7 +47,7 @@ workspace.xml
 xasm/0x10c/motor0x10c
 xasm/6502/motor6502
 xasm/680x0/motor68k
-xasm/gameboy/motorgb
+xasm/z80/motorz80
 xasm/mips/motormips
 xasm/schip/motorschip
 xgbfix/xgbfix

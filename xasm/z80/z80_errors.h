@@ -16,9 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#ifndef XASM_GAMEBOY_ERRORS_H_INCLUDED_
-#define XASM_GAMEBOY_ERRORS_H_INCLUDED_
+#ifndef XASM_Z80_ERRORS_H_INCLUDED_
+#define XASM_Z80_ERRORS_H_INCLUDED_
 
 #include <stdint.h>
 

@@ -325,7 +325,7 @@ parse_IntegerInstruction(void) {
         SAddressMode mode1 = {0, 0, NULL};
         SAddressMode mode2 = {0, 0, NULL};
         SAddressMode mode3 = {0, 0, NULL};
-        
+
         if (instruction->mode1 != 0 && parse_AddressMode(&mode1)) {
             if ((instruction->mode1 & mode1.mode) == 0)
                 return prj_Error(ERROR_OPERAND);

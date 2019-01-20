@@ -156,7 +156,7 @@ static uint32_t gbgfx2bin(char ch)
 {
 	for(uint32_t i = 0; i <= 3; ++i)
 	{
-		if (opt_Current->machineOptions->GameboyChar[i] == ch)
+		if (opt_Current->machineOptions->gameboyLiteralCharacters[i] == ch)
 			return i;
 	}
 
@@ -205,9 +205,9 @@ void	loclexer_Init(void)
 {
 	/* Gameboy constants */
 
-    g_GameboyLiteralId = lex_VariadicCreateWord(&tNumberToken);
-    lex_VariadicAddCharRange(g_GameboyLiteralId, '`', '`', 0);
-	lex_VariadicAddCharRangeRepeating(g_GameboyLiteralId, '0', '3', 1);
+    opt_gameboyLiteralId = lex_VariadicCreateWord(&tNumberToken);
+    lex_VariadicAddCharRange(opt_gameboyLiteralId, '`', '`', 0);
+	lex_VariadicAddCharRangeRepeating(opt_gameboyLiteralId, '0', '3', 1);
 
 	lex_ConstantsDefineWords(localstrings);
 }

@@ -31,65 +31,61 @@
 
 extern SConfiguration xasm_Z80Configuration;
 
-uint32_t g_GameboyLiteralId;
+uint32_t opt_gameboyLiteralId;
 
-SMachineOptions* locopt_Alloc(void)
-{
+SMachineOptions*
+locopt_Alloc(void) {
     return mem_Alloc(sizeof(SMachineOptions));
 }
 
-void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
-{
-    *pDest = *pSrc;
+void
+locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
+    *dest = *src;
 }
 
-void locopt_Open(void)
-{
-    opt_Current->machineOptions->GameboyChar[0] = '0';
-    opt_Current->machineOptions->GameboyChar[1] = '1';
-    opt_Current->machineOptions->GameboyChar[2] = '2';
-    opt_Current->machineOptions->GameboyChar[3] = '3';
+void
+locopt_Open(void) {
+    opt_Current->machineOptions->gameboyLiteralCharacters[0] = '0';
+    opt_Current->machineOptions->gameboyLiteralCharacters[1] = '1';
+    opt_Current->machineOptions->gameboyLiteralCharacters[2] = '2';
+    opt_Current->machineOptions->gameboyLiteralCharacters[3] = '3';
     opt_Current->machineOptions->cpu = CPUF_Z80;
 }
 
-void locopt_Update(void)
-{
-    lex_VariadicRemoveAll(g_GameboyLiteralId);
-    lex_VariadicAddCharRange(g_GameboyLiteralId, '`', '`', 0);
-    lex_VariadicAddCharRangeRepeating(g_GameboyLiteralId, (uint8_t) opt_Current->machineOptions->GameboyChar[0],
-                                      (uint8_t) opt_Current->machineOptions->GameboyChar[0], 1);
-    lex_VariadicAddCharRangeRepeating(g_GameboyLiteralId, (uint8_t) opt_Current->machineOptions->GameboyChar[1],
-                                      (uint8_t) opt_Current->machineOptions->GameboyChar[1], 1);
-    lex_VariadicAddCharRangeRepeating(g_GameboyLiteralId, (uint8_t) opt_Current->machineOptions->GameboyChar[2],
-                                      (uint8_t) opt_Current->machineOptions->GameboyChar[2], 1);
-    lex_VariadicAddCharRangeRepeating(g_GameboyLiteralId, (uint8_t) opt_Current->machineOptions->GameboyChar[3],
-                                      (uint8_t) opt_Current->machineOptions->GameboyChar[3], 1);
+void
+locopt_Update(void) {
+    lex_VariadicRemoveAll(opt_gameboyLiteralId);
+    lex_VariadicAddCharRange(opt_gameboyLiteralId, '`', '`', 0);
+
+    for (int i = 0; i <= 3; ++i) {
+        lex_VariadicAddCharRangeRepeating(
+                opt_gameboyLiteralId,
+                (uint8_t) opt_Current->machineOptions->gameboyLiteralCharacters[i],
+                (uint8_t) opt_Current->machineOptions->gameboyLiteralCharacters[i],
+                1);
+    }
 }
 
-bool locopt_Parse(char* s)
-{
-    if(s == NULL || strlen(s) == 0)
+bool
+locopt_Parse(const char* s) {
+    if (s == NULL || strlen(s) == 0)
         return false;
 
-    switch(s[0])
-    {
+    switch (s[0]) {
         case 'g':
-            if(strlen(&s[1])==4)
-            {
-                opt_Current->machineOptions->GameboyChar[0]=s[1];
-                opt_Current->machineOptions->GameboyChar[1]=s[2];
-                opt_Current->machineOptions->GameboyChar[2]=s[3];
-                opt_Current->machineOptions->GameboyChar[3]=s[4];
+            if (strlen(&s[1]) == 4) {
+                opt_Current->machineOptions->gameboyLiteralCharacters[0] = s[1];
+                opt_Current->machineOptions->gameboyLiteralCharacters[1] = s[2];
+                opt_Current->machineOptions->gameboyLiteralCharacters[2] = s[3];
+                opt_Current->machineOptions->gameboyLiteralCharacters[3] = s[4];
                 return true;
             }
 
             prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
             return false;
         case 'c':
-            if(strlen(&s[1]) == 1)
-            {
-                switch(s[1])
-                {
+            if (strlen(&s[1]) == 1) {
+                switch (s[1]) {
                     case 'g':
                         opt_Current->machineOptions->cpu = CPUF_GB;
                         xasm_Z80Configuration.maxSectionSize = 0x4000;
@@ -110,8 +106,8 @@ bool locopt_Parse(char* s)
     }
 }
 
-void locopt_PrintOptions(void)
-{
+void
+locopt_PrintOptions(void) {
     printf("    -mg<ASCI> Change the four characters used for Gameboy graphics\n"
            "              constants (default is 0123)\n");
     printf("    -mc<x>    Change CPU type:\n"
