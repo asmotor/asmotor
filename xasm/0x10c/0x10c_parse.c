@@ -372,7 +372,7 @@ jsrInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data) {
     return true;
 }
 
-static SParser g_Parsers[T_0X10C_XOR - T_0X10C_ADD + 1] = {
+static SParser g_instructionHandlers[T_0X10C_XOR - T_0X10C_ADD + 1] = {
     {0x2, addInstr,     ADDRF_ALL, ADDRF_ALL},    // T_0X10C_ADD
     {0x9, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_AND
     {0xA, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_BOR

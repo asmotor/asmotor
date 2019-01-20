@@ -19,11 +19,11 @@
 #include "xasm.h"
 
 static const char* g_errors[] = {
-        "Register A expected",
-        "Register SP expected",
-        "Consider using %s instead",
-        "Expression must be in the $FF00-$FFFF range",
-        "Instruction not supported by selected CPU"
+    "Register A expected",
+    "Register SP expected",
+    "Consider using %s instead",
+    "Expression must be in the $FF00-$FFFF range",
+    "Instruction not supported by selected CPU"
 };
 
 const char*

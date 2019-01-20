@@ -28,31 +28,30 @@
 #include "schip_parse.h"
 #include "schip_tokens.h"
 
-SExpression* parse_ExpressionU12(void)
-{
-	SExpression* pExpr = parse_Expression(1);
-	if(pExpr == NULL)
-		return NULL;
-		
-	pExpr = expr_CheckRange(pExpr, 0, 4095);
-	if(pExpr == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
-	return pExpr;
+SExpression*
+parse_ExpressionU12(void) {
+    SExpression* expression = parse_Expression(1);
+    if (expression == NULL)
+        return NULL;
+
+    expression = expr_CheckRange(expression, 0, 4095);
+    if (expression == NULL)
+        prj_Error(ERROR_OPERAND_RANGE);
+    return expression;
 }
 
-SExpression* parse_TargetFunction(void)
-{
-	switch(lex_Current.token)
-	{
-		default:
-			return NULL;
-	}
+SExpression*
+parse_TargetFunction(void) {
+    switch (lex_Current.token) {
+        default:
+            return NULL;
+    }
 }
 
-bool parse_TargetSpecific(void)
-{
-	if(parse_IntegerInstruction())
-		return true;
+bool
+parse_TargetSpecific(void) {
+    if (parse_IntegerInstruction())
+        return true;
 
-	return false;
+    return false;
 }

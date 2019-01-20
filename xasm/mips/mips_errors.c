@@ -18,14 +18,14 @@
 
 #include "../common/xasm.h"
 
-static char* g_pszLocalError[] = {
-		"Result of operation is undefined",
-		"Register expected"
+static char* g_errors[] = {
+    "Result of operation is undefined",
+    "Register expected"
 };
 
 const char* loc_GetError(size_t errorNumber) {
 	if (errorNumber < 1000)
 		return NULL;
 
-	return g_pszLocalError[errorNumber - 1000];
+	return g_errors[errorNumber - 1000];
 }

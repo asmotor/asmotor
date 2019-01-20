@@ -19,8 +19,10 @@
 #ifndef XASM_SCHIP_PARSE_H_INCLUDED_
 #define XASM_SCHIP_PARSE_H_INCLUDED_
 
-extern SExpression* parse_ExpressionU12(void);
+extern SExpression*
+parse_ExpressionU12(void);
 
-extern bool parse_IntegerInstruction(void);
+extern bool
+parse_IntegerInstruction(void);
 
 #endif

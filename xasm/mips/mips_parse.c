@@ -27,19 +27,18 @@
 
 #include "mips_parse.h"
 
-SExpression* parse_TargetFunction(void)
-{
-	switch(lex_Current.token)
-	{
-		default:
-			return NULL;
-	}
+SExpression*
+parse_TargetFunction(void) {
+    switch (lex_Current.token) {
+        default:
+            return NULL;
+    }
 }
 
-bool parse_TargetSpecific(void)
-{
-	if(parse_IntegerInstruction())
-		return true;
+bool
+parse_TargetSpecific(void) {
+    if (parse_IntegerInstruction())
+        return true;
 
-	return false;
+    return false;
 }

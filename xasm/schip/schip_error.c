@@ -20,16 +20,14 @@
 
 #include "schip_error.h"
 
-static const char* g_pszLocalError[]=
-{
+static const char* g_errors[] = {
 	"Result of operation is undefined",
 	"Register expected"
 };
 
-const char* loc_GetError(size_t errorNumber)
-{
-	if(errorNumber < 1000)
+const char* loc_GetError(size_t errorNumber) {
+	if (errorNumber < 1000)
 		return NULL;
 
-	return g_pszLocalError[errorNumber - 1000];
+	return g_errors[errorNumber - 1000];
 }

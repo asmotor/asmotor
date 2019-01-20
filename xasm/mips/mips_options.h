@@ -24,9 +24,8 @@
 
 #define CPUF_ALL 0x03
 
-typedef struct MachineOptions
-{
-	int	cpu;
+typedef struct MachineOptions {
+    uint8_t cpu;
 } SMachineOptions;
 
 #endif

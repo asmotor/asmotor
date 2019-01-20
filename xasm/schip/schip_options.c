@@ -29,58 +29,55 @@
 #include "schip_options.h"
 #include "schip_tokens.h"
 
-SMachineOptions* locopt_Alloc(void)
-{
-	return mem_Alloc(sizeof(SMachineOptions));
+SMachineOptions*
+locopt_Alloc(void) {
+    return mem_Alloc(sizeof(SMachineOptions));
 }
 
-void locopt_Copy(SMachineOptions* pDest, SMachineOptions* pSrc)
-{
-	*pDest = *pSrc;
+void
+locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
+    *dest = *src;
 }
 
-void locopt_Open(void)
-{
-	opt_Current->machineOptions->cpu = CPUF_SCHIP;
+void
+locopt_Open(void) {
+    opt_Current->machineOptions->cpu = CPUF_SCHIP;
 }
 
-void locopt_Update(void)
-{
+void
+locopt_Update(void) {
 }
 
-bool locopt_Parse(char* s)
-{
-	if(s == NULL || strlen(s) == 0)
-		return false;
+bool
+locopt_Parse(const char* s) {
+    if (s == NULL || strlen(s) == 0)
+        return false;
 
-	switch(s[0])
-	{
-		case 'c':
-			if(strlen(&s[1]) == 1)
-			{
-				switch(s[1] - '0')
-				{
-					case 0:
-						opt_Current->machineOptions->cpu = CPUF_CHIP8;
-						return true;
-					case 1:
-						opt_Current->machineOptions->cpu = CPUF_SCHIP;
-						return true;
-					default:
-						break;
-				}
-			}
-			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return false;
-		default:
-			prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-			return false;
-	}
+    switch (s[0]) {
+        case 'c':
+            if (strlen(&s[1]) == 1) {
+                switch (s[1] - '0') {
+                    case 0:
+                        opt_Current->machineOptions->cpu = CPUF_CHIP8;
+                        return true;
+                    case 1:
+                        opt_Current->machineOptions->cpu = CPUF_SCHIP;
+                        return true;
+                    default:
+                        break;
+                }
+            }
+            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            return false;
+        default:
+            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            return false;
+    }
 }
 
-void locopt_PrintOptions(void)
-{
-	printf("    -mc<X>  Enable CPU:\n");
-	printf("            0 = CHIP-8\n");
-	printf("            1 = SuperCHIP (default)\n");
+void
+locopt_PrintOptions(void) {
+    printf("    -mc<X>  Enable CPU:\n");
+    printf("            0 = CHIP-8\n");
+    printf("            1 = SuperCHIP (default)\n");
 }

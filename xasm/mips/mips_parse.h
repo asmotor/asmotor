@@ -19,6 +19,7 @@
 #ifndef XASM_PARSE_LOCERROR_H_INCLUDED_
 #define XASM_PARSE_LOCERROR_H_INCLUDED_
 
-extern bool parse_IntegerInstruction(void);
+extern bool
+parse_IntegerInstruction(void);
 
 #endif

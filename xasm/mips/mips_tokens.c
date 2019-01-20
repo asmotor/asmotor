@@ -21,8 +21,7 @@
 
 #include "mips_tokens.h"
 
-static SLexConstantsWord localstrings[]=
-{
+static SLexConstantsWord s_tokens[]= {
 	{ "ADD",	T_MIPS_ADD		},
 	{ "ADDU",	T_MIPS_ADDU		},
 	{ "AND",	T_MIPS_AND		},
@@ -226,7 +225,6 @@ static SLexConstantsWord localstrings[]=
 	{ NULL, 0 }
 };
 
-void	loclexer_Init(void)
-{
-	lex_ConstantsDefineWords(localstrings);
+void loclexer_Init(void) {
+	lex_ConstantsDefineWords(s_tokens);
 }

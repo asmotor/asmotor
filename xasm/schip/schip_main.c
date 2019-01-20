@@ -23,8 +23,7 @@
 
 #include "schip_error.h"
 
-static SConfiguration xasm_SuperChipConfiguration =
-{
+static SConfiguration xasm_SuperChipConfiguration = {
 	"motorschip",
 	"1.0",
 	0x1000,
@@ -41,7 +40,6 @@ static SConfiguration xasm_SuperChipConfiguration =
 	loc_GetError
 };
 
-extern int main(int argc, char* argv[])
-{
+extern int main(int argc, char* argv[]) {
 	return xasm_Main(&xasm_SuperChipConfiguration, argc, argv);
 }

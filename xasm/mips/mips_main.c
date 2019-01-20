@@ -23,8 +23,7 @@
 
 #include "mips_errors.h"
 
-static SConfiguration xasm_MIPSConfiguration =
-{
+static SConfiguration xasm_MIPSConfiguration = {
 	"motormips",
 	"1.0",
 	0x7FFFFFFF,
@@ -41,7 +40,7 @@ static SConfiguration xasm_MIPSConfiguration =
 	loc_GetError
 };
 
-extern int main(int argc, char* argv[])
-{
+extern int
+main(int argc, char* argv[]) {
 	return xasm_Main(&xasm_MIPSConfiguration, argc, argv);
 }

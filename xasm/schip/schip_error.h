@@ -21,12 +21,12 @@
 
 #include "xasm.h"
 
-typedef enum
-{
-	MERROR_UNDEFINED_RESULT = 1000,
-	MERROR_REGISTER_EXPECTED
+typedef enum {
+    MERROR_UNDEFINED_RESULT = 1000,
+    MERROR_REGISTER_EXPECTED
 } EMachineError;
 
-extern const char* loc_GetError(size_t errorNumber);
+extern const char*
+loc_GetError(size_t errorNumber);
 
 #endif

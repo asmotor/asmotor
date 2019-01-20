@@ -16,17 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SCHIP_LOCOPT_H_
-#define SCHIP_LOCOPT_H_
+#ifndef XASM_SCHIP_OPTIONS_H_INCLUDED_
+#define XASM_SCHIP_OPTIONS_H_INCLUDED_
 
-#define CPUF_CHIP8	0x01
-#define CPUF_SCHIP	0x02
+#define CPUF_CHIP8 0x01
+#define CPUF_SCHIP 0x02
 
 #define CPUF_ALL 0x03
 
-typedef struct MachineOptions
-{
-	int	cpu;
+typedef struct MachineOptions {
+    uint8_t cpu;
 } SMachineOptions;
 
 #endif
