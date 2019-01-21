@@ -44,6 +44,7 @@ static SConfiguration xasm_SuperChipConfiguration = {
 	locopt_Alloc,
 	locopt_Open,
 	locopt_Copy,
+	locopt_Parse,
 };
 
 extern int main(int argc, char* argv[]) {

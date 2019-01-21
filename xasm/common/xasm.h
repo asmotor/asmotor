@@ -80,6 +80,7 @@ typedef struct Configuration {
     struct MachineOptions* (*opt_Alloc)(void);
     void (*opt_SetDefault)(SOptions*);
     void (*opt_Copy)(struct MachineOptions* dest, struct MachineOptions* src);
+    bool (*opt_Parse)(const char* option);
 } SConfiguration;
 
 extern const SConfiguration*
@@ -93,9 +94,5 @@ locopt_PrintOptions(void);
 
 extern void
 locopt_Update(void);
-
-extern bool
-locopt_Parse(const char*);
-
 
 #endif // XASM_COMMON_XASM_H_INCLUDED_

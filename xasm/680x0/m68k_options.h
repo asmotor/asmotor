@@ -48,4 +48,7 @@ locopt_Open(SOptions*);
 extern void
 locopt_Copy(SMachineOptions* dest, SMachineOptions* src);
 
+extern bool
+locopt_Parse(const char* option);
+
 #endif

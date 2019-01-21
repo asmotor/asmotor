@@ -114,7 +114,7 @@ opt_Parse(char* s) {
             break;
         }
         case 'm': {
-            locopt_Parse(&s[1]);
+            xasm_Configuration->opt_Parse(&s[1]);
             break;
         }
         case 'b': {

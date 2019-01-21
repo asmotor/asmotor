@@ -32,4 +32,7 @@ locopt_Init(SOptions* options);
 extern void
 locopt_Copy(struct MachineOptions* dest, struct MachineOptions* pSrc);
 
+extern bool
+locopt_Parse(const char* s);
+
 #endif

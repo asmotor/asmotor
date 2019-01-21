@@ -45,6 +45,7 @@ xasm_Z80Configuration = {
 	locopt_Alloc,
 	locopt_Open,
 	locopt_Copy,
+	locopt_Parse,
 };
 
 extern int
