@@ -76,6 +76,7 @@ typedef struct Configuration {
 
     const char* (*getMachineError)(size_t errorNumber);
     void (*defineTokens)(void);
+    struct MachineOptions* (*opt_Alloc)(void);
     void (*opt_SetDefault)(SOptions*);
 } SConfiguration;
 
@@ -87,9 +88,6 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]);
 
 extern void
 locopt_PrintOptions(void);
-
-extern struct MachineOptions*
-locopt_Alloc(void);
 
 extern void
 locopt_Free(struct MachineOptions* pOptions);

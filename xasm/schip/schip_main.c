@@ -41,6 +41,7 @@ static SConfiguration xasm_SuperChipConfiguration = {
 
 	loc_GetError,
 	loclexer_Init,
+	locopt_Alloc,
 	locopt_Open,
 };
 

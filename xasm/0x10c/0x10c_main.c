@@ -42,6 +42,7 @@ g_0x10CConfiguration = {
 
 	loc_GetError,
 	loclexer_Init,
+	locopt_Alloc,
 	locopt_Open,
 };
 

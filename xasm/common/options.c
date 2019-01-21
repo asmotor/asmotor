@@ -46,7 +46,7 @@ static SOptions*
 opt_Alloc(void) {
     SOptions* nopt = (SOptions*) mem_Alloc(sizeof(SOptions));
     memset(nopt, 0, sizeof(SOptions));
-    nopt->machineOptions = locopt_Alloc();
+    nopt->machineOptions = xasm_Configuration->opt_Alloc();
     return nopt;
 }
 

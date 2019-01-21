@@ -42,6 +42,7 @@ xasm_Z80Configuration = {
 
 	z80_GetError,
 	loclexer_Init,
+	locopt_Alloc,
 	locopt_Open,
 };
 

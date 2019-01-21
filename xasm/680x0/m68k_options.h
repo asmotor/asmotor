@@ -39,6 +39,9 @@ typedef struct MachineOptions {
     uint8_t fpu;
 } SMachineOptions;
 
+extern SMachineOptions*
+locopt_Alloc(void);
+
 extern void
 locopt_Open(SOptions*);
 

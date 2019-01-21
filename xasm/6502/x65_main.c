@@ -42,6 +42,7 @@ xasm_6502Configuration = {
 
 	loc_GetError,
 	loclexer_Init,
+	locopt_Alloc,
 	locopt_Init,
 };
 
