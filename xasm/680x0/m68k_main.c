@@ -47,6 +47,7 @@ g_680x0Configuration = {
 	locopt_Copy,
 	locopt_Parse,
 	locopt_Update,
+	locopt_PrintOptions
 };
 
 extern int

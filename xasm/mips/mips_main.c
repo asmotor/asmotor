@@ -46,6 +46,7 @@ static SConfiguration xasm_MIPSConfiguration = {
 	locopt_Copy,
 	locopt_Parse,
 	locopt_Update,
+	locopt_PrintOptions
 };
 
 extern int

@@ -44,5 +44,7 @@ locopt_Parse(const char* s);
 extern void
 locopt_Update(void);
 
+extern void
+locopt_PrintOptions(void);
 
 #endif

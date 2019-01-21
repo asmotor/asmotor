@@ -76,7 +76,7 @@ printUsage(void) {
            "            data (default is FF)\n"
            "\n"
            "Machine specific options:\n");
-    locopt_PrintOptions();
+    xasm_Configuration->opt_PrintOptions();
     exit(EXIT_SUCCESS);
 }
 
