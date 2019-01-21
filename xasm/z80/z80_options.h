@@ -33,7 +33,7 @@ extern SMachineOptions*
 locopt_Alloc(void);
 
 extern void
-locopt_Open(SOptions* options);
+locopt_Open(SMachineOptions* options);
 
 extern void
 locopt_Copy(SMachineOptions* dest, SMachineOptions* src);
@@ -42,7 +42,7 @@ extern bool
 locopt_Parse(const char* s);
 
 extern void
-locopt_Update(void);
+locopt_Update(SMachineOptions* options);
 
 extern void
 locopt_PrintOptions(void);

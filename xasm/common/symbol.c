@@ -56,15 +56,11 @@ SSymbol* sym_hashedSymbols[SYMBOL_HASH_SIZE];
 
 static int32_t
 callback__NARG(SSymbol* symbol) {
-    assert(symbol != NULL);
-
     return fstk_GetMacroArgumentCount();
 }
 
 static int32_t
 callback__LINE(SSymbol* symbol) {
-    assert(symbol != NULL);
-
     return fstk_GetLastStackEntry()->lineNumber;
 }
 

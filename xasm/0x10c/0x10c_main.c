@@ -40,14 +40,14 @@ g_0x10CConfiguration = {
 	NULL, "DW", "DL",
 	NULL, "DSW", NULL,
 
-	loc_GetError,
-	loclexer_Init,
-	locopt_Alloc,
-	locopt_Open,
-	locopt_Copy,
-	locopt_Parse,
-	locopt_Update,
-	locopt_PrintOptions
+	x10c_GetError,
+	x10c_DefineTokens,
+	x10c_AllocOptions,
+	x10c_SetDefaults,
+	x10c_CopyOptions,
+	x10c_ParseOption,
+	x10c_OptionsUpdated,
+	x10c_PrintOptions
 };
 
 extern int

@@ -44,24 +44,24 @@ locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
 }
 
 void
-locopt_Open(SOptions* options) {
-    options->machineOptions->gameboyLiteralCharacters[0] = '0';
-    options->machineOptions->gameboyLiteralCharacters[1] = '1';
-    options->machineOptions->gameboyLiteralCharacters[2] = '2';
-    options->machineOptions->gameboyLiteralCharacters[3] = '3';
-    options->machineOptions->cpu = CPUF_Z80;
+locopt_Open(SMachineOptions* options) {
+    options->gameboyLiteralCharacters[0] = '0';
+    options->gameboyLiteralCharacters[1] = '1';
+    options->gameboyLiteralCharacters[2] = '2';
+    options->gameboyLiteralCharacters[3] = '3';
+    options->cpu = CPUF_Z80;
 }
 
 void
-locopt_Update(void) {
+locopt_Update(SMachineOptions* options) {
     lex_VariadicRemoveAll(opt_gameboyLiteralId);
     lex_VariadicAddCharRange(opt_gameboyLiteralId, '`', '`', 0);
 
     for (int i = 0; i <= 3; ++i) {
         lex_VariadicAddCharRangeRepeating(
                 opt_gameboyLiteralId,
-                (uint8_t) opt_Current->machineOptions->gameboyLiteralCharacters[i],
-                (uint8_t) opt_Current->machineOptions->gameboyLiteralCharacters[i],
+                (uint8_t) options->gameboyLiteralCharacters[i],
+                (uint8_t) options->gameboyLiteralCharacters[i],
                 1);
     }
 }

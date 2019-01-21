@@ -102,7 +102,7 @@ static bool pool_AllocateMemory(MemoryPool* pool, uint32_t size, int32_t* cpuByt
 }
 
 
-static bool pool_AllocateAbsolute(MemoryPool* pool, uint32_t size, int32_t cpuByteLocation)
+static bool pool_AllocateAbsolute(MemoryPool* pool, uint32_t size, uint32_t cpuByteLocation)
 {
     for (MemoryChunk* chunk = pool->freeChunks; chunk != NULL; chunk = chunk->nextChunk)
     {

@@ -78,10 +78,10 @@ typedef struct Configuration {
     void (*defineTokens)(void);
 
     struct MachineOptions* (*opt_Alloc)(void);
-    void (*opt_SetDefault)(SOptions*);
+    void (*opt_SetDefault)(struct MachineOptions*);
     void (*opt_Copy)(struct MachineOptions* dest, struct MachineOptions* src);
     bool (*opt_Parse)(const char* option);
-    void (*opt_Update)(void);
+    void (*opt_Update)(struct MachineOptions*);
     void (*opt_PrintOptions)(void);
 } SConfiguration;
 

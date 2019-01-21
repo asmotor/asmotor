@@ -102,26 +102,18 @@ parse_AddressMode(SAddressMode* pMode) {
 
 static bool
 handleModeReg(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode2 == NULL);
-    assert(mode3 == NULL);
-
     sect_OutputConst16(opcode | (mode1->registerIndex << 8));
     return true;
 }
 
 static bool
 handleModeRegReg(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode3 == NULL);
-
     sect_OutputConst16(opcode | (mode1->registerIndex << 8) | (mode2->registerIndex << 4));
     return true;
 }
 
 static bool
 handleModeImm12(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode2 == NULL);
-    assert(mode3 == NULL);
-
     sect_OutputExpr16(expr_Or(expr_Const(opcode), expr_CheckRange(mode1->expression, 0, 4095)));
     return true;
 }
@@ -139,17 +131,12 @@ handleDRW(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_
 
 static bool
 handleSCRD(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode1 == NULL);
-    assert(mode2 == NULL);
-
     sect_OutputExpr16(expr_Or(expr_Const(opcode), expr_CheckRange(mode3->expression, 0, 15)));
     return true;
 }
 
 static bool
 handleModeRegImm(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode3 == NULL);
-
     sect_OutputExpr16(
         expr_Or(
             expr_Const(opcode | (mode1->registerIndex << 8)),
@@ -161,8 +148,6 @@ handleModeRegImm(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, 
 
 static bool
 handleLD(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(opcode >= 0);
-
     if (mode1->mode == MODE_REG && mode2->mode == MODE_IMM)
         return handleModeRegImm(mode1, mode2, mode3, 0x6000);
 
@@ -186,9 +171,6 @@ handleLD(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t
 
 static bool
 handleLDM(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode3 == NULL);
-    assert(opcode >= 0);
-
     if (mode1->mode == MODE_REG && mode2->mode == MODE_I_IND)
         return handleModeReg(mode1, NULL, NULL, 0xF065);
 
@@ -206,9 +188,6 @@ handleLDM(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_
 
 static bool
 handleADD(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode3 == NULL);
-    assert(opcode >= 0);
-
     if (mode1->mode == MODE_REG && mode2->mode == MODE_REG)
         return handleModeRegReg(mode1, mode2, NULL, 0x8004);
 
@@ -223,8 +202,6 @@ handleADD(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_
 
 static bool
 handleSkips(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode3 == NULL);
-
     if (mode1->mode == MODE_REG && mode2->mode == MODE_IMM)
         return handleModeRegImm(mode1, mode2, NULL, opcode);
 
@@ -238,10 +215,6 @@ handleSkips(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint1
 
 static bool
 handleJP(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode2 == NULL);
-    assert(mode3 == NULL);
-    assert(opcode >= 0);
-
     if (mode1->mode == MODE_IMM)
         return handleModeImm12(mode1, NULL, NULL, 0x1000);
 
@@ -253,10 +226,6 @@ handleJP(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t
 
 static bool
 handleModeNone(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
-    assert(mode1 == NULL);
-    assert(mode2 == NULL);
-    assert(mode3 == NULL);
-
     sect_OutputConst16(opcode);
     return true;
 }

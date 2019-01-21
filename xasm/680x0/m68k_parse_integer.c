@@ -338,14 +338,11 @@ handleAND(ESize size, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleCLR(ESize size, SAddressingMode* src, SAddressingMode* dest) {
-    assert(dest != NULL);
     return outputOpcodeSize(0x4200, size, src);
 }
 
 static bool
 handleTST(ESize size, SAddressingMode* src, SAddressingMode* dest) {
-    assert(dest != NULL);
-
     if (src->mode == AM_AREG && size == SIZE_BYTE) {
         prj_Error(MERROR_INSTRUCTION_SIZE);
         return true;
@@ -432,8 +429,6 @@ handleROXR(ESize size, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleBcc(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* dest) {
-    assert(dest != NULL);
-
     opcode = (uint16_t) 0x6000 | (opcode << 8);
     if (size == SIZE_BYTE) {
         SExpression* expr = expr_CheckRange(expr_PcRelative(src->outer.displacement, -2), -128, 127);
@@ -581,25 +576,21 @@ handleBitInstruction(uint16_t dataOpcode, uint16_t immediateOpcode, SAddressingM
 
 static bool
 handleBCHG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleBitInstruction(0x0140, 0x0840, src, dest);
 }
 
 static bool
 handleBCLR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleBitInstruction(0x0180, 0x0880, src, dest);
 }
 
 static bool
 handleBSET(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleBitInstruction(0x01C0, 0x08C0, src, dest);
 }
 
 static bool
 handleBTST(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleBitInstruction(0x0100, 0x0800, src, dest);
 }
 
@@ -643,61 +634,46 @@ handleSingleOpBitfieldInstruction(uint16_t opcode, SAddressingMode* src) {
 
 static bool
 handleBFCHG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
     return handleSingleOpBitfieldInstruction(0xEAC0, src);
 }
 
 static bool
 handleBFCLR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
     return handleSingleOpBitfieldInstruction(0xECC0, src);
 }
 
 static bool
 handleBFSET(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
     return handleSingleOpBitfieldInstruction(0xEEC0, src);
 }
 
 static bool
 handleBFTST(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
     return handleSingleOpBitfieldInstruction(0xE8C0, src);
 }
 
 static bool
 handleBFEXTS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleBitfieldInstruction(0xEBC0, (uint16_t) (dest->directRegister << 12), src);
 }
 
 static bool
 handleBFEXTU(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleBitfieldInstruction(0xE9C0, (uint16_t) (dest->directRegister << 12), src);
 }
 
 static bool
 handleBFFFO(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleBitfieldInstruction(0xEDC0, (uint16_t) (dest->directRegister << 12), src);
 }
 
 static bool
 handleBFINS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleBitfieldInstruction(0xEFC0, (uint16_t) (src->directRegister << 12), dest);
 }
 
 static bool
 handleBKPT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
-
     SExpression* expr = expr_CheckRange(src->immediate, 0, 7);
     if (expr == NULL) {
         prj_Error(ERROR_OPERAND_RANGE);
@@ -711,8 +687,6 @@ handleBKPT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleCALLM(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-
     SExpression* expr = expr_CheckRange(src->immediate, 0, 255);
     if (expr == NULL) {
         prj_Error(ERROR_OPERAND_RANGE);
@@ -788,9 +762,6 @@ expectIndirectRegister(uint16_t* outRegister) {
 
 static bool
 handleCAS2(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
-    assert(unused1 != NULL);
-    assert(unused2 != NULL);
-
     uint16_t dc1, dc2, du1, du2, rn1, rn2;
 
     if (!expectDataRegister(&dc1))
@@ -892,97 +863,81 @@ handleDBcc(uint16_t code, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleDBT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x0, src, dest);
 }
 
 static bool
 handleDBF(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x1, src, dest);
 }
 
 static bool
 handleDBHI(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x2, src, dest);
 }
 
 static bool
 handleDBLS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x3, src, dest);
 }
 
 static bool
 handleDBCC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x4, src, dest);
 }
 
 static bool
 handleDBCS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x5, src, dest);
 }
 
 static bool
 handleDBNE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x6, src, dest);
 }
 
 static bool
 handleDBEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x7, src, dest);
 }
 
 static bool
 handleDBVC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x8, src, dest);
 }
 
 static bool
 handleDBVS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0x9, src, dest);
 }
 
 static bool
 handleDBPL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0xA, src, dest);
 }
 
 static bool
 handleDBMI(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0xB, src, dest);
 }
 
 static bool
 handleDBGE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0xC, src, dest);
 }
 
 static bool
 handleDBLT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0xD, src, dest);
 }
 
 static bool
 handleDBGT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0xE, src, dest);
 }
 
 static bool
 handleDBLE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return handleDBcc(0xF, src, dest);
 }
 
@@ -1051,8 +1006,6 @@ handleEOR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleEXG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_LONG);
-
     uint16_t ins;
     uint16_t rx, ry;
 
@@ -1080,8 +1033,6 @@ handleEXG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleEXT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(dest != NULL);
-
     uint16_t ins = (uint16_t) (0x4800 | src->directRegister);
     if (sz == SIZE_WORD)
         ins |= 0x2 << 6;
@@ -1094,42 +1045,28 @@ handleEXT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleEXTB(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_LONG);
-    assert(dest != NULL);
-
     sect_OutputConst16((uint16_t) (0x4800 | src->directRegister | 0x7 << 6));
     return true;
 }
 
 static bool
 handleILLEGAL(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(src != NULL);
-    assert(dest != NULL);
-
     sect_OutputConst16(0x4AFC);
     return true;
 }
 
 static bool
 handleJMP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
-
     return outputOpcode(0x4EC0, src);
 }
 
 static bool
 handleJSR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
-
     return outputOpcode(0x4E80, src);
 }
 
 static bool
 handleLEA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
     return outputOpcode((uint16_t) (0x41C0 | dest->directRegister << 9), src);
 }
 
@@ -1305,8 +1242,6 @@ handleMOVEA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleMOVE16(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-
     if (src->mode == AM_AINC && dest->mode == AM_AINC) {
         sect_OutputConst16((uint16_t) (0xF620 | (src->outer.baseRegister & 7u)));
         sect_OutputConst16((uint16_t) (0x8000 | (dest->outer.baseRegister & 7u) << 12));
@@ -1356,9 +1291,6 @@ reverseBits(uint16_t bits) {
 
 static bool
 handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
-    assert(unused1 != NULL);
-    assert(unused2 != NULL);
-
     uint16_t direction;
     SAddressingMode mode;
 
@@ -1476,8 +1408,6 @@ handleMOVEP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleMOVEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_LONG);
-
     SExpression* expr = expr_CheckRange(src->immediate, -128, 127);
     if (expr == NULL) {
         prj_Error(ERROR_OPERAND_RANGE);
@@ -1538,40 +1468,27 @@ handleMULU(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleNBCD(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_BYTE);
-    assert(dest != NULL);
-
     return outputOpcode((uint16_t) 0x4800, src);
 }
 
 static bool
 handleNEG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(dest != NULL);
-
     return outputOpcodeSize((uint16_t) 0x4400, sz, src);
 }
 
 static bool
 handleNEGX(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(dest != NULL);
-
     return outputOpcodeSize((uint16_t) 0x4000, sz, src);
 }
 
 static bool
 handleNOP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(src != NULL);
-    assert(dest != NULL);
-
     sect_OutputConst16(0x4E71);
     return true;
 }
 
 static bool
 handleNOT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(dest != NULL);
-
     return outputOpcodeSize((uint16_t) 0x4600, sz, src);
 }
 
@@ -1585,8 +1502,6 @@ handleOR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handlePackUnpack(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-
     if (!parse_ExpectComma())
         return false;
 
@@ -1629,17 +1544,11 @@ handleUNPACK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handlePEA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_LONG);
-    assert(dest != NULL);
-
     return outputOpcode((uint16_t) 0x4840, src);
 }
 
 static bool
 handleRTD(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
-
     sect_OutputConst16(0x4E74);
     sect_OutputExpr16(src->immediate);
     return true;
@@ -1647,9 +1556,6 @@ handleRTD(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleRTM(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
-
     uint16_t reg;
 
     if (src->mode == AM_DREG)
@@ -1663,29 +1569,18 @@ handleRTM(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleRTR(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(src != NULL);
-    assert(dest != NULL);
-
     sect_OutputConst16(0x4E77);
     return true;
 }
 
 static bool
 handleRTS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(src != NULL);
-    assert(dest != NULL);
-
     sect_OutputConst16(0x4E75);
     return true;
 }
 
 static bool
 handleScc(uint16_t code, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_BYTE);
-    assert(dest != NULL);
-
     return outputOpcode((uint16_t) (0x50C0 | code << 8), src);
 }
 
@@ -1771,26 +1666,17 @@ handleSLE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleSWAP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_WORD);
-    assert(dest != NULL);
-
     sect_OutputConst16((uint16_t) (0x4840 | src->directRegister));
     return true;
 }
 
 static bool
 handleTAS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_BYTE);
-    assert(dest != NULL);
-
     return outputOpcode(0x4AC0, src);
 }
 
 static bool
 handleTRAP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
-
     SExpression* expr = expr_CheckRange(src->immediate, 0, 15);
     if (expr == NULL) {
         prj_Error(ERROR_OPERAND_RANGE);
@@ -1803,8 +1689,6 @@ handleTRAP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleTRAPcc(uint16_t code, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(dest != NULL);
-
     uint16_t opmode;
 
     if (sz == SIZE_DEFAULT && src->mode == AM_EMPTY) {
@@ -1909,29 +1793,18 @@ handleTRAPLE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleTRAPV(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(src != NULL);
-    assert(dest != NULL);
-
     sect_OutputConst16(0x4E76);
     return true;
 }
 
 static bool
 handleUNLK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
-
     sect_OutputConst16((uint16_t) (0x4E58 | src->directRegister));
     return true;
 }
 
 static bool
 handleRESET(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(src != NULL);
-    assert(dest != NULL);
-
     prj_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(0x4E70);
     return true;
@@ -1939,10 +1812,6 @@ handleRESET(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleRTE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(src != NULL);
-    assert(dest != NULL);
-
     prj_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(0x4E73);
     return true;
@@ -1950,9 +1819,6 @@ handleRTE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleSTOP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-    assert(dest != NULL);
-
     prj_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(0x4E72);
     sect_OutputExpr16(src->immediate);
@@ -1961,8 +1827,6 @@ handleSTOP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleCache040(uint16_t ins, uint16_t scope, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_DEFAULT);
-
     prj_Warn(MERROR_INSTRUCTION_PRIV);
 
     uint16_t cache = 0;
@@ -2109,8 +1973,6 @@ SControlRegister g_controlRegister[] = {
 
 static bool
 handleMOVEC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    assert(sz == SIZE_LONG);
-
     prj_Warn(MERROR_INSTRUCTION_PRIV);
 
     uint16_t dr;

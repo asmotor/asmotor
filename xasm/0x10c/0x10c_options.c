@@ -29,34 +29,33 @@
 
 #include "0x10c_options.h"
 
-void
-locopt_Copy(struct MachineOptions* dest, struct MachineOptions* src) {
-    *dest = *src;
-}
-
 struct MachineOptions*
-locopt_Alloc(void) {
+x10c_AllocOptions(void) {
     return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
-locopt_Open(SOptions* options) {
-    assert(options != NULL);
+x10c_SetDefaults(SMachineOptions* options) {
 }
 
 void
-locopt_Update(void) {
+x10c_CopyOptions(struct MachineOptions* dest, struct MachineOptions* src) {
+    *dest = *src;
+}
+
+void
+x10c_OptionsUpdated(SMachineOptions* options) {
 }
 
 bool
-locopt_Parse(const char* s) {
-    if (s == NULL || strlen(s) == 0)
+x10c_ParseOption(const char* option) {
+    if (option == NULL || strlen(option) == 0)
         return false;
 
-    switch (s[0]) {
+    switch (option[0]) {
         case 'o':
-            if (strlen(&s[1]) == 1) {
-                switch (s[1] - '0') {
+            if (strlen(&option[1]) == 1) {
+                switch (option[1] - '0') {
                     case 0:
                         opt_Current->machineOptions->optimize = false;
                         return true;
@@ -72,11 +71,11 @@ locopt_Parse(const char* s) {
             break;
     }
 
-    prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+    prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
     return false;
 }
 
 void
-locopt_PrintOptions(void) {
+x10c_PrintOptions(void) {
     printf("    -mo<X>  Optimization level, 0 or 1\n");
 }

@@ -56,10 +56,10 @@ typedef	struct Section_
 extern Section* g_sections;
 
 extern Section* sect_CreateNew(void);
-extern void sect_GetSymbolValue(Section* section, int32_t symbolId, int32_t* outValue, Section** outSection);
-extern Symbol* sect_GetSymbol(Section* section, int32_t symbolId, bool allowImports);
-extern bool sect_GetConstantSymbolBank(Section* section, int32_t symbolId, int32_t* outValue);
-extern char* sect_GetSymbolName(Section* section, int32_t symbolId);
+extern void sect_GetSymbolValue(Section* section, uint32_t symbolId, int32_t* outValue, Section** outSection);
+extern Symbol* sect_GetSymbol(Section* section, uint32_t symbolId, bool allowImports);
+extern bool sect_GetConstantSymbolBank(Section* section, uint32_t symbolId, int32_t* outValue);
+extern char* sect_GetSymbolName(Section* section, uint32_t symbolId);
 extern void sect_ForEachUsedSection(void (*function)(Section*));
 extern uint32_t sect_TotalSections(void);
 

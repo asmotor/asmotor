@@ -327,7 +327,7 @@ void obj_Read(char* fileName)
 	{
 		size_t size = fsize(fileHandle);
 
-		while (ftell(fileHandle) < size)
+		while ((size_t) ftell(fileHandle) < size)
 			readChunk(fileHandle);
 
 		fclose(fileHandle);

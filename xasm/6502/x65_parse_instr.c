@@ -194,7 +194,6 @@ parse_Branch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 static bool
 parse_Implied(uint8_t baseOpcode, SAddressingMode* addrMode) {
-    assert(addrMode == NULL);
     sect_OutputConst8(baseOpcode);
     return true;
 }
@@ -219,8 +218,6 @@ parse_BRK(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 static bool
 parse_DOP(uint8_t baseOpcode, SAddressingMode* addrMode) {
-    assert(baseOpcode == 0);
-
     switch (addrMode->mode) {
         case MODE_IMM:
             sect_OutputConst8(0x80);

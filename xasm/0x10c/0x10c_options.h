@@ -24,21 +24,21 @@ typedef struct MachineOptions {
 } SMachineOptions;
 
 extern struct MachineOptions*
-locopt_Alloc(void);
+x10c_AllocOptions(void);
 
 extern void
-locopt_Open(SOptions* options);
+x10c_SetDefaults(SMachineOptions* options);
 
 extern void
-locopt_Copy(struct MachineOptions* dest, struct MachineOptions* src);
+x10c_CopyOptions(SMachineOptions* dest, SMachineOptions* src);
+
+extern void
+x10c_OptionsUpdated(SMachineOptions* options);
 
 extern bool
-locopt_Parse(const char* s);
+x10c_ParseOption(const char* s);
 
 extern void
-locopt_Update(void);
-
-extern void
-locopt_PrintOptions(void);
+x10c_PrintOptions(void);
 
 #endif

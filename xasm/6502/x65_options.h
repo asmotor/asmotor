@@ -23,20 +23,20 @@ typedef struct MachineOptions {
     int undocumentedInstructions;
 } SMachineOptions;
 
-extern struct MachineOptions*
+extern SMachineOptions*
 locopt_Alloc(void);
 
 extern void
-locopt_Init(SOptions* options);
+locopt_Init(SMachineOptions* options);
 
 extern void
-locopt_Copy(struct MachineOptions* dest, struct MachineOptions* pSrc);
+locopt_Copy(SMachineOptions* dest, SMachineOptions* pSrc);
 
 extern bool
 locopt_Parse(const char* s);
 
 extern void
-locopt_Update(void);
+locopt_Update(SMachineOptions* options);
 
 extern void
 locopt_PrintOptions(void);

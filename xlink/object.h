@@ -19,6 +19,8 @@
 #ifndef	XLINK_OBJECT_H_INCLUDED_
 #define	XLINK_OBJECT_H_INCLUDED_
 
+#include <stdint.h>
+
 typedef	enum
 {
 	GROUP_TEXT = 0,
@@ -51,9 +53,9 @@ static inline char* group_Name(Group* group)
     return group != NULL ? group->name : NULL;
 }
 
-static inline Group* groups_GetGroup(Groups* groups, int groupId)
+static inline Group* groups_GetGroup(Groups* groups, uint32_t groupId)
 {
-    return groupId >= 0 && groupId < groups->totalGroups ? &groups->groups[groupId] : NULL;
+    return groupId != UINT32_MAX && groupId < groups->totalGroups ? &groups->groups[groupId] : NULL;
 }
 
 extern void obj_Read(char* fileName);

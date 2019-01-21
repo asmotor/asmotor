@@ -44,13 +44,13 @@ locopt_Alloc(void) {
 }
 
 void
-locopt_Init(SOptions* options) {
-    options->machineOptions->undocumentedInstructions = 0;
+locopt_Init(SMachineOptions* options) {
+    options->undocumentedInstructions = 0;
 }
 
 void
-locopt_Update(void) {
-    int newSet = opt_Current->machineOptions->undocumentedInstructions;
+locopt_Update(SMachineOptions* options) {
+    int newSet = options->undocumentedInstructions;
     if (g_previousInstructionSet != newSet) {
         SLexConstantsWord* prev = loclexer_GetUndocumentedInstructions(g_previousInstructionSet);
         if (prev)

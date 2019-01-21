@@ -106,7 +106,7 @@ str_Slice(const string* str1, ssize_t index, size_t length) {
     if (index < 0)
         index = str_Length(str1) + index;
 
-    if (index >= str_Length(str1))
+    if (index >= (ssize_t) str_Length(str1))
         return str_Empty();
 
     if (index + length > str_Length(str1))

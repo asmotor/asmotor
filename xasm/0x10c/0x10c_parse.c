@@ -351,20 +351,16 @@ subInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data);
 
 static bool
 addInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data) {
-    assert(data >= 0);
     return addSubInstr(mode1, mode2, 0x2, subInstr);
 }
 
 static bool
 subInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data) {
-    assert(data >= 0);
     return addSubInstr(mode1, mode2, 0x3, addInstr);
 }
 
 static bool
 jsrInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data) {
-    assert(mode2 == NULL);
-
     sect_OutputConst16((uint16_t) ((data << 4u) | (mode1->mode << 10u)));
     if (mode1->address != NULL)
         sect_OutputExpr16(mode1->address);

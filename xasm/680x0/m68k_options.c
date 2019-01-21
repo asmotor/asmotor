@@ -16,6 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,13 +40,13 @@ locopt_Alloc(void) {
 }
 
 void
-locopt_Open(SOptions* options) {
-    options->machineOptions->cpu = CPUF_68000;
-    options->machineOptions->fpu = 0;
+locopt_Open(SMachineOptions* options) {
+    options->cpu = CPUF_68000;
+    options->fpu = 0;
 }
 
 void
-locopt_Update(void) {
+locopt_Update(SMachineOptions* options) {
 }
 
 bool

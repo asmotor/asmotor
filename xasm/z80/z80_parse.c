@@ -272,8 +272,6 @@ handleAlu(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 
 static bool
 handleAlu16bit(SInstruction* instruction, uint8_t prefix, uint8_t opcode, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-    assert(instruction != NULL);
-
     if ((addrMode1->mode & MODE_GROUP_HL) && (addrMode2->mode & (MODE_GROUP_SS | MODE_GROUP_HL))) {
         if ((addrMode2->mode & MODE_GROUP_HL) && (addrMode1->registerHL != addrMode2->registerHL)) {
             prj_Error(ERROR_SECOND_OPERAND);
@@ -390,9 +388,6 @@ handleJp(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 
 static bool
 handleImplied(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(addrMode1 == NULL);
-	assert(addrMode2 == NULL);
-
 	if (instruction->prefix != 0) {
 		sect_OutputConst8(instruction->prefix);
 	}
@@ -402,8 +397,6 @@ handleImplied(SInstruction* instruction, SAddressingMode* addrMode1, SAddressing
 
 static bool
 handleDec(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(addrMode2 == NULL);
-
 	if (addrMode1->mode & (MODE_GROUP_SS | MODE_GROUP_HL)) {
 		uint8_t opcode = (uint8_t) instruction->opcode << 3u;
 		uint8_t regSS = (uint8_t) addrMode1->registerSS << 4u;
@@ -421,8 +414,6 @@ handleDec(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 
 static bool
 handleJr(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(instruction != NULL);
-
 	if ((addrMode1->mode & MODE_IMM) && addrMode2->mode == 0) {
 		sect_OutputConst8(0x18);
 		sect_OutputExpr8(createExpressionPCRel(addrMode1->expression));
@@ -439,8 +430,6 @@ handleJr(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 
 static bool
 handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(instruction != NULL);
-
 	if ((addrMode1->mode & MODE_GROUP_D) && (addrMode2->mode & MODE_GROUP_D)
 		&& (addrMode1->registerD != REG_D_HL_IND || addrMode2->registerD != REG_D_HL_IND)) {
 		uint8_t regD1 = (uint8_t) addrMode1->registerD << 3u;
@@ -569,8 +558,6 @@ handleLdh(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 
 static bool
 handleLdhl(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(addrMode1 != NULL);
-
 	sect_OutputConst8(instruction->opcode);
 	sect_OutputExpr8(createExpression8S(addrMode2->expression));
 
@@ -579,8 +566,6 @@ handleLdhl(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMod
 
 static bool
 handlePop(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(addrMode2 == NULL);
-
 	uint8_t regSS = (uint8_t) addrMode1->registerSS << 4u;
 
 	outputGroupHL(addrMode1);
@@ -590,8 +575,6 @@ handlePop(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 
 static bool
 handleRotate(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(addrMode2 == NULL);
-
 	if (addrMode1->mode & MODE_GROUP_I_IND_DISP) {
 		outputIXIY(addrMode1, 0xCB);
 	} else {
@@ -632,9 +615,6 @@ handleRlc(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 
 static bool
 handleRet(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(instruction != NULL);
-	assert(addrMode2 == NULL);
-
 	if (addrMode1->mode & MODE_CC_Z80) {
 		uint8_t modeF = (uint8_t) addrMode1->modeF << 3u;
 		sect_OutputConst8((uint8_t) 0xC0u | modeF);
@@ -647,8 +627,6 @@ handleRet(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 
 static bool
 handleRst(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(addrMode2 == NULL);
-
 	if (expr_IsConstant(addrMode1->expression)) {
 		uint32_t val = (uint32_t) addrMode1->expression->value.integer;
 		if (val == (val & 0x38u)) {
@@ -665,10 +643,6 @@ handleRst(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 
 static bool
 handleStop(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(instruction != NULL);
-	assert(addrMode1 == NULL);
-	assert(addrMode2 == NULL);
-
 	sect_OutputConst8(0x10);
 	sect_OutputConst8(0x00);
 	return true;
@@ -676,8 +650,6 @@ handleStop(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMod
 
 static bool
 handleDjnz(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(addrMode2 == NULL);
-
 	sect_OutputConst8(instruction->opcode);
 	sect_OutputExpr8(createExpressionPCRel(addrMode1->expression));
 	return true;
@@ -688,8 +660,6 @@ handleDjnz(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMod
 
 static bool
 handleEx(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(instruction != NULL);
-
 	if (!IS_Z80) {
 		prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
 		return true;
@@ -711,9 +681,6 @@ handleEx(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 
 static bool
 handleIm(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	assert(instruction != NULL);
-	assert(addrMode2 == NULL);
-
 	if (!expr_IsConstant(addrMode1->expression)) {
 		prj_Error(ERROR_EXPR_CONST);
 		return true;

@@ -54,6 +54,6 @@ typedef enum {
 } ETargetToken;
 
 extern void
-loclexer_Init(void);
+x10c_DefineTokens(void);
 
 #endif
