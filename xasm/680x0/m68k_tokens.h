@@ -505,6 +505,9 @@ typedef	enum {
 	T_FPUREG_6,
 	T_FPUREG_7,
 
-}	ETargetToken;
+} ETargetToken;
+
+extern void
+loclexer_Init(void);
 
 #endif

@@ -225,6 +225,7 @@ static SLexConstantsWord s_tokens[]= {
 	{ NULL, 0 }
 };
 
-void loclexer_Init(void) {
+void
+loclexer_Init(void) {
 	lex_ConstantsDefineWords(s_tokens);
 }

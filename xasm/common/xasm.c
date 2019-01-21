@@ -109,7 +109,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     sect_Init();
     sym_Init();
     tokens_Init();
-    loclexer_Init();
+    xasm_Configuration->defineTokens();
 
     opt_Open();
 

@@ -44,12 +44,12 @@ locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
 }
 
 void
-locopt_Open(void) {
-    opt_Current->machineOptions->gameboyLiteralCharacters[0] = '0';
-    opt_Current->machineOptions->gameboyLiteralCharacters[1] = '1';
-    opt_Current->machineOptions->gameboyLiteralCharacters[2] = '2';
-    opt_Current->machineOptions->gameboyLiteralCharacters[3] = '3';
-    opt_Current->machineOptions->cpu = CPUF_Z80;
+locopt_Open(SOptions* options) {
+    options->machineOptions->gameboyLiteralCharacters[0] = '0';
+    options->machineOptions->gameboyLiteralCharacters[1] = '1';
+    options->machineOptions->gameboyLiteralCharacters[2] = '2';
+    options->machineOptions->gameboyLiteralCharacters[3] = '3';
+    options->machineOptions->cpu = CPUF_Z80;
 }
 
 void

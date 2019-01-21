@@ -39,8 +39,8 @@ locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
 }
 
 void
-locopt_Open(void) {
-    opt_Current->machineOptions->cpu = CPUF_MIPS32R2;
+locopt_Open(SOptions* options) {
+    options->machineOptions->cpu = CPUF_MIPS32R2;
 }
 
 void

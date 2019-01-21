@@ -23,4 +23,7 @@ typedef struct MachineOptions {
     int undocumentedInstructions;
 } SMachineOptions;
 
+extern void
+locopt_Init(SOptions* options);
+
 #endif

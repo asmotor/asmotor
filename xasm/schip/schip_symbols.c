@@ -20,8 +20,8 @@
 
 #include "symbol.h"
 
-void locsym_Init(void)
-{
+void
+locsym_Init(void) {
 	string* pName;
 	
 	pName = str_Create("CODE");

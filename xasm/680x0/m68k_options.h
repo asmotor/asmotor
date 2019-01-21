@@ -35,8 +35,11 @@
 #define FPUF_ALL 0x07
 
 typedef struct MachineOptions {
-    int cpu;
-    int fpu;
+    uint8_t cpu;
+    uint8_t fpu;
 } SMachineOptions;
+
+extern void
+locopt_Open(SOptions*);
 
 #endif

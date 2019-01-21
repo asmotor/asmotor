@@ -16,11 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XASM_GAMEBOY_TOKENS_H_INCLUDED_
-#define	XASM_GAMEBOY_TOKENS_H_INCLUDED_
+#ifndef	XASM_SCHIP_TOKENS_H_INCLUDED_
+#define	XASM_SCHIP_TOKENS_H_INCLUDED_
 
-typedef	enum
-{
+typedef	enum {
 	/* reg */
 	T_CHIP_BCD = 6000,
 	T_CHIP_LDF,
@@ -104,4 +103,7 @@ typedef	enum
 
 }	ETargetToken;
 
-#endif	//XASM_GAMEBOY_TOKENS_H_INCLUDED_
+extern void 
+loclexer_Init(void);
+
+#endif	//XASM_SCHIP_TOKENS_H_INCLUDED_

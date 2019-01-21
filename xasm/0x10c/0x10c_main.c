@@ -22,6 +22,8 @@
 #include "xasm.h"
 
 #include "0x10c_errors.h"
+#include "0x10c_options.h"
+#include "0x10c_tokens.h"
 
 static SConfiguration
 g_0x10CConfiguration = {
@@ -38,7 +40,9 @@ g_0x10CConfiguration = {
 	NULL, "DW", "DL",
 	NULL, "DSW", NULL,
 
-	loc_GetError	
+	loc_GetError,
+	loclexer_Init,
+	locopt_Open,
 };
 
 extern int

@@ -123,4 +123,7 @@ typedef enum {
 extern SLexConstantsWord*
 loclexer_GetUndocumentedInstructions(int n);
 
+extern void
+loclexer_Init(void);
+
 #endif

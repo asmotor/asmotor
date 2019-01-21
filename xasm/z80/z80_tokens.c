@@ -27,8 +27,7 @@
 #include "z80_tokens.h"
 #include "z80_options.h"
 
-static SLexConstantsWord localstrings[]=
-{
+static SLexConstantsWord localstrings[] = {
 	{ "ADC",	T_Z80_ADC	},
 	{ "ADD",	T_Z80_ADD	},
 	{ "AND",	T_Z80_AND	},
@@ -152,10 +151,9 @@ static SLexConstantsWord localstrings[]=
     { NULL, 0 }
 };
 
-static uint32_t gbgfx2bin(char ch)
-{
-	for(uint32_t i = 0; i <= 3; ++i)
-	{
+static uint32_t
+gbgfx2bin(char ch) {
+	for (uint32_t i = 0; i <= 3; ++i) {
 		if (opt_Current->machineOptions->gameboyLiteralCharacters[i] == ch)
 			return i;
 	}
@@ -164,13 +162,12 @@ static uint32_t gbgfx2bin(char ch)
 }
 
 
-static uint32_t ascii2bin(char* s)
-{
+static uint32_t 
+ascii2bin(char* s) {
 	uint32_t result = 0;
 
 	++s;
-	while(*s != '\0')
-	{
+	while (*s != '\0') {
 		uint32_t c = gbgfx2bin(*s++);
 		result = result * 2 + ((c & 1u) << 8u) + ((c & 2u) >> 1u);
 	}
@@ -179,11 +176,11 @@ static uint32_t ascii2bin(char* s)
 }
 
 
-static bool ParseGameboyNumber(size_t size)
-{
+static bool
+ParseGameboyNumber(size_t size) {
     char dest[256];
 
-	if(size >= 256)
+	if (size >= 256)
 		size = 255;
 
 	lex_GetChars(dest, size);
@@ -194,15 +191,14 @@ static bool ParseGameboyNumber(size_t size)
 }
 
 
-static SVariadicWordDefinition	tNumberToken=
-{
+static SVariadicWordDefinition tNumberToken = {
 	ParseGameboyNumber,
 	T_NUMBER
 };
 
 
-void	loclexer_Init(void)
-{
+void
+loclexer_Init(void) {
 	/* Gameboy constants */
 
     opt_gameboyLiteralId = lex_VariadicCreateWord(&tNumberToken);

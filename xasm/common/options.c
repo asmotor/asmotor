@@ -29,15 +29,6 @@
 #include "project.h"
 #include "filestack.h"
 
-extern void
-locopt_Update(void);
-
-extern bool
-locopt_Parse(const char*);
-
-extern void
-locopt_Open(void);
-
 SOptions* opt_Current;
 
 static void
@@ -170,7 +161,8 @@ opt_Open(void) {
     opt_Current->uninitializedValue = 0xFF;
     opt_Current->disabledWarningsCount = 0;
     opt_Current->allowReservedKeywordLabels = true;
-    locopt_Open();
+
+    xasm_Configuration->opt_SetDefault(opt_Current);
     opt_Update();
 }
 

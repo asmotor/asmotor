@@ -16,6 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +40,8 @@ locopt_Alloc(void) {
 }
 
 void
-locopt_Open(void) {
+locopt_Open(SOptions* options) {
+    assert(options != NULL);
 }
 
 void

@@ -22,6 +22,8 @@
 #include "xasm.h"
 
 #include "schip_error.h"
+#include "schip_options.h"
+#include "schip_tokens.h"
 
 static SConfiguration xasm_SuperChipConfiguration = {
 	"motorschip",
@@ -37,7 +39,9 @@ static SConfiguration xasm_SuperChipConfiguration = {
 	"DB", "DH", "DW",
 	"DSB", "DSH", "DSL",
 
-	loc_GetError
+	loc_GetError,
+	loclexer_Init,
+	locopt_Open,
 };
 
 extern int main(int argc, char* argv[]) {

@@ -22,6 +22,8 @@
 #include "xasm.h"
 
 #include "m68k_errors.h"
+#include "m68k_options.h"
+#include "m68k_tokens.h"
 
 static SConfiguration
 g_680x0Configuration = {
@@ -38,7 +40,9 @@ g_680x0Configuration = {
 	"DC.B", "DC.W", "DC.L",
 	"DS.B", "DS.W", "DS.L",
 
-	loc_GetError
+	loc_GetError,
+	loclexer_Init,
+	locopt_Open,
 };
 
 extern int

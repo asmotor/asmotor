@@ -53,4 +53,7 @@ typedef enum {
     T_REG_O
 } ETargetToken;
 
+extern void
+loclexer_Init(void);
+
 #endif

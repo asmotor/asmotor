@@ -39,9 +39,9 @@ locopt_Alloc(void) {
 }
 
 void
-locopt_Open(void) {
-    opt_Current->machineOptions->cpu = CPUF_68000;
-    opt_Current->machineOptions->fpu = 0;
+locopt_Open(SOptions* options) {
+    options->machineOptions->cpu = CPUF_68000;
+    options->machineOptions->fpu = 0;
 }
 
 void
@@ -49,7 +49,7 @@ locopt_Update(void) {
 }
 
 bool
-locopt_Parse(char* option) {
+locopt_Parse(const char* option) {
     if (option == NULL || strlen(option) == 0)
         return false;
 

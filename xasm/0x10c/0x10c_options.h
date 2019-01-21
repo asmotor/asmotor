@@ -23,4 +23,7 @@ typedef struct MachineOptions {
     int optimize;
 } SMachineOptions;
 
+extern void
+locopt_Open(SOptions* options);
+
 #endif

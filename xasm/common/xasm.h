@@ -21,6 +21,8 @@
 
 #include "types.h"
 
+#include "options.h"
+
 #define MAX_SYMBOL_NAME_LENGTH 256
 #define MAX_STRING_SYMBOL_SIZE 256
 #define ASM_CRLF 10
@@ -39,11 +41,6 @@ strlwr(char* s);
 extern uint32_t g_nTotalLines;
 extern uint32_t g_nTotalErrors;
 extern uint32_t g_nTotalWarnings;
-
-typedef enum {
-    ASM_LITTLE_ENDIAN,
-    ASM_BIG_ENDIAN
-} EEndianness;
 
 typedef enum {
     MINSIZE_8BIT = 1,
@@ -78,6 +75,8 @@ typedef struct Configuration {
     const char* defineLongSpaceName;
 
     const char* (*getMachineError)(size_t errorNumber);
+    void (*defineTokens)(void);
+    void (*opt_SetDefault)(SOptions*);
 } SConfiguration;
 
 extern const SConfiguration*
@@ -85,9 +84,6 @@ xasm_Configuration;
 
 extern int
 xasm_Main(const SConfiguration* configuration, int argc, char* argv[]);
-
-extern void
-loclexer_Init(void);
 
 extern void
 locopt_PrintOptions(void);
@@ -100,6 +96,12 @@ locopt_Free(struct MachineOptions* pOptions);
 
 extern void
 locopt_Copy(struct MachineOptions* dest, struct MachineOptions* src);
+
+extern void
+locopt_Update(void);
+
+extern bool
+locopt_Parse(const char*);
 
 
 #endif // XASM_COMMON_XASM_H_INCLUDED_

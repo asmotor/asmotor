@@ -21,8 +21,7 @@
 
 #include "m68k_tokens.h"
 
-static SLexConstantsWord
-g_tokens[] = {
+static SLexConstantsWord g_tokens[] = {
 	{ "ABCD",	T_68K_ABCD	},
 	{ "ADD",	T_68K_ADD	},
 	{ "ADDA",	T_68K_ADD	},

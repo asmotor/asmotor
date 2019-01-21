@@ -22,6 +22,8 @@
 #include "xasm.h"
 
 #include "z80_errors.h"
+#include "z80_options.h"
+#include "z80_tokens.h"
 
 SConfiguration
 xasm_Z80Configuration = {
@@ -38,7 +40,9 @@ xasm_Z80Configuration = {
 	"DB", "DW", NULL,
 	"DS", NULL, NULL,
 
-	z80_GetError
+	z80_GetError,
+	loclexer_Init,
+	locopt_Open,
 };
 
 extern int

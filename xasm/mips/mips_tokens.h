@@ -52,16 +52,16 @@ typedef enum {
     T_MIPS_INTEGER_RRI_FIRST = T_MIPS_ADDI,
     T_MIPS_INTEGER_RRI_LAST = T_MIPS_XORI,
 
-    /* Branch R,R,addr */
+    // Branch R,R,addr
 
-            T_MIPS_BEQ,
+    T_MIPS_BEQ,
     T_MIPS_BEQL,
     T_MIPS_BNE,
     T_MIPS_BNEL,
 
-    /* Branch R,addr */
+    // Branch R,addr
 
-            T_MIPS_BGEZ,
+    T_MIPS_BGEZ,
     T_MIPS_BGEZAL,
     T_MIPS_BGEZALL,
     T_MIPS_BGEZL,
@@ -74,9 +74,9 @@ typedef enum {
     T_MIPS_BLTZALL,
     T_MIPS_BLTZL,
 
-    /* Branch addr */
+    // Branch addr
 
-            T_MIPS_B,
+    T_MIPS_B,
     T_MIPS_BAL,
 
     T_MIPS_BRANCH_FIRST = T_MIPS_BEQ,
@@ -114,9 +114,9 @@ typedef enum {
     T_MIPS_LOADSTORE_FIRST = T_MIPS_LB,
     T_MIPS_LOADSTORE_LAST = T_MIPS_SWR,
 
-    /* R-format, but only rs and rt */
+    // R-format, but only rs and rt
 
-            T_MIPS_DIV,
+    T_MIPS_DIV,
     T_MIPS_DIVU,
     T_MIPS_MADD,
     T_MIPS_MADDU,
@@ -128,9 +128,9 @@ typedef enum {
     T_MIPS_RSRT_FIRST = T_MIPS_DIV,
     T_MIPS_RSRT_LAST = T_MIPS_MULU,
 
-    /* R-format, but only rd and rt */
+    // R-format, but only rd and rt
 
-            T_MIPS_RDPGPR,
+    T_MIPS_RDPGPR,
     T_MIPS_SEB,
     T_MIPS_SEH,
     T_MIPS_WRPGPR,
@@ -139,9 +139,9 @@ typedef enum {
     T_MIPS_RDRT_FIRST = T_MIPS_RDPGPR,
     T_MIPS_RDRT_LAST = T_MIPS_WSBH,
 
-    /* rs, rt [, code] */
+    // rs, rt [, code]
 
-            T_MIPS_TEQ,
+    T_MIPS_TEQ,
     T_MIPS_TGE,
     T_MIPS_TGEU,
     T_MIPS_TLT,
@@ -161,17 +161,17 @@ typedef enum {
     T_MIPS_INTEGER_RI_FIRST = T_MIPS_TEQI,
     T_MIPS_INTEGER_RI_LAST = T_MIPS_TNEI,
 
-    /* R-format: rd, rs (rt=rd): */
+    // R-format: rd, rs (rt=rd):
 
-            T_MIPS_CLO,
+    T_MIPS_CLO,
     T_MIPS_CLZ,
 
     T_MIPS_INTEGER_RDRS_RTCOPY_FIRST = T_MIPS_CLO,
     T_MIPS_INTEGER_RDRS_RTCOPY_LAST = T_MIPS_CLZ,
 
-    /* No parameter: */
+    // No parameter:
 
-            T_MIPS_DERET,
+    T_MIPS_DERET,
     T_MIPS_EHB,
     T_MIPS_ERET,
     T_MIPS_NOP,
@@ -184,25 +184,25 @@ typedef enum {
     T_MIPS_INTEGER_NO_PARAMETER_FIRST = T_MIPS_DERET,
     T_MIPS_INTEGER_NO_PARAMETER_LAST = T_MIPS_TLBWR,
 
-    /* R-format: rt */
+    // R-format: rt
 
-            T_MIPS_DI,
+    T_MIPS_DI,
     T_MIPS_EI,
 
     T_MIPS_INTEGER_RT_FIRST = T_MIPS_DI,
     T_MIPS_INTEGER_RT_LAST = T_MIPS_EI,
 
-    /* R-format: rd */
+    // R-format: rd
 
-            T_MIPS_MFHI,
+    T_MIPS_MFHI,
     T_MIPS_MFLO,
 
     T_MIPS_INTEGER_RD_FIRST = T_MIPS_MFHI,
     T_MIPS_INTEGER_RD_LAST = T_MIPS_MFLO,
 
-    /* R-format: rs */
+    // R-format: rs
 
-            T_MIPS_JR,
+    T_MIPS_JR,
     T_MIPS_JR_HB,
     T_MIPS_MTHI,
     T_MIPS_MTLO,
@@ -210,9 +210,9 @@ typedef enum {
     T_MIPS_INTEGER_RS_FIRST = T_MIPS_JR,
     T_MIPS_INTEGER_RS_LAST = T_MIPS_MTLO,
 
-    /* Jumps: */
+    // Jumps:
 
-            T_MIPS_J,
+    T_MIPS_J,
     T_MIPS_JAL,
 
     T_MIPS_INTEGER_J_ABS_FIRST = T_MIPS_J,
@@ -220,9 +220,9 @@ typedef enum {
 
     T_MIPS_LUI,
 
-    /* Others: */
+    // Others:
 
-            T_MIPS_JALR,
+    T_MIPS_JALR,
     T_MIPS_JALR_HB,
 
     T_MIPS_INTEGER_J_REG_FIRST = T_MIPS_JALR,
@@ -292,5 +292,8 @@ typedef enum {
     T_MIPS_MIPS32R1,
     T_MIPS_MIPS32R2,
 } ETargetToken;
+
+extern void
+loclexer_Init(void);
 
 #endif

@@ -134,4 +134,7 @@ typedef enum {
     T_CC_M      // Z80 only
 } ETargetToken;
 
+extern void
+loclexer_Init(void);
+
 #endif    //XASM_Z80_TOKENS_H_INCLUDED_

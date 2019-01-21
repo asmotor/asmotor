@@ -20,9 +20,13 @@
 #define XASM_COMMON_OPTIONS_H_INCLUDED_
 
 #include "lists.h"
-#include "xasm.h"
 
 #define MAX_DISABLED_WARNINGS 32
+
+typedef enum {
+    ASM_LITTLE_ENDIAN,
+    ASM_BIG_ENDIAN
+} EEndianness;
 
 struct MachineOptions;
 

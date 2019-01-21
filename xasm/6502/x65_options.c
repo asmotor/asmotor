@@ -44,8 +44,8 @@ locopt_Alloc(void) {
 }
 
 void
-locopt_Open(void) {
-    opt_Current->machineOptions->undocumentedInstructions = 0;
+locopt_Init(SOptions* options) {
+    options->machineOptions->undocumentedInstructions = 0;
 }
 
 void

@@ -22,6 +22,8 @@
 #include "xasm.h"
 
 #include "mips_errors.h"
+#include "mips_options.h"
+#include "mips_tokens.h"
 
 static SConfiguration xasm_MIPSConfiguration = {
 	"motormips",
@@ -37,7 +39,9 @@ static SConfiguration xasm_MIPSConfiguration = {
 	"DB", "DH", "DW",
 	"DSB", "DSH", "DSL",
 
-	loc_GetError
+	loc_GetError,
+	loclexer_Init,
+	locopt_Open,
 };
 
 extern int

@@ -29,4 +29,7 @@ typedef struct MachineOptions {
 
 extern uint32_t opt_gameboyLiteralId;
 
+extern void
+locopt_Open(SOptions* options);
+
 #endif

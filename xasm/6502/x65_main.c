@@ -22,6 +22,8 @@
 #include "xasm.h"
 
 #include "x65_errors.h"
+#include "x65_options.h"
+#include "x65_tokens.h"
 
 static SConfiguration
 xasm_6502Configuration = {
@@ -38,7 +40,9 @@ xasm_6502Configuration = {
 	"DB", "DW", "DL",
 	"DS", NULL, NULL,
 
-	loc_GetError
+	loc_GetError,
+	loclexer_Init,
+	locopt_Init,
 };
 
 extern int

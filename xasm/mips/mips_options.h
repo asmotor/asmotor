@@ -28,4 +28,7 @@ typedef struct MachineOptions {
     uint8_t cpu;
 } SMachineOptions;
 
+extern void
+locopt_Open(SOptions* options);
+
 #endif
