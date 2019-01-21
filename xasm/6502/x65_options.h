@@ -29,4 +29,7 @@ locopt_Alloc(void);
 extern void
 locopt_Init(SOptions* options);
 
+extern void
+locopt_Copy(struct MachineOptions* dest, struct MachineOptions* pSrc);
+
 #endif

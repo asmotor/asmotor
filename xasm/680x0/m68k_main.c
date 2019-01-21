@@ -44,6 +44,7 @@ g_680x0Configuration = {
 	loclexer_Init,
 	locopt_Alloc,
 	locopt_Open,
+	locopt_Copy,
 };
 
 extern int

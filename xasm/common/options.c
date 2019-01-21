@@ -57,7 +57,7 @@ opt_Copy(SOptions* pDest, SOptions* pSrc) {
     *pDest = *pSrc;
     pDest->machineOptions = p;
 
-    locopt_Copy(pDest->machineOptions, pSrc->machineOptions);
+    xasm_Configuration->opt_Copy(pDest->machineOptions, pSrc->machineOptions);
 }
 
 void

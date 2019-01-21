@@ -34,4 +34,7 @@ locopt_Alloc(void);
 extern void
 locopt_Open(SOptions* options);
 
+extern void
+locopt_Copy(SMachineOptions* dest, SMachineOptions* src);
+
 #endif
