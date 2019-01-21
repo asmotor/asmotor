@@ -39,7 +39,7 @@ opt_Update(void) {
     lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[0], opt_Current->binaryLiteralCharacters[0], 1);
     lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[1], opt_Current->binaryLiteralCharacters[1], 1);
 
-    locopt_Update();
+    xasm_Configuration->opt_Update();
 }
 
 static SOptions*

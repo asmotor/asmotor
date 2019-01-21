@@ -46,6 +46,7 @@ xasm_6502Configuration = {
 	locopt_Init,
 	locopt_Copy,
 	locopt_Parse,
+	locopt_Update,
 };
 
 extern int

@@ -35,4 +35,7 @@ locopt_Copy(struct MachineOptions* dest, struct MachineOptions* src);
 extern bool
 locopt_Parse(const char* s);
 
+extern void
+locopt_Update(void);
+
 #endif

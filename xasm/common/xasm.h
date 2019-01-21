@@ -81,6 +81,7 @@ typedef struct Configuration {
     void (*opt_SetDefault)(SOptions*);
     void (*opt_Copy)(struct MachineOptions* dest, struct MachineOptions* src);
     bool (*opt_Parse)(const char* option);
+    void (*opt_Update)(void);
 } SConfiguration;
 
 extern const SConfiguration*
@@ -91,8 +92,5 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]);
 
 extern void
 locopt_PrintOptions(void);
-
-extern void
-locopt_Update(void);
 
 #endif // XASM_COMMON_XASM_H_INCLUDED_
