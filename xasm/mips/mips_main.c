@@ -23,6 +23,8 @@
 
 #include "mips_errors.h"
 #include "mips_options.h"
+#include "mips_parse.h"
+#include "mips_symbols.h"
 #include "mips_tokens.h"
 
 static SConfiguration xasm_MIPSConfiguration = {
@@ -41,12 +43,18 @@ static SConfiguration xasm_MIPSConfiguration = {
 
 	loc_GetError,
 	loclexer_Init,
+	locsym_Init,
+
 	locopt_Alloc,
 	locopt_Open,
 	locopt_Copy,
 	locopt_Parse,
 	locopt_Update,
-	locopt_PrintOptions
+	locopt_PrintOptions,
+
+	parse_TargetFunction,
+	parse_TargetSpecific,
+
 };
 
 extern int

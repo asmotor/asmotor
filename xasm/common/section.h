@@ -21,7 +21,6 @@
 
 #include "str.h"
 #include "lists.h"
-#include "xasm.h"
 
 struct Patch;
 struct Symbol;

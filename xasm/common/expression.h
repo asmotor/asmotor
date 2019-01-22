@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_COMMON_EXPR_H_INCLUDED_
-#define XASM_COMMON_EXPR_H_INCLUDED_
+#ifndef XASM_COMMON_EXPRESSION_H_INCLUDED_
+#define XASM_COMMON_EXPRESSION_H_INCLUDED_
 
 #include "str.h"
 #include "asmotor.h"
@@ -195,4 +195,4 @@ extern bool
 expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression);
 
 
-#endif /* XASM_COMMON_EXPR_H_INCLUDED_ */
+#endif /* XASM_COMMON_EXPRESSION_H_INCLUDED_ */

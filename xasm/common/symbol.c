@@ -30,9 +30,6 @@
 #include "project.h"
 #include "section.h"
 
-extern void
-locsym_Init(void);
-
 #define SET_TYPE_AND_FLAGS(symbol, t) ((symbol)->type=t,(symbol)->flags=((symbol)->flags&SYMF_EXPORT)|g_defaultSymbolFlags[t])
 
 static uint32_t g_defaultSymbolFlags[] = {
@@ -487,7 +484,7 @@ bool
 sym_Init(void) {
     g_currentScope = NULL;
 
-    locsym_Init();
+    xasm_Configuration->sym_Init();
 
     createEquCallback("__NARG", callback__NARG);
     createEquCallback("__LINE", callback__LINE);

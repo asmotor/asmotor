@@ -23,6 +23,8 @@
 
 #include "x65_errors.h"
 #include "x65_options.h"
+#include "x65_parse.h"
+#include "x65_symbols.h"
 #include "x65_tokens.h"
 
 static SConfiguration
@@ -42,12 +44,17 @@ xasm_6502Configuration = {
 
 	loc_GetError,
 	loclexer_Init,
+	locsym_Init,
+
 	locopt_Alloc,
 	locopt_Init,
 	locopt_Copy,
 	locopt_Parse,
 	locopt_Update,
-	locopt_PrintOptions
+	locopt_PrintOptions,
+
+	parse_TargetFunction,
+	parse_TargetSpecific,
 };
 
 extern int

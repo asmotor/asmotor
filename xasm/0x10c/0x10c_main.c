@@ -23,6 +23,8 @@
 
 #include "0x10c_errors.h"
 #include "0x10c_options.h"
+#include "0x10c_parse.h"
+#include "0x10c_symbols.h"
 #include "0x10c_tokens.h"
 
 static SConfiguration
@@ -42,12 +44,17 @@ g_0x10CConfiguration = {
 
 	x10c_GetError,
 	x10c_DefineTokens,
+	locsym_Init,
+
 	x10c_AllocOptions,
 	x10c_SetDefaults,
 	x10c_CopyOptions,
 	x10c_ParseOption,
 	x10c_OptionsUpdated,
-	x10c_PrintOptions
+	x10c_PrintOptions,
+
+	parse_TargetFunction,
+	parse_TargetSpecific
 };
 
 extern int

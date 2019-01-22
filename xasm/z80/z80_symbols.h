@@ -16,18 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#ifndef XASM_Z80_SYMBOLS_H_INCLUDED_
+#define XASM_Z80_SYMBOLS_H_INCLUDED_
 
-static char*
-g_errors[] = {
-	"Illegal addressing mode",
-	"Undocumented instruction set must be 0, 1 or 2"
-};
+extern void
+locsym_Init(void);
 
-const char*
-loc_GetError(size_t errorNumber) {
-	if (errorNumber < 1000)
-		return NULL;
-
-	return g_errors[errorNumber - 1000];
-}
+#endif

@@ -16,18 +16,14 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#ifndef XASM_0X10C_PARSE_H_INCLUDED_
+#define XASM_0X10C_PARSE_H_INCLUDED_
 
-static char*
-g_errors[] = {
-	"Illegal addressing mode",
-	"Undocumented instruction set must be 0, 1 or 2"
-};
+extern SExpression*
+parse_TargetFunction(void);
 
-const char*
-loc_GetError(size_t errorNumber) {
-	if (errorNumber < 1000)
-		return NULL;
+extern bool
+parse_TargetSpecific(void);
 
-	return g_errors[errorNumber - 1000];
-}
+#endif
+

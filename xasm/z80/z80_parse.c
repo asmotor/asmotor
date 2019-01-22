@@ -29,6 +29,7 @@
 #include "section.h"
 
 #include "z80_errors.h"
+#include "z80_parse.h"
 #include "z80_tokens.h"
 #include "z80_options.h"
 

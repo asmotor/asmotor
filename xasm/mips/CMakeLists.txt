@@ -7,6 +7,7 @@ add_executable (motormips
     mips_parse_instr.c
     mips_parse.c
     mips_symbols.c
+    mips_symbols.h
     mips_tokens.c
     mips_tokens.h
     )

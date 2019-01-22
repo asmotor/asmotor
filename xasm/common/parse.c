@@ -32,9 +32,6 @@
 #include "project.h"
 #include "symbol.h"
 
-extern bool
-parse_TargetSpecific(void);
-
 static bool
 handleMacroArgument() {
     if (lex_Current.token == T_STRING) {
@@ -143,7 +140,7 @@ parse_Do(void) {
     lex_GetNextToken();
 
     while (lex_Current.token) {
-        if (parse_TargetSpecific())
+        if (xasm_Configuration->parse_Target())
             continue;
 
         if (parse_SymbolDefinition())

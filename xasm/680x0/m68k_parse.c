@@ -35,9 +35,6 @@
 #include "m68k_parse.h"
 #include "m68k_tokens.h"
 
-extern bool
-m68k_ParseDirective();
-
 static bool
 getBitfield(SAddressingMode* mode) {
     if (parse_ExpectChar('{')) {

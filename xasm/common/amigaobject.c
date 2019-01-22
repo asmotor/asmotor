@@ -28,6 +28,7 @@
 #include "types.h"
 
 // From xasm
+#include "xasm.h"
 #include "section.h"
 #include "symbol.h"
 #include "patch.h"

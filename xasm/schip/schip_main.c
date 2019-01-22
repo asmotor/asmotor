@@ -23,6 +23,8 @@
 
 #include "schip_error.h"
 #include "schip_options.h"
+#include "schip_parse.h"
+#include "schip_symbols.h"
 #include "schip_tokens.h"
 
 static SConfiguration xasm_SuperChipConfiguration = {
@@ -41,14 +43,20 @@ static SConfiguration xasm_SuperChipConfiguration = {
 
 	loc_GetError,
 	loclexer_Init,
+	locsym_Init,
+
 	locopt_Alloc,
 	locopt_Open,
 	locopt_Copy,
 	locopt_Parse,
 	locopt_Update,
-	locopt_PrintOptions
+	locopt_PrintOptions,
+
+	parse_TargetFunction,
+	parse_TargetSpecific,
 };
 
-extern int main(int argc, char* argv[]) {
+extern int
+main(int argc, char* argv[]) {
 	return xasm_Main(&xasm_SuperChipConfiguration, argc, argv);
 }

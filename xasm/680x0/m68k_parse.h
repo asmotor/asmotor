@@ -154,6 +154,12 @@ parse_GetSizeSpecifier(ESize defaultSize);
 extern uint32_t
 parse_RegisterList(void);
 
+extern SExpression*
+parse_TargetFunction(void);
+
+extern bool
+parse_TargetSpecific(void);
+
 extern bool
 parse_IntegerInstruction(void);
 
@@ -165,5 +171,8 @@ parse_OpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingM
 
 extern bool
 parse_CommonCpuFpu(SInstruction* pIns);
+
+extern bool
+m68k_ParseDirective();
 
 #endif

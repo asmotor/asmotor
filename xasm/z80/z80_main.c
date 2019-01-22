@@ -23,6 +23,8 @@
 
 #include "z80_errors.h"
 #include "z80_options.h"
+#include "z80_parse.h"
+#include "z80_symbols.h"
 #include "z80_tokens.h"
 
 SConfiguration
@@ -42,12 +44,17 @@ xasm_Z80Configuration = {
 
 	z80_GetError,
 	loclexer_Init,
+	locsym_Init,
+
 	locopt_Alloc,
 	locopt_Open,
 	locopt_Copy,
 	locopt_Parse,
 	locopt_Update,
-	locopt_PrintOptions
+	locopt_PrintOptions,
+
+	parse_TargetFunction,
+	parse_TargetSpecific
 };
 
 extern int

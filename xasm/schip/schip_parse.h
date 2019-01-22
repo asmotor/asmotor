@@ -25,4 +25,10 @@ parse_ExpressionU12(void);
 extern bool
 parse_IntegerInstruction(void);
 
+extern SExpression*
+parse_TargetFunction(void);
+
+extern bool
+parse_TargetSpecific(void);
+
 #endif

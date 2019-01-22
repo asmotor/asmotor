@@ -21,6 +21,7 @@
 
 #include "types.h"
 
+#include "expression.h"
 #include "options.h"
 
 #define MAX_SYMBOL_NAME_LENGTH 256
@@ -76,6 +77,7 @@ typedef struct Configuration {
 
     const char* (*getMachineError)(size_t errorNumber);
     void (*defineTokens)(void);
+    void (*sym_Init)(void);
 
     struct MachineOptions* (*opt_Alloc)(void);
     void (*opt_SetDefault)(struct MachineOptions*);
@@ -83,6 +85,10 @@ typedef struct Configuration {
     bool (*opt_Parse)(const char* option);
     void (*opt_Update)(struct MachineOptions*);
     void (*opt_PrintOptions)(void);
+
+	SExpression* (*parse_Function)(void);
+    bool (*parse_Target)(void);
+
 } SConfiguration;
 
 extern const SConfiguration*

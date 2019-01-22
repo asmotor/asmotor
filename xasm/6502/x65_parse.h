@@ -45,6 +45,13 @@ parse_AddressingMode(SAddressingMode* addrMode, uint32_t allowedModes);
 extern bool
 parse_IntegerInstruction(void);
 
-extern SExpression* parse_ExpressionSU8(void);
+extern SExpression*
+parse_ExpressionSU8(void);
+
+extern SExpression*
+parse_TargetFunction(void);
+
+extern bool
+parse_TargetSpecific(void);
 
 #endif

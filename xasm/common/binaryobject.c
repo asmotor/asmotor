@@ -22,6 +22,7 @@
 #include "types.h"
 
 // From xasm
+#include "xasm.h"
 #include "section.h"
 #include "project.h"
 #include "symbol.h"

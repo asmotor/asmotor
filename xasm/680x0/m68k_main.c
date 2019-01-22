@@ -23,6 +23,8 @@
 
 #include "m68k_errors.h"
 #include "m68k_options.h"
+#include "m68k_parse.h"
+#include "m68k_symbols.h"
 #include "m68k_tokens.h"
 
 static SConfiguration
@@ -42,12 +44,17 @@ g_680x0Configuration = {
 
 	loc_GetError,
 	loclexer_Init,
+	locsym_Init,
+
 	locopt_Alloc,
 	locopt_Open,
 	locopt_Copy,
 	locopt_Parse,
 	locopt_Update,
-	locopt_PrintOptions
+	locopt_PrintOptions,
+
+	parse_TargetFunction,
+	parse_TargetSpecific
 };
 
 extern int

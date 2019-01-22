@@ -19,7 +19,8 @@
 #include "symbol.h"
 #include "xasm.h"
 
-void locsym_Init(void) {
+void
+locsym_Init(void) {
 	string* pName;
 	
 	pName = str_Create("HOME");

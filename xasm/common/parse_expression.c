@@ -26,9 +26,6 @@
 #include "project.h"
 #include "parse_string.h"
 
-extern SExpression*
-parse_TargetFunction(void);
-
 static int32_t
 stringCompare(string* s) {
     int32_t r = 0;
@@ -317,8 +314,8 @@ expressionPriority7(size_t maxStringConstLength) {
         case T_FUNC_BANK:
             return handleBankFunction();
         default: {
-            SExpression* expr;
-            if ((expr = parse_TargetFunction()) != NULL)
+            SExpression* expr = xasm_Configuration->parse_Function();
+            if (expr != NULL)
                 return expr;
 
             return expressionPriority8(maxStringConstLength);

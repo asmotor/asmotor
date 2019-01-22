@@ -16,10 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_PARSE_LOCERROR_H_INCLUDED_
-#define XASM_PARSE_LOCERROR_H_INCLUDED_
+#ifndef XASM_MIPS_PARSE_H_INCLUDED_
+#define XASM_MIPS_PARSE_H_INCLUDED_
 
 extern bool
 parse_IntegerInstruction(void);
+
+extern SExpression*
+parse_TargetFunction(void);
+
+extern bool
+parse_TargetSpecific(void);
 
 #endif
