@@ -27,7 +27,7 @@ createGroup(const char* name, EGroupType type, uint32_t flags) {
 }
 
 void
-locsym_Init(void) {
+m68k_DefineSymbols(void) {
     createGroup("CODE", GROUP_TEXT, 0);
     createGroup("DATA", GROUP_TEXT, SYMF_DATA);
     createGroup("BSS", GROUP_BSS, 0);

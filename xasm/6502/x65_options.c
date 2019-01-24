@@ -34,22 +34,22 @@
 static int g_previousInstructionSet = 0;
 
 void
-locopt_Copy(struct MachineOptions* dest, struct MachineOptions* pSrc) {
+x65_CopyOptions(struct MachineOptions* dest, struct MachineOptions* pSrc) {
     *dest = *pSrc;
 }
 
 struct MachineOptions*
-locopt_Alloc(void) {
+x65_AllocOptions(void) {
     return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
-locopt_Init(SMachineOptions* options) {
+x65_SetDefault(SMachineOptions* options) {
     options->undocumentedInstructions = 0;
 }
 
 void
-locopt_Update(SMachineOptions* options) {
+x65_OptionsUpdated(SMachineOptions* options) {
     int newSet = options->undocumentedInstructions;
     if (g_previousInstructionSet != newSet) {
         SLexConstantsWord* prev = loclexer_GetUndocumentedInstructions(g_previousInstructionSet);
@@ -65,7 +65,7 @@ locopt_Update(SMachineOptions* options) {
 }
 
 bool
-locopt_Parse(const char* s) {
+x65_ParseOption(const char* s) {
     if (s == NULL || strlen(s) == 0)
         return false;
 
@@ -90,6 +90,6 @@ locopt_Parse(const char* s) {
 }
 
 void
-locopt_PrintOptions(void) {
+x65_PrintOptions(void) {
     printf("    -mu<x>  Enable undocumented opcodes, name set x (0, 1 or 2)\n");
 }

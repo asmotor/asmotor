@@ -30,27 +30,27 @@
 #include "m68k_options.h"
 
 void
-locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
+m68k_CopyOptions(SMachineOptions* dest, SMachineOptions* src) {
     *dest = *src;
 }
 
 SMachineOptions*
-locopt_Alloc(void) {
+m68k_AllocOptions(void) {
     return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
-locopt_Open(SMachineOptions* options) {
+m68k_SetDefaults(SMachineOptions* options) {
     options->cpu = CPUF_68000;
     options->fpu = 0;
 }
 
 void
-locopt_Update(SMachineOptions* options) {
+m68k_OptionsUpdated(SMachineOptions* options) {
 }
 
 bool
-locopt_Parse(const char* option) {
+m68k_ParseOption(const char* option) {
     if (option == NULL || strlen(option) == 0)
         return false;
 
@@ -109,6 +109,6 @@ locopt_Parse(const char* option) {
 }
 
 void
-locopt_PrintOptions(void) {
+m68k_PrintOptions(void) {
     printf("    -mc<X>  Enable CPU 680X0\n");
 }

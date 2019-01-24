@@ -506,6 +506,6 @@ static SLexConstantsWord g_tokens[] = {
 };
 
 void
-loclexer_Init(void) {
+m68k_DefineTokens(void) {
 	lex_ConstantsDefineWords(g_tokens);
 }

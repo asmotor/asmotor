@@ -21,6 +21,6 @@
 #define XASM_6502_SYMBOLS_H_INCLUDED_
 
 extern void
-locsym_Init(void);
+x65_DefineSymbols(void);
 
 #endif

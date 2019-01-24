@@ -20,6 +20,6 @@
 #define XASM_M68K_SYMBOLS_H_INCLUDED_
 
 extern void
-locsym_Init(void);
+m68k_DefineSymbols(void);
 
 #endif

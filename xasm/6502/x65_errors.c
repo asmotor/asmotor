@@ -25,7 +25,7 @@ g_errors[] = {
 };
 
 const char*
-loc_GetError(size_t errorNumber) {
+x65_GetError(size_t errorNumber) {
 	if (errorNumber < 1000)
 		return NULL;
 

@@ -191,7 +191,7 @@ g_undocumentedInstructions[] = {
 };
 
 void
-loclexer_Init(void) {
+x65_DefineTokens(void) {
 	lex_ConstantsDefineWords(g_tokens);
 }
 

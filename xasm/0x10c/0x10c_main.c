@@ -44,7 +44,7 @@ g_0x10CConfiguration = {
 
 	x10c_GetError,
 	x10c_DefineTokens,
-	locsym_Init,
+	x10c_DefineSymbols,
 
 	x10c_AllocOptions,
 	x10c_SetDefaults,

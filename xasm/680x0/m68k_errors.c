@@ -19,8 +19,7 @@
 #include "xasm.h"
 
 static const char*
-g_errors[]=
-{
+g_errors[] = {
 	"Result of operation is undefined",
 	"Instruction is unsized, ignoring size",
 	"Scale out of range (must be 1, 2, 4 or 8)",
@@ -37,7 +36,7 @@ g_errors[]=
 };
 
 const char*
-loc_GetError(size_t errorNumber)
+m68k_GetError(size_t errorNumber)
 {
 	if (errorNumber < 1000)
 		return NULL;

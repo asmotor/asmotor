@@ -20,6 +20,6 @@
 #define XASM_0X10C_SYMBOLS_H_INCLUDED_
 
 extern void
-locsym_Init(void);
+x10c_DefineSymbols(void);
 
 #endif

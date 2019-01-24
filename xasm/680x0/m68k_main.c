@@ -42,16 +42,16 @@ g_680x0Configuration = {
 	"DC.B", "DC.W", "DC.L",
 	"DS.B", "DS.W", "DS.L",
 
-	loc_GetError,
-	loclexer_Init,
-	locsym_Init,
+	m68k_GetError,
+	m68k_DefineTokens,
+	m68k_DefineSymbols,
 
-	locopt_Alloc,
-	locopt_Open,
-	locopt_Copy,
-	locopt_Parse,
-	locopt_Update,
-	locopt_PrintOptions,
+	m68k_AllocOptions,
+	m68k_SetDefaults,
+	m68k_CopyOptions,
+	m68k_ParseOption,
+	m68k_OptionsUpdated,
+	m68k_PrintOptions,
 
 	parse_TargetFunction,
 	parse_TargetSpecific

@@ -27,6 +27,6 @@ typedef enum {
 } EMachineError;
 
 extern const char*
-loc_GetError(size_t errorNumber);
+x65_GetError(size_t errorNumber);
 
 #endif

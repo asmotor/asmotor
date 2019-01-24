@@ -508,6 +508,6 @@ typedef	enum {
 } ETargetToken;
 
 extern void
-loclexer_Init(void);
+m68k_DefineTokens(void);
 
 #endif
