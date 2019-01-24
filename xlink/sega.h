@@ -16,10 +16,13 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_SEGA_H_INCLUDED_
-#define	XLINK_SEGA_H_INCLUDED_
+#ifndef XLINK_SEGA_H_INCLUDED_
+#define XLINK_SEGA_H_INCLUDED_
 
-extern void sega_WriteMegaDriveImage(char* filename);
-extern void sega_WriteMasterSystemImage(char* outputFilename, int binaryPad);
+extern void
+sega_WriteMegaDriveImage(const char* filename);
+
+extern void
+sega_WriteMasterSystemImage(const char* outputFilename, int binaryPad);
 
 #endif

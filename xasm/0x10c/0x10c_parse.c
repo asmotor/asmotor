@@ -435,11 +435,11 @@ parse_IntegerInstruction(void) {
 }
 
 SExpression*
-parse_TargetFunction(void) {
+x10c_ParseFunction(void) {
     return NULL;
 }
 
 bool
-parse_TargetSpecific(void) {
+x10c_ParseInstruction(void) {
     return parse_IntegerInstruction();
 }

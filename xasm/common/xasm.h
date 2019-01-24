@@ -39,9 +39,9 @@ extern void
 strlwr(char* s);
 #endif
 
-extern uint32_t g_nTotalLines;
-extern uint32_t g_nTotalErrors;
-extern uint32_t g_nTotalWarnings;
+extern uint32_t xasm_TotalLines;
+extern uint32_t xasm_TotalErrors;
+extern uint32_t xasm_TotalWarnings;
 
 typedef enum {
     MINSIZE_8BIT = 1,
@@ -77,17 +77,17 @@ typedef struct Configuration {
 
     const char* (*getMachineError)(size_t errorNumber);
     void (*defineTokens)(void);
-    void (*sym_Init)(void);
+    void (*defineSymbols)(void);
 
-    struct MachineOptions* (*opt_Alloc)(void);
-    void (*opt_SetDefault)(struct MachineOptions*);
-    void (*opt_Copy)(struct MachineOptions* dest, struct MachineOptions* src);
-    bool (*opt_Parse)(const char* option);
-    void (*opt_Update)(struct MachineOptions*);
-    void (*opt_PrintOptions)(void);
+    struct MachineOptions* (*allocOptions)(void);
+    void (*setDefaultOptions)(struct MachineOptions*);
+    void (*copyOptions)(struct MachineOptions* dest, struct MachineOptions* src);
+    bool (*parseOption)(const char* option);
+    void (*onOptionsUpdated)(struct MachineOptions*);
+    void (*printOptionUsage)(void);
 
-	SExpression* (*parse_Function)(void);
-    bool (*parse_Target)(void);
+	SExpression* (*parseFunction)(void);
+    bool (*parseInstruction)(void);
 
 } SConfiguration;
 

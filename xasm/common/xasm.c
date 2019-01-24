@@ -41,9 +41,9 @@
 
 /* Some global variables */
 
-uint32_t g_nTotalLines = 0;
-uint32_t g_nTotalErrors = 0;
-uint32_t g_nTotalWarnings = 0;
+uint32_t xasm_TotalLines = 0;
+uint32_t xasm_TotalErrors = 0;
+uint32_t xasm_TotalWarnings = 0;
 
 const SConfiguration* xasm_Configuration = NULL;
 
@@ -76,7 +76,7 @@ printUsage(void) {
            "            data (default is FF)\n"
            "\n"
            "Machine specific options:\n");
-    xasm_Configuration->opt_PrintOptions();
+    xasm_Configuration->printOptionUsage();
     exit(EXIT_SUCCESS);
 }
 
@@ -176,7 +176,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                 patch_BackPatch();
             }
 
-            if (b && g_nTotalErrors == 0) {
+            if (b && xasm_TotalErrors == 0) {
                 float timespent;
                 bool wr = false;
 
@@ -184,14 +184,14 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                     EndClock = clock();
 
                     timespent = ((float) (EndClock - StartClock)) / CLOCKS_PER_SEC;
-                    printf("Success! %u lines in %.02f seconds ", g_nTotalLines, timespent);
+                    printf("Success! %u lines in %.02f seconds ", xasm_TotalLines, timespent);
                     if (timespent == 0) {
                         printf("\n");
                     } else {
-                        printf("(%d lines/minute)\n", (int) (60 / timespent * g_nTotalLines));
+                        printf("(%d lines/minute)\n", (int) (60 / timespent * xasm_TotalLines));
                     }
-                    if (g_nTotalWarnings != 0) {
-                        printf("Encountered %u warnings\n", g_nTotalWarnings);
+                    if (xasm_TotalWarnings != 0) {
+                        printf("Encountered %u warnings\n", xasm_TotalWarnings);
                     }
                 }
 
@@ -221,9 +221,9 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                 }
             } else {
                 if (verbose) {
-                    printf("Encountered %u error%s", g_nTotalErrors, g_nTotalErrors > 1 ? "s" : "");
-                    if (g_nTotalWarnings != 0)
-                        printf(" and %u warning%s\n", g_nTotalWarnings, g_nTotalWarnings > 1 ? "s" : "");
+                    printf("Encountered %u error%s", xasm_TotalErrors, xasm_TotalErrors > 1 ? "s" : "");
+                    if (xasm_TotalWarnings != 0)
+                        printf(" and %u warning%s\n", xasm_TotalWarnings, xasm_TotalWarnings > 1 ? "s" : "");
                     else
                         printf("\n");
                 }

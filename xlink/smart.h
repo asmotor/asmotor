@@ -16,10 +16,11 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_SMART_H_INCLUDED_
-#define	XLINK_SMART_H_INCLUDED_
+#ifndef XLINK_SMART_H_INCLUDED_
+#define XLINK_SMART_H_INCLUDED_
 
-extern void smart_Process(char* name);
+extern void
+smart_Process(const char* name);
 
 #endif
 

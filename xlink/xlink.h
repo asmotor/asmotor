@@ -16,10 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_H_INCLUDED_
-#define	XLINK_H_INCLUDED_
+#ifndef XLINK_XLINK_H_INCLUDED_
+#define XLINK_XLINK_H_INCLUDED_
 
-#define	MAX_SYMBOL_NAME_LENGTH	256
+#define MAX_SYMBOL_NAME_LENGTH 256
 
 #include "asmotor.h"
 #include "file.h"
@@ -51,6 +51,7 @@
 #   define NO_RETURN
 #endif
 
-extern void Error(char* fmt, ...) NO_RETURN;
+extern void
+error(const char* fmt, ...) NO_RETURN;
 
 #endif

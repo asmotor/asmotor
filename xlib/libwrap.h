@@ -16,21 +16,20 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	LIBWRAP_H
-#define	LIBWRAP_H
+#ifndef XLIB_LIBWRAP_H_INCLUDED_
+#define XLIB_LIBWRAP_H_INCLUDED_
 
 #include "types.h"
 
-#define	MAXNAMELENGTH	256
+#define MAXNAMELENGTH 256
 
-typedef struct Library
-{
-	char tName[MAXNAMELENGTH];
-	uint32_t ulTime;
-	uint32_t ulDate;
-	uint32_t nByteLength;
-	uint8_t* pData;
-	struct Library* pNext;
+typedef struct Library {
+    char tName[MAXNAMELENGTH];
+    uint32_t ulTime;
+    uint32_t ulDate;
+    uint32_t nByteLength;
+    uint8_t* pData;
+    struct Library* pNext;
 } SLibrary;
 
 #endif

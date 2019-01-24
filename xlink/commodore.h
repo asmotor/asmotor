@@ -16,9 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_COMMODORE_H_INCLUDED_
-#define	XLINK_COMMODORE_H_INCLUDED_
+#ifndef XLINK_COMMODORE_H_INCLUDED_
+#define XLINK_COMMODORE_H_INCLUDED_
 
-extern void commodore_WritePrg(char* outputFilename, uint32_t baseAddress);
+extern void
+commodore_WritePrg(const char* outputFilename, uint32_t baseAddress);
 
 #endif

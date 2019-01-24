@@ -32,252 +32,220 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "asmotor.h"
+#include "file.h"
 #include "mem.h"
+
+#include "asmotor.h"
 #include "types.h"
+
 #include "libwrap.h"
 
-extern void fatalError(char* s);
+extern void
+fatalError(const char* s);
 
-size_t file_Length(FILE* f) {
-	off_t p = ftello(f);
-	fseek(f, 0, SEEK_END);
-	off_t r = ftello(f);
-	fseeko(f, p, SEEK_SET);
+static void
+truncateFileName(char* dest, const char* src) {
+    int32_t l;
 
-	return (size_t) r;
+    l = (int32_t) strlen(src) - 1;
+    while ((l >= 0) && (src[l] != '\\') && (src[l] != '/'))
+        --l;
+
+    strcpy(dest, &src[l + 1]);
 }
 
-int32_t file_ReadASCIIz(char* b, FILE* f) {
-	int32_t r = 0;
+SLibrary*
+lib_ReadLib0(FILE* fileHandle, size_t size) {
+    if (size) {
+        SLibrary* l = NULL;
+        SLibrary* first = NULL;
 
-	while ((*b++ = (char) fgetc(f)) != 0) {
-		++r;
-	}
+        fgetll(fileHandle);
+        size -= 4;    //	Skip count
 
-	return r + 1;
+        while (size > 0) {
+            if (l == NULL) {
+                first = l = (SLibrary*) mem_Alloc(sizeof(SLibrary));
+            } else {
+                l->pNext = (SLibrary*) mem_Alloc(sizeof(SLibrary));
+                l = l->pNext;
+            }
+
+            size -= fgetsz(l->tName, MAXNAMELENGTH, fileHandle);
+            l->ulTime = fgetll(fileHandle);
+            size -= 4;
+            l->ulDate = fgetll(fileHandle);
+            size -= 4;
+            l->nByteLength = fgetll(fileHandle);
+            size -= 4;
+
+            l->pData = (uint8_t*) mem_Alloc(l->nByteLength);
+            if (l->nByteLength != fread(l->pData, sizeof(uint8_t), l->nByteLength, fileHandle))
+                fatalError("File read failed");
+            size -= l->nByteLength;
+
+            l->pNext = NULL;
+        }
+        return first;
+    }
+
+    return NULL;
 }
 
-void file_WriteASCIIz(char* b, FILE* f) {
-	while (*b)
-		fputc(*b++, f);
+SLibrary*
+lib_Read(const char* filename) {
+    FILE* f;
 
-	fputc(0, f);
+    if ((f = fopen(filename, "rb")) != NULL) {
+        size_t size;
+        char ID[5];
+
+        size = fsize(f);
+        if (size == 0) {
+            fclose(f);
+            return NULL;
+        }
+
+        if (4 != fread(ID, sizeof(char), 4, f))
+            internalerror("File read failed");
+        ID[4] = 0;
+        size -= 4;
+
+        if (strcmp(ID, "XLB0") == 0) {
+            SLibrary* r;
+
+            r = lib_ReadLib0(f, size);
+            fclose(f);
+            return r;
+        } else {
+            fclose(f);
+            fatalError("Not a valid xLib library");
+            return NULL;
+        }
+    } else {
+        return NULL;
+    }
 }
 
-uint32_t file_ReadLong(FILE* f) {
-	uint32_t r;
+bool
+lib_Write(SLibrary* lib, const char* filename) {
+    FILE* f;
 
-	r  = (uint32_t)fgetc(f);
-	r |= (uint32_t)fgetc(f) << 8u;
-	r |= (uint32_t)fgetc(f) << 16u;
-	r |= (uint32_t)fgetc(f) << 24u;
+    if ((f = fopen(filename, "wb")) != NULL) {
+        uint32_t count = 0;
 
-	return r;
+        fwrite("XLB0", sizeof(char), 4, f);
+        fputll(0, f);
+
+        while (lib) {
+            fputsz(lib->tName, f);
+            fputll(lib->ulTime, f);
+            fputll(lib->ulDate, f);
+            fputll(lib->nByteLength, f);
+            fwrite(lib->pData, sizeof(uint8_t), lib->nByteLength, f);
+            lib = lib->pNext;
+            ++count;
+        }
+
+        fseek(f, 4, SEEK_SET);
+        fputll(count, f);
+
+        fclose(f);
+        return true;
+    }
+
+    return false;
 }
 
-void file_WriteLong(uint32_t w, FILE* f) {
-	fputc(w, f);
-	fputc(w >> 8u, f);
-	fputc(w >> 16u, f);
-	fputc(w >> 24u, f);
+SLibrary*
+lib_Find(SLibrary* lib, const char* filename) {
+    char truncatedName[MAXNAMELENGTH];
+
+    truncateFileName(truncatedName, filename);
+
+    while (lib) {
+        if (strcmp(lib->tName, truncatedName) == 0)
+            break;
+
+        lib = lib->pNext;
+    }
+
+    return lib;
 }
 
-SLibrary* lib_ReadLib0(FILE* f, size_t size) {
-	if (size) {
-		SLibrary* l = NULL;
-		SLibrary* first = NULL;
+SLibrary*
+lib_AddReplace(SLibrary* lib, const char* filename) {
+    FILE* f;
 
-		file_ReadLong(f);
-		size -= 4;    //	Skip count
+    if ((f = fopen(filename, "rb")) != NULL) {
+        SLibrary* module;
+        char truncatedName[MAXNAMELENGTH];
 
-		while (size > 0) {
-			if (l == NULL) {
-				first = l = (SLibrary*) mem_Alloc(sizeof(SLibrary));
-			} else {
-				l->pNext = (SLibrary*) mem_Alloc(sizeof(SLibrary));
-				l = l->pNext;
-			}
+        truncateFileName(truncatedName, filename);
 
-			size -= file_ReadASCIIz(l->tName, f);
-			l->ulTime = file_ReadLong(f);
-			size -= 4;
-			l->ulDate = file_ReadLong(f);
-			size -= 4;
-			l->nByteLength = file_ReadLong(f);
-			size -= 4;
+        if ((module = lib_Find(lib, filename)) == NULL) {
+            module = (SLibrary*) mem_Alloc(sizeof(SLibrary));
+            module->pNext = lib;
+            lib = module;
+        } else {
+            /* Module already exists */
+            mem_Free(module->pData);
+        }
 
-			l->pData = (uint8_t*) mem_Alloc(l->nByteLength);
-			if (l->nByteLength != fread(l->pData, sizeof(uint8_t), l->nByteLength, f))
-				fatalError("File read failed");
-			size -= l->nByteLength;
+        module->nByteLength = (uint32_t) fsize(f);
+        strcpy(module->tName, truncatedName);
+        module->pData = (uint8_t*) mem_Alloc(module->nByteLength);
 
-			l->pNext = NULL;
-		}
-		return first;
-	}
+        if (module->nByteLength != fread(module->pData, sizeof(uint8_t), module->nByteLength, f))
+            internalerror("File read failed");
 
-	return NULL;
+        fclose(f);
+    }
+
+    return lib;
 }
 
-SLibrary* lib_Read(char* filename) {
-	FILE* f;
+SLibrary*
+lib_DeleteModule(SLibrary* lib, const char* filename) {
+    char truncatedName[MAXNAMELENGTH];
+    SLibrary** pp;
+    SLibrary** first;
+    bool found = 0;
 
-	if ((f = fopen(filename, "rb")) != NULL) {
-		size_t size;
-		char ID[5];
+    first = pp = &lib;
 
-		size = file_Length(f);
-		if (size == 0) {
-			fclose(f);
-			return NULL;
-		}
+    truncateFileName(truncatedName, filename);
+    while (*pp != NULL && !found) {
+        if (strcmp((*pp)->tName, truncatedName) == 0) {
+            SLibrary* t = *pp;
 
-		if (4 != fread(ID, sizeof(char), 4, f))
-			internalerror("File read failed");
-		ID[4] = 0;
-		size -= 4;
+            if (t->pData)
+                mem_Free(t->pData);
 
-		if (strcmp(ID, "XLB0") == 0) {
-			SLibrary* r;
+            *pp = t->pNext;
 
-			r = lib_ReadLib0(f, size);
-			fclose(f);
-			return r;
-		} else {
-			fclose(f);
-			fatalError("Not a valid xLib library");
-			return NULL;
-		}
-	} else {
-		return NULL;
-	}
+            mem_Free(t);
+            found = 1;
+        }
+        pp = &(*pp)->pNext;
+    }
+
+    if (!found)
+        fatalError("Module not found");
+
+    return *first;
 }
 
-bool lib_Write(SLibrary* lib, char* filename) {
-	FILE* f;
+void
+lib_Free(SLibrary* lib) {
+    while (lib) {
+        SLibrary* l;
 
-	if ((f = fopen(filename, "wb")) != NULL) {
-		uint32_t count = 0;
+        if (lib->pData)
+            mem_Free(lib->pData);
 
-		fwrite("XLB0", sizeof(char), 4, f);
-		file_WriteLong(0, f);
-
-		while (lib) {
-			file_WriteASCIIz(lib->tName, f);
-			file_WriteLong(lib->ulTime, f);
-			file_WriteLong(lib->ulDate, f);
-			file_WriteLong(lib->nByteLength, f);
-			fwrite(lib->pData, sizeof(uint8_t), lib->nByteLength, f);
-			lib = lib->pNext;
-			++count;
-		}
-
-		fseek(f, 4, SEEK_SET);
-		file_WriteLong(count, f);
-
-		fclose(f);
-		return true;
-	}
-
-	return false;
-}
-
-void TruncateFileName(char* dest, char* src) {
-	int32_t l;
-
-	l = (int32_t) strlen(src) - 1;
-	while ((l >= 0) && (src[l] != '\\') && (src[l] != '/'))
-		--l;
-
-	strcpy(dest, &src[l + 1]);
-}
-
-SLibrary* lib_Find(SLibrary* lib, char* filename) {
-	char truncatedName[MAXNAMELENGTH];
-
-	TruncateFileName(truncatedName, filename);
-
-	while (lib) {
-		if (strcmp(lib->tName, truncatedName) == 0)
-			break;
-
-		lib = lib->pNext;
-	}
-
-	return lib;
-}
-
-SLibrary* lib_AddReplace(SLibrary* lib, char* filename) {
-	FILE* f;
-
-	if ((f = fopen(filename, "rb")) != NULL) {
-		SLibrary* module;
-		char truncatedName[MAXNAMELENGTH];
-
-		TruncateFileName(truncatedName, filename);
-
-		if ((module = lib_Find(lib, filename)) == NULL) {
-			module = (SLibrary*) mem_Alloc(sizeof(SLibrary));
-			module->pNext = lib;
-			lib = module;
-		} else {
-			/* Module already exists */
-			mem_Free(module->pData);
-		}
-
-		module->nByteLength = (uint32_t)file_Length(f);
-		strcpy(module->tName, truncatedName);
-		module->pData = (uint8_t*) mem_Alloc(module->nByteLength);
-
-		if (module->nByteLength != fread(module->pData, sizeof(uint8_t), module->nByteLength, f))
-			internalerror("File read failed");
-
-		fclose(f);
-	}
-
-	return lib;
-}
-
-SLibrary* lib_DeleteModule(SLibrary* lib, char* filename) {
-	char truncatedName[MAXNAMELENGTH];
-	SLibrary** pp;
-	SLibrary** first;
-	bool found = 0;
-
-	first = pp = &lib;
-
-	TruncateFileName(truncatedName, filename);
-	while (*pp != NULL && !found) {
-		if (strcmp((*pp)->tName, truncatedName) == 0) {
-			SLibrary* t = *pp;
-
-			if (t->pData)
-				mem_Free(t->pData);
-
-			*pp = t->pNext;
-
-			mem_Free(t);
-			found = 1;
-		}
-		pp = &(*pp)->pNext;
-	}
-
-	if (!found)
-		fatalError("Module not found");
-
-	return *first;
-}
-
-void lib_Free(SLibrary* lib) {
-	while (lib) {
-		SLibrary* l;
-
-		if (lib->pData)
-			mem_Free(lib->pData);
-
-		l = lib;
-		lib = lib->pNext;
-		mem_Free(l);
-	}
+        l = lib;
+        lib = lib->pNext;
+        mem_Free(l);
+    }
 }

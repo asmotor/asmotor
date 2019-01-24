@@ -20,10 +20,10 @@
 #define XASM_0X10C_PARSE_H_INCLUDED_
 
 extern SExpression*
-parse_TargetFunction(void);
+x10c_ParseFunction(void);
 
 extern bool
-parse_TargetSpecific(void);
+x10c_ParseInstruction(void);
 
 #endif
 

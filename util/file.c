@@ -75,16 +75,18 @@ fputlw(uint16_t value, FILE* fileHandle) {
     fputc((uint8_t) (value >> 8u), fileHandle);
 }
 
-void
+size_t
 fgetsz(char* destination, size_t maxLength, FILE* fileHandle) {
+    size_t r = 0;
     if (maxLength > 0) {
         char ch;
 
         do {
             ch = *destination++ = (char) fgetc(fileHandle);
-            --maxLength;
-        } while (maxLength != 0 && ch);
+            ++r;
+        } while (r < maxLength && ch);
     }
+    return r;
 }
 
 void

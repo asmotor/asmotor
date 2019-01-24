@@ -39,14 +39,14 @@ opt_Update(void) {
     lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[0], opt_Current->binaryLiteralCharacters[0], 1);
     lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[1], opt_Current->binaryLiteralCharacters[1], 1);
 
-    xasm_Configuration->opt_Update(opt_Current->machineOptions);
+    xasm_Configuration->onOptionsUpdated(opt_Current->machineOptions);
 }
 
 static SOptions*
 opt_Alloc(void) {
     SOptions* nopt = (SOptions*) mem_Alloc(sizeof(SOptions));
     memset(nopt, 0, sizeof(SOptions));
-    nopt->machineOptions = xasm_Configuration->opt_Alloc();
+    nopt->machineOptions = xasm_Configuration->allocOptions();
     return nopt;
 }
 
@@ -57,7 +57,7 @@ opt_Copy(SOptions* pDest, SOptions* pSrc) {
     *pDest = *pSrc;
     pDest->machineOptions = p;
 
-    xasm_Configuration->opt_Copy(pDest->machineOptions, pSrc->machineOptions);
+    xasm_Configuration->copyOptions(pDest->machineOptions, pSrc->machineOptions);
 }
 
 void
@@ -114,7 +114,7 @@ opt_Parse(char* s) {
             break;
         }
         case 'm': {
-            xasm_Configuration->opt_Parse(&s[1]);
+            xasm_Configuration->parseOption(&s[1]);
             break;
         }
         case 'b': {
@@ -162,7 +162,7 @@ opt_Open(void) {
     opt_Current->disabledWarningsCount = 0;
     opt_Current->allowReservedKeywordLabels = true;
 
-    xasm_Configuration->opt_SetDefault(opt_Current->machineOptions);
+    xasm_Configuration->setDefaultOptions(opt_Current->machineOptions);
     opt_Update();
 }
 

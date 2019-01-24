@@ -16,48 +16,46 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_OBJECT_H_INCLUDED_
-#define	XLINK_OBJECT_H_INCLUDED_
+#ifndef XLINK_OBJECT_H_INCLUDED_
+#define XLINK_OBJECT_H_INCLUDED_
 
 #include <stdint.h>
 
-typedef	enum
-{
-	GROUP_TEXT = 0,
-	GROUP_BSS = 1
+typedef enum {
+    GROUP_TEXT = 0,
+    GROUP_BSS = 1
 } GroupType;
 
 #define GROUP_FLAG_CHIP 0x20000000u
 #define GROUP_FLAG_DATA 0x40000000u
 
-typedef	struct
-{
-	char name[MAX_SYMBOL_NAME_LENGTH];
-	GroupType  type;
+typedef struct {
+    char name[MAX_SYMBOL_NAME_LENGTH];
+    GroupType type;
     uint32_t flags;
 } Group;
 
-typedef	struct
-{
-	uint32_t totalGroups;
-	Group groups[];
+typedef struct {
+    uint32_t totalGroups;
+    Group groups[];
 } Groups;
 
-static inline bool group_isText(Group* group)
-{
+static inline bool
+group_isText(Group* group) {
     return group != NULL && group->type == GROUP_TEXT;
 }
 
-static inline char* group_Name(Group* group)
-{
+static inline char*
+group_Name(Group* group) {
     return group != NULL ? group->name : NULL;
 }
 
-static inline Group* groups_GetGroup(Groups* groups, uint32_t groupId)
-{
+static inline Group*
+groups_GetGroup(Groups* groups, uint32_t groupId) {
     return groupId != UINT32_MAX && groupId < groups->totalGroups ? &groups->groups[groupId] : NULL;
 }
 
-extern void obj_Read(char* fileName);
+extern void
+obj_Read(char* fileName);
 
 #endif

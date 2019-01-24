@@ -33,15 +33,15 @@
 #define SET_TYPE_AND_FLAGS(symbol, t) ((symbol)->type=t,(symbol)->flags=((symbol)->flags&SYMF_EXPORT)|g_defaultSymbolFlags[t])
 
 static uint32_t g_defaultSymbolFlags[] = {
-        SYMF_RELOC | SYMF_EXPORTABLE | SYMF_EXPRESSION,     // SYM_LABEL
-        SYMF_CONSTANT | SYMF_EXPORTABLE | SYMF_EXPRESSION,  // SYM_EQU
-        SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_MODIFIABLE,  // SYM_SET
-        SYMF_HAS_DATA,                                        // SYM_EQUS
-        SYMF_HAS_DATA,                                        // SYM_MACRO
-        SYMF_EXPRESSION | SYMF_RELOC,                       // SYM_IMPORT
-        SYMF_EXPORT,                                        // SYM_GROUP
-        SYMF_EXPRESSION | SYMF_MODIFIABLE | SYMF_RELOC,     // SYM_GLOBAL
-        SYMF_MODIFIABLE | SYMF_EXPRESSION | SYMF_EXPORTABLE    // SYM_UNDEFINED
+    SYMF_RELOC | SYMF_EXPORTABLE | SYMF_EXPRESSION,     // SYM_LABEL
+    SYMF_CONSTANT | SYMF_EXPORTABLE | SYMF_EXPRESSION,  // SYM_EQU
+    SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_MODIFIABLE,  // SYM_SET
+    SYMF_HAS_DATA,                                      // SYM_EQUS
+    SYMF_HAS_DATA,                                      // SYM_MACRO
+    SYMF_EXPRESSION | SYMF_RELOC,                       // SYM_IMPORT
+    SYMF_EXPORT,                                        // SYM_GROUP
+    SYMF_EXPRESSION | SYMF_MODIFIABLE | SYMF_RELOC,     // SYM_GLOBAL
+    SYMF_MODIFIABLE | SYMF_EXPRESSION | SYMF_EXPORTABLE // SYM_UNDEFINED
 };
 
 static SSymbol* g_currentScope;
@@ -484,7 +484,7 @@ bool
 sym_Init(void) {
     g_currentScope = NULL;
 
-    xasm_Configuration->sym_Init();
+    xasm_Configuration->defineSymbols();
 
     createEquCallback("__NARG", callback__NARG);
     createEquCallback("__LINE", callback__LINE);

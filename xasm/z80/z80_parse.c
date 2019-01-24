@@ -835,7 +835,9 @@ parse_AddrMode(SAddressingMode* addrMode) {
 
 		*addrMode = g_addressModes[mode - T_MODE_B];
 		return true;
-	} else if (lex_Current.token == '[' || lex_Current.token == '(') {
+	}
+	
+	if (lex_Current.token == '[' || lex_Current.token == '(') {
 		char endToken = (char) (lex_Current.token == '[' ? ']' : ')');
 		SLexerBookmark bm;
 
@@ -865,7 +867,9 @@ parse_AddrMode(SAddressingMode* addrMode) {
 			}
 		}
 		lex_Goto(&bm);
-	} else if (lex_Current.token == '[') {
+	}
+	
+	if (lex_Current.token == '[') {
 		parse_GetToken();
 
 		SExpression* expression = parse_Expression(2);

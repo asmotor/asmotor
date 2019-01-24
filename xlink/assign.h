@@ -16,9 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_ASSIGN_H_INCLUDED_
-#define	XLINK_ASSIGN_H_INCLUDED_
+#ifndef XLINK_ASSIGN_H_INCLUDED_
+#define XLINK_ASSIGN_H_INCLUDED_
 
-extern void assign_Process(void);
+extern void
+assign_Process(void);
 
 #endif

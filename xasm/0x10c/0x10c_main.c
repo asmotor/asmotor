@@ -53,8 +53,8 @@ g_0x10CConfiguration = {
 	x10c_OptionsUpdated,
 	x10c_PrintOptions,
 
-	parse_TargetFunction,
-	parse_TargetSpecific
+	x10c_ParseFunction,
+	x10c_ParseInstruction
 };
 
 extern int

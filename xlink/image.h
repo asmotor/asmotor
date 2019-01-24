@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_IMAGE_H_INCLUDED_
-#define	XLINK_IMAGE_H_INCLUDED_
+#ifndef    XLINK_IMAGE_H_INCLUDED_
+#define    XLINK_IMAGE_H_INCLUDED_
 
 #include <stdio.h>
 
@@ -26,7 +26,10 @@
  *  0 - pad length to power of two
  * >0 - pad length to multiple of argument
  */
-extern void image_WriteBinaryToFile(FILE* fileHandle, int padding);
-extern void image_WriteBinary(char* name, int padding);
+extern void
+image_WriteBinaryToFile(FILE* fileHandle, int padding);
+
+extern void
+image_WriteBinary(const char* name, int padding);
 
 #endif

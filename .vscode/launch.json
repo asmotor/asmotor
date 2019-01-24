@@ -8,10 +8,10 @@
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/cmake/debug/xasm/0x10c/motor0x10c",
-            "args": ["strings.asm"],
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
+            "args": ["test_out.asm"],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/test/common",
+            "cwd": "${workspaceFolder}/test/z80",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"

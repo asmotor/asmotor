@@ -16,37 +16,34 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_SYMBOL_H_INCLUDED_
-#define	XLINK_SYMBOL_H_INCLUDED_
+#ifndef XLINK_SYMBOL_H_INCLUDED_
+#define XLINK_SYMBOL_H_INCLUDED_
 
-typedef	enum
-{
-	SYM_EXPORT,
-	SYM_IMPORT,
-	SYM_LOCAL,
-	SYM_LOCALEXPORT,
-	SYM_LOCALIMPORT
+typedef enum {
+    SYM_EXPORT,
+    SYM_IMPORT,
+    SYM_LOCAL,
+    SYM_LOCALEXPORT,
+    SYM_LOCALIMPORT
 } SymbolType;
 
-typedef	struct Symbol_
-{
-	char       name[MAX_SYMBOL_NAME_LENGTH];
-	SymbolType type;
-	int32_t    value;
-	bool     resolved;
+typedef struct Symbol_ {
+    char name[MAX_SYMBOL_NAME_LENGTH];
+    SymbolType type;
+    int32_t value;
+    bool resolved;
 
-	struct Section_* section;
+    struct Section_* section;
 } Symbol;
 
-static inline bool symbol_IsLocal(Symbol* symbol)
-{
-    switch (symbol->type)
-    {
+static inline bool
+symbol_IsLocal(Symbol* symbol) {
+    switch (symbol->type) {
         case SYM_LOCAL:
         case SYM_LOCALEXPORT:
         case SYM_LOCALIMPORT:
             return true;
-    	default:
+        default:
         case SYM_EXPORT:
         case SYM_IMPORT:
             return false;

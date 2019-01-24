@@ -18,9 +18,8 @@
 
 #include "xlink.h"
 
-
-static uint16_t sega_CalcMegaDriveChecksum(FILE* fileHandle, size_t length)
-{
+static uint16_t
+sega_CalcMegaDriveChecksum(FILE* fileHandle, size_t length) {
     uint16_t r = 0;
     size_t c = (length - 0x200U) >> 1u;
 
@@ -31,9 +30,8 @@ static uint16_t sega_CalcMegaDriveChecksum(FILE* fileHandle, size_t length)
     return r;
 }
 
-
-static void sega_UpdateMegaDriveHeader(FILE* fileHandle)
-{
+static void
+sega_UpdateMegaDriveHeader(FILE* fileHandle) {
     fseek(fileHandle, 0, SEEK_END);
     long length = ftell(fileHandle);
 
@@ -45,33 +43,29 @@ static void sega_UpdateMegaDriveHeader(FILE* fileHandle)
     fputbw(checksum, fileHandle);
 }
 
+void
+sega_WriteMegaDriveImage(const char* outputFilename) {
+    FILE* fileHandle = fopen(outputFilename, "w+b");
+    if (fileHandle == NULL)
+        error("Unable to open \"%s\" for writing", outputFilename);
 
-void sega_WriteMegaDriveImage(char* outputFilename)
-{
-	FILE* fileHandle = fopen(outputFilename, "w+b");
-	if (fileHandle == NULL)
-		Error("Unable to open \"%s\" for writing", outputFilename);
-
-	image_WriteBinaryToFile(fileHandle, 0);
+    image_WriteBinaryToFile(fileHandle, 0);
 
     sega_UpdateMegaDriveHeader(fileHandle);
 
-	fclose(fileHandle);
+    fclose(fileHandle);
 }
 
-
-static uint16_t sega_CalcMasterSystemCheckSumPart(FILE* fileHandle, int count, uint16_t checkSumIn)
-{
-    while (count--)
-    {
-        checkSumIn += (uint16_t)fgetc(fileHandle);
+static uint16_t
+sega_CalcMasterSystemCheckSumPart(FILE* fileHandle, int count, uint16_t checkSumIn) {
+    while (count--) {
+        checkSumIn += (uint16_t) fgetc(fileHandle);
     }
     return checkSumIn;
 }
 
-
-static uint16_t sega_CalcMasterSystemCheckSum(FILE* fileHandle, int fileSize, int headerLocation)
-{
+static uint16_t
+sega_CalcMasterSystemCheckSum(FILE* fileHandle, int fileSize, int headerLocation) {
     uint16_t checkSum = 0;
 
     fseek(fileHandle, 0, SEEK_SET);
@@ -85,31 +79,46 @@ static uint16_t sega_CalcMasterSystemCheckSum(FILE* fileHandle, int fileSize, in
     return checkSum;
 }
 
-
-uint8_t sega_CalcSizeCode(uint8_t code, size_t fileSize)
-{
+uint8_t
+sega_CalcSizeCode(uint8_t code, size_t fileSize) {
     uint8_t newCode = 0;
-    
-    switch (fileSize)
-    {
-        case 0x002000: newCode = 0x0A; break;
-        case 0x004000: newCode = 0x0B; break;
-        case 0x008000: newCode = 0x0C; break;
-        case 0x00C000: newCode = 0x0D; break;
-        case 0x010000: newCode = 0x0E; break;
-        case 0x020000: newCode = 0x0F; break;
-        case 0x040000: newCode = 0x00; break;
-        case 0x080000: newCode = 0x01; break;
+
+    switch (fileSize) {
+        case 0x002000:
+            newCode = 0x0A;
+            break;
+        case 0x004000:
+            newCode = 0x0B;
+            break;
+        case 0x008000:
+            newCode = 0x0C;
+            break;
+        case 0x00C000:
+            newCode = 0x0D;
+            break;
+        case 0x010000:
+            newCode = 0x0E;
+            break;
+        case 0x020000:
+            newCode = 0x0F;
+            break;
+        case 0x040000:
+            newCode = 0x00;
+            break;
+        case 0x080000:
+            newCode = 0x01;
+            break;
         default:
-        case 0x100000: newCode = 0x02; break;
+        case 0x100000:
+            newCode = 0x02;
+            break;
     }
 
     return (uint8_t) ((code & 0xF0U) | newCode);
 }
 
-
-void sega_UpdateMasterSystemHeader(FILE* fileHandle, int headerLocation)
-{
+void
+sega_UpdateMasterSystemHeader(FILE* fileHandle, int headerLocation) {
     uint16_t checkSum;
     int fileSize;
     uint8_t code;
@@ -128,18 +137,17 @@ void sega_UpdateMasterSystemHeader(FILE* fileHandle, int headerLocation)
     fputc(sega_CalcSizeCode(code, fileSize), fileHandle);
 }
 
+void
+sega_WriteMasterSystemImage(const char* outputFilename, int binaryPad) {
+    int headerLocation = (binaryPad == 0) || (binaryPad >= 0x8000) ? 0x8000 : binaryPad;
 
-void sega_WriteMasterSystemImage(char* outputFilename, int binaryPad)
-{
-    int headerLocation =  (binaryPad == 0) || (binaryPad >= 0x8000) ? 0x8000 : binaryPad;
+    FILE* fileHandle = fopen(outputFilename, "w+b");
+    if (fileHandle == NULL)
+        error("Unable to open \"%s\" for writing", outputFilename);
 
-	FILE* fileHandle = fopen(outputFilename, "w+b");
-	if (fileHandle == NULL)
-		Error("Unable to open \"%s\" for writing", outputFilename);
-
-	image_WriteBinaryToFile(fileHandle, binaryPad);
+    image_WriteBinaryToFile(fileHandle, binaryPad);
 
     sega_UpdateMasterSystemHeader(fileHandle, headerLocation - 16);
 
-	fclose(fileHandle);
+    fclose(fileHandle);
 }

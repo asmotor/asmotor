@@ -20,188 +20,156 @@
 
 #include "xlink.h"
 
-Section* g_sections = NULL;
+Section* sect_Sections = NULL;
 
 static uint32_t s_sectionId = 0;
 
-Section* sect_CreateNew(void)
-{
-	Section** section = &g_sections;
+Section*
+sect_CreateNew(void) {
+    Section** section = &sect_Sections;
 
-	while (*section != NULL)
-		section = &(*section)->nextSection;
+    while (*section != NULL)
+        section = &(*section)->nextSection;
 
-	*section = (Section*)mem_Alloc(sizeof(Section));
-	if (*section == NULL)
-		Error("Out of memory");
+    *section = (Section*) mem_Alloc(sizeof(Section));
+    if (*section == NULL)
+        error("Out of memory");
 
-	(*section)->sectionId = s_sectionId++;
-	(*section)->nextSection = NULL;
-	(*section)->used = false;
-	(*section)->assigned = false;
-	(*section)->patches = NULL;
-	(*section)->relocs = NULL;
+    (*section)->sectionId = s_sectionId++;
+    (*section)->nextSection = NULL;
+    (*section)->used = false;
+    (*section)->assigned = false;
+    (*section)->patches = NULL;
 
-	return *section;
+    return *section;
 }
 
-uint32_t sect_TotalSections(void)
-{
-	return s_sectionId;
+uint32_t
+sect_TotalSections(void) {
+    return s_sectionId;
 }
 
+static void
+resolveSymbol(Section* section, Symbol* symbol, bool allowImports) {
+    switch (symbol->type) {
+        case SYM_LOCALEXPORT:
+        case SYM_EXPORT:
+        case SYM_LOCAL: {
+            symbol->resolved = true;
+            symbol->section = section;
 
-static void resolveSymbol(Section* section, Symbol* symbol, bool allowImports)
-{
-	switch (symbol->type)
-	{
-		case SYM_LOCALEXPORT:
-		case SYM_EXPORT:
-		case SYM_LOCAL:
-		{
-			symbol->resolved = true;
-			symbol->section = section;
+            if (section->cpuLocation != -1)
+                symbol->value += section->cpuLocation;
 
-			if (section->cpuLocation != -1)
-				symbol->value += section->cpuLocation;
+            break;
+        }
 
-			break;
-		}
+        case SYM_IMPORT: {
+            Section* definingSection;
 
-		case SYM_IMPORT:
-		{
-			Section* definingSection;
-			
-			for (definingSection = g_sections; definingSection != NULL; definingSection = definingSection->nextSection)
-			{
-				if (definingSection->used)
-				{
-					uint32_t i;
-					Symbol* exportedSymbol = definingSection->symbols;
+            for (definingSection = sect_Sections;
+                 definingSection != NULL; definingSection = definingSection->nextSection) {
+                if (definingSection->used) {
+                    uint32_t i;
+                    Symbol* exportedSymbol = definingSection->symbols;
 
-					for (i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol)
-					{
-						if (exportedSymbol->type == SYM_EXPORT && strcmp(exportedSymbol->name, symbol->name) == 0)
-						{
-							if (!exportedSymbol->resolved)
-								resolveSymbol(definingSection, exportedSymbol, allowImports);
+                    for (i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol) {
+                        if (exportedSymbol->type == SYM_EXPORT && strcmp(exportedSymbol->name, symbol->name) == 0) {
+                            if (!exportedSymbol->resolved)
+                                resolveSymbol(definingSection, exportedSymbol, allowImports);
 
-							symbol->resolved = true;
-							symbol->value = exportedSymbol->value;
-							symbol->section = definingSection;
+                            symbol->resolved = true;
+                            symbol->value = exportedSymbol->value;
+                            symbol->section = definingSection;
 
-							return;
-						}
-					}
-				}
-			}
+                            return;
+                        }
+                    }
+                }
+            }
 
             if (!allowImports)
-                Error("Unresolved symbol \"%s\"", symbol->name);
-            
-			break;
-		}
+                error("Unresolved symbol \"%s\"", symbol->name);
 
-		case SYM_LOCALIMPORT:
-		{
-			Section* definingSection;
+            break;
+        }
 
-			for (definingSection = g_sections; definingSection != NULL; definingSection = definingSection->nextSection)
-			{
-				if (definingSection->used && definingSection->fileId == section->fileId)
-				{
-					uint32_t i;
-					Symbol* exportedSymbol = definingSection->symbols;
+        case SYM_LOCALIMPORT: {
+            Section* definingSection;
 
-					for (i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol)
-					{
-						if ((exportedSymbol->type == SYM_LOCALEXPORT || exportedSymbol->type == SYM_EXPORT)
-						&&	strcmp(exportedSymbol->name, symbol->name) == 0)
-						{
-							if (!exportedSymbol->resolved)
-								resolveSymbol(definingSection, exportedSymbol, allowImports);
+            for (definingSection = sect_Sections;
+                 definingSection != NULL; definingSection = definingSection->nextSection) {
+                if (definingSection->used && definingSection->fileId == section->fileId) {
+                    uint32_t i;
+                    Symbol* exportedSymbol = definingSection->symbols;
 
-							symbol->resolved = true;
-							symbol->value = exportedSymbol->value;
-							symbol->section = definingSection;
+                    for (i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol) {
+                        if ((exportedSymbol->type == SYM_LOCALEXPORT || exportedSymbol->type == SYM_EXPORT)
+                            && strcmp(exportedSymbol->name, symbol->name) == 0) {
+                            if (!exportedSymbol->resolved)
+                                resolveSymbol(definingSection, exportedSymbol, allowImports);
 
-							return;
-						}
-					}
-				}
-			}
+                            symbol->resolved = true;
+                            symbol->value = exportedSymbol->value;
+                            symbol->section = definingSection;
 
-			Error("Unresolved symbol \"%s\"", symbol->name);
-		}
+                            return;
+                        }
+                    }
+                }
+            }
 
-		default:
-		{
-			Error("Unhandled symbol type");
-		}
-	}
+            error("Unresolved symbol \"%s\"", symbol->name);
+        }
+
+        default: {
+            error("Unhandled symbol type");
+        }
+    }
 }
 
+Symbol*
+sect_GetSymbol(Section* section, uint32_t symbolId, bool allowImports) {
+    if (symbolId >= section->totalSymbols) {
+        error("Symbol ID out of range");
+    } else {
+        Symbol* symbol = &section->symbols[symbolId];
 
-Symbol* sect_GetSymbol(Section* section, uint32_t symbolId, bool allowImports)
-{
-	if (symbolId >= section->totalSymbols) {
-		Error("Symbol ID out of range");
-	} else {
-		Symbol* symbol = &section->symbols[symbolId];
+        if (!symbol->resolved)
+            resolveSymbol(section, symbol, allowImports);
 
-		if (!symbol->resolved)
-			resolveSymbol(section, symbol, allowImports);
-
-		return symbol;
-	}
+        return symbol;
+    }
 }
 
+char*
+sect_GetSymbolName(Section* section, uint32_t symbolId) {
+    Symbol* symbol = &section->symbols[symbolId];
 
-void sect_GetSymbolValue(Section* section, uint32_t symbolId, int32_t* outValue, Section** outSection)
-{
-	Symbol* symbol = sect_GetSymbol(section, symbolId, false);
-
-	*outValue = symbol->value;
-	if (symbol->section->cpuLocation != -1)
-		*outSection = NULL;
-	else
-		*outSection = symbol->section;
+    return symbol->name;
 }
 
+bool
+sect_GetConstantSymbolBank(Section* section, uint32_t symbolId, int32_t* outValue) {
+    Symbol* symbol = &section->symbols[symbolId];
 
-char* sect_GetSymbolName(Section* section, uint32_t symbolId)
-{
-	Symbol* symbol = &section->symbols[symbolId];
+    if (!symbol->resolved)
+        resolveSymbol(section, symbol, false);
 
-	return symbol->name;
+    int32_t bank = symbol->section->cpuBank;
+    if (bank != -1) {
+        *outValue = bank;
+        return true;
+    }
+
+    return false;
 }
 
-
-bool sect_GetConstantSymbolBank(Section* section, uint32_t symbolId, int32_t* outValue)
-{
-	int32_t bank;
-	Symbol* symbol = &section->symbols[symbolId];
-
-	if (!symbol->resolved)
-		resolveSymbol(section, symbol, false);
-
-	bank = symbol->section->cpuBank;
-	if (bank != -1)
-	{
-		*outValue = bank;
-		return true;
-	}
-
-	return false;
-}
-
-
-void sect_ForEachUsedSection(void (*function)(Section*))
-{
+void
+sect_ForEachUsedSection(void (* function)(Section*)) {
     Section* section;
 
-    for (section = g_sections; section != NULL; section = section->nextSection)
-    {
+    for (section = sect_Sections; section != NULL; section = section->nextSection) {
         if (section->used)
             function(section);
     }

@@ -16,113 +16,102 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <string.h>
+
+#include "fmath.h"
+
 #include "asmotor.h"
 #include "xlink.h"
 
-#include <fmath.h>
-#include <string.h>
 
-#define	STACKSIZE	256
+#define STACKSIZE 256
 
-
-typedef struct StackEntry_
-{
+typedef struct StackEntry_ {
     Symbol* symbol;
     int32_t value;
 } StackEntry;
 
+static char* g_stringStack[STACKSIZE];
+static StackEntry g_stack[STACKSIZE];
+static int32_t g_stackIndex;
 
-static char* s_stringStack[STACKSIZE];
-static StackEntry s_stack[STACKSIZE];
-static int32_t s_stackIndex;
+static void
+pushString(char* stringValue) {
+    if (g_stackIndex >= STACKSIZE)
+        error("patch too complex");
 
-
-static void pushString(char* stringValue)
-{
-    if (s_stackIndex >= STACKSIZE)
-        Error("patch too complex");
-
-    s_stringStack[s_stackIndex++] = stringValue;
+    g_stringStack[g_stackIndex++] = stringValue;
 }
 
-
-static void pushStringCopy(char* stringValue)
-{
+static void
+pushStringCopy(const char* stringValue) {
     char* copy = mem_Alloc(strlen(stringValue) + 1);
     strcpy(copy, stringValue);
 
     pushString(copy);
 }
 
-
-static void pushIntAsString(uint32_t intValue)
-{
+static void
+pushIntAsString(uint32_t intValue) {
     char* value = mem_Alloc(16);
     sprintf(value, "%u", intValue);
 
     pushString(value);
 }
 
+static char*
+popString(void) {
+    if (g_stackIndex > 0)
+        return g_stringStack[--g_stackIndex];
 
-static char* popString(void)
-{
-    if(s_stackIndex > 0)
-        return s_stringStack[--s_stackIndex];
-
-    Error("mangled patch");
+    error("mangled patch");
     return NULL;
 }
 
-
-static void	popString2(char** outLeft, char** outRight)
-{
+static void
+popStringPair(char** outLeft, char** outRight) {
     *outRight = popString();
     *outLeft = popString();
 }
 
+static void
+pushSymbolInt(Symbol* symbol, int32_t value) {
+    if (g_stackIndex >= STACKSIZE)
+        error("patch too complex");
 
-static void pushSymbolInt(Symbol* symbol, int32_t value)
-{
-    if (s_stackIndex >= STACKSIZE)
-        Error("patch too complex");
-
-    StackEntry entry = { symbol, value };
-    s_stack[s_stackIndex++] = entry;
+    StackEntry entry = {symbol, value};
+    g_stack[g_stackIndex++] = entry;
 }
 
-
-static void pushInt(int32_t value)
-{
+static void
+pushInt(int32_t value) {
     pushSymbolInt(NULL, value);
 }
 
+static StackEntry
+popInt(void) {
+    if (g_stackIndex > 0)
+        return g_stack[--g_stackIndex];
 
-static StackEntry popInt(void)
-{
-    if (s_stackIndex > 0)
-        return s_stack[--s_stackIndex];
-
-    Error("mangled patch");
-    return s_stack[0]; // dummy return
+    error("mangled patch");
+    return g_stack[0]; // dummy return
 }
 
-
-static void	popInt2(StackEntry* outLeft, StackEntry* outRight)
-{
+static void
+popIntPair(StackEntry* outLeft, StackEntry* outRight) {
     *outRight = popInt();
     *outLeft = popInt();
 }
 
-
-static void combinePatchStrings(char* operator)
-{
+static void
+combinePatchStrings(char* operator) {
     char* left;
     char* right;
     char* result;
 
-    popString2(&left, &right);
+    popStringPair(&left, &right);
 
-    result = (char*)mem_Alloc(strlen(left) + strlen(right) + strlen(operator) + 5);
+    result = (char*) mem_Alloc(strlen(left) + strlen(right) + strlen(operator) + 5);
     sprintf(result, "(%s)%s(%s)", left, operator, right);
 
     pushString(result);
@@ -131,16 +120,15 @@ static void combinePatchStrings(char* operator)
     mem_Free(right);
 }
 
-
-static void combinePatchFunctionStrings(char* function)
-{
+static void
+combinePatchFunctionStrings(char* function) {
     char* left;
     char* right;
     char* result;
 
-    popString2(&left, &right);
+    popStringPair(&left, &right);
 
-    result = (char*)mem_Alloc(strlen(left) + strlen(right) + strlen(function) + 4);
+    result = (char*) mem_Alloc(strlen(left) + strlen(right) + strlen(function) + 4);
     sprintf(result, "%s(%s,%s)", function, left, right);
 
     pushString(result);
@@ -149,15 +137,14 @@ static void combinePatchFunctionStrings(char* function)
     mem_Free(right);
 }
 
-
-static void combinePatchFunctionString(char* function)
-{
+static void
+combinePatchFunctionString(char* function) {
     char* left;
     char* result;
 
     left = popString();
 
-    result = (char*)mem_Alloc(strlen(left) + strlen(function) + 3);
+    result = (char*) mem_Alloc(strlen(left) + strlen(function) + 3);
     sprintf(result, "%s(%s)", function, left);
 
     pushString(result);
@@ -165,21 +152,18 @@ static void combinePatchFunctionString(char* function)
     mem_Free(left);
 }
 
-
-static char* makePatchString(Patch* patch, Section* section)
-{
+static char*
+makePatchString(Patch* patch, Section* section) {
     int32_t size = patch->expressionSize;
     uint8_t* expression = patch->expression;
 
-    s_stackIndex = 0;
+    g_stackIndex = 0;
 
-    while (size-- > 0)
-    {
+    while (size-- > 0) {
         char* left;
         char* right;
 
-        switch ((ExpressionOperator)*expression++)
-        {
+        switch ((ExpressionOperator) *expression++) {
             case OBJ_OP_SUB:
                 combinePatchStrings("-");
                 break;
@@ -237,16 +221,14 @@ static char* makePatchString(Patch* patch, Section* section)
             case OBJ_OP_NOT_EQUALS:
                 combinePatchStrings("!=");
                 break;
-            case OBJ_FUNC_LOW_LIMIT:
-            {
-                popString2(&left, &right);
+            case OBJ_FUNC_LOW_LIMIT: {
+                popStringPair(&left, &right);
                 pushString(left);
                 mem_Free(right);
                 break;
             }
-            case OBJ_FUNC_HIGH_LIMIT:
-            {
-                popString2(&left, &right);
+            case OBJ_FUNC_HIGH_LIMIT: {
+                popStringPair(&left, &right);
                 pushString(left);
                 mem_Free(right);
                 break;
@@ -278,11 +260,10 @@ static char* makePatchString(Patch* patch, Section* section)
             case OBJ_FUNC_ATAN:
                 combinePatchFunctionString("ATAN");
                 break;
-            case OBJ_CONSTANT:
-            {
+            case OBJ_CONSTANT: {
                 uint32_t value;
 
-                value  = (*expression++);
+                value = (*expression++);
                 value |= (*expression++) << 8u;
                 value |= (*expression++) << 16u;
                 value |= (*expression++) << 24u;
@@ -292,11 +273,10 @@ static char* makePatchString(Patch* patch, Section* section)
                 size -= 4;
                 break;
             }
-            case OBJ_SYMBOL:
-            {
+            case OBJ_SYMBOL: {
                 uint32_t symbolId;
 
-                symbolId  = (*expression++);
+                symbolId = (*expression++);
                 symbolId |= (*expression++) << 8u;
                 symbolId |= (*expression++) << 16u;
                 symbolId |= (*expression++) << 24u;
@@ -306,13 +286,12 @@ static char* makePatchString(Patch* patch, Section* section)
                 size -= 4;
                 break;
             }
-            case OBJ_FUNC_BANK:
-            {
+            case OBJ_FUNC_BANK: {
                 char* symbolName;
                 char* copy;
                 uint32_t symbolId;
 
-                symbolId  = (*expression++);
+                symbolId = (*expression++);
                 symbolId |= (*expression++) << 8u;
                 symbolId |= (*expression++) << 16u;
                 symbolId |= (*expression++) << 24u;
@@ -320,22 +299,21 @@ static char* makePatchString(Patch* patch, Section* section)
                 symbolName = sect_GetSymbolName(section, symbolId);
 
                 copy = mem_Alloc(strlen(symbolName) + 7);
-                sprintf(copy, "BANK(%s)", symbolName); 
+                sprintf(copy, "BANK(%s)", symbolName);
 
                 pushString(copy);
 
                 size -= 4;
                 break;
             }
-            case OBJ_PC_REL:
-            {
+            case OBJ_PC_REL: {
                 combinePatchStrings("+");
                 pushStringCopy("*");
                 combinePatchStrings("-");
                 break;
             }
             default:
-                Error("Unknown patch operator");
+                error("Unknown patch operator");
                 break;
         }
     }
@@ -344,27 +322,27 @@ static char* makePatchString(Patch* patch, Section* section)
 }
 
 #define combine_bitwise(left, right, operator) \
-    popInt2(&(left), &(right)); \
+    popIntPair(&(left), &(right)); \
     if ((left).symbol == NULL && (right).symbol == NULL) { \
         pushInt((uint32_t)(left).value operator (uint32_t)(right).value); \
     } else { \
-        Error("Expression \"%s\" at offset %d in section \"%s\" attempts to combine two values from different sections", makePatchString(patch, section), patch->offset, section->name); \
+        error("Expression \"%s\" at offset %d in section \"%s\" attempts to combine two values from different sections", makePatchString(patch, section), patch->offset, section->name); \
     }
 
 #define combine_operator(left, right, operator) \
-    popInt2(&(left), &(right)); \
+    popIntPair(&(left), &(right)); \
     if ((left).symbol == NULL && (right).symbol == NULL) { \
         pushInt((left).value operator (right).value); \
     } else { \
-        Error("Expression \"%s\" at offset %d in section \"%s\" attempts to combine two values from different sections", makePatchString(patch, section), patch->offset, section->name); \
+        error("Expression \"%s\" at offset %d in section \"%s\" attempts to combine two values from different sections", makePatchString(patch, section), patch->offset, section->name); \
     }
 
 #define combine_func(left, right, operator) \
-    popInt2(&(left), &(right)); \
+    popIntPair(&(left), &(right)); \
     if ((left).symbol == NULL && (right).symbol == NULL) { \
         pushInt(operator((left).value, (right).value)); \
     } else { \
-        Error("Expression \"%s\" at offset %d in section \"%s\" attempts to combine two values from different sections", makePatchString(patch, section), patch->offset, section->name); \
+        error("Expression \"%s\" at offset %d in section \"%s\" attempts to combine two values from different sections", makePatchString(patch, section), patch->offset, section->name); \
     }
 
 #define unary(left, operator) \
@@ -372,28 +350,24 @@ static char* makePatchString(Patch* patch, Section* section)
     if ((left).symbol == NULL) { \
         pushSymbolInt((left).symbol, operator((left).value)); \
     } else { \
-        Error("Expression \"%s\" at offset %d in section \"%s\" attempts to perform a unary operation on a value relative to a section", makePatchString(patch, section), patch->offset, section->name); \
+        error("Expression \"%s\" at offset %d in section \"%s\" attempts to perform a unary operation on a value relative to a section", makePatchString(patch, section), patch->offset, section->name); \
     }
 
-
-static bool calculatePatchValue(Patch* patch, Section* section, bool allowImports, int32_t* outValue, Symbol** outSymbol)
-{
+static bool
+calculatePatchValue(Patch* patch, Section* section, bool allowImports, int32_t* outValue, Symbol** outSymbol) {
     int32_t size = patch->expressionSize;
     uint8_t* expression = patch->expression;
 
-    s_stackIndex = 0;
+    g_stackIndex = 0;
 
-    while (size > 0)
-    {
+    while (size > 0) {
         StackEntry left, right;
 
         --size;
 
-        switch ((ExpressionOperator)*expression++)
-        {
-            case OBJ_OP_SUB:
-            {
-                popInt2(&left, &right);
+        switch ((ExpressionOperator) *expression++) {
+            case OBJ_OP_SUB: {
+                popIntPair(&left, &right);
                 if (left.symbol == NULL && right.symbol == NULL)
                     pushInt(left.value - right.value);
                 else if (left.symbol != NULL && right.symbol == NULL)
@@ -401,12 +375,12 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 else if (left.symbol != NULL && right.symbol != NULL && left.symbol->section == right.symbol->section)
                     pushInt(left.symbol->value - right.symbol->value);
                 else
-                    Error("Expression \"%s\" at offset %d in section \"%s\" attempts to subtract two values from different sections", makePatchString(patch, section), patch->offset, section->name);
+                    error("Expression \"%s\" at offset %d in section \"%s\" attempts to subtract two values from different sections",
+                          makePatchString(patch, section), patch->offset, section->name);
                 break;
             }
-            case OBJ_OP_ADD:
-            {
-                popInt2(&left, &right);
+            case OBJ_OP_ADD: {
+                popIntPair(&left, &right);
                 if (left.symbol == NULL && right.symbol == NULL)
                     pushInt(left.value + right.value);
                 else if (right.symbol == NULL)
@@ -414,166 +388,140 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 else if (left.symbol == NULL)
                     pushSymbolInt(right.symbol, left.value + right.value);
                 else
-                    Error("Expression \"%s\" at offset %d in section \"%s\" attempts to add two values from different sections", makePatchString(patch, section), patch->offset, section->name);
+                    error("Expression \"%s\" at offset %d in section \"%s\" attempts to add two values from different sections",
+                          makePatchString(patch, section), patch->offset, section->name);
                 break;
             }
-            case OBJ_OP_XOR:
-            {
+            case OBJ_OP_XOR: {
                 combine_bitwise(left, right, ^)
                 break;
             }
-            case OBJ_OP_OR:
-            {
+            case OBJ_OP_OR: {
                 combine_bitwise(left, right, |)
                 break;
             }
-            case OBJ_OP_AND:
-            {
+            case OBJ_OP_AND: {
                 combine_bitwise(left, right, &)
                 break;
             }
-            case OBJ_OP_ASL:
-            {
+            case OBJ_OP_ASL: {
                 combine_bitwise(left, right, <<)
                 break;
             }
-            case OBJ_OP_ASR:
-            {
+            case OBJ_OP_ASR: {
                 combine_bitwise(left, right, >>)
                 break;
             }
-            case OBJ_OP_MUL:
-            {
+            case OBJ_OP_MUL: {
                 combine_operator(left, right, *)
                 break;
             }
-            case OBJ_OP_DIV:
-            {
+            case OBJ_OP_DIV: {
                 combine_operator(left, right, /)
                 break;
             }
-            case OBJ_OP_MOD:
-            {
+            case OBJ_OP_MOD: {
                 combine_operator(left, right, %)
                 break;
             }
-            case OBJ_OP_BOOLEAN_OR:
-            {
+            case OBJ_OP_BOOLEAN_OR: {
                 combine_operator(left, right, ||)
                 break;
             }
-            case OBJ_OP_BOOLEAN_AND:
-            {
+            case OBJ_OP_BOOLEAN_AND: {
                 combine_operator(left, right, &&)
                 break;
             }
-            case OBJ_OP_GREATER_OR_EQUAL:
-            {
+            case OBJ_OP_GREATER_OR_EQUAL: {
                 combine_operator(left, right, >=)
                 break;
             }
-            case OBJ_OP_GREATER_THAN:
-            {
+            case OBJ_OP_GREATER_THAN: {
                 combine_operator(left, right, >)
                 break;
             }
-            case OBJ_OP_LESS_OR_EQUAL:
-            {
+            case OBJ_OP_LESS_OR_EQUAL: {
                 combine_operator(left, right, <=)
                 break;
             }
-            case OBJ_OP_LESS_THAN:
-            {
+            case OBJ_OP_LESS_THAN: {
                 combine_operator(left, right, <)
                 break;
             }
-            case OBJ_OP_EQUALS:
-            {
+            case OBJ_OP_EQUALS: {
                 combine_operator(left, right, ==)
                 break;
             }
-            case OBJ_OP_NOT_EQUALS:
-            {
+            case OBJ_OP_NOT_EQUALS: {
                 combine_operator(left, right, !=)
                 break;
             }
-            case OBJ_OP_BOOLEAN_NOT:
-            {
+            case OBJ_OP_BOOLEAN_NOT: {
                 unary(left, !)
                 break;
             }
-            case OBJ_FUNC_SIN:
-            {
+            case OBJ_FUNC_SIN: {
                 unary(left, fsin)
                 break;
             }
-            case OBJ_FUNC_COS:
-            {
+            case OBJ_FUNC_COS: {
                 unary(left, fcos)
                 break;
             }
-            case OBJ_FUNC_TAN:
-            {
+            case OBJ_FUNC_TAN: {
                 unary(left, ftan)
                 break;
             }
-            case OBJ_FUNC_ASIN:
-            {
+            case OBJ_FUNC_ASIN: {
                 unary(left, fasin)
                 break;
             }
-            case OBJ_FUNC_ACOS:
-            {
+            case OBJ_FUNC_ACOS: {
                 unary(left, facos)
                 break;
             }
-            case OBJ_FUNC_ATAN:
-            {
+            case OBJ_FUNC_ATAN: {
                 unary(left, fatan)
                 break;
             }
-            case OBJ_FUNC_LOW_LIMIT:
-            {
-                popInt2(&left, &right);
+            case OBJ_FUNC_LOW_LIMIT: {
+                popIntPair(&left, &right);
 
                 if (left.symbol == NULL && right.symbol == NULL && left.value >= right.value)
                     pushInt(left.value);
                 else
-                    Error("Expression \"%s\" at offset %d in section \"%s\" out of range (%d must be >= %d)", makePatchString(patch, section), patch->offset, section->name, left.value, right.value);
+                    error("Expression \"%s\" at offset %d in section \"%s\" out of range (%d must be >= %d)",
+                          makePatchString(patch, section), patch->offset, section->name, left.value, right.value);
 
                 break;
             }
-            case OBJ_FUNC_HIGH_LIMIT:
-            {
-                popInt2(&left, &right);
+            case OBJ_FUNC_HIGH_LIMIT: {
+                popIntPair(&left, &right);
 
                 if (left.symbol == NULL && right.symbol == NULL && left.value <= right.value)
                     pushInt(left.value);
                 else
-                    Error("Expression \"%s\" at offset %d in section \"%s\" out of range (%d must be <= %d)", makePatchString(patch, section), patch->offset, section->name, left.value, right.value);
+                    error("Expression \"%s\" at offset %d in section \"%s\" out of range (%d must be <= %d)",
+                          makePatchString(patch, section), patch->offset, section->name, left.value, right.value);
 
                 break;
             }
-            case OBJ_FUNC_FDIV:
-            {
+            case OBJ_FUNC_FDIV: {
                 combine_func(left, right, fdiv)
                 break;
             }
-            case OBJ_FUNC_FMUL:
-            {
+            case OBJ_FUNC_FMUL: {
                 combine_func(left, right, fmul)
                 break;
             }
-            case OBJ_FUNC_ATAN2:
-            {
+            case OBJ_FUNC_ATAN2: {
                 combine_func(left, right, fatan2)
                 break;
             }
-            case OBJ_CONSTANT:
-            {
+            case OBJ_CONSTANT: {
                 uint32_t value;
 
-                value  = (*expression++);
+                value = (*expression++);
                 value |= (*expression++) << 8u;
                 value |= (*expression++) << 16u;
                 value |= (*expression++) << 24u;
@@ -583,12 +531,11 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 size -= 4;
                 break;
             }
-            case OBJ_SYMBOL:
-            {
+            case OBJ_SYMBOL: {
                 uint32_t symbolId;
                 Symbol* symbol;
 
-                symbolId  = (*expression++);
+                symbolId = (*expression++);
                 symbolId |= (*expression++) << 8u;
                 symbolId |= (*expression++) << 16u;
                 symbolId |= (*expression++) << 24u;
@@ -601,12 +548,11 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 size -= 4;
                 break;
             }
-            case OBJ_FUNC_BANK:
-            {
+            case OBJ_FUNC_BANK: {
                 uint32_t symbolId;
                 int32_t bank;
 
-                symbolId  = (*expression++);
+                symbolId = (*expression++);
                 symbolId |= (*expression++) << 8u;
                 symbolId |= (*expression++) << 16u;
                 symbolId |= (*expression++) << 24u;
@@ -618,8 +564,7 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 size -= 4;
                 break;
             }
-            case OBJ_PC_REL:
-            {
+            case OBJ_PC_REL: {
                 combine_operator(left, right, +)
                 left = popInt();
                 if (left.symbol == NULL)
@@ -627,12 +572,12 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
                 else if (left.symbol->section == section)
                     pushInt(left.symbol->value + left.value - patch->offset);
                 else
-                    Error("Illegal PC relative expression \"%s\" at offset %d in section \"%s\" attempts to subtract two values from different sections", makePatchString(patch, section), patch->offset, section->name);
+                    error("Illegal PC relative expression \"%s\" at offset %d in section \"%s\" attempts to subtract two values from different sections",
+                          makePatchString(patch, section), patch->offset, section->name);
                 break;
             }
-            default:
-            {
-                Error("Unknown patch operator");
+            default: {
+                error("Unknown patch operator");
                 break;
             }
         }
@@ -641,94 +586,76 @@ static bool calculatePatchValue(Patch* patch, Section* section, bool allowImport
     StackEntry entry = popInt();
     *outValue = entry.value;
     *outSymbol = entry.symbol;
-    return s_stackIndex == 0;
+    return g_stackIndex == 0;
 }
 
-
-static void patchSection(Section* section, bool allowReloc, bool onlySectionRelativeReloc, bool allowImports)
-{
+static void
+patchSection(Section* section, bool allowReloc, bool onlySectionRelativeReloc, bool allowImports) {
     Patches* patches = section->patches;
 
-    if (patches != NULL)
-    {
+    if (patches != NULL) {
         Patch* patch = patches->patches;
         uint32_t i;
 
-        for (i = patches->totalPatches; i > 0; --i, ++patch)
-        {
+        for (i = patches->totalPatches; i > 0; --i, ++patch) {
             Symbol* valueSymbol;
             int32_t value;
 
-            if (calculatePatchValue(patch, section, allowImports, &value, &valueSymbol))
-            {
-                if (valueSymbol != NULL)
-                {
-                    if (!allowReloc)
-                    {
-                        Error("Expression \"%s\" at offset %d in section \"%s\" is relocatable", makePatchString(patch, section), patch->offset, section->name);
+            if (calculatePatchValue(patch, section, allowImports, &value, &valueSymbol)) {
+                if (valueSymbol != NULL) {
+                    if (!allowReloc) {
+                        error("Expression \"%s\" at offset %d in section \"%s\" is relocatable",
+                              makePatchString(patch, section), patch->offset, section->name);
                         return;
-                    }
-                    else if (onlySectionRelativeReloc || symbol_IsLocal(valueSymbol))
-                    {
+                    } else if (onlySectionRelativeReloc || symbol_IsLocal(valueSymbol)) {
                         value += valueSymbol->value;
                         patch->valueSection = valueSymbol->section;
                         patch->valueSymbol = NULL;
-                    }
-                    else
-                    {
+                    } else {
                         patch->valueSection = NULL;
                         patch->valueSymbol = valueSymbol;
 
                     }
                 }
 
-                switch (patch->type)
-                {
-                    case PATCH_8:
-                    {
+                switch (patch->type) {
+                    case PATCH_8: {
                         if (valueSymbol == NULL && value >= -128 && value <= 255)
-                            section->data[patch->offset] = (uint8_t)value;
+                            section->data[patch->offset] = (uint8_t) value;
                         else
-                            Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
+                            error("Expression \"%s\" at offset %d in section \"%s\" out of range",
+                                  makePatchString(patch, section), patch->offset, section->name);
 
                         break;
                     }
-                    case PATCH_LE_16:
-                    {
-                        if (valueSymbol == NULL && value >= -32768 && value <= 65535)
-                        {
+                    case PATCH_LE_16: {
+                        if (valueSymbol == NULL && value >= -32768 && value <= 65535) {
                             section->data[patch->offset + 0] = (uint8_t) value;
                             section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
-                        }
-                        else
-                        {
-                            Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
+                        } else {
+                            error("Expression \"%s\" at offset %d in section \"%s\" out of range",
+                                  makePatchString(patch, section), patch->offset, section->name);
                         }
                         break;
                     }
-                    case PATCH_BE_16:
-                    {
-                        if (valueSymbol == NULL && value >= -32768 && value <= 65535)
-                        {
+                    case PATCH_BE_16: {
+                        if (valueSymbol == NULL && value >= -32768 && value <= 65535) {
                             section->data[patch->offset + 0] = (uint8_t) ((uint32_t) value >> 8u);
                             section->data[patch->offset + 1] = (uint8_t) value;
-                        }
-                        else
-                        {
-                            Error("Expression \"%s\" at offset %d in section \"%s\" out of range", makePatchString(patch, section), patch->offset, section->name);
+                        } else {
+                            error("Expression \"%s\" at offset %d in section \"%s\" out of range",
+                                  makePatchString(patch, section), patch->offset, section->name);
                         }
                         break;
                     }
-                    case PATCH_LE_32:
-                    {
+                    case PATCH_LE_32: {
                         section->data[patch->offset + 0] = (uint8_t) value;
                         section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
                         section->data[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 16u);
                         section->data[patch->offset + 3] = (uint8_t) ((uint32_t) value >> 24u);
                         break;
                     }
-                    case PATCH_BE_32:
-                    {
+                    case PATCH_BE_32: {
                         section->data[patch->offset + 0] = (uint8_t) ((uint32_t) value >> 24u);
                         section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 16u);
                         section->data[patch->offset + 2] = (uint8_t) ((uint32_t) value >> 8u);
@@ -736,24 +663,19 @@ static void patchSection(Section* section, bool allowReloc, bool onlySectionRela
                         break;
                     }
                     case PATCH_NONE:
-                    case PATCH_RELOC:
-                    {
+                    case PATCH_RELOC: {
                         break;
                     }
-                    default:
-                    {
-                        Error("unhandled patch type");
+                    default: {
+                        error("unhandled patch type");
                         break;
                     }
                 }
                 mem_Free(patch->expression);
 
-                if (allowReloc)
-                {
+                if (allowReloc) {
                     patch->type = PATCH_RELOC;
-                }
-                else
-                {
+                } else {
                     patch->type = PATCH_NONE;
                     patch->offset = 0;
                     patch->valueSymbol = NULL;
@@ -766,22 +688,18 @@ static void patchSection(Section* section, bool allowReloc, bool onlySectionRela
     }
 }
 
-
-void patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports)
-{
-    for (Section* section = g_sections; section != NULL; section = section->nextSection)
-    {
+void
+patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports) {
+    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
         if (section->used)
             patchSection(section, allowReloc, onlySectionRelativeReloc, allowImports);
     }
 }
 
-
-Patches* patch_Alloc(uint32_t totalPatches)
-{
+Patches*
+patch_Alloc(uint32_t totalPatches) {
     Patches* patches = mem_Alloc(sizeof(Patches) + totalPatches * sizeof(Patch));
-    if (patches != NULL)
-    {
+    if (patches != NULL) {
         patches->totalPatches = totalPatches;
     }
 

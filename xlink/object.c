@@ -67,273 +67,238 @@
 
 #include <string.h>
 
-#define	MAKE_ID(a,b,c,d)  ((uint32_t)(a)|((uint32_t)(b)<<8u)|((uint32_t)(c)<<16u)|((uint32_t)(d)<<24u))
+#define MAKE_ID(a, b, c, d) ((uint32_t)(a)|((uint32_t)(b)<<8u)|((uint32_t)(c)<<16u)|((uint32_t)(d)<<24u))
 
-static uint32_t	s_fileId = 0;
-static uint32_t s_minimumWordSize = 0;
+static uint32_t g_fileId = 0;
+static uint32_t g_minimumWordSize = 0;
 
-static void readGroup(FILE* fileHandle, Group* group)
-{
-	uint32_t flags;
-	uint32_t type;
+static void
+readGroup(FILE* fileHandle, Group* group) {
+    uint32_t flags;
+    uint32_t type;
 
-	fgetsz(group->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
+    fgetsz(group->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
 
-	type = fgetll(fileHandle);
-	flags = type & (GROUP_FLAG_DATA | GROUP_FLAG_CHIP);
-	type &= ~flags;
+    type = fgetll(fileHandle);
+    flags = type & (GROUP_FLAG_DATA | GROUP_FLAG_CHIP);
+    type &= ~flags;
 
-	group->flags = flags;
-	group->type = (GroupType) type;
+    group->flags = flags;
+    group->type = (GroupType) type;
 
 }
 
+static Groups*
+allocateGroups(uint32_t totalGroups) {
+    Groups* groups = mem_Alloc(sizeof(Groups) + totalGroups * sizeof(Group));
 
-static Groups* allocateGroups(uint32_t totalGroups)
-{
-	Groups* groups = mem_Alloc(sizeof(Groups) + totalGroups * sizeof(Group));
+    if (groups != NULL) {
+        groups->totalGroups = totalGroups;
+    }
 
-	if (groups != NULL)
-	{
-		groups->totalGroups = totalGroups;
-	}
-
-	return groups;
+    return groups;
 }
 
+static Groups*
+readGroups(FILE* fileHandle) {
+    Groups* groups;
+    uint32_t totalGroups;
 
-static Groups* readGroups(FILE* fileHandle)
-{
-	Groups* groups;
-	uint32_t totalGroups;
+    totalGroups = fgetll(fileHandle);
 
-	totalGroups = fgetll(fileHandle);
+    if ((groups = allocateGroups(totalGroups)) != NULL) {
+        Group* group = groups->groups;
 
-	if ((groups = allocateGroups(totalGroups)) != NULL)
-	{
-		uint32_t i;
-		Group* group = groups->groups;
+        for (uint32_t i = 0; i < totalGroups; i += 1)
+            readGroup(fileHandle, group++);
+    } else {
+        error("Out of memory");
+    }
 
-		for(i = 0; i < totalGroups; i += 1)
-			readGroup(fileHandle, group++);
-	}
-	else
-	{
-		Error("Out of memory");
-	}
-
-	return groups;
+    return groups;
 }
 
+static void
+readSymbol(FILE* fileHandle, Symbol* symbol) {
+    fgetsz(symbol->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
 
-static void readSymbol(FILE* fileHandle, Symbol* symbol)
-{
-	fgetsz(symbol->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
+    symbol->type = (SymbolType) fgetll(fileHandle);
 
-	symbol->type = (SymbolType) fgetll(fileHandle);
+    if (symbol->type != SYM_IMPORT && symbol->type != SYM_LOCALIMPORT)
+        symbol->value = fgetll(fileHandle);
 
-	if (symbol->type != SYM_IMPORT && symbol->type != SYM_LOCALIMPORT)
-		symbol->value = fgetll(fileHandle);
-
-	symbol->resolved = false;
+    symbol->resolved = false;
 }
 
+static uint32_t
+readSymbols(FILE* fileHandle, Symbol** outputSymbols) {
+    uint32_t totalSymbols = fgetll(fileHandle);
 
-static uint32_t readSymbols(FILE* fileHandle, Symbol** outputSymbols)
-{
-	uint32_t totalSymbols = fgetll(fileHandle);
+    if (totalSymbols == 0) {
+        *outputSymbols = NULL;
+        return 0;
+    } else {
+        Symbol* symbol = mem_Alloc(totalSymbols * sizeof(Symbol));
+        if (symbol != NULL) {
+            *outputSymbols = symbol;
 
-	if (totalSymbols == 0) {
-		*outputSymbols = NULL;
-		return 0;
-	} else {
-		Symbol* symbol = mem_Alloc(totalSymbols * sizeof(Symbol));
-		if (symbol != NULL)
-		{
-			*outputSymbols = symbol;
+            for (uint32_t i = 0; i < totalSymbols; i += 1)
+                readSymbol(fileHandle, symbol++);
 
-			for (uint32_t i = 0; i < totalSymbols; i += 1)
-				readSymbol(fileHandle, symbol++);
+            return totalSymbols;
+        }
+    }
 
-			return totalSymbols;
-		}
-	}
-
-	Error("Out of memory");
+    error("Out of memory");
 }
 
+static void
+readPatch(FILE* fileHandle, Patch* patch) {
+    patch->offset = fgetll(fileHandle);
+    patch->valueSymbol = NULL;
+    patch->valueSection = NULL;
+    patch->type = (PatchType) fgetll(fileHandle);
+    patch->expressionSize = fgetll(fileHandle);
 
-static void readPatch(FILE* fileHandle, Patch* patch)
-{
-	patch->offset = fgetll(fileHandle);
-	patch->valueSymbol = NULL;
-	patch->valueSection = NULL;
-	patch->type = (PatchType) fgetll(fileHandle);
-	patch->expressionSize = fgetll(fileHandle);
-
-	if ((patch->expression = mem_Alloc(patch->expressionSize)) != NULL)
-	{
-		if (patch->expressionSize != fread(patch->expression, 1, patch->expressionSize, fileHandle))
-			Error("File read failed");
-	}
-	else
-	{
-		Error("Out of memory");
-	}
+    if ((patch->expression = mem_Alloc(patch->expressionSize)) != NULL) {
+        if (patch->expressionSize != fread(patch->expression, 1, patch->expressionSize, fileHandle))
+            error("File read failed");
+    } else {
+        error("Out of memory");
+    }
 }
 
+static Patches*
+readPatches(FILE* fileHandle) {
+    Patches* patches;
+    int totalPatches = fgetll(fileHandle);
 
-static Patches* readPatches(FILE* fileHandle)
-{
-	Patches* patches;
-	int totalPatches = fgetll(fileHandle);
+    if ((patches = patch_Alloc(totalPatches)) != NULL) {
+        Patch* patch = patches->patches;
+        int i;
 
-	if ((patches = patch_Alloc(totalPatches)) != NULL)
-	{
-		Patch* patch = patches->patches;
-		int	i;
+        for (i = 0; i < totalPatches; i += 1)
+            readPatch(fileHandle, patch++);
 
-		for (i = 0; i < totalPatches; i += 1)
-			readPatch(fileHandle, patch++);
+        return patches;
+    }
 
-		return patches;
-	}
-
-	Error("Out of memory");
+    error("Out of memory");
 }
 
+static void
+readSection(FILE* fileHandle, Section* section, Groups* groups, int version) {
+    section->group = groups_GetGroup(groups, fgetll(fileHandle));
+    fgetsz(section->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
+    section->cpuBank = fgetll(fileHandle);
+    section->cpuByteLocation = fgetll(fileHandle);
+    if (version >= 1)
+        section->cpuLocation = fgetll(fileHandle);
+    else
+        section->cpuLocation = section->cpuByteLocation;
 
-static void readSection(FILE* fileHandle, Section* section, Groups* groups, int version)
-{
-	section->group = groups_GetGroup(groups, fgetll(fileHandle));
-	fgetsz(section->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
-	section->cpuBank = fgetll(fileHandle);
-	section->cpuByteLocation = fgetll(fileHandle);
-	if (version >= 1)
-		section->cpuLocation = fgetll(fileHandle);
-	else
-		section->cpuLocation = section->cpuByteLocation;
+    section->totalSymbols = readSymbols(fileHandle, &section->symbols);
 
-	section->totalSymbols = readSymbols(fileHandle, &section->symbols);
-
-	section->size = fgetll(fileHandle);
-	if (group_isText(section->group))
-	{
-		if ((section->data = mem_Alloc(section->size)) != NULL)
-		{
-			if (section->size != fread(section->data, 1, section->size, fileHandle))
-				Error("File read failed");
-			section->patches = readPatches(fileHandle);
-		}
-	}
+    section->size = fgetll(fileHandle);
+    if (group_isText(section->group)) {
+        if ((section->data = mem_Alloc(section->size)) != NULL) {
+            if (section->size != fread(section->data, 1, section->size, fileHandle))
+                error("File read failed");
+            section->patches = readPatches(fileHandle);
+        }
+    }
 }
 
-static void readSections(Groups* groups, FILE* fileHandle, int version)
-{
-	uint32_t totalsections;
+static void
+readSections(Groups* groups, FILE* fileHandle, int version) {
+    uint32_t totalsections;
 
-	totalsections = fgetll(fileHandle);
-	while(totalsections--)
-	{
-		Section* section = sect_CreateNew();
+    totalsections = fgetll(fileHandle);
+    while (totalsections--) {
+        Section* section = sect_CreateNew();
 
-	    section->minimumWordSize = s_minimumWordSize;
-		section->fileId = s_fileId;
+        section->minimumWordSize = g_minimumWordSize;
+        section->fileId = g_fileId;
 
-		readSection(fileHandle, section, groups, version);
+        readSection(fileHandle, section, groups, version);
 
-		if (group_isText(section->group) 
-		&& strcmp(section->group->name, "HOME") == 0)
-		{
-			section->cpuBank = 0;
-		}
+        if (group_isText(section->group) && strcmp(section->group->name, "HOME") == 0) {
+            section->cpuBank = 0;
+        }
 
-	}
+    }
 
-	s_fileId += 1;
+    g_fileId += 1;
 }
 
-
-static void	readXOB0(FILE* fileHandle)
-{
-	s_minimumWordSize = 1;
-	readSections(readGroups(fileHandle), fileHandle, 0);
+static void
+readXOB0(FILE* fileHandle) {
+    g_minimumWordSize = 1;
+    readSections(readGroups(fileHandle), fileHandle, 0);
 }
 
-
-static void readXOB1(FILE* fileHandle)
-{
-	s_minimumWordSize = fgetc(fileHandle);
-	readSections(readGroups(fileHandle), fileHandle, 1);
+static void
+readXOB1(FILE* fileHandle) {
+    g_minimumWordSize = fgetc(fileHandle);
+    readSections(readGroups(fileHandle), fileHandle, 1);
 }
 
+static void
+readChunk(FILE* fileHandle);
 
-static void readChunk(FILE* fileHandle);
+static void
+readXLB0(FILE* fileHandle) {
+    uint32_t count = fgetll(fileHandle);
 
+    while (count--) {
+        while (fgetc(fileHandle)) {
+        }  // Skip name
+        fgetll(fileHandle);           // Skip time
+        fgetll(fileHandle);           // Skip date
+        fgetll(fileHandle);           // Skip length
 
-static void	readXLB0(FILE* fileHandle)
-{
-	uint32_t count = fgetll(fileHandle);
-
-	while(count--)
-	{
-		while (fgetc(fileHandle)) {}  // Skip name
-		fgetll(fileHandle);           // Skip time
-		fgetll(fileHandle);           // Skip date
-		fgetll(fileHandle);           // Skip length
-
-		readChunk(fileHandle);
-	}
+        readChunk(fileHandle);
+    }
 }
 
+static void
+readChunk(FILE* fileHandle) {
+    uint32_t id = fgetll(fileHandle);
 
-static void readChunk(FILE* fileHandle)
-{
-	uint32_t id = fgetll(fileHandle);
+    switch (id) {
+        case MAKE_ID('X', 'O', 'B', 0): {
+            readXOB0(fileHandle);
+            break;
+        }
 
-	switch (id)
-	{
-		case MAKE_ID('X','O','B',0):
-		{
-			readXOB0(fileHandle);
-			break;
-		}
+        case MAKE_ID('X', 'O', 'B', 1): {
+            readXOB1(fileHandle);
+            break;
+        }
 
-		case MAKE_ID('X','O','B',1):
-		{
-			readXOB1(fileHandle);
-			break;
-		}
+        case MAKE_ID('X', 'L', 'B', 0): {
+            readXLB0(fileHandle);
+            break;
+        }
 
-		case MAKE_ID('X','L','B',0):
-		{
-			readXLB0(fileHandle);
-			break;
-		}
-
-		default:
-		{
-			Error("Unknown file type");
-		}
-	}
+        default: {
+            error("Unknown file type");
+        }
+    }
 }
 
+void
+obj_Read(char* fileName) {
+    FILE* fileHandle;
 
-void obj_Read(char* fileName)
-{
-	FILE* fileHandle;
+    if ((fileHandle = fopen(fileName, "rb")) != NULL) {
+        size_t size = fsize(fileHandle);
 
-	if ((fileHandle = fopen(fileName, "rb")) != NULL)
-	{
-		size_t size = fsize(fileHandle);
+        while ((size_t) ftell(fileHandle) < size)
+            readChunk(fileHandle);
 
-		while ((size_t) ftell(fileHandle) < size)
-			readChunk(fileHandle);
-
-		fclose(fileHandle);
-	}
-	else
-	{
-		Error("File \"%s\" not found", fileName);
-	}
+        fclose(fileHandle);
+    } else {
+        error("File \"%s\" not found", fileName);
+    }
 }

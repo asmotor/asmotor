@@ -56,7 +56,7 @@ extern void
 fputlw(uint16_t value, FILE* fileHandle);
 
 /* Retrieve a zero terminated string from a file */
-extern void
+extern size_t
 fgetsz(char* destination, size_t maxLength, FILE* fileHandle);
 
 /* Write zero terminated string to a file */

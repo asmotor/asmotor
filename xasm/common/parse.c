@@ -92,7 +92,7 @@ handleLineBreak() {
     if (lex_Current.token == '\n') {
         lex_GetNextToken();
         fstk_Current->lineNumber += 1;
-        g_nTotalLines += 1;
+        xasm_TotalLines += 1;
         return true;
     }
     return false;
@@ -140,7 +140,7 @@ parse_Do(void) {
     lex_GetNextToken();
 
     while (lex_Current.token) {
-        if (xasm_Configuration->parse_Target())
+        if (xasm_Configuration->parseInstruction())
             continue;
 
         if (parse_SymbolDefinition())

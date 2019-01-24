@@ -139,7 +139,7 @@ prj_Warn(uint32_t errorNumber, ...) {
         printError(NULL, 'W', errorNumber, args);
         va_end(args);
 
-        ++g_nTotalWarnings;
+        ++xasm_TotalWarnings;
     }
     return true;
 }
@@ -152,7 +152,7 @@ prj_Error(int n, ...) {
     printError(NULL, 'E', n, args);
     va_end(args);
 
-    ++g_nTotalErrors;
+    ++xasm_TotalErrors;
     return false;
 }
 
@@ -164,7 +164,7 @@ prj_PatchError(const SPatch* patch, int n, ...) {
     printError(patch, 'E', n, args);
     va_end(args);
 
-    ++g_nTotalErrors;
+    ++xasm_TotalErrors;
     return false;
 }
 

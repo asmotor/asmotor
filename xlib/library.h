@@ -16,16 +16,27 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	LIBRARY_H
-#define	LIBRARY_H
+#ifndef XLIB_LIBRARY_H_INCLUDED_
+#define XLIB_LIBRARY_H_INCLUDED_
 
 #include "libwrap.h"
 
-extern SLibrary* lib_Read(char* filename);
-extern bool lib_Write(SLibrary* lib, char* filename);
-extern SLibrary* lib_AddReplace(SLibrary* lib, char* filename);
-extern void lib_Free(SLibrary* lib);
-extern SLibrary* lib_DeleteModule(SLibrary* lib, char* filename);
-extern SLibrary* lib_Find(SLibrary* lib, char* filename);
+extern SLibrary*
+lib_Read(const char* filename);
+
+extern bool
+lib_Write(SLibrary* lib, const char* filename);
+
+extern SLibrary*
+lib_AddReplace(SLibrary* lib, const char* filename);
+
+extern void
+lib_Free(SLibrary* lib);
+
+extern SLibrary*
+lib_DeleteModule(SLibrary* lib, const char* filename);
+
+extern SLibrary*
+lib_Find(SLibrary* lib, const char* filename);
 
 #endif

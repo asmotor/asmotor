@@ -16,9 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_MAPFILE_H_INCLUDED_
-#define	XLINK_MAPFILE_H_INCLUDED_
+#ifndef XLINK_MAPFILE_H_INCLUDED_
+#define XLINK_MAPFILE_H_INCLUDED_
 
-extern void map_SetFilename(char* name);
+extern void
+map_SetFilename(const char* name);
 
 #endif

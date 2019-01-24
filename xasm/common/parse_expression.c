@@ -314,7 +314,7 @@ expressionPriority7(size_t maxStringConstLength) {
         case T_FUNC_BANK:
             return handleBankFunction();
         default: {
-            SExpression* expr = xasm_Configuration->parse_Function();
+            SExpression* expr = xasm_Configuration->parseFunction();
             if (expr != NULL)
                 return expr;
 

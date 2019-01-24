@@ -26,48 +26,44 @@
 
 #define WRITE_BLOCK_SIZE 16384
 
-static void writeRepeatedBytes(FILE* fileHandle, void* data, uint32_t offset, int bytes)
-{
+static void
+writeRepeatedBytes(FILE* fileHandle, void* data, uint32_t offset, int bytes) {
     fseek(fileHandle, offset, SEEK_SET);
-    while (bytes > 0)
-    {
+    while (bytes > 0) {
         uint32_t towrite = bytes > WRITE_BLOCK_SIZE ? WRITE_BLOCK_SIZE : bytes;
         if (towrite != fwrite(data, 1, towrite, fileHandle))
-            Error("Disk possibly full");
+            error("Disk possibly full");
         bytes -= towrite;
     }
 }
 
-static void* allocEmptyBytes()
-{
-    void* data = (char*)mem_Alloc(WRITE_BLOCK_SIZE);
+static void*
+allocEmptyBytes() {
+    void* data = (char*) mem_Alloc(WRITE_BLOCK_SIZE);
     if (data == NULL)
-        Error("Out of memory");
+        error("Out of memory");
 
     memset(data, 0xFF, WRITE_BLOCK_SIZE);
 
     return data;
 }
 
-
-extern void image_WriteBinaryToFile(FILE* fileHandle, int padding)
-{
+extern void
+image_WriteBinaryToFile(FILE* fileHandle, int padding) {
     uint32_t headerSize = ftell(fileHandle);
     char* emptyBytes = allocEmptyBytes();
     uint32_t currentFileSize = headerSize;
 
-    for (Section* section = g_sections; section != NULL; section = section->nextSection)
-    {
+    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
         //	This is a special exported EQU symbol section
         if (section->group == NULL)
             continue;
 
-        if (section->used && section->assigned && section->imageLocation != -1 && section->group->type != GROUP_BSS)
-        {
+        if (section->used && section->assigned && section->imageLocation != -1 && section->group->type != GROUP_BSS) {
             uint32_t startOffset = section->imageLocation + headerSize;
             uint32_t endOffset = startOffset + section->size;
 
-            if(startOffset > currentFileSize) {
+            if (startOffset > currentFileSize) {
                 fseek(fileHandle, currentFileSize, SEEK_SET);
                 writeRepeatedBytes(fileHandle, emptyBytes, currentFileSize, startOffset - currentFileSize);
             }
@@ -79,21 +75,20 @@ extern void image_WriteBinaryToFile(FILE* fileHandle, int padding)
         }
     }
 
-    if (padding != -1)
-    {
-        int bytesToPad = padding == 0 ? (2u << log2n(currentFileSize)) - currentFileSize : padding - currentFileSize % padding;
+    if (padding != -1) {
+        int bytesToPad =
+                padding == 0 ? (2u << log2n(currentFileSize)) - currentFileSize : padding - currentFileSize % padding;
         writeRepeatedBytes(fileHandle, emptyBytes, currentFileSize, bytesToPad);
     }
 
     mem_Free(emptyBytes);
 }
 
-
-extern void image_WriteBinary(char* outputFilename, int padding)
-{
+extern void
+image_WriteBinary(const char* outputFilename, int padding) {
     FILE* fileHandle = fopen(outputFilename, "wb");
     if (fileHandle == NULL)
-        Error("Unable to open \"%s\" for writing", outputFilename);
+        error("Unable to open \"%s\" for writing", outputFilename);
 
     image_WriteBinaryToFile(fileHandle, padding);
 

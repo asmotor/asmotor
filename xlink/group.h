@@ -16,22 +16,49 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_GROUP_H_INCLUDED_
-#define	XLINK_GROUP_H_INCLUDED_
+#ifndef XLINK_GROUP_H_INCLUDED_
+#define XLINK_GROUP_H_INCLUDED_
 
-extern void	group_SetupGameboy(void);
-extern void group_SetupSmallGameboy(void);
-extern void	group_SetupAmiga(void);
-extern void	group_SetupCommodore64(void);
-extern void	group_SetupCommodore264(void);
-extern void	group_SetupUnbankedCommodore128(void);
-extern void	group_SetupCommodore128FunctionROM(void);
-extern void	group_SetupCommodore128FunctionROMHigh(void);
-extern void	group_SetupCommodore128FunctionROMLow(void);
-extern void	group_SetupSegaMegaDrive(void);
-extern void	group_SetupSegaMasterSystem(int size);
-extern void	group_SetupSegaMasterSystemBanked(void);
-extern bool group_AllocateMemory(char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
-extern bool group_AllocateAbsolute(char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
+extern void
+group_SetupGameboy(void);
+
+extern void
+group_SetupSmallGameboy(void);
+
+extern void
+group_SetupAmiga(void);
+
+extern void
+group_SetupCommodore64(void);
+
+extern void
+group_SetupCommodore264(void);
+
+extern void
+group_SetupUnbankedCommodore128(void);
+
+extern void
+group_SetupCommodore128FunctionROM(void);
+
+extern void
+group_SetupCommodore128FunctionROMHigh(void);
+
+extern void
+group_SetupCommodore128FunctionROMLow(void);
+
+extern void
+group_SetupSegaMegaDrive(void);
+
+extern void
+group_SetupSegaMasterSystem(int size);
+
+extern void
+group_SetupSegaMasterSystemBanked(void);
+
+extern bool
+group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
+
+extern bool
+group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 
 #endif

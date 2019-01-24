@@ -16,78 +16,77 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XLINK_PATCH_H_INCLUDED_
-#define	XLINK_PATCH_H_INCLUDED_
+#ifndef XLINK_PATCH_H_INCLUDED_
+#define XLINK_PATCH_H_INCLUDED_
 
-typedef	enum
-{
-	PATCH_8,
-	PATCH_LE_16,
-	PATCH_BE_16,
-	PATCH_LE_32,
-	PATCH_BE_32,
-	PATCH_NONE,
-	PATCH_RELOC
+typedef enum {
+    PATCH_8,
+    PATCH_LE_16,
+    PATCH_BE_16,
+    PATCH_LE_32,
+    PATCH_BE_32,
+    PATCH_NONE,
+    PATCH_RELOC
 } PatchType;
 
-typedef	enum
-{
-	OBJ_OP_SUB,
-	OBJ_OP_ADD,
-	OBJ_OP_XOR,
-	OBJ_OP_OR,
-	OBJ_OP_AND,
-	OBJ_OP_ASL,
-	OBJ_OP_ASR,
-	OBJ_OP_MUL,
-	OBJ_OP_DIV,
-	OBJ_OP_MOD,
-	OBJ_OP_BOOLEAN_OR,
-	OBJ_OP_BOOLEAN_AND,
-	OBJ_OP_BOOLEAN_NOT,
-	OBJ_OP_GREATER_OR_EQUAL,
-	OBJ_OP_GREATER_THAN,
-	OBJ_OP_LESS_OR_EQUAL,
-	OBJ_OP_LESS_THAN,
-	OBJ_OP_EQUALS,
-	OBJ_OP_NOT_EQUALS,
-	OBJ_FUNC_LOW_LIMIT,
-	OBJ_FUNC_HIGH_LIMIT,
-	OBJ_FUNC_FDIV,
-	OBJ_FUNC_FMUL,
-	OBJ_FUNC_ATAN2,
-	OBJ_FUNC_SIN,
-	OBJ_FUNC_COS,
-	OBJ_FUNC_TAN,
-	OBJ_FUNC_ASIN,
-	OBJ_FUNC_ACOS,
-	OBJ_FUNC_ATAN,
-	OBJ_CONSTANT,
-	OBJ_SYMBOL,
-	OBJ_PC_REL,
-	OBJ_FUNC_BANK,
+typedef enum {
+    OBJ_OP_SUB,
+    OBJ_OP_ADD,
+    OBJ_OP_XOR,
+    OBJ_OP_OR,
+    OBJ_OP_AND,
+    OBJ_OP_ASL,
+    OBJ_OP_ASR,
+    OBJ_OP_MUL,
+    OBJ_OP_DIV,
+    OBJ_OP_MOD,
+    OBJ_OP_BOOLEAN_OR,
+    OBJ_OP_BOOLEAN_AND,
+    OBJ_OP_BOOLEAN_NOT,
+    OBJ_OP_GREATER_OR_EQUAL,
+    OBJ_OP_GREATER_THAN,
+    OBJ_OP_LESS_OR_EQUAL,
+    OBJ_OP_LESS_THAN,
+    OBJ_OP_EQUALS,
+    OBJ_OP_NOT_EQUALS,
+    OBJ_FUNC_LOW_LIMIT,
+    OBJ_FUNC_HIGH_LIMIT,
+    OBJ_FUNC_FDIV,
+    OBJ_FUNC_FMUL,
+    OBJ_FUNC_ATAN2,
+    OBJ_FUNC_SIN,
+    OBJ_FUNC_COS,
+    OBJ_FUNC_TAN,
+    OBJ_FUNC_ASIN,
+    OBJ_FUNC_ACOS,
+    OBJ_FUNC_ATAN,
+    OBJ_CONSTANT,
+    OBJ_SYMBOL,
+    OBJ_PC_REL,
+    OBJ_FUNC_BANK,
 } ExpressionOperator;
 
-typedef	struct
-{
-	PatchType type;
+typedef struct {
+    PatchType type;
 
-	struct Symbol_*  valueSymbol;
-	struct Section_* valueSection;
+    struct Symbol_* valueSymbol;
+    struct Section_* valueSection;
 
-	uint32_t  offset;
+    uint32_t offset;
 
-	uint32_t  expressionSize;
-	uint8_t*  expression;
+    uint32_t expressionSize;
+    uint8_t* expression;
 } Patch;
 
-typedef	struct
-{
-	uint32_t totalPatches;
-	Patch patches[];
+typedef struct {
+    uint32_t totalPatches;
+    Patch patches[];
 } Patches;
 
-extern void patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports);
-extern Patches* patch_Alloc(uint32_t totalPatches);
+extern void
+patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports);
+
+extern Patches*
+patch_Alloc(uint32_t totalPatches);
 
 #endif

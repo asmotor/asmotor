@@ -18,86 +18,78 @@
 
 #include "xlink.h"
 
+static void
+assignOrgAndBankFixedSection(Section* section) {
+    if (!section->assigned && section->group != NULL && section->cpuByteLocation != -1 && section->cpuBank != -1) {
+        if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
+                                    &section->cpuBank, &section->imageLocation))
+            error("No space for section \"%s\"", section->name);
 
-static void assignOrgAndBankFixedSection(Section* section)
-{
-	if (!section->assigned && section->group != NULL && section->cpuByteLocation != -1 && section->cpuBank != -1)
-	{
-		if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation, &section->cpuBank, &section->imageLocation))
-			Error("No space for section \"%s\"", section->name);
-
-		section->assigned = true;
-	}
+        section->assigned = true;
+    }
 }
 
+static void
+assignOrgFixedSection(Section* section) {
+    if (!section->assigned && section->group != NULL && section->cpuByteLocation != -1 && section->cpuBank == -1) {
+        if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
+                                    &section->cpuBank, &section->imageLocation))
+            error("No space for section \"%s\"", section->name);
 
-static void assignOrgFixedSection(Section* section)
-{
-	if (!section->assigned && section->group != NULL && section->cpuByteLocation != -1 && section->cpuBank == -1)
-	{
-		if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation, &section->cpuBank, &section->imageLocation))
-			Error("No space for section \"%s\"", section->name);
-
-		section->assigned = true;
-	}
+        section->assigned = true;
+    }
 }
 
+static void
+assignBankFixedSection(Section* section) {
+    if (!section->assigned && section->group != NULL && section->cpuByteLocation == -1 && section->cpuBank != -1) {
+        if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
+                                  &section->cpuBank, &section->imageLocation))
+            error("No space for section \"%s\"", section->name);
 
-static void assignBankFixedSection(Section* section)
-{
-	if (!section->assigned && section->group != NULL && section->cpuByteLocation == -1 && section->cpuBank != -1)
-	{
-		if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation, &section->cpuBank, &section->imageLocation))
-			Error("No space for section \"%s\"", section->name);
-
-		section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
-		section->assigned = true;
-	}
-}
-
-
-static void assignTextSection(Section* section)
-{
-    if (!section->assigned && section->group != NULL && section->group->type == GROUP_TEXT)
-    {
-        if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation, &section->cpuBank, &section->imageLocation))
-            Error("No space for section \"%s\"", section->name);
-        
         section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
         section->assigned = true;
     }
 }
 
+static void
+assignTextSection(Section* section) {
+    if (!section->assigned && section->group != NULL && section->group->type == GROUP_TEXT) {
+        if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
+                                  &section->cpuBank, &section->imageLocation))
+            error("No space for section \"%s\"", section->name);
 
-static void assignSection(Section* section)
-{
-	if (section->group == NULL)
-	{
-		//	This is a special exported EQU symbol section
-
-		section->cpuByteLocation = 0;
-		section->cpuLocation = 0;
-		section->cpuBank = 0;
-		section->imageLocation = -1;
-		section->assigned = true;
-	}
-	else if (!section->assigned)
-	{
-		if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation, &section->cpuBank, &section->imageLocation))
-			Error("No space for section \"%s\"", section->name);
-
-		section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
-		section->assigned = true;
-	}
+        section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
+        section->assigned = true;
+    }
 }
 
+static void
+assignSection(Section* section) {
+    if (section->group == NULL) {
+        //	This is a special exported EQU symbol section
 
-void assign_Process(void)
-{
-	sect_ForEachUsedSection(assignOrgAndBankFixedSection);
-	sect_ForEachUsedSection(assignOrgFixedSection);
-	sect_ForEachUsedSection(assignBankFixedSection);
-	// Byte aligned sections should go here
+        section->cpuByteLocation = 0;
+        section->cpuLocation = 0;
+        section->cpuBank = 0;
+        section->imageLocation = -1;
+        section->assigned = true;
+    } else if (!section->assigned) {
+        if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
+                                  &section->cpuBank, &section->imageLocation))
+            error("No space for section \"%s\"", section->name);
+
+        section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
+        section->assigned = true;
+    }
+}
+
+void
+assign_Process(void) {
+    sect_ForEachUsedSection(assignOrgAndBankFixedSection);
+    sect_ForEachUsedSection(assignOrgFixedSection);
+    sect_ForEachUsedSection(assignBankFixedSection);
+    // Byte aligned sections should go here
     sect_ForEachUsedSection(assignTextSection);
     sect_ForEachUsedSection(assignSection);
 }
