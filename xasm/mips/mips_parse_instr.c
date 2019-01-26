@@ -25,8 +25,10 @@
 #include "mips_errors.h"
 #include "mips_tokens.h"
 
+#define REG_NONE -1
+
 static int
-parse_GetRegister(void) {
+getRegister(void) {
     if (lex_Current.token >= T_MIPS_REG_R0 && lex_Current.token <= T_MIPS_REG_R31) {
         int r = lex_Current.token - T_MIPS_REG_R0;
         parse_GetToken();
@@ -34,14 +36,14 @@ parse_GetRegister(void) {
         return r;
     }
 
-    return -1;
+    return REG_NONE;
 }
 
 static int
-parse_ExpectRegister(void) {
-    int result = parse_GetRegister();
+expectRegister(void) {
+    int result = getRegister();
 
-    if (result == -1)
+    if (result == REG_NONE)
         err_Error(MERROR_REGISTER_EXPECTED);
 
     return result;
@@ -68,28 +70,28 @@ static uint32_t s_InstructionsRRR[T_MIPS_INTEGER_RRR_LAST - T_MIPS_INTEGER_RRR_F
 };
 
 static bool
-parse_IntegerInstructionRRR(void) {
+handleIntegerInstructionRRR(void) {
     if (lex_Current.token >= T_MIPS_INTEGER_RRR_FIRST && lex_Current.token <= T_MIPS_INTEGER_RRR_LAST) {
         uint32_t opcode = s_InstructionsRRR[lex_Current.token - T_MIPS_INTEGER_RRR_FIRST];
 
         parse_GetToken();
 
-        int rd = parse_ExpectRegister();
-        if (rd == -1)
+        int rd = expectRegister();
+        if (rd == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
             return false;
 
-        int rs = parse_ExpectRegister();
-        if (rs == -1)
+        int rs = expectRegister();
+        if (rs == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
             return false;
 
-        int rt = parse_ExpectRegister();
-        if (rt == -1)
+        int rt = expectRegister();
+        if (rt == REG_NONE)
             return false;
 
         sect_OutputConst32(opcode | (rs << 21) | (rt << 16) | (rd << 11));
@@ -115,21 +117,21 @@ static SInstructionRRI g_RRIInstructions[T_MIPS_INTEGER_RRI_LAST - T_MIPS_INTEGE
 };
 
 static bool
-parse_IntegerInstructionRRI(void) {
+handleIntegerInstructionRRI(void) {
     if (lex_Current.token >= T_MIPS_INTEGER_RRI_FIRST && lex_Current.token <= T_MIPS_INTEGER_RRI_LAST) {
         SInstructionRRI* instruction = &g_RRIInstructions[lex_Current.token - T_MIPS_INTEGER_RRI_FIRST];
 
         parse_GetToken();
 
-        int rt = parse_ExpectRegister();
-        if (rt == -1)
+        int rt = expectRegister();
+        if (rt == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
             return false;
 
-        int rs = parse_ExpectRegister();
-        if (rs == -1)
+        int rs = expectRegister();
+        if (rs == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
@@ -185,7 +187,7 @@ static SInstructionBranch g_branchInstructions[T_MIPS_BRANCH_LAST - T_MIPS_BRANC
 };
 
 static bool
-parse_Branch(void) {
+handleBranch(void) {
     if (lex_Current.token >= T_MIPS_BRANCH_FIRST && lex_Current.token <= T_MIPS_BRANCH_LAST) {
         SInstructionBranch* instruction = &g_branchInstructions[lex_Current.token - T_MIPS_BRANCH_FIRST];
 
@@ -193,8 +195,8 @@ parse_Branch(void) {
 
         int rs = 0;
         if (instruction->registerCount >= 1) {
-            rs = parse_ExpectRegister();
-            if (rs == -1)
+            rs = expectRegister();
+            if (rs == REG_NONE)
                 return false;
 
             if (!parse_ExpectChar(','))
@@ -203,8 +205,8 @@ parse_Branch(void) {
 
         int rt = 0;
         if (instruction->registerCount >= 2) {
-            rt = parse_ExpectRegister();
-            if (rt == -1)
+            rt = expectRegister();
+            if (rt == REG_NONE)
                 return false;
 
             if (!parse_ExpectChar(','))
@@ -242,21 +244,21 @@ static uint32_t g_shiftInstructions[T_MIPS_SHIFT_LAST - T_MIPS_SHIFT_FIRST + 1] 
 };
 
 static bool
-parse_Shift(void) {
+handleShift(void) {
     if (lex_Current.token >= T_MIPS_SHIFT_FIRST && lex_Current.token <= T_MIPS_SHIFT_LAST) {
         uint32_t opcode = g_shiftInstructions[lex_Current.token - T_MIPS_SHIFT_FIRST];
 
         parse_GetToken();
 
-        int rd = parse_ExpectRegister();
-        if (rd == -1)
+        int rd = expectRegister();
+        if (rd == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
             return false;
 
-        int rt = parse_ExpectRegister();
-        if (rt == -1)
+        int rt = expectRegister();
+        if (rt == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
@@ -304,14 +306,14 @@ static uint32_t g_loadStoreInstructions[T_MIPS_LOADSTORE_LAST - T_MIPS_LOADSTORE
 };
 
 static bool
-parse_LoadStore(void) {
+handleLoadStore(void) {
     if (lex_Current.token >= T_MIPS_LOADSTORE_FIRST && lex_Current.token <= T_MIPS_LOADSTORE_LAST) {
         uint32_t opcode = g_loadStoreInstructions[lex_Current.token - T_MIPS_LOADSTORE_FIRST];
 
         parse_GetToken();
 
-        int rt = parse_ExpectRegister();
-        if (rt == -1)
+        int rt = expectRegister();
+        if (rt == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
@@ -324,8 +326,8 @@ parse_LoadStore(void) {
         if (!parse_ExpectChar('('))
             return false;
 
-        int base = parse_ExpectRegister();
-        if (base == -1)
+        int base = expectRegister();
+        if (base == REG_NONE)
             return false;
 
         if (parse_ExpectChar(')')) {
@@ -350,21 +352,21 @@ static uint32_t g_RSRTInstructions[T_MIPS_RSRT_LAST - T_MIPS_RSRT_FIRST + 1] = {
 };
 
 static bool
-parse_IntegerInstructionRSRT(void) {
+handleIntegerInstructionRSRT(void) {
     if (lex_Current.token >= T_MIPS_RSRT_FIRST && lex_Current.token <= T_MIPS_RSRT_LAST) {
         uint32_t opcode = g_RSRTInstructions[lex_Current.token - T_MIPS_RSRT_FIRST];
 
         parse_GetToken();
 
-        int rs = parse_ExpectRegister();
-        if (rs == -1)
+        int rs = expectRegister();
+        if (rs == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
             return false;
 
-        int rt = parse_ExpectRegister();
-        if (rt != -1) {
+        int rt = expectRegister();
+        if (rt != REG_NONE) {
             sect_OutputConst32(opcode | (rs << 21) | (rt << 16));
             return true;
         }
@@ -382,21 +384,21 @@ static uint32_t g_RDRTInstructions[T_MIPS_RDRT_LAST - T_MIPS_RDRT_FIRST + 1] = {
 };
 
 static bool
-parse_IntegerInstructionRDRT(void) {
+handleIntegerInstructionRDRT(void) {
     if (lex_Current.token >= T_MIPS_RDRT_FIRST && lex_Current.token <= T_MIPS_RDRT_LAST) {
         uint32_t opcode = g_RDRTInstructions[lex_Current.token - T_MIPS_RDRT_FIRST];
 
         parse_GetToken();
 
-        int rd = parse_ExpectRegister();
-        if (rd == -1)
+        int rd = expectRegister();
+        if (rd == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
             return false;
 
-        int rt = parse_ExpectRegister();
-        if (rt != -1) {
+        int rt = expectRegister();
+        if (rt != REG_NONE) {
             sect_OutputConst32(opcode | (rd << 11) | (rt << 16));
             return true;
         }
@@ -415,21 +417,21 @@ static uint32_t g_RSRTCodeInstructions[T_MIPS_RSRTCODE_LAST - T_MIPS_RSRTCODE_FI
 };
 
 static bool
-parse_IntegerInstructionRSRTCode(void) {
+handleIntegerInstructionRSRTCode(void) {
     if (lex_Current.token >= T_MIPS_RSRTCODE_FIRST && lex_Current.token <= T_MIPS_RSRTCODE_LAST) {
         uint32_t opcode = g_RSRTCodeInstructions[lex_Current.token - T_MIPS_RSRTCODE_FIRST];
 
         parse_GetToken();
 
-        int rs = parse_ExpectRegister();
-        if (rs == -1)
+        int rs = expectRegister();
+        if (rs == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
             return false;
 
-        int rt = parse_ExpectRegister();
-        if (rt != -1) {
+        int rt = expectRegister();
+        if (rt != REG_NONE) {
             if (lex_Current.token == ',') {
                 parse_GetToken();
 
@@ -469,13 +471,13 @@ static SInstructionRRI g_RIInstructions[T_MIPS_INTEGER_RI_LAST - T_MIPS_INTEGER_
 };
 
 static bool
-parse_IntegerInstructionRI(void) {
+handleIntegerInstructionRI(void) {
     if (lex_Current.token >= T_MIPS_INTEGER_RI_FIRST && lex_Current.token <= T_MIPS_INTEGER_RI_LAST) {
         SInstructionRRI* instruction = &g_RIInstructions[lex_Current.token - T_MIPS_INTEGER_RI_FIRST];
 
         parse_GetToken();
-        int rs = parse_ExpectRegister();
-        if (rs == -1)
+        int rs = expectRegister();
+        if (rs == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
@@ -499,21 +501,21 @@ static uint32_t g_RDRSRTCopyInstructions[T_MIPS_INTEGER_RDRS_RTCOPY_LAST - T_MIP
 };
 
 static bool
-parse_IntegerInstructionRDRSRTCopy(void) {
+handleIntegerInstructionRDRSRTCopy(void) {
     if (lex_Current.token >= T_MIPS_INTEGER_RDRS_RTCOPY_FIRST && lex_Current.token <= T_MIPS_INTEGER_RDRS_RTCOPY_LAST) {
         uint32_t opcode = g_RDRSRTCopyInstructions[lex_Current.token - T_MIPS_INTEGER_RDRS_RTCOPY_FIRST];
 
         parse_GetToken();
 
-        int rd = parse_ExpectRegister();
-        if (rd == -1)
+        int rd = expectRegister();
+        if (rd == REG_NONE)
             return false;
 
         if (!parse_ExpectChar(','))
             return false;
 
-        int rs = parse_ExpectRegister();
-        if (rs != -1) {
+        int rs = expectRegister();
+        if (rs != REG_NONE) {
             sect_OutputConst32(opcode | (rd << 11) | (rs << 21) | (rd << 16));
 
             return true;
@@ -536,7 +538,7 @@ static uint32_t g_noParameterInstructions[T_MIPS_INTEGER_NO_PARAMETER_LAST - T_M
 };
 
 static bool
-parse_IntegerNoParameter(void) {
+handleIntegerNoParameter(void) {
     if (lex_Current.token >= T_MIPS_INTEGER_NO_PARAMETER_FIRST && lex_Current.token <= T_MIPS_INTEGER_NO_PARAMETER_LAST) {
         uint32_t opcode = g_noParameterInstructions[lex_Current.token - T_MIPS_INTEGER_NO_PARAMETER_FIRST];
 
@@ -555,14 +557,14 @@ static uint32_t g_RTInstructions[T_MIPS_INTEGER_RT_LAST - T_MIPS_INTEGER_RT_FIRS
 };
 
 static bool
-parse_IntegerRT(void) {
+handleIntegerRT(void) {
     if (lex_Current.token >= T_MIPS_INTEGER_RT_FIRST && lex_Current.token <= T_MIPS_INTEGER_RT_LAST) {
         uint32_t opcode = g_RTInstructions[lex_Current.token - T_MIPS_INTEGER_RT_FIRST];
 
         parse_GetToken();
 
-        int rt = parse_GetRegister();
-        if (rt == -1)
+        int rt = getRegister();
+        if (rt == REG_NONE)
             rt = 0;
 
         sect_OutputConst32(opcode | (rt << 16));
@@ -579,14 +581,14 @@ static uint32_t g_RDInstructions[T_MIPS_INTEGER_RD_LAST - T_MIPS_INTEGER_RD_FIRS
 };
 
 static bool
-parse_IntegerRD(void) {
+handleIntegerRD(void) {
     if (lex_Current.token >= T_MIPS_INTEGER_RD_FIRST && lex_Current.token <= T_MIPS_INTEGER_RD_LAST) {
         uint32_t opcode = g_RDInstructions[lex_Current.token - T_MIPS_INTEGER_RD_FIRST];
 
         parse_GetToken();
 
-        int rd = parse_ExpectRegister();
-        if (rd == -1)
+        int rd = expectRegister();
+        if (rd == REG_NONE)
             return false;
 
         sect_OutputConst32(opcode | (rd << 11));
@@ -604,14 +606,14 @@ static uint32_t g_RSInstructions[T_MIPS_INTEGER_RS_LAST - T_MIPS_INTEGER_RS_FIRS
 };
 
 static bool
-parse_IntegerRS(void) {
+handleIntegerRS(void) {
     if (lex_Current.token >= T_MIPS_INTEGER_RS_FIRST && lex_Current.token <= T_MIPS_INTEGER_RS_LAST) {
         uint32_t opcode = g_RSInstructions[lex_Current.token - T_MIPS_INTEGER_RS_FIRST];
 
         parse_GetToken();
 
-        int rs = parse_ExpectRegister();
-        if (rs == -1)
+        int rs = expectRegister();
+        if (rs == REG_NONE)
             return false;
 
         sect_OutputConst32(opcode | (rs << 21));
@@ -627,7 +629,7 @@ static uint32_t g_jumpAbsInstructions[T_MIPS_INTEGER_J_ABS_LAST - T_MIPS_INTEGER
 };
 
 static bool
-parse_IntegerJumpAbs(void) {
+handleIntegerJumpAbs(void) {
     if (lex_Current.token >= T_MIPS_INTEGER_J_ABS_FIRST && lex_Current.token <= T_MIPS_INTEGER_J_ABS_LAST) {
         uint32_t opcode = g_jumpAbsInstructions[lex_Current.token - T_MIPS_INTEGER_J_ABS_FIRST];
 
@@ -647,12 +649,12 @@ parse_IntegerJumpAbs(void) {
 }
 
 static bool
-parse_LUI(void) {
+handleLUI(void) {
     if (lex_Current.token == T_MIPS_LUI) {
         parse_GetToken();
 
-        int rd = parse_ExpectRegister();
-        if (rd != -1) {
+        int rd = expectRegister();
+        if (rd != REG_NONE) {
             if (parse_ExpectChar(',')) {
                 SExpression* expression = parse_ExpressionU16();
                 if (expression != NULL) {
@@ -669,139 +671,139 @@ parse_LUI(void) {
 
 typedef bool (* mnemonicHandler)(void);
 
-mnemonicHandler s_mnemonicHandlers[T_MIPS_LUI - T_MIPS_ADD + 1] = {
-    parse_IntegerInstructionRRR,    //	T_MIPS_ADD = 6000,
-    parse_IntegerInstructionRRR,    //	T_MIPS_ADDU,
-    parse_IntegerInstructionRRR,    //	T_MIPS_AND,
-    parse_IntegerInstructionRRR,    //	T_MIPS_MOVN,
-    parse_IntegerInstructionRRR,    //	T_MIPS_MOVZ,
-    parse_IntegerInstructionRRR,    //	T_MIPS_MUL,
-    parse_IntegerInstructionRRR,    //	T_MIPS_NOR,
-    parse_IntegerInstructionRRR,    //	T_MIPS_OR,
-    parse_IntegerInstructionRRR,    //	T_MIPS_ROTRV,
-    parse_IntegerInstructionRRR,    //	T_MIPS_SLLV,
-    parse_IntegerInstructionRRR,    //	T_MIPS_SLT,
-    parse_IntegerInstructionRRR,    //	T_MIPS_SLTU,
-    parse_IntegerInstructionRRR,    //	T_MIPS_SRAV,
-    parse_IntegerInstructionRRR,    //	T_MIPS_SRLV,
-    parse_IntegerInstructionRRR,    //	T_MIPS_SUB,
-    parse_IntegerInstructionRRR,    //	T_MIPS_SUBU,
-    parse_IntegerInstructionRRR,    //	T_MIPS_XOR,
+static mnemonicHandler g_mnemonicHandlers[T_MIPS_LUI - T_MIPS_ADD + 1] = {
+    handleIntegerInstructionRRR,    //	T_MIPS_ADD = 6000,
+    handleIntegerInstructionRRR,    //	T_MIPS_ADDU,
+    handleIntegerInstructionRRR,    //	T_MIPS_AND,
+    handleIntegerInstructionRRR,    //	T_MIPS_MOVN,
+    handleIntegerInstructionRRR,    //	T_MIPS_MOVZ,
+    handleIntegerInstructionRRR,    //	T_MIPS_MUL,
+    handleIntegerInstructionRRR,    //	T_MIPS_NOR,
+    handleIntegerInstructionRRR,    //	T_MIPS_OR,
+    handleIntegerInstructionRRR,    //	T_MIPS_ROTRV,
+    handleIntegerInstructionRRR,    //	T_MIPS_SLLV,
+    handleIntegerInstructionRRR,    //	T_MIPS_SLT,
+    handleIntegerInstructionRRR,    //	T_MIPS_SLTU,
+    handleIntegerInstructionRRR,    //	T_MIPS_SRAV,
+    handleIntegerInstructionRRR,    //	T_MIPS_SRLV,
+    handleIntegerInstructionRRR,    //	T_MIPS_SUB,
+    handleIntegerInstructionRRR,    //	T_MIPS_SUBU,
+    handleIntegerInstructionRRR,    //	T_MIPS_XOR,
 
-    parse_IntegerInstructionRRI,    //	T_MIPS_ADDI,
-    parse_IntegerInstructionRRI,    //	T_MIPS_ADDIU,
-    parse_IntegerInstructionRRI,    //	T_MIPS_ANDI,
-    parse_IntegerInstructionRRI,    //	T_MIPS_ORI,
-    parse_IntegerInstructionRRI,    //	T_MIPS_SLTI,
-    parse_IntegerInstructionRRI,    //	T_MIPS_SLTIU,
-    parse_IntegerInstructionRRI,    //	T_MIPS_XORI,
+    handleIntegerInstructionRRI,    //	T_MIPS_ADDI,
+    handleIntegerInstructionRRI,    //	T_MIPS_ADDIU,
+    handleIntegerInstructionRRI,    //	T_MIPS_ANDI,
+    handleIntegerInstructionRRI,    //	T_MIPS_ORI,
+    handleIntegerInstructionRRI,    //	T_MIPS_SLTI,
+    handleIntegerInstructionRRI,    //	T_MIPS_SLTIU,
+    handleIntegerInstructionRRI,    //	T_MIPS_XORI,
 
-    parse_Branch,    //	T_MIPS_BEQ,
-    parse_Branch,    //	T_MIPS_BEQL,
-    parse_Branch,    //	T_MIPS_BNE,
-    parse_Branch,    //	T_MIPS_BNEL,
-    parse_Branch,    //	T_MIPS_BGEZ,
-    parse_Branch,    //	T_MIPS_BGEZAL,
-    parse_Branch,    //	T_MIPS_BGEZALL,
-    parse_Branch,    //	T_MIPS_BGEZL,
-    parse_Branch,    //	T_MIPS_BGTZ,
-    parse_Branch,    //	T_MIPS_BGTZL,
-    parse_Branch,    //	T_MIPS_BLEZ,
-    parse_Branch,    //	T_MIPS_BLEZL,
-    parse_Branch,    //	T_MIPS_BLTZ,
-    parse_Branch,    //	T_MIPS_BLTZAL,
-    parse_Branch,    //	T_MIPS_BLTZALL,
-    parse_Branch,    //	T_MIPS_BLTZL,
-    parse_Branch,    //	T_MIPS_B,
-    parse_Branch,    //	T_MIPS_BAL,
+    handleBranch,    //	T_MIPS_BEQ,
+    handleBranch,    //	T_MIPS_BEQL,
+    handleBranch,    //	T_MIPS_BNE,
+    handleBranch,    //	T_MIPS_BNEL,
+    handleBranch,    //	T_MIPS_BGEZ,
+    handleBranch,    //	T_MIPS_BGEZAL,
+    handleBranch,    //	T_MIPS_BGEZALL,
+    handleBranch,    //	T_MIPS_BGEZL,
+    handleBranch,    //	T_MIPS_BGTZ,
+    handleBranch,    //	T_MIPS_BGTZL,
+    handleBranch,    //	T_MIPS_BLEZ,
+    handleBranch,    //	T_MIPS_BLEZL,
+    handleBranch,    //	T_MIPS_BLTZ,
+    handleBranch,    //	T_MIPS_BLTZAL,
+    handleBranch,    //	T_MIPS_BLTZALL,
+    handleBranch,    //	T_MIPS_BLTZL,
+    handleBranch,    //	T_MIPS_B,
+    handleBranch,    //	T_MIPS_BAL,
 
-    parse_Shift,    //	T_MIPS_ROTR,
-    parse_Shift,    //	T_MIPS_SLL,
-    parse_Shift,    //	T_MIPS_SRA,
-    parse_Shift,    //	T_MIPS_SRL,
+    handleShift,    //	T_MIPS_ROTR,
+    handleShift,    //	T_MIPS_SLL,
+    handleShift,    //	T_MIPS_SRA,
+    handleShift,    //	T_MIPS_SRL,
 
-    parse_LoadStore,    //	T_MIPS_LB,
-    parse_LoadStore,    //	T_MIPS_LBU,
-    parse_LoadStore,    //	T_MIPS_LH,
-    parse_LoadStore,    //	T_MIPS_LHU,
-    parse_LoadStore,    //	T_MIPS_LL,
-    parse_LoadStore,    //	T_MIPS_LW,
-    parse_LoadStore,    //	T_MIPS_LWC1,
-    parse_LoadStore,    //	T_MIPS_LWC2,
-    parse_LoadStore,    //	T_MIPS_LWL,
-    parse_LoadStore,    //	T_MIPS_LWR,
-    parse_LoadStore,    //	T_MIPS_SB,
-    parse_LoadStore,    //	T_MIPS_SC,
-    parse_LoadStore,    //	T_MIPS_SH,
-    parse_LoadStore,    //	T_MIPS_SW,
-    parse_LoadStore,    //	T_MIPS_SWC1,
-    parse_LoadStore,    //	T_MIPS_SWC2,
-    parse_LoadStore,    //	T_MIPS_SWL,
-    parse_LoadStore,    //	T_MIPS_SWR,
+    handleLoadStore,    //	T_MIPS_LB,
+    handleLoadStore,    //	T_MIPS_LBU,
+    handleLoadStore,    //	T_MIPS_LH,
+    handleLoadStore,    //	T_MIPS_LHU,
+    handleLoadStore,    //	T_MIPS_LL,
+    handleLoadStore,    //	T_MIPS_LW,
+    handleLoadStore,    //	T_MIPS_LWC1,
+    handleLoadStore,    //	T_MIPS_LWC2,
+    handleLoadStore,    //	T_MIPS_LWL,
+    handleLoadStore,    //	T_MIPS_LWR,
+    handleLoadStore,    //	T_MIPS_SB,
+    handleLoadStore,    //	T_MIPS_SC,
+    handleLoadStore,    //	T_MIPS_SH,
+    handleLoadStore,    //	T_MIPS_SW,
+    handleLoadStore,    //	T_MIPS_SWC1,
+    handleLoadStore,    //	T_MIPS_SWC2,
+    handleLoadStore,    //	T_MIPS_SWL,
+    handleLoadStore,    //	T_MIPS_SWR,
 
-    parse_IntegerInstructionRSRT,    //	T_MIPS_DIV,
-    parse_IntegerInstructionRSRT,    //	T_MIPS_DIVU,
-    parse_IntegerInstructionRSRT,    //	T_MIPS_MADD,
-    parse_IntegerInstructionRSRT,    //	T_MIPS_MADDU,
-    parse_IntegerInstructionRSRT,    //	T_MIPS_MSUB,
-    parse_IntegerInstructionRSRT,    //	T_MIPS_MSUBU,
-    parse_IntegerInstructionRSRT,    //	T_MIPS_MULT,
-    parse_IntegerInstructionRSRT,    //	T_MIPS_MULU,
+    handleIntegerInstructionRSRT,    //	T_MIPS_DIV,
+    handleIntegerInstructionRSRT,    //	T_MIPS_DIVU,
+    handleIntegerInstructionRSRT,    //	T_MIPS_MADD,
+    handleIntegerInstructionRSRT,    //	T_MIPS_MADDU,
+    handleIntegerInstructionRSRT,    //	T_MIPS_MSUB,
+    handleIntegerInstructionRSRT,    //	T_MIPS_MSUBU,
+    handleIntegerInstructionRSRT,    //	T_MIPS_MULT,
+    handleIntegerInstructionRSRT,    //	T_MIPS_MULU,
 
-    parse_IntegerInstructionRDRT,    //	T_MIPS_RDPGPR,
-    parse_IntegerInstructionRDRT,    //	T_MIPS_SEB,
-    parse_IntegerInstructionRDRT,    //	T_MIPS_SEH,
-    parse_IntegerInstructionRDRT,    //	T_MIPS_WRPGPR,
-    parse_IntegerInstructionRDRT,    //	T_MIPS_WSBH,
+    handleIntegerInstructionRDRT,    //	T_MIPS_RDPGPR,
+    handleIntegerInstructionRDRT,    //	T_MIPS_SEB,
+    handleIntegerInstructionRDRT,    //	T_MIPS_SEH,
+    handleIntegerInstructionRDRT,    //	T_MIPS_WRPGPR,
+    handleIntegerInstructionRDRT,    //	T_MIPS_WSBH,
 
-    parse_IntegerInstructionRSRTCode,    //	T_MIPS_TEQ,
-    parse_IntegerInstructionRSRTCode,    //	T_MIPS_TGE,
-    parse_IntegerInstructionRSRTCode,    //	T_MIPS_TGEU,
-    parse_IntegerInstructionRSRTCode,    //	T_MIPS_TLT,
-    parse_IntegerInstructionRSRTCode,    //	T_MIPS_TLTU,
-    parse_IntegerInstructionRSRTCode,    //	T_MIPS_TNE,
+    handleIntegerInstructionRSRTCode,    //	T_MIPS_TEQ,
+    handleIntegerInstructionRSRTCode,    //	T_MIPS_TGE,
+    handleIntegerInstructionRSRTCode,    //	T_MIPS_TGEU,
+    handleIntegerInstructionRSRTCode,    //	T_MIPS_TLT,
+    handleIntegerInstructionRSRTCode,    //	T_MIPS_TLTU,
+    handleIntegerInstructionRSRTCode,    //	T_MIPS_TNE,
 
-    parse_IntegerInstructionRI,    //	T_MIPS_TEQI,
-    parse_IntegerInstructionRI,    //	T_MIPS_TGEI,
-    parse_IntegerInstructionRI,    //	T_MIPS_TGEIU,
-    parse_IntegerInstructionRI,    //	T_MIPS_TLTI,
-    parse_IntegerInstructionRI,    //	T_MIPS_TLTIU,
-    parse_IntegerInstructionRI,    //	T_MIPS_TNEI,
+    handleIntegerInstructionRI,    //	T_MIPS_TEQI,
+    handleIntegerInstructionRI,    //	T_MIPS_TGEI,
+    handleIntegerInstructionRI,    //	T_MIPS_TGEIU,
+    handleIntegerInstructionRI,    //	T_MIPS_TLTI,
+    handleIntegerInstructionRI,    //	T_MIPS_TLTIU,
+    handleIntegerInstructionRI,    //	T_MIPS_TNEI,
 
-    parse_IntegerInstructionRDRSRTCopy,    //	T_MIPS_CLO,
-    parse_IntegerInstructionRDRSRTCopy,    //	T_MIPS_CLZ,
+    handleIntegerInstructionRDRSRTCopy,    //	T_MIPS_CLO,
+    handleIntegerInstructionRDRSRTCopy,    //	T_MIPS_CLZ,
 
-    parse_IntegerNoParameter,    //	T_MIPS_DERET,
-    parse_IntegerNoParameter,    //	T_MIPS_EHB,
-    parse_IntegerNoParameter,    //	T_MIPS_ERET,
-    parse_IntegerNoParameter,    //	T_MIPS_NOP,
-    parse_IntegerNoParameter,    //	T_MIPS_SSNOP,
-    parse_IntegerNoParameter,    //	T_MIPS_TLBP,
-    parse_IntegerNoParameter,    //	T_MIPS_TLBR,
-    parse_IntegerNoParameter,    //	T_MIPS_TLBWI,
-    parse_IntegerNoParameter,    //	T_MIPS_TLBWR,
+    handleIntegerNoParameter,    //	T_MIPS_DERET,
+    handleIntegerNoParameter,    //	T_MIPS_EHB,
+    handleIntegerNoParameter,    //	T_MIPS_ERET,
+    handleIntegerNoParameter,    //	T_MIPS_NOP,
+    handleIntegerNoParameter,    //	T_MIPS_SSNOP,
+    handleIntegerNoParameter,    //	T_MIPS_TLBP,
+    handleIntegerNoParameter,    //	T_MIPS_TLBR,
+    handleIntegerNoParameter,    //	T_MIPS_TLBWI,
+    handleIntegerNoParameter,    //	T_MIPS_TLBWR,
 
-    parse_IntegerRT,    //	T_MIPS_DI,
-    parse_IntegerRT,    //	T_MIPS_EI,
+    handleIntegerRT,    //	T_MIPS_DI,
+    handleIntegerRT,    //	T_MIPS_EI,
 
-    parse_IntegerRD,    //	T_MIPS_MFHI,
-    parse_IntegerRD,    //	T_MIPS_MFLO,
+    handleIntegerRD,    //	T_MIPS_MFHI,
+    handleIntegerRD,    //	T_MIPS_MFLO,
 
-    parse_IntegerRS,    //	T_MIPS_JR,
-    parse_IntegerRS,    //	T_MIPS_JR_HB,
-    parse_IntegerRS,    //	T_MIPS_MTHI,
-    parse_IntegerRS,    //	T_MIPS_MTLO,
+    handleIntegerRS,    //	T_MIPS_JR,
+    handleIntegerRS,    //	T_MIPS_JR_HB,
+    handleIntegerRS,    //	T_MIPS_MTHI,
+    handleIntegerRS,    //	T_MIPS_MTLO,
 
-    parse_IntegerJumpAbs,    //	T_MIPS_J,
-    parse_IntegerJumpAbs,    //	T_MIPS_JAL,
+    handleIntegerJumpAbs,    //	T_MIPS_J,
+    handleIntegerJumpAbs,    //	T_MIPS_JAL,
 
-    parse_LUI    //	T_MIPS_LUI
+    handleLUI    //	T_MIPS_LUI
 };
 
 bool
 mips_ParseIntegerInstruction(void) {
     if (T_MIPS_ADD <= lex_Current.token && lex_Current.token <= T_MIPS_LUI) {
-        return s_mnemonicHandlers[lex_Current.token - T_MIPS_ADD]();
+        return g_mnemonicHandlers[lex_Current.token - T_MIPS_ADD]();
     }
 
     return false;

@@ -21,7 +21,7 @@
 
 #include "mips_tokens.h"
 
-static SLexConstantsWord s_tokens[]= {
+static SLexConstantsWord g_tokens[]= {
 	{ "ADD",	T_MIPS_ADD		},
 	{ "ADDU",	T_MIPS_ADDU		},
 	{ "AND",	T_MIPS_AND		},
@@ -227,5 +227,5 @@ static SLexConstantsWord s_tokens[]= {
 
 void
 mips_DefineTokens(void) {
-	lex_ConstantsDefineWords(s_tokens);
+	lex_ConstantsDefineWords(g_tokens);
 }

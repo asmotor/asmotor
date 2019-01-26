@@ -21,7 +21,7 @@
 
 #include "schip_tokens.h"
 
-static SLexConstantsWord tokens[] = {
+static SLexConstantsWord g_tokens[] = {
 	/* reg */
 	{ "BCD", T_CHIP_BCD },
 	{ "LDF", T_CHIP_LDF },
@@ -88,5 +88,5 @@ static SLexConstantsWord tokens[] = {
 
 void 
 schip_DefineTokens(void) {
-	lex_ConstantsDefineWords(tokens);
+	lex_ConstantsDefineWords(g_tokens);
 }

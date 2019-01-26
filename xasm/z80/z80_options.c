@@ -29,22 +29,22 @@
 #include "z80_options.h"
 #include "z80_tokens.h"
 
-SConfiguration xasm_Z80Configuration;
+SConfiguration z80_XasmConfiguration;
 
-uint32_t opt_gameboyLiteralId;
+uint32_t z80_gameboyLiteralId;
 
 SMachineOptions*
-locopt_Alloc(void) {
+z80_AllocOptions(void) {
     return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
-locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
+z80_CopyOptions(SMachineOptions* dest, SMachineOptions* src) {
     *dest = *src;
 }
 
 void
-locopt_Open(SMachineOptions* options) {
+z80_SetDefaultOptions(SMachineOptions* options) {
     options->gameboyLiteralCharacters[0] = '0';
     options->gameboyLiteralCharacters[1] = '1';
     options->gameboyLiteralCharacters[2] = '2';
@@ -53,13 +53,13 @@ locopt_Open(SMachineOptions* options) {
 }
 
 void
-locopt_Update(SMachineOptions* options) {
-    lex_VariadicRemoveAll(opt_gameboyLiteralId);
-    lex_VariadicAddCharRange(opt_gameboyLiteralId, '`', '`', 0);
+z80_OptionsUpdated(SMachineOptions* options) {
+    lex_VariadicRemoveAll(z80_gameboyLiteralId);
+    lex_VariadicAddCharRange(z80_gameboyLiteralId, '`', '`', 0);
 
     for (int i = 0; i <= 3; ++i) {
         lex_VariadicAddCharRangeRepeating(
-                opt_gameboyLiteralId,
+                z80_gameboyLiteralId,
                 (uint8_t) options->gameboyLiteralCharacters[i],
                 (uint8_t) options->gameboyLiteralCharacters[i],
                 1);
@@ -67,7 +67,7 @@ locopt_Update(SMachineOptions* options) {
 }
 
 bool
-locopt_Parse(const char* s) {
+z80_ParseOption(const char* s) {
     if (s == NULL || strlen(s) == 0)
         return false;
 
@@ -88,11 +88,11 @@ locopt_Parse(const char* s) {
                 switch (s[1]) {
                     case 'g':
                         opt_Current->machineOptions->cpu = CPUF_GB;
-                        xasm_Z80Configuration.maxSectionSize = 0x4000;
+                        z80_XasmConfiguration.maxSectionSize = 0x4000;
                         return true;
                     case 'z':
                         opt_Current->machineOptions->cpu = CPUF_Z80;
-                        xasm_Z80Configuration.maxSectionSize = 0x10000;
+                        z80_XasmConfiguration.maxSectionSize = 0x10000;
                         return true;
                     default:
                         break;
@@ -107,7 +107,7 @@ locopt_Parse(const char* s) {
 }
 
 void
-locopt_PrintOptions(void) {
+z80_PrintOptions(void) {
     printf("    -mg<ASCI> Change the four characters used for Gameboy graphics\n"
            "              constants (default is 0123)\n");
     printf("    -mc<x>    Change CPU type:\n"

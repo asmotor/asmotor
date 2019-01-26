@@ -19,31 +19,19 @@
 #include "symbol.h"
 #include "xasm.h"
 
+static void
+createGroup(const char* name, EGroupType type) {
+    string* nameStr = str_Create(name);
+    sym_CreateGroup(nameStr, type);
+    str_Free(nameStr);
+}
+
 void
-locsym_Init(void) {
-	string* pName;
-	
-	pName = str_Create("HOME");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
-	
-	pName = str_Create("CODE");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
-	
-	pName = str_Create("DATA");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
-	
-	pName = str_Create("BSS");
-    sym_CreateGroup(pName, GROUP_BSS);
-	str_Free(pName);
-	
-	pName = str_Create("HRAM");
-    sym_CreateGroup(pName, GROUP_BSS);
-	str_Free(pName);
-	
-	pName = str_Create("VRAM");
-    sym_CreateGroup(pName, GROUP_BSS);
-	str_Free(pName);
+z80_DefineSymbols(void) {
+	createGroup("HOME", GROUP_TEXT);
+	createGroup("CODE", GROUP_TEXT);
+	createGroup("DATA", GROUP_TEXT);
+	createGroup("BSS", GROUP_BSS);
+	createGroup("HRAM", GROUP_BSS);
+	createGroup("VRAM", GROUP_BSS);
 }

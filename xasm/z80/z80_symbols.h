@@ -20,6 +20,6 @@
 #define XASM_Z80_SYMBOLS_H_INCLUDED_
 
 extern void
-locsym_Init(void);
+z80_DefineSymbols(void);
 
 #endif

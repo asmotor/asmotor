@@ -20,19 +20,16 @@
 
 #include "symbol.h"
 
+static void
+createGroup(const char* name, EGroupType type) {
+    string* nameStr = str_Create(name);
+    sym_CreateGroup(nameStr, type);
+    str_Free(nameStr);
+}
+
 void
 schip_DefineSymbols(void) {
-	string* pName;
-	
-	pName = str_Create("CODE");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
-
-	pName = str_Create("DATA");
-    sym_CreateGroup(pName, GROUP_TEXT);
-	str_Free(pName);
-
-	pName = str_Create("BSS");
-    sym_CreateGroup(pName, GROUP_BSS);
-	str_Free(pName);
+    createGroup("CODE", GROUP_TEXT);
+	createGroup("DATA", GROUP_TEXT);
+	createGroup("BSS", GROUP_BSS);
 }

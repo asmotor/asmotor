@@ -908,7 +908,7 @@ translateToken(uint32_t token) {
 }
 
 bool
-parse_TargetSpecific(void) {
+z80_ParseInstruction(void) {
 	uint32_t token = translateToken(lex_Current.token);
 	if (token >= T_Z80_ADC && token <= T_Z80_XOR) {
 		token = token - T_Z80_ADC;
@@ -969,6 +969,6 @@ parse_TargetSpecific(void) {
 }
 
 SExpression*
-parse_TargetFunction(void) {
+z80_ParseFunction(void) {
 	return NULL;
 }

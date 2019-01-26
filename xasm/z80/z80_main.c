@@ -27,8 +27,8 @@
 #include "z80_symbols.h"
 #include "z80_tokens.h"
 
-SConfiguration
-xasm_Z80Configuration = {
+static SConfiguration
+z80_XasmConfiguration = {
 	"motorz80", "1.0",
 
 	0x4000,
@@ -43,21 +43,21 @@ xasm_Z80Configuration = {
 	"DS", NULL, NULL,
 
 	z80_GetError,
-	loclexer_Init,
-	locsym_Init,
+	z80_DefineTokens,
+	z80_DefineSymbols,
 
-	locopt_Alloc,
-	locopt_Open,
-	locopt_Copy,
-	locopt_Parse,
-	locopt_Update,
-	locopt_PrintOptions,
+	z80_AllocOptions,
+	z80_SetDefaultOptions,
+	z80_CopyOptions,
+	z80_ParseOption,
+	z80_OptionsUpdated,
+	z80_PrintOptions,
 
-	parse_TargetFunction,
-	parse_TargetSpecific
+	z80_ParseFunction,
+	z80_ParseInstruction,
 };
 
 extern int
 main(int argc, char* argv[]) {
-	return xasm_Main(&xasm_Z80Configuration, argc, argv);
+	return xasm_Main(&z80_XasmConfiguration, argc, argv);
 }

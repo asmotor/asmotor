@@ -27,7 +27,7 @@
 #include "schip_symbols.h"
 #include "schip_tokens.h"
 
-static SConfiguration xasm_SuperChipConfiguration = {
+static SConfiguration g_xasmConfiguration = {
 	"motorschip",
 	"1.0",
 	0x1000,
@@ -58,5 +58,5 @@ static SConfiguration xasm_SuperChipConfiguration = {
 
 extern int
 main(int argc, char* argv[]) {
-	return xasm_Main(&xasm_SuperChipConfiguration, argc, argv);
+	return xasm_Main(&g_xasmConfiguration, argc, argv);
 }

@@ -27,7 +27,7 @@
 #include "mips_symbols.h"
 #include "mips_tokens.h"
 
-static SConfiguration xasm_MIPSConfiguration = {
+static SConfiguration g_xasmConfiguration = {
 	"motormips",
 	"1.0",
 	0x7FFFFFFF,
@@ -59,5 +59,5 @@ static SConfiguration xasm_MIPSConfiguration = {
 
 extern int
 main(int argc, char* argv[]) {
-	return xasm_Main(&xasm_MIPSConfiguration, argc, argv);
+	return xasm_Main(&g_xasmConfiguration, argc, argv);
 }

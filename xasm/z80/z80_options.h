@@ -27,24 +27,24 @@ typedef struct MachineOptions {
     uint8_t cpu;
 } SMachineOptions;
 
-extern uint32_t opt_gameboyLiteralId;
+extern uint32_t z80_gameboyLiteralId;
 
 extern SMachineOptions*
-locopt_Alloc(void);
+z80_AllocOptions(void);
 
 extern void
-locopt_Open(SMachineOptions* options);
+z80_SetDefaultOptions(SMachineOptions* options);
 
 extern void
-locopt_Copy(SMachineOptions* dest, SMachineOptions* src);
+z80_CopyOptions(SMachineOptions* dest, SMachineOptions* src);
 
 extern bool
-locopt_Parse(const char* s);
+z80_ParseOption(const char* s);
 
 extern void
-locopt_Update(SMachineOptions* options);
+z80_OptionsUpdated(SMachineOptions* options);
 
 extern void
-locopt_PrintOptions(void);
+z80_PrintOptions(void);
 
 #endif

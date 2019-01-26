@@ -20,9 +20,9 @@
 #define XASM_Z80_PARSE_H_INCLUDED_
 
 extern SExpression*
-parse_TargetFunction(void);
+z80_ParseFunction(void);
 
 extern bool
-parse_TargetSpecific(void);
+z80_ParseInstruction(void);
 
 #endif

@@ -135,6 +135,6 @@ typedef enum {
 } ETargetToken;
 
 extern void
-loclexer_Init(void);
+z80_DefineTokens(void);
 
 #endif    //XASM_Z80_TOKENS_H_INCLUDED_
