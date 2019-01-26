@@ -18,8 +18,7 @@
 
 #include "xasm.h"
 
-static char*
-g_errors[] = {
+static char* g_errors[] = {
 	"Illegal addressing mode",
 	"Undocumented instruction set must be 0, 1 or 2"
 };

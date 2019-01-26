@@ -51,7 +51,7 @@ static bool parse_FpuGeneric(ESize sz, uint16_t opmode, SAddrMode* src, SAddrMod
         return true;
     }
 
-    sect_OutputConst16(FPU_INS | (rm ? parse_GetEAField(src) : 0u));
+    sect_OutputConst16(FPU_INS | (rm ? m68k_GetEffectiveAddressField(src) : 0u));
     sect_OutputConst16(rm | parse_GetSourceSpecifier(sz) | (dest->nDirectReg << 7) | opmode);
     return parse_OutputExtWords(src);
 }
@@ -80,7 +80,7 @@ static SInstruction s_FpuInstructions[] =
 #endif
 
 bool
-parse_FpuInstruction(void) {
+m68k_ParseFpuInstruction(void) {
     return false;
     /*
     int op;
@@ -102,6 +102,6 @@ parse_FpuInstruction(void) {
         return true;
     }
 
-    return parse_CommonCpuFpu(op, pIns);
+    return m68k_ParseCommonCpuFpu(op, pIns);
     */
 }

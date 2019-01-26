@@ -52,11 +52,11 @@ void
 x65_OptionsUpdated(SMachineOptions* options) {
     int newSet = options->undocumentedInstructions;
     if (g_previousInstructionSet != newSet) {
-        SLexConstantsWord* prev = loclexer_GetUndocumentedInstructions(g_previousInstructionSet);
+        SLexConstantsWord* prev = x65_GetUndocumentedInstructions(g_previousInstructionSet);
         if (prev)
             lex_ConstantsUndefineWords(prev);
 
-        SLexConstantsWord* next = loclexer_GetUndocumentedInstructions(newSet);
+        SLexConstantsWord* next = x65_GetUndocumentedInstructions(newSet);
         if (next)
             lex_ConstantsDefineWords(next);
 

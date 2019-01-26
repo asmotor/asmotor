@@ -50,8 +50,8 @@ getSizeField(ESize sz) {
 
 static bool
 outputOpcode(uint16_t opcode, SAddressingMode* addrMode) {
-    sect_OutputConst16(opcode | parse_GetEAField(addrMode));
-    return parse_OutputExtensionWords(addrMode);
+    sect_OutputConst16(opcode | m68k_GetEffectiveAddressField(addrMode));
+    return m68k_OutputExtensionWords(addrMode);
 }
 
 
@@ -109,13 +109,13 @@ handleQuick(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest)
         return true;
     }
 
-    ins |= (uint16_t) (parse_GetEAField(dest) | (getSizeField(sz) << 6));
+    ins |= (uint16_t) (m68k_GetEffectiveAddressField(dest) | (getSizeField(sz) << 6));
 
     SExpression* expr = expr_Const(ins);
     expr = expr_Or(expr, expr_Asl(expr_And(src->immediate, expr_Const(7)), expr_Const(9)));
 
     sect_OutputExpr16(expr);
-    return parse_OutputExtensionWords(dest);
+    return m68k_OutputExtensionWords(dest);
 }
 
 static bool
@@ -151,22 +151,22 @@ handleSUBA(ESize size, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleArithmeticLogicalI(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* dest) {
-    opcode |= parse_GetEAField(dest);
+    opcode |= m68k_GetEffectiveAddressField(dest);
     if (size == SIZE_BYTE) {
         opcode |= 0x0 << 6;
         sect_OutputConst16(opcode);
-        sect_OutputExpr16(expr_And(parse_ExpressionCheck8Bit(src->immediate), expr_Const(0xFF)));
+        sect_OutputExpr16(expr_And(m68k_ExpressionCheck8Bit(src->immediate), expr_Const(0xFF)));
     } else if (size == SIZE_WORD) {
         opcode |= 0x1 << 6;
         sect_OutputConst16(opcode);
-        sect_OutputExpr16(parse_ExpressionCheck16Bit(src->immediate));
+        sect_OutputExpr16(m68k_ExpressionCheck16Bit(src->immediate));
     } else {
         opcode |= 0x2 << 6;
         sect_OutputConst16(opcode);
         sect_OutputExpr32(src->immediate);
     }
 
-    return parse_OutputExtensionWords(dest);
+    return m68k_OutputExtensionWords(dest);
 }
 
 static bool
@@ -280,18 +280,18 @@ handleCMPA(ESize size, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleCMPI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
-    uint16_t opcode = (uint16_t) (0x0C00 | getSizeField(size) << 6 | parse_GetEAField(dest));
+    uint16_t opcode = (uint16_t) (0x0C00 | getSizeField(size) << 6 | m68k_GetEffectiveAddressField(dest));
     sect_OutputConst16(opcode);
 
     if (size == SIZE_BYTE) {
-        SExpression* expr = parse_ExpressionCheck8Bit(src->immediate);
+        SExpression* expr = m68k_ExpressionCheck8Bit(src->immediate);
         if (expr == NULL) {
             err_Error(ERROR_OPERAND_RANGE);
             return true;
         }
         sect_OutputExpr16(expr_And(expr, expr_Const(0xFF)));
     } else if (size == SIZE_WORD) {
-        SExpression* expr = parse_ExpressionCheck16Bit(src->immediate);
+        SExpression* expr = m68k_ExpressionCheck16Bit(src->immediate);
         if (expr == NULL) {
             err_Error(ERROR_OPERAND_RANGE);
             return true;
@@ -300,7 +300,7 @@ handleCMPI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
     } else if (size == SIZE_WORD) {
         sect_OutputExpr32(src->immediate);
     }
-    return parse_OutputExtensionWords(dest);
+    return m68k_OutputExtensionWords(dest);
 }
 
 static bool
@@ -551,13 +551,13 @@ handleBLE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleBitInstruction(uint16_t dataOpcode, uint16_t immediateOpcode, SAddressingMode* src, SAddressingMode* dest) {
     if (src->mode == AM_DREG) {
-        dataOpcode |= src->directRegister << 9 | parse_GetEAField(dest);
+        dataOpcode |= src->directRegister << 9 | m68k_GetEffectiveAddressField(dest);
         sect_OutputConst16(dataOpcode);
-        return parse_OutputExtensionWords(dest);
+        return m68k_OutputExtensionWords(dest);
     } else if (src->mode == AM_IMM) {
         SExpression* expr;
 
-        immediateOpcode |= parse_GetEAField(dest);
+        immediateOpcode |= m68k_GetEffectiveAddressField(dest);
         sect_OutputConst16(immediateOpcode);
 
         if (dest->mode == AM_DREG)
@@ -567,7 +567,7 @@ handleBitInstruction(uint16_t dataOpcode, uint16_t immediateOpcode, SAddressingM
 
         if (expr != NULL) {
             sect_OutputExpr16(expr);
-            return parse_OutputExtensionWords(dest);
+            return m68k_OutputExtensionWords(dest);
         }
         err_Error(ERROR_OPERAND_RANGE);
     }
@@ -598,7 +598,7 @@ static bool
 handleBitfieldInstruction(uint16_t opcode, uint16_t extension, SAddressingMode* src) {
     SExpression* expr = expr_Const(extension);
 
-    opcode |= parse_GetEAField(src);
+    opcode |= m68k_GetEffectiveAddressField(src);
     sect_OutputConst16(opcode);
 
     if (src->bitfieldOffsetRegister != -1) {
@@ -624,7 +624,7 @@ handleBitfieldInstruction(uint16_t opcode, uint16_t extension, SAddressingMode* 
     }
 
     sect_OutputExpr16(expr);
-    return parse_OutputExtensionWords(src);
+    return m68k_OutputExtensionWords(src);
 }
 
 static bool
@@ -693,9 +693,9 @@ handleCALLM(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
         return true;
     }
 
-    sect_OutputConst16((uint16_t) 0x06C0 | parse_GetEAField(dest));
+    sect_OutputConst16((uint16_t) 0x06C0 | m68k_GetEffectiveAddressField(dest));
     sect_OutputExpr16(expr);
-    return parse_OutputExtensionWords(dest);
+    return m68k_OutputExtensionWords(dest);
 }
 
 static bool
@@ -709,7 +709,7 @@ handleCAS(ESize sz, SAddressingMode* dc, SAddressingMode* du) {
         return false;
 
     SAddressingMode ea;
-    if (!parse_GetAddrMode(&ea))
+    if (!m68k_GetAddressingMode(&ea))
         return false;
 
     if ((ea.mode & (AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020)) == 0) {
@@ -719,13 +719,13 @@ handleCAS(ESize sz, SAddressingMode* dc, SAddressingMode* du) {
 
     uint16_t opcode;
 
-    opcode = (uint16_t) (0x08C0 | (getSizeField(sz) + 1) << 9 | parse_GetEAField(&ea));
+    opcode = (uint16_t) (0x08C0 | (getSizeField(sz) + 1) << 9 | m68k_GetEffectiveAddressField(&ea));
     sect_OutputConst16(opcode);
 
     opcode = (uint16_t) (0x0000 | du->directRegister << 6 | dc->directRegister);
     sect_OutputConst16(opcode);
 
-    return parse_OutputExtensionWords(&ea);
+    return m68k_OutputExtensionWords(&ea);
 }
 
 static bool
@@ -827,13 +827,13 @@ handleCHK2(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
         return true;
     }
 
-    uint16_t opcode = (uint16_t) (0x00C0 | getSizeField(sz) << 9 | parse_GetEAField(src));
+    uint16_t opcode = (uint16_t) (0x00C0 | getSizeField(sz) << 9 | m68k_GetEffectiveAddressField(src));
     sect_OutputConst16(opcode);
 
     opcode = (uint16_t) (0x0800 | dest->directRegister << 12);
     sect_OutputConst16(opcode);
 
-    return parse_OutputExtensionWords(src);
+    return m68k_OutputExtensionWords(src);
 }
 
 static bool
@@ -843,7 +843,7 @@ handleCMP2(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
         return true;
     }
 
-    uint16_t opcode = (uint16_t) (0x00C0 | getSizeField(sz) << 9 | parse_GetEAField(src));
+    uint16_t opcode = (uint16_t) (0x00C0 | getSizeField(sz) << 9 | m68k_GetEffectiveAddressField(src));
     sect_OutputConst16(opcode);
 
     opcode = (uint16_t) (dest->directRegister << 12);
@@ -966,9 +966,9 @@ handleDIVxx(bool sign, bool l, ESize sz, SAddressingMode* src, SAddressingMode* 
             return true;
         }
 
-        sect_OutputConst16((uint16_t) (0x4C40 | parse_GetEAField(src)));
+        sect_OutputConst16((uint16_t) (0x4C40 | m68k_GetEffectiveAddressField(src)));
         sect_OutputConst16((uint16_t) (sign << 11 | div64 << 10 | dq << 12 | dr));
-        return parse_OutputExtensionWords(src);
+        return m68k_OutputExtensionWords(src);
     } else {
         uint16_t opcode = (uint16_t) (0x80C0 | sign << 8 | dest->directRegister << 9);
         return outputOpcode(opcode, src);
@@ -1215,8 +1215,8 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (dest->mode == AM_AREG)
         return handleToken(T_68K_MOVEA, sz, src, dest);
 
-    destea = (uint16_t) parse_GetEAField(dest);
-    ins = (uint16_t) parse_GetEAField(src);
+    destea = (uint16_t) m68k_GetEffectiveAddressField(dest);
+    ins = (uint16_t) m68k_GetEffectiveAddressField(src);
 
     destea = (destea >> 3 | destea << 3) & 0x3F;
 
@@ -1229,9 +1229,9 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
         ins |= 0x2 << 12;
 
     sect_OutputConst16(ins);
-    if (!parse_OutputExtensionWords(src))
+    if (!m68k_OutputExtensionWords(src))
         return false;
-    return parse_OutputExtensionWords(dest);
+    return m68k_OutputExtensionWords(dest);
 }
 
 static bool
@@ -1294,14 +1294,14 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
     uint16_t direction;
     SAddressingMode mode;
 
-    uint32_t registerMask = parse_RegisterList();
+    uint32_t registerMask = m68k_ParseRegisterList();
     if (registerMask != REGLIST_FAIL) {
         EAddrMode allowedModes = AM_AIND | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG;
 
         if (!parse_ExpectComma())
             return false;
 
-        if (!parse_GetAddrMode(&mode))
+        if (!m68k_GetAddressingMode(&mode))
             return false;
 
         if (opt_Current->machineOptions->cpu >= CPUF_68020)
@@ -1315,7 +1315,7 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
     } else {
         EAddrMode allowedModes = AM_AIND | AM_AINC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP;
 
-        if (!parse_GetAddrMode(&mode))
+        if (!m68k_GetAddressingMode(&mode))
             return false;
 
         if (opt_Current->machineOptions->cpu >= CPUF_68020)
@@ -1329,7 +1329,7 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
         if (!parse_ExpectComma())
             return false;
 
-        registerMask = parse_RegisterList();
+        registerMask = m68k_ParseRegisterList();
         if (registerMask == REGLIST_FAIL)
             return false;
 
@@ -1341,7 +1341,7 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
         return true;
     }
 
-    uint16_t opcode = (uint16_t) (0x4880 | direction << 10 | parse_GetEAField(&mode));
+    uint16_t opcode = (uint16_t) (0x4880 | direction << 10 | m68k_GetEffectiveAddressField(&mode));
     if (sz == SIZE_LONG)
         opcode |= 1 << 6;
 
@@ -1349,7 +1349,7 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
     if (mode.mode == AM_ADEC)
         registerMask = reverseBits((uint16_t) registerMask);
     sect_OutputConst16((uint16_t) registerMask);
-    return parse_OutputExtensionWords(&mode);
+    return m68k_OutputExtensionWords(&mode);
 }
 
 static bool
@@ -1448,9 +1448,9 @@ handleMULx(uint16_t sign, ESize sz, SAddressingMode* src, SAddressingMode* dest)
             mul64 = 0;
         }
 
-        sect_OutputConst16((uint16_t) (0x4C00 | parse_GetEAField(src)));
+        sect_OutputConst16((uint16_t) (0x4C00 | m68k_GetEffectiveAddressField(src)));
         sect_OutputConst16(0x0000 | sign << 11 | mul64 << 10 | dl << 12 | dh);
-        return parse_OutputExtensionWords(src);
+        return m68k_OutputExtensionWords(src);
     } else {
         return outputOpcode((uint16_t) (0xC0C0 | sign << 8 | dest->directRegister << 9), src);
     }
@@ -1506,7 +1506,7 @@ handlePackUnpack(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* 
         return false;
 
     SAddressingMode adj;
-    if (!parse_GetAddrMode(&adj))
+    if (!m68k_GetAddressingMode(&adj))
         return false;
 
     if (src->mode != dest->mode || adj.mode != AM_IMM) {
@@ -2040,9 +2040,9 @@ handleMOVES(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (registerMode->mode == AM_AREG)
         reg += 8;
 
-    sect_OutputConst16((uint16_t) (0x0E00 | getSizeField(sz) << 6 | parse_GetEAField(addrMode)));
+    sect_OutputConst16((uint16_t) (0x0E00 | getSizeField(sz) << 6 | m68k_GetEffectiveAddressField(addrMode)));
     sect_OutputConst16(reg << 12 | direction << 11);
-    return parse_OutputExtensionWords(addrMode);
+    return m68k_OutputExtensionWords(addrMode);
 }
 
 static SInstruction
@@ -3196,11 +3196,11 @@ g_integerInstructions[] = {
 static bool
 handleToken(ETargetToken token, ESize size, SAddressingMode* src, SAddressingMode* dest) {
     SInstruction* instruction = &g_integerInstructions[token - T_68K_INTEGER_FIRST];
-    return parse_OpCore(instruction, size, src, dest);
+    return m68k_ParseOpCore(instruction, size, src, dest);
 }
 
 bool
-parse_IntegerInstruction(void) {
+m68k_IntegerInstruction(void) {
     if (lex_Current.token < T_68K_INTEGER_FIRST || lex_Current.token > T_68K_INTEGER_LAST) {
         return false;
     }
@@ -3214,5 +3214,5 @@ parse_IntegerInstruction(void) {
         return true;
     }
 
-    return parse_CommonCpuFpu(instruction);
+    return m68k_ParseCommonCpuFpu(instruction);
 }

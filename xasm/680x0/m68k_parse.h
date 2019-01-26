@@ -131,48 +131,48 @@ typedef struct {
 } SInstruction;
 
 extern SExpression*
-parse_ExpressionCheck8Bit(SExpression* expression);
+m68k_ExpressionCheck8Bit(SExpression* expression);
 
 extern SExpression*
-parse_ExpressionCheck16Bit(SExpression* expression);
+m68k_ExpressionCheck16Bit(SExpression* expression);
 
 extern bool
-parse_OutputExtensionWords(SAddressingMode* mode);
+m68k_OutputExtensionWords(SAddressingMode* mode);
 
 extern void
-parse_OptimizeDisp(SModeRegisters* pRegs);
+m68k_OptimizeDisplacement(SModeRegisters* pRegs);
 
 extern uint16_t
-parse_GetEAField(SAddressingMode* mode);
+m68k_GetEffectiveAddressField(SAddressingMode* mode);
 
 extern bool
-parse_GetAddrMode(SAddressingMode* addrMode);
+m68k_GetAddressingMode(SAddressingMode* addrMode);
 
 extern ESize
-parse_GetSizeSpecifier(ESize defaultSize);
+m68k_GetSizeSpecifier(ESize defaultSize);
 
 extern uint32_t
-parse_RegisterList(void);
-
-extern SExpression*
-parse_TargetFunction(void);
+m68k_ParseRegisterList(void);
 
 extern bool
-parse_TargetSpecific(void);
+m68k_IntegerInstruction(void);
 
 extern bool
-parse_IntegerInstruction(void);
+m68k_ParseFpuInstruction(void);
 
 extern bool
-parse_FpuInstruction(void);
+m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest);
 
 extern bool
-parse_OpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest);
-
-extern bool
-parse_CommonCpuFpu(SInstruction* pIns);
+m68k_ParseCommonCpuFpu(SInstruction* pIns);
 
 extern bool
 m68k_ParseDirective();
+
+extern SExpression*
+m68k_ParseFunction(void);
+
+extern bool
+m68k_ParseInstruction(void);
 
 #endif

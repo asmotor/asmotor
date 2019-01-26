@@ -38,7 +38,7 @@ Thoughts on the ISA:
 #include "0x10c_tokens.h"
 
 static SExpression*
-parse_CheckSU16(SExpression* expression) {
+expressionCheckSU16(SExpression* expression) {
     expression = expr_CheckRange(expression, -32768, 65535);
     if (expression == NULL)
         err_Error(ERROR_OPERAND_RANGE);
@@ -47,7 +47,7 @@ parse_CheckSU16(SExpression* expression) {
 }
 
 static SExpression*
-parse_CheckU16(SExpression* expression) {
+expressionCheckU16(SExpression* expression) {
     expression = expr_CheckRange(expression, 0, 65535);
     if (expression == NULL)
         err_Error(ERROR_OPERAND_RANGE);
@@ -203,7 +203,7 @@ indirectAddressing(SAddressingMode* outMode, uint32_t allowedModes) {
             EAddrMode mode = ADDR_A_OFFSET_IND + reg;
             if (allowedModes & (1u << mode)) {
                 outMode->mode = mode;
-                outMode->address = parse_CheckSU16(address);
+                outMode->address = expressionCheckSU16(address);
                 return true;
             }
         }
@@ -212,7 +212,7 @@ indirectAddressing(SAddressingMode* outMode, uint32_t allowedModes) {
             EAddrMode mode = ADDR_ADDRESS_IND;
             if (allowedModes & (1u << mode)) {
                 outMode->mode = mode;
-                outMode->address = parse_CheckU16(address);
+                outMode->address = expressionCheckU16(address);
                 return true;
             }
         }
@@ -302,8 +302,7 @@ addressingMode(SAddressingMode* outMode, uint32_t allowedModes) {
     return false;
 }
 
-typedef bool
-(* ParserFunc)(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data);
+typedef bool (* ParserFunc)(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data);
 
 typedef struct {
     uint32_t data;
@@ -396,7 +395,7 @@ translateToken(uint32_t token) {
 }
 
 bool
-parse_IntegerInstruction(void) {
+parseIntegerInstruction(void) {
     uint32_t token = translateToken(lex_Current.token);
 
     if (T_0X10C_ADD <= token && token <= T_0X10C_XOR) {
@@ -441,5 +440,5 @@ x10c_ParseFunction(void) {
 
 bool
 x10c_ParseInstruction(void) {
-    return parse_IntegerInstruction();
+    return parseIntegerInstruction();
 }

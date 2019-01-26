@@ -121,7 +121,7 @@ typedef enum {
 } ETargetToken;
 
 extern SLexConstantsWord*
-loclexer_GetUndocumentedInstructions(int n);
+x65_GetUndocumentedInstructions(int n);
 
 extern void
 x65_DefineTokens(void);

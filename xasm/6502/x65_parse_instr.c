@@ -36,7 +36,7 @@ typedef struct Parser {
 } SParser;
 
 static bool
-parse_Standard_All(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IND_X:
             sect_OutputConst8(baseOpcode | (uint8_t) (0 << 2));
@@ -79,7 +79,7 @@ parse_Standard_All(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
-parse_Standard_AbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleStandardAbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IND_X:
             sect_OutputConst8(baseOpcode | (uint8_t) (0 << 2));
@@ -117,7 +117,7 @@ parse_Standard_AbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
-parse_Standard_Imm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleStandardImm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IMM:
             sect_OutputConst8(baseOpcode | (uint8_t) (0 << 2));
@@ -148,7 +148,7 @@ parse_Standard_Imm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
-parse_Standard_Rotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleStandardRotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_A:
             sect_OutputConst8(baseOpcode | (uint8_t) (2 << 2));
@@ -176,7 +176,7 @@ parse_Standard_Rotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
-parse_Branch(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
     SExpression* pExpr;
 
     sect_OutputConst8(baseOpcode);
@@ -193,13 +193,13 @@ parse_Branch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
-parse_Implied(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleImplied(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
     return true;
 }
 
 static bool
-parse_JMP(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleJMP(uint8_t baseOpcode, SAddressingMode* addrMode) {
     if (addrMode->mode == MODE_IND)
         baseOpcode += 0x20;
 
@@ -209,7 +209,7 @@ parse_JMP(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
-parse_BRK(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleBRK(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
     if (addrMode->mode == MODE_IMM)
         sect_OutputExpr8(addrMode->expr);
@@ -217,7 +217,7 @@ parse_BRK(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
-parse_DOP(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleDOP(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IMM:
             sect_OutputConst8(0x80);
@@ -237,98 +237,98 @@ parse_DOP(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static SParser g_instructionHandlers[T_6502U_XAS - T_6502_ADC + 1] = {
-    { 0x61, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* ADC */
-    { 0x21, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* AND */
-    { 0x02, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	/* ASL */
-    { 0x20, MODE_ZP | MODE_ABS, parse_Standard_All },	/* BIT */
-    { 0x10, MODE_ABS, parse_Branch },	/* BPL */
-    { 0x30, MODE_ABS, parse_Branch },	/* BMI */
-    { 0x50, MODE_ABS, parse_Branch },	/* BVC */
-    { 0x70, MODE_ABS, parse_Branch },	/* BVS */
-    { 0x90, MODE_ABS, parse_Branch },	/* BCC */
-    { 0xB0, MODE_ABS, parse_Branch },	/* BCS */
-    { 0xD0, MODE_ABS, parse_Branch },	/* BNE */
-    { 0xF0, MODE_ABS, parse_Branch },	/* BEQ */
-    { 0x00, MODE_NONE | MODE_IMM, parse_BRK },	/* BRK */
-    { 0xC1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* CMP */
-    { 0xE0, MODE_IMM | MODE_ZP | MODE_ABS, parse_Standard_Imm0 },	/* CPX */
-    { 0xC0, MODE_IMM | MODE_ZP | MODE_ABS, parse_Standard_Imm0 },	/* CPY */
-    { 0xC2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, parse_Standard_All },	/* DEC */
-    { 0x41, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* EOR */
-    { 0x18, 0, parse_Implied },	/* CLC */
-    { 0x38, 0, parse_Implied },	/* SEC */
-    { 0x58, 0, parse_Implied },	/* CLI */
-    { 0x78, 0, parse_Implied },	/* SEI */
-    { 0xB8, 0, parse_Implied },	/* CLV */
-    { 0xD8, 0, parse_Implied },	/* CLD */
-    { 0xF8, 0, parse_Implied },	/* SED */
-    { 0xE2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, parse_Standard_All },	/* INC */
-    { 0x4C, MODE_ABS | MODE_IND, parse_JMP },	/* JMP */
-    { 0x20, MODE_ABS, parse_JMP },	/* JSR */
-    { 0xA1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* LDA */
-    { 0xA2, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_Y | MODE_ABS_Y, parse_Standard_Imm0 },	/* LDX */
-    { 0xA0, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, parse_Standard_Imm0 },	/* LDY */
-    { 0x42, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	/* LSR */
-    { 0xEA, 0, parse_Implied },	/* NOP */
-    { 0x01, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* ORA */
-    { 0xAA, 0, parse_Implied },	/* TAX */
-    { 0x8A, 0, parse_Implied },	/* TXA */
-    { 0xCA, 0, parse_Implied },	/* DEX */
-    { 0xE8, 0, parse_Implied },	/* INX */
-    { 0xA8, 0, parse_Implied },	/* TAY */
-    { 0x98, 0, parse_Implied },	/* TYA */
-    { 0x88, 0, parse_Implied },	/* DEY */
-    { 0xC8, 0, parse_Implied },	/* INY */
-    { 0x22, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	/* ROL */
-    { 0x62, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, parse_Standard_Rotate },	/* ROR */
-    { 0x40, 0, parse_Implied },	/* RTI */
-    { 0x60, 0, parse_Implied },	/* RTS */
-    { 0xE1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* SBC */
-    { 0x81, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* STA */
-    { 0x9A, 0, parse_Implied },	/* TXS */
-    { 0xBA, 0, parse_Implied },	/* TSX */
-    { 0x48, 0, parse_Implied },	/* PHA */
-    { 0x68, 0, parse_Implied },	/* PLA */
-    { 0x08, 0, parse_Implied },	/* PHP */
-    { 0x28, 0, parse_Implied },	/* PLP */
-    { 0x82, MODE_ZP | MODE_ABS | MODE_ZP_Y, parse_Standard_Imm0 },	/* STX */
-    { 0x80, MODE_ZP | MODE_ABS | MODE_ZP_X, parse_Standard_Imm0 },	/* STY */
+    { 0x61, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* ADC */
+    { 0x21, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* AND */
+    { 0x02, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ASL */
+    { 0x20, MODE_ZP | MODE_ABS, handleStandardAll },	/* BIT */
+    { 0x10, MODE_ABS, handleBranch },	/* BPL */
+    { 0x30, MODE_ABS, handleBranch },	/* BMI */
+    { 0x50, MODE_ABS, handleBranch },	/* BVC */
+    { 0x70, MODE_ABS, handleBranch },	/* BVS */
+    { 0x90, MODE_ABS, handleBranch },	/* BCC */
+    { 0xB0, MODE_ABS, handleBranch },	/* BCS */
+    { 0xD0, MODE_ABS, handleBranch },	/* BNE */
+    { 0xF0, MODE_ABS, handleBranch },	/* BEQ */
+    { 0x00, MODE_NONE | MODE_IMM, handleBRK },	/* BRK */
+    { 0xC1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* CMP */
+    { 0xE0, MODE_IMM | MODE_ZP | MODE_ABS, handleStandardImm0 },	/* CPX */
+    { 0xC0, MODE_IMM | MODE_ZP | MODE_ABS, handleStandardImm0 },	/* CPY */
+    { 0xC2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, handleStandardAll },	/* DEC */
+    { 0x41, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* EOR */
+    { 0x18, 0, handleImplied },	/* CLC */
+    { 0x38, 0, handleImplied },	/* SEC */
+    { 0x58, 0, handleImplied },	/* CLI */
+    { 0x78, 0, handleImplied },	/* SEI */
+    { 0xB8, 0, handleImplied },	/* CLV */
+    { 0xD8, 0, handleImplied },	/* CLD */
+    { 0xF8, 0, handleImplied },	/* SED */
+    { 0xE2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, handleStandardAll },	/* INC */
+    { 0x4C, MODE_ABS | MODE_IND, handleJMP },	/* JMP */
+    { 0x20, MODE_ABS, handleJMP },	/* JSR */
+    { 0xA1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* LDA */
+    { 0xA2, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_Y | MODE_ABS_Y, handleStandardImm0 },	/* LDX */
+    { 0xA0, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, handleStandardImm0 },	/* LDY */
+    { 0x42, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* LSR */
+    { 0xEA, 0, handleImplied },	/* NOP */
+    { 0x01, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* ORA */
+    { 0xAA, 0, handleImplied },	/* TAX */
+    { 0x8A, 0, handleImplied },	/* TXA */
+    { 0xCA, 0, handleImplied },	/* DEX */
+    { 0xE8, 0, handleImplied },	/* INX */
+    { 0xA8, 0, handleImplied },	/* TAY */
+    { 0x98, 0, handleImplied },	/* TYA */
+    { 0x88, 0, handleImplied },	/* DEY */
+    { 0xC8, 0, handleImplied },	/* INY */
+    { 0x22, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ROL */
+    { 0x62, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ROR */
+    { 0x40, 0, handleImplied },	/* RTI */
+    { 0x60, 0, handleImplied },	/* RTS */
+    { 0xE1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* SBC */
+    { 0x81, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* STA */
+    { 0x9A, 0, handleImplied },	/* TXS */
+    { 0xBA, 0, handleImplied },	/* TSX */
+    { 0x48, 0, handleImplied },	/* PHA */
+    { 0x68, 0, handleImplied },	/* PLA */
+    { 0x08, 0, handleImplied },	/* PHP */
+    { 0x28, 0, handleImplied },	/* PLP */
+    { 0x82, MODE_ZP | MODE_ABS | MODE_ZP_Y, handleStandardImm0 },	/* STX */
+    { 0x80, MODE_ZP | MODE_ABS | MODE_ZP_X, handleStandardImm0 },	/* STY */
 
     /* Undocumented instructions */
 
-    { 0x0B, MODE_IMM, parse_Standard_Imm0 },	/* AAC */
-    { 0x83, MODE_ZP | MODE_ZP_Y | MODE_IND_X | MODE_ABS, parse_Standard_All },	/* AAX */
-    { 0x6B, MODE_IMM, parse_Standard_Imm0 },	/* ARR */
-    { 0x4B, MODE_IMM, parse_Standard_Imm0 },	/* ASR */
-    { 0xAB, MODE_IMM, parse_Standard_Imm0 },	/* ATX */
-    { 0x83, MODE_ABS_Y | MODE_IND_Y, parse_Standard_AbsY7 },	/* AXA */
-    { 0xCB, MODE_IMM, parse_Standard_Imm0 },	/* AXS */
-    { 0xC3, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* DCP */
-    { 0x00, MODE_ZP | MODE_ZP_X | MODE_IMM, parse_DOP },	/* DOP */
-    { 0xE3, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* ISC */
-    { 0x02, 0, parse_Implied },	/* KIL */
-    { 0xA3, MODE_ABS_Y, parse_Standard_All },	/* LAR */
-    { 0xA3, MODE_ZP | MODE_ZP_Y | MODE_ABS | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_AbsY7 },	/* LAX */
-    { 0x43, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* RLA */
-    { 0x63, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* RRA */
-    { 0x03, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* SLO */
-    { 0x43, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, parse_Standard_All },	/* SRE */
-    { 0x82, MODE_ABS_Y, parse_Standard_AbsY7 },	/* SXA */
-    { 0x80, MODE_ABS_X, parse_Standard_All },	/* SYA */
-    { 0x00, MODE_ABS | MODE_ABS_X, parse_Standard_All },	/* TOP */
-    { 0x8B, MODE_IMM, parse_Standard_Imm0 },	/* XAA */
-    { 0x83, MODE_ABS_Y, parse_Standard_All },	/* XAS */
+    { 0x0B, MODE_IMM, handleStandardImm0 },	/* AAC */
+    { 0x83, MODE_ZP | MODE_ZP_Y | MODE_IND_X | MODE_ABS, handleStandardAll },	/* AAX */
+    { 0x6B, MODE_IMM, handleStandardImm0 },	/* ARR */
+    { 0x4B, MODE_IMM, handleStandardImm0 },	/* ASR */
+    { 0xAB, MODE_IMM, handleStandardImm0 },	/* ATX */
+    { 0x83, MODE_ABS_Y | MODE_IND_Y, handleStandardAbsY7 },	/* AXA */
+    { 0xCB, MODE_IMM, handleStandardImm0 },	/* AXS */
+    { 0xC3, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* DCP */
+    { 0x00, MODE_ZP | MODE_ZP_X | MODE_IMM, handleDOP },	/* DOP */
+    { 0xE3, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* ISC */
+    { 0x02, 0, handleImplied },	/* KIL */
+    { 0xA3, MODE_ABS_Y, handleStandardAll },	/* LAR */
+    { 0xA3, MODE_ZP | MODE_ZP_Y | MODE_ABS | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAbsY7 },	/* LAX */
+    { 0x43, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* RLA */
+    { 0x63, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* RRA */
+    { 0x03, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* SLO */
+    { 0x43, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* SRE */
+    { 0x82, MODE_ABS_Y, handleStandardAbsY7 },	/* SXA */
+    { 0x80, MODE_ABS_X, handleStandardAll },	/* SYA */
+    { 0x00, MODE_ABS | MODE_ABS_X, handleStandardAll },	/* TOP */
+    { 0x8B, MODE_IMM, handleStandardImm0 },	/* XAA */
+    { 0x83, MODE_ABS_Y, handleStandardAll },	/* XAS */
 };
 
 bool
-parse_IntegerInstruction(void) {
+x65_ParseIntegerInstruction(void) {
     if (T_6502_ADC <= lex_Current.token && lex_Current.token <= T_6502U_XAS) {
         SAddressingMode addrMode;
         ETargetToken token = (ETargetToken) lex_Current.token;
         SParser* handler = &g_instructionHandlers[token - T_6502_ADC];
 
         parse_GetToken();
-        if (parse_AddressingMode(&addrMode, handler->allowedModes))
+        if (x65_ParseAddressingMode(&addrMode, handler->allowedModes))
             return handler->handler(handler->baseOpcode, &addrMode);
         else
             err_Error(MERROR_ILLEGAL_ADDRMODE);

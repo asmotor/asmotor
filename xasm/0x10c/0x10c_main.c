@@ -27,8 +27,7 @@
 #include "0x10c_symbols.h"
 #include "0x10c_tokens.h"
 
-static SConfiguration
-g_0x10CConfiguration = {
+static SConfiguration x10c_XasmConfiguration = {
 	"motor0x10c",
 	"1.0",
 	0x10000,
@@ -59,5 +58,5 @@ g_0x10CConfiguration = {
 
 extern int
 main(int argc, char* argv[]) {
-	return xasm_Main(&g_0x10CConfiguration, argc, argv);
+	return xasm_Main(&x10c_XasmConfiguration, argc, argv);
 }

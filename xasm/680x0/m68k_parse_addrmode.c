@@ -98,7 +98,7 @@ getIndexReg(SModeRegisters* outMode) {
 
     parse_GetToken();
 
-    outMode->indexSize = parse_GetSizeSpecifier(SIZE_WORD);
+    outMode->indexSize = m68k_GetSizeSpecifier(SIZE_WORD);
 
     if (outMode->indexSize != SIZE_WORD && outMode->indexSize != SIZE_LONG) {
         err_Error(MERROR_INDEXREG_SIZE);
@@ -145,7 +145,7 @@ singleModePart(SModeRegisters* outMode) {
 
         int addressRegister = lex_Current.token - T_68K_REG_A0;
         parse_GetToken();
-        sz = parse_GetSizeSpecifier(SIZE_DEFAULT);
+        sz = m68k_GetSizeSpecifier(SIZE_DEFAULT);
         if (sz == SIZE_WORD) {
             if (outMode->indexRegister == REG_NONE) {
                 outMode->indexRegister = REG_A0 + addressRegister;
@@ -173,7 +173,7 @@ singleModePart(SModeRegisters* outMode) {
             return false;
 
         outMode->displacement = expr;
-        outMode->displacementSize = parse_GetSizeSpecifier(SIZE_DEFAULT);
+        outMode->displacementSize = m68k_GetSizeSpecifier(SIZE_DEFAULT);
         return true;
     }
 
@@ -390,7 +390,7 @@ optimizeMode(SAddressingMode* mode) {
                 return true;
             }
 
-            parse_OptimizeDisp(&mode->outer);
+            m68k_OptimizeDisplacement(&mode->outer);
             if (mode->outer.displacementSize == SIZE_WORD) {
                 if (mode->outer.baseRegister == REG_PC)
                     mode->mode = AM_PCDISP;
@@ -441,7 +441,7 @@ optimizeMode(SAddressingMode* mode) {
 }
 
 void
-parse_OptimizeDisp(SModeRegisters* pRegs) {
+m68k_OptimizeDisplacement(SModeRegisters* pRegs) {
     if (pRegs->displacement != NULL && pRegs->displacementSize == SIZE_DEFAULT) {
         if (expr_IsConstant(pRegs->displacement)) {
             if (pRegs->displacement->value.integer >= -32768 && pRegs->displacement->value.integer <= 32767)
@@ -454,7 +454,7 @@ parse_OptimizeDisp(SModeRegisters* pRegs) {
 }
 
 bool
-parse_GetAddrMode(SAddressingMode* addrMode) {
+m68k_GetAddressingMode(SAddressingMode* addrMode) {
     addrMode->inner.baseRegister = REG_NONE;
     addrMode->inner.indexRegister = REG_NONE;
     addrMode->inner.indexScale = NULL;
@@ -523,7 +523,7 @@ parse_GetAddrMode(SAddressingMode* addrMode) {
 
     addrMode->outer.displacement = parse_Expression(4);
     if (addrMode->outer.displacement != NULL)
-        addrMode->outer.displacementSize = parse_GetSizeSpecifier(SIZE_DEFAULT);
+        addrMode->outer.displacementSize = m68k_GetSizeSpecifier(SIZE_DEFAULT);
 
     // parse (xxxx)
     if (lex_Current.token == '(') {
@@ -543,7 +543,7 @@ parse_GetAddrMode(SAddressingMode* addrMode) {
             parse_GetToken();
             return true;
         } else if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A7_IND) {
-            if ((addrMode->outer.displacement = parse_ExpressionCheck16Bit(addrMode->outer.displacement)) != NULL) {
+            if ((addrMode->outer.displacement = m68k_ExpressionCheck16Bit(addrMode->outer.displacement)) != NULL) {
                 addrMode->mode = AM_ADISP;
                 addrMode->outer.baseRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);
                 addrMode->outer.displacementSize = SIZE_WORD;
@@ -557,7 +557,7 @@ parse_GetAddrMode(SAddressingMode* addrMode) {
         return optimizeMode(addrMode);
     }
 
-    parse_OptimizeDisp(&addrMode->outer);
+    m68k_OptimizeDisplacement(&addrMode->outer);
 
     if (addrMode->outer.displacement != NULL) {
         if (addrMode->outer.displacementSize == SIZE_WORD) {
@@ -574,7 +574,7 @@ parse_GetAddrMode(SAddressingMode* addrMode) {
 }
 
 uint32_t
-parse_RegisterList(void) {
+m68k_ParseRegisterList(void) {
     uint16_t r;
     uint16_t start;
     uint16_t end;
@@ -610,7 +610,7 @@ parse_RegisterList(void) {
 }
 
 ESize
-parse_GetSizeSpecifier(ESize defaultSize) {
+m68k_GetSizeSpecifier(ESize defaultSize) {
     if (lex_Current.token == T_ID && strlen(lex_Current.value.string) == 2) {
         if (_strnicmp(lex_Current.value.string, ".b", 2) == 0) {
             parse_GetToken();
@@ -640,7 +640,7 @@ parse_GetSizeSpecifier(ESize defaultSize) {
 }
 
 SExpression*
-parse_ExpressionCheck16Bit(SExpression* expression) {
+m68k_ExpressionCheck16Bit(SExpression* expression) {
     if ((expression = expr_CheckRange(expression, -32768, 65535)) == NULL) {
         err_Error(ERROR_EXPRESSION_N_BIT, 16);
         return NULL;
@@ -650,7 +650,7 @@ parse_ExpressionCheck16Bit(SExpression* expression) {
 }
 
 SExpression*
-parse_ExpressionCheck8Bit(SExpression* expression) {
+m68k_ExpressionCheck8Bit(SExpression* expression) {
     if ((expression = expr_CheckRange(expression, -128, 255)) == NULL) {
         err_Error(ERROR_EXPRESSION_N_BIT, 8);
         return NULL;

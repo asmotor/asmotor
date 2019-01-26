@@ -22,8 +22,7 @@
 
 #include "x65_tokens.h"
 
-static SLexConstantsWord
-g_undocumentedInstructions0[] = {
+static SLexConstantsWord g_undocumentedInstructions0[] = {
 	{ "AAC", T_6502U_AAC },
 	{ "AAX", T_6502U_AAX },
 	{ "ARR", T_6502U_ARR },
@@ -50,9 +49,7 @@ g_undocumentedInstructions0[] = {
 	{ NULL, 0 }
 };
 
-static SLexConstantsWord
-g_undocumentedInstructions1[] =
-{
+static SLexConstantsWord g_undocumentedInstructions1[] = {
 	{ "ANC", T_6502U_AAC },
 	{ "SAX", T_6502U_AAX },
 	{ "ARR", T_6502U_ARR },
@@ -79,9 +76,7 @@ g_undocumentedInstructions1[] =
 	{ NULL, 0 }
 };
 
-static SLexConstantsWord
-g_undocumentedInstructions2[] =
-{
+static SLexConstantsWord g_undocumentedInstructions2[] = {
 	{ "ANC", T_6502U_AAC },
 	{ "AXS", T_6502U_AAX },
 	{ "ARR", T_6502U_ARR },
@@ -108,8 +103,7 @@ g_undocumentedInstructions2[] =
 	{ NULL, 0 }
 };
 
-static SLexConstantsWord
-g_tokens[] = {
+static SLexConstantsWord g_tokens[] = {
 	{ "ADC",	T_6502_ADC },
 	{ "AND",	T_6502_AND },
 	{ "ASL",	T_6502_ASL },
@@ -182,8 +176,7 @@ g_tokens[] = {
 	{ NULL, 0 }
 };
 
-static SLexConstantsWord*
-g_undocumentedInstructions[] = {
+static SLexConstantsWord* g_undocumentedInstructions[] = {
 	NULL,
 	&g_undocumentedInstructions0[0],
 	&g_undocumentedInstructions1[0],
@@ -196,6 +189,6 @@ x65_DefineTokens(void) {
 }
 
 SLexConstantsWord*
-loclexer_GetUndocumentedInstructions(int n) {
+x65_GetUndocumentedInstructions(int n) {
 	return g_undocumentedInstructions[n];
 }

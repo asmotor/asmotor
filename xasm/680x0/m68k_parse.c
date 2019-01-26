@@ -76,12 +76,12 @@ getBitfield(SAddressingMode* mode) {
 }
 
 bool
-parse_OutputExtensionWords(SAddressingMode* mode) {
+m68k_OutputExtensionWords(SAddressingMode* mode) {
     switch (mode->mode) {
         case AM_IMM: {
             switch (mode->immediateSize) {
                 case SIZE_BYTE: {
-                    mode->immediate = parse_ExpressionCheck8Bit(mode->immediate);
+                    mode->immediate = m68k_ExpressionCheck8Bit(mode->immediate);
                     if (mode->immediate) {
                         sect_OutputExpr16(mode->immediate);
                         return true;
@@ -90,7 +90,7 @@ parse_OutputExtensionWords(SAddressingMode* mode) {
                 }
                 default:
                 case SIZE_WORD: {
-                    mode->immediate = parse_ExpressionCheck16Bit(mode->immediate);
+                    mode->immediate = m68k_ExpressionCheck16Bit(mode->immediate);
                     if (mode->immediate) {
                         sect_OutputExpr16(mode->immediate);
                         return true;
@@ -151,7 +151,7 @@ parse_OutputExtensionWords(SAddressingMode* mode) {
 
             SExpression* expr;
             if (mode->outer.displacement != NULL)
-                expr = parse_ExpressionCheck8Bit(mode->outer.displacement);
+                expr = m68k_ExpressionCheck8Bit(mode->outer.displacement);
             else
                 expr = expr_Const(0);
 
@@ -196,7 +196,7 @@ parse_OutputExtensionWords(SAddressingMode* mode) {
             }
 
             if (mode->outer.displacement != NULL) {
-                parse_OptimizeDisp(&mode->outer);
+                m68k_OptimizeDisplacement(&mode->outer);
                 switch (mode->outer.displacementSize) {
                     case SIZE_WORD:
                         ins |= 0x0020;
@@ -258,7 +258,7 @@ parse_OutputExtensionWords(SAddressingMode* mode) {
             }
 
             if (mode->inner.displacement != NULL) {
-                parse_OptimizeDisp(&mode->inner);
+                m68k_OptimizeDisplacement(&mode->inner);
                 switch (mode->inner.displacementSize) {
                     case SIZE_WORD:
                         ins |= 0x0020;
@@ -275,7 +275,7 @@ parse_OutputExtensionWords(SAddressingMode* mode) {
             }
 
             if (mode->outer.displacement != NULL) {
-                parse_OptimizeDisp(&mode->outer);
+                m68k_OptimizeDisplacement(&mode->outer);
                 switch (mode->outer.displacementSize) {
                     case SIZE_WORD:
                         ins |= 0x0002;
@@ -349,7 +349,7 @@ parse_OutputExtensionWords(SAddressingMode* mode) {
             }
 
             if (mode->inner.displacement != NULL) {
-                parse_OptimizeDisp(&mode->inner);
+                m68k_OptimizeDisplacement(&mode->inner);
                 switch (mode->inner.displacementSize) {
                     case SIZE_WORD:
                         ins |= 0x0020;
@@ -366,7 +366,7 @@ parse_OutputExtensionWords(SAddressingMode* mode) {
             }
 
             if (mode->outer.displacement != NULL) {
-                parse_OptimizeDisp(&mode->outer);
+                m68k_OptimizeDisplacement(&mode->outer);
                 switch (mode->outer.displacementSize) {
                     case SIZE_WORD:
                         ins |= 0x0006;
@@ -428,7 +428,7 @@ parse_OutputExtensionWords(SAddressingMode* mode) {
 }
 
 uint16_t
-parse_GetEAField(SAddressingMode* mode) {
+m68k_GetEffectiveAddressField(SAddressingMode* mode) {
     switch (mode->mode) {
         case AM_DREG:
             return mode->directRegister;
@@ -477,7 +477,7 @@ parse_GetEAField(SAddressingMode* mode) {
 }
 
 bool
-parse_OpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest) {
+m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest) {
     EAddrMode allowedSrc;
     EAddrMode allowedDest;
 
@@ -503,25 +503,25 @@ parse_OpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingM
 }
 
 bool
-parse_CommonCpuFpu(SInstruction* pIns) {
+m68k_ParseCommonCpuFpu(SInstruction* pIns) {
     ESize insSz;
     SAddressingMode src;
     SAddressingMode dest;
 
     if (pIns->allowedSizes == SIZE_DEFAULT) {
-        if (parse_GetSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
+        if (m68k_GetSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
             err_Warn(MERROR_IGNORING_SIZE);
             parse_GetToken();
         }
         insSz = SIZE_DEFAULT;
     } else
-        insSz = parse_GetSizeSpecifier(pIns->defaultSize);
+        insSz = m68k_GetSizeSpecifier(pIns->defaultSize);
 
     src.mode = AM_EMPTY;
     dest.mode = AM_EMPTY;
 
     if (pIns->allowedSourceModes != 0 && pIns->allowedSourceModes != AM_EMPTY) {
-        if (parse_GetAddrMode(&src)) {
+        if (m68k_GetAddressingMode(&src)) {
             if (pIns->allowedSourceModes & AM_BITFIELD) {
                 if (!getBitfield(&src)) {
                     err_Error(MERROR_EXPECT_BITFIELD);
@@ -540,7 +540,7 @@ parse_CommonCpuFpu(SInstruction* pIns) {
     if (pIns->allowedDestModes != 0) {
         if (lex_Current.token == ',') {
             parse_GetToken();
-            if (!parse_GetAddrMode(&dest))
+            if (!m68k_GetAddressingMode(&dest))
                 return false;
 
             if (pIns->allowedDestModes & AM_BITFIELD) {
@@ -556,18 +556,18 @@ parse_CommonCpuFpu(SInstruction* pIns) {
         err_Error(MERROR_INSTRUCTION_SIZE);
     }
 
-    return parse_OpCore(pIns, insSz, &src, &dest);
+    return m68k_ParseOpCore(pIns, insSz, &src, &dest);
 
 }
 
 SExpression*
-parse_TargetFunction(void) {
+m68k_ParseFunction(void) {
     switch (lex_Current.token) {
         case T_68K_REGMASK: {
             parse_GetToken();
             if (!parse_ExpectChar('('))
                 return NULL;
-            uint32_t regs = parse_RegisterList();
+            uint32_t regs = m68k_ParseRegisterList();
             if (regs == REGLIST_FAIL)
                 return NULL;
             if (!parse_ExpectChar(')'))
@@ -580,10 +580,10 @@ parse_TargetFunction(void) {
 }
 
 bool
-parse_TargetSpecific(void) {
-    if (parse_IntegerInstruction())
+m68k_ParseInstruction(void) {
+    if (m68k_IntegerInstruction())
         return true;
-    else if (parse_FpuInstruction())
+    else if (m68k_ParseFpuInstruction())
         return true;
     else if (m68k_ParseDirective())
         return false;

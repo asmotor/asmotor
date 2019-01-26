@@ -18,8 +18,7 @@
 
 #include "xasm.h"
 
-static const char*
-g_errors[] = {
+static const char* g_errors[] = {
     "Illegal addressing mode",
     "Only one register allowed for indirect addressing",
     "Registers cannot be subtracted in addressing mode",

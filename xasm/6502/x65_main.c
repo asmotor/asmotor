@@ -28,7 +28,7 @@
 #include "x65_tokens.h"
 
 static SConfiguration
-xasm_6502Configuration = {
+x65_xasmConfiguration = {
 	"motor6502",
 	"1.0",
 	0x10000,
@@ -59,5 +59,5 @@ xasm_6502Configuration = {
 
 extern int
 main(int argc, char* argv[]) {
-	return xasm_Main(&xasm_6502Configuration, argc, argv);
+	return xasm_Main(&x65_xasmConfiguration, argc, argv);
 }

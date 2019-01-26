@@ -40,13 +40,13 @@ typedef struct {
 } SAddressingMode;
 
 extern bool
-parse_AddressingMode(SAddressingMode* addrMode, uint32_t allowedModes);
+x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes);
 
 extern bool
-parse_IntegerInstruction(void);
+x65_ParseIntegerInstruction(void);
 
 extern SExpression*
-parse_ExpressionSU8(void);
+x65_ParseExpressionSU8(void);
 
 extern SExpression*
 x65_ParseFunction(void);

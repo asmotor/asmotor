@@ -26,7 +26,7 @@
 #include "x65_tokens.h"
 
 bool
-parse_AddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
+x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
     SLexerBookmark bm;
     lex_Bookmark(&bm);
 
@@ -38,13 +38,13 @@ parse_AddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
     } else if ((allowedModes & MODE_IMM) && lex_Current.token == '#') {
         parse_GetToken();
         addrMode->mode = MODE_IMM;
-        addrMode->expr = parse_ExpressionSU8();
+        addrMode->expr = x65_ParseExpressionSU8();
         return true;
     }
 
     if ((allowedModes & (MODE_IND_X | MODE_IND_Y)) && lex_Current.token == '(') {
         parse_GetToken();
-        addrMode->expr = parse_ExpressionSU8();
+        addrMode->expr = x65_ParseExpressionSU8();
 
         if (addrMode->expr != NULL) {
             if (lex_Current.token == ',') {

@@ -53,8 +53,8 @@ g_680x0Configuration = {
 	m68k_OptionsUpdated,
 	m68k_PrintOptions,
 
-	parse_TargetFunction,
-	parse_TargetSpecific
+	m68k_ParseFunction,
+	m68k_ParseInstruction
 };
 
 extern int

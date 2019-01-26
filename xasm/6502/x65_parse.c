@@ -27,7 +27,7 @@
 #include "x65_parse.h"
 
 SExpression*
-parse_ExpressionSU8(void) {
+x65_ParseExpressionSU8(void) {
     SExpression* expression = parse_Expression(1);
     if (expression == NULL)
         return NULL;
@@ -49,7 +49,7 @@ x65_ParseFunction(void) {
 
 bool
 x65_ParseInstruction(void) {
-    if (parse_IntegerInstruction())
+    if (x65_ParseIntegerInstruction())
         return true;
 
     return false;
