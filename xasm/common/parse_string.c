@@ -26,7 +26,7 @@
 /* From util */
 #include "str.h"
 #include "parse.h"
-#include "project.h"
+#include "errors.h"
 
 /* Internal functions */
 
@@ -173,7 +173,7 @@ parse_ExpectStringExpression(void) {
     string* s = parse_StringExpression();
 
     if (s == NULL)
-        prj_Error(ERROR_EXPR_STRING);
+        err_Error(ERROR_EXPR_STRING);
 
     return s;
 }

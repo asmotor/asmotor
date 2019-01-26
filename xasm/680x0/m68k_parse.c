@@ -27,7 +27,7 @@
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "project.h"
+#include "errors.h"
 #include "section.h"
 
 #include "m68k_errors.h"
@@ -47,7 +47,7 @@ getBitfield(SAddressingMode* mode) {
         } else {
             mode->bitfieldOffsetExpression = parse_Expression(4);
             if (mode->bitfieldOffsetExpression == NULL) {
-                prj_Error(ERROR_OPERAND);
+                err_Error(ERROR_OPERAND);
                 return false;
             }
             mode->bitfieldOffsetRegister = -1;
@@ -63,7 +63,7 @@ getBitfield(SAddressingMode* mode) {
         } else {
             mode->bitfieldWidthExpression = parse_Expression(4);
             if (mode->bitfieldWidthExpression == NULL) {
-                prj_Error(ERROR_OPERAND);
+                err_Error(ERROR_OPERAND);
                 return true;
             }
             mode->bitfieldWidthRegister = -1;
@@ -133,7 +133,7 @@ parse_OutputExtensionWords(SAddressingMode* mode) {
                     sect_OutputExpr16(mode->outer.displacement);
                     return true;
                 }
-                prj_Error(MERROR_DISP_SIZE);
+                err_Error(MERROR_DISP_SIZE);
                 return false;
             }
             internalerror("no displacement word");
@@ -486,7 +486,7 @@ parse_OpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingM
         allowedSrc |= pIns->allowedSourceModes020;
 
     if ((allowedSrc & src->mode) == 0 && !(allowedSrc == 0 && src->mode == AM_EMPTY)) {
-        prj_Error(ERROR_SOURCE_OPERAND);
+        err_Error(ERROR_SOURCE_OPERAND);
         return true;
     }
 
@@ -495,7 +495,7 @@ parse_OpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingM
         allowedDest |= pIns->allowDestModes020;
 
     if ((allowedDest & dest->mode) == 0 && !(allowedDest == 0 && dest->mode == AM_EMPTY)) {
-        prj_Error(ERROR_DEST_OPERAND);
+        err_Error(ERROR_DEST_OPERAND);
         return true;
     }
 
@@ -510,7 +510,7 @@ parse_CommonCpuFpu(SInstruction* pIns) {
 
     if (pIns->allowedSizes == SIZE_DEFAULT) {
         if (parse_GetSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
-            prj_Warn(MERROR_IGNORING_SIZE);
+            err_Warn(MERROR_IGNORING_SIZE);
             parse_GetToken();
         }
         insSz = SIZE_DEFAULT;
@@ -524,7 +524,7 @@ parse_CommonCpuFpu(SInstruction* pIns) {
         if (parse_GetAddrMode(&src)) {
             if (pIns->allowedSourceModes & AM_BITFIELD) {
                 if (!getBitfield(&src)) {
-                    prj_Error(MERROR_EXPECT_BITFIELD);
+                    err_Error(MERROR_EXPECT_BITFIELD);
                     return false;
                 }
             }
@@ -545,7 +545,7 @@ parse_CommonCpuFpu(SInstruction* pIns) {
 
             if (pIns->allowedDestModes & AM_BITFIELD) {
                 if (!getBitfield(&dest)) {
-                    prj_Error(MERROR_EXPECT_BITFIELD);
+                    err_Error(MERROR_EXPECT_BITFIELD);
                     return false;
                 }
             }
@@ -553,7 +553,7 @@ parse_CommonCpuFpu(SInstruction* pIns) {
     }
 
     if ((pIns->allowedSizes & insSz) == 0 && pIns->allowedSizes != 0 && pIns->defaultSize != 0) {
-        prj_Error(MERROR_INSTRUCTION_SIZE);
+        err_Error(MERROR_INSTRUCTION_SIZE);
     }
 
     return parse_OpCore(pIns, insSz, &src, &dest);

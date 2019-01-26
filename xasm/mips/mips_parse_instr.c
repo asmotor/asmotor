@@ -16,7 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "project.h"
+#include "errors.h"
 #include "lexer.h"
 #include "parse.h"
 #include "parse_expression.h"
@@ -42,7 +42,7 @@ parse_ExpectRegister(void) {
     int result = parse_GetRegister();
 
     if (result == -1)
-        prj_Error(MERROR_REGISTER_EXPECTED);
+        err_Error(MERROR_REGISTER_EXPECTED);
 
     return result;
 }
@@ -225,7 +225,7 @@ parse_Branch(void) {
 
             sect_OutputExpr32(expression);
         } else {
-            prj_Error(ERROR_OPERAND_RANGE);
+            err_Error(ERROR_OPERAND_RANGE);
         }
 
         return true;
@@ -273,7 +273,7 @@ parse_Shift(void) {
 
             sect_OutputExpr32(expression);
         } else {
-            prj_Error(ERROR_OPERAND_RANGE);
+            err_Error(ERROR_OPERAND_RANGE);
         }
 
         return true;
@@ -435,13 +435,13 @@ parse_IntegerInstructionRSRTCode(void) {
 
                 SExpression* expression = parse_Expression(2);
                 if (expression == NULL) {
-                    prj_Error(ERROR_INVALID_EXPRESSION);
+                    err_Error(ERROR_INVALID_EXPRESSION);
                     return true;
                 }
 
                 expression = expr_CheckRange(expression, 0, 1023);
                 if (expression == NULL) {
-                    prj_Error(ERROR_OPERAND_RANGE);
+                    err_Error(ERROR_OPERAND_RANGE);
                     return true;
                 }
 
@@ -799,7 +799,7 @@ mnemonicHandler s_mnemonicHandlers[T_MIPS_LUI - T_MIPS_ADD + 1] = {
 };
 
 bool
-parse_IntegerInstruction(void) {
+mips_ParseIntegerInstruction(void) {
     if (T_MIPS_ADD <= lex_Current.token && lex_Current.token <= T_MIPS_LUI) {
         return s_mnemonicHandlers[lex_Current.token - T_MIPS_ADD]();
     }

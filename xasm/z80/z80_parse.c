@@ -25,7 +25,7 @@
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "project.h"
+#include "errors.h"
 #include "section.h"
 
 #include "z80_errors.h"
@@ -185,7 +185,7 @@ static SExpression*
 createExpressionNBit(SExpression* expression, int lowLimit, int highLimit, int bits) {
     expression = expr_CheckRange(expression, lowLimit, highLimit);
     if (expression == NULL)
-        prj_Error(ERROR_EXPRESSION_N_BIT, bits);
+        err_Error(ERROR_EXPRESSION_N_BIT, bits);
 
     return expression;
 }
@@ -225,7 +225,7 @@ static SExpression*
 createExpressionImmHi(SExpression* expression) {
     expression = expr_CheckRange(expression, 0xFF00, 0xFFFF);
     if (expression == NULL)
-        prj_Error(MERROR_EXPRESSION_FF00);
+        err_Error(MERROR_EXPRESSION_FF00);
 
     return expr_And(expression, expr_Const(0xFF));
 }
@@ -267,7 +267,7 @@ handleAlu(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
         }
     }
 
-    prj_Error(ERROR_OPERAND);
+    err_Error(ERROR_OPERAND);
     return true;
 }
 
@@ -275,7 +275,7 @@ static bool
 handleAlu16bit(SInstruction* instruction, uint8_t prefix, uint8_t opcode, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
     if ((addrMode1->mode & MODE_GROUP_HL) && (addrMode2->mode & (MODE_GROUP_SS | MODE_GROUP_HL))) {
         if ((addrMode2->mode & MODE_GROUP_HL) && (addrMode1->registerHL != addrMode2->registerHL)) {
-            prj_Error(ERROR_SECOND_OPERAND);
+            err_Error(ERROR_SECOND_OPERAND);
             return true;
         }
 
@@ -332,7 +332,7 @@ handleBit(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
             outputIXIY(addrMode2, 0xCB);
             opcode = instruction->opcode | (uint8_t) 6u;
         } else {
-            prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
+            err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
             return true;
         }
     } else {
@@ -356,14 +356,14 @@ handleCall(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMod
         sect_OutputExpr16(createExpression16U(addrMode1->expression));
     } else if ((addrMode1->mode & MODE_CC_Z80) && (addrMode2->mode & MODE_IMM)) {
         if (IS_GB && !(addrMode1->mode & MODE_CC_GB)) {
-            prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
+            err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
             return true;
         }
         uint8_t modeF = (uint8_t) addrMode1->modeF << 3u;
         sect_OutputConst8((uint8_t) (instruction->opcode & ~0x19u) | modeF);
         sect_OutputExpr16(createExpression16U(addrMode2->expression));
     } else {
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
     }
 
     return true;
@@ -423,7 +423,7 @@ handleJr(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		sect_OutputConst8((uint8_t) 0x20u | modeF);
 		sect_OutputExpr8(createExpressionPCRel(addrMode2->expression));
 	} else {
-		prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
 	}
 
 	return true;
@@ -519,7 +519,7 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		}
 		sect_OutputExpr16(createExpression16U(addrMode2->expression));
 	} else {
-		prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
 	}
 
 	return true;
@@ -536,7 +536,7 @@ handleLdd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 		// Translate Gameboy opcode to Z80 equivalent...
 		sect_OutputConst8((uint8_t) (0xA0u | ((instruction->opcode & 0x10u) >> 1u)));
 	} else {
-		prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
 	}
 
 	return true;
@@ -551,7 +551,7 @@ handleLdh(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 		sect_OutputConst8(instruction->opcode);
 		sect_OutputExpr8(createExpressionImmHi(addrMode1->expression));
 	} else {
-		prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
 	}
 
 	return true;
@@ -589,28 +589,28 @@ handleRotate(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingM
 static bool
 handleRr(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if (addrMode1->registerD == REG_D_A)
-		prj_Warn(MERROR_SUGGEST_OPCODE, "RRA");
+        err_Warn(MERROR_SUGGEST_OPCODE, "RRA");
 	return handleRotate(instruction, addrMode1, addrMode2);
 }
 
 static bool
 handleRl(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if (addrMode1->registerD == REG_D_A)
-		prj_Warn(MERROR_SUGGEST_OPCODE, "RLA");
+        err_Warn(MERROR_SUGGEST_OPCODE, "RLA");
 	return handleRotate(instruction, addrMode1, addrMode2);
 }
 
 static bool
 handleRrc(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if (addrMode1->registerD == REG_D_A)
-		prj_Warn(MERROR_SUGGEST_OPCODE, "RRCA");
+        err_Warn(MERROR_SUGGEST_OPCODE, "RRCA");
 	return handleRotate(instruction, addrMode1, addrMode2);
 }
 
 static bool
 handleRlc(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if (addrMode1->registerD == REG_D_A)
-		prj_Warn(MERROR_SUGGEST_OPCODE, "RLCA");
+        err_Warn(MERROR_SUGGEST_OPCODE, "RLCA");
 	return handleRotate(instruction, addrMode1, addrMode2);
 }
 
@@ -633,10 +633,10 @@ handleRst(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 		if (val == (val & 0x38u)) {
 			sect_OutputConst8((uint8_t) (instruction->opcode | val));
 		} else {
-			prj_Error(ERROR_OPERAND_RANGE);
+            err_Error(ERROR_OPERAND_RANGE);
 		}
 	} else {
-		prj_Error(ERROR_EXPR_CONST);
+        err_Error(ERROR_EXPR_CONST);
 	}
 
 	return true;
@@ -662,7 +662,7 @@ handleDjnz(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMod
 static bool
 handleEx(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if (!IS_Z80) {
-		prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
+        err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
 		return true;
 	}
 
@@ -674,7 +674,7 @@ handleEx(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 	} else if (EX_MATCH_MODE(MODE_REG_DE, MODE_REG_HL)) {
 		sect_OutputConst8(0xEB);
 	} else {
-		prj_Error(ERROR_SECOND_OPERAND);
+        err_Error(ERROR_SECOND_OPERAND);
 	}
 
 	return true;
@@ -683,7 +683,7 @@ handleEx(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 static bool
 handleIm(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if (!expr_IsConstant(addrMode1->expression)) {
-		prj_Error(ERROR_EXPR_CONST);
+        err_Error(ERROR_EXPR_CONST);
 		return true;
 	}
 
@@ -699,7 +699,7 @@ handleIm(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 			sect_OutputConst8(0x5E);
 			return true;
 		default:
-			prj_Error(ERROR_OPERAND_RANGE);
+            err_Error(ERROR_OPERAND_RANGE);
 			return true;
 	}
 }
@@ -929,7 +929,7 @@ parse_TargetSpecific(void) {
 				if (lex_Current.token == ',') {
 					parse_GetToken();
 					if (!parse_AddrMode(&addrMode2)) {
-						prj_Error(ERROR_SECOND_OPERAND);
+                        err_Error(ERROR_SECOND_OPERAND);
 						return true;
 					}
 				} else if (instruction->allowedModes2 != 0
@@ -940,7 +940,7 @@ parse_TargetSpecific(void) {
 					addrMode1.registerD = REG_D_A;
 				}
 			} else if (addrMode1.mode != 0 && (addrMode1.mode & MODE_NONE) == 0) {
-				prj_Error(ERROR_FIRST_OPERAND);
+                err_Error(ERROR_FIRST_OPERAND);
 				return true;
 			}
 		}
@@ -954,13 +954,13 @@ parse_TargetSpecific(void) {
 					&& (opt_Current->machineOptions->cpu & addrMode2.cpu)) {
 					return instruction->handler(instruction, instruction->allowedModes1 != 0 ? &addrMode1 : NULL, instruction->allowedModes2 != 0 ? &addrMode2 : NULL);
 				} else {
-					prj_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
+                    err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
 				}
 			} else {
-				prj_Error(ERROR_SECOND_OPERAND);
+                err_Error(ERROR_SECOND_OPERAND);
 			}
 		} else {
-			prj_Error(ERROR_FIRST_OPERAND);
+            err_Error(ERROR_FIRST_OPERAND);
 		}
 		return true;
 	}

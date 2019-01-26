@@ -32,7 +32,7 @@
 #include "section.h"
 #include "symbol.h"
 #include "patch.h"
-#include "project.h"
+#include "errors.h"
 #include "amigaobject.h"
 
 #define HUNK_UNIT    0x3E7u
@@ -266,7 +266,7 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
         }
 
         if (section->patches != NULL) {
-            prj_Error(ERROR_OBJECTFILE_PATCH);
+            err_Error(ERROR_OBJECTFILE_PATCH);
             return false;
         }
 

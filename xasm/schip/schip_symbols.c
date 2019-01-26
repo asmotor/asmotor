@@ -21,7 +21,7 @@
 #include "symbol.h"
 
 void
-locsym_Init(void) {
+schip_DefineSymbols(void) {
 	string* pName;
 	
 	pName = str_Create("CODE");

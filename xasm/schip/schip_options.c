@@ -24,7 +24,7 @@
 
 #include "xasm.h"
 #include "options.h"
-#include "project.h"
+#include "errors.h"
 
 #include "schip_options.h"
 #include "schip_tokens.h"
@@ -67,10 +67,10 @@ locopt_Parse(const char* s) {
                         break;
                 }
             }
-            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
             return false;
         default:
-            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
             return false;
     }
 }

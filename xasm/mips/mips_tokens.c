@@ -226,6 +226,6 @@ static SLexConstantsWord s_tokens[]= {
 };
 
 void
-loclexer_Init(void) {
+mips_DefineTokens(void) {
 	lex_ConstantsDefineWords(s_tokens);
 }

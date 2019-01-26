@@ -28,7 +28,7 @@
 #include "filestack.h"
 #include "parse.h"
 #include "patch.h"
-#include "project.h"
+#include "errors.h"
 #include "tokens.h"
 
 /* Private functions */
@@ -198,7 +198,7 @@ reduceBit(const SPatch* patch, SExpression* expression, int32_t* result) {
         return true;
     }
 
-    prj_PatchError(patch, ERROR_EXPR_TWO_POWER);
+    err_PatchError(patch, ERROR_EXPR_TWO_POWER);
     return false;
 }
 
@@ -229,7 +229,7 @@ reduceLowLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
 
             return true;
         }
-        prj_PatchFail(patch, ERROR_OPERAND_RANGE);
+        err_PatchFail(patch, ERROR_OPERAND_RANGE);
     }
     return false;
 }
@@ -244,7 +244,7 @@ reduceHighLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
             expr_SetConst(expression, *result = lhs);
             return true;
         }
-        prj_PatchFail(patch, ERROR_OPERAND_RANGE);
+        err_PatchFail(patch, ERROR_OPERAND_RANGE);
     }
     return false;
 }
@@ -360,7 +360,7 @@ reduceExpression(const SPatch* patch, SExpression* expression, int32_t* result) 
                 *result = expression->value.symbol->value.integer;
                 return true;
             } else if (expression->value.symbol->type == SYM_UNDEFINED) {
-                prj_PatchError(patch, ERROR_SYMBOL_UNDEFINED, str_String(expression->value.symbol->name));
+                err_PatchError(patch, ERROR_SYMBOL_UNDEFINED, str_String(expression->value.symbol->name));
             }
             return false;
         default:
@@ -373,7 +373,7 @@ patch_8(const SSection* section, const SPatch* patch, int32_t value) {
     if (value >= -128 && value <= 255) {
         section->data[patch->offset] = (uint8_t) value;
     } else {
-        prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 8);
+        err_PatchError(patch, ERROR_EXPRESSION_N_BIT, 8);
     }
 }
 
@@ -383,7 +383,7 @@ patch_le_16(const SSection* section, const SPatch* patch, int32_t value) {
         section->data[patch->offset] = (uint8_t) value;
         section->data[patch->offset + 1] = (uint8_t) ((uint32_t) value >> 8u);
     } else {
-        prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
+        err_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
     }
 }
 
@@ -393,7 +393,7 @@ patch_be_16(const SSection* section, const SPatch* patch, int32_t value) {
         section->data[patch->offset] = (uint8_t) ((uint32_t) value >> 8u);
         section->data[patch->offset + 1] = (uint8_t) value;
     } else {
-        prj_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
+        err_PatchError(patch, ERROR_EXPRESSION_N_BIT, 16);
     }
 }
 

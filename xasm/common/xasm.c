@@ -31,7 +31,7 @@
 #include "symbol.h"
 #include "tokens.h"
 #include "options.h"
-#include "project.h"
+#include "errors.h"
 #include "filestack.h"
 #include "parse.h"
 #include "patch.h"
@@ -140,7 +140,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                                 break;
                             }
                         default:
-                            prj_Warn(WARN_OPTION, argv[argn]);
+                            err_Warn(WARN_OPTION, argv[argn]);
                             break;
                     }
                 }
@@ -157,7 +157,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                 opt_Parse(&argv[argn][1]);
                 break;
             default:
-                prj_Warn(WARN_OPTION, argv[argn]);
+                err_Warn(WARN_OPTION, argv[argn]);
                 break;
         }
         ++argn;

@@ -30,7 +30,7 @@ Thoughts on the ISA:
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "project.h"
+#include "errors.h"
 #include "section.h"
 
 #include "0x10c_errors.h"
@@ -41,7 +41,7 @@ static SExpression*
 parse_CheckSU16(SExpression* expression) {
     expression = expr_CheckRange(expression, -32768, 65535);
     if (expression == NULL)
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
 
     return expr_And(expression, expr_Const(0xFFFF));
 }
@@ -50,7 +50,7 @@ static SExpression*
 parse_CheckU16(SExpression* expression) {
     expression = expr_CheckRange(expression, 0, 65535);
     if (expression == NULL)
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
     return expression;
 }
 
@@ -138,11 +138,11 @@ indirectAdd(uint32_t* reg, SExpression** address) {
         if (*reg == UINT32_MAX)
             *reg = newReg;
         else
-            prj_Error(MERROR_ADDRMODE_ONE_REGISTER);
+            err_Error(MERROR_ADDRMODE_ONE_REGISTER);
     } else if (newAddress != NULL) {
         *address = *address == NULL ? newAddress : expr_Add(*address, newAddress);
     } else {
-        prj_Error(MERROR_ILLEGAL_ADDRMODE);
+        err_Error(MERROR_ILLEGAL_ADDRMODE);
     }
     return true;
 }
@@ -156,11 +156,11 @@ static bool indirectSubtract(SExpression** address) {
         return false;
 
     if (newReg >= 0) {
-        prj_Error(MERROR_ADDRMODE_SUBTRACT_REGISTER);
+        err_Error(MERROR_ADDRMODE_SUBTRACT_REGISTER);
     } else if (newAddress != NULL) {
         *address = address == NULL ? newAddress : expr_Sub(*address, newAddress);
     } else {
-        prj_Error(MERROR_ILLEGAL_ADDRMODE);
+        err_Error(MERROR_ILLEGAL_ADDRMODE);
     }
     return true;
 }
@@ -411,13 +411,13 @@ parse_IntegerInstruction(void) {
             SAddressingMode addrMode2;
 
             if (!addressingMode(&addrMode1, pParser->allowedModes1))
-                return prj_Error(MERROR_ILLEGAL_ADDRMODE);
+                return err_Error(MERROR_ILLEGAL_ADDRMODE);
 
             if (!parse_ExpectComma())
                 return false;
 
             if (!addressingMode(&addrMode2, pParser->allowedModes2))
-                return prj_Error(MERROR_ILLEGAL_ADDRMODE);
+                return err_Error(MERROR_ILLEGAL_ADDRMODE);
 
             return pParser->parser(&addrMode1, &addrMode2, pParser->data);
         } else {
@@ -425,7 +425,7 @@ parse_IntegerInstruction(void) {
             SAddressingMode addrMode1;
 
             if (!addressingMode(&addrMode1, pParser->allowedModes1))
-                return prj_Error(MERROR_ILLEGAL_ADDRMODE);
+                return err_Error(MERROR_ILLEGAL_ADDRMODE);
 
             return pParser->parser(&addrMode1, NULL, pParser->data);
         }

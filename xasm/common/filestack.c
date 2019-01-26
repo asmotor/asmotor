@@ -28,7 +28,7 @@
 // From xasm
 #include "xasm.h"
 #include "filestack.h"
-#include "project.h"
+#include "errors.h"
 #include "lexer.h"
 #include "tokens.h"
 #include "symbol.h"
@@ -163,7 +163,7 @@ fstk_ShiftMacroArgs(int32_t count) {
             count -= 1;
         }
     } else {
-        prj_Warn(WARN_SHIFT_MACRO);
+        err_Warn(WARN_SHIFT_MACRO);
     }
 }
 
@@ -274,7 +274,7 @@ fstk_AddIncludePath(string* pathname) {
     char ch;
 
     if (g_totalIncludePaths == MAX_INCLUDE_PATHS) {
-        prj_Fail(ERROR_INCLUDE_LIMIT);
+        err_Fail(ERROR_INCLUDE_LIMIT);
         return;
     }
 
@@ -307,7 +307,7 @@ fstk_ProcessIncludeFile(string* filename) {
         }
         fclose(fileHandle);
     } else {
-        prj_Fail(ERROR_NO_FILE);
+        err_Fail(ERROR_NO_FILE);
     }
 }
 
@@ -356,7 +356,7 @@ fstk_ProcessMacro(string* macroName) {
         g_newMacroArgument0 = NULL;
         setNewContext(newContext);
     } else {
-        prj_Fail(ERROR_NO_MACRO);
+        err_Fail(ERROR_NO_MACRO);
     }
 }
 
@@ -386,7 +386,7 @@ fstk_Init(string* filename) {
         return true;
     }
 
-    prj_Fail(ERROR_NO_FILE);
+    err_Fail(ERROR_NO_FILE);
     return false;
 }
 

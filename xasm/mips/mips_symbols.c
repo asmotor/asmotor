@@ -27,7 +27,7 @@ createGroup(const char* name, EGroupType type) {
 }
 
 void
-locsym_Init() {
+mips_DefineSymbols() {
     createGroup("CODE", GROUP_TEXT);
     createGroup("DATA", GROUP_TEXT);
     createGroup("BSS", GROUP_BSS);

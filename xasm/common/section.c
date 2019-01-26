@@ -27,7 +27,7 @@
 #include "mem.h"
 #include "section.h"
 #include "symbol.h"
-#include "project.h"
+#include "errors.h"
 #include "expression.h"
 #include "patch.h"
 #include "parse.h"
@@ -95,7 +95,7 @@ static SSection* sect_Find(const string* name, SSymbol* group) {
 				if (sect->group == group) {
 					return sect;
 				} else {
-					prj_Fail(ERROR_SECT_EXISTS);
+                    err_Fail(ERROR_SECT_EXISTS);
 					return NULL;
 				}
 			} else {
@@ -131,11 +131,11 @@ static bool sect_CheckAvailableSpace(uint32_t count) {
 			}
 			return true;
 		} else {
-			prj_Error(ERROR_SECTION_FULL);
+            err_Error(ERROR_SECTION_FULL);
 			return false;
 		}
 	} else {
-		prj_Error(ERROR_SECTION_MISSING);
+        err_Error(ERROR_SECTION_MISSING);
 		return false;
 	}
 }
@@ -157,7 +157,7 @@ void sect_OutputConst8(uint8_t value) {
 				break;
 			}
 			case GROUP_BSS: {
-				prj_Error(ERROR_SECTION_DATA);
+                err_Error(ERROR_SECTION_DATA);
 				break;
 			}
 			default: {
@@ -181,7 +181,7 @@ void sect_OutputReloc8(SExpression* expr) {
 				break;
 			}
 			case GROUP_BSS: {
-				prj_Error(ERROR_SECTION_DATA);
+                err_Error(ERROR_SECTION_DATA);
 				sect_SkipBytes(1);
 				break;
 			}
@@ -197,7 +197,7 @@ void sect_OutputExpr8(SExpression* expr) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);
 
 	if (expr == NULL) {
-		prj_Error(ERROR_EXPR_BAD);
+        err_Error(ERROR_EXPR_BAD);
 	} else if (expr_IsConstant(expr)) {
 		sect_OutputConst8((uint8_t) expr->value.integer);
 		expr_Free(expr);
@@ -233,7 +233,7 @@ void sect_OutputConst16(uint16_t value) {
 				break;
 			}
 			case GROUP_BSS: {
-				prj_Error(ERROR_SECTION_DATA);
+                err_Error(ERROR_SECTION_DATA);
 				break;
 			}
 			default: {
@@ -258,7 +258,7 @@ void sect_OutputReloc16(SExpression* expr) {
 				break;
 			}
 			case GROUP_BSS: {
-				prj_Error(ERROR_SECTION_DATA);
+                err_Error(ERROR_SECTION_DATA);
 				sect_SkipBytes(2);
 				break;
 			}
@@ -274,7 +274,7 @@ void sect_OutputExpr16(SExpression* expr) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_16BIT);
 
 	if (expr == NULL) {
-		prj_Error(ERROR_EXPR_BAD);
+        err_Error(ERROR_EXPR_BAD);
 	} else if (expr_IsConstant(expr)) {
 		sect_OutputConst16((uint16_t) (expr->value.integer));
 		expr_Free(expr);
@@ -314,7 +314,7 @@ void sect_OutputConst32(uint32_t value) {
 				break;
 			}
 			case GROUP_BSS: {
-				prj_Error(ERROR_SECTION_DATA);
+                err_Error(ERROR_SECTION_DATA);
 				break;
 			}
 			default: {
@@ -339,7 +339,7 @@ void sect_OutputRel32(SExpression* expr) {
 				break;
 			}
 			case GROUP_BSS: {
-				prj_Error(ERROR_SECTION_DATA);
+                err_Error(ERROR_SECTION_DATA);
 				sect_SkipBytes(4);
 				break;
 			}
@@ -355,7 +355,7 @@ void sect_OutputExpr32(SExpression* expr) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
 
 	if (expr == NULL) {
-		prj_Error(ERROR_EXPR_BAD);
+        err_Error(ERROR_EXPR_BAD);
 	} else if (expr_IsConstant(expr)) {
 		sect_OutputConst32(expr->value.integer);
 		expr_Free(expr);
@@ -389,12 +389,12 @@ void sect_OutputBinaryFile(string* pFile) {
 					sect_Current->usedSpace += size;
 					sect_Current->cpuProgramCounter += size / xasm_Configuration->minimumWordSize;
 					if (read != size) {
-						prj_Fail(ERROR_READ);
+                        err_Fail(ERROR_READ);
 					}
 					break;
 				}
 				case GROUP_BSS: {
-					prj_Error(ERROR_SECTION_DATA);
+                    err_Error(ERROR_SECTION_DATA);
 					break;
 				}
 				default: {
@@ -406,7 +406,7 @@ void sect_OutputBinaryFile(string* pFile) {
 
 		fclose(f);
 	} else {
-		prj_Fail(ERROR_NO_FILE);
+        err_Fail(ERROR_NO_FILE);
 	}
 
 	str_Free(pFile);
@@ -474,7 +474,7 @@ bool sect_SwitchTo_LOAD(const string* sectname, SSymbol* group, uint32_t load) {
 			sect_Current = sect;
 			return true;
 		} else {
-			prj_Fail(ERROR_SECT_EXISTS_LOAD);
+            err_Fail(ERROR_SECT_EXISTS_LOAD);
 			return false;
 		}
 	} else {
@@ -502,7 +502,7 @@ bool sect_SwitchTo_BANK(const string* sectname, SSymbol* group, uint32_t bank) {
 			return true;
 		}
 
-		prj_Fail(ERROR_SECT_EXISTS_BANK);
+        err_Fail(ERROR_SECT_EXISTS_BANK);
 		return false;
 	}
 
@@ -528,7 +528,7 @@ bool sect_SwitchTo_LOAD_BANK(const string* sectname, SSymbol* group, uint32_t or
 			return true;
 		}
 
-		prj_Fail(ERROR_SECT_EXISTS_BANK_LOAD);
+        err_Fail(ERROR_SECT_EXISTS_BANK_LOAD);
 		return false;
 	}
 
@@ -548,7 +548,7 @@ bool sect_SwitchTo_NAMEONLY(const string* sectname) {
 	if ((sect_Current = sect_Find(sectname, NULL)) != NULL) {
 		return true;
 	} else {
-		prj_Fail(ERROR_NO_SECT);
+        err_Fail(ERROR_NO_SECT);
 		return false;
 	}
 }
@@ -561,7 +561,7 @@ bool sect_Init(void) {
 
 void sect_SetOrgAddress(uint32_t org) {
 	if (sect_Current == NULL) {
-		prj_Error(ERROR_SECTION_MISSING);
+        err_Error(ERROR_SECTION_MISSING);
 	} else {
 		sect_Current->flags |= SECTF_ORGFIXED;
 		sect_Current->cpuAdjust = org - (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin);

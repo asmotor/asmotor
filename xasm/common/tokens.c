@@ -32,7 +32,7 @@
 #include "lexer_variadics.h"
 #include "options.h"
 #include "filestack.h"
-#include "project.h"
+#include "errors.h"
 #include "symbol.h"
 
 bool tokens_ExpandStrings;
@@ -280,7 +280,7 @@ parseSymbol(size_t size) {
                 }
             }
 
-            prj_Fail(ERROR_ID_MALFORMED);
+            err_Fail(ERROR_ID_MALFORMED);
             strbuf_Free(symbolBuffer);
             return false;
         }

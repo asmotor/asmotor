@@ -26,7 +26,7 @@
 #include "expression.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "project.h"
+#include "errors.h"
 #include "section.h"
 
 #include "schip_parse.h"
@@ -166,7 +166,7 @@ handleLD(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t
     if (mode1->mode == MODE_ST && mode2->mode == MODE_REG)
         return handleModeReg(mode2, NULL, NULL, 0xF018);
 
-    return prj_Error(ERROR_OPERAND);
+    return err_Error(ERROR_OPERAND);
 }
 
 static bool
@@ -183,7 +183,7 @@ handleLDM(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_
     if (mode1->mode == MODE_RPL && mode2->mode == MODE_REG)
         return handleModeReg(mode2, NULL, NULL, 0xF075);
 
-    return prj_Error(ERROR_OPERAND);
+    return err_Error(ERROR_OPERAND);
 }
 
 static bool
@@ -197,7 +197,7 @@ handleADD(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_
     if (mode1->mode == MODE_I && mode2->mode == MODE_REG)
         return handleModeReg(mode2, NULL, NULL, 0xF01E);
 
-    return prj_Error(ERROR_OPERAND);
+    return err_Error(ERROR_OPERAND);
 }
 
 static bool
@@ -210,7 +210,7 @@ handleSkips(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint1
         return handleModeRegReg(mode1, mode2, NULL, opcode);
     }
 
-    return prj_Error(ERROR_OPERAND);
+    return err_Error(ERROR_OPERAND);
 }
 
 static bool
@@ -221,7 +221,7 @@ handleJP(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t
     if (mode1->mode == MODE_IMM_V0)
         return handleModeImm12(mode1, NULL, NULL, 0xB000);
 
-    return prj_Error(ERROR_OPERAND);
+    return err_Error(ERROR_OPERAND);
 }
 
 static bool
@@ -297,15 +297,15 @@ parse_IntegerInstruction(void) {
 
         if (instruction->mode1 != 0 && parse_AddressMode(&mode1)) {
             if ((instruction->mode1 & mode1.mode) == 0)
-                return prj_Error(ERROR_OPERAND);
+                return err_Error(ERROR_OPERAND);
 
             if (instruction->mode2 != 0 && parse_ExpectComma() && parse_AddressMode(&mode2)) {
                 if ((instruction->mode2 & mode2.mode) == 0)
-                    return prj_Error(ERROR_OPERAND);
+                    return err_Error(ERROR_OPERAND);
 
                 if (instruction->mode3 != 0 && parse_ExpectComma() && parse_AddressMode(&mode3)) {
                     if ((instruction->mode3 & mode3.mode) == 0)
-                        return prj_Error(ERROR_OPERAND);
+                        return err_Error(ERROR_OPERAND);
                 }
             }
         }

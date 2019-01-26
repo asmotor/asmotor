@@ -16,7 +16,7 @@
 	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "project.h"
+#include "errors.h"
 
 #include "m68k_errors.h"
 #include "m68k_options.h"
@@ -47,7 +47,7 @@ static bool parse_FpuGeneric(ESize sz, uint16_t opmode, SAddrMode* src, SAddrMod
 
     if(dest->eMode != AM_FPUREG)
     {
-        prj_Error(MERROR_FPU_REGISTER_EXPECTED);
+        err_Error(MERROR_FPU_REGISTER_EXPECTED);
         return true;
     }
 
@@ -98,7 +98,7 @@ parse_FpuInstruction(void) {
     pIns = &s_FpuInstructions[op];
     if((pIns->nCPU & opt_Current->machineOptions->nFpu) == 0)
     {
-        prj_Error(MERROR_INSTRUCTION_FPU);
+        err_Error(MERROR_INSTRUCTION_FPU);
         return true;
     }
 

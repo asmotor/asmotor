@@ -27,7 +27,7 @@
 #include "xasm.h"
 #include "symbol.h"
 #include "filestack.h"
-#include "project.h"
+#include "errors.h"
 #include "section.h"
 
 #define SET_TYPE_AND_FLAGS(symbol, t) ((symbol)->type=t,(symbol)->flags=((symbol)->flags&SYMF_EXPORT)|g_defaultSymbolFlags[t])
@@ -227,7 +227,7 @@ sym_GetValueByName(string* name) {
     if (symbol->flags & SYMF_CONSTANT)
         return sym_GetValue(symbol);
 
-    prj_Fail(ERROR_SYMBOL_CONSTANT);
+    err_Fail(ERROR_SYMBOL_CONSTANT);
     return 0;
 }
 
@@ -245,7 +245,7 @@ createSymbolOfType(string* name, ESymbolType type) {
         return symbol;
     }
 
-    prj_Error(ERROR_MODIFY_SYMBOL);
+    err_Error(ERROR_MODIFY_SYMBOL);
     return NULL;
 }
 
@@ -290,7 +290,7 @@ sym_CreateEqu(string* name, int32_t value) {
         return symbol;
     }
 
-    prj_Error(ERROR_MODIFY_SYMBOL);
+    err_Error(ERROR_MODIFY_SYMBOL);
     return NULL;
 }
 
@@ -326,10 +326,10 @@ sym_CreateLabel(string* name) {
             }
             return symbol;
         } else {
-            prj_Error(ERROR_LABEL_SECTION);
+            err_Error(ERROR_LABEL_SECTION);
         }
     } else {
-        prj_Error(ERROR_MODIFY_SYMBOL);
+        err_Error(ERROR_MODIFY_SYMBOL);
     }
 
     return NULL;
@@ -374,7 +374,7 @@ sym_Export(string* name) {
     if (symbol->flags & SYMF_EXPORTABLE) {
         symbol->flags |= SYMF_EXPORT;
     } else {
-        prj_Error(ERROR_SYMBOL_EXPORT);
+        err_Error(ERROR_SYMBOL_EXPORT);
     }
 
     return symbol;
@@ -390,7 +390,7 @@ sym_Import(string* name) {
         return symbol;
     }
 
-    prj_Error(ERROR_IMPORT_DEFINED);
+    err_Error(ERROR_IMPORT_DEFINED);
     return NULL;
 }
 
@@ -410,7 +410,7 @@ sym_Global(string* name) {
         return symbol;
     }
 
-    prj_Error(ERROR_SYMBOL_EXPORT);
+    err_Error(ERROR_SYMBOL_EXPORT);
     return NULL;
 }
 
@@ -431,7 +431,7 @@ sym_Purge(string* name) {
         return true;
     }
 
-    prj_Warn(WARN_CANNOT_PURGE);
+    err_Warn(WARN_CANNOT_PURGE);
     return false;
 }
 
@@ -466,7 +466,7 @@ sym_GetStringValue(SSymbol* symbol) {
         }
     }
 
-    prj_Fail(ERROR_SYMBOL_EQUS);
+    err_Fail(ERROR_SYMBOL_EQUS);
     return NULL;
 }
 

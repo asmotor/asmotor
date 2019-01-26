@@ -30,7 +30,7 @@
 #include "symbol.h"
 #include "section.h"
 #include "tokens.h"
-#include "project.h"
+#include "errors.h"
 
 
 /* Internal functions */
@@ -112,7 +112,7 @@ expr_ ## NAME(SExpression* left, SExpression* right) {           \
     if (!assertExpressions(left, right))                         \
         return NULL;                                             \
     if (right->value.integer == 0) {                             \
-        prj_Fail(ERROR_ZERO_DIVIDE);                             \
+        err_Fail(ERROR_ZERO_DIVIDE);                             \
         return NULL;                                             \
     }                                                            \
     int32_t value = left->value.integer OP right->value.integer; \
@@ -126,7 +126,7 @@ assertExpressions(SExpression* left, SExpression* right) {
     if (left != NULL && right != NULL)
         return true;
 
-    prj_Fail(ERROR_INVALID_EXPRESSION);
+    err_Fail(ERROR_INVALID_EXPRESSION);
     expr_Free(left);
     expr_Free(right);
     return false;
@@ -137,7 +137,7 @@ assertExpression(SExpression* expression) {
     if (expression != NULL)
         return true;
 
-    prj_Fail(ERROR_INVALID_EXPRESSION);
+    err_Fail(ERROR_INVALID_EXPRESSION);
     expr_Free(expression);
     return false;
 }
@@ -246,7 +246,7 @@ expr_Bit(SExpression* right) {
     uint32_t v = (uint32_t) right->value.integer;
 
     if (expr_IsConstant(right) && !isPowerOfTwo(v)) {
-        prj_Error(ERROR_EXPR_TWO_POWER);
+        err_Error(ERROR_EXPR_TWO_POWER);
         return NULL;
     }
 
@@ -350,7 +350,7 @@ expr_FixedDivision(SExpression* left, SExpression* right) {
         return left;
     }
 
-    prj_Fail(ERROR_ZERO_DIVIDE);
+    err_Fail(ERROR_ZERO_DIVIDE);
     return NULL;
 }
 
@@ -402,7 +402,7 @@ expr_Symbol(string* symbolName) {
         }
     }
 
-    prj_Fail(ERROR_SYMBOL_IN_EXPR);
+    err_Fail(ERROR_SYMBOL_IN_EXPR);
     return NULL;
 }
 

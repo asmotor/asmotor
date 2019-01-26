@@ -29,21 +29,21 @@ typedef struct MachineOptions {
 } SMachineOptions;
 
 extern SMachineOptions*
-locopt_Alloc(void);
+mips_AllocOptions(void);
 
 extern void
-locopt_Open(SMachineOptions* options);
+mips_SetDefaultOptions(SMachineOptions* options);
 
 extern void
-locopt_Copy(SMachineOptions* dest, SMachineOptions* src);
+mips_CopyOptions(SMachineOptions* dest, SMachineOptions* src);
 
 extern bool
-locopt_Parse(const char* s);
+mips_ParseOption(const char* s);
 
 extern void
-locopt_Update(SMachineOptions* options);
+mips_OptionsUpdated(SMachineOptions* options);
 
 extern void
-locopt_PrintOptions(void);
+mips_PrintOptions(void);
 
 #endif

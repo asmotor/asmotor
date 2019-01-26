@@ -29,7 +29,7 @@
 #include "parse_directive.h"
 #include "parse_string.h"
 #include "parse_symbol.h"
-#include "project.h"
+#include "errors.h"
 #include "symbol.h"
 
 static bool
@@ -57,7 +57,7 @@ handleMacroArguments() {
         while (lex_Current.token == ',') {
             parse_GetToken();
             if (!handleMacroArgument()) {
-                prj_Error(ERROR_INVALID_MACRO_ARGUMENT);
+                err_Error(ERROR_INVALID_MACRO_ARGUMENT);
                 break;
             }
         }
@@ -80,7 +80,7 @@ handleMacroInvocation(void) {
                 r = true;
             }
         } else {
-            prj_Error(ERROR_INSTR_UNKNOWN, lex_Current.value.string);
+            err_Error(ERROR_INSTR_UNKNOWN, lex_Current.value.string);
         }
         str_Free(symbolName);
     }
@@ -123,7 +123,7 @@ parse_ExpectChar(char ch) {
         parse_GetToken();
         return true;
     } else {
-        prj_Error(ERROR_CHAR_EXPECTED, ch);
+        err_Error(ERROR_CHAR_EXPECTED, ch);
         return false;
     }
 }
@@ -131,7 +131,7 @@ parse_ExpectChar(char ch) {
 void
 parse_GetToken(void) {
     if (!lex_GetNextToken()) {
-        prj_Fail(ERROR_END_OF_FILE);
+        err_Fail(ERROR_END_OF_FILE);
     }
 }
 
@@ -158,7 +158,7 @@ parse_Do(void) {
         if (lex_Current.token == T_POP_END)
             return true;
 
-        return prj_Error(ERROR_SYNTAX);
+        return err_Error(ERROR_SYNTAX);
     }
 
     return true;

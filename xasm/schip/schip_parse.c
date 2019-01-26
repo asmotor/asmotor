@@ -22,7 +22,7 @@
 #include "lexer.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "project.h"
+#include "errors.h"
 #include "section.h"
 
 #include "schip_parse.h"
@@ -36,7 +36,7 @@ parse_ExpressionU12(void) {
 
     expression = expr_CheckRange(expression, 0, 4095);
     if (expression == NULL)
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
     return expression;
 }
 

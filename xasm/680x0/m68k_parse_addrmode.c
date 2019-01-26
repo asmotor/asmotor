@@ -21,7 +21,7 @@
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "project.h"
+#include "errors.h"
 
 #include "m68k_errors.h"
 #include "m68k_options.h"
@@ -31,7 +31,7 @@
 static SExpression*
 expressionCheckScaleRange(SExpression* expression) {
     if ((expression = expr_CheckRange(expression, 1, 8)) == NULL) {
-        prj_Error(MERROR_SCALE_RANGE);
+        err_Error(MERROR_SCALE_RANGE);
         return NULL;
     }
 
@@ -101,14 +101,14 @@ getIndexReg(SModeRegisters* outMode) {
     outMode->indexSize = parse_GetSizeSpecifier(SIZE_WORD);
 
     if (outMode->indexSize != SIZE_WORD && outMode->indexSize != SIZE_LONG) {
-        prj_Error(MERROR_INDEXREG_SIZE);
+        err_Error(MERROR_INDEXREG_SIZE);
         return false;
     }
 
     if (lex_Current.token == T_OP_MULTIPLY) {
         parse_GetToken();
         if ((outMode->indexScale = parse_Expression(1)) == NULL) {
-            prj_Error(ERROR_EXPECT_EXPR);
+            err_Error(ERROR_EXPECT_EXPR);
             return false;
         }
         outMode->indexScale = expressionCheckScaleRange(outMode->indexScale);
@@ -364,7 +364,7 @@ optimizeMode(SAddressingMode* mode) {
             return true;
         case O_DISP:
             if (mode->outer.displacementSize == SIZE_BYTE) {
-                prj_Error(MERROR_DISP_SIZE);
+                err_Error(MERROR_DISP_SIZE);
                 return false;
             }
             if (mode->outer.displacementSize == SIZE_WORD)
@@ -374,7 +374,7 @@ optimizeMode(SAddressingMode* mode) {
             return true;
         case O_BASE | O_DISP:
             if (mode->outer.displacementSize == SIZE_BYTE) {
-                prj_Error(MERROR_DISP_SIZE);
+                err_Error(MERROR_DISP_SIZE);
                 return false;
             }
 
@@ -567,7 +567,7 @@ parse_GetAddrMode(SAddressingMode* addrMode) {
             addrMode->mode = AM_LONG;
             return true;
         } else
-            prj_Error(MERROR_DISP_SIZE);
+            err_Error(MERROR_DISP_SIZE);
     }
 
     return false;
@@ -593,7 +593,7 @@ parse_RegisterList(void) {
 
     while (getRegisterRange(&start, &end)) {
         if (start > end) {
-            prj_Error(ERROR_OPERAND);
+            err_Error(ERROR_OPERAND);
             return REGLIST_FAIL;
         }
 
@@ -642,7 +642,7 @@ parse_GetSizeSpecifier(ESize defaultSize) {
 SExpression*
 parse_ExpressionCheck16Bit(SExpression* expression) {
     if ((expression = expr_CheckRange(expression, -32768, 65535)) == NULL) {
-        prj_Error(ERROR_EXPRESSION_N_BIT, 16);
+        err_Error(ERROR_EXPRESSION_N_BIT, 16);
         return NULL;
     }
 
@@ -652,7 +652,7 @@ parse_ExpressionCheck16Bit(SExpression* expression) {
 SExpression*
 parse_ExpressionCheck8Bit(SExpression* expression) {
     if ((expression = expr_CheckRange(expression, -128, 255)) == NULL) {
-        prj_Error(ERROR_EXPRESSION_N_BIT, 8);
+        err_Error(ERROR_EXPRESSION_N_BIT, 8);
         return NULL;
     }
 

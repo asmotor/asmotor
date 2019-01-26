@@ -24,7 +24,7 @@
 // From xasm
 #include "xasm.h"
 #include "section.h"
-#include "project.h"
+#include "errors.h"
 #include "symbol.h"
 #include "patch.h"
 
@@ -44,7 +44,7 @@ commonPatch() {
 
     // Check first section
     if (needsOrg() && (sect_Sections->flags & SECTF_LOADFIXED) == 0) {
-        prj_Error(ERROR_SECTION_MUST_LOAD);
+        err_Error(ERROR_SECTION_MUST_LOAD);
         return false;
     }
 
@@ -57,7 +57,7 @@ commonPatch() {
         if (section != NULL) {
             if (section->flags & SECTF_LOADFIXED) {
                 if (section->imagePosition < nAddress) {
-                    prj_Error(ERROR_SECTION_LOAD, section->name, section->cpuOrigin);
+                    err_Error(ERROR_SECTION_LOAD, section->name, section->cpuOrigin);
                     return false;
                 }
                 nAddress = section->imagePosition;
@@ -72,7 +72,7 @@ commonPatch() {
     for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
         for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
             if (symbol->type == SYM_IMPORT) {
-                prj_Fail(ERROR_SYMBOL_UNDEFINED, str_String(symbol->name));
+                err_Fail(ERROR_SYMBOL_UNDEFINED, str_String(symbol->name));
             } else if (symbol->flags & SYMF_RELOC) {
                 symbol->flags &= ~SYMF_RELOC;
                 symbol->flags |= SYMF_CONSTANT;

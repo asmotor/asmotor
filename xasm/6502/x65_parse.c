@@ -21,7 +21,7 @@
 #include "lexer.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "project.h"
+#include "errors.h"
 #include "section.h"
 
 #include "x65_parse.h"
@@ -34,7 +34,7 @@ parse_ExpressionSU8(void) {
 
     expression = expr_CheckRange(expression, -128, 255);
     if (expression == NULL)
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
 
     return expr_And(expression, expr_Const(0xFF));
 }

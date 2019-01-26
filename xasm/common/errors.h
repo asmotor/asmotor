@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_COMMON_PROJECT_H_INCLUDED_
-#define XASM_COMMON_PROJECT_H_INCLUDED_
+#ifndef XASM_COMMON_ERRORS_H_INCLUDED_
+#define XASM_COMMON_ERRORS_H_INCLUDED_
 
 #include "patch.h"
 
@@ -89,18 +89,18 @@ typedef enum {
 } EError;
 
 extern bool
-prj_Warn(uint32_t errorNumber, ...);
+err_Warn(uint32_t errorNumber, ...);
 
 extern bool
-prj_Error(uint32_t errorNumber, ...);
+err_Error(uint32_t errorNumber, ...);
 
 extern bool
-prj_Fail(uint32_t errorNumber, ...);
+err_Fail(uint32_t errorNumber, ...);
 
 extern bool
-prj_PatchError(const SPatch* patch, uint32_t errorNumber, ...);
+err_PatchError(const SPatch* patch, uint32_t errorNumber, ...);
 
 extern bool
-prj_PatchFail(const SPatch* patch, uint32_t errorNumber, ...);
+err_PatchFail(const SPatch* patch, uint32_t errorNumber, ...);
 
-#endif /* XASM_COMMON_PROJECT_H_INCLUDED_ */
+#endif

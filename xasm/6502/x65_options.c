@@ -25,7 +25,7 @@
 #include "xasm.h"
 #include "lexer_constants.h"
 #include "options.h"
-#include "project.h"
+#include "errors.h"
 
 #include "x65_errors.h"
 #include "x65_options.h"
@@ -77,7 +77,7 @@ x65_ParseOption(const char* s) {
                     opt_Current->machineOptions->undocumentedInstructions = n;
                     return true;
                 }
-                prj_Error(ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE);
+                err_Error(ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE);
                 return false;
             }
             break;
@@ -85,7 +85,7 @@ x65_ParseOption(const char* s) {
             break;
     }
 
-    prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+    err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
     return false;
 }
 

@@ -20,12 +20,12 @@
 #define XASM_MIPS_PARSE_H_INCLUDED_
 
 extern bool
-parse_IntegerInstruction(void);
+mips_ParseIntegerInstruction(void);
 
 extern SExpression*
-parse_TargetFunction(void);
+mips_ParseFunction(void);
 
 extern bool
-parse_TargetSpecific(void);
+mips_ParseInstruction(void);
 
 #endif

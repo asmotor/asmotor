@@ -3,6 +3,8 @@ add_library (xasm
     amigaobject.h
     binaryobject.c
     binaryobject.h
+    errors.c
+    errors.h
     expression.c
     expression.h
     filestack.c
@@ -13,13 +15,12 @@ add_library (xasm
     lexer_constants.h
     lexer_variadics.c
     lexer_variadics.h
-        xasm.c
     object.c
     object.h
     options.c
     options.h
     parse.c
-        parse.h
+    parse.h
     parse_block.c
     parse_block.h
     parse_directive.c
@@ -32,12 +33,11 @@ add_library (xasm
     parse_symbol.h
     patch.c
     patch.h
-    project.c
-    project.h
     section.c
     section.h
     symbol.c
     symbol.h
     tokens.c
     tokens.h
+    xasm.c
     xasm.h)

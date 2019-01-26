@@ -23,7 +23,7 @@
 #include "lexer.h"
 #include "parse.h"
 #include "options.h"
-#include "project.h"
+#include "errors.h"
 #include "parse_string.h"
 
 static int32_t
@@ -36,7 +36,7 @@ stringCompare(string* s) {
     if (t != NULL) {
         r = str_Compare(s, t);
     } else {
-        prj_Error(ERROR_EXPR_STRING);
+        err_Error(ERROR_EXPR_STRING);
     }
 
     str_Free(t);
@@ -260,7 +260,7 @@ handleDefFunction() {
             }
             expr_Free(t1);
         } else {
-            prj_Fail(ERROR_DEF_SYMBOL);
+            err_Fail(ERROR_DEF_SYMBOL);
         }
     }
     return NULL;
@@ -286,7 +286,7 @@ handleBankFunction() {
             }
             expr_Free(t1);
         } else {
-            prj_Fail(ERROR_BANK_SYMBOL);
+            err_Fail(ERROR_BANK_SYMBOL);
         }
     }
     return NULL;
@@ -555,9 +555,9 @@ parse_ConstantExpression() {
             return r;
         }
 
-        prj_Error(ERROR_EXPR_CONST);
+        err_Error(ERROR_EXPR_CONST);
     } else
-        prj_Error(ERROR_INVALID_EXPRESSION);
+        err_Error(ERROR_INVALID_EXPRESSION);
 
     return 0;
 }
@@ -570,7 +570,7 @@ parse_ExpressionS16(void) {
 		
 	expression = expr_CheckRange(expression, -32768, 32767);
 	if (expression == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
 	
 	return expr_And(expression, expr_Const(0xFFFF));
 }
@@ -583,7 +583,7 @@ parse_ExpressionU16(void) {
 		
 	expression = expr_CheckRange(expression, 0, 65535);
 	if (expression == NULL)
-		prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
         
 	return expression;
 }

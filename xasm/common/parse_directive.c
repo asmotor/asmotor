@@ -28,7 +28,7 @@
 #include "filestack.h"
 #include "options.h"
 #include "parse.h"
-#include "project.h"
+#include "errors.h"
 #include "symbol.h"
 
 #include "parse_block.h"
@@ -70,7 +70,7 @@ modifySymbol(intptr_t intModification) {
         parse_GetToken();
 
         if (lex_Current.token != T_ID) {
-            prj_Error(ERROR_EXPECT_IDENTIFIER);
+            err_Error(ERROR_EXPECT_IDENTIFIER);
             break;
         }
     }
@@ -100,7 +100,7 @@ expectBankFixed(void) {
                 return (uint32_t) bank;
         }
     } else {
-        prj_Error(ERROR_EXPECT_BANK);
+        err_Error(ERROR_EXPECT_BANK);
     }
 
     return UINT32_MAX;
@@ -114,7 +114,7 @@ handleRexit() {
         fstk_ProcessNextBuffer();
         fstk_Current->lineNumber++;
     } else {
-        prj_Warn(WARN_REXIT_OUTSIDE_REPT);
+        err_Warn(WARN_REXIT_OUTSIDE_REPT);
     }
     parse_GetToken();
     return true;
@@ -125,7 +125,7 @@ handleMexit() {
     if (fstk_Current->type == CONTEXT_MACRO) {
         fstk_ProcessNextBuffer();
     } else {
-        prj_Warn(WARN_MEXIT_OUTSIDE_MACRO);
+        err_Warn(WARN_MEXIT_OUTSIDE_MACRO);
     }
     parse_GetToken();
     return true;
@@ -143,7 +143,7 @@ handleSection() {
         return sect_SwitchTo_NAMEONLY(name);
 
     if (lex_Current.token != T_ID) {
-        prj_Error(ERROR_EXPECT_IDENTIFIER);
+        err_Error(ERROR_EXPECT_IDENTIFIER);
         return false;
     }
 
@@ -152,7 +152,7 @@ handleSection() {
     str_Free(pGroup);
 
     if (sym->type != SYM_GROUP) {
-        prj_Error(ERROR_IDENTIFIER_GROUP);
+        err_Error(ERROR_IDENTIFIER_GROUP);
         return true;
     }
     parse_GetToken();
@@ -240,7 +240,7 @@ defineSpace(intptr_t multiplier) {
         sect_SkipBytes((uint32_t) offset * (uint32_t) multiplier);
         return true;
     } else {
-        prj_Error(ERROR_EXPR_POSITIVE);
+        err_Error(ERROR_EXPR_POSITIVE);
         return true;
     }
 }
@@ -294,10 +294,10 @@ handleCnop() {
             sect_Align((uint32_t) align);
             sect_SkipBytes((uint32_t) offset);
         } else {
-            prj_Error(ERROR_EXPR_POSITIVE);
+            err_Error(ERROR_EXPR_POSITIVE);
         }
     } else {
-        prj_Error(ERROR_EXPR_POSITIVE);
+        err_Error(ERROR_EXPR_POSITIVE);
     }
     return true;
 }
@@ -315,7 +315,7 @@ handleDb() {
             if (expr != NULL) {
                 sect_OutputExpr8(expr);
             } else {
-                prj_Error(ERROR_EXPRESSION_N_BIT, 8);
+                err_Error(ERROR_EXPRESSION_N_BIT, 8);
             }
         } else if ((str = parse_StringExpression()) != NULL) {
             const char* s = str_String(str);
@@ -343,7 +343,7 @@ handleDw() {
             if (expr != NULL) {
                 sect_OutputExpr16(expr);
             } else {
-                prj_Error(ERROR_EXPRESSION_N_BIT, 16);
+                err_Error(ERROR_EXPRESSION_N_BIT, 16);
             }
         } else {
             sect_SkipBytes(2);
@@ -362,7 +362,7 @@ handleDl() {
         if (expr != NULL) {
             sect_OutputExpr32(expr);
         } else {
-            sect_SkipBytes(4); //prj_Error(ERROR_INVALID_EXPRESSION);
+            sect_SkipBytes(4); //err_Error(ERROR_INVALID_EXPRESSION);
         }
     } while (lex_Current.token == ',');
 
@@ -400,7 +400,7 @@ handleFile(intptr_t intProcess) {
         str_Free(filename);
         return true;
     } else {
-        prj_Error(ERROR_EXPR_STRING);
+        err_Error(ERROR_EXPR_STRING);
         return false;
     }
 }
@@ -416,14 +416,14 @@ handleRept() {
         if (reptCount > 0) {
             fstk_ProcessRepeatBlock(reptBlock, reptSize, (uint32_t) reptCount);
         } else if (reptCount < 0) {
-            prj_Error(ERROR_EXPR_POSITIVE);
+            err_Error(ERROR_EXPR_POSITIVE);
             mem_Free(reptBlock);
         } else {
             mem_Free(reptBlock);
         }
         return true;
     } else {
-        prj_Fail(ERROR_NEED_ENDR);
+        err_Fail(ERROR_NEED_ENDR);
         return false;
     }
 }
@@ -439,7 +439,7 @@ handleShift() {
             expr_Free(expr);
             return true;
         } else {
-            prj_Fail(ERROR_EXPR_CONST);
+            err_Fail(ERROR_EXPR_CONST);
             return false;
         }
     } else {
@@ -467,12 +467,12 @@ handleIfStrings(intptr_t intPredicate) {
                 str_Free(s2);
                 return true;
             } else {
-                prj_Error(ERROR_EXPR_STRING);
+                err_Error(ERROR_EXPR_STRING);
             }
         }
         str_Free(s1);
     } else {
-        prj_Error(ERROR_EXPR_STRING);
+        err_Error(ERROR_EXPR_STRING);
     }
 
     return false;
@@ -495,7 +495,7 @@ handleIfSymbol(intptr_t intPredicate) {
         str_Free(symbolName);
         return true;
     }
-    prj_Error(ERROR_EXPECT_IDENTIFIER);
+    err_Error(ERROR_EXPECT_IDENTIFIER);
     return false;
 }
 
@@ -621,8 +621,8 @@ static SDirective g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
         {modifySymbol,    (intptr_t) handleImport},
         {modifySymbol,    (intptr_t) handleGlobal},
         {purgeSymbol,     (intptr_t) sym_Purge},
-        {handleUserError, (intptr_t) prj_Fail},
-        {handleUserError, (intptr_t) prj_Warn},
+        {handleUserError, (intptr_t) err_Fail},
+        {handleUserError, (intptr_t) err_Warn},
         {handleFile,      (intptr_t) fstk_ProcessIncludeFile},
         {handleFile,      (intptr_t) sect_OutputBinaryFile},
         {defineSpace,     1},

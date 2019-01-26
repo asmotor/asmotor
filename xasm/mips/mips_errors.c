@@ -23,9 +23,10 @@ static char* g_errors[] = {
     "Register expected"
 };
 
-const char* loc_GetError(size_t errorNumber) {
-	if (errorNumber < 1000)
-		return NULL;
+const char*
+mips_GetError(size_t errorNumber) {
+    if (errorNumber < 1000)
+        return NULL;
 
-	return g_errors[errorNumber - 1000];
+    return g_errors[errorNumber - 1000];
 }

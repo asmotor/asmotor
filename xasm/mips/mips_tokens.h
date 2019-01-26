@@ -294,6 +294,6 @@ typedef enum {
 } ETargetToken;
 
 extern void
-loclexer_Init(void);
+mips_DefineTokens(void);
 
 #endif

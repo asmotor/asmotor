@@ -20,6 +20,6 @@
 #define XASM_SCHIP_SYMBOLS_H_INCLUDED_
 
 extern void
-locsym_Init(void);
+schip_DefineSymbols(void);
 
 #endif

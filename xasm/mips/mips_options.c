@@ -24,31 +24,31 @@
 
 #include "xasm.h"
 #include "options.h"
-#include "project.h"
+#include "errors.h"
 
 #include "mips_options.h"
 
 SMachineOptions*
-locopt_Alloc(void) {
+mips_AllocOptions(void) {
     return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
-locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
+mips_CopyOptions(SMachineOptions* dest, SMachineOptions* src) {
     *dest = *src;
 }
 
 void
-locopt_Open(SMachineOptions* options) {
+mips_SetDefaultOptions(SMachineOptions* options) {
     options->cpu = CPUF_MIPS32R2;
 }
 
 void
-locopt_Update(SMachineOptions* options) {
+mips_OptionsUpdated(SMachineOptions* options) {
 }
 
 bool
-locopt_Parse(const char* s) {
+mips_ParseOption(const char* s) {
     if (s == NULL || strlen(s) == 0)
         return false;
 
@@ -63,21 +63,21 @@ locopt_Parse(const char* s) {
                         opt_Current->machineOptions->cpu = CPUF_MIPS32R2;
                         return true;
                     default:
-                        prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+                        err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
                         return false;
                 }
             } else {
-                prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+                err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
                 return false;
             }
         default:
-            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
             return false;
     }
 }
 
 void
-locopt_PrintOptions(void) {
+mips_PrintOptions(void) {
     printf("    -mc<X>  Enable CPU:\n");
     printf("            0 = MIPS32 R1\n");
     printf("            1 = MIPS32 R2 (default)\n");

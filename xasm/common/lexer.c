@@ -31,7 +31,7 @@
 #include "lexer_variadics.h"
 #include "filestack.h"
 #include "symbol.h"
-#include "project.h"
+#include "errors.h"
 
 
 static SLexerBuffer* g_currentBuffer;

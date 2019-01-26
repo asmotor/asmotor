@@ -26,7 +26,7 @@
 #include "options.h"
 #include "lexer_variadics.h"
 #include "tokens.h"
-#include "project.h"
+#include "errors.h"
 #include "filestack.h"
 
 SOptions* opt_Current;
@@ -77,7 +77,7 @@ opt_Pop(void) {
         mem_Free(nopt);
         opt_Update();
     } else {
-        prj_Warn(WARN_OPTION_POP);
+        err_Warn(WARN_OPTION_POP);
     }
 }
 
@@ -89,7 +89,7 @@ opt_Parse(char* s) {
             if (opt_Current->disabledWarningsCount < MAX_DISABLED_WARNINGS && 1 == sscanf(&s[1], "%d", &w)) {
                 opt_Current->disabledWarnings[opt_Current->disabledWarningsCount++] = (uint16_t) w;
             } else {
-                prj_Warn(WARN_OPTION, s);
+                err_Warn(WARN_OPTION, s);
             }
             break;
         }
@@ -108,7 +108,7 @@ opt_Parse(char* s) {
                     opt_Current->endianness = ASM_LITTLE_ENDIAN;
                     break;
                 default:
-                    prj_Warn(WARN_OPTION, s);
+                    err_Warn(WARN_OPTION, s);
                     break;
             }
             break;
@@ -122,7 +122,7 @@ opt_Parse(char* s) {
                 opt_Current->binaryLiteralCharacters[0] = (uint8_t) s[1];
                 opt_Current->binaryLiteralCharacters[1] = (uint8_t) s[2];
             } else {
-                prj_Warn(WARN_OPTION, s);
+                err_Warn(WARN_OPTION, s);
             }
             break;
         }
@@ -135,16 +135,16 @@ opt_Parse(char* s) {
                     int result = sscanf(&s[1], "%x", &uninitializedValue);
                     opt_Current->uninitializedValue = (uint8_t) uninitializedValue;
                     if (result == EOF || result != 1) {
-                        prj_Warn(WARN_OPTION, s);
+                        err_Warn(WARN_OPTION, s);
                     }
                 }
             } else {
-                prj_Warn(WARN_OPTION, s);
+                err_Warn(WARN_OPTION, s);
             }
             break;
         }
         default: {
-            prj_Warn(WARN_OPTION, s);
+            err_Warn(WARN_OPTION, s);
             break;
         }
     }

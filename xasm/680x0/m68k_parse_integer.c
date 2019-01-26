@@ -22,7 +22,7 @@
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "project.h"
+#include "errors.h"
 
 #include "m68k_errors.h"
 #include "m68k_options.h"
@@ -63,7 +63,7 @@ outputOpcodeSize(uint16_t opcode, ESize size, SAddressingMode* src) {
 static bool
 handleXBCD(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* dest) {
     if (src->mode != dest->mode)
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
 
     if (src->mode == AM_ADEC) {
         opcode |= 0x0008;
@@ -105,7 +105,7 @@ static bool
 handleQuick(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     src->immediate = expr_CheckRange(src->immediate, 1, 8);
     if (src->immediate == NULL) {
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
         return true;
     }
 
@@ -194,7 +194,7 @@ handleBitwiseI(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t
     if (dest->mode == AM_SYSREG) {
         if (dest->directRegister == T_68K_REG_CCR) {
             if (size != SIZE_BYTE) {
-                prj_Error(MERROR_INSTRUCTION_SIZE);
+                err_Error(MERROR_INSTRUCTION_SIZE);
                 return true;
             }
 
@@ -203,16 +203,16 @@ handleBitwiseI(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t
             return true;
         } else if (dest->directRegister == T_68K_REG_SR) {
             if (size != SIZE_WORD) {
-                prj_Error(MERROR_INSTRUCTION_SIZE);
+                err_Error(MERROR_INSTRUCTION_SIZE);
                 return true;
             }
 
-            prj_Warn(MERROR_INSTRUCTION_PRIV);
+            err_Warn(MERROR_INSTRUCTION_PRIV);
             sect_OutputConst16(opcode | 0x007C);
             sect_OutputExpr16(src->immediate);
             return true;
         }
-        prj_Error(ERROR_DEST_OPERAND);
+        err_Error(ERROR_DEST_OPERAND);
         return true;
     }
 
@@ -238,7 +238,7 @@ static bool
 handleArithmeticLogical(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* dest) {
     if (dest->mode == AM_DREG) {
         if (src->mode == AM_AREG && size != SIZE_WORD && size != SIZE_LONG) {
-            prj_Error(MERROR_INSTRUCTION_SIZE);
+            err_Error(MERROR_INSTRUCTION_SIZE);
             return true;
         }
 
@@ -247,7 +247,7 @@ handleArithmeticLogical(uint16_t opcode, ESize size, SAddressingMode* src, SAddr
         return outputOpcodeSize((uint16_t) (opcode | 0x0100 | src->directRegister << 9), size, dest);
     }
 
-    prj_Error(ERROR_OPERAND);
+    err_Error(ERROR_OPERAND);
     return true;
 }
 
@@ -286,14 +286,14 @@ handleCMPI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
     if (size == SIZE_BYTE) {
         SExpression* expr = parse_ExpressionCheck8Bit(src->immediate);
         if (expr == NULL) {
-            prj_Error(ERROR_OPERAND_RANGE);
+            err_Error(ERROR_OPERAND_RANGE);
             return true;
         }
         sect_OutputExpr16(expr_And(expr, expr_Const(0xFF)));
     } else if (size == SIZE_WORD) {
         SExpression* expr = parse_ExpressionCheck16Bit(src->immediate);
         if (expr == NULL) {
-            prj_Error(ERROR_OPERAND_RANGE);
+            err_Error(ERROR_OPERAND_RANGE);
             return true;
         }
         sect_OutputExpr16(expr);
@@ -324,7 +324,7 @@ handleCMP(ESize size, SAddressingMode* src, SAddressingMode* dest) {
     if (dest->mode == AM_DREG)
         return handleArithmeticLogical(0xB000, size, src, dest);
 
-    prj_Fail(ERROR_DEST_OPERAND);
+    err_Fail(ERROR_DEST_OPERAND);
     return false;
 }
 
@@ -344,7 +344,7 @@ handleCLR(ESize size, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleTST(ESize size, SAddressingMode* src, SAddressingMode* dest) {
     if (src->mode == AM_AREG && size == SIZE_BYTE) {
-        prj_Error(MERROR_INSTRUCTION_SIZE);
+        err_Error(MERROR_INSTRUCTION_SIZE);
         return true;
     }
 
@@ -360,7 +360,7 @@ handleShift(uint16_t opcode, uint16_t memoryOpcode, ESize size, SAddressingMode*
             expr = expr_CheckRange(src->immediate, 1, 8);
             expr = expr_And(expr, expr_Const(7));
             if (expr == NULL) {
-                prj_Error(ERROR_OPERAND_RANGE);
+                err_Error(ERROR_OPERAND_RANGE);
                 return true;
             }
             expr = expr_Or(expr_Const(opcode), expr_Asl(expr, expr_Const(9)));
@@ -372,18 +372,18 @@ handleShift(uint16_t opcode, uint16_t memoryOpcode, ESize size, SAddressingMode*
         return true;
     }
     if (dest->mode != AM_EMPTY) {
-        prj_Error(ERROR_DEST_OPERAND);
+        err_Error(ERROR_DEST_OPERAND);
         return true;
     }
     if (src->mode & (AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_POSTINDAXD020 | AM_PREINDAXD020)) {
         if (size != SIZE_WORD) {
-            prj_Error(MERROR_INSTRUCTION_SIZE);
+            err_Error(MERROR_INSTRUCTION_SIZE);
             return true;
         }
         return outputOpcode(memoryOpcode, src);
     }
 
-    prj_Error(ERROR_SOURCE_OPERAND);
+    err_Error(ERROR_SOURCE_OPERAND);
     return true;
 }
 
@@ -439,7 +439,7 @@ handleBcc(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* de
             return true;
         }
 
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
         return true;
     } else if (size == SIZE_WORD) {
         SExpression* expr = expr_CheckRange(expr_PcRelative(src->outer.displacement, 0), -32768, 32767);
@@ -449,13 +449,13 @@ handleBcc(uint16_t opcode, ESize size, SAddressingMode* src, SAddressingMode* de
             return true;
         }
 
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
         return true;
     } else if (size == SIZE_LONG) {
         SExpression* expr;
 
         if (opt_Current->machineOptions->cpu < CPUF_68020) {
-            prj_Error(MERROR_INSTRUCTION_SIZE);
+            err_Error(MERROR_INSTRUCTION_SIZE);
             return true;
         }
 
@@ -569,7 +569,7 @@ handleBitInstruction(uint16_t dataOpcode, uint16_t immediateOpcode, SAddressingM
             sect_OutputExpr16(expr);
             return parse_OutputExtensionWords(dest);
         }
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
     }
     return true;
 }
@@ -606,7 +606,7 @@ handleBitfieldInstruction(uint16_t opcode, uint16_t extension, SAddressingMode* 
     } else {
         SExpression* bf = expr_CheckRange(src->bitfieldOffsetExpression, 0, 31);
         if (bf == NULL) {
-            prj_Error(ERROR_OPERAND_RANGE);
+            err_Error(ERROR_OPERAND_RANGE);
             return true;
         }
         expr = expr_Or(expr, expr_Asl(bf, expr_Const(6)));
@@ -617,7 +617,7 @@ handleBitfieldInstruction(uint16_t opcode, uint16_t extension, SAddressingMode* 
     } else {
         SExpression* bf = expr_CheckRange(src->bitfieldWidthExpression, 0, 31);
         if (bf == NULL) {
-            prj_Error(ERROR_OPERAND_RANGE);
+            err_Error(ERROR_OPERAND_RANGE);
             return true;
         }
         expr = expr_Or(expr, bf);
@@ -676,7 +676,7 @@ static bool
 handleBKPT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     SExpression* expr = expr_CheckRange(src->immediate, 0, 7);
     if (expr == NULL) {
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
         return true;
     }
 
@@ -689,7 +689,7 @@ static bool
 handleCALLM(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     SExpression* expr = expr_CheckRange(src->immediate, 0, 255);
     if (expr == NULL) {
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
         return true;
     }
 
@@ -701,7 +701,7 @@ handleCALLM(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleCAS(ESize sz, SAddressingMode* dc, SAddressingMode* du) {
     if (opt_Current->machineOptions->cpu == CPUF_68060 && sz != SIZE_BYTE) {
-        prj_Warn(MERROR_MISALIGNED_FAIL_68060);
+        err_Warn(MERROR_MISALIGNED_FAIL_68060);
         return true;
     }
 
@@ -713,7 +713,7 @@ handleCAS(ESize sz, SAddressingMode* dc, SAddressingMode* du) {
         return false;
 
     if ((ea.mode & (AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020)) == 0) {
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
         return true;
     }
 
@@ -736,7 +736,7 @@ expectDataRegister(uint16_t* outRegister) {
         return true;
     }
 
-    prj_Error(ERROR_OPERAND);
+    err_Error(ERROR_OPERAND);
     return false;
 }
 
@@ -798,7 +798,7 @@ handleCAS2(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
         return false;
 
     if (opt_Current->machineOptions->cpu == CPUF_68060) {
-        prj_Error(MERROR_INSTRUCTION_CPU);
+        err_Error(MERROR_INSTRUCTION_CPU);
         return true;
     }
 
@@ -812,7 +812,7 @@ handleCAS2(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
 static bool
 handleCHK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (sz == SIZE_LONG && opt_Current->machineOptions->cpu < CPUF_68020) {
-        prj_Error(MERROR_INSTRUCTION_SIZE);
+        err_Error(MERROR_INSTRUCTION_SIZE);
         return true;
     }
 
@@ -823,7 +823,7 @@ handleCHK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleCHK2(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (opt_Current->machineOptions->cpu == CPUF_68060) {
-        prj_Error(MERROR_INSTRUCTION_CPU);
+        err_Error(MERROR_INSTRUCTION_CPU);
         return true;
     }
 
@@ -839,7 +839,7 @@ handleCHK2(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleCMP2(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (opt_Current->machineOptions->cpu == CPUF_68060) {
-        prj_Error(MERROR_INSTRUCTION_CPU);
+        err_Error(MERROR_INSTRUCTION_CPU);
         return true;
     }
 
@@ -962,7 +962,7 @@ handleDIVxx(bool sign, bool l, ESize sz, SAddressingMode* src, SAddressingMode* 
         }
 
         if (opt_Current->machineOptions->cpu >= CPUF_68060 && div64) {
-            prj_Error(MERROR_INSTRUCTION_CPU);
+            err_Error(MERROR_INSTRUCTION_CPU);
             return true;
         }
 
@@ -1073,7 +1073,7 @@ handleLEA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleLINK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (sz == SIZE_LONG && opt_Current->machineOptions->cpu < CPUF_68020) {
-        prj_Error(MERROR_INSTRUCTION_SIZE);
+        err_Error(MERROR_INSTRUCTION_SIZE);
         return true;
     }
 
@@ -1091,15 +1091,15 @@ handleLINK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleMOVEfromSYSREG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (src->directRegister == T_68K_REG_USP) {
-        prj_Warn(MERROR_INSTRUCTION_PRIV);
+        err_Warn(MERROR_INSTRUCTION_PRIV);
 
         if (sz != SIZE_LONG) {
-            prj_Error(MERROR_INSTRUCTION_SIZE);
+            err_Error(MERROR_INSTRUCTION_SIZE);
             return true;
         }
 
         if (dest->mode != AM_AREG) {
-            prj_Error(ERROR_DEST_OPERAND);
+            err_Error(ERROR_DEST_OPERAND);
             return true;
         }
 
@@ -1113,28 +1113,28 @@ handleMOVEfromSYSREG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
             allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
 
         if ((dest->mode & allow) == 0) {
-            prj_Error(ERROR_DEST_OPERAND);
+            err_Error(ERROR_DEST_OPERAND);
             return true;
         }
 
         if (src->directRegister == T_68K_REG_CCR) {
             if (opt_Current->machineOptions->cpu < CPUF_68010) {
-                prj_Error(MERROR_INSTRUCTION_CPU);
+                err_Error(MERROR_INSTRUCTION_CPU);
                 return true;
             }
 
             if (sz != SIZE_WORD) {
-                prj_Error(MERROR_INSTRUCTION_SIZE);
+                err_Error(MERROR_INSTRUCTION_SIZE);
                 return true;
             }
 
             return outputOpcode(0x42C0, dest);
         } else if (src->directRegister == T_68K_REG_SR) {
             if (opt_Current->machineOptions->cpu >= CPUF_68010)
-                prj_Warn(MERROR_INSTRUCTION_PRIV);
+                err_Warn(MERROR_INSTRUCTION_PRIV);
 
             if (sz != SIZE_WORD) {
-                prj_Error(MERROR_INSTRUCTION_SIZE);
+                err_Error(MERROR_INSTRUCTION_SIZE);
                 return true;
             }
 
@@ -1148,15 +1148,15 @@ handleMOVEfromSYSREG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleMOVEtoSYSREG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (dest->directRegister == T_68K_REG_USP) {
-        prj_Warn(MERROR_INSTRUCTION_PRIV);
+        err_Warn(MERROR_INSTRUCTION_PRIV);
 
         if (sz != SIZE_LONG) {
-            prj_Error(MERROR_INSTRUCTION_SIZE);
+            err_Error(MERROR_INSTRUCTION_SIZE);
             return true;
         }
 
         if (src->mode != AM_AREG) {
-            prj_Error(ERROR_SOURCE_OPERAND);
+            err_Error(ERROR_SOURCE_OPERAND);
             return true;
         }
 
@@ -1170,24 +1170,24 @@ handleMOVEtoSYSREG(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
             allow |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
 
         if ((src->mode & allow) == 0) {
-            prj_Error(ERROR_SOURCE_OPERAND);
+            err_Error(ERROR_SOURCE_OPERAND);
             return true;
         }
 
         if (dest->directRegister == T_68K_REG_CCR) {
             if (sz != SIZE_WORD) {
-                prj_Error(MERROR_INSTRUCTION_SIZE);
+                err_Error(MERROR_INSTRUCTION_SIZE);
                 return true;
             }
 
             return outputOpcode(0x44C0, src);
         } else if (dest->directRegister == T_68K_REG_SR) {
             if (sz != SIZE_WORD) {
-                prj_Error(MERROR_INSTRUCTION_SIZE);
+                err_Error(MERROR_INSTRUCTION_SIZE);
                 return true;
             }
 
-            prj_Warn(MERROR_INSTRUCTION_PRIV);
+            err_Warn(MERROR_INSTRUCTION_PRIV);
 
             return outputOpcode(0x46C0, src);
         }
@@ -1269,7 +1269,7 @@ handleMOVE16(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
         line = src->outer.displacement;
         reg = (uint16_t) (dest->outer.baseRegister & 7u);
     } else {
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
         return true;
     }
 
@@ -1308,7 +1308,7 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
             allowedModes |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
 
         if ((mode.mode & allowedModes) == 0) {
-            prj_Error(ERROR_DEST_OPERAND);
+            err_Error(ERROR_DEST_OPERAND);
             return true;
         }
         direction = 0;
@@ -1322,7 +1322,7 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
             allowedModes |= AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020;
 
         if ((mode.mode & allowedModes) == 0) {
-            prj_Error(ERROR_SOURCE_OPERAND);
+            err_Error(ERROR_SOURCE_OPERAND);
             return true;
         }
 
@@ -1337,7 +1337,7 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
     }
 
     if (registerMask == 0) {
-        prj_Warn(MERROR_MOVEM_SKIPPED);
+        err_Warn(MERROR_MOVEM_SKIPPED);
         return true;
     }
 
@@ -1355,7 +1355,7 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2) {
 static bool
 handleMOVEP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (opt_Current->machineOptions->cpu == CPUF_68060) {
-        prj_Error(MERROR_INSTRUCTION_CPU);
+        err_Error(MERROR_INSTRUCTION_CPU);
         return true;
     }
 
@@ -1393,7 +1393,7 @@ handleMOVEP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
         ar = (uint16_t) (dest->outer.baseRegister & 7u);
         disp = dest->outer.displacement;
     } else {
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
         return true;
     }
 
@@ -1410,7 +1410,7 @@ static bool
 handleMOVEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     SExpression* expr = expr_CheckRange(src->immediate, -128, 127);
     if (expr == NULL) {
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
         return true;
     }
 
@@ -1423,7 +1423,7 @@ handleMOVEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleMULx(uint16_t sign, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     if (sz == SIZE_LONG && opt_Current->machineOptions->cpu < CPUF_68020) {
-        prj_Error(MERROR_INSTRUCTION_CPU);
+        err_Error(MERROR_INSTRUCTION_CPU);
         return true;
     }
 
@@ -1436,10 +1436,10 @@ handleMULx(uint16_t sign, ESize sz, SAddressingMode* src, SAddressingMode* dest)
             dh = dest->directRegister;
             mul64 = 1;
             if (dh == dl)
-                prj_Warn(MERROR_UNDEFINED_RESULT);
+                err_Warn(MERROR_UNDEFINED_RESULT);
 
             if (opt_Current->machineOptions->cpu == CPUF_68060) {
-                prj_Error(MERROR_INSTRUCTION_CPU);
+                err_Error(MERROR_INSTRUCTION_CPU);
                 return true;
             }
         } else {
@@ -1510,7 +1510,7 @@ handlePackUnpack(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* 
         return false;
 
     if (src->mode != dest->mode || adj.mode != AM_IMM) {
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
         return true;
     }
 
@@ -1679,7 +1679,7 @@ static bool
 handleTRAP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     SExpression* expr = expr_CheckRange(src->immediate, 0, 15);
     if (expr == NULL) {
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
         return true;
     }
     expr = expr_Or(expr, expr_Const(0x4E40));
@@ -1698,7 +1698,7 @@ handleTRAPcc(uint16_t code, ESize sz, SAddressingMode* src, SAddressingMode* des
     } else if (sz == SIZE_LONG && src->mode == AM_IMM) {
         opmode = 0x3;
     } else {
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
         return true;
     }
 
@@ -1805,21 +1805,21 @@ handleUNLK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleRESET(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    prj_Warn(MERROR_INSTRUCTION_PRIV);
+    err_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(0x4E70);
     return true;
 }
 
 static bool
 handleRTE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    prj_Warn(MERROR_INSTRUCTION_PRIV);
+    err_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(0x4E73);
     return true;
 }
 
 static bool
 handleSTOP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    prj_Warn(MERROR_INSTRUCTION_PRIV);
+    err_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(0x4E72);
     sect_OutputExpr16(src->immediate);
     return true;
@@ -1827,7 +1827,7 @@ handleSTOP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleCache040(uint16_t ins, uint16_t scope, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    prj_Warn(MERROR_INSTRUCTION_PRIV);
+    err_Warn(MERROR_INSTRUCTION_PRIV);
 
     uint16_t cache = 0;
 
@@ -1838,7 +1838,7 @@ handleCache040(uint16_t ins, uint16_t scope, ESize sz, SAddressingMode* src, SAd
     else if (src->directRegister == T_68K_REG_BC)
         cache = 0x3;
     else {
-        prj_Error(ERROR_DEST_OPERAND);
+        err_Error(ERROR_DEST_OPERAND);
         return true;
     }
 
@@ -1973,7 +1973,7 @@ SControlRegister g_controlRegister[] = {
 
 static bool
 handleMOVEC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    prj_Warn(MERROR_INSTRUCTION_PRIV);
+    err_Warn(MERROR_INSTRUCTION_PRIV);
 
     uint16_t dr;
     int control;
@@ -1994,18 +1994,18 @@ handleMOVEC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
         else
             reg = (uint16_t) src->directRegister + 8;
     } else {
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
         return true;
     }
 
     if (control < T_68K_REG_SFC || control > T_68K_REG_DACR1) {
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
         return true;
     }
 
     SControlRegister* ctrlRegister = &g_controlRegister[control - T_68K_REG_SFC];
     if ((ctrlRegister->cpu & opt_Current->machineOptions->cpu) == 0) {
-        prj_Error(MERROR_INSTRUCTION_CPU);
+        err_Error(MERROR_INSTRUCTION_CPU);
         return true;
     }
 
@@ -2016,7 +2016,7 @@ handleMOVEC(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleMOVES(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    prj_Warn(MERROR_INSTRUCTION_PRIV);
+    err_Warn(MERROR_INSTRUCTION_PRIV);
 
     int allowedModes = AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_PCXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020;
     uint16_t direction;
@@ -2032,7 +2032,7 @@ handleMOVES(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
         registerMode = dest;
         direction = 0;
     } else {
-        prj_Error(ERROR_OPERAND);
+        err_Error(ERROR_OPERAND);
         return true;
     }
 
@@ -3210,7 +3210,7 @@ parse_IntegerInstruction(void) {
 
     SInstruction* instruction = &g_integerInstructions[op];
     if ((instruction->cpu & opt_Current->machineOptions->cpu) == 0) {
-        prj_Error(MERROR_INSTRUCTION_CPU);
+        err_Error(MERROR_INSTRUCTION_CPU);
         return true;
     }
 

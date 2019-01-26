@@ -24,7 +24,7 @@
 #include "mem.h"
 
 #include "xasm.h"
-#include "project.h"
+#include "errors.h"
 #include "options.h"
 
 #include "m68k_options.h"
@@ -80,7 +80,7 @@ m68k_ParseOption(const char* option) {
                         break;
                 }
             }
-            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
             return false;
         case 'f':
             if (strlen(&option[1]) == 1) {
@@ -100,10 +100,10 @@ m68k_ParseOption(const char* option) {
                         break;
                 }
             }
-            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
             return false;
         default:
-            prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
             return false;
     }
 }

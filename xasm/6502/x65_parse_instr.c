@@ -22,7 +22,7 @@
 #include "expression.h"
 #include "lexer.h"
 #include "parse.h"
-#include "project.h"
+#include "errors.h"
 
 #include "x65_errors.h"
 #include "x65_parse.h"
@@ -72,7 +72,7 @@ parse_Standard_All(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputExpr16(addrMode->expr);
             return true;
         default:
-            prj_Fail(MERROR_ILLEGAL_ADDRMODE);
+            err_Fail(MERROR_ILLEGAL_ADDRMODE);
             return true;
     }
 
@@ -111,7 +111,7 @@ parse_Standard_AbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputExpr8(addrMode->expr);
             return true;
         default:
-            prj_Fail(MERROR_ILLEGAL_ADDRMODE);
+            err_Fail(MERROR_ILLEGAL_ADDRMODE);
             return true;
     }
 }
@@ -142,7 +142,7 @@ parse_Standard_Imm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputExpr16(addrMode->expr);
             return true;
         default:
-            prj_Fail(MERROR_ILLEGAL_ADDRMODE);
+            err_Fail(MERROR_ILLEGAL_ADDRMODE);
             return true;
     }
 }
@@ -170,7 +170,7 @@ parse_Standard_Rotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputExpr16(addrMode->expr);
             return true;
         default:
-            prj_Fail(MERROR_ILLEGAL_ADDRMODE);
+            err_Fail(MERROR_ILLEGAL_ADDRMODE);
             return true;
     }
 }
@@ -183,7 +183,7 @@ parse_Branch(uint8_t baseOpcode, SAddressingMode* addrMode) {
     pExpr = expr_PcRelative(addrMode->expr, -1);
     pExpr = expr_CheckRange(pExpr, -128, 127);
     if (pExpr == NULL) {
-        prj_Error(ERROR_OPERAND_RANGE);
+        err_Error(ERROR_OPERAND_RANGE);
         return true;
     } else {
         sect_OutputExpr8(pExpr);
@@ -331,7 +331,7 @@ parse_IntegerInstruction(void) {
         if (parse_AddressingMode(&addrMode, handler->allowedModes))
             return handler->handler(handler->baseOpcode, &addrMode);
         else
-            prj_Error(MERROR_ILLEGAL_ADDRMODE);
+            err_Error(MERROR_ILLEGAL_ADDRMODE);
     }
 
     return false;

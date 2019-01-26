@@ -41,19 +41,19 @@ static SConfiguration xasm_MIPSConfiguration = {
 	"DB", "DH", "DW",
 	"DSB", "DSH", "DSL",
 
-	loc_GetError,
-	loclexer_Init,
-	locsym_Init,
+	mips_GetError,
+	mips_DefineTokens,
+	mips_DefineSymbols,
 
-	locopt_Alloc,
-	locopt_Open,
-	locopt_Copy,
-	locopt_Parse,
-	locopt_Update,
-	locopt_PrintOptions,
+	mips_AllocOptions,
+	mips_SetDefaultOptions,
+	mips_CopyOptions,
+	mips_ParseOption,
+	mips_OptionsUpdated,
+	mips_PrintOptions,
 
-	parse_TargetFunction,
-	parse_TargetSpecific,
+	mips_ParseFunction,
+	mips_ParseInstruction,
 
 };
 

@@ -26,7 +26,7 @@
 #include "parse_expression.h"
 #include "parse_string.h"
 #include "parse_symbol.h"
-#include "project.h"
+#include "errors.h"
 #include "symbol.h"
 
 
@@ -83,7 +83,7 @@ parse_SymbolDefinition(void) {
 
         if (lex_Current.token == T_SYM_MACRO) {
             if (totalColons != 1) {
-                prj_Error(ERROR_SYMBOL_EXPORT);
+                err_Error(ERROR_SYMBOL_EXPORT);
                 return false;
             } else {
                 uint32_t lineNumber = fstk_Current->lineNumber;
@@ -95,7 +95,7 @@ parse_SymbolDefinition(void) {
                     parse_GetToken();
                     r = true;
                 } else {
-                    prj_Fail(ERROR_NEED_ENDM, str_String(fstk_Current->name), lineNumber);
+                    err_Fail(ERROR_NEED_ENDM, str_String(fstk_Current->name), lineNumber);
                     return false;
                 }
             }
@@ -149,7 +149,7 @@ parse_SymbolDefinition(void) {
                             groupType = GROUP_BSS;
                             break;
                         default:
-                            prj_Error(ERROR_EXPECT_TEXT_BSS);
+                            err_Error(ERROR_EXPECT_TEXT_BSS);
                             return false;
                     }
                     sym_CreateGroup(symbolName, groupType);

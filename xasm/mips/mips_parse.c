@@ -22,13 +22,13 @@
 #include "lexer.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "project.h"
+#include "errors.h"
 #include "section.h"
 
 #include "mips_parse.h"
 
 SExpression*
-parse_TargetFunction(void) {
+mips_ParseFunction(void) {
     switch (lex_Current.token) {
         default:
             return NULL;
@@ -36,8 +36,8 @@ parse_TargetFunction(void) {
 }
 
 bool
-parse_TargetSpecific(void) {
-    if (parse_IntegerInstruction())
+mips_ParseInstruction(void) {
+    if (mips_ParseIntegerInstruction())
         return true;
 
     return false;

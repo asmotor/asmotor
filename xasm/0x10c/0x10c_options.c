@@ -25,7 +25,7 @@
 
 #include "xasm.h"
 #include "options.h"
-#include "project.h"
+#include "errors.h"
 
 #include "0x10c_options.h"
 
@@ -71,7 +71,7 @@ x10c_ParseOption(const char* option) {
             break;
     }
 
-    prj_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+    err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
     return false;
 }
 
