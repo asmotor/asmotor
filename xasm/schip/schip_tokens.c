@@ -21,8 +21,7 @@
 
 #include "schip_tokens.h"
 
-static SLexConstantsWord localstrings[]=
-{
+static SLexConstantsWord tokens[] = {
 	/* reg */
 	{ "BCD", T_CHIP_BCD },
 	{ "LDF", T_CHIP_LDF },
@@ -88,6 +87,6 @@ static SLexConstantsWord localstrings[]=
 };
 
 void 
-loclexer_Init(void) {
-	lex_ConstantsDefineWords(localstrings);
+schip_DefineTokens(void) {
+	lex_ConstantsDefineWords(tokens);
 }

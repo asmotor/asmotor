@@ -104,6 +104,6 @@ typedef	enum {
 }	ETargetToken;
 
 extern void 
-loclexer_Init(void);
+schip_DefineTokens(void);
 
 #endif	//XASM_SCHIP_TOKENS_H_INCLUDED_

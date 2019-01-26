@@ -20,15 +20,15 @@
 #define XASM_SCHIP_PARSE_H_INCLUDED_
 
 extern SExpression*
-parse_ExpressionU12(void);
+schip_ParseExpressionU12(void);
 
 extern bool
-parse_IntegerInstruction(void);
+schip_ParseIntegerInstruction(void);
 
 extern SExpression*
-parse_TargetFunction(void);
+schip_ParseFunction(void);
 
 extern bool
-parse_TargetSpecific(void);
+schip_ParseInstruction(void);
 
 #endif

@@ -41,19 +41,19 @@ static SConfiguration xasm_SuperChipConfiguration = {
 	"DB", "DH", "DW",
 	"DSB", "DSH", "DSL",
 
-	loc_GetError,
-	loclexer_Init,
-	locsym_Init,
+	schip_GetError,
+	schip_DefineTokens,
+	schip_DefineSymbols,
 
-	locopt_Alloc,
-	locopt_Open,
-	locopt_Copy,
-	locopt_Parse,
-	locopt_Update,
-	locopt_PrintOptions,
+	schip_AllocOptions,
+	schip_SetDefaultOptions,
+	schip_CopyOptions,
+	schip_ParseOption,
+	schip_OptionsUpdated,
+	schip_PrintOptions,
 
-	parse_TargetFunction,
-	parse_TargetSpecific,
+	schip_ParseFunction,
+	schip_ParseInstruction,
 };
 
 extern int

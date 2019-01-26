@@ -30,26 +30,26 @@
 #include "schip_tokens.h"
 
 SMachineOptions*
-locopt_Alloc(void) {
+schip_AllocOptions(void) {
     return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
-locopt_Copy(SMachineOptions* dest, SMachineOptions* src) {
+schip_CopyOptions(SMachineOptions* dest, SMachineOptions* src) {
     *dest = *src;
 }
 
 void
-locopt_Open(SMachineOptions* options) {
+schip_SetDefaultOptions(SMachineOptions* options) {
     options->cpu = CPUF_SCHIP;
 }
 
 void
-locopt_Update(SMachineOptions* options) {
+schip_OptionsUpdated(SMachineOptions* options) {
 }
 
 bool
-locopt_Parse(const char* s) {
+schip_ParseOption(const char* s) {
     if (s == NULL || strlen(s) == 0)
         return false;
 
@@ -76,7 +76,7 @@ locopt_Parse(const char* s) {
 }
 
 void
-locopt_PrintOptions(void) {
+schip_PrintOptions(void) {
     printf("    -mc<X>  Enable CPU:\n");
     printf("            0 = CHIP-8\n");
     printf("            1 = SuperCHIP (default)\n");

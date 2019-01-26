@@ -25,7 +25,7 @@ static const char* g_errors[] = {
 	"Register expected"
 };
 
-const char* loc_GetError(size_t errorNumber) {
+const char* schip_GetError(size_t errorNumber) {
 	if (errorNumber < 1000)
 		return NULL;
 

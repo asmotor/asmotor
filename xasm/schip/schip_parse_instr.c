@@ -50,7 +50,7 @@ typedef struct {
 } SAddressMode;
 
 static uint8_t
-parse_GetRegister(void) {
+getRegister(void) {
     if (lex_Current.token >= T_CHIP_REG_V0 && lex_Current.token <= T_CHIP_REG_V15) {
         uint8_t result = (uint8_t) (lex_Current.token - T_CHIP_REG_V0);
         parse_GetToken();
@@ -62,14 +62,14 @@ parse_GetRegister(void) {
 }
 
 static bool
-parse_AddressMode(SAddressMode* pMode) {
-    if ((pMode->registerIndex = parse_GetRegister()) != REGISTER_NONE) {
+parseAddressMode(SAddressMode* pMode) {
+    if ((pMode->registerIndex = getRegister()) != REGISTER_NONE) {
         pMode->mode = MODE_REG;
         if (lex_Current.token != T_OP_ADD)
             return true;
 
         parse_GetToken();
-        if ((pMode->expression = parse_ExpressionU12()) != NULL) {
+        if ((pMode->expression = schip_ParseExpressionU12()) != NULL) {
             pMode->mode = MODE_IMM_V0;
             return true;
         }
@@ -240,7 +240,7 @@ typedef struct {
     mnemonicHandler fpParser;
 } SInstruction;
 
-SInstruction g_instructionHandlers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] = {
+static SInstruction instructionHandlers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] = {
     { MODE_REG, 0, 0, 0xF033, handleModeReg },	// BCD
     { MODE_REG, 0, 0, 0xF029, handleModeReg },	// LDF
     { MODE_REG, 0, 0, 0xF030, handleModeReg },	// LDF10
@@ -285,9 +285,9 @@ SInstruction g_instructionHandlers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] =
 };
 
 bool
-parse_IntegerInstruction(void) {
+schip_ParseIntegerInstruction(void) {
     if (T_CHIP_INSTR_FIRST <= lex_Current.token && lex_Current.token <= T_CHIP_INSTR_LAST) {
-        SInstruction* instruction = &g_instructionHandlers[lex_Current.token - T_CHIP_INSTR_FIRST];
+        SInstruction* instruction = &instructionHandlers[lex_Current.token - T_CHIP_INSTR_FIRST];
 
         parse_GetToken();
 
@@ -295,15 +295,15 @@ parse_IntegerInstruction(void) {
         SAddressMode mode2 = {0, 0, NULL};
         SAddressMode mode3 = {0, 0, NULL};
 
-        if (instruction->mode1 != 0 && parse_AddressMode(&mode1)) {
+        if (instruction->mode1 != 0 && parseAddressMode(&mode1)) {
             if ((instruction->mode1 & mode1.mode) == 0)
                 return err_Error(ERROR_OPERAND);
 
-            if (instruction->mode2 != 0 && parse_ExpectComma() && parse_AddressMode(&mode2)) {
+            if (instruction->mode2 != 0 && parse_ExpectComma() && parseAddressMode(&mode2)) {
                 if ((instruction->mode2 & mode2.mode) == 0)
                     return err_Error(ERROR_OPERAND);
 
-                if (instruction->mode3 != 0 && parse_ExpectComma() && parse_AddressMode(&mode3)) {
+                if (instruction->mode3 != 0 && parse_ExpectComma() && parseAddressMode(&mode3)) {
                     if ((instruction->mode3 & mode3.mode) == 0)
                         return err_Error(ERROR_OPERAND);
                 }

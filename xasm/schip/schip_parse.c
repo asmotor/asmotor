@@ -29,7 +29,7 @@
 #include "schip_tokens.h"
 
 SExpression*
-parse_ExpressionU12(void) {
+schip_ParseExpressionU12(void) {
     SExpression* expression = parse_Expression(1);
     if (expression == NULL)
         return NULL;
@@ -41,7 +41,7 @@ parse_ExpressionU12(void) {
 }
 
 SExpression*
-parse_TargetFunction(void) {
+schip_ParseFunction(void) {
     switch (lex_Current.token) {
         default:
             return NULL;
@@ -49,8 +49,8 @@ parse_TargetFunction(void) {
 }
 
 bool
-parse_TargetSpecific(void) {
-    if (parse_IntegerInstruction())
+schip_ParseInstruction(void) {
+    if (schip_ParseIntegerInstruction())
         return true;
 
     return false;
