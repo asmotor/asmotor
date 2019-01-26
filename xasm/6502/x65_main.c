@@ -53,8 +53,8 @@ xasm_6502Configuration = {
 	x65_OptionsUpdated,
 	x65_PrintOptions,
 
-	parse_TargetFunction,
-	parse_TargetSpecific,
+	x65_ParseFunction,
+	x65_ParseInstruction,
 };
 
 extern int

@@ -49,9 +49,9 @@ extern SExpression*
 parse_ExpressionSU8(void);
 
 extern SExpression*
-parse_TargetFunction(void);
+x65_ParseFunction(void);
 
 extern bool
-parse_TargetSpecific(void);
+x65_ParseInstruction(void);
 
 #endif

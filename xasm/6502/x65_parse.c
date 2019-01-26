@@ -40,7 +40,7 @@ parse_ExpressionSU8(void) {
 }
 
 SExpression*
-parse_TargetFunction(void) {
+x65_ParseFunction(void) {
     switch (lex_Current.token) {
         default:
             return NULL;
@@ -48,7 +48,7 @@ parse_TargetFunction(void) {
 }
 
 bool
-parse_TargetSpecific(void) {
+x65_ParseInstruction(void) {
     if (parse_IntegerInstruction())
         return true;
 
