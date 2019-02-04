@@ -91,7 +91,8 @@ static char* g_errors[] = {
     "MACRO doesn't exist",
     "Symbol %s is undefined",
     "Object file does not support expression",
-    "Invalid MACRO argument"
+    "Invalid MACRO argument",
+    "Not a string member function returning int"
 };
 
 static const char*

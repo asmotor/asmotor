@@ -235,10 +235,10 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
                     case T_FUNC_HIGHLIMIT:
                         fputc(OBJ_FUNC_HIGH_LIMIT, fileHandle);
                         break;
-                    case T_FUNC_FDIV:
+                    case T_OP_FDIV:
                         fputc(OBJ_FUNC_FDIV, fileHandle);
                         break;
-                    case T_FUNC_FMUL:
+                    case T_OP_FMUL:
                         fputc(OBJ_FUNC_FMUL, fileHandle);
                         break;
                     case T_FUNC_ATAN2:

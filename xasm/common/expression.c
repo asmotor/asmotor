@@ -205,7 +205,7 @@ CREATE_LIMIT(LowLimit, <, T_FUNC_LOWLIMIT)
 
 CREATE_LIMIT(HighLimit, >, T_FUNC_HIGHLIMIT)
 
-CREATE_BINARY_FUNC(FixedMultiplication, fmul, T_FUNC_FMUL)
+CREATE_BINARY_FUNC(FixedMultiplication, fmul, T_OP_FMUL)
 
 CREATE_BINARY_FUNC(Atan2, fatan2, T_FUNC_ATAN2)
 
@@ -345,7 +345,7 @@ expr_FixedDivision(SExpression* left, SExpression* right) {
     if (right->value.integer != 0) {
         int32_t value = fdiv(left->value.integer, right->value.integer);
 
-        left = mergeExpressions(left, right, T_FUNC_FDIV);
+        left = mergeExpressions(left, right, T_OP_FDIV);
         left->value.integer = value;
         return left;
     }

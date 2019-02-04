@@ -30,13 +30,6 @@
 
 /* Internal functions */
 
-static bool expectEmptyParens() {
-    if (!parse_ExpectChar('(')) {
-        return false;
-    }
-    return parse_ExpectChar(')');
-}
-
 static string*
 stringExpressionPri2(void) {
     SLexerBookmark bm;
@@ -74,7 +67,7 @@ stringExpressionPri1(void) {
     SLexerBookmark bm;
     for (lex_Bookmark(&bm); parse_IsDot(); lex_Bookmark(&bm)) {
         switch (lex_Current.token) {
-            case T_FUNC_SLICE: {
+            case T_STR_MEMBER_SLICE: {
                 parse_GetToken();
 
                 if (!parse_ExpectChar('('))
@@ -117,19 +110,15 @@ stringExpressionPri1(void) {
                 }
                 break;
             }
-            case T_FUNC_TOUPPER: {
+            case T_STR_MEMBER_UPPER: {
                 parse_GetToken();
-                if (expectEmptyParens()) {
-                    str_ToUpperReplace(&t);
-                }
+                str_ToUpperReplace(&t);
 
                 break;
             }
-            case T_FUNC_TOLOWER: {
+            case T_STR_MEMBER_LOWER: {
                 parse_GetToken();
-                if (expectEmptyParens()) {
-                    str_ToLowerReplace(&t);
-                }
+                str_ToLowerReplace(&t);
 
                 break;
             }

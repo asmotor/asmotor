@@ -122,6 +122,58 @@ expressionPriority9(size_t maxStringConstLength) {
 }
 
 static SExpression*
+handleStringMemberFunctionReturningInt(string* s) {
+    switch (lex_Current.token) {
+        case T_STR_MEMBER_COMPARETO: {
+            parse_GetToken();
+
+            SExpression* r = NULL;
+            if (parse_ExpectChar('(')) {
+                string* t = parse_ExpectStringExpression();
+                if (t != NULL) {
+                    if (parse_ExpectChar(')'))
+                        r = expr_Const(str_Compare(s, t));
+
+                    str_Free(t);
+                }
+            }
+
+            str_Free(s);
+            return r;
+        }
+        case T_STR_MEMBER_LENGTH: {
+            parse_GetToken();
+
+            SExpression* r = expr_Const((int32_t) str_Length(s));
+            str_Free(s);
+            return r;
+        }
+        case T_STR_MEMBER_INDEXOF: {
+            parse_GetToken();
+
+            SExpression* r = NULL;
+            if (parse_ExpectChar('(')) {
+                string* needle = parse_ExpectStringExpression();
+                if (needle != NULL) {
+                    if (parse_ExpectChar(')')) {
+                        uint32_t val = str_Find(s, needle);
+                        r = expr_Const(val == UINT32_MAX ? -1 : val);
+                    }
+                    str_Free(needle);
+                }
+            }
+            str_Free(s);
+            return r;
+        }
+        default: {
+            err_Error(ERROR_STRING_MEMBER_NOT_INT);
+            return NULL;
+        }
+    }
+
+}
+
+static SExpression*
 expressionPriority8(size_t maxStringConstLength) {
     SLexerBookmark bm;
     lex_Bookmark(&bm);
@@ -129,48 +181,11 @@ expressionPriority8(size_t maxStringConstLength) {
     string* s = parse_StringExpression();
     if (s != NULL) {
         if (parse_IsDot()) {
+            SExpression* expression = handleStringMemberFunctionReturningInt(s);
+            if (expression != NULL)
+                return expression;
+        } else {
             switch (lex_Current.token) {
-                case T_FUNC_COMPARETO: {
-                    parse_GetToken();
-
-                    SExpression* r = NULL;
-                    if (parse_ExpectChar('(')) {
-                        string* t = parse_ExpectStringExpression();
-                        if (t != NULL) {
-                            if (parse_ExpectChar(')'))
-                                r = expr_Const(str_Compare(s, t));
-
-                            str_Free(t);
-                        }
-                    }
-
-                    str_Free(s);
-                    return r;
-                }
-                case T_FUNC_LENGTH: {
-                    parse_GetToken();
-
-                    SExpression* r = expr_Const((int32_t) str_Length(s));
-                    str_Free(s);
-                    return r;
-                }
-                case T_FUNC_INDEXOF: {
-                    parse_GetToken();
-
-                    SExpression* r = NULL;
-                    if (parse_ExpectChar('(')) {
-                        string* needle = parse_ExpectStringExpression();
-                        if (needle != NULL) {
-                            if (parse_ExpectChar(')')) {
-                                uint32_t val = str_Find(s, needle);
-                                r = expr_Const(val == UINT32_MAX ? -1 : val);
-                            }
-                            str_Free(needle);
-                        }
-                    }
-                    str_Free(s);
-                    return r;
-                }
                 case T_OP_EQUAL: {
                     int32_t v = stringCompare(s);
                     return expr_Const(v == 0 ? true : false);
@@ -201,7 +216,6 @@ expressionPriority8(size_t maxStringConstLength) {
         }
     }
 
-    str_Free(s);
     lex_Goto(&bm);
     return expressionPriority9(maxStringConstLength);
 }
@@ -365,7 +379,7 @@ expressionPriority5(size_t maxStringConstLength) {
                 t1 = expr_Asr(t1, expressionPriority6(maxStringConstLength));
                 break;
             }
-            case T_FUNC_FMUL: {
+            case T_OP_FMUL: {
                 parse_GetToken();
                 t1 = expr_FixedMultiplication(t1, expressionPriority6(maxStringConstLength));
                 break;
@@ -375,7 +389,7 @@ expressionPriority5(size_t maxStringConstLength) {
                 t1 = expr_Mul(t1, expressionPriority6(maxStringConstLength));
                 break;
             }
-            case T_FUNC_FDIV: {
+            case T_OP_FDIV: {
                 parse_GetToken();
                 t1 = expr_FixedDivision(t1, expressionPriority6(maxStringConstLength));
                 break;

@@ -58,8 +58,8 @@ typedef enum {
 
     T_FUNC_BANK,
 
-    T_FUNC_FDIV,
-    T_FUNC_FMUL,
+    T_OP_FDIV,
+    T_OP_FMUL,
     T_FUNC_SIN,
     T_FUNC_COS,
     T_FUNC_TAN,
@@ -68,12 +68,12 @@ typedef enum {
     T_FUNC_ATAN,
     T_FUNC_ATAN2,
 
-    T_FUNC_COMPARETO,
-    T_FUNC_INDEXOF,
-    T_FUNC_SLICE,
-    T_FUNC_LENGTH,
-    T_FUNC_TOUPPER,
-    T_FUNC_TOLOWER,
+    T_STR_MEMBER_COMPARETO,
+    T_STR_MEMBER_INDEXOF,
+    T_STR_MEMBER_LENGTH,
+    T_STR_MEMBER_SLICE,
+    T_STR_MEMBER_UPPER,
+    T_STR_MEMBER_LOWER,
 
     T_SYM_MACRO,
     T_SYM_ENDM,        /* Not needed but we have it here just to protect the name */

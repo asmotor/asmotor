@@ -62,11 +62,10 @@ static SLexConstantsWord staticTokens[] = {
         {"/",         T_OP_DIVIDE},
         {"~/",        T_OP_MODULO},
         {"~",         T_OP_BITWISE_NOT},
+        {"//",        T_OP_FDIV},
+        {"**",        T_OP_FMUL},
 
         {"DEF",       T_FUNC_DEF},
-
-        {"//",        T_FUNC_FDIV},
-        {"**",        T_FUNC_FMUL},
 
         {"SIN",       T_FUNC_SIN},
         {"COS",       T_FUNC_COS},
@@ -76,12 +75,12 @@ static SLexConstantsWord staticTokens[] = {
         {"ATAN",      T_FUNC_ATAN},
         {"ATAN2",     T_FUNC_ATAN2},
 
-        {"COMPARETO", T_FUNC_COMPARETO},
-        {"INDEXOF",   T_FUNC_INDEXOF},
-        {"SLICE",     T_FUNC_SLICE},
-        {"LENGTH",    T_FUNC_LENGTH},
-        {"TOUPPER",   T_FUNC_TOUPPER},
-        {"TOLOWER",   T_FUNC_TOLOWER},
+        {"COMPARETO", T_STR_MEMBER_COMPARETO},
+        {"INDEXOF",   T_STR_MEMBER_INDEXOF},
+        {"SLICE",     T_STR_MEMBER_SLICE},
+        {"LENGTH",    T_STR_MEMBER_LENGTH},
+        {"UPPER",   T_STR_MEMBER_UPPER},
+        {"LOWER",   T_STR_MEMBER_LOWER},
 
         {"PRINTT",    T_DIRECTIVE_PRINTT},
         {"PRINTV",    T_DIRECTIVE_PRINTV},

@@ -3,9 +3,9 @@ two's position in Another one: $FFFFFFFF
 abc compared to abc: $0
 abc compared to bcd: $FFFFFFFF
 bcd compared to abc: $1
-bcd > abc: $1
-abc == abcd: $0
-abc == abc: $1
+bcdefgh > abcdefg: $1
+abcdefgh == abcdefg: $0
+abcdefgh == abcdefgh: $1
 1234: $31323334
 This is a test is a test
 $A

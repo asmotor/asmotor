@@ -290,9 +290,9 @@ reduceOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
             return reduceBinary(patch, expression, result, equals);
         case T_OP_NOT_EQUAL:
             return reduceBinary(patch, expression, result, notEquals);
-        case T_FUNC_FDIV:
+        case T_OP_FDIV:
             return reduceBinary(patch, expression, result, fdiv);
-        case T_FUNC_FMUL:
+        case T_OP_FMUL:
             return reduceBinary(patch, expression, result, fmul);
         case T_FUNC_ATAN2:
             return reduceBinary(patch, expression, result, fatan2);
