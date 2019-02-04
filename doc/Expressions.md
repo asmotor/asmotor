@@ -21,22 +21,9 @@ The assembler supports several numeric formats:
 | Character | "ABYZ" |
 
 ### Operators
-Several operators can be used to build up integer expressions. In order of precedence they are:
+The assembler supports all the usual integer operators at intuitive precedence, and also a few novel ones for fixed point math.
 
-| Operator | Meaning |
-|---|---|
-| ( ) | Precedence override |
-| FunctionName(...) | Function call |
-| ~ + - | Unary bitwise not, plus, negation |
-| * / ~/ ** // | Multiply, divide, modulo, fixedpoint multiply and divide |
-| << >> | Shift left, shift right |
-| & ^ \| |	Bitwise and, bitwise exclusive or, bitwise or |
-| + - | Add, subtract |
-| ~= == <= >= < > | Comparison operators: not equal, equal, less than or equal, greater than or equal, less than, greater than |
-| && || | Boolean and, boolean or |
-| ~! | Unary boolean not |
-
-The result of the boolean operators and comparison operators is zero if when *false* and non-zero when *true*.
+For an exhaustive list, see [the operator reference](ReferenceOperators.md#integer_operations)
 
 ### Fixed point math
 The assembler supports fixed point constants, which are normal 32 bit constants where the upper 16 bits are used for the integer part and the lower 16 bits are used for the fraction (65536ths).
@@ -109,18 +96,6 @@ StringSymbol EQUS "Another string"
 ````
 
 ### String functions and properties
-Several functions that work on string expressions are available. Some of these return strings and some return integers. Functions that return an integer can be used as part of integer expressions, when a string is returned the function can be used in a string expression.
+Several functions that work on string expressions are available. Some of these return strings and some return integers. Functions that return an integer can be used as part of integer expressions. When a string is returned the function can be used in a string expression.
 
-| Name | Type | Result |
-|---|---|---|
-| ```s.length``` | integer | The number of characters in s |
-| ```s1.compareto(s2)``` | integer | Negative if s1 is alphabetically < | s2, 0 if equal, positive if > |
-| ```s1.indexof(s2)``` | integer | The position of s2 within s1, -1 if not found |
-| ```s1==s2``` | integer | Non-zero if s1 is equal to s2, otherwise zero |
-| ```~= < <= > >=``` | integer | String comparison operators. |
-| ```s1+s2```	| string | String concatenation, s1 followed by s2 |
-| ```s.slice(pos,count)``` | string | count characters from s, starting at pos |
-| ```s.toupper()``` | string | Upper case version of s |
-| ```s.tolower()``` | string | Lower case version of s |
-
-The pos parameter for ```.slice()``` may also be a negative number, in which case the position is relative to the end of the string, with -1 being the last character of the string. count may be completely omitted, in which case characters from pos until the end of the string is returned.
+Several useful functions are available, such as returning a substring, finding a substring within another string, case conversion etc. Refer to [string members reference](ReferenceStringMembers.md) for details

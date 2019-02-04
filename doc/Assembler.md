@@ -39,7 +39,7 @@ Label:  moveq   #1,d0   ;load register d0 with the value 1
 ## Labels
 One of the assembler's main tasks is to keep track of addresses so you don't have to remember obscure numbers but can use a meaningful name instead - a label. Labels are always placed at the beginning of a line.
 
-Labels end with zero, one or two colons. If the label ends with two colons it will be automatically exported
+Labels end with zero, one or two colons. If the label ends with two colons it will be automatically exported.
 
 Symbols and labels are always case-sensitive.
 
@@ -159,4 +159,5 @@ The assembler declares several symbols:
 | __FILE | The current filename | EQUS |
 | __DATE | Todays date | EQUS |
 | __TIME | The current time | EQUS |
+| __AMIGADATE | The current date in Amiga version format (dd.mm.yyyy) | EQUS |
 
