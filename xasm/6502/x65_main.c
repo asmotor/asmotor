@@ -38,8 +38,8 @@ x65_xasmConfiguration = {
 	MINSIZE_8BIT,
 	1,
 
-	"RB", "RW", "RL",
-	"DB", "DW", "DL",
+	"RB", "RW", NULL,
+	"DB", "DW", NULL,
 	"DS", NULL, NULL,
 
 	x65_GetError,

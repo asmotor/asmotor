@@ -200,10 +200,10 @@ static bool
 handlePrintt() {
     parse_GetToken();
 
-    string* r = parse_ExpectStringExpression();
-    if (r != NULL) {
-        printf("%s", str_String(r));
-        str_Free(r);
+    string* result = parse_ExpectStringExpression();
+    if (result != NULL) {
+        printf("%s", str_String(result));
+        str_Free(result);
         return true;
     }
 
@@ -266,9 +266,9 @@ handleUserError(intptr_t intFail) {
 
     parse_GetToken();
 
-    string* r = parse_ExpectStringExpression();
-    if (r != NULL) {
-        fail(WARN_USER_GENERIC, str_String(r));
+    string* result = parse_ExpectStringExpression();
+    if (result != NULL) {
+        fail(WARN_USER_GENERIC, str_String(result));
     }
     return true;
 }
@@ -287,7 +287,7 @@ handleCnop() {
     int32_t offset = parse_ConstantExpression();
     if (offset > 0) {
         if (!parse_ExpectComma())
-            return true;
+            return false;
 
         int32_t align = parse_ConstantExpression();
         if (align >= 0) {

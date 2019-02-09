@@ -21,7 +21,7 @@ ENDR
 
 ```REPT``` can also be used to repeat macro language constructs such as ```IF```/```ENDC``` and used to construct various tables.
 
-## Conditional assembling
+## <a name="if"></a> Conditional assembling
 
 The ```IF```/```ELSE```/```ENDC``` commands are used to conditionally include or exclude parts of an assembly file.
 
@@ -35,6 +35,7 @@ ENDC
 
 The ```ELSE``` block is optional.
 
+### IF commands
 While the integer operators can be used to test for many conditions, the assembler also supports the traditional IF commands:
 
 | Command | True when |
@@ -50,7 +51,7 @@ While the integer operators can be used to test for many conditions, the assembl
 | ```IFLE n``` | n is less than or equal to zero |
 | ```IFLT n``` | n is less than zero |
 
-## Macros
+## <a name="macros"></a>Macros
 One of the most useful features of an assembler is the ability to write macros. Macros provide a method of passing arguments to them and they can then react to the input using conditional assembling constructs.
 
 Macros cannot be exported or imported.

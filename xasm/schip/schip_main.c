@@ -37,9 +37,9 @@ static SConfiguration g_xasmConfiguration = {
 	MINSIZE_8BIT,
 	1,
 
-	"RB", "RH", "RW",
-	"DB", "DH", "DW",
-	"DSB", "DSH", "DSL",
+	"RB", "RW", NULL,
+	"DB", "DW", NULL,
+	"DSB", "DSW", NULL,
 
 	schip_GetError,
 	schip_DefineTokens,
