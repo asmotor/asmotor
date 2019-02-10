@@ -2,6 +2,9 @@
 
 # 6502
 
+## Section alignment
+Sections are not aligned to any particular multiple.
+
 ## Command line
 
 ### -mu\<x> option
@@ -41,6 +44,9 @@ Some versions of the 6502 series have a number of undocumented instructions. As 
 | Reserve symbol | RB | RW | |
 
 # Z80
+## Section alignment
+Sections are not aligned to any particular multiple.
+
 ## Numeric formats
 The Z80 backend supports an additional numeric literal format. The first character is the backtick:
 
@@ -71,6 +77,9 @@ This option is used to select the CPU type. The default is Z80.
 | Reserve symbol | RB | RW | |
 
 # MIPS
+## Section alignment
+Sections are aligned to a multiple of 8 bytes.
+
 ## Command line
 ### -mc\<x>  option
 This option is used to select the CPU type. The default is MIPS32 R2
@@ -89,6 +98,8 @@ This option is used to select the CPU type. The default is MIPS32 R2
 | Reserve symbol | RB | RH | RW |
 
 # M68K
+## Section alignment
+Sections are aligned to a multiple of 8 bytes.
 ## Command line
 ### -mc\<x> option
 This option is used to select the CPU type. The default is 68000.
@@ -122,6 +133,9 @@ The M68K assembler supports an additional function that may be used in expressio
 
 # SCHIP
 CHIP-8 and SCHIP have no officially defined mnemonics. ASMotor uses a set of mnemonics that is similar to other ISA's and should be easy to learn.
+
+## Section alignment
+Sections are not aligned to any particular multiple.
 
 ## Registers
 The registers are named ```V0``` to ```VF```. ```VA``` to ```VF``` may also be referred to as ```V10``` to ```V15```
@@ -204,8 +218,16 @@ DCPU-16 specifications can be [found here](https://gist.github.com/metaphox/3888
 ## Word size
 This CPU is a little different in that its native word size is 16 bit and it's unable to address individual bytes.
 
+## Section alignment
+Sections are aligned to native 16 bit words.
+
 ## Command line
+### -mo\<x>
+This option controls the level of optimization. 0 means no optimization, while 1 will optimize addressing modes to use shorter forms when possible.
+
 ## __DCB, __RS, __DSB
-
-
-SECTION ALIGNMENT
+|| 8 bit | 16 bit | 32 bit |
+|---|---|---|---|
+| Define data | | DW | DL |
+| Define space | | DSW | |
+| Reserve symbol | | RW | RL |

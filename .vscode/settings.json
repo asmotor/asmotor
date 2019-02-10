@@ -7,7 +7,8 @@
     "limits": "c",
     "type_traits": "c",
     "options.h": "c",
-    "project.h": "c"
+    "project.h": "c",
+    "expression.h": "c"
   },
   "files.exclude": {
     "**/.git": true,
