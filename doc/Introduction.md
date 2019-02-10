@@ -11,12 +11,12 @@ If you have ever used a Motorola syntax based assembler you will feel right at h
 # Features
 
 ## CPU architectures
-* The Gameboy Z80 derivative
+* Z80, Game Boy
 * Motorola 680x0
-* 6502
+* MOS 6502
 * MIPS32
 * CHIP-8/SCHIP
-* 0x10C
+* DCPU-16
 
 ## Assembler output formats
 * xobj (ASMotor generic format)

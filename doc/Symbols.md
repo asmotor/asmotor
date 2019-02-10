@@ -76,7 +76,7 @@ Integer symbols are often used to define the offsets of structure members. While
 
 The ```__RSB```, ```__RSW``` and ```__RSL``` directives are always available as a portable way to define RS symbols. The different CPU's use different conventions and have other, possibly more convenient, aliases available:
 
-| Portable | 6502 | Z80 | M68K | MIPS | 0x10c | SCHIP |
+| Portable | 6502 | Z80 | M68K | MIPS | DCPU-16 | SCHIP |
 |---|---|---|---|---|---|
 | ```__RSB``` | ```RB``` | ```RB``` | ```RS.B``` | ```RB``` | n/a | ```RB``` |
 | ```__RSW``` | ```RW``` | ```RW``` | ```RS.W``` | ```RH``` | ```RW``` | ```RW``` |

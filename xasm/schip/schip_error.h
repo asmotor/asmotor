@@ -23,7 +23,8 @@
 
 typedef enum {
     MERROR_UNDEFINED_RESULT = 1000,
-    MERROR_REGISTER_EXPECTED
+    MERROR_REGISTER_EXPECTED,
+    MERROR_REQUIRES_SCHIP,
 } EMachineError;
 
 extern const char*

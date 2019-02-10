@@ -22,13 +22,16 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include "lexer.h"
+#include "errors.h"
 #include "expression.h"
+#include "lexer.h"
+#include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "errors.h"
 #include "section.h"
 
+#include "schip_error.h"
+#include "schip_options.h"
 #include "schip_parse.h"
 #include "schip_tokens.h"
 
@@ -49,6 +52,14 @@ typedef struct {
     SExpression* expression;
 } SAddressMode;
 
+static bool
+requireSCHIP(void) {
+    if (opt_Current->machineOptions->cpu & CPUF_SCHIP)
+        return true;
+
+    return err_Error(MERROR_REQUIRES_SCHIP);
+}
+
 static uint8_t
 getRegister(void) {
     if (lex_Current.token >= T_CHIP_REG_V0 && lex_Current.token <= T_CHIP_REG_V15) {
@@ -68,10 +79,12 @@ parseAddressMode(SAddressMode* pMode) {
         if (lex_Current.token != T_OP_ADD)
             return true;
 
-        parse_GetToken();
-        if ((pMode->expression = schip_ParseExpressionU12()) != NULL) {
-            pMode->mode = MODE_IMM_V0;
-            return true;
+        if (pMode->registerIndex == 0) {
+            parse_GetToken();
+            if ((pMode->expression = schip_ParseExpressionU12()) != NULL) {
+                pMode->mode = MODE_IMM_V0;
+                return true;
+            }
         }
     } else if (lex_Current.token == T_CHIP_REG_I) {
         parse_GetToken();
@@ -131,6 +144,9 @@ handleDRW(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_
 
 static bool
 handleSCRD(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode) {
+    if (!requireSCHIP())
+        return false;
+
     sect_OutputExpr16(expr_Or(expr_Const(opcode), expr_CheckRange(mode3->expression, 0, 15)));
     return true;
 }
@@ -233,6 +249,7 @@ handleModeNone(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, ui
 typedef bool (* mnemonicHandler)(SAddressMode* mode1, SAddressMode* mode2, SAddressMode* mode3, uint16_t opcode);
 
 typedef struct {
+    uint8_t cpu;
     uint8_t mode1;
     uint8_t mode2;
     uint8_t mode3;
@@ -241,53 +258,56 @@ typedef struct {
 } SInstruction;
 
 static SInstruction instructionHandlers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] = {
-    { MODE_REG, 0, 0, 0xF033, handleModeReg },	// BCD
-    { MODE_REG, 0, 0, 0xF029, handleModeReg },	// LDF
-    { MODE_REG, 0, 0, 0xF030, handleModeReg },	// LDF10
-    { MODE_REG, 0, 0, 0x800E, handleModeReg },	// SHL
-    { MODE_REG, 0, 0, 0xE0A1, handleModeReg },	// SKNP
-    { MODE_REG, 0, 0, 0xE09E, handleModeReg },	// SKP
-    { MODE_REG, 0, 0, 0x8006, handleModeReg },	// SHR
-    { MODE_REG, 0, 0, 0xF00A, handleModeReg },	// WKP
+    { CPUF_CHIP8, MODE_REG, 0, 0, 0xF033, handleModeReg },	// BCD
+    { CPUF_CHIP8, MODE_REG, 0, 0, 0xF029, handleModeReg },	// LDF
+    { CPUF_ALL,   MODE_REG, 0, 0, 0xF030, handleModeReg },	// LDF10
+    { CPUF_CHIP8, MODE_REG, 0, 0, 0x800E, handleModeReg },	// SHL
+    { CPUF_CHIP8, MODE_REG, 0, 0, 0xE0A1, handleModeReg },	// SKNP
+    { CPUF_CHIP8, MODE_REG, 0, 0, 0xE09E, handleModeReg },	// SKP
+    { CPUF_CHIP8, MODE_REG, 0, 0, 0x8006, handleModeReg },	// SHR
+    { CPUF_CHIP8, MODE_REG, 0, 0, 0xF00A, handleModeReg },	// WKP
 
-    { MODE_REG, MODE_REG, 0, 0x8002, handleModeRegReg },	// AND
-    { MODE_REG, MODE_REG, 0, 0x8001, handleModeRegReg },	// OR
-    { MODE_REG, MODE_REG, 0, 0x8005, handleModeRegReg },	// SUB
-    { MODE_REG, MODE_REG, 0, 0x8007, handleModeRegReg },	// SUBN
-    { MODE_REG, MODE_REG, 0, 0x8003, handleModeRegReg },	// XOR
+    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8002, handleModeRegReg },	// AND
+    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8001, handleModeRegReg },	// OR
+    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8005, handleModeRegReg },	// SUB
+    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8007, handleModeRegReg },	// SUBN
+    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8003, handleModeRegReg },	// XOR
 
-    { MODE_REG, MODE_REG, MODE_IMM, 0xD000, handleDRW },	// DRW
+    { CPUF_CHIP8, MODE_REG, MODE_REG, MODE_IMM, 0xD000, handleDRW },	// DRW
 
-    { MODE_REG | MODE_I | MODE_DT | MODE_ST, MODE_REG | MODE_IMM | MODE_DT, 0, 0, handleLD},	// LD
+    { CPUF_CHIP8, MODE_REG | MODE_I | MODE_DT | MODE_ST, MODE_REG | MODE_IMM | MODE_DT, 0, 0, handleLD},	// LD
 
-    { MODE_REG | MODE_I_IND | MODE_RPL, MODE_REG | MODE_I_IND | MODE_RPL, 0, 0, handleLDM},	// LDM
+    { CPUF_CHIP8, MODE_REG | MODE_I_IND | MODE_RPL, MODE_REG | MODE_I_IND | MODE_RPL, 0, 0, handleLDM},	// LDM
 
-    { MODE_REG | MODE_I, MODE_REG | MODE_IMM, 0, 0, handleADD},	// ADD
+    { CPUF_CHIP8, MODE_REG | MODE_I, MODE_REG | MODE_IMM, 0, 0, handleADD},	// ADD
 
-    { MODE_REG, MODE_REG | MODE_IMM, 0, 0x3000, handleSkips},	// SE
-    { MODE_REG, MODE_REG | MODE_IMM, 0, 0x4000, handleSkips},	// SNE
+    { CPUF_CHIP8, MODE_REG, MODE_REG | MODE_IMM, 0, 0x3000, handleSkips},	// SE
+    { CPUF_CHIP8, MODE_REG, MODE_REG | MODE_IMM, 0, 0x4000, handleSkips},	// SNE
 
-    { MODE_REG, MODE_IMM, 0, 0xC000, handleModeRegImm},	// RND
+    { CPUF_CHIP8, MODE_REG, MODE_IMM, 0, 0xC000, handleModeRegImm},	// RND
 
-    { MODE_IMM, 0, 0, 0x00C0, handleSCRD},	// SCRD
+    { CPUF_ALL,   MODE_IMM, 0, 0, 0x00C0, handleSCRD},	// SCRD
 
-    { MODE_IMM | MODE_IMM_V0, 0, 0, 0x1000, handleJP},	// JP
+    { CPUF_CHIP8, MODE_IMM | MODE_IMM_V0, 0, 0, 0x1000, handleJP},	// JP
 
-    { MODE_IMM, 0, 0, 0x2000, handleModeImm12},	// CALL
+    { CPUF_CHIP8, MODE_IMM, 0, 0, 0x2000, handleModeImm12},	// CALL
 
-    { 0, 0, 0, 0x00E0, handleModeNone},	// CLS
-    { 0, 0, 0, 0x00FD, handleModeNone},	// EXIT
-    { 0, 0, 0, 0x00FE, handleModeNone},	// LO
-    { 0, 0, 0, 0x00FF, handleModeNone},	// HI
-    { 0, 0, 0, 0x00EE, handleModeNone},	// RET
-    { 0, 0, 0, 0x00FB, handleModeNone},	// SCRR
-    { 0, 0, 0, 0x00FC, handleModeNone},	// SCRL
+    { CPUF_CHIP8, 0, 0, 0, 0x00E0, handleModeNone},	// CLS
+    { CPUF_ALL,   0, 0, 0, 0x00FD, handleModeNone},	// EXIT
+    { CPUF_ALL,   0, 0, 0, 0x00FE, handleModeNone},	// LO
+    { CPUF_ALL,   0, 0, 0, 0x00FF, handleModeNone},	// HI
+    { CPUF_CHIP8, 0, 0, 0, 0x00EE, handleModeNone},	// RET
+    { CPUF_ALL,   0, 0, 0, 0x00FB, handleModeNone},	// SCRR
+    { CPUF_ALL,   0, 0, 0, 0x00FC, handleModeNone},	// SCRL
 };
 
 bool
 schip_ParseIntegerInstruction(void) {
     if (T_CHIP_INSTR_FIRST <= lex_Current.token && lex_Current.token <= T_CHIP_INSTR_LAST) {
         SInstruction* instruction = &instructionHandlers[lex_Current.token - T_CHIP_INSTR_FIRST];
+
+        if ((instruction->cpu & opt_Current->machineOptions->cpu) == 0)
+            return err_Error(MERROR_REQUIRES_SCHIP);
 
         parse_GetToken();
 

@@ -21,14 +21,14 @@
 
 #include "xasm.h"
 
-#include "0x10c_errors.h"
-#include "0x10c_options.h"
-#include "0x10c_parse.h"
-#include "0x10c_symbols.h"
-#include "0x10c_tokens.h"
+#include "dcpu16_errors.h"
+#include "dcpu16_options.h"
+#include "dcpu16_parse.h"
+#include "dcpu16_symbols.h"
+#include "dcpu16_tokens.h"
 
 static SConfiguration x10c_XasmConfiguration = {
-	"motor0x10c",
+	"motordcpu16",
 	"1.0",
 	0x10000,
 	ASM_BIG_ENDIAN,

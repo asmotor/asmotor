@@ -18,7 +18,7 @@ Data (or instructions) can also be entered using data declaration statements:
 
 The data declaration statements will be called something different depending on the CPU backend. Portable versions are always available.
 
-| Portable | 6502 | Z80 | M68K | MIPS | 0x10c | SCHIP |
+| Portable | 6502 | Z80 | M68K | MIPS | DCPU-16 | SCHIP |
 |---|---|---|---|---|---|---|
 | ```__DCB``` | ```DB``` | ```DB``` | ```DS.B``` | ```DB``` | n/a | ```DB``` |
 | ```__DCW``` | ```DW``` | ```DW``` | ```DS.W``` | ```DH``` | ```DW``` | ```DW``` |

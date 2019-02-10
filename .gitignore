@@ -11,16 +11,6 @@
 build/Visual Studio 2012/Win32/
 build/Visual Studio 2012/Windows.sdf
 build/Visual Studio 2012/Windows.opensdf
-build/scons/build_0x10c
-build/scons/build_6502
-build/scons/build_680x0
-build/scons/build_gameboy
-build/scons/build_mips
-build/scons/build_util
-build/scons/build_xasm
-build/scons/build_xgbfix
-build/scons/build_xlib
-build/scons/build_xlink
 .sconsign.dblite
 asmotor.sublime-workspace
 xcschememanagement.plist
@@ -33,7 +23,7 @@ cmake_install.cmake
 CMakeCache.txt
 Makefile
 CMakeFiles
-build/cmake/*/xasm/0x10c/motor0x10c
+build/cmake/*/xasm/dcpu-16/motordcpu16
 build/cmake/*/xasm/6502/motor6502
 build/cmake/*/xasm/680x0/motor68k
 build/cmake/*/xasm/gameboy/motorgb
@@ -44,7 +34,7 @@ build/cmake/*/xlib/xlib
 build/cmake/*/xlink/xlink
 Project.cbp
 workspace.xml
-xasm/0x10c/motor0x10c
+xasm/dcpu-16/motordcpu16
 xasm/6502/motor6502
 xasm/680x0/motor68k
 xasm/z80/motorz80

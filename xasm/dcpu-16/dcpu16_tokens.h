@@ -16,26 +16,26 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_0X10C_TOKENS_H_INCLUDED_
-#define XASM_0X10C_TOKENS_H_INCLUDED_
+#ifndef XASM_DCPU16_TOKENS_H_INCLUDED_
+#define XASM_DCPU16_TOKENS_H_INCLUDED_
 
 typedef enum {
-    T_0X10C_ADD = 6000,
-    T_0X10C_AND,
-    T_0X10C_BOR,
-    T_0X10C_DIV,
-    T_0X10C_IFB,
-    T_0X10C_IFE,
-    T_0X10C_IFG,
-    T_0X10C_IFN,
-    T_0X10C_JSR,
-    T_0X10C_MOD,
-    T_0X10C_MUL,
-    T_0X10C_SET,
-    T_0X10C_SHL,
-    T_0X10C_SHR,
-    T_0X10C_SUB,
-    T_0X10C_XOR,
+    T_DCPU16_ADD = 6000,
+    T_DCPU16_AND,
+    T_DCPU16_BOR,
+    T_DCPU16_DIV,
+    T_DCPU16_IFB,
+    T_DCPU16_IFE,
+    T_DCPU16_IFG,
+    T_DCPU16_IFN,
+    T_DCPU16_JSR,
+    T_DCPU16_MOD,
+    T_DCPU16_MUL,
+    T_DCPU16_SET,
+    T_DCPU16_SHL,
+    T_DCPU16_SHR,
+    T_DCPU16_SUB,
+    T_DCPU16_XOR,
 
     T_REG_A,
     T_REG_B,

@@ -13,7 +13,7 @@ cp scons/SCons* source/build/scons
 
 CopyDirectory util
 CopyDirectory xasm/common
-CopyDirectory xasm/0x10c
+CopyDirectory xasm/dcpu-16
 CopyDirectory xasm/6502
 CopyDirectory xasm/680x0
 CopyDirectory xasm/gameboy

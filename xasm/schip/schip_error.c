@@ -22,7 +22,8 @@
 
 static const char* g_errors[] = {
 	"Result of operation is undefined",
-	"Register expected"
+	"Register expected",
+    "SCHIP required"
 };
 
 const char* schip_GetError(size_t errorNumber) {

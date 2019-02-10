@@ -33,9 +33,9 @@ Thoughts on the ISA:
 #include "errors.h"
 #include "section.h"
 
-#include "0x10c_errors.h"
-#include "0x10c_options.h"
-#include "0x10c_tokens.h"
+#include "dcpu16_errors.h"
+#include "dcpu16_options.h"
+#include "dcpu16_tokens.h"
 
 static SExpression*
 expressionCheckSU16(SExpression* expression) {
@@ -367,29 +367,29 @@ jsrInstr(SAddressingMode* mode1, SAddressingMode* mode2, uint32_t data) {
     return true;
 }
 
-static SParser g_instructionHandlers[T_0X10C_XOR - T_0X10C_ADD + 1] = {
-    {0x2, addInstr,     ADDRF_ALL, ADDRF_ALL},    // T_0X10C_ADD
-    {0x9, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_AND
-    {0xA, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_BOR
-    {0x5, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_DIV
-    {0xF, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFB
-    {0xC, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFE
-    {0xE, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFG
-    {0xD, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_IFN
-    {0x1, jsrInstr,     ADDRF_ALL, 0},            // T_0X10C_JSR
-    {0x6, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_MOD
-    {0x4, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_MUL
-    {0x1, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SET
-    {0x7, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SHL
-    {0x8, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SHR
-    {0x3, subInstr,     ADDRF_ALL, ADDRF_ALL},    // T_0X10C_SUB
-    {0xB, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_0X10C_XOR
+static SParser g_instructionHandlers[T_DCPU16_XOR - T_DCPU16_ADD + 1] = {
+    {0x2, addInstr,     ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_ADD
+    {0x9, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_AND
+    {0xA, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_BOR
+    {0x5, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_DIV
+    {0xF, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_IFB
+    {0xC, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_IFE
+    {0xE, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_IFG
+    {0xD, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_IFN
+    {0x1, jsrInstr,     ADDRF_ALL, 0},            // T_DCPU16_JSR
+    {0x6, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_MOD
+    {0x4, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_MUL
+    {0x1, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_SET
+    {0x7, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_SHL
+    {0x8, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_SHR
+    {0x3, subInstr,     ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_SUB
+    {0xB, genericInstr, ADDRF_ALL, ADDRF_ALL},    // T_DCPU16_XOR
 };
 
 static uint32_t
 translateToken(uint32_t token) {
     if (token == T_SYM_SET)
-        return T_0X10C_SET;
+        return T_DCPU16_SET;
     else
         return token;
 }
@@ -398,9 +398,9 @@ bool
 parseIntegerInstruction(void) {
     uint32_t token = translateToken(lex_Current.token);
 
-    if (T_0X10C_ADD <= token && token <= T_0X10C_XOR) {
+    if (T_DCPU16_ADD <= token && token <= T_DCPU16_XOR) {
         ETargetToken nToken = (ETargetToken) token;
-        SParser* pParser = &g_instructionHandlers[nToken - T_0X10C_ADD];
+        SParser* pParser = &g_instructionHandlers[nToken - T_DCPU16_ADD];
 
         parse_GetToken();
 

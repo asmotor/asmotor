@@ -19,25 +19,25 @@
 #include "xasm.h"
 #include "lexer_constants.h"
 
-#include "0x10c_tokens.h"
+#include "dcpu16_tokens.h"
 
 static SLexConstantsWord g_tokens[] = {
-	{ "ADD", T_0X10C_ADD },
-	{ "AND", T_0X10C_AND },
-	{ "BOR", T_0X10C_BOR },
-	{ "DIV", T_0X10C_DIV },
-	{ "IFB", T_0X10C_IFB },
-	{ "IFE", T_0X10C_IFE },
-	{ "IFG", T_0X10C_IFG },
-	{ "IFN", T_0X10C_IFN },
-	{ "JSR", T_0X10C_JSR },
-	{ "MOD", T_0X10C_MOD },
-	{ "MUL", T_0X10C_MUL },
+	{ "ADD", T_DCPU16_ADD },
+	{ "AND", T_DCPU16_AND },
+	{ "BOR", T_DCPU16_BOR },
+	{ "DIV", T_DCPU16_DIV },
+	{ "IFB", T_DCPU16_IFB },
+	{ "IFE", T_DCPU16_IFE },
+	{ "IFG", T_DCPU16_IFG },
+	{ "IFN", T_DCPU16_IFN },
+	{ "JSR", T_DCPU16_JSR },
+	{ "MOD", T_DCPU16_MOD },
+	{ "MUL", T_DCPU16_MUL },
 	// { "SET", T_SYM_SET },
-	{ "SHL", T_0X10C_SHL },
-	{ "SHR", T_0X10C_SHR },
-	{ "SUB", T_0X10C_SUB },
-	{ "XOR", T_0X10C_XOR },
+	{ "SHL", T_DCPU16_SHL },
+	{ "SHR", T_DCPU16_SHR },
+	{ "SUB", T_DCPU16_SUB },
+	{ "XOR", T_DCPU16_XOR },
 
 	{ "A", T_REG_A },
 	{ "B", T_REG_B },

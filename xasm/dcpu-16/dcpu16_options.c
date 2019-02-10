@@ -27,7 +27,7 @@
 #include "options.h"
 #include "errors.h"
 
-#include "0x10c_options.h"
+#include "dcpu16_options.h"
 
 struct MachineOptions*
 x10c_AllocOptions(void) {

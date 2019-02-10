@@ -16,10 +16,14 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_0X10C_SYMBOLS_H_INCLUDED_
-#define XASM_0X10C_SYMBOLS_H_INCLUDED_
+#ifndef XASM_DCPU16_PARSE_H_INCLUDED_
+#define XASM_DCPU16_PARSE_H_INCLUDED_
 
-extern void
-x10c_DefineSymbols(void);
+extern SExpression*
+x10c_ParseFunction(void);
+
+extern bool
+x10c_ParseInstruction(void);
 
 #endif
+

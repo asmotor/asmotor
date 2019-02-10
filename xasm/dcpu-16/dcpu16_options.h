@@ -16,16 +16,29 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_0X10C_ERRORS_H_INCLUDED_
-#define XASM_0X10C_ERRORS_H_INCLUDED_
+#ifndef XASM_DCPU16_OPTIONS_H_INCLUDED_
+#define XASM_DCPU16_OPTIONS_H_INCLUDED_
 
-typedef enum {
-    MERROR_ILLEGAL_ADDRMODE = 1000,
-    MERROR_ADDRMODE_ONE_REGISTER,
-    MERROR_ADDRMODE_SUBTRACT_REGISTER,
-} EMachineError;
+typedef struct MachineOptions {
+    int optimize;
+} SMachineOptions;
 
-extern const char*
-x10c_GetError(size_t errorNumber);
+extern struct MachineOptions*
+x10c_AllocOptions(void);
+
+extern void
+x10c_SetDefaults(SMachineOptions* options);
+
+extern void
+x10c_CopyOptions(SMachineOptions* dest, SMachineOptions* src);
+
+extern void
+x10c_OptionsUpdated(SMachineOptions* options);
+
+extern bool
+x10c_ParseOption(const char* s);
+
+extern void
+x10c_PrintOptions(void);
 
 #endif
