@@ -608,6 +608,11 @@ typedef struct Directive {
     intptr_t userData;
 } SDirective;
 
+#if defined(_MSC_VER)
+#	pragma warning(push)
+#	pragma warning(disable:4113)
+#endif
+
 static SDirective g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
         {handleRsreset,   0},
         {handleRsset,     0},
@@ -657,6 +662,10 @@ static SDirective g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
         {handlePushs,     0},
         {handlePops,      0},
 };
+
+#if defined(_MSC_VER)
+#	pragma warning(pop)
+#endif
 
 bool
 parse_Directive(void) {

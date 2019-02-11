@@ -24,10 +24,13 @@
 
 #if defined(__GNUC_STDC_INLINE__)
 #	define INLINE static inline
+#	define NORETURN(x) x __attribute__ ((noreturn))
 #elif defined(_MSC_VER)
 #	define INLINE static __inline
+#	define NORETURN(x) __declspec(noreturn) x
 #else
 #	define INLINE static
+#	define NORETURN(x) x
 #endif
 
 #define ASMOTOR
@@ -35,6 +38,11 @@
 #define ASMOTOR_VERSION "0.1.0"
 #define LINK_VERSION "0.1.0"
 #define LIB_VERSION "0.1.0"
+
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
 
 #if defined(__VBCC__) || defined(__GNUC__)
 extern char*

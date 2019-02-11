@@ -23,11 +23,20 @@
 
 #include "asmotor.h"
 
+#if defined(_MSC_VER)
+#	pragma warning(push)
+#	pragma warning(disable: 4200)
+#endif
+
 typedef struct {
     uint32_t refCount;
     size_t length;
     char data[];
 } string;
+
+#if defined(_MSC_VER)
+#	pragma warning(pop)
+#endif
 
 extern string*
 str_CreateLength(const char* data, size_t length);

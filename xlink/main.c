@@ -16,10 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xlink.h"
+#include <stdarg.h>
+
 #include "asmotor.h"
 #include "str.h"
-#include <stdarg.h>
+
+#include "xlink.h"
 
 typedef enum {
     TARGET_BINARY,
@@ -47,8 +49,7 @@ target_SupportsImports(TargetType type) {
     return type == TARGET_AMIGA_LINK_OBJECT;
 }
 
-void
-error(const char* fmt, ...) {
+NORETURN (void error(const char* fmt, ...)) {
     va_list list;
 
     va_start(list, fmt);

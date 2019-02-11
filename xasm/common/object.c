@@ -305,9 +305,9 @@ writePatch(FILE* fileHandle, SPatch* patch) {
     writeExpression(fileHandle, patch->expression);
     off_t expressionEnd = ftell(fileHandle);
 
-    fseek(fileHandle, sizePosition, SEEK_SET);
+    fseeko(fileHandle, sizePosition, SEEK_SET);
     fputll((uint32_t) (expressionEnd - expressionStart), fileHandle);
-    fseek(fileHandle, expressionEnd, SEEK_SET);
+    fseeko(fileHandle, expressionEnd, SEEK_SET);
 }
 
 static void
@@ -355,9 +355,9 @@ writeExportedConstantsSection(FILE* fileHandle) {
         }
     }
 
-    fseek(fileHandle, symbolCountPos, SEEK_SET);
+    fseeko(fileHandle, symbolCountPos, SEEK_SET);
     fputll(integerExportCount, fileHandle);
-    fseek(fileHandle, 0, SEEK_END);
+    fseeko(fileHandle, 0, SEEK_END);
 
     fputll(0, fileHandle); // Size
 }
@@ -395,9 +395,9 @@ writeSectionPatches(FILE* fileHandle, SSection* section) {
         }
     }
 
-    fseek(fileHandle, patchCountPos, SEEK_SET);
+    fseeko(fileHandle, patchCountPos, SEEK_SET);
     fputll(totalPatches, fileHandle);
-    fseek(fileHandle, 0, SEEK_END);
+    fseeko(fileHandle, 0, SEEK_END);
 }
 
 static void

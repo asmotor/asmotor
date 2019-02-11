@@ -20,10 +20,12 @@
 
 size_t
 fsize(FILE* fileHandle) {
-    off_t size;
+	fflush(fileHandle);
+
     off_t currentOffset = ftello(fileHandle);
     fseeko(fileHandle, 0, SEEK_END);
-    size = ftello(fileHandle);
+
+	off_t size = ftello(fileHandle);
     fseeko(fileHandle, currentOffset, SEEK_SET);
 
     return (size_t) size;

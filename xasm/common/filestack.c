@@ -346,7 +346,7 @@ fstk_ProcessMacro(string* macroName) {
 
         lex_SetBuffer(newContext->lexBuffer);
         lex_SetState(LEX_STATE_NORMAL);
-        newContext->lineNumber = -1;
+        newContext->lineNumber = UINT32_MAX;
         newContext->block.macro.argument0 = g_newMacroArgument0;
         newContext->block.macro.arguments = g_newMacroArguments;
         newContext->block.macro.argumentCount = g_newMacroArgumentsCount;

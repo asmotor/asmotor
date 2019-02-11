@@ -46,7 +46,7 @@ typedef struct VariadicWordsPerChar SVariadicWordsPerChar;
 static SVariadicWordDefinition g_variadicWordDefinitions[MAX_VARIADIC];
 static SVariadicWordsPerChar* g_variadicWordsPerChar;
 static uint32_t g_nextVariadicId;
-static uint32_t g_variadicSuffix[UINT8_MAX];
+static uint32_t g_variadicSuffix[UINT8_MAX + 1];
 static uint32_t g_variadicHasSuffixFlags;
 
 

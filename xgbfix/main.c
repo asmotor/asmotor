@@ -23,6 +23,7 @@
 #include <stdbool.h>
 
 #include "asmotor.h"
+#include "file.h"
 
 #define XGBFIX_VERSION "1.0.0"
 
@@ -82,30 +83,6 @@ fatalError(const char* error) {
     exit(EXIT_FAILURE);
 }
 
-/* File helper functions */
-
-static size_t
-fileSize(FILE* fileHandle) {
-    fflush(fileHandle);
-    off_t prevPos = ftello(fileHandle);
-    fseek(fileHandle, 0, SEEK_END);
-    off_t r = ftello(fileHandle);
-    fseek(fileHandle, prevPos, SEEK_SET);
-
-    return (size_t) r;
-}
-
-static bool
-fileExists(const char* filename) {
-    FILE* fileHandle;
-
-    if ((fileHandle = fopen(filename, "rb")) != NULL) {
-        fclose(fileHandle);
-        return true;
-    } else
-        return false;
-}
-
 /* ROM image validation functions */
 
 static void
@@ -149,7 +126,7 @@ validateRomSize(FILE* fileHandle) {
         cartRomSize = 0x00;
 
     uint8_t calculatedRomSize = 0;
-    size_t romSize = fileSize(fileHandle);
+    size_t romSize = fsize(fileHandle);
     while (romSize > (0x8000UL << calculatedRomSize))
         ++calculatedRomSize;
 
@@ -178,7 +155,7 @@ validateCartridgeType(FILE* fileHandle) {
     if (cartType == EOF)
         cartType = 0x00;
 
-    if (fileSize(fileHandle) <= 0x8000UL || cartType != 0x00) {
+    if (fsize(fileHandle) <= 0x8000UL || cartType != 0x00) {
         /* cart type byte can be anything? */
         if (isOptionSet(OPTF_DEBUG))
             printf("\tCartridge type byte is OK\n");
@@ -198,7 +175,7 @@ validateCartridgeType(FILE* fileHandle) {
 
 static void
 validateChecksum(FILE* fileHandle) {
-    size_t romSize = fileSize(fileHandle);
+    size_t romSize = fsize(fileHandle);
 
     uint16_t cartChecksum = 0;
     uint16_t calculatedChecksum = 0;
@@ -261,7 +238,7 @@ validateChecksum(FILE* fileHandle) {
 
 static void
 padRomImage(FILE* fileHandle) {
-    size_t romSize = fileSize(fileHandle);
+    size_t romSize = fsize(fileHandle);
     size_t padToSize;
 
     padToSize = 0x8000UL;
@@ -269,7 +246,7 @@ padRomImage(FILE* fileHandle) {
         padToSize *= 2;
 
     if (isOptionSet(OPTF_DEBUG))
-        printf("Padding to %ldkB:\n", padToSize / 1024);
+        printf("Padding to %ldkB:\n", (long) (padToSize / 1024));
 
     if (romSize == padToSize) {
         printf("\tNo padding needed\n");
@@ -277,7 +254,7 @@ padRomImage(FILE* fileHandle) {
     }
 
     if (isOptionSet(OPTF_DEBUG)) {
-        printf("\tAdded %ld bytes\n", padToSize - romSize);
+        printf("\tAdded %ld bytes\n", (long) (padToSize - romSize));
         return;
     }
 
@@ -349,7 +326,7 @@ main(int argc, char* argv[]) {
 
     FILE* fileHandle;
 
-    if (!fileExists(filename))
+    if (!fexists(filename))
         strcat(filename, ".gb");
 
     if ((fileHandle = fopen(filename, "rb+")) != NULL) {

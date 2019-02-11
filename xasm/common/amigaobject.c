@@ -104,7 +104,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
             uint32_t patchCount = 0;
 
             fputstr(patchSymbol->name, fileHandle, EXT_REF32);
-            long symbolCountPosition = ftell(fileHandle);
+            off_t symbolCountPosition = ftello(fileHandle);
             fputbl(0, fileHandle);
 
             const SPatch* patch = importPatches;
@@ -135,9 +135,9 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
             } while (patch != NULL);
 
             off_t currentPosition = ftello(fileHandle);
-            fseek(fileHandle, symbolCountPosition, SEEK_SET);
+            fseeko(fileHandle, symbolCountPosition, SEEK_SET);
             fputbl(patchCount, fileHandle);
-            fseek(fileHandle, currentPosition, SEEK_SET);
+            fseeko(fileHandle, currentPosition, SEEK_SET);
         }
         importPatches = list_GetNext(importPatches);
     }
@@ -161,7 +161,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
 }
 
 static void
-writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSections, long hunkPosition) {
+writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSections, off_t hunkPosition) {
     fputbl(HUNK_RELOC32, fileHandle);
 
     SSection* offsetToSection = sect_Sections;
@@ -181,7 +181,7 @@ writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSection
                 expr_GetSectionOffset(patch->expression, offsetToSection, &value);
 
                 off_t currentPosition = ftello(fileHandle);
-                fseek(fileHandle, patch->offset + hunkPosition, SEEK_SET);
+                fseeko(fileHandle, patch->offset + hunkPosition, SEEK_SET);
                 fputbl(value, fileHandle);
                 fseeko(fileHandle, currentPosition, SEEK_SET);
                 fputbl(patch->offset, fileHandle);

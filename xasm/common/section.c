@@ -67,7 +67,8 @@ static EGroupType sect_GetCurrentType(void) {
 	return sect_Current->group->value.groupType;
 }
 
-static SSection* sect_Create(const string* name) {
+static SSection*
+sect_Create(const string* name) {
 	SSection* sect = mem_Alloc(sizeof(SSection));
 	memset(sect, 0, sizeof(SSection));
 
@@ -85,7 +86,8 @@ static SSection* sect_Create(const string* name) {
 	return sect;
 }
 
-static SSection* sect_Find(const string* name, SSymbol* group) {
+static SSection*
+sect_Find(const string* name, SSymbol* group) {
 	SSection* sect;
 
 	sect = sect_Sections;
@@ -108,11 +110,17 @@ static SSection* sect_Find(const string* name, SSymbol* group) {
 	return NULL;
 }
 
-static void sect_GrowCurrent(uint32_t count) {
+static uint32_t
+align(uint32_t value, uint32_t alignment) {
+	return (value + alignment + 1) & ~(alignment - 1);
+}
+
+static void
+sect_GrowCurrent(uint32_t count) {
 	assert(xasm_Configuration->minimumWordSize <= count);
 
 	if (count + sect_Current->usedSpace > sect_Current->allocatedSpace) {
-		uint32_t allocate = (count + sect_Current->usedSpace + CHUNK_SIZE - 1) & -CHUNK_SIZE;
+		uint32_t allocate = align(count + sect_Current->usedSpace, CHUNK_SIZE);
 		if ((sect_Current->data = mem_Realloc(sect_Current->data, allocate)) != NULL) {
 			sect_Current->allocatedSpace = allocate;
 		} else {
@@ -121,7 +129,8 @@ static void sect_GrowCurrent(uint32_t count) {
 	}
 }
 
-static bool sect_CheckAvailableSpace(uint32_t count) {
+static
+bool sect_CheckAvailableSpace(uint32_t count) {
 	assert(xasm_Configuration->minimumWordSize <= count);
 
 	if (sect_Current) {

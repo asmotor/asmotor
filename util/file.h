@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 
+#include "asmotor.h"
 #include "types.h"
 
 /* Determine whether a file exists */
@@ -62,5 +63,17 @@ fgetsz(char* destination, size_t maxLength, FILE* fileHandle);
 /* Write zero terminated string to a file */
 extern void
 fputsz(const char* str, FILE* fileHandle);
+
+#if defined(_MSC_VER)
+typedef __int64 off_t;
+
+INLINE off_t ftello(FILE* fileHandle) {
+	return _ftelli64(fileHandle);
+}
+
+INLINE int fseeko(FILE* fileHandle, off_t offset, int origin) {
+	return _fseeki64(fileHandle, offset, origin);
+}
+#endif
 
 #endif /* UTIL_FILE_H_INCLUDED_ */

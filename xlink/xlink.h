@@ -45,13 +45,6 @@
 #include <stdint.h>
 #include <ctype.h>
 
-#if defined(__clang__) || defined(__llvm__) || defined(__GNUC__)
-#   define NO_RETURN __attribute__ ((noreturn))
-#else
-#   define NO_RETURN
-#endif
-
-extern void
-error(const char* fmt, ...) NO_RETURN;
+NORETURN (extern void error(const char* fmt, ...));
 
 #endif

@@ -20,6 +20,6 @@
 #define XASM_MIPS_SYMBOLS_H_INCLUDED_
 
 extern void
-mips_DefineSymbols();
+mips_DefineSymbols(void);
 
 #endif

@@ -45,3 +45,5 @@ xlib/xlib
 xlink/xlink
 build/cmake/debug
 build/cmake/release
+CMakeSettings.json
+.vs/
