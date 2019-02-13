@@ -22,39 +22,29 @@
 #include <string.h>
 #include <assert.h>
 
-#include "asmotor.h"
-#include "xasm.h"
 #include "mem.h"
-#include "section.h"
-#include "symbol.h"
+
+#include "asmotor.h"
+
+#include "xasm.h"
 #include "errors.h"
 #include "expression.h"
-#include "patch.h"
-#include "parse.h"
-#include "options.h"
 #include "filestack.h"
+#include "options.h"
+#include "parse.h"
+#include "patch.h"
+#include "section.h"
+#include "symbol.h"
 
 
-
-
-//	Private defines
-
-#define CHUNK_SIZE 0x4000U
-
-
-
-
-//	Public variables
+#define SECTION_GROWTH_AMOUNT 0x4000U
 
 SSection* sect_Current;
 SSection* sect_Sections;
 
 
-
-
-//	Private routines
-
-static EGroupType sect_GetCurrentType(void) {
+static EGroupType
+currentSectionType(void) {
 	if (sect_Current == NULL)
 		internalerror("No SECTION defined");
 
@@ -68,59 +58,59 @@ static EGroupType sect_GetCurrentType(void) {
 }
 
 static SSection*
-sect_Create(const string* name) {
-	SSection* sect = mem_Alloc(sizeof(SSection));
-	memset(sect, 0, sizeof(SSection));
+createSection(const string* name) {
+	SSection* newSection = mem_Alloc(sizeof(SSection));
+	memset(newSection, 0, sizeof(SSection));
 
-	sect->name = str_Copy(name);
-	sect->freeSpace = xasm_Configuration->maxSectionSize;
+	newSection->name = str_Copy(name);
+	newSection->freeSpace = xasm_Configuration->maxSectionSize;
 
-	if (sect_Sections) {
-		SSection* list = sect_Sections;
-		while (list->pNext)
-			list = list_GetNext(list);
-		list_InsertAfter(list, sect);
+	if (sect_Sections != NULL) {
+		SSection* lastSection = sect_Sections;
+		while (lastSection->pNext)
+			lastSection = list_GetNext(lastSection);
+		list_InsertAfter(lastSection, newSection);
 	} else {
-		sect_Sections = sect;
+		sect_Sections = newSection;
 	}
-	return sect;
+	return newSection;
 }
 
 static SSection*
-sect_Find(const string* name, SSymbol* group) {
-	SSection* sect;
-
-	sect = sect_Sections;
-	while (sect) {
-		if (str_Equal(sect->name, name)) {
+findSection(const string* name, SSymbol* group) {
+	SSection* newSection = sect_Sections;
+	while (newSection) {
+		if (str_Equal(newSection->name, name)) {
 			if (group) {
-				if (sect->group == group) {
-					return sect;
+				if (newSection->group == group) {
+					return newSection;
 				} else {
                     err_Fail(ERROR_SECT_EXISTS);
 					return NULL;
 				}
 			} else {
-				return sect;
+				return newSection;
 			}
 		}
-		sect = list_GetNext(sect);
+		newSection = list_GetNext(newSection);
 	}
 
 	return NULL;
 }
 
 static uint32_t
-align(uint32_t value, uint32_t alignment) {
-	return (value + alignment + 1) & ~(alignment - 1);
+alignToNext(uint32_t value, uint32_t alignment) {
+	uint32_t t = value + alignment - 1;
+	t -= t % alignment;
+	return t;
 }
 
 static void
-sect_GrowCurrent(uint32_t count) {
+growCurrentSection(uint32_t count) {
 	assert(xasm_Configuration->minimumWordSize <= count);
 
 	if (count + sect_Current->usedSpace > sect_Current->allocatedSpace) {
-		uint32_t allocate = align(count + sect_Current->usedSpace, CHUNK_SIZE);
+		uint32_t allocate = alignToNext(count + sect_Current->usedSpace, SECTION_GROWTH_AMOUNT);
 		if ((sect_Current->data = mem_Realloc(sect_Current->data, allocate)) != NULL) {
 			sect_Current->allocatedSpace = allocate;
 		} else {
@@ -129,14 +119,14 @@ sect_GrowCurrent(uint32_t count) {
 	}
 }
 
-static
-bool sect_CheckAvailableSpace(uint32_t count) {
+static bool
+checkAvailableSpace(uint32_t count) {
 	assert(xasm_Configuration->minimumWordSize <= count);
 
-	if (sect_Current) {
+	if (sect_Current != NULL) {
 		if (count <= sect_Current->freeSpace) {
-			if (sect_GetCurrentType() == GROUP_TEXT) {
-				sect_GrowCurrent(count);
+			if (currentSectionType() == GROUP_TEXT) {
+				growCurrentSection(count);
 			}
 			return true;
 		} else {
@@ -150,15 +140,14 @@ bool sect_CheckAvailableSpace(uint32_t count) {
 }
 
 
+/* Public functions */
 
-
-//	Public routines
-
-void sect_OutputConst8(uint8_t value) {
+void
+sect_OutputConst8(uint8_t value) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);
 
-	if (sect_CheckAvailableSpace(1)) {
-		switch (sect_GetCurrentType()) {
+	if (checkAvailableSpace(1)) {
+		switch (currentSectionType()) {
 			case GROUP_TEXT: {
 				sect_Current->freeSpace -= 1;
 				sect_Current->data[sect_Current->usedSpace++] = value;
@@ -177,13 +166,14 @@ void sect_OutputConst8(uint8_t value) {
 	}
 }
 
-void sect_OutputReloc8(SExpression* expr) {
+void
+sect_OutputReloc8(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);
 
-	if (sect_CheckAvailableSpace(1)) {
-		switch (sect_GetCurrentType()) {
+	if (checkAvailableSpace(1)) {
+		switch (currentSectionType()) {
 			case GROUP_TEXT: {
-				patch_Create(sect_Current, sect_Current->usedSpace, expr, PATCH_8);
+				patch_Create(sect_Current, sect_Current->usedSpace, expression, PATCH_8);
 				sect_Current->cpuProgramCounter += 1;
 				sect_Current->usedSpace += 1;
 				sect_Current->freeSpace -= 1;
@@ -202,24 +192,25 @@ void sect_OutputReloc8(SExpression* expr) {
 	}
 }
 
-void sect_OutputExpr8(SExpression* expr) {
+void sect_OutputExpr8(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);
 
-	if (expr == NULL) {
+	if (expression == NULL) {
         err_Error(ERROR_EXPR_BAD);
-	} else if (expr_IsConstant(expr)) {
-		sect_OutputConst8((uint8_t) expr->value.integer);
-		expr_Free(expr);
+	} else if (expr_IsConstant(expression)) {
+		sect_OutputConst8((uint8_t) expression->value.integer);
+		expr_Free(expression);
 	} else {
-		sect_OutputReloc8(expr);
+		sect_OutputReloc8(expression);
 	}
 }
 
-void sect_OutputConst16(uint16_t value) {
+void
+sect_OutputConst16(uint16_t value) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_16BIT);
 
-	if (sect_CheckAvailableSpace(2)) {
-		switch (sect_GetCurrentType()) {
+	if (checkAvailableSpace(2)) {
+		switch (currentSectionType()) {
 			case GROUP_TEXT: {
 				switch (opt_Current->endianness) {
 					case ASM_LITTLE_ENDIAN: {
@@ -253,13 +244,14 @@ void sect_OutputConst16(uint16_t value) {
 	}
 }
 
-void sect_OutputReloc16(SExpression* expr) {
+void
+sect_OutputReloc16(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_16BIT);
 
-	if (sect_CheckAvailableSpace(2)) {
-		switch (sect_GetCurrentType()) {
+	if (checkAvailableSpace(2)) {
+		switch (currentSectionType()) {
 			case GROUP_TEXT: {
-				patch_Create(sect_Current, sect_Current->usedSpace, expr,
+				patch_Create(sect_Current, sect_Current->usedSpace, expression,
 							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_16 : PATCH_BE_16);
 				sect_Current->freeSpace -= 2;
 				sect_Current->usedSpace += 2;
@@ -279,24 +271,26 @@ void sect_OutputReloc16(SExpression* expr) {
 	}
 }
 
-void sect_OutputExpr16(SExpression* expr) {
+void
+sect_OutputExpr16(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_16BIT);
 
-	if (expr == NULL) {
+	if (expression == NULL) {
         err_Error(ERROR_EXPR_BAD);
-	} else if (expr_IsConstant(expr)) {
-		sect_OutputConst16((uint16_t) (expr->value.integer));
-		expr_Free(expr);
+	} else if (expr_IsConstant(expression)) {
+		sect_OutputConst16((uint16_t) (expression->value.integer));
+		expr_Free(expression);
 	} else {
-		sect_OutputReloc16(expr);
+		sect_OutputReloc16(expression);
 	}
 }
 
-void sect_OutputConst32(uint32_t value) {
+void
+sect_OutputConst32(uint32_t value) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
 
-	if (sect_CheckAvailableSpace(4)) {
-		switch (sect_GetCurrentType()) {
+	if (checkAvailableSpace(4)) {
+		switch (currentSectionType()) {
 			case GROUP_TEXT: {
 				switch (opt_Current->endianness) {
 					case ASM_LITTLE_ENDIAN: {
@@ -334,13 +328,14 @@ void sect_OutputConst32(uint32_t value) {
 	}
 }
 
-void sect_OutputRel32(SExpression* expr) {
+void
+sect_OutputRel32(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
 
-	if (sect_CheckAvailableSpace(4)) {
-		switch (sect_GetCurrentType()) {
+	if (checkAvailableSpace(4)) {
+		switch (currentSectionType()) {
 			case GROUP_TEXT: {
-				patch_Create(sect_Current, sect_Current->usedSpace, expr,
+				patch_Create(sect_Current, sect_Current->usedSpace, expression,
 							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_32 : PATCH_BE_32);
 				sect_Current->freeSpace -= 4;
 				sect_Current->cpuProgramCounter += 4 / xasm_Configuration->minimumWordSize;
@@ -360,20 +355,22 @@ void sect_OutputRel32(SExpression* expr) {
 	}
 }
 
-void sect_OutputExpr32(SExpression* expr) {
+void
+sect_OutputExpr32(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
 
-	if (expr == NULL) {
+	if (expression == NULL) {
         err_Error(ERROR_EXPR_BAD);
-	} else if (expr_IsConstant(expr)) {
-		sect_OutputConst32(expr->value.integer);
-		expr_Free(expr);
+	} else if (expr_IsConstant(expression)) {
+		sect_OutputConst32(expression->value.integer);
+		expr_Free(expression);
 	} else {
-		sect_OutputRel32(expr);
+		sect_OutputRel32(expression);
 	}
 }
 
-void sect_OutputBinaryFile(string* pFile) {
+void
+sect_OutputBinaryFile(string* pFile) {
 	/* TODO: Handle minimum word size.
 	 * Pad file if necessary.
 	 * Read words and output in chosen endianness
@@ -388,8 +385,8 @@ void sect_OutputBinaryFile(string* pFile) {
 		size = ftell(f);
 		fseek(f, 0, SEEK_SET);
 
-		if (sect_CheckAvailableSpace(size)) {
-			switch (sect_GetCurrentType()) {
+		if (checkAvailableSpace(size)) {
+			switch (currentSectionType()) {
 				case GROUP_TEXT: {
 					size_t read;
 
@@ -421,23 +418,24 @@ void sect_OutputBinaryFile(string* pFile) {
 	str_Free(pFile);
 }
 
-void sect_Align(uint32_t align) {
-	assert(xasm_Configuration->minimumWordSize <= align);
+void
+sect_Align(uint32_t alignment) {
+	assert(xasm_Configuration->minimumWordSize <= alignment);
 
-	uint32_t t = sect_Current->usedSpace + align - 1;
-	t -= t % align;
+	uint32_t t = alignToNext(sect_Current->usedSpace, alignment);
 	sect_SkipBytes(t - sect_Current->usedSpace);
 }
 
-void sect_SkipBytes(uint32_t count) {
+void
+sect_SkipBytes(uint32_t count) {
 	if (count == 0)
 		return;
 
 	assert(xasm_Configuration->minimumWordSize <= count);
 
-	if (sect_CheckAvailableSpace(count)) {
+	if (checkAvailableSpace(count)) {
 		//printf("*DEBUG* skipping %d bytes\n", count);
-		switch (sect_GetCurrentType()) {
+		switch (currentSectionType()) {
 			case GROUP_TEXT: {
 				while (count--) {
 					sect_OutputConst8((uint8_t) opt_Current->uninitializedValue);
@@ -457,57 +455,58 @@ void sect_SkipBytes(uint32_t count) {
 	}
 }
 
-bool sect_SwitchTo(const string* sectname, SSymbol* group) {
-	SSection* sect;
-
-	sect = sect_Find(sectname, group);
-	if (sect) {
-		sect_Current = sect;
+bool
+sect_SwitchTo(const string* sectname, SSymbol* group) {
+	SSection* newSection = findSection(sectname, group);
+	if (newSection) {
+		sect_Current = newSection;
 		return true;
 	} else {
-		sect = sect_Create(sectname);
-		if (sect) {
-			sect->group = group;
-			sect->flags = 0;
+		newSection = createSection(sectname);
+		if (newSection) {
+			newSection->group = group;
+			newSection->flags = 0;
 		}
-		sect_Current = sect;
-		return sect != NULL;
+		sect_Current = newSection;
+		return newSection != NULL;
 	}
 }
 
-bool sect_SwitchTo_LOAD(const string* sectname, SSymbol* group, uint32_t load) {
-	SSection* sect;
+bool
+sect_SwitchTo_LOAD(const string* sectname, SSymbol* group, uint32_t load) {
+	SSection* newSection;
 
-	if ((sect = sect_Find(sectname, group)) != NULL) {
-		if (sect->flags == SECTF_LOADFIXED && sect->cpuOrigin == load) {
-			sect_Current = sect;
+	if ((newSection = findSection(sectname, group)) != NULL) {
+		if (newSection->flags == SECTF_LOADFIXED && newSection->cpuOrigin == load) {
+			sect_Current = newSection;
 			return true;
 		} else {
             err_Fail(ERROR_SECT_EXISTS_LOAD);
 			return false;
 		}
 	} else {
-		if ((sect = sect_Create(sectname)) != NULL) {
-			sect->group = group;
-			sect->flags = SECTF_LOADFIXED;
-			sect->cpuOrigin = load;
-			sect->imagePosition = load * xasm_Configuration->minimumWordSize;
+		if ((newSection = createSection(sectname)) != NULL) {
+			newSection->group = group;
+			newSection->flags = SECTF_LOADFIXED;
+			newSection->cpuOrigin = load;
+			newSection->imagePosition = load * xasm_Configuration->minimumWordSize;
 		}
-		sect_Current = sect;
-		return sect != NULL;
+		sect_Current = newSection;
+		return newSection != NULL;
 	}
 }
 
-bool sect_SwitchTo_BANK(const string* sectname, SSymbol* group, uint32_t bank) {
-	SSection* sect;
+bool
+sect_SwitchTo_BANK(const string* sectname, SSymbol* group, uint32_t bank) {
+	SSection* newSection;
 
 	if (!xasm_Configuration->supportBanks)
 		internalerror("Banks not supported");
 
-	sect = sect_Find(sectname, group);
-	if (sect) {
-		if (sect->flags == SECTF_BANKFIXED && sect->bank == bank) {
-			sect_Current = sect;
+	newSection = findSection(sectname, group);
+	if (newSection) {
+		if (newSection->flags == SECTF_BANKFIXED && newSection->bank == bank) {
+			sect_Current = newSection;
 			return true;
 		}
 
@@ -515,25 +514,26 @@ bool sect_SwitchTo_BANK(const string* sectname, SSymbol* group, uint32_t bank) {
 		return false;
 	}
 
-	sect = sect_Create(sectname);
-	if (sect) {
-		sect->group = group;
-		sect->flags = SECTF_BANKFIXED;
-		sect->bank = bank;
+	newSection = createSection(sectname);
+	if (newSection) {
+		newSection->group = group;
+		newSection->flags = SECTF_BANKFIXED;
+		newSection->bank = bank;
 	}
-	sect_Current = sect;
-	return sect != NULL;
+	sect_Current = newSection;
+	return newSection != NULL;
 }
 
-bool sect_SwitchTo_LOAD_BANK(const string* sectname, SSymbol* group, uint32_t origin, uint32_t bank) {
-	SSection* sect;
+bool
+sect_SwitchTo_LOAD_BANK(const string* sectname, SSymbol* group, uint32_t origin, uint32_t bank) {
+	SSection* newSection;
 
 	if (!xasm_Configuration->supportBanks)
 		internalerror("Banks not supported");
 
-	if ((sect = sect_Find(sectname, group)) != NULL) {
-		if (sect->flags == (SECTF_BANKFIXED | SECTF_LOADFIXED) && sect->bank == bank && sect->cpuOrigin == origin) {
-			sect_Current = sect;
+	if ((newSection = findSection(sectname, group)) != NULL) {
+		if (newSection->flags == (SECTF_BANKFIXED | SECTF_LOADFIXED) && newSection->bank == bank && newSection->cpuOrigin == origin) {
+			sect_Current = newSection;
 			return true;
 		}
 
@@ -541,20 +541,21 @@ bool sect_SwitchTo_LOAD_BANK(const string* sectname, SSymbol* group, uint32_t or
 		return false;
 	}
 
-	if ((sect = sect_Create(sectname)) != NULL) {
-		sect->group = group;
-		sect->flags = SECTF_BANKFIXED | SECTF_LOADFIXED;
-		sect->bank = bank;
-		sect->cpuOrigin = origin;
-		sect->imagePosition = origin * xasm_Configuration->minimumWordSize;
+	if ((newSection = createSection(sectname)) != NULL) {
+		newSection->group = group;
+		newSection->flags = SECTF_BANKFIXED | SECTF_LOADFIXED;
+		newSection->bank = bank;
+		newSection->cpuOrigin = origin;
+		newSection->imagePosition = origin * xasm_Configuration->minimumWordSize;
 	}
 
-	sect_Current = sect;
-	return sect != NULL;
+	sect_Current = newSection;
+	return newSection != NULL;
 }
 
-bool sect_SwitchTo_NAMEONLY(const string* sectname) {
-	if ((sect_Current = sect_Find(sectname, NULL)) != NULL) {
+bool
+sect_SwitchTo_NAMEONLY(const string* sectname) {
+	if ((sect_Current = findSection(sectname, NULL)) != NULL) {
 		return true;
 	} else {
         err_Fail(ERROR_NO_SECT);
@@ -562,13 +563,15 @@ bool sect_SwitchTo_NAMEONLY(const string* sectname) {
 	}
 }
 
-bool sect_Init(void) {
+bool
+sect_Init(void) {
 	sect_Current = NULL;
 	sect_Sections = NULL;
 	return true;
 }
 
-void sect_SetOrgAddress(uint32_t org) {
+void
+sect_SetOriginAddress(uint32_t org) {
 	if (sect_Current == NULL) {
         err_Error(ERROR_SECTION_MISSING);
 	} else {
@@ -577,9 +580,10 @@ void sect_SetOrgAddress(uint32_t org) {
 	}
 }
 
-uint32_t sect_TotalSections(void) {
+uint32_t 
+sect_TotalSections(void) {
 	uint32_t totalSections = 0;
-	for (const SSection* pSect = sect_Sections; pSect != NULL; pSect = list_GetNext(pSect)) {
+	for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
 		++totalSections;
 	}
 	return totalSections;

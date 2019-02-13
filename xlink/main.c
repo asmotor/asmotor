@@ -49,7 +49,10 @@ target_SupportsImports(TargetType type) {
     return type == TARGET_AMIGA_LINK_OBJECT;
 }
 
-NORETURN (void error(const char* fmt, ...)) {
+NORETURN (void error(const char* fmt, ...));
+
+void
+error(const char* fmt, ...) {
     va_list list;
 
     va_start(list, fmt);

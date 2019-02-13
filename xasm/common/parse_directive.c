@@ -191,7 +191,7 @@ handleSection() {
 static bool
 handleOrg() {
     parse_GetToken();
-    sect_SetOrgAddress((uint32_t) parse_ConstantExpression());
+    sect_SetOriginAddress((uint32_t) parse_ConstantExpression());
 
     return true;
 }

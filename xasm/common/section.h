@@ -80,7 +80,7 @@ extern bool
 sect_Init(void);
 
 extern void
-sect_SetOrgAddress(uint32_t org);
+sect_SetOriginAddress(uint32_t org);
 
 extern void
 sect_SkipBytes(uint32_t count);
