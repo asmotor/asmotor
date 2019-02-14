@@ -18,6 +18,7 @@ Dive into the documentation to learn more about:
 * [Expressions](doc/Expressions.md) and how they're built
 * [Printing diagnostic messages](doc/Diagnostics.md), warnings and errors
 * [Organising code](doc/OrganisingCode.md) into sections. How to define data.
+* [The linker](doc/Linker.md)
 
 ## Index and reference
 * [CPU specific](doc/CpuSpecifics.md) details
