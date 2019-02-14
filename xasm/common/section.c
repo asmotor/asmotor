@@ -107,7 +107,7 @@ alignToNext(uint32_t value, uint32_t alignment) {
 
 static void
 growCurrentSection(uint32_t count) {
-	assert(xasm_Configuration->minimumWordSize <= count);
+	assert((uint32_t) xasm_Configuration->minimumWordSize <= count);
 
 	if (count + sect_Current->usedSpace > sect_Current->allocatedSpace) {
 		uint32_t allocate = alignToNext(count + sect_Current->usedSpace, SECTION_GROWTH_AMOUNT);
@@ -121,7 +121,7 @@ growCurrentSection(uint32_t count) {
 
 static bool
 checkAvailableSpace(uint32_t count) {
-	assert(xasm_Configuration->minimumWordSize <= count);
+	assert((uint32_t) xasm_Configuration->minimumWordSize <= count);
 
 	if (sect_Current != NULL) {
 		if (count <= sect_Current->freeSpace) {
@@ -420,7 +420,7 @@ sect_OutputBinaryFile(string* pFile) {
 
 void
 sect_Align(uint32_t alignment) {
-	assert(xasm_Configuration->minimumWordSize <= alignment);
+	assert((uint32_t) xasm_Configuration->minimumWordSize <= alignment);
 
 	uint32_t t = alignToNext(sect_Current->usedSpace, alignment);
 	sect_SkipBytes(t - sect_Current->usedSpace);
@@ -431,7 +431,7 @@ sect_SkipBytes(uint32_t count) {
 	if (count == 0)
 		return;
 
-	assert(xasm_Configuration->minimumWordSize <= count);
+	assert((uint32_t) xasm_Configuration->minimumWordSize <= count);
 
 	if (checkAvailableSpace(count)) {
 		//printf("*DEBUG* skipping %d bytes\n", count);
