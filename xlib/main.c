@@ -26,14 +26,17 @@
 
 #include "library.h"
 
+NORETURN(void fatalError(const char* s));
+NORETURN(static void printUsage(void));
+
 void
-fatalError(char* s) {
+fatalError(const char* s) {
     printf("*ERROR* : %s\n", s);
     exit(EXIT_FAILURE);
 }
 
 
-void
+static void
 printUsage(void) {
     printf("xLib v" LIB_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n\n"
            "Usage: xlib library command [module1 module2 ... modulen]\n"
@@ -44,86 +47,97 @@ printUsage(void) {
     exit(0);
 }
 
+static void
+handleAddCommand(int argc, char* argv[], SModule* library, const char* libname) {
+    int argn = 0;
+    while (argc) {
+        library = lib_AddReplace(library, argv[argn++]);
+        argc -= 1;
+    }
+    lib_Write(library, libname);
+}
+
+static void
+handleDeleteCommand(int argc, char* argv[], SModule* library, const char* libname) {
+    int argn = 0;
+    while (argc) {
+        library = lib_DeleteModule(library, argv[argn++]);
+        argc -= 1;
+    }
+    lib_Write(library, libname);
+}
+
+static void
+handleListCommand(SModule* library) {
+    for (SModule* current = library; current != NULL; current = current->nextModule) {
+        printf("%10ld %s\n", (long) current->byteLength, current->name);
+    }
+}
+
+static void
+handleExtractCommand(int argc, char* argv[], SModule* library) {
+    int argn = 0;
+    while (argc) {
+        SModule* module = lib_Find(library, argv[argn]);
+        if (module != NULL) {
+            FILE* fileHandle;
+
+            if ((fileHandle = fopen(argv[argn], "wb")) != NULL) {
+                fwrite(module->data, sizeof(uint8_t), module->byteLength, fileHandle);
+                fclose(fileHandle);
+                printf("Extracted module '%s'\n", argv[argn]);
+            } else
+                fatalError("Unable to write module");
+        } else
+            fatalError("Module not found");
+
+        argn += 1;
+        argc -= 1;
+    }
+}
+
+static bool
+handleCommand(int argc, char* argv[], SModule* library, const char* libname) {
+    int argn = 0;
+    if (strlen(argv[argn]) == 1) {
+        uint8_t command = argv[argn++][0];
+        argc -= 1;
+        switch (tolower(command)) {
+            case 'a':
+                handleAddCommand(argc, argv + argn, library, libname);
+                return true;
+            case 'd':
+                handleDeleteCommand(argc, argv + argn, library, libname);
+                return true;
+            case 'l':
+                handleListCommand(library);
+                return true;
+            case 'x':
+                handleExtractCommand(argc, argv + argn, library);
+                return true;
+        }
+    }
+
+    return false;
+}
 
 extern int
 main(int argc, char* argv[]) {
-    int32_t argn = 0;
-    char* libname;
-
     argc -= 1;
-    argn += 1;
-
     if (argc >= 2) {
-        uint8_t command;
-        SLibrary* lib;
-
-        lib = lib_Read(libname = argv[argn++]);
+        int32_t argn = 1;
+        char* libname = argv[argn++];
         argc -= 1;
 
-        if (strlen(argv[argn]) == 1) {
-            command = argv[argn++][0];
-            argc -= 1;
+        SModule* library = lib_Read(libname);
 
-            switch (tolower(command)) {
-                case 'a':
-                    while (argc) {
-                        lib = lib_AddReplace(lib, argv[argn++]);
-                        argc -= 1;
-                    }
-                    lib_Write(lib, libname);
-                    lib_Free(lib);
-                    break;
-                case 'd':
-                    while (argc) {
-                        lib = lib_DeleteModule(lib, argv[argn++]);
-                        argc -= 1;
-                    }
-                    lib_Write(lib, libname);
-                    lib_Free(lib);
-                    break;
-                case 'l': {
-                    SLibrary* l;
-
-                    l = lib;
-
-                    while (l) {
-                        printf("%10ld %s\n", (long) l->nByteLength, l->tName);
-                        l = l->pNext;
-                    }
-                }
-                    break;
-                case 'x':
-                    while (argc) {
-                        SLibrary* l;
-
-                        l = lib_Find(lib, argv[argn]);
-                        if (l) {
-                            FILE* f;
-
-                            if ((f = fopen(argv[argn], "wb")) != NULL) {
-                                fwrite(l->pData, sizeof(uint8_t), l->nByteLength, f);
-                                fclose(f);
-                                printf("Extracted module '%s'\n", argv[argn]);
-                            } else
-                                fatalError("Unable to write module");
-                        } else
-                            fatalError("Module not found");
-
-                        argn += 1;
-                        argc -= 1;
-                    }
-                    lib_Free(lib);
-                    break;
-                default:
-                    fatalError("Invalid command");
-                    break;
-            }
-
-        } else {
+        if (!handleCommand(argc, argv + argn, library, libname))
             fatalError("Invalid command");
-        }
-    } else
+
+        lib_Free(library);
+    } else {
         printUsage();
+    }
 
     return 0;
 }

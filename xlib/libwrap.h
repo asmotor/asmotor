@@ -1,4 +1,4 @@
-/*  Copyright 2008 Carsten S�rensen
+/*  Copyright 2008-2017 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -23,13 +23,11 @@
 
 #define MAXNAMELENGTH 256
 
-typedef struct Library {
-    char tName[MAXNAMELENGTH];
-    uint32_t ulTime;
-    uint32_t ulDate;
-    uint32_t nByteLength;
-    uint8_t* pData;
-    struct Library* pNext;
-} SLibrary;
+typedef struct Module {
+    char name[MAXNAMELENGTH];
+    uint32_t byteLength;
+    uint8_t* data;
+    struct Module* nextModule;
+} SModule;
 
 #endif

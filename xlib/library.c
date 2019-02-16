@@ -21,8 +21,6 @@
  *	uint32_t	TotalFiles
  *	REPT	TotalFiles
  *		ASCIIZ	Name
- *		uint32_t	Time
- *		uint32_t	Date
  *		uint32_t	Size
  *		uint8_t	Data[Size]
  *	ENDR
@@ -54,37 +52,33 @@ truncateFileName(char* dest, const char* src) {
     strcpy(dest, &src[l + 1]);
 }
 
-SLibrary*
-lib_ReadLib0(FILE* fileHandle, size_t size) {
+static SModule*
+readLib0(FILE* fileHandle, size_t size) {
     if (size) {
-        SLibrary* l = NULL;
-        SLibrary* first = NULL;
+        SModule* l = NULL;
+        SModule* first = NULL;
 
         fgetll(fileHandle);
         size -= 4;    //	Skip count
 
         while (size > 0) {
             if (l == NULL) {
-                first = l = (SLibrary*) mem_Alloc(sizeof(SLibrary));
+                first = l = (SModule*) mem_Alloc(sizeof(SModule));
             } else {
-                l->pNext = (SLibrary*) mem_Alloc(sizeof(SLibrary));
-                l = l->pNext;
+                l->nextModule = (SModule*) mem_Alloc(sizeof(SModule));
+                l = l->nextModule;
             }
 
-            size -= fgetsz(l->tName, MAXNAMELENGTH, fileHandle);
-            l->ulTime = fgetll(fileHandle);
-            size -= 4;
-            l->ulDate = fgetll(fileHandle);
-            size -= 4;
-            l->nByteLength = fgetll(fileHandle);
+            size -= fgetsz(l->name, MAXNAMELENGTH, fileHandle);
+            l->byteLength = fgetll(fileHandle);
             size -= 4;
 
-            l->pData = (uint8_t*) mem_Alloc(l->nByteLength);
-            if (l->nByteLength != fread(l->pData, sizeof(uint8_t), l->nByteLength, fileHandle))
+            l->data = (uint8_t*) mem_Alloc(l->byteLength);
+            if (l->byteLength != fread(l->data, sizeof(uint8_t), l->byteLength, fileHandle))
                 fatalError("File read failed");
-            size -= l->nByteLength;
+            size -= l->byteLength;
 
-            l->pNext = NULL;
+            l->nextModule = NULL;
         }
         return first;
     }
@@ -92,33 +86,29 @@ lib_ReadLib0(FILE* fileHandle, size_t size) {
     return NULL;
 }
 
-SLibrary*
+SModule*
 lib_Read(const char* filename) {
-    FILE* f;
+    FILE* fileHandle = fopen(filename, "rb");
 
-    if ((f = fopen(filename, "rb")) != NULL) {
-        size_t size;
-        char ID[5];
-
-        size = fsize(f);
+    if (fileHandle != NULL) {
+        size_t size = fsize(fileHandle);
         if (size == 0) {
-            fclose(f);
+            fclose(fileHandle);
             return NULL;
         }
 
-        if (4 != fread(ID, sizeof(char), 4, f))
+        char ID[5];
+        if (4 != fread(ID, sizeof(char), 4, fileHandle))
             internalerror("File read failed");
         ID[4] = 0;
         size -= 4;
 
         if (strcmp(ID, "XLB0") == 0) {
-            SLibrary* r;
-
-            r = lib_ReadLib0(f, size);
-            fclose(f);
-            return r;
+            SModule* result = readLib0(fileHandle, size);
+            fclose(fileHandle);
+            return result;
         } else {
-            fclose(f);
+            fclose(fileHandle);
             fatalError("Not a valid xLib library");
             return NULL;
         }
@@ -128,106 +118,101 @@ lib_Read(const char* filename) {
 }
 
 bool
-lib_Write(SLibrary* lib, const char* filename) {
-    FILE* f;
+lib_Write(SModule* library, const char* filename) {
+    FILE* fileHandle = fopen(filename, "wb");
 
-    if ((f = fopen(filename, "wb")) != NULL) {
+    if (fileHandle != NULL) {
+        fwrite("XLB0", sizeof(char), 4, fileHandle);
+        fputll(0, fileHandle);
+
         uint32_t count = 0;
-
-        fwrite("XLB0", sizeof(char), 4, f);
-        fputll(0, f);
-
-        while (lib) {
-            fputsz(lib->tName, f);
-            fputll(lib->ulTime, f);
-            fputll(lib->ulDate, f);
-            fputll(lib->nByteLength, f);
-            fwrite(lib->pData, sizeof(uint8_t), lib->nByteLength, f);
-            lib = lib->pNext;
+        while (library != NULL) {
+            fputsz(library->name, fileHandle);
+            fputll(library->byteLength, fileHandle);
+            fwrite(library->data, sizeof(uint8_t), library->byteLength, fileHandle);
+            library = library->nextModule;
             ++count;
         }
 
-        fseek(f, 4, SEEK_SET);
-        fputll(count, f);
+        fseek(fileHandle, 4, SEEK_SET);
+        fputll(count, fileHandle);
 
-        fclose(f);
+        fclose(fileHandle);
         return true;
     }
 
     return false;
 }
 
-SLibrary*
-lib_Find(SLibrary* lib, const char* filename) {
+SModule*
+lib_Find(SModule* library, const char* filename) {
     char truncatedName[MAXNAMELENGTH];
-
     truncateFileName(truncatedName, filename);
 
-    while (lib) {
-        if (strcmp(lib->tName, truncatedName) == 0)
+    while (library != NULL) {
+        if (strcmp(library->name, truncatedName) == 0)
             break;
 
-        lib = lib->pNext;
+        library = library->nextModule;
     }
 
-    return lib;
+    return library;
 }
 
-SLibrary*
-lib_AddReplace(SLibrary* lib, const char* filename) {
-    FILE* f;
+SModule*
+lib_AddReplace(SModule* library, const char* filename) {
+    FILE* fileHandle = fopen(filename, "rb");
 
-    if ((f = fopen(filename, "rb")) != NULL) {
-        SLibrary* module;
+    if (fileHandle != NULL) {
         char truncatedName[MAXNAMELENGTH];
-
         truncateFileName(truncatedName, filename);
 
-        if ((module = lib_Find(lib, filename)) == NULL) {
-            module = (SLibrary*) mem_Alloc(sizeof(SLibrary));
-            module->pNext = lib;
-            lib = module;
+        SModule* module = lib_Find(library, filename);
+        if (module == NULL) {
+            module = (SModule*) mem_Alloc(sizeof(SModule));
+            module->nextModule = library;
+            library = module;
         } else {
             /* Module already exists */
-            mem_Free(module->pData);
+            mem_Free(module->data);
         }
 
-        module->nByteLength = (uint32_t) fsize(f);
-        strcpy(module->tName, truncatedName);
-        module->pData = (uint8_t*) mem_Alloc(module->nByteLength);
+        module->byteLength = (uint32_t) fsize(fileHandle);
+        strcpy(module->name, truncatedName);
+        module->data = (uint8_t*) mem_Alloc(module->byteLength);
 
-        if (module->nByteLength != fread(module->pData, sizeof(uint8_t), module->nByteLength, f))
+        if (module->byteLength != fread(module->data, sizeof(uint8_t), module->byteLength, fileHandle))
             internalerror("File read failed");
 
-        fclose(f);
+        fclose(fileHandle);
     }
 
-    return lib;
+    return library;
 }
 
-SLibrary*
-lib_DeleteModule(SLibrary* lib, const char* filename) {
+SModule*
+lib_DeleteModule(SModule* library, const char* filename) {
+    SModule** pp;
+    SModule** first;
+    first = pp = &library;
+
     char truncatedName[MAXNAMELENGTH];
-    SLibrary** pp;
-    SLibrary** first;
-    bool found = 0;
-
-    first = pp = &lib;
-
     truncateFileName(truncatedName, filename);
+
+    bool found = false;
     while (*pp != NULL && !found) {
-        if (strcmp((*pp)->tName, truncatedName) == 0) {
-            SLibrary* t = *pp;
+        if (strcmp((*pp)->name, truncatedName) == 0) {
+            SModule* t = *pp;
 
-            if (t->pData)
-                mem_Free(t->pData);
+            if (t->data)
+                mem_Free(t->data);
 
-            *pp = t->pNext;
+            *pp = t->nextModule;
 
             mem_Free(t);
             found = 1;
         }
-        pp = &(*pp)->pNext;
+        pp = &(*pp)->nextModule;
     }
 
     if (!found)
@@ -237,15 +222,15 @@ lib_DeleteModule(SLibrary* lib, const char* filename) {
 }
 
 void
-lib_Free(SLibrary* lib) {
-    while (lib) {
-        SLibrary* l;
+lib_Free(SModule* library) {
+    while (library != NULL) {
+        SModule* l;
 
-        if (lib->pData)
-            mem_Free(lib->pData);
+        if (library->data != NULL)
+            mem_Free(library->data);
 
-        l = lib;
-        lib = lib->pNext;
+        l = library;
+        library = library->nextModule;
         mem_Free(l);
     }
 }

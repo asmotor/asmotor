@@ -21,22 +21,22 @@
 
 #include "libwrap.h"
 
-extern SLibrary*
+extern SModule*
 lib_Read(const char* filename);
 
 extern bool
-lib_Write(SLibrary* lib, const char* filename);
+lib_Write(SModule* library, const char* filename);
 
-extern SLibrary*
-lib_AddReplace(SLibrary* lib, const char* filename);
+extern SModule*
+lib_AddReplace(SModule* library, const char* filename);
 
 extern void
-lib_Free(SLibrary* lib);
+lib_Free(SModule* library);
 
-extern SLibrary*
-lib_DeleteModule(SLibrary* lib, const char* filename);
+extern SModule*
+lib_DeleteModule(SModule* library, const char* filename);
 
-extern SLibrary*
-lib_Find(SLibrary* lib, const char* filename);
+extern SModule*
+lib_Find(SModule* library, const char* filename);
 
 #endif
