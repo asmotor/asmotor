@@ -30,13 +30,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "asmotor.h"
+#include "types.h"
 #include "file.h"
 #include "mem.h"
 
-#include "asmotor.h"
-#include "types.h"
-
-#include "libwrap.h"
+#include "module.h"
 
 extern void
 fatalError(const char* s);

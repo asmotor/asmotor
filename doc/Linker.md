@@ -5,7 +5,7 @@ The linker will place sections according to the their placement (bank, offset) d
 define other entry points.
 
 ## Usage
-    xlink [options] file1 file2 ... filen
+    xlink [options] file1 [file2 [... filen]]
 
 ## Options
 ### -h, Help

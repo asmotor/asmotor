@@ -19,7 +19,7 @@
 #ifndef XLIB_LIBRARY_H_INCLUDED_
 #define XLIB_LIBRARY_H_INCLUDED_
 
-#include "libwrap.h"
+#include "module.h"
 
 extern SModule*
 lib_Read(const char* filename);

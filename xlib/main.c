@@ -38,8 +38,8 @@ fatalError(const char* s) {
 
 static void
 printUsage(void) {
-    printf("xLib v" LIB_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n\n"
-           "Usage: xlib library command [module1 module2 ... modulen]\n"
+    printf("xlib v" LIB_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n\n"
+           "Usage: xlib library command [module1 [module2 [... modulen]]]\n"
            "Commands:\n\ta\tAdd/replace modules to library\n"
            "\td\tDelete modules from library\n"
            "\tl\tList library contents\n"
@@ -80,12 +80,12 @@ handleExtractCommand(int argc, char* argv[], SModule* library) {
     while (argc) {
         SModule* module = lib_Find(library, argv[argn]);
         if (module != NULL) {
-            FILE* fileHandle;
+            FILE* fileHandle = fopen(argv[argn], "wb");
 
-            if ((fileHandle = fopen(argv[argn], "wb")) != NULL) {
+            if (fileHandle != NULL) {
                 fwrite(module->data, sizeof(uint8_t), module->byteLength, fileHandle);
                 fclose(fileHandle);
-                printf("Extracted module '%s'\n", argv[argn]);
+                printf("Extracted module \"%s\"\n", argv[argn]);
             } else
                 fatalError("Unable to write module");
         } else

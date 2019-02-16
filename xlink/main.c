@@ -70,7 +70,7 @@ static void
 printUsage(void) {
     printf("xlink v" LINK_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n"
            "\n"
-           "Usage: xlink [options] file1 file2 ... filen\n"
+           "Usage: xlink [options] file1 [file2 [... filen]]\n"
            "Options: (a forward slash (/) can be used instead of the dash (-))\n"
            "\t-h\t\tThis text\n"
            //			"\t-m<mapfile>\tWrite a mapfile\n"
