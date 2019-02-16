@@ -5,6 +5,8 @@ add_executable (xlink
     assign.h
     commodore.c
     commodore.h
+    gameboy.c
+    gameboy.h
     group.c
     group.h
     image.c

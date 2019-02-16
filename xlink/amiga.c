@@ -17,6 +17,12 @@
 */
 
 #include <string.h>
+
+#include "file.h"
+#include "mem.h"
+
+#include "patch.h"
+#include "section.h"
 #include "xlink.h"
 
 #define HUNK_UNIT    0x3E7u

@@ -19,31 +19,7 @@
 #ifndef XLINK_XLINK_H_INCLUDED_
 #define XLINK_XLINK_H_INCLUDED_
 
-#define MAX_SYMBOL_NAME_LENGTH 256
-
 #include "asmotor.h"
-#include "file.h"
-
-#include "types.h"
-#include "object.h"
-#include "image.h"
-#include "commodore.h"
-#include "sega.h"
-#include "mapfile.h"
-#include "symbol.h"
-#include "patch.h"
-#include "section.h"
-#include "group.h"
-#include "assign.h"
-#include "smart.h"
-#include "amiga.h"
-#include "mem.h"
-#include "section.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <ctype.h>
 
 NORETURN (extern void error(const char* fmt, ...));
 

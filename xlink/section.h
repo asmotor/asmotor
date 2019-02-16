@@ -19,6 +19,13 @@
 #ifndef XLINK_SECTION_H_INCLUDED_
 #define XLINK_SECTION_H_INCLUDED_
 
+#include "types.h"
+
+#include "group.h"
+#include "object.h"
+#include "patch.h"
+#include "symbol.h"
+
 typedef struct Section_ {
     uint32_t fileId;
     uint32_t sectionId;

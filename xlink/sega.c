@@ -16,6 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "file.h"
+
+#include "image.h"
 #include "xlink.h"
 
 static uint16_t

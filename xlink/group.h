@@ -19,6 +19,8 @@
 #ifndef XLINK_GROUP_H_INCLUDED_
 #define XLINK_GROUP_H_INCLUDED_
 
+#include "types.h"
+
 extern void
 group_SetupGameboy(void);
 

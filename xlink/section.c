@@ -18,6 +18,12 @@
 
 #include <string.h>
 
+#include "mem.h"
+
+#include "section.h"
+#include "symbol.h"
+#include "types.h"
+
 #include "xlink.h"
 
 Section* sect_Sections = NULL;

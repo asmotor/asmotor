@@ -19,8 +19,13 @@
 #include <string.h>
 
 #include "fmath.h"
+#include "mem.h"
 
 #include "asmotor.h"
+
+#include "patch.h"
+#include "section.h"
+#include "symbol.h"
 #include "xlink.h"
 
 

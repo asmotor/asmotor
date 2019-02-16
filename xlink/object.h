@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+#include "symbol.h"
+
 typedef enum {
     GROUP_TEXT = 0,
     GROUP_BSS = 1

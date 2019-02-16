@@ -19,6 +19,8 @@
 #ifndef XLINK_SYMBOL_H_INCLUDED_
 #define XLINK_SYMBOL_H_INCLUDED_
 
+#define MAX_SYMBOL_NAME_LENGTH 256
+
 typedef enum {
     SYM_EXPORT,
     SYM_IMPORT,

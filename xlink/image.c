@@ -20,8 +20,10 @@
 
 // From util
 #include "fmath.h"
+#include "mem.h"
 
 // From xlink
+#include "section.h"
 #include "xlink.h"
 
 #define WRITE_BLOCK_SIZE 16384

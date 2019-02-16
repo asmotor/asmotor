@@ -16,15 +16,28 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <ctype.h>
 #include <stdarg.h>
 
 #include "asmotor.h"
 #include "str.h"
 
+#include "amiga.h"
+#include "assign.h"
+#include "commodore.h"
+#include "gameboy.h"
+#include "group.h"
+#include "image.h"
+#include "mapfile.h"
+#include "object.h"
+#include "patch.h"
+#include "sega.h"
+#include "smart.h"
 #include "xlink.h"
 
 typedef enum {
     TARGET_BINARY,
+    TARGET_GAMEBOY,
     TARGET_AMIGA_EXECUTABLE,
     TARGET_AMIGA_LINK_OBJECT,
     TARGET_COMMODORE64_PRG,
@@ -165,13 +178,13 @@ main(int argc, char* argv[]) {
                         /* Gameboy ROM image */
                         group_SetupGameboy();
                         targetDefined = true;
-                        targetType = TARGET_BINARY;
+                        targetType = TARGET_GAMEBOY;
                         ++argn;
                     } else if (str_EqualConst(target, "s")) {
                         /* Gameboy small mode ROM image */
                         group_SetupSmallGameboy();
                         targetDefined = true;
-                        targetType = TARGET_BINARY;
+                        targetType = TARGET_GAMEBOY;
                         ++argn;
                     } else if (str_EqualConst(target, "c64")) {
                         /* Commodore 64 .prg */
@@ -302,6 +315,9 @@ main(int argc, char* argv[]) {
                 break;
             case TARGET_MASTER_SYSTEM:
                 sega_WriteMasterSystemImage(outputFilename, binaryPad);
+                break;
+            case TARGET_GAMEBOY:
+                gameboy_WriteImage(outputFilename);
                 break;
             case TARGET_BINARY:
                 image_WriteBinary(outputFilename, binaryPad);

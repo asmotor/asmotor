@@ -63,9 +63,17 @@
  *	ENDR
  */
 
-#include "xlink.h"
-
 #include <string.h>
+
+#include "file.h"
+#include "mem.h"
+
+#include "group.h"
+#include "object.h"
+#include "patch.h"
+#include "section.h"
+#include "symbol.h"
+#include "xlink.h"
 
 #define MAKE_ID(a, b, c, d) ((uint32_t)(a)|((uint32_t)(b)<<8u)|((uint32_t)(c)<<16u)|((uint32_t)(d)<<24u))
 

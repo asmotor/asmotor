@@ -16,8 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <string.h>
 
+#include "group.h"
+#include "image.h"
+#include "section.h"
 #include "xlink.h"
 
 #define SYS_ASCII_ADDRESS 5

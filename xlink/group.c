@@ -16,6 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "mem.h"
+#include "types.h"
+
+#include "symbol.h"
 #include "xlink.h"
 
 #include <string.h>
