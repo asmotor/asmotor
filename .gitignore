@@ -26,7 +26,6 @@ CMakeFiles
 build/cmake/*/xasm/dcpu-16/motordcpu16
 build/cmake/*/xasm/6502/motor6502
 build/cmake/*/xasm/680x0/motor68k
-build/cmake/*/xasm/gameboy/motorgb
 build/cmake/*/xasm/mips/motormips
 build/cmake/*/xasm/schip/motorschip
 build/cmake/*/xgbfix/xgbfix
@@ -47,3 +46,7 @@ build/cmake/debug
 build/cmake/release
 CMakeSettings.json
 .vs/
+build.ninja
+compile_commands.json
+rules.ninja
+cmake-build-debug
