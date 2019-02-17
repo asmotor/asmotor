@@ -1,6 +1,6 @@
 #!/bin/sh
-MYASM="../../../build/scons/build_gameboy/motorgb -iinclude/ -z0"
-MYLIB="../../../build/scons/build_xlib/xlib"
+MYASM="../../../build/cmake/debug/xasm/z80/motorz80 -mcg -iinclude/ -z0"
+MYLIB="../../../build/cmake/debug/xlib/xlib"
 
 $MYASM -oirq.obj irq.asm
 $MYASM -outility.obj utility.asm

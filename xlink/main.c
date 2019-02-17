@@ -118,8 +118,9 @@ main(int argc, char* argv[]) {
     TargetType targetType = TARGET_BINARY;
     int binaryPad = -1;
 
-    char* outputFilename = NULL;
-    char* smartlink = NULL;
+    const char* outputFilename = NULL;
+    const char* smartlink = NULL;
+    const char* mapFilename = NULL;
 
     if (argc == 1)
         printUsage();
@@ -134,8 +135,7 @@ main(int argc, char* argv[]) {
             case 'm':
                 /* MapFile */
                 if (argv[argn][2] != 0) {
-                    map_SetFilename(&argv[argn][2]);
-                    ++argn;
+                    mapFilename = &argv[argn++][2];
                 } else {
                     error("option \"m\" needs an argument");
                 }
@@ -339,6 +339,14 @@ main(int argc, char* argv[]) {
                 break;
         }
     }
+
+    if (mapFilename != NULL) {
+        if (!target_SupportsReloc(targetType))
+            map_Write(mapFilename);
+        else
+            error("Output format does not support producing a mapfile");
+    }
+        
 
     return EXIT_SUCCESS;
 }

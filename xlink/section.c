@@ -30,31 +30,6 @@ Section* sect_Sections = NULL;
 
 static uint32_t s_sectionId = 0;
 
-Section*
-sect_CreateNew(void) {
-    Section** section = &sect_Sections;
-
-    while (*section != NULL)
-        section = &(*section)->nextSection;
-
-    *section = (Section*) mem_Alloc(sizeof(Section));
-    if (*section == NULL)
-        error("Out of memory");
-
-    (*section)->sectionId = s_sectionId++;
-    (*section)->nextSection = NULL;
-    (*section)->used = false;
-    (*section)->assigned = false;
-    (*section)->patches = NULL;
-
-    return *section;
-}
-
-uint32_t
-sect_TotalSections(void) {
-    return s_sectionId;
-}
-
 static void
 resolveSymbol(Section* section, Symbol* symbol, bool allowImports) {
     switch (symbol->type) {
@@ -106,10 +81,9 @@ resolveSymbol(Section* section, Symbol* symbol, bool allowImports) {
             for (definingSection = sect_Sections;
                  definingSection != NULL; definingSection = definingSection->nextSection) {
                 if (definingSection->used && definingSection->fileId == section->fileId) {
-                    uint32_t i;
                     Symbol* exportedSymbol = definingSection->symbols;
 
-                    for (i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol) {
+                    for (uint32_t i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol) {
                         if ((exportedSymbol->type == SYM_LOCALEXPORT || exportedSymbol->type == SYM_EXPORT)
                             && strcmp(exportedSymbol->name, symbol->name) == 0) {
                             if (!exportedSymbol->resolved)
@@ -172,12 +146,80 @@ sect_GetConstantSymbolBank(Section* section, uint32_t symbolId, int32_t* outValu
 }
 
 void
-sect_ForEachUsedSection(void (* function)(Section*)) {
+sect_ForEachUsedSection(void (* function)(Section*, intptr_t), intptr_t data) {
     Section* section;
 
     for (section = sect_Sections; section != NULL; section = section->nextSection) {
         if (section->used)
-            function(section);
+            function(section, data);
     }
 
+}
+
+Section*
+sect_CreateNew(void) {
+    Section** section = &sect_Sections;
+
+    while (*section != NULL)
+        section = &(*section)->nextSection;
+
+    *section = (Section*) mem_Alloc(sizeof(Section));
+    if (*section == NULL)
+        error("Out of memory");
+
+    (*section)->sectionId = s_sectionId++;
+    (*section)->nextSection = NULL;
+    (*section)->used = false;
+    (*section)->assigned = false;
+    (*section)->patches = NULL;
+
+    return *section;
+}
+
+uint32_t
+sect_TotalSections(void) {
+    return s_sectionId;
+}
+
+static void
+fillSectionArray(Section** sectionArray) {
+    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+        *sectionArray++ = section;
+    }
+}
+
+static void
+fillSectionList(Section** sectionArray) {
+    sect_Sections = sectionArray[0];
+
+    for (uint32_t i = 1; i < sect_TotalSections(); ++i) {
+        sectionArray[i - 1]->nextSection = sectionArray[i];
+    }
+
+    sectionArray[sect_TotalSections() - 1]->nextSection = NULL;
+}
+
+static int
+compareSections(const void* element1, const void* element2) {
+    Section* section1 = *(Section**) element1;
+    Section* section2 = *(Section**) element2;
+
+    if (section1->used != section2->used)
+        return section1->used - section2->used;
+
+    if (section1->cpuBank != section2->cpuBank)
+        return section1->cpuBank - section2->cpuBank;
+
+    return section1->cpuLocation - section2->cpuLocation;
+}
+
+void
+sect_SortSections(void) {
+    Section** sections = mem_Alloc(sizeof(Section*) * sect_TotalSections());
+
+    fillSectionArray(sections);
+    qsort(sections, sect_TotalSections(), sizeof(Section*), compareSections);
+    fillSectionList(sections);
+
+    mem_Free(sections);
 }

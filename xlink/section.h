@@ -71,9 +71,12 @@ extern char*
 sect_GetSymbolName(Section* section, uint32_t symbolId);
 
 extern void
-sect_ForEachUsedSection(void (* function)(Section*));
+sect_ForEachUsedSection(void (* function)(Section*, intptr_t), intptr_t data);
 
 extern uint32_t
 sect_TotalSections(void);
+
+extern void
+sect_SortSections(void);
 
 #endif

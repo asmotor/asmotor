@@ -17,7 +17,7 @@
 */
 
 /*
- *	uint32_t	"XLB0"
+ *	uint32_t	"XLB\0"
  *	uint32_t	TotalFiles
  *	REPT	TotalFiles
  *		ASCIIZ	Name
@@ -102,7 +102,7 @@ lib_Read(const char* filename) {
         ID[4] = 0;
         size -= 4;
 
-        if (strcmp(ID, "XLB0") == 0) {
+        if (memcmp(ID, "XLB\0", 4) == 0) {
             SModule* result = readLib0(fileHandle, size);
             fclose(fileHandle);
             return result;
@@ -121,7 +121,7 @@ lib_Write(SModule* library, const char* filename) {
     FILE* fileHandle = fopen(filename, "wb");
 
     if (fileHandle != NULL) {
-        fwrite("XLB0", sizeof(char), 4, fileHandle);
+        fwrite("XLB\0", sizeof(char), 4, fileHandle);
         fputll(0, fileHandle);
 
         uint32_t count = 0;

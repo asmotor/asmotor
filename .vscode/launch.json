@@ -5,13 +5,25 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) Launch",
+            "name": "Debug xlink",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
+            "args": ["-mmap.map", "-tg", "-ogbfade.gb", "main.obj", "user.obj", "pics.obj", "../minios/mos.lib"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/test/gameboy/slidshow",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "Debug motorz80",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["test_out.asm"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/test/z80",
+            "args": ["-i../minios/include/", "-mcg", "pics.asm"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/test/gameboy/slidshow",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"

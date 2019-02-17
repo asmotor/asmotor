@@ -50,3 +50,4 @@ build.ninja
 compile_commands.json
 rules.ninja
 cmake-build-debug
+map.map

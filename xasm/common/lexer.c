@@ -110,6 +110,10 @@ expandEscapeSequence(char** destination, char escapeSymbol) {
         default: {
             return expandMacroArguments(destination, escapeSymbol);
         }
+        case '\\': {
+            *(*destination)++ = '\\';
+            return true;
+        }
         case 'n': {
             *(*destination)++ = ASM_CRLF;
             return true;

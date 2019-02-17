@@ -20,6 +20,6 @@
 #define XLINK_MAPFILE_H_INCLUDED_
 
 extern void
-map_SetFilename(const char* name);
+map_Write(const char* name);
 
 #endif

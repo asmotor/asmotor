@@ -20,7 +20,7 @@
 #include "xlink.h"
 
 static void
-assignOrgAndBankFixedSection(Section* section) {
+assignOrgAndBankFixedSection(Section* section, intptr_t data) {
     if (!section->assigned && section->group != NULL && section->cpuByteLocation != -1 && section->cpuBank != -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
                                     &section->cpuBank, &section->imageLocation))
@@ -31,7 +31,7 @@ assignOrgAndBankFixedSection(Section* section) {
 }
 
 static void
-assignOrgFixedSection(Section* section) {
+assignOrgFixedSection(Section* section, intptr_t data) {
     if (!section->assigned && section->group != NULL && section->cpuByteLocation != -1 && section->cpuBank == -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
                                     &section->cpuBank, &section->imageLocation))
@@ -42,7 +42,7 @@ assignOrgFixedSection(Section* section) {
 }
 
 static void
-assignBankFixedSection(Section* section) {
+assignBankFixedSection(Section* section, intptr_t data) {
     if (!section->assigned && section->group != NULL && section->cpuByteLocation == -1 && section->cpuBank != -1) {
         if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
                                   &section->cpuBank, &section->imageLocation))
@@ -54,7 +54,7 @@ assignBankFixedSection(Section* section) {
 }
 
 static void
-assignTextSection(Section* section) {
+assignTextSection(Section* section, intptr_t data) {
     if (!section->assigned && section->group != NULL && section->group->type == GROUP_TEXT) {
         if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
                                   &section->cpuBank, &section->imageLocation))
@@ -66,7 +66,7 @@ assignTextSection(Section* section) {
 }
 
 static void
-assignSection(Section* section) {
+assignSection(Section* section, intptr_t data) {
     if (section->group == NULL) {
         //	This is a special exported EQU symbol section
 
@@ -87,10 +87,12 @@ assignSection(Section* section) {
 
 void
 assign_Process(void) {
-    sect_ForEachUsedSection(assignOrgAndBankFixedSection);
-    sect_ForEachUsedSection(assignOrgFixedSection);
-    sect_ForEachUsedSection(assignBankFixedSection);
+    sect_ForEachUsedSection(assignOrgAndBankFixedSection, 0);
+    sect_ForEachUsedSection(assignOrgFixedSection, 0);
+    sect_ForEachUsedSection(assignBankFixedSection, 0);
     // Byte aligned sections should go here
-    sect_ForEachUsedSection(assignTextSection);
-    sect_ForEachUsedSection(assignSection);
+    sect_ForEachUsedSection(assignTextSection, 0);
+    sect_ForEachUsedSection(assignSection, 0);
+
+    sect_SortSections();
 }

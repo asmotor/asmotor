@@ -261,8 +261,6 @@ readXLB0(FILE* fileHandle) {
     while (count--) {
         while (fgetc(fileHandle)) {
         }  // Skip name
-        fgetll(fileHandle);           // Skip time
-        fgetll(fileHandle);           // Skip date
         fgetll(fileHandle);           // Skip length
 
         readChunk(fileHandle);
