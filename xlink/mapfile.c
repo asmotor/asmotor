@@ -52,7 +52,7 @@ writeSectionToMapFile(Section* section, intptr_t data) {
     for (uint32_t i = 0; i < section->totalSymbols; ++i) {
         Symbol* symbol = &section->symbols[i];
 
-        if (!symbolIsImport(symbol)) {
+        if (!symbolIsImport(symbol) && symbol->resolved) {
             if (section->cpuBank != -1) {
                 fprintf(fileHandle, "%X:", section->cpuBank);
             }
