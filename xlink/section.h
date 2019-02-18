@@ -79,4 +79,10 @@ sect_TotalSections(void);
 extern void
 sect_SortSections(void);
 
+extern Section*
+sect_FindSectionWithExportedSymbol(const char* symbol);
+
+extern Section*
+sect_FindSectionWithLocallyExportedSymbol(const char* symbolName, uint32_t fileId);
+
 #endif

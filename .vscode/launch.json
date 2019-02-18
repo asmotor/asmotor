@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-mmap.map", "-tg", "-ogbfade.gb", "main.obj", "user.obj", "pics.obj", "../minios/mos.lib"],
+            "args": ["-sMain", "-mmap.map", "-tg", "-ogbfade.gb", "main.obj", "user.obj", "pics.obj", "../minios/mos.lib"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/gameboy/slidshow",
             "environment": [],

@@ -19,6 +19,9 @@
 #ifndef XLINK_SYMBOL_H_INCLUDED_
 #define XLINK_SYMBOL_H_INCLUDED_
 
+#include "asmotor.h"
+#include "types.h"
+
 #define MAX_SYMBOL_NAME_LENGTH 256
 
 typedef enum {
@@ -50,6 +53,11 @@ symbol_IsLocal(Symbol* symbol) {
         case SYM_IMPORT:
             return false;
     }
+}
+
+INLINE bool
+sym_IsImport(const Symbol* symbol) {
+    return symbol->type == SYM_IMPORT || symbol->type == SYM_LOCALIMPORT;
 }
 
 #endif

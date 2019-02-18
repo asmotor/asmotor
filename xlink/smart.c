@@ -19,10 +19,44 @@
 #include "section.h"
 #include "xlink.h"
 
+static void
+useSectionWithGlobalExport(const char* name);
+
+static void
+useSectionWithLocalExport(const char* name, uint32_t fileId);
+
+static void
+markReferencedSectionsUsed(Section* section) {
+    section->used = true;
+    for (uint32_t i = 0; i < section->totalSymbols; ++i) {
+        Symbol* symbol = &section->symbols[i];
+        if (symbol->type == SYM_LOCALIMPORT)
+            useSectionWithLocalExport(symbol->name, section->fileId);
+        else if (symbol->type == SYM_IMPORT)
+            useSectionWithGlobalExport(symbol->name);
+    }
+}
+
+static void
+useSectionWithGlobalExport(const char* name) {
+    Section* section = sect_FindSectionWithExportedSymbol(name);
+    if (section != NULL && !section->used) {
+        markReferencedSectionsUsed(section);
+    }
+}
+
+static void
+useSectionWithLocalExport(const char* name, uint32_t fileId) {
+    Section* section = sect_FindSectionWithLocallyExportedSymbol(name, fileId);
+    if (section != NULL && !section->used) {
+        markReferencedSectionsUsed(section);
+    }
+}
+
 void
 smart_Process(const char* name) {
     if (name != NULL) {
-        error("smart linking not supported yet");
+        useSectionWithGlobalExport(name);
     } else {
         // Link in all sections
         Section* section = sect_Sections;

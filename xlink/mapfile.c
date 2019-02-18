@@ -19,18 +19,13 @@
 #include "section.h"
 #include "xlink.h"
 
-static bool
-symbolIsImport(const Symbol* symbol) {
-    return symbol->type == SYM_IMPORT || symbol->type == SYM_LOCALIMPORT;
-}
-
 static int
 compareSymbols(const void* element1, const void* element2) {
     const Symbol* symbol1 = (const Symbol*) element1;
     const Symbol* symbol2 = (const Symbol*) element2;
 
-    bool symbol1Import = symbolIsImport(symbol1);
-    bool symbol2Import = symbolIsImport(symbol2);
+    bool symbol1Import = sym_IsImport(symbol1);
+    bool symbol2Import = sym_IsImport(symbol2);
 
     if (symbol1Import != symbol2Import)
         return symbol1Import - symbol2Import;
@@ -52,7 +47,7 @@ writeSectionToMapFile(Section* section, intptr_t data) {
     for (uint32_t i = 0; i < section->totalSymbols; ++i) {
         Symbol* symbol = &section->symbols[i];
 
-        if (!symbolIsImport(symbol) && symbol->resolved) {
+        if (!sym_IsImport(symbol) && symbol->resolved) {
             if (section->cpuBank != -1) {
                 fprintf(fileHandle, "%X:", section->cpuBank);
             }

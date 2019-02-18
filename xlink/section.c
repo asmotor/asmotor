@@ -223,3 +223,54 @@ sect_SortSections(void) {
 
     mem_Free(sections);
 }
+
+static Symbol*
+sectionHasSymbol(Section* section, const char* symbolName, SymbolType symbolType) {
+    for (uint32_t i = 0; i < section->totalSymbols; ++i) {
+        Symbol* symbol = &section->symbols[i];
+        if (symbol->type == symbolType && strcmp(symbol->name, symbolName) == 0)
+            return symbol;
+    }
+
+    return NULL;
+}
+
+static Section*
+findSectionContainingAddress(int32_t value, uint32_t fileId) {
+    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+        if (section->fileId == fileId && section->cpuLocation <= value && value < section->cpuLocation + (int32_t) section->size) {
+            return section;
+        }
+    }
+    return NULL;
+}
+
+Section*
+sect_FindSectionWithExportedSymbol(const char* symbolName) {
+    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+        Symbol* symbol = sectionHasSymbol(section, symbolName, SYM_EXPORT);
+        if (symbol != NULL) {
+            if (section->group == NULL) {
+                return findSectionContainingAddress(symbol->value, section->fileId);
+            }
+            return section;
+        }
+    }
+    return NULL;
+}
+
+Section*
+sect_FindSectionWithLocallyExportedSymbol(const char* symbolName, uint32_t fileId) {
+    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+        if (section->fileId == fileId) {
+            Symbol* symbol = sectionHasSymbol(section, symbolName, SYM_LOCALEXPORT);
+            if (symbol != NULL) {
+                if (section->group == NULL) {
+                    return findSectionContainingAddress(symbol->value, section->fileId);
+                }
+                return section;
+            }
+        }
+    }
+    return sect_FindSectionWithExportedSymbol(symbolName);
+}
