@@ -20,10 +20,10 @@
             "name": "Debug motorz80",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-i../minios/include/", "-mcg", "pics.asm"],
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/mips/motormips",
+            "args": ["-fv", "-ostrings.r", "strings.asm"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/test/gameboy/slidshow",
+            "cwd": "${workspaceFolder}/test/common",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"

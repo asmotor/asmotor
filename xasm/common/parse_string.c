@@ -41,6 +41,25 @@ stringExpressionPri2(void) {
             parse_GetToken();
             return r;
         }
+        case T_OP_BITWISE_OR: {
+            tokens_ExpandStrings = false;
+            parse_GetToken();
+            tokens_ExpandStrings = true;
+
+            if (lex_Current.token == T_ID) {
+                string* result = NULL;
+
+                string* symbol = str_CreateLength(lex_Current.value.string, lex_Current.length);
+                parse_GetToken();
+                if (lex_Current.token == T_OP_BITWISE_OR) {
+                    parse_GetToken();
+                    result = sym_GetStringValueByName(symbol);
+                }
+                str_Free(symbol);
+                return result;
+            }
+            break;
+        }
         case (EToken) '(': {
             parse_GetToken();
 

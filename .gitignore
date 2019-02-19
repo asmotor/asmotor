@@ -51,3 +51,4 @@ compile_commands.json
 rules.ninja
 cmake-build-debug
 map.map
+test/gameboy/minios/.d

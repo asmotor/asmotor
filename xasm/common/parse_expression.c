@@ -516,7 +516,6 @@ expressionPriority2(size_t maxStringConstLength) {
 static SExpression*
 expressionPriority1(size_t maxStringConstLength) {
     switch (lex_Current.token) {
-        case T_OP_BITWISE_OR:
         case T_OP_BOOLEAN_NOT: {
             parse_GetToken();
             return expr_BooleanNot(expressionPriority1(maxStringConstLength));

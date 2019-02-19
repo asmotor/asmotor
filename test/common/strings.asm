@@ -26,19 +26,19 @@
 	PRINTV	"1234"
 
 Test	EQUS	"This is a test"
-	PRINTT	"\n{Test}"
-	PRINTT	{Test}.slice({Test}.indexof(" is"),20)
+	PRINTT	"\n{|Test|}"
+	PRINTT	|Test|.slice(|Test|.indexof(" is"),20)
 	PRINTT	"\n"
-	PRINTV	{Test}.slice({Test}.indexof(" is"),20).upper.length
+	PRINTV	|Test|.slice(|Test|.indexof(" is"),20).upper.length
 	PRINTT	"\n"
 
 	PRINTT	"0123".slice(4,1)+"No character before this text\n"
 
-	PRINTT	"\{Test\}\.length == "
-	PRINTV	{Test}.length
+	PRINTT	"|Test|.length == "
+	PRINTV	|Test|.length
 	PRINTT	"\n"
 
-	PRINTT	{Test}+" of string concatenation\n"
+	PRINTT	|Test|+" of string concatenation\n"
 
 	PRINTT	"This should be upper case\n".upper
 	PRINTT	"This should be lower case\n".lower
