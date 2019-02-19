@@ -31,8 +31,68 @@
 
 SOptions* opt_Current;
 
+static bool
+handleDisableWarning(const char* warning) {
+    int warningInt;
+    if (opt_Current->disabledWarningsCount < MAX_DISABLED_WARNINGS && 1 == sscanf(warning, "%d", &warningInt)) {
+        opt_Current->disabledWarnings[opt_Current->disabledWarningsCount++] = (uint16_t) warningInt;
+        return true;
+    }
+    
+    return false;
+}
+
 static void
-opt_Update(void) {
+handleAddIncludePath(const char* path) {
+    string* pathString = str_Create(path);
+    fstk_AddIncludePath(pathString);
+    str_Free(pathString);
+}
+
+static bool
+handleEndianness(char endianness) {
+    switch (endianness) {
+        case 'b':
+            opt_Current->endianness = ASM_BIG_ENDIAN;
+            return true;
+        case 'l':
+            opt_Current->endianness = ASM_LITTLE_ENDIAN;
+            return true;
+        default:
+            return false;
+    }
+}
+
+static bool
+handleBinaryLiteralChars(const char* characters) {
+    if (strlen(characters) == 2) {
+        opt_Current->binaryLiteralCharacters[0] = (uint8_t) characters[0];
+        opt_Current->binaryLiteralCharacters[1] = (uint8_t) characters[1];
+        return true;
+    }
+
+    return false;
+}
+
+static bool
+handleUnitializedFill(const char* fill) {
+    if (strlen(fill) <= 2) {
+        if (strcmp(fill, "?") == 0) {
+            opt_Current->uninitializedValue = 0xFF;
+            return true;
+        } else {
+            int uninitializedValue;
+            int result = sscanf(fill, "%x", &uninitializedValue);
+            opt_Current->uninitializedValue = (uint8_t) uninitializedValue;
+            return !(result == EOF || result != 1);
+        }
+    }
+
+    return false;
+}
+
+static void
+optionsUpdated(void) {
     lex_VariadicRemoveAll(tokens_BinaryVariadicId);
 
     lex_VariadicAddCharRange(tokens_BinaryVariadicId, '%', '%', 0);
@@ -43,7 +103,7 @@ opt_Update(void) {
 }
 
 static SOptions*
-opt_Alloc(void) {
+allocOptions(void) {
     SOptions* nopt = (SOptions*) mem_Alloc(sizeof(SOptions));
     memset(nopt, 0, sizeof(SOptions));
     nopt->machineOptions = xasm_Configuration->allocOptions();
@@ -51,7 +111,7 @@ opt_Alloc(void) {
 }
 
 static void
-opt_Copy(SOptions* pDest, SOptions* pSrc) {
+copyOptions(SOptions* pDest, SOptions* pSrc) {
     struct MachineOptions* p = pDest->machineOptions;
 
     *pDest = *pSrc;
@@ -62,8 +122,8 @@ opt_Copy(SOptions* pDest, SOptions* pSrc) {
 
 void
 opt_Push(void) {
-    SOptions* nopt = opt_Alloc();
-    opt_Copy(nopt, opt_Current);
+    SOptions* nopt = allocOptions();
+    copyOptions(nopt, opt_Current);
 
     list_Insert(opt_Current, nopt);
 }
@@ -75,85 +135,54 @@ opt_Pop(void) {
 
         list_Remove(opt_Current, opt_Current);
         mem_Free(nopt);
-        opt_Update();
+        optionsUpdated();
     } else {
         err_Warn(WARN_OPTION_POP);
     }
 }
 
 void
-opt_Parse(char* s) {
-    switch (s[0]) {
+opt_Parse(char* option) {
+    switch (option[0]) {
         case 'w': {
-            int w;
-            if (opt_Current->disabledWarningsCount < MAX_DISABLED_WARNINGS && 1 == sscanf(&s[1], "%d", &w)) {
-                opt_Current->disabledWarnings[opt_Current->disabledWarningsCount++] = (uint16_t) w;
-            } else {
-                err_Warn(WARN_OPTION, s);
-            }
+            if (!handleDisableWarning(&option[1]))
+                err_Warn(WARN_OPTION, option);
             break;
         }
         case 'i': {
-            string* pPath = str_Create(&s[1]);
-            fstk_AddIncludePath(pPath);
-            str_Free(pPath);
+            handleAddIncludePath(&option[1]);
             break;
         }
         case 'e': {
-            switch (s[1]) {
-                case 'b':
-                    opt_Current->endianness = ASM_BIG_ENDIAN;
-                    break;
-                case 'l':
-                    opt_Current->endianness = ASM_LITTLE_ENDIAN;
-                    break;
-                default:
-                    err_Warn(WARN_OPTION, s);
-                    break;
-            }
+            if (!handleEndianness(option[1]))
+                err_Warn(WARN_OPTION, option);
             break;
         }
         case 'm': {
-            xasm_Configuration->parseOption(&s[1]);
+            xasm_Configuration->parseOption(&option[1]);
             break;
         }
         case 'b': {
-            if (strlen(&s[1]) == 2) {
-                opt_Current->binaryLiteralCharacters[0] = (uint8_t) s[1];
-                opt_Current->binaryLiteralCharacters[1] = (uint8_t) s[2];
-            } else {
-                err_Warn(WARN_OPTION, s);
-            }
+            if (!handleBinaryLiteralChars(&option[1]))
+                err_Warn(WARN_OPTION, option);
             break;
         }
         case 'z': {
-            if (strlen(&s[1]) <= 2) {
-                if (strcmp(&s[1], "?") == 0) {
-                    opt_Current->uninitializedValue = 0xFF;
-                } else {
-                    int uninitializedValue;
-                    int result = sscanf(&s[1], "%x", &uninitializedValue);
-                    opt_Current->uninitializedValue = (uint8_t) uninitializedValue;
-                    if (result == EOF || result != 1) {
-                        err_Warn(WARN_OPTION, s);
-                    }
-                }
-            } else {
-                err_Warn(WARN_OPTION, s);
-            }
+            if (!handleUnitializedFill(&option[1]))
+                err_Warn(WARN_OPTION, option);
             break;
         }
         default: {
-            err_Warn(WARN_OPTION, s);
+            err_Warn(WARN_OPTION, option);
             break;
         }
     }
-    opt_Update();
+    optionsUpdated();
 }
 
 void
 opt_Open(void) {
-    opt_Current = opt_Alloc();
+    opt_Current = allocOptions();
 
     opt_Current->endianness = xasm_Configuration->defaultEndianness;
     opt_Current->binaryLiteralCharacters[0] = '0';
@@ -163,7 +192,7 @@ opt_Open(void) {
     opt_Current->allowReservedKeywordLabels = true;
 
     xasm_Configuration->setDefaultOptions(opt_Current->machineOptions);
-    opt_Update();
+    optionsUpdated();
 }
 
 void
