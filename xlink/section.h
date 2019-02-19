@@ -85,4 +85,7 @@ sect_FindSectionWithExportedSymbol(const char* symbol);
 extern Section*
 sect_FindSectionWithLocallyExportedSymbol(const char* symbolName, uint32_t fileId);
 
+extern bool
+sect_IsEquSection(Section* section);
+
 #endif

@@ -21,7 +21,7 @@
 
 static void
 assignOrgAndBankFixedSection(Section* section, intptr_t data) {
-    if (!section->assigned && section->group != NULL && section->cpuByteLocation != -1 && section->cpuBank != -1) {
+    if (!section->assigned && !sect_IsEquSection(section) && section->cpuByteLocation != -1 && section->cpuBank != -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
                                     &section->cpuBank, &section->imageLocation))
             error("No space for section \"%s\"", section->name);
@@ -32,7 +32,7 @@ assignOrgAndBankFixedSection(Section* section, intptr_t data) {
 
 static void
 assignOrgFixedSection(Section* section, intptr_t data) {
-    if (!section->assigned && section->group != NULL && section->cpuByteLocation != -1 && section->cpuBank == -1) {
+    if (!section->assigned && !sect_IsEquSection(section) && section->cpuByteLocation != -1 && section->cpuBank == -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
                                     &section->cpuBank, &section->imageLocation))
             error("No space for section \"%s\"", section->name);
@@ -43,7 +43,7 @@ assignOrgFixedSection(Section* section, intptr_t data) {
 
 static void
 assignBankFixedSection(Section* section, intptr_t data) {
-    if (!section->assigned && section->group != NULL && section->cpuByteLocation == -1 && section->cpuBank != -1) {
+    if (!section->assigned && !sect_IsEquSection(section) && section->cpuByteLocation == -1 && section->cpuBank != -1) {
         if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
                                   &section->cpuBank, &section->imageLocation))
             error("No space for section \"%s\"", section->name);
@@ -55,7 +55,7 @@ assignBankFixedSection(Section* section, intptr_t data) {
 
 static void
 assignTextSection(Section* section, intptr_t data) {
-    if (!section->assigned && section->group != NULL && section->group->type == GROUP_TEXT) {
+    if (!section->assigned && !sect_IsEquSection(section) && section->group->type == GROUP_TEXT) {
         if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
                                   &section->cpuBank, &section->imageLocation))
             error("No space for section \"%s\"", section->name);
@@ -67,7 +67,7 @@ assignTextSection(Section* section, intptr_t data) {
 
 static void
 assignSection(Section* section, intptr_t data) {
-    if (section->group == NULL) {
+    if (sect_IsEquSection(section)) {
         //	This is a special exported EQU symbol section
 
         section->cpuByteLocation = 0;

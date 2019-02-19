@@ -33,7 +33,7 @@ static uint8_t basicSys[] = {
 static int
 startAddressOfFirstCodeSection(void) {
     for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
-        if (section->used && section->group && (section->group->type == GROUP_TEXT)) {
+        if (section->used && !sect_IsEquSection(section) && (section->group->type == GROUP_TEXT)) {
             return section->cpuLocation;
         }
     }

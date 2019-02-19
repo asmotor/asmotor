@@ -76,7 +76,7 @@ static void
 writeSectionNames(FILE* fileHandle, bool debugInfo) {
     if (debugInfo) {
         for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
-            if (section->used && section->group != NULL)
+            if (section->used && !sect_IsEquSection(section))
                 writeString(fileHandle, section->name, 0);
         }
     }
@@ -87,7 +87,7 @@ writeSectionNames(FILE* fileHandle, bool debugInfo) {
 static void
 writeSectionSizes(FILE* fileHandle) {
     for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
-        if (section->used && section->group != NULL)
+        if (section->used && !sect_IsEquSection(section))
             fputbl(sectionSize(section), fileHandle);
     }
 }
@@ -252,7 +252,7 @@ writeSection(FILE* fileHandle, Section* section, bool debugInfo, uint32_t totalS
 static void
 writeSections(FILE* fileHandle, bool debugInfo, uint32_t totalSections, bool linkObject) {
     for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
-        if (section->used && section->group != NULL)
+        if (section->used && !sect_IsEquSection(section))
             writeSection(fileHandle, section, debugInfo, totalSections, linkObject);
     }
 }
@@ -262,7 +262,7 @@ updateSectionIds() {
     uint32_t sectionId = 0;
 
     for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
-        if (section->used && section->group != NULL)
+        if (section->used && !sect_IsEquSection(section))
             section->sectionId = sectionId++;
         else
             section->sectionId = UINT32_MAX;

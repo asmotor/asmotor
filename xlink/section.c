@@ -245,12 +245,17 @@ findSectionContainingAddress(int32_t value, uint32_t fileId) {
     return NULL;
 }
 
+bool
+sect_IsEquSection(Section* section) {
+    return section->group == NULL;
+}
+
 Section*
 sect_FindSectionWithExportedSymbol(const char* symbolName) {
     for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
         Symbol* symbol = sectionHasSymbol(section, symbolName, SYM_EXPORT);
         if (symbol != NULL) {
-            if (section->group == NULL) {
+            if (sect_IsEquSection(section)) {
                 return findSectionContainingAddress(symbol->value, section->fileId);
             }
             return section;
@@ -265,7 +270,7 @@ sect_FindSectionWithLocallyExportedSymbol(const char* symbolName, uint32_t fileI
         if (section->fileId == fileId) {
             Symbol* symbol = sectionHasSymbol(section, symbolName, SYM_LOCALEXPORT);
             if (symbol != NULL) {
-                if (section->group == NULL) {
+                if (sect_IsEquSection(section)) {
                     return findSectionContainingAddress(symbol->value, section->fileId);
                 }
                 return section;

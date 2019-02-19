@@ -58,7 +58,7 @@ image_WriteBinaryToFile(FILE* fileHandle, int padding) {
 
     for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
         //	This is a special exported EQU symbol section
-        if (section->group == NULL)
+        if (sect_IsEquSection(section))
             continue;
 
         if (section->used && section->assigned && section->imageLocation != -1 && section->group->type != GROUP_BSS) {
