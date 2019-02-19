@@ -3,6 +3,8 @@ add_library (xasm
     amigaobject.h
     binaryobject.c
     binaryobject.h
+    dependency.c
+    dependency.h
     errors.c
     errors.h
     expression.c
