@@ -21,13 +21,14 @@
 #include <string.h>
 
 #include "asmotor.h"
-#include "xasm.h"
 #include "mem.h"
-#include "options.h"
-#include "lexer_variadics.h"
-#include "tokens.h"
+
+#include "xasm.h"
 #include "errors.h"
 #include "filestack.h"
+#include "lexer_variadics.h"
+#include "options.h"
+#include "tokens.h"
 
 SOptions* opt_Current;
 
@@ -141,16 +142,13 @@ opt_Pop(void) {
     }
 }
 
+
 void
 opt_Parse(char* option) {
     switch (option[0]) {
-        case 'w': {
-            if (!handleDisableWarning(&option[1]))
+        case 'b': {
+            if (!handleBinaryLiteralChars(&option[1]))
                 err_Warn(WARN_OPTION, option);
-            break;
-        }
-        case 'i': {
-            handleAddIncludePath(&option[1]);
             break;
         }
         case 'e': {
@@ -158,12 +156,16 @@ opt_Parse(char* option) {
                 err_Warn(WARN_OPTION, option);
             break;
         }
+        case 'i': {
+            handleAddIncludePath(&option[1]);
+            break;
+        }
         case 'm': {
             xasm_Configuration->parseOption(&option[1]);
             break;
         }
-        case 'b': {
-            if (!handleBinaryLiteralChars(&option[1]))
+        case 'w': {
+            if (!handleDisableWarning(&option[1]))
                 err_Warn(WARN_OPTION, option);
             break;
         }

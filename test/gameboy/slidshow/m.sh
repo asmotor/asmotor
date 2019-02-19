@@ -3,7 +3,7 @@ MYASM="../../../build/cmake/debug/xasm/z80/motorz80 -i../minios/include/ -mcg"
 MYLINK="../../../build/cmake/debug/xlink/xlink"
 MYFIX="../../../build/cmake/debug/xgbfix/xgbfix"
 
-$MYASM -omain.obj main.asm
+$MYASM -dmain.d -omain.obj main.asm
 $MYASM -ouser.obj user.asm
 $MYASM -opics.obj pics.asm
 

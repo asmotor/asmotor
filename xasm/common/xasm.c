@@ -24,22 +24,21 @@
 #include <crtdbg.h>
 #endif
 
+#include "xasm.h"
 #include "asmotor.h"
 #include "amitime.h"
 #include "amigaobject.h"
+#include "binaryobject.h"
+#include "dependency.h"
+#include "errors.h"
+#include "filestack.h"
+#include "object.h"
+#include "options.h"
+#include "parse.h"
+#include "patch.h"
 #include "section.h"
 #include "symbol.h"
 #include "tokens.h"
-#include "options.h"
-#include "errors.h"
-#include "filestack.h"
-#include "parse.h"
-#include "patch.h"
-#include "object.h"
-#include "binaryobject.h"
-#include "xasm.h"
-
-/* Some global variables */
 
 uint32_t xasm_TotalLines = 0;
 uint32_t xasm_TotalErrors = 0;
@@ -47,60 +46,72 @@ uint32_t xasm_TotalWarnings = 0;
 
 const SConfiguration* xasm_Configuration = NULL;
 
-/*	Help text*/
 
-void
+static void
 printUsage(void) {
     printf("%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
            "Options:\n"
-           "    -b<AS>  Change the two characters used for binary constants\n"
-           "            (default is 01)\n"
-           "    -e(l|b) Change endianness (CAUTION!)\n"
-           "    -f<f>   Output format, one of\n"
-           "                x - xobj (default)\n"
-           "                b - binary file\n"
-           "                v - verilog readmemh file\n", xasm_Configuration->executableName,
+           "    -b<AS>   Change the two characters used for binary constants\n"
+           "             (default is 01)\n"
+           "    -d<FILE> Output dependency file for GNU Make\n"
+           "    -e(l|b)  Change endianness (CAUTION!)\n"
+           "    -fF      Output format, one of\n"
+           "                 x - xobj (default)\n"
+           "                 b - binary file\n"
+           "                 v - verilog readmemh file\n", xasm_Configuration->executableName,
            xasm_Configuration->backendVersion, xasm_Configuration->executableName);
 
     if (xasm_Configuration->supportAmiga) {
-        printf("                g - Amiga executable file\n"
-               "                h - Amiga object file\n");
+        printf("                 g - Amiga executable file\n"
+               "                 h - Amiga object file\n");
     }
 
-    printf("    -h      This text\n"
-           "    -i<dir> Extra include path (can appear more than once)\n"
-           "    -o<f>   Write assembly output to <file>\n"
-           "    -v      Verbose text output\n"
-           "    -w<d>   Disable warning <d> (four digits)\n"
-           "    -z<XX>  Set the byte value (hex format) used for uninitialised\n"
-           "            data (default is FF)\n"
+    printf("    -g       Include debug information\n"
+           "    -h       This text\n"
+           "    -i<dir>  Extra include path (can appear more than once)\n"
+           "    -o<f>    Write assembly output to <file>\n"
+           "    -v       Verbose text output\n"
+           "    -w<d>    Disable warning <d> (four digits)\n"
+           "    -z<XX>   Set the byte value (hex format) used for uninitialised\n"
+           "             data (default is FF)\n"
            "\n"
            "Machine specific options:\n");
     xasm_Configuration->printOptionUsage();
     exit(EXIT_SUCCESS);
 }
 
-/*	This thing runs the show*/
+static bool
+writeOutput(char format, string* outputFilename, bool debugInfo, string* sourceFilename) {
+    switch (format) {
+        case 'x':
+            return obj_Write(outputFilename);
+        case 'b':
+            return bin_Write(outputFilename);
+        case 'v':
+            return bin_WriteVerilog(outputFilename);
+        case 'g':
+            return ami_WriteExecutable(outputFilename, debugInfo);
+        case 'h':
+            return ami_WriteObject(outputFilename, sourceFilename);
+        default:
+            return false;
+    }
+
+}
 
 extern int
 xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     xasm_Configuration = configuration;
 
-    char format = 'x';
     int argn = 1;
     int rcode;
-    clock_t StartClock;
-    clock_t EndClock;
-    string* pOutname = NULL;
-    bool debuginfo = false;
-    bool verbose = false;
 
 #if defined(_DEBUG) && defined(_WIN32)
     _CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG)| _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
     atexit(getchar);
 #endif
 
-    StartClock = clock();
+    clock_t startClock = clock();
 
     argc -= 1;
     if (argc == 0)
@@ -113,17 +124,18 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 
     opt_Open();
 
+    char format = 'x';
+    string* outputFilename = NULL;
+    bool debugInfo = false;
+    bool verbose = false;
     while (argc && argv[argn][0] == '-') {
         switch (argv[argn][1]) {
             case '?':
             case 'h':
                 printUsage();
                 break;
-            case 'g':
-                debuginfo = true;
-                break;
-            case 'v':
-                verbose = true;
+            case 'd':
+                dep_SetOutputFilename(&argv[argn][2]);
                 break;
             case 'f':
                 if (strlen(argv[argn]) > 2) {
@@ -145,8 +157,14 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                     }
                 }
                 break;
+            case 'g':
+                debugInfo = true;
+                break;
             case 'o':
-                pOutname = str_Create(&argv[argn][2]);
+                outputFilename = str_Create(&argv[argn][2]);
+                break;
+            case 'v':
+                verbose = true;
                 break;
             case 'i':
             case 'e':
@@ -177,13 +195,10 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
             }
 
             if (b && xasm_TotalErrors == 0) {
-                float timespent;
-                bool wr = false;
-
                 if (verbose) {
-                    EndClock = clock();
+                    clock_t endClock = clock();
 
-                    timespent = ((float) (EndClock - StartClock)) / CLOCKS_PER_SEC;
+                    float timespent = ((float) (endClock - startClock)) / CLOCKS_PER_SEC;
                     printf("Success! %u lines in %.02f seconds ", xasm_TotalLines, timespent);
                     if (timespent == 0) {
                         printf("\n");
@@ -195,28 +210,12 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                     }
                 }
 
-                if (pOutname != NULL) {
-                    switch (format) {
-                        case 'x':
-                            wr = obj_Write(pOutname);
-                            break;
-                        case 'b':
-                            wr = bin_Write(pOutname);
-                            break;
-                        case 'v':
-                            wr = bin_WriteVerilog(pOutname);
-                            break;
-                        case 'g':
-                            wr = ami_WriteExecutable(pOutname, debuginfo);
-                            break;
-                        case 'h':
-                            wr = ami_WriteObject(pOutname, source);
-                            break;
-                        default:
-                            break;
-                    }
-                    if (!wr) {
-                        remove(str_String(pOutname));
+                if (outputFilename != NULL) {
+                    dep_SetMainOutput(outputFilename);
+                    if (!writeOutput(format, outputFilename, debugInfo, source)) {
+                        remove(str_String(outputFilename));
+                    } else  {
+                        dep_WriteDependencyFile();
                     }
                 }
             } else {
@@ -234,7 +233,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
         str_Free(source);
     }
 
-    str_Free(pOutname);
+    str_Free(outputFilename);
     opt_Close();
 
     return rcode;

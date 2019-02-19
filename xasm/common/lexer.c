@@ -570,7 +570,7 @@ lex_CreateMemoryBuffer(const char* memory, size_t size) {
 }
 
 SLexerBuffer*
-lex_CreateFileBuffer(FILE* f) {
+lex_CreateFileBuffer(FILE* fileHandle) {
     char strterm = 0;
     char* pFile;
     bool bWasSpace = true;
@@ -578,10 +578,10 @@ lex_CreateFileBuffer(FILE* f) {
     SLexerBuffer* pBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
     memset(pBuffer, 0, sizeof(SLexerBuffer));
 
-    size_t size = fsize(f);
+    size_t size = fsize(fileHandle);
 
     pFile = (char*) mem_Alloc(size);
-    size = fread(pFile, sizeof(uint8_t), size, f);
+    size = fread(pFile, sizeof(uint8_t), size, fileHandle);
 
     pBuffer->buffer = (char*) mem_Alloc(size);
     char* dest = pBuffer->buffer;

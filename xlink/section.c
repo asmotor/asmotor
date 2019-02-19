@@ -28,7 +28,7 @@
 
 Section* sect_Sections = NULL;
 
-static uint32_t s_sectionId = 0;
+static uint32_t g_sectionId = 0;
 
 static void
 resolveSymbol(Section* section, Symbol* symbol, bool allowImports) {
@@ -167,7 +167,7 @@ sect_CreateNew(void) {
     if (*section == NULL)
         error("Out of memory");
 
-    (*section)->sectionId = s_sectionId++;
+    (*section)->sectionId = g_sectionId++;
     (*section)->nextSection = NULL;
     (*section)->used = false;
     (*section)->assigned = false;
@@ -178,7 +178,7 @@ sect_CreateNew(void) {
 
 uint32_t
 sect_TotalSections(void) {
-    return s_sectionId;
+    return g_sectionId;
 }
 
 static void

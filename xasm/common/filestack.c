@@ -27,11 +27,12 @@
 
 // From xasm
 #include "xasm.h"
-#include "filestack.h"
+#include "dependency.h"
 #include "errors.h"
+#include "filestack.h"
 #include "lexer.h"
-#include "tokens.h"
 #include "symbol.h"
+#include "tokens.h"
 
 
 /* Internal structures */
@@ -298,12 +299,12 @@ fstk_ProcessIncludeFile(string* filename) {
 
     FILE* fileHandle;
     if (newContext->name != NULL && (fileHandle = fopen(str_String(newContext->name), "rt")) != NULL) {
+        dep_AddDependency(newContext->name);
         if ((newContext->lexBuffer = lex_CreateFileBuffer(fileHandle)) != NULL) {
             lex_SetBuffer(newContext->lexBuffer);
             lex_SetState(LEX_STATE_NORMAL);
             newContext->lineNumber = 0;
             setNewContext(newContext);
-            return;
         }
         fclose(fileHandle);
     } else {
@@ -364,6 +365,8 @@ bool
 fstk_Init(string* filename) {
     g_newMacroArgumentsCount = 0;
     g_newMacroArguments = NULL;
+
+    dep_AddDependency(filename);
 
     string* symbolName = str_Create("__FILE");
     sym_CreateEqus(symbolName, filename);

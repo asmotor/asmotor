@@ -27,6 +27,7 @@
 #include "asmotor.h"
 
 #include "xasm.h"
+#include "dependency.h"
 #include "errors.h"
 #include "expression.h"
 #include "filestack.h"
@@ -370,27 +371,27 @@ sect_OutputExpr32(SExpression* expression) {
 }
 
 void
-sect_OutputBinaryFile(string* pFile) {
+sect_OutputBinaryFile(string* filename) {
 	/* TODO: Handle minimum word size.
 	 * Pad file if necessary.
 	 * Read words and output in chosen endianness
 	 */
 
-	FILE* f;
+	FILE* fileHandle;
 
-	if ((pFile = fstk_FindFile(pFile)) != NULL && (f = fopen(str_String(pFile), "rb")) != NULL) {
-		uint32_t size;
+	if ((filename = fstk_FindFile(filename)) != NULL && (fileHandle = fopen(str_String(filename), "rb")) != NULL) {
+		dep_AddDependency(filename);
 
-		fseek(f, 0, SEEK_END);
-		size = ftell(f);
-		fseek(f, 0, SEEK_SET);
+		fseek(fileHandle, 0, SEEK_END);
+		uint32_t size = ftell(fileHandle);
+		fseek(fileHandle, 0, SEEK_SET);
 
 		if (checkAvailableSpace(size)) {
 			switch (currentSectionType()) {
 				case GROUP_TEXT: {
 					size_t read;
 
-					read = fread(&sect_Current->data[sect_Current->usedSpace], sizeof(uint8_t), size, f);
+					read = fread(&sect_Current->data[sect_Current->usedSpace], sizeof(uint8_t), size, fileHandle);
 					sect_Current->freeSpace -= size;
 					sect_Current->usedSpace += size;
 					sect_Current->cpuProgramCounter += size / xasm_Configuration->minimumWordSize;
@@ -410,12 +411,12 @@ sect_OutputBinaryFile(string* pFile) {
 			}
 		}
 
-		fclose(f);
+		fclose(fileHandle);
 	} else {
         err_Fail(ERROR_NO_FILE);
 	}
 
-	str_Free(pFile);
+	str_Free(filename);
 }
 
 void
