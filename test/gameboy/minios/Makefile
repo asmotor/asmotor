@@ -1,5 +1,6 @@
 SRCS = irq.asm utility.asm
 ASMFLAGS = -mcg -iinclude/ -z0
+TARGET = mos.lib
 
 ASMOTOR = ../../../build/cmake/debug/xasm/z80/motorz80
 XLIB = ../../../build/cmake/debug/xlib/xlib
@@ -11,7 +12,7 @@ DEPFLAGS = -d$(DEPDIR)/$*.Td
 ASSEMBLE = $(ASMOTOR) $(DEPFLAGS) $(ASMFLAGS)
 POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
 
-mos.lib : $(SRCS:asm=obj)
+$(TARGET) : $(SRCS:asm=obj)
 	$(XLIB) $@ a $+
 
 %.obj : %.asm
@@ -21,5 +22,8 @@ mos.lib : $(SRCS:asm=obj)
 
 $(DEPDIR)/%.d: ;
 .PRECIOUS: $(DEPDIR)/%.d
+
+clean :
+	rm -rf $(TARGET) $(SRCS:asm=obj) $(DEPDIR)
 
 include $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(basename $(SRCS))))
