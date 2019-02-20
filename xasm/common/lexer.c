@@ -538,7 +538,7 @@ lex_CreateFileBuffer(FILE* fileHandle) {
     pFile = (char*) mem_Alloc(size);
     size = fread(pFile, sizeof(uint8_t), size, fileHandle);
 
-    pBuffer->buffer = (char*) mem_Alloc(size);
+    pBuffer->buffer = (char*) mem_Alloc(size + 1);
     char* dest = pBuffer->buffer;
 
     char* mem = pFile;
