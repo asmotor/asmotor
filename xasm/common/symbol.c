@@ -58,7 +58,7 @@ callback__NARG(SSymbol* symbol) {
 
 static int32_t
 callback__LINE(SSymbol* symbol) {
-    return fstk_GetLastStackEntry()->lineNumber;
+    return fstk_GetMostCurrentStackEntry()->lineNumber;
 }
 
 static string* getDateString() {
@@ -161,7 +161,7 @@ getSymbol(const string* name, const SSymbol* scope) {
 }
 
 static SSymbol*
-createSymbol(string* name, SSymbol* scope) {
+createSymbol(const string* name, SSymbol* scope) {
     SSymbol* newSymbol = (SSymbol*) mem_Alloc(sizeof(SSymbol));
     memset(newSymbol, 0, sizeof(SSymbol));
 
@@ -186,7 +186,7 @@ assumedScopeOf(const string* name) {
 }
 
 static SSymbol*
-findOrCreateSymbol(string* name) {
+findOrCreateSymbol(const string* name) {
     SSymbol* scope = assumedScopeOf(name);
     SSymbol* symbol = getSymbol(name, scope);
 
@@ -335,24 +335,19 @@ sym_CreateLabel(string* name) {
     return NULL;
 }
 
-char*
-sym_GetValueAsStringByName(char* destination, string* name) {
+string*
+sym_GetSymbolValueAsStringByName(const string* name) {
     SSymbol* symbol = findOrCreateSymbol(name);
 
     switch (symbol->type) {
         case SYM_EQU:
         case SYM_SET: {
-            sprintf(destination, "$%X", sym_GetValue(symbol));
-            return destination + strlen(destination);
+            char destination[16];
+            sprintf(destination, "%d", sym_GetValue(symbol));
+            return str_Create(destination);
         }
         case SYM_EQUS: {
-            string* value = sym_GetStringValue(symbol);
-            size_t length = str_Length(value);
-
-            strcpy(destination, str_String(value));
-            str_Free(value);
-
-            return destination + length;
+            return sym_GetStringValue(symbol);
         }
         case SYM_LABEL:
         case SYM_MACRO:
@@ -361,8 +356,7 @@ sym_GetValueAsStringByName(char* destination, string* name) {
         case SYM_GLOBAL:
         case SYM_UNDEFINED:
         default: {
-            strcpy(destination, "[UNDEFINED]");
-            return destination + strlen(destination);
+            return str_Create("[UNDEFINED]");
         }
     }
 }

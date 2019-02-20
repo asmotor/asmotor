@@ -1,4 +1,4 @@
-	PRINTT	"First line ({__LINE}) of the included file\n"
+	PRINTT	"First line ({|__LINE|}) of the included file\n"
 
 IncludedLabel:
 

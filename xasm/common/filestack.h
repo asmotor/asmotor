@@ -99,7 +99,7 @@ extern void
 fstk_AddIncludePath(string* pathname);
 
 extern SFileStackEntry*
-fstk_GetLastStackEntry(void);
+fstk_GetMostCurrentStackEntry(void);
 
 extern SFileStackEntry* fstk_Current;
 

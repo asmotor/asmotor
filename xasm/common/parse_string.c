@@ -125,7 +125,7 @@ stringExpressionPri2(void) {
                 parse_GetToken();
                 if (lex_Current.token == T_OP_BITWISE_OR) {
                     parse_GetToken();
-                    result = sym_GetStringValueByName(symbol);
+                    result = sym_GetSymbolValueAsStringByName(symbol);
                 }
                 str_Free(symbol);
                 return result;

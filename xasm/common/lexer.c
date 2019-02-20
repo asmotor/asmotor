@@ -162,16 +162,16 @@ expandStreamIncluding(char* destination, char* stopChars, char* sequenceChars, c
 }
 
 static char*
-expandStringIncluding(char* destination, char stopChar);
+expandStringIncluding(char* destination, char terminator);
 
 static char*
-expandExpressionIncluding(char* destination, char stopChar) {
+expandExpressionIncluding(char* destination, char terminator) {
     return expandStreamIncluding(destination, "}", "\"'", expandStringIncluding);
 }
 
 static char*
-expandStringIncluding(char* destination, char stopChar) {
-	char stopChars[] = { stopChar, 0 };
+expandStringIncluding(char* destination, char terminator) {
+	char stopChars[] = { terminator, 0 };
     return expandStreamIncluding(destination, stopChars, "{", expandExpressionIncluding);
 }
 
@@ -326,29 +326,43 @@ stateMacroArgument0(void) {
     return false;
 }
 
+static void
+trimTokenStringRight() {
+    while (lex_Current.value.string[lex_Current.length - 1] == ' ') {
+        lex_Current.value.string[--lex_Current.length] = 0;
+    }
+}
+
+static void
+getStringUntilTerminator(char terminator) {
+    char* lastChar = expandStringIncluding(lex_Current.value.string, terminator);
+    lex_Current.length = lastChar - lex_Current.value.string;
+    if (lex_Current.value.string[lex_Current.length - 1] == terminator) {
+        lex_Current.value.string[--lex_Current.length] = 0;
+        unputChar(terminator);
+    }
+
+}
+
 static bool
 stateMacroArguments() {
     while (isspace((unsigned char) lex_PeekChar(0)) && lex_PeekChar(0) != '\n') {
         lex_GetChar();
     }
 
-    size_t tokenStart = g_currentBuffer->index;
+    lex_Current.length = 0;
 
     if (lex_MatchChar('<')) {
-        expandStringIncluding(lex_Current.value.string, '>');
-        lex_MatchChar('>');
+        getStringUntilTerminator('>');
+        lex_GetChar();
     } else {
-        expandStringIncluding(lex_Current.value.string, ',');
+        getStringUntilTerminator(',');
     }
 
-    if (g_currentBuffer->index > tokenStart) {
-        size_t length = g_currentBuffer->index - tokenStart;
+    if (lex_Current.length > 0) {
         if (lex_PeekChar(0) == '\n') {
-            while (lex_Current.value.string[length - 1] == ' ') {
-                lex_Current.value.string[--length] = 0;
-            }
+            trimTokenStringRight();
         }
-        lex_Current.length = length;
         lex_Current.token = T_STRING;
         return true;
     } else if (lex_MatchChar('\n')) {
@@ -576,6 +590,7 @@ lex_CreateFileBuffer(FILE* fileHandle) {
             *dest++ = *mem++;
         }
     }
+
 
     *dest++ = '\n';
     pBuffer->bufferSize = dest - pBuffer->buffer;

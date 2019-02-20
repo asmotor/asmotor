@@ -112,7 +112,7 @@ A string literal can also contain special characters, such as newlines and tabs 
 
 | Sequence | Meaning | Note |
 |---|---|---
-| \\ | \ |
+| \\\\ | \ |
 | \\" | " |
 | \\{ | { |
 | \\} | } |
@@ -121,20 +121,24 @@ A string literal can also contain special characters, such as newlines and tabs 
 | \\0 .. \\9 | Value of macro argument | Only valid in macros |
 | \\@ | Unique label suffix | Only valid in macros and REPT blocks 
 
-### String interpolation
-Within a string literal it's possible to embed the value of a symbol. This is done by enclosing the symbol name in curly brackets:
+### Symbol value to string operator
+A string symbol is parsed as containing assembler directives and instructions. To use it as a string
+as part of string expressions, it can be enclosed in pipes (```|```)
 
 ```
 StringSymbol EQUS "A String"
-             DB   "Store this text and the value {StringSymbol}",0
+             DB   |StringSymbol|  ; Store "A String" in memory
 ```
 
-As a shorthand, a symbol can simply be surrounded by curly brackets outside a string literal, to convert its value to a string expression:
+This operator can also be used with integer symbols.
+
+### String interpolation
+Within a string literal it's possible to embed the value of another string expression. This is done by enclosing the expression in curly brackets:
 
 ```
-StringSymbol EQUS "Another string"
-             DB   {StringSymbol}
-````
+StringSymbol EQUS "A String"
+             DB   "Store this text and the value {|StringSymbol|.upper}",0
+```
 
 ### String functions and properties
 Several functions that work on string expressions are available. Some of these return strings and some return integers. Functions that return an integer can be used as part of integer expressions. When a string is returned the function can be used in a string expression.

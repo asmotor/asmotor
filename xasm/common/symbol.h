@@ -114,8 +114,8 @@ sym_Import(string* name);
 extern SSymbol*
 sym_Global(string* name);
 
-extern char*
-sym_GetValueAsStringByName(char* destination, string* name);
+extern string*
+sym_GetSymbolValueAsStringByName(const string* name);
 
 extern string*
 sym_GetStringValue(SSymbol* symbol);

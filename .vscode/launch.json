@@ -20,10 +20,10 @@
             "name": "Debug motorz80",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/cmake/debug/xasm/mips/motormips",
-            "args": ["-fv", "-ostrings.r", "strings.asm"],
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
+            "args": ["-mcg", "-fv", "-ofunkymac.r", "funkymac.asm"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/test/common",
+            "cwd": "${workspaceFolder}/test/gameboy",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"

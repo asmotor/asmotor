@@ -398,10 +398,6 @@ fstk_Cleanup(void) {
 }
 
 SFileStackEntry*
-fstk_GetLastStackEntry(void) {
-    SFileStackEntry* stackEntry = fstk_Current;
-    while (!list_IsLast(stackEntry)) {
-        stackEntry = list_GetNext(stackEntry);
-    }
-    return stackEntry;
+fstk_GetMostCurrentStackEntry(void) {
+    return fstk_Current;
 }
