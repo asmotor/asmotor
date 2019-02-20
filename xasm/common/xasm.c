@@ -107,7 +107,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     int rcode;
 
 #if defined(_DEBUG) && defined(_WIN32)
-    _CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG)| _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF);
+    _CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG)| _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF);
     atexit(getchar);
 #endif
 

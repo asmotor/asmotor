@@ -16,6 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <ctype.h>
@@ -131,7 +132,7 @@ expandEscapeSequence(char** destination, char escapeSymbol) {
 }
 
 static char*
-expandStreamUntil(char* destination, char* stopChars, char* sequenceChars, char* (*next)(char*, char)) {
+expandStreamIncluding(char* destination, char* stopChars, char* sequenceChars, char* (*next)(char*, char)) {
     for (;;) {
         char ch = lex_PeekChar(0);
         if (ch == 0 || ch == '\n') {
@@ -139,6 +140,7 @@ expandStreamUntil(char* destination, char* stopChars, char* sequenceChars, char*
         }
 
         ch = lex_GetChar();
+		assert(ch != 0);
 
         if (strchr(stopChars, ch) != NULL) {
             *destination++ = ch;
@@ -163,13 +165,14 @@ static char*
 expandStringIncluding(char* destination, char stopChar);
 
 static char*
-expandExpressionUntil(char* destination, char stopChar) {
-    return expandStreamUntil(destination, "}", "\"'", expandStringIncluding);
+expandExpressionIncluding(char* destination, char stopChar) {
+    return expandStreamIncluding(destination, "}", "\"'", expandStringIncluding);
 }
 
 static char*
 expandStringIncluding(char* destination, char stopChar) {
-    return expandStreamUntil(destination, &stopChar, "{", expandExpressionUntil);
+	char stopChars[] = { stopChar, 0 };
+    return expandStreamIncluding(destination, stopChars, "{", expandExpressionIncluding);
 }
 
 static bool
