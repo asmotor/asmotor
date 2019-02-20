@@ -121,15 +121,8 @@ expandEscapeSequence(char** destination, char escapeSymbol) {
             return expandMacroArguments(destination, escapeSymbol);
         }
         default: {
+            *(*destination)++ = '\\';
             *(*destination)++ = escapeSymbol;
-            return true;
-        }
-        case 'n': {
-            *(*destination)++ = ASM_CRLF;
-            return true;
-        }
-        case 't': {
-            *(*destination)++ = ASM_TAB;
             return true;
         }
     }
@@ -473,12 +466,16 @@ lex_SkipBytes(size_t count) {
 }
 
 void
-lex_UnputString(const char* str) {
-    size_t length = strlen(str);
+lex_UnputStringLength(const char* str, size_t length) {
     str += length;
     for (size_t i = 0; i < length; ++i) {
         unputChar(*(--str));
     }
+}
+
+void
+lex_UnputString(const char* str) {
+    lex_UnputStringLength(str, strlen(str));
 }
 
 void

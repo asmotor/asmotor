@@ -43,4 +43,6 @@ Test	EQUS	"This is a test"
 	PRINTT	"This should be upper case\n".upper
 	PRINTT	"This should be lower case\n".lower
 
+	PRINTT	"This should be {"upper".upper} case\n"
+
 	

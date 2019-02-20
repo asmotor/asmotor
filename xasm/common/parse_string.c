@@ -25,10 +25,80 @@
 
 /* From util */
 #include "str.h"
+#include "strbuf.h"
 #include "parse.h"
 #include "errors.h"
 
 /* Internal functions */
+
+static const char*
+determineCodeEnd(const char* literal);
+
+static const char*
+determineStringEnd(const char* literal, char endChar) {
+    for (char ch = *literal; ch != 0 && ch != endChar; ch = *(++literal)) {
+        if (ch == '\\' && literal[1] != 0) {
+            ++literal;
+        } else if (ch == '{') {
+            literal = determineCodeEnd(literal + 1);
+        }
+    }
+    return literal;
+}
+
+static const char*
+determineCodeEnd(const char* literal) {
+    for (char ch = *literal; ch != 0 && ch != '}'; ch = *(++literal)) {
+        if (ch == '\'' || ch == '"') {
+            literal = determineStringEnd(literal + 1, ch);
+        }
+    }
+    return literal;
+} 
+
+static string*
+interpolateString(const char* literal) {
+    bool advancedToken = false;
+    string_buffer* resultBuffer = strbuf_Create();
+    char ch;
+
+    while ((ch = *literal++) != 0) {
+        if (ch == '\\') {
+            ch = *literal++;
+            if (ch == 0) {
+                break;
+            } else if (ch == 'n') {
+                ch = '\n';
+            } else if (ch == 't') {
+                ch = '\t';
+            }
+            strbuf_AppendChar(resultBuffer, ch);
+        } else if (ch == '{') {
+            const char* codeEnd = determineCodeEnd(literal);
+            lex_UnputStringLength(literal, codeEnd - literal);
+            literal = codeEnd + 1;
+
+            parse_GetToken();
+            advancedToken = true;
+
+            string* substr = parse_StringExpression();
+            if (substr != NULL) {
+                strbuf_AppendString(resultBuffer, substr);
+            }
+            str_Free(substr);
+        } else {
+            strbuf_AppendChar(resultBuffer, ch);
+        }
+    }
+
+    string* result = strbuf_String(resultBuffer);
+    strbuf_Free(resultBuffer);
+
+    if (!advancedToken)
+        parse_GetToken();
+
+    return result;
+}
 
 static string*
 stringExpressionPri2(void) {
@@ -37,9 +107,11 @@ stringExpressionPri2(void) {
 
     switch (lex_Current.token) {
         case T_STRING: {
-            string* r = str_CreateLength(lex_Current.value.string, lex_Current.length);
-            parse_GetToken();
-            return r;
+            string* literal = str_CreateLength(lex_Current.value.string, lex_Current.length);
+            string* result = interpolateString(str_String(literal));
+            str_Free(literal);
+
+            return result;
         }
         case T_OP_BITWISE_OR: {
             tokens_ExpandStrings = false;

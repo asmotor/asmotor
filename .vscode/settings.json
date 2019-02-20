@@ -9,7 +9,8 @@
     "options.h": "c",
     "project.h": "c",
     "expression.h": "c",
-    "dependency.h": "c"
+    "dependency.h": "c",
+    "strbuf.h": "c"
   },
   "files.exclude": {
     "**/.git": true,

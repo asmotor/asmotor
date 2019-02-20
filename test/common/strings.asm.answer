@@ -1,16 +1,17 @@
-long's position in A reasonably long string: $D
-two's position in Another one: $FFFFFFFF
-abc compared to abc: $0
-abc compared to bcd: $FFFFFFFF
-bcd compared to abc: $1
-bcdefgh > abcdefg: $1
-abcdefgh == abcdefg: $0
-abcdefgh == abcdefgh: $1
-1234: $31323334
+"long"'s position in "A reasonably long string": $D
+"two"'s position in "Another one": $FFFFFFFF
+"abc" compared to "abc": $0
+"abc" compared to "bcd": $FFFFFFFF
+"bcd" compared to "abc": $1
+"bcdefgh" > "abcdefg": $1
+"abcdefgh" == "abcdefg": $0
+"abcdefgh" == "abcdefgh": $1
+"1234": $31323334
 This is a test is a test
 $A
 No character before this text
-Testlength == $E
+|Test|.length == $E
 This is a test of string concatenation
 THIS SHOULD BE UPPER CASE
 this should be lower case
+This should be UPPER case

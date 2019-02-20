@@ -104,6 +104,9 @@ lex_SkipBytes(size_t count);
 extern void
 lex_UnputString(const char* str);
 
+extern void
+lex_UnputStringLength(const char* str, size_t length);
+
 extern bool
 lex_GetNextToken(void);
 
