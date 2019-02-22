@@ -14,6 +14,10 @@ cd common
 ./run.sh
 cd ..
 
+cd 6502
+./run.sh
+cd ..
+
 cd 680x0
 ./run.sh
 cd ..

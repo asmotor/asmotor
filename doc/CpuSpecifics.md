@@ -8,9 +8,9 @@ Sections are not aligned to any particular multiple.
 ## Command line
 
 ### -mu\<x> option
-Some versions of the 6502 series have a number of undocumented instructions. As they are undocumented, no official mnemonics exist. Several sets of mnemonics are in use, however. These can be selected with the ```-mu<x>``` option, where x is 0, 1 or 2.
+Some versions of the 6502 series have a number of undocumented instructions. As they are undocumented, no official mnemonics exist. Several sets of mnemonics are in use, however. These can be selected with the ```-mu<x>``` option, where x is 0 (no undocumented opcodes), 1, 2 or 3.
 
-| Set #0 | Set #1 | Set #2 |
+| Set #1 | Set #2 | Set #3 |
 |---|---|---|
 | AAC | ANC | ANC |
 | AAX | SAX | AXS |

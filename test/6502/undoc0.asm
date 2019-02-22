@@ -8,7 +8,3 @@
 	anc	#2
 	sax (5,x)
 	
-	OPT	mu0
-	aac	#2
-	aax (5,x)
-	
