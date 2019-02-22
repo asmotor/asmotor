@@ -43,6 +43,12 @@
 SSection* sect_Current;
 SSection* sect_Sections;
 
+typedef struct SectionStackEntry {
+	SSection* section;
+	struct SectionStackEntry* next;
+} SSectionStackEntry;
+
+static SSectionStackEntry* g_sectionStack = NULL;
 
 static EGroupType
 currentSectionType(void) {
@@ -589,3 +595,30 @@ sect_TotalSections(void) {
 	}
 	return totalSections;
 }
+
+bool
+sect_Push(void) {
+	SSectionStackEntry* entry = (SSectionStackEntry*) mem_Alloc(sizeof(SSectionStackEntry));
+	if (entry != NULL) {
+		entry->section = sect_Current;
+		entry->next = g_sectionStack;
+		g_sectionStack = entry;
+		return true;
+	}
+
+	return false;
+}
+
+bool
+sect_Pop(void) {
+	SSectionStackEntry* entry = g_sectionStack;
+	if (entry != NULL) {
+		sect_Current = entry->section;
+		g_sectionStack = entry->next;
+		mem_Free(entry);
+		return true;
+	}
+
+	return false;
+}
+

@@ -63,6 +63,8 @@ typedef struct Configuration {
 
     uint32_t sectionAlignment;
 
+    const char* literalGroup;
+
     const char* reserveByteName;
     const char* reserveWordName;
     const char* reserveLongName;

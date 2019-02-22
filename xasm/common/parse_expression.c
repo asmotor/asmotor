@@ -45,6 +45,26 @@ stringCompare(string* s) {
     return r;
 }
 
+static void
+switchToLiteralSection(void) {
+    string* groupName = str_Create(xasm_Configuration->literalGroup);
+    SSymbol* group = sym_GetSymbol(groupName);
+
+    string* section = str_Create("$LITERALS$");
+    sect_SwitchTo(section, group);
+    str_Free(groupName);
+    str_Free(section);
+}
+
+static string*
+createLiteralName(void) {
+    static uint32_t id = 0;
+    char label[24];
+    sprintf(label, "__$Literal_%d", id);
+    ++id;
+    return str_Create(label);
+}
+
 static SExpression*
 expressionPriority0(size_t maxStringConstLength);
 
@@ -67,6 +87,21 @@ expressionPriority9(size_t maxStringConstLength) {
             int32_t val = lex_Current.value.integer;
             parse_GetToken();
             return expr_Const(val);
+        }
+        case '[': {
+            parse_GetToken();
+
+            sect_Push();
+            switchToLiteralSection();
+            string* symbolName = createLiteralName();
+            sym_CreateLabel(symbolName);
+            parse_Until(']');
+            sect_Pop();
+            parse_GetToken();
+
+            SExpression* expression = expr_Symbol(symbolName);
+            str_Free(symbolName);
+            return expression;
         }
         case T_LEFT_PARENS: {
             SLexerBookmark bookmark;

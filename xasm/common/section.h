@@ -109,4 +109,10 @@ sect_OutputConst16(uint16_t value);
 extern void
 sect_OutputConst32(uint32_t value);
 
+extern bool
+sect_Push(void);
+
+extern bool
+sect_Pop(void);
+
 #endif /* XASM_COMMON_SECTION_H_INCLUDED_ */

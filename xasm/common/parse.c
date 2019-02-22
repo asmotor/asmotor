@@ -136,9 +136,7 @@ parse_GetToken(void) {
 }
 
 bool
-parse_Do(void) {
-    lex_GetNextToken();
-
+parse_Until(EToken endToken) {
     while (lex_Current.token) {
         if (xasm_Configuration->parseInstruction())
             continue;
@@ -155,11 +153,17 @@ parse_Do(void) {
         if (handleLineBreak())
             continue;
 
-        if (lex_Current.token == T_POP_END)
+        if (lex_Current.token == endToken)
             return true;
 
         return err_Error(ERROR_SYNTAX);
     }
 
     return true;
+}
+
+bool
+parse_Do(void) {
+    lex_GetNextToken();
+    return parse_Until(T_POP_END);
 }

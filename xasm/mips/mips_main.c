@@ -36,6 +36,7 @@ static SConfiguration g_xasmConfiguration = {
 	false,
 	MINSIZE_8BIT,
 	8,
+	"CODE",
 
 	"RB", "RH", "RW",
 	"DB", "DH", "DW",

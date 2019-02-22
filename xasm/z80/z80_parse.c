@@ -870,35 +870,41 @@ parse_AddrMode(SAddressingMode* addrMode) {
 	}
 	
 	if (lex_Current.token == '[') {
+		SLexerBookmark bm;
+		lex_Bookmark(&bm);
+
 		parse_GetToken();
 
 		SExpression* expression = parse_Expression(2);
 
-		if (expression != NULL && parse_ExpectChar(']')) {
+		if (expression != NULL && lex_Current.token == ']') {
+			parse_GetToken();
 			addrMode->mode = MODE_IMM_IND;
 			addrMode->expression = expression;
 			return true;
 		}
-	} else {
-		SLexerBookmark bm;
-		lex_Bookmark(&bm);
+		expr_Free(expression);
+		lex_Goto(&bm);
+	}
 
-		SExpression* expression = parse_Expression(2);
+	SLexerBookmark bm;
+	lex_Bookmark(&bm);
 
-		if (expression != NULL) {
-			if (expr_Type(expression) == EXPR_PARENS) {
-				addrMode->mode = MODE_IMM_IND;
-				addrMode->expression = expression;
-				return true;
-			}
+	SExpression* expression = parse_Expression(2);
 
-			addrMode->mode = MODE_IMM;
+	if (expression != NULL) {
+		if (expr_Type(expression) == EXPR_PARENS) {
+			addrMode->mode = MODE_IMM_IND;
 			addrMode->expression = expression;
 			return true;
 		}
 
-		lex_Goto(&bm);
+		addrMode->mode = MODE_IMM;
+		addrMode->expression = expression;
+		return true;
 	}
+
+	lex_Goto(&bm);
 	return false;
 }
 

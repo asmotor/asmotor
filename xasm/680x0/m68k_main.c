@@ -37,6 +37,7 @@ g_680x0Configuration = {
 	true,
 	MINSIZE_8BIT,
 	8,
+	"CODE",
 
 	"RS.B", "RS.W", "RS.L",
 	"DC.B", "DC.W", "DC.L",

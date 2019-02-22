@@ -37,6 +37,7 @@ x65_xasmConfiguration = {
 	false,
 	MINSIZE_8BIT,
 	1,
+	"CODE",
 
 	"RB", "RW", NULL,
 	"DB", "DW", NULL,

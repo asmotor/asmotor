@@ -587,14 +587,17 @@ handleOpt() {
 
 static bool
 handlePushs() {
-    // TODO: Implement
-    internalerror("Not implemented");
+    parse_GetToken();
+    sect_Push();
+    return true;
 }
 
 static bool
 handlePops() {
-    // TODO: Implement
-    internalerror("Not implemented");
+    parse_GetToken();
+    if (!sect_Pop())
+        err_Error(ERROR_SECTION_MISSING);
+    return true;
 }
 
 static bool

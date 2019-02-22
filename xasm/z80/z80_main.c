@@ -37,6 +37,7 @@ z80_XasmConfiguration = {
 	false,
 	MINSIZE_8BIT,
 	1,
+	"HOME",
 
 	"RB", "RW", NULL,
 	"DB", "DW", NULL,
