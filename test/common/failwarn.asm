@@ -1,5 +1,5 @@
 
 Test	EQUS	"me"
 
-	WARN	"Warn {Test}"
+	WARN	"Warn {|Test|}"
 	FAIL	"Fail me"
