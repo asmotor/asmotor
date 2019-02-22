@@ -83,6 +83,12 @@ str_ToUpperReplace(string** str);
 extern void
 str_ToLowerReplace(string** str);
 
+extern string*
+str_CreateSpaces(uint32_t count);
+
+extern string*
+str_Align(string* str, int32_t alignment);
+
 INLINE bool
 str_NotEqual(const string* str1, const string* str2) {
     return !str_Equal(str1, str2);
@@ -129,6 +135,7 @@ str_Move(string** dest, string** src) {
     *dest = *src;
     *src = NULL;
 }
+
 
 #define STR_ASSIGN(p, str) str_Assign(&(p), (str))
 #define STR_MOVE(p, str)   str_Move(&(p), &(str))

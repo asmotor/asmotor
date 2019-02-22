@@ -26,6 +26,11 @@
 
 static string* g_emptyString = NULL;
 
+static char
+createSpace() {
+    return ' ';
+}
+
 static void
 copyOnWrite(string** str) {
     if ((*str)->refCount != 1) {
@@ -223,4 +228,27 @@ str_ToUpperReplace(string** str) {
 void
 str_ToLowerReplace(string** str) {
     str_TransformReplace(str, charToLower);
+}
+
+string*
+str_CreateSpaces(uint32_t count) {
+    return str_CreateStream(createSpace, count);
+}
+
+string*
+str_Align(string* str, int32_t alignment) {
+    int spaceCount = abs(alignment) - str_Length(str);
+    if (spaceCount > 0) {
+        string* spacesString = str_CreateSpaces(spaceCount);
+        string* aligned;
+        if (alignment < 0) {
+            aligned = str_Concat(str, spacesString);
+        } else {
+            aligned = str_Concat(spacesString, str);
+        }
+        str_Free(spacesString);
+        return aligned;
+    }
+
+    return str_Copy(str);
 }

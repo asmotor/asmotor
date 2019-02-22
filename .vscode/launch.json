@@ -21,9 +21,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcg", "-fv", "-ofunkymac.r", "funkymac.asm"],
+            "args": ["-mcg", "strings.asm"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/test/gameboy",
+            "cwd": "${workspaceFolder}/test/common",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"

@@ -92,43 +92,16 @@ skip(size_t count) {
         g_currentBuffer->index = g_currentBuffer->bufferSize;
 }
 
-static bool
-expandMacroArguments(char** destination, char argument) {
-    if (argument >= '0' && argument <= '9') {
-        *destination += appendAndFreeString(*destination, fstk_GetMacroArgValue(argument));
-        return true;
-    } else if (argument == '@') {
-        *destination += appendAndFreeString(*destination, fstk_GetMacroUniqueId());
-        return true;
-    }
-
-    return false;
-}
-
-static bool
+static void
 expandEscapeSequence(char** destination, char escapeSymbol) {
-    switch (escapeSymbol) {
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-        case '@': {
-            return expandMacroArguments(destination, escapeSymbol);
-        }
-        default: {
-            *(*destination)++ = '\\';
-            *(*destination)++ = escapeSymbol;
-            return true;
-        }
+    if (escapeSymbol == '@') {
+        *destination += appendAndFreeString(*destination, fstk_GetMacroUniqueId());
+    } else if (escapeSymbol >= '0' && escapeSymbol <= '9') {
+        *destination += appendAndFreeString(*destination, fstk_GetMacroArgValue(escapeSymbol));
+    } else {
+        *(*destination)++ = '\\';
+        *(*destination)++ = escapeSymbol;
     }
-
-    return false;
 }
 
 static char*

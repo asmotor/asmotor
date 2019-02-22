@@ -17,17 +17,19 @@
 */
 
 #include <assert.h>
+#include <ctype.h>
 
 /* From xasm */
+#include "errors.h"
 #include "lexer.h"
+#include "parse.h"
 #include "parse_expression.h"
 #include "parse_string.h"
 
 /* From util */
+#include "fmath.h"
 #include "str.h"
 #include "strbuf.h"
-#include "parse.h"
-#include "errors.h"
 
 /* Internal functions */
 
@@ -54,7 +56,164 @@ determineCodeEnd(const char* literal) {
         }
     }
     return literal;
+}
+
+static bool
+parseFormatSpecifier(char* format, uint32_t* precision) {
+    if (lex_Current.token == ':') {
+        char f = lex_PeekChar(0);
+        if (isalpha(f)) {
+            *format = toupper(lex_GetChar());
+            parse_GetToken();
+
+            SExpression* expression = parse_Expression(4);
+            if (expression != NULL && expr_IsConstant(expression)) {
+                *precision = expression->value.integer;
+            } else {
+                *precision = 0;
+            }
+            expr_Free(expression);
+            return true;
+        }
+    }
+
+    *format = 'D';
+    *precision = 0;
+    return 0;
+}
+
+static string*
+formatValue(int32_t value, char format, int32_t precision) {
+    char formatted[16];
+    switch (format) {
+        case 'D': {
+            char* t = formatted;
+            if (value < 0) {
+                *t++ = '-';
+                value = -value;
+            }
+            sprintf(t, "%0*d", precision < 0 ? 0 : precision, value);
+            break;
+        }
+        case 'F': {
+            if (precision == 0)
+                precision = 5;
+
+            uint32_t low = imuldiv(value & 0xFFFF, 100000, 65536);
+            char fraction[8];
+            sprintf(fraction, "%05d", low);
+            fraction[precision] = 0;
+
+            int32_t high = asr(value, 16);
+            sprintf(formatted, "%d.%s", high, fraction);
+            break;
+        }
+        case 'X': {
+            sprintf(formatted, "%08X", value);
+            if (precision > 0)
+                memcpy(formatted, formatted + 8 - precision, precision + 1);
+            break;
+        }
+        case 'C': {
+            formatted[0] = value & 0xFF;
+            formatted[1] = 0;
+            break;
+        }
+    }
+
+    return str_Create(formatted);
+}
+
+static int32_t
+parseAlignment(void) {
+    if (lex_Current.token == ',') {
+        parse_GetToken();
+        return parse_ConstantExpression();
+    }
+
+    return 0;
+}
+
+static string*
+parseIntegerExpressionAndFormat(void) {
+    SExpression* expression = parse_Expression(4);
+    if (expression != NULL && expr_IsConstant(expression)) {
+        int32_t value = expression->value.integer;
+        expr_Free(expression);
+
+        int32_t alignment = parseAlignment();
+
+        char format;
+        uint32_t precision;
+        parseFormatSpecifier(&format, &precision);
+
+        string* formatted = formatValue(value, format, precision);
+        string* aligned = str_Align(formatted, alignment);
+        str_Free(formatted);
+        return aligned;
+    }
+
+    return NULL;
+}
+
+static string*
+parseStringExpressionAndFormat(void) {
+    string* substring = parse_StringExpression();
+    if (substring != NULL) {
+        int32_t alignment = parseAlignment();
+
+        string* aligned = str_Align(substring, alignment);
+        str_Free(substring);
+        return aligned;
+    }
+
+    return NULL;
+}
+
+static string*
+parseSubstring(void) {
+    SLexerBookmark bookmark;
+    lex_Bookmark(&bookmark);
+
+    string* substr;
+    if ((substr = parseStringExpressionAndFormat()) != NULL) {
+        return substr;
+    }
+
+    lex_Goto(&bookmark);
+    
+    if ((substr = parseIntegerExpressionAndFormat()) != NULL) {
+        return substr;
+    }
+
+    lex_Goto(&bookmark);
+
+    return NULL;
 } 
+
+static const char*
+parseEmbeddedExpression(string_buffer* resultBuffer, const char* literal) {
+    const char* codeEnd = determineCodeEnd(literal);
+    lex_UnputStringLength(literal, codeEnd - literal);
+
+    parse_GetToken();
+
+    string* substr = parseSubstring();
+    if (substr != NULL)
+        strbuf_AppendString(resultBuffer, substr);
+    str_Free(substr);
+
+    return codeEnd + 1;
+}
+
+static char
+unescapeCharacter(char ch) {
+    switch (ch) {
+        case 'n': return '\n';
+        case 't': return '\t';
+        default: return ch;
+    }
+}
 
 static string*
 interpolateString(const char* literal) {
@@ -65,27 +224,13 @@ interpolateString(const char* literal) {
     while ((ch = *literal++) != 0) {
         if (ch == '\\') {
             ch = *literal++;
-            if (ch == 0) {
+            if (ch == 0)
                 break;
-            } else if (ch == 'n') {
-                ch = '\n';
-            } else if (ch == 't') {
-                ch = '\t';
-            }
-            strbuf_AppendChar(resultBuffer, ch);
+
+            strbuf_AppendChar(resultBuffer, unescapeCharacter(ch));
         } else if (ch == '{') {
-            const char* codeEnd = determineCodeEnd(literal);
-            lex_UnputStringLength(literal, codeEnd - literal);
-            literal = codeEnd + 1;
-
-            parse_GetToken();
+            literal = parseEmbeddedExpression(resultBuffer, literal);
             advancedToken = true;
-
-            string* substr = parse_StringExpression();
-            if (substr != NULL) {
-                strbuf_AppendString(resultBuffer, substr);
-            }
-            str_Free(substr);
         } else {
             strbuf_AppendChar(resultBuffer, ch);
         }

@@ -121,7 +121,7 @@ A string literal can also contain special characters, such as newlines and tabs 
 | \\0 .. \\9 | Value of macro argument | Only valid in macros |
 | \\@ | Unique label suffix | Only valid in macros and REPT blocks 
 
-### Symbol value to string operator
+### <a name="to_string"></a> Symbol value to string operator
 A string symbol is parsed as containing assembler directives and instructions. To use it as a string
 as part of string expressions, it can be enclosed in pipes (```|```)
 
@@ -133,12 +133,47 @@ StringSymbol EQUS "A String"
 This operator can also be used with integer symbols.
 
 ### String interpolation
-Within a string literal it's possible to embed the value of another string expression. This is done by enclosing the expression in curly brackets:
+Within a string literal it's possible to embed the value of another expression. This is done by enclosing the expression in curly brackets:
 
 ```
 StringSymbol EQUS "A String"
              DB   "Store this text and the value {|StringSymbol|.upper}",0
 ```
+
+Integer expressions may also be used
+
+```
+Count EQU 8
+      DB  "{Count*2}",0  ; Store the string "16"
+```
+
+The expression may otionally be followed by a comma and an alignment expression.
+
+```
+    DB  "{"Text",9}",0  ; Right align "Text" so the string "     Text" is stored.
+```
+
+If the alignment is negative, the expression is left aligned insted.
+
+Lastly the expression may be followed by a colon and a format specifier, in the case of integer expressions.
+
+```
+    DB  "{42:X}",0  ; Store the string "2A"
+```
+
+Format specifiers support an optional precision argument:
+
+```
+    DB  "{42:X4}",0  ; Store the string "002A"
+```
+
+| Format | Meaning | Precision | Example |
+|---|---|---|---|
+| D | Decimal integer | The minimum number of digits printed. The number is left padded with zeroes. | {-16,6:D3} - "  -016" |
+| F | Fixed point (16.16) | The exact number of decimals printed after the decimal point. | {15.6:F2} - "15.59" |
+| X | Hexadecimal | The exact number of characters printed. | {$1234:X2} - "34" |
+| C | Character | Ignored | {65:C} - "A" |
+
 
 ### String functions and properties
 Several functions that work on string expressions are available. Some of these return strings and some return integers. Functions that return an integer can be used as part of integer expressions. When a string is returned the function can be used in a string expression.

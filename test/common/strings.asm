@@ -45,4 +45,12 @@ Test	EQUS	"This is a test"
 
 	PRINTT	"This should be {"upper".upper} case\n"
 
-	
+	PRINTT	"{-16,6:D3}\n"
+	PRINTT	"{65:C}\n"
+	PRINTT	"{87}\n"
+	PRINTT	"{20:X4}\n"
+	PRINTT	"{15.6,9:F2}\n"
+	PRINTT	"{15.6,-9:F2}End\n"
+	PRINTT	"{-1234:X6}\n"
+	PRINTT	"{|Test|,30}\n"
+	PRINTT	"{"Text",9}\n"
