@@ -75,9 +75,22 @@ setNewContext(SFileStackEntry* context) {
     list_Insert(fstk_Current, context);
 }
 
-static bool
-isContextMacro(void) {
-    return fstk_Current != NULL && fstk_Current->type == CONTEXT_MACRO;
+static SFileStackEntry*
+getThisContextMacro(SFileStackEntry* context) {
+    if (context == NULL) {
+        return NULL;
+    } else if (context->type == CONTEXT_MACRO) {
+        return context;
+    } else if (context->type == CONTEXT_REPT) {
+        return getThisContextMacro(context->pNext);
+    } else {
+        return NULL;
+    }
+}
+
+static SFileStackEntry*
+getMacroContext(void) {
+    return getThisContextMacro(fstk_Current);
 }
 
 static string*
@@ -111,21 +124,26 @@ replaceFileComponent(string* fullPath, string* filename) {
 
 string*
 fstk_GetMacroArgValue(char argumentId) {
-    string* str = NULL;
-
-    if (isContextMacro()) {
-        if (argumentId == '0') {
-            str = fstk_Current->block.macro.argument0;
-        } else {
-            uint_fast8_t argumentIndex = (uint8_t) (argumentId - '1');
-            if (argumentIndex < fstk_Current->block.macro.argumentCount) {
-                str = fstk_Current->block.macro.arguments[argumentIndex];
+    if (argumentId == '@') {
+        return fstk_GetMacroUniqueId();
+    } else {
+        SFileStackEntry* context = getMacroContext();
+        if (context != NULL) {
+            string* str = NULL;
+            if (argumentId == '0') {
+                str = context->block.macro.argument0;
+            } else {
+                uint_fast8_t argumentIndex = (uint8_t) (argumentId - '1');
+                if (argumentIndex < context->block.macro.argumentCount) {
+                    str = context->block.macro.arguments[argumentIndex];
+                }
             }
+            return str_Copy(str);
         }
-    }
-
-    return str_Copy(str);
+    } 
+    return NULL;
 }
+
 
 string*
 fstk_GetMacroUniqueId(void) {
@@ -134,7 +152,8 @@ fstk_GetMacroUniqueId(void) {
 
 int32_t
 fstk_GetMacroArgumentCount(void) {
-    return isContextMacro() ? fstk_Current->block.macro.argumentCount : 0;
+    SFileStackEntry* entry = getMacroContext();
+    return entry != NULL ? entry->block.macro.argumentCount : 0;
 }
 
 void
@@ -150,17 +169,16 @@ fstk_SetMacroArgument0(const char* str) {
 
 void
 fstk_ShiftMacroArgs(int32_t count) {
-    if (isContextMacro()) {
+    SFileStackEntry* context = getMacroContext();
+    if (context != NULL) {
         while (count >= 1) {
-            str_Free(fstk_Current->block.macro.arguments[0]);
+            str_Free(context->block.macro.arguments[0]);
 
-            for (uint32_t i = 1; i < fstk_Current->block.macro.argumentCount; ++i) {
-                fstk_Current->block.macro.arguments[i - 1] = fstk_Current->block.macro.arguments[i];
+            for (uint32_t i = 1; i < context->block.macro.argumentCount; ++i) {
+                context->block.macro.arguments[i - 1] = context->block.macro.arguments[i];
             }
-            fstk_Current->block.macro.argumentCount -= 1;
-            fstk_Current->block.macro.arguments = mem_Realloc(fstk_Current->block.macro.arguments,
-                                                                  fstk_Current->block.macro.argumentCount
-                                                                  * sizeof(string*));
+            context->block.macro.argumentCount -= 1;
+            context->block.macro.arguments = mem_Realloc(context->block.macro.arguments, context->block.macro.argumentCount * sizeof(string*));
             count -= 1;
         }
     } else {
@@ -252,7 +270,7 @@ fstk_ProcessNextBuffer(void) {
             }
             case CONTEXT_MACRO: {
                 for (uint32_t i = 0; i < oldContext->block.macro.argumentCount; i += 1) {
-                    mem_Free(oldContext->block.macro.arguments[i]);
+                    str_Free(oldContext->block.macro.arguments[i]);
                 }
                 str_Free(oldContext->uniqueId);
                 mem_Free(oldContext->block.macro.arguments);

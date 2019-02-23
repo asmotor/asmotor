@@ -1,0 +1,72 @@
+MACRO: (_1), arg1 3987
+MACROREPT * 2 (_2), arg1 3987, narg 2
+MACROREPT * 2 (_3), arg1 1234, narg 1
+MACROEND: (_1), arg1 
+MACRO: (_4), arg1 3987
+MACROREPT * 2 (_5), arg1 3987, narg 2
+MACROREPT * 2 (_6), arg1 1234, narg 1
+MACROEND: (_4), arg1 
+MACRO: (_7), arg1 3987
+MACROREPT * 2 (_8), arg1 3987, narg 2
+MACROREPT * 2 (_9), arg1 1234, narg 1
+MACROEND: (_7), arg1 
+1st REPT * 3 (start _10)
+	2nd REPT * 4 (_11)
+	2nd REPT * 4 (_12)
+	2nd REPT * 4 (_13)
+	2nd REPT * 4 (_14)
+1st REPT * 3 (end _10)
+1st REPT * 3 (start _15)
+	2nd REPT * 4 (_16)
+	2nd REPT * 4 (_17)
+	2nd REPT * 4 (_18)
+	2nd REPT * 4 (_19)
+1st REPT * 3 (end _15)
+1st REPT * 3 (start _20)
+	2nd REPT * 4 (_21)
+	2nd REPT * 4 (_22)
+	2nd REPT * 4 (_23)
+	2nd REPT * 4 (_24)
+1st REPT * 3 (end _20)
+MACRO: (_26), arg1 3987
+MACROREPT * 2 (_27), arg1 3987, narg 2
+MACROREPT * 2 (_28), arg1 1234, narg 1
+MACROEND: (_26), arg1 
+MACRO: (_29), arg1 3987
+MACROREPT * 2 (_30), arg1 3987, narg 2
+MACROREPT * 2 (_31), arg1 1234, narg 1
+MACROEND: (_29), arg1 
+MACRO: (_32), arg1 3987
+MACROREPT * 2 (_33), arg1 3987, narg 2
+MACROREPT * 2 (_34), arg1 1234, narg 1
+MACROEND: (_32), arg1 
+1st REPT * 3 (start _35)
+	2nd REPT * 4 (_36)
+	2nd REPT * 4 (_37)
+	2nd REPT * 4 (_38)
+	2nd REPT * 4 (_39)
+1st REPT * 3 (end _35)
+1st REPT * 3 (start _40)
+	2nd REPT * 4 (_41)
+	2nd REPT * 4 (_42)
+	2nd REPT * 4 (_43)
+	2nd REPT * 4 (_44)
+1st REPT * 3 (end _40)
+1st REPT * 3 (start _45)
+	2nd REPT * 4 (_46)
+	2nd REPT * 4 (_47)
+	2nd REPT * 4 (_48)
+	2nd REPT * 4 (_49)
+1st REPT * 3 (end _45)
+MACRO: (_50), arg1 3987
+MACROREPT * 2 (_51), arg1 3987, narg 2
+MACROREPT * 2 (_52), arg1 1234, narg 1
+MACROEND: (_50), arg1 
+MACRO: (_53), arg1 3987
+MACROREPT * 2 (_54), arg1 3987, narg 2
+MACROREPT * 2 (_55), arg1 1234, narg 1
+MACROEND: (_53), arg1 
+MACRO: (_56), arg1 3987
+MACROREPT * 2 (_57), arg1 3987, narg 2
+MACROREPT * 2 (_58), arg1 1234, narg 1
+MACROEND: (_56), arg1 

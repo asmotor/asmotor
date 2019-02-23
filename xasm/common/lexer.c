@@ -94,9 +94,7 @@ skip(size_t count) {
 
 static void
 expandEscapeSequence(char** destination, char escapeSymbol) {
-    if (escapeSymbol == '@') {
-        *destination += appendAndFreeString(*destination, fstk_GetMacroUniqueId());
-    } else if (escapeSymbol >= '0' && escapeSymbol <= '9') {
+    if (escapeSymbol == '@' || (escapeSymbol >= '0' && escapeSymbol <= '9')) {
         *destination += appendAndFreeString(*destination, fstk_GetMacroArgValue(escapeSymbol));
     } else {
         *(*destination)++ = '\\';

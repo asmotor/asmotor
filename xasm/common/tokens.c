@@ -267,9 +267,7 @@ parseSymbol(size_t size) {
                 ch = lex_PeekChar(++index);
 
                 string* marg = NULL;
-                if (ch == '@')
-                    marg = fstk_GetMacroUniqueId();
-                else if (ch >= '0' && ch <= '9')
+                if (ch == '@' || (ch >= '0' && ch <= '9'))
                     marg = fstk_GetMacroArgValue(ch);
 
                 if (marg != NULL) {
