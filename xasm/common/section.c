@@ -444,6 +444,10 @@ sect_SkipBytes(uint32_t count) {
 		//printf("*DEBUG* skipping %d bytes\n", count);
 		switch (currentSectionType()) {
 			case GROUP_TEXT: {
+				while (count >= 2) {
+					sect_OutputConst16((opt_Current->uninitializedValue << 8) | opt_Current->uninitializedValue);
+					count -= 2;
+				}
 				while (count--) {
 					sect_OutputConst8((uint8_t) opt_Current->uninitializedValue);
 				}

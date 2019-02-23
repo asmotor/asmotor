@@ -261,6 +261,7 @@ fstk_ProcessNextBuffer(void) {
                     fstk_ProcessRepeatBlock(oldContext->block.repeat.buffer, oldContext->block.repeat.size,
                                             oldContext->block.repeat.remaining);
                 } else {
+                    fstk_Current->lineNumber += oldContext->lineNumber;
                     lex_SetBuffer(fstk_Current->lexBuffer);
                     mem_Free(oldContext->block.repeat.buffer);
                 }

@@ -111,8 +111,7 @@ static bool
 handleRexit() {
     if (fstk_Current->type == CONTEXT_REPT) {
         fstk_Current->block.repeat.remaining = 0;
-        fstk_ProcessNextBuffer();
-        fstk_Current->lineNumber++;
+        fstk_Current->lineNumber += lex_SkipCurrentBuffer();
     } else {
         err_Warn(WARN_REXIT_OUTSIDE_REPT);
     }
@@ -285,7 +284,7 @@ handleCnop() {
     parse_GetToken();
 
     int32_t offset = parse_ConstantExpression();
-    if (offset > 0) {
+    if (offset >= 0) {
         if (!parse_ExpectComma())
             return false;
 

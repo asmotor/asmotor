@@ -453,6 +453,11 @@ lex_SkipBytes(size_t count) {
     return linesSkipped;
 }
 
+size_t
+lex_SkipCurrentBuffer(void) {
+    return lex_SkipBytes(charsAvailable());
+}
+
 void
 lex_UnputStringLength(const char* str, size_t length) {
     str += length;

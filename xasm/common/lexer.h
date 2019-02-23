@@ -101,6 +101,9 @@ lex_StartsWithNoCase(const char* str, size_t length);
 extern size_t
 lex_SkipBytes(size_t count);
 
+extern size_t
+lex_SkipCurrentBuffer(void);
+
 extern void
 lex_UnputString(const char* str);
 
