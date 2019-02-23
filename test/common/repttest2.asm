@@ -1,5 +1,5 @@
-*Comment		
-
+*Comment
+		OPT eb
 Macro1:	MACRO
 			IFND	Undefined
 				WARN	"Line 5"
