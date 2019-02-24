@@ -163,12 +163,11 @@ gameboyCharToInt(char ch) {
 
 
 static uint32_t 
-gameboyLiteralToInt(const char* s) {
+gameboyLiteralToInt(size_t index, size_t size) {
 	uint32_t result = 0;
 
-	++s;
-	while (*s != '\0') {
-		uint32_t c = gameboyCharToInt(*s++);
+	while (index < size) {
+		uint32_t c = gameboyCharToInt(lex_PeekChar(index++));
 		result = result * 2 + ((c & 1u) << 8u) + ((c & 2u) >> 1u);
 	}
 
@@ -178,14 +177,7 @@ gameboyLiteralToInt(const char* s) {
 
 static bool
 parseGameboyLiteral(size_t size) {
-    char dest[256];
-
-	if (size >= 256)
-		size = 255;
-
-	lex_GetChars(dest, size);
-    dest[size] = 0;
-    lex_Current.value.integer = gameboyLiteralToInt(dest);
+    lex_Current.value.integer = gameboyLiteralToInt(1, size);
 
     return true;
 }

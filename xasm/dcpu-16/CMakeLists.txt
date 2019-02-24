@@ -12,3 +12,4 @@ add_executable (motordcpu16
     dcpu16_main.c)
 
 target_link_libraries (motordcpu16 xasm util)
+install (TARGETS motordcpu16 CONFIGURATIONS Release RUNTIME DESTINATION bin)

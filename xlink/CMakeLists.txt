@@ -28,3 +28,4 @@ add_executable (xlink
     xlink.h)
 
 target_link_libraries (xlink util)
+install (TARGETS xlink CONFIGURATIONS Release RUNTIME DESTINATION bin)

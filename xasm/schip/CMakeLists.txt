@@ -14,3 +14,4 @@ add_executable (motorschip
     )
 
 target_link_libraries (motorschip xasm util)
+install (TARGETS motorschip CONFIGURATIONS Release RUNTIME DESTINATION bin)

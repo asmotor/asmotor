@@ -13,3 +13,4 @@ add_executable(motorz80
         )
 
 target_link_libraries(motorz80 xasm util)
+install (TARGETS motorz80 CONFIGURATIONS Release RUNTIME DESTINATION bin)

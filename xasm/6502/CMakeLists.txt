@@ -14,3 +14,4 @@ add_executable (motor6502
     )
 
 target_link_libraries (motor6502 xasm util)
+install (TARGETS motor6502 CONFIGURATIONS Release RUNTIME DESTINATION bin)

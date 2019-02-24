@@ -55,6 +55,7 @@ static size_t g_maxWordLength;
 
 /* Private functions */
 
+#ifndef NDEBUG
 static bool
 isNotLowerCase(const char* str) {
     while (*str != 0) {
@@ -64,6 +65,7 @@ isNotLowerCase(const char* str) {
 
     return true;
 }
+#endif
 
 static uint32_t
 hashString(const char* str) {
@@ -77,6 +79,7 @@ hashString(const char* str) {
     return result;
 }
 
+#ifndef NDEBUG
 static bool
 doesNotExist(const char* name) {
     for (SConstantWord* word = g_wordsHashTable[hashString(name)]; word != NULL; word = list_GetNext(word)) {
@@ -85,6 +88,7 @@ doesNotExist(const char* name) {
     }
     return true;
 }
+#endif
 
 /* Public functions */
 

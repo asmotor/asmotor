@@ -13,3 +13,4 @@ add_executable (motormips
     )
 
 target_link_libraries (motormips xasm util)
+install (TARGETS motormips CONFIGURATIONS Release RUNTIME DESTINATION bin)

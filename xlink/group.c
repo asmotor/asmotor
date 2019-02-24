@@ -254,7 +254,7 @@ group_SetupSmallGameboy(void) {
     MemoryPool* codepool;
     MemoryGroup* group;
 
-    codepool = pool_Create(0, 0x0000, 1, 0x8000);
+    codepool = pool_Create(0, 0x0000, 0, 0x8000);
 
     //	Create HOME group
 

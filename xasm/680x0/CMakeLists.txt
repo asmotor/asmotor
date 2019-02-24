@@ -15,3 +15,4 @@ add_executable (motor68k
     )
 
 target_link_libraries (motor68k xasm util)
+install (TARGETS motor68k CONFIGURATIONS Release RUNTIME DESTINATION bin)

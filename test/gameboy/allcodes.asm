@@ -263,8 +263,8 @@ B0_0043:	ld	sp,$100
 	ldd	[hl],a
 	ldi	a,[hl]
 	ldi	[hl],a
-	ldh	[$ff1e],a
-	ldh	a,[$fffe]
+	ld	[$ff1e],a
+	ld	a,[$fffe]
 
 	nop
 
