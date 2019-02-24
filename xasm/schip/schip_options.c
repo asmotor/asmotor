@@ -56,11 +56,11 @@ schip_ParseOption(const char* s) {
     switch (s[0]) {
         case 'c':
             if (strlen(&s[1]) == 1) {
-                switch (s[1] - '0') {
-                    case 0:
+                switch (s[1]) {
+                    case '0':
                         opt_Current->machineOptions->cpu = CPUF_CHIP8;
                         return true;
-                    case 1:
+                    case '1':
                         opt_Current->machineOptions->cpu = CPUF_SCHIP;
                         return true;
                     default:

@@ -27,12 +27,12 @@
 
 GAMEINIT:
 
-CLS		; clear screen
-CALL INITPLAYER ; init player 
-CALL INITENEMY  ; init enemy 
+  CLS		; clear screen
+  CALL INITPLAYER ; init player 
+  CALL INITENEMY  ; init enemy 
 
-CALL DRAWPLAYER ; draw player on startpos
-CALL DRAWENEMY  ; draw enemy on startpos
+  CALL DRAWPLAYER ; draw player on startpos
+  CALL DRAWENEMY  ; draw enemy on startpos
 
 
 ; ================== game loop ================

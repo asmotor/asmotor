@@ -8,7 +8,7 @@ Scope:
 Test1	__RSW	1
 Test2	__RSW	1
 Test3	__RSL	4
-Test_SIZEOF	__RSB	0
+Test_SIZEOF	__RSW	0
 
 	PRINTT	"Test1 (should be $1E): "
 	PRINTV	Test1
@@ -28,7 +28,6 @@ Test_SIZEOF	__RSB	0
 
 TestMacro:	MACRO
 	PRINTT	"\@"
-.label\@	__DCW	.label\@
 	ENDM
 
 	TestMacro

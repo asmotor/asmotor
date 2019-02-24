@@ -258,47 +258,47 @@ typedef struct {
 } SInstruction;
 
 static SInstruction instructionHandlers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST + 1] = {
-    { CPUF_CHIP8, MODE_REG, 0, 0, 0xF033, handleModeReg },	// BCD
-    { CPUF_CHIP8, MODE_REG, 0, 0, 0xF029, handleModeReg },	// LDF
-    { CPUF_ALL,   MODE_REG, 0, 0, 0xF030, handleModeReg },	// LDF10
-    { CPUF_CHIP8, MODE_REG, 0, 0, 0x800E, handleModeReg },	// SHL
-    { CPUF_CHIP8, MODE_REG, 0, 0, 0xE0A1, handleModeReg },	// SKNP
-    { CPUF_CHIP8, MODE_REG, 0, 0, 0xE09E, handleModeReg },	// SKP
-    { CPUF_CHIP8, MODE_REG, 0, 0, 0x8006, handleModeReg },	// SHR
-    { CPUF_CHIP8, MODE_REG, 0, 0, 0xF00A, handleModeReg },	// WKP
+    { CPUF_ALL,   MODE_REG, 0, 0, 0xF033, handleModeReg },	// BCD
+    { CPUF_ALL,   MODE_REG, 0, 0, 0xF029, handleModeReg },	// LDF
+    { CPUF_SCHIP, MODE_REG, 0, 0, 0xF030, handleModeReg },	// LDF10
+    { CPUF_ALL,   MODE_REG, 0, 0, 0x800E, handleModeReg },	// SHL
+    { CPUF_ALL,   MODE_REG, 0, 0, 0xE0A1, handleModeReg },	// SKNP
+    { CPUF_ALL,   MODE_REG, 0, 0, 0xE09E, handleModeReg },	// SKP
+    { CPUF_ALL,   MODE_REG, 0, 0, 0x8006, handleModeReg },	// SHR
+    { CPUF_ALL,   MODE_REG, 0, 0, 0xF00A, handleModeReg },	// WKP
 
-    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8002, handleModeRegReg },	// AND
-    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8001, handleModeRegReg },	// OR
-    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8005, handleModeRegReg },	// SUB
-    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8007, handleModeRegReg },	// SUBN
-    { CPUF_CHIP8, MODE_REG, MODE_REG, 0, 0x8003, handleModeRegReg },	// XOR
+    { CPUF_ALL,   MODE_REG, MODE_REG, 0, 0x8002, handleModeRegReg },	// AND
+    { CPUF_ALL,   MODE_REG, MODE_REG, 0, 0x8001, handleModeRegReg },	// OR
+    { CPUF_ALL,   MODE_REG, MODE_REG, 0, 0x8005, handleModeRegReg },	// SUB
+    { CPUF_ALL,   MODE_REG, MODE_REG, 0, 0x8007, handleModeRegReg },	// SUBN
+    { CPUF_ALL,   MODE_REG, MODE_REG, 0, 0x8003, handleModeRegReg },	// XOR
 
-    { CPUF_CHIP8, MODE_REG, MODE_REG, MODE_IMM, 0xD000, handleDRW },	// DRW
+    { CPUF_ALL,   MODE_REG, MODE_REG, MODE_IMM, 0xD000, handleDRW },	// DRW
 
-    { CPUF_CHIP8, MODE_REG | MODE_I | MODE_DT | MODE_ST, MODE_REG | MODE_IMM | MODE_DT, 0, 0, handleLD},	// LD
+    { CPUF_ALL,   MODE_REG | MODE_I | MODE_DT | MODE_ST, MODE_REG | MODE_IMM | MODE_DT, 0, 0, handleLD},	// LD
 
-    { CPUF_CHIP8, MODE_REG | MODE_I_IND | MODE_RPL, MODE_REG | MODE_I_IND | MODE_RPL, 0, 0, handleLDM},	// LDM
+    { CPUF_ALL,   MODE_REG | MODE_I_IND | MODE_RPL, MODE_REG | MODE_I_IND | MODE_RPL, 0, 0, handleLDM},	// LDM
 
-    { CPUF_CHIP8, MODE_REG | MODE_I, MODE_REG | MODE_IMM, 0, 0, handleADD},	// ADD
+    { CPUF_ALL,   MODE_REG | MODE_I, MODE_REG | MODE_IMM, 0, 0, handleADD},	// ADD
 
-    { CPUF_CHIP8, MODE_REG, MODE_REG | MODE_IMM, 0, 0x3000, handleSkips},	// SE
-    { CPUF_CHIP8, MODE_REG, MODE_REG | MODE_IMM, 0, 0x4000, handleSkips},	// SNE
+    { CPUF_ALL,   MODE_REG, MODE_REG | MODE_IMM, 0, 0x3000, handleSkips},	// SE
+    { CPUF_ALL,   MODE_REG, MODE_REG | MODE_IMM, 0, 0x4000, handleSkips},	// SNE
 
-    { CPUF_CHIP8, MODE_REG, MODE_IMM, 0, 0xC000, handleModeRegImm},	// RND
+    { CPUF_ALL,   MODE_REG, MODE_IMM, 0, 0xC000, handleModeRegImm},	// RND
 
-    { CPUF_ALL,   MODE_IMM, 0, 0, 0x00C0, handleSCRD},	// SCRD
+    { CPUF_SCHIP, MODE_IMM, 0, 0, 0x00C0, handleSCRD},	// SCRD
 
-    { CPUF_CHIP8, MODE_IMM | MODE_IMM_V0, 0, 0, 0x1000, handleJP},	// JP
+    { CPUF_ALL,   MODE_IMM | MODE_IMM_V0, 0, 0, 0x1000, handleJP},	// JP
 
-    { CPUF_CHIP8, MODE_IMM, 0, 0, 0x2000, handleModeImm12},	// CALL
+    { CPUF_ALL,   MODE_IMM, 0, 0, 0x2000, handleModeImm12},	// CALL
 
-    { CPUF_CHIP8, 0, 0, 0, 0x00E0, handleModeNone},	// CLS
-    { CPUF_ALL,   0, 0, 0, 0x00FD, handleModeNone},	// EXIT
-    { CPUF_ALL,   0, 0, 0, 0x00FE, handleModeNone},	// LO
-    { CPUF_ALL,   0, 0, 0, 0x00FF, handleModeNone},	// HI
-    { CPUF_CHIP8, 0, 0, 0, 0x00EE, handleModeNone},	// RET
-    { CPUF_ALL,   0, 0, 0, 0x00FB, handleModeNone},	// SCRR
-    { CPUF_ALL,   0, 0, 0, 0x00FC, handleModeNone},	// SCRL
+    { CPUF_ALL,   0, 0, 0, 0x00E0, handleModeNone},	// CLS
+    { CPUF_SCHIP, 0, 0, 0, 0x00FD, handleModeNone},	// EXIT
+    { CPUF_SCHIP, 0, 0, 0, 0x00FE, handleModeNone},	// LO
+    { CPUF_SCHIP, 0, 0, 0, 0x00FF, handleModeNone},	// HI
+    { CPUF_ALL,   0, 0, 0, 0x00EE, handleModeNone},	// RET
+    { CPUF_SCHIP, 0, 0, 0, 0x00FB, handleModeNone},	// SCRR
+    { CPUF_SCHIP, 0, 0, 0, 0x00FC, handleModeNone},	// SCRL
 };
 
 bool
