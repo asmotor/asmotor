@@ -52,3 +52,5 @@ rules.ninja
 cmake-build-debug
 map.map
 test/gameboy/minios/.d
+PortIndex
+PortIndex.quick

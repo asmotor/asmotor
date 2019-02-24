@@ -3,12 +3,22 @@
 
 PortSystem          1.0
 
-name                asmotor
-version             0.1.0
+PortGroup           cmake 1.0
+cmake.out_of_source yes
+
+PortGroup           github 1.0
+github.setup        asmotor asmotor 0.9.0
+
+fetch.type          git
+post-fetch {
+    system -W ${worksrcpath} "git submodule update --init"
+}
+
 categories          devel
 platforms           darwin
-maintainers         gmail.com:csoren
 license             GPL-3
+
+maintainers         gmail.com:csoren
 
 description         A cross assembler, linker and librarian for several CPUs.
 
@@ -18,26 +28,7 @@ long_description    ASMotor is a portable and generic assembler engine and \
                     It can be used as either a cross or native development \
                     system. The assembler syntax is based on the A68k style \
                     macro language. Currently supported CPUs are the 680x0 \
-                    family, 6502, MIPS32, SChip/Chip-8, Z80 and Gameboy.
+                    family, 6502, MIPS32, SChip/Chip-8, DCPU-16, Z80 and \
+                    Gameboy.
 
-homepage            http://code.google.com/p/asmotor/
-master_sites        googlecode
-
-distname            ${name}-${version}-src
-use_bzip2           yes
-
-checksums           sha1    e76057443e0b771892c159227ecc34da2203c2f6 \
-                    rmd160  bd36cd2c317a59106b084be0cf9670ce26bc526d
-
-depends_build       port:scons
-
-worksrcdir          ${distname}/build/scons
-
-use_configure       no
-
-build.cmd           scons
-build.target
-build.pre_args
-build.post_args
-
-destroot.args       --prefix=${destroot}${prefix}
+homepage            https://github.com/asmotor/asmotor
