@@ -546,10 +546,10 @@ static bool
 handleLdh(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if ((addrMode1->mode & MODE_REG_A) && (addrMode2->mode & MODE_IMM_IND)) {
 		sect_OutputConst8((uint8_t) (instruction->opcode | 0x10u));
-		sect_OutputExpr8(createExpression8U(addrMode2->expression));
+		sect_OutputExpr8(createExpressionImmHi(addrMode2->expression));
 	} else if ((addrMode1->mode & MODE_IMM_IND) && (addrMode2->mode & MODE_REG_A)) {
 		sect_OutputConst8(instruction->opcode);
-		sect_OutputExpr8(createExpression8U(addrMode1->expression));
+		sect_OutputExpr8(createExpressionImmHi(addrMode1->expression));
 	} else {
         err_Error(ERROR_OPERAND);
 	}
