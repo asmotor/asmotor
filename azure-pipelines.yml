@@ -36,12 +36,7 @@ steps:
     rootFolderOrFile: '$(Build.BinariesDirectory)' 
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Agent.OS).zip' 
     replaceExistingArchive: true 
-- task: GithubRelease@0 
-  displayName: 'Create GitHub Release'      
+- task: PublishBuildArtifacts@1
   inputs:
-    githubConnection: asmotor
-    repositoryName: asmotor/asmotor
-    action: create
-    tagSource: auto
-    assets: |
-         $(Build.ArtifactStagingDirectory)/*.zip
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: binaries
