@@ -14,5 +14,5 @@ add_executable (motor68k
     m68k_tokens.h
     )
 
-target_link_libraries (motor68k xasm util)
+target_link_libraries (motor68k xasm util m)
 install (TARGETS motor68k CONFIGURATIONS Release RUNTIME DESTINATION bin)

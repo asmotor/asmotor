@@ -27,5 +27,5 @@ add_executable (xlink
     symbol.h
     xlink.h)
 
-target_link_libraries (xlink util)
+target_link_libraries (xlink util m)
 install (TARGETS xlink CONFIGURATIONS Release RUNTIME DESTINATION bin)

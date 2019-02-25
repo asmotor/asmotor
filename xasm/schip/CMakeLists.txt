@@ -13,5 +13,5 @@ add_executable (motorschip
     schip_tokens.h
     )
 
-target_link_libraries (motorschip xasm util)
+target_link_libraries (motorschip xasm util m)
 install (TARGETS motorschip CONFIGURATIONS Release RUNTIME DESTINATION bin)
