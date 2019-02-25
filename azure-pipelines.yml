@@ -18,5 +18,9 @@ steps:
   displayName: 'Generate makefiles'
 - task: CMake@1
   inputs:
-    cmakeArgs: '--build .'
+    cmakeArgs: '--build . --target install -- DESTDIR=$(Build.ArtifactStagingDirectory)'
   displayName: 'Build'
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/usr/local/bin'
+    artifactName: binaries
