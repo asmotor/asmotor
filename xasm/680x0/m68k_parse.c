@@ -253,7 +253,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
                 ins |= 0x0040;
             } else {
                 ins |= mode->inner.indexRegister << 12;
-                if (mode->inner.indexRegister == SIZE_LONG)
+                if (mode->inner.indexSize == SIZE_LONG)
                     ins |= 0x0800;
             }
 
@@ -344,7 +344,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
                 ins |= 0x0040;
             } else {
                 ins |= mode->outer.indexRegister << 12;
-                if (mode->outer.indexRegister == SIZE_LONG)
+                if (mode->outer.indexSize == SIZE_LONG)
                     ins |= 0x0800;
             }
 
