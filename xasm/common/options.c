@@ -82,7 +82,7 @@ handleUnitializedFill(const char* fill) {
             opt_Current->uninitializedValue = 0xFF;
             return true;
         } else {
-            int uninitializedValue;
+            uint32_t uninitializedValue;
             int result = sscanf(fill, "%x", &uninitializedValue);
             opt_Current->uninitializedValue = (uint8_t) uninitializedValue;
             return !(result == EOF || result != 1);
