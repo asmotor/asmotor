@@ -10,6 +10,8 @@ pool:
   vmImage: 'Ubuntu-16.04'
 
 steps:
+- script: |
+    git submodule update --init
 - task: CMake@1
   inputs:
     cmakeArgs: '-DCMAKE_BUILD_TYPE=Release -S ..'
