@@ -15,5 +15,5 @@ steps:
 - task: CMake@1
   inputs:
     workingDirectory: 'build'
-    cmakeArgs: '-DCMAKE_BUILD_TYPE=Release'
+    cmakeArgs: '-DCMAKE_BUILD_TYPE=Release -S .. -B .'
   displayName: 'Build using CMake'
