@@ -134,7 +134,7 @@ indirectAdd(uint32_t* reg, SExpression** address) {
     if (!indirectComponent(&newReg, &newAddress))
         return false;
 
-    if (newReg >= 0) {
+    if (newReg != UINT32_MAX) {
         if (*reg == UINT32_MAX)
             *reg = newReg;
         else
@@ -155,7 +155,7 @@ static bool indirectSubtract(SExpression** address) {
     if (!indirectComponent(&newReg, &newAddress))
         return false;
 
-    if (newReg >= 0) {
+    if (newReg != UINT32_MAX) {
         err_Error(MERROR_ADDRMODE_SUBTRACT_REGISTER);
     } else if (newAddress != NULL) {
         *address = address == NULL ? newAddress : expr_Sub(*address, newAddress);
