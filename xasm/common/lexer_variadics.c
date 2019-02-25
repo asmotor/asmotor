@@ -113,27 +113,23 @@ void lex_VariadicRemoveAll(uint32_t id) {
 }
 
 void lex_VariadicAddCharRangeRepeating(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber) {
-	if (charNumber >= 0) {
-		SVariadicWordsPerChar* chars = variadicWordsAt(charNumber);
+	SVariadicWordsPerChar* chars = variadicWordsAt(charNumber);
 
-		while (chars) {
-			uint16_t c = start;
+	while (chars) {
+		uint16_t c = start;
 
-			while (c <= end)
-				chars->idBits[c++] |= id;
+		while (c <= end)
+			chars->idBits[c++] |= id;
 
-			chars = list_GetNext(chars);
-		}
+		chars = list_GetNext(chars);
 	}
 }
 
 void lex_VariadicAddCharRange(uint32_t id, uint8_t start, uint8_t end, uint32_t charNumber) {
-	if (charNumber >= 0) {
-		SVariadicWordsPerChar* chars = variadicWordsAt(charNumber);
+	SVariadicWordsPerChar* chars = variadicWordsAt(charNumber);
 
-		while (start <= end)
-			chars->idBits[start++] |= id;
-	}
+	while (start <= end)
+		chars->idBits[start++] |= id;
 }
 
 void lex_VariadicAddSuffix(uint32_t id, uint8_t ch) {
