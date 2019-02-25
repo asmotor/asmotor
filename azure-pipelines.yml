@@ -4,10 +4,19 @@
 # https://aka.ms/yaml
 
 trigger:
-- master
+- release/*
 
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-16.04'
+    mac:
+      imageName: 'macos-10.13'
+    windows:
+      imageName: 'vs2017-win2016'
+      
 pool:
-  vmImage: 'Ubuntu-16.04'
+  vmImage: $(imageName)
 
 steps:
 - script: |
@@ -18,9 +27,19 @@ steps:
   displayName: 'Generate makefiles'
 - task: CMake@1
   inputs:
-    cmakeArgs: '--build . --target install -- DESTDIR=$(Build.ArtifactStagingDirectory)'
+    cmakeArgs: '--build . --target install -- DESTDIR=$(Build.BinariesDirectory)'
   displayName: 'Build'
-- task: PublishBuildArtifacts@1
+- task: ArchiveFiles@2
   inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)/usr/local/bin'
-    artifactName: binaries
+    rootFolderOrFile: '$(Build.BinariesDirectory)' 
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Agent.OS).zip' 
+    replaceExistingArchive: true 
+- task: GithubRelease@0 
+  displayName: 'Create GitHub Release'      
+  inputs:
+    githubConnection: asmotor
+    repositoryName: asmotor/asmotor
+    action: create
+    tagSource: auto
+    assets: |
+         $(Build.ArtifactStagingDirectory)/*.zip
