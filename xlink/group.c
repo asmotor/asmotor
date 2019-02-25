@@ -175,7 +175,7 @@ group_AllocateMemoryFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId,
             if (pool_AllocateMemory(pool, size, cpuByteLocation)) {
                 *cpuBank = pool->cpuBank;
                 *imageLocation =
-                        pool->imageLocation == -1 ? -1 : pool->imageLocation + *cpuByteLocation - pool->cpuByteLocation;
+                        pool->imageLocation == -1 ? -1 : pool->imageLocation + *cpuByteLocation - (int32_t) pool->cpuByteLocation;
                 return true;
             }
         }
@@ -192,7 +192,7 @@ group_AllocateAbsoluteFromGroup(MemoryGroup* group, uint32_t size, int32_t bankI
         if (bankId == -1 || bankId == pool->cpuBank) {
             if (pool_AllocateAbsolute(pool, size, cpuByteLocation)) {
                 *cpuBank = pool->cpuBank;
-                *imageLocation = pool->imageLocation == -1 ? -1 : pool->imageLocation + cpuByteLocation - pool->cpuByteLocation;
+                *imageLocation = pool->imageLocation == -1 ? -1 : pool->imageLocation + cpuByteLocation - (int32_t) pool->cpuByteLocation;
                 return true;
             }
         }
