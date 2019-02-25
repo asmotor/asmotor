@@ -15,4 +15,8 @@ steps:
 - task: CMake@1
   inputs:
     cmakeArgs: '-DCMAKE_BUILD_TYPE=Release -S ..'
-  displayName: 'Build using CMake'
+  displayName: 'Generate makefiles'
+- task: CMake@1
+  inputs:
+    cmakeArgs: '--build .'
+  displayName: 'Build'
