@@ -192,7 +192,7 @@ handleStringMemberFunctionReturningInt(string* s) {
                 if (needle != NULL) {
                     if (parse_ExpectChar(')')) {
                         uint32_t val = str_Find(s, needle);
-                        r = expr_Const(val == UINT32_MAX ? -1 : val);
+                        r = expr_Const(val == UINT32_MAX ? -1 : (int32_t) val);
                     }
                     str_Free(needle);
                 }
