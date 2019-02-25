@@ -23,20 +23,23 @@ pool:
 steps:
 - script: |
     git submodule update --init
+  displayName: 'Update submodules'
 - task: CMake@1
   inputs:
-    cmakeArgs: '-DCMAKE_BUILD_TYPE=Release -S ..'
+    cmakeArgs: '-DCMAKE_INSTALL_PREFIX=$(Build.BinariesDirectory) -DCMAKE_BUILD_TYPE=Release -S ..'
   displayName: 'Generate makefiles'
 - task: CMake@1
   inputs:
-    cmakeArgs: '--build . --target install -- DESTDIR=$(Build.BinariesDirectory)'
+    cmakeArgs: '--build . --target install'
   displayName: 'Build'
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(Build.BinariesDirectory)' 
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Agent.OS).zip' 
     replaceExistingArchive: true 
+  displayName: 'Archive files'
 - task: PublishBuildArtifacts@1
   inputs:
     pathtoPublish: '$(Build.ArtifactStagingDirectory)'
     artifactName: binaries
+  displayName: 'Publish artifact'
