@@ -15,6 +15,6 @@ target_link_libraries (motordcpu16 xasm util)
 
 if(NOT MSVC)
     target_link_libraries (motordcpu16 m)
-endif(MSVC)
+endif(NOT MSVC)
 
 install (TARGETS motordcpu16 CONFIGURATIONS Release RUNTIME DESTINATION bin)

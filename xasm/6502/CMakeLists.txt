@@ -17,6 +17,6 @@ target_link_libraries (motor6502 xasm util)
 
 if(NOT MSVC)
     target_link_libraries (motor6502 m)
-endif(MSVC)
+endif(NOT MSVC)
 
 install (TARGETS motor6502 CONFIGURATIONS Release RUNTIME DESTINATION bin)

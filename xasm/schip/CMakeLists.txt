@@ -17,6 +17,6 @@ target_link_libraries (motorschip xasm util)
 
 if(NOT MSVC)
     target_link_libraries (motorschip m)
-endif(MSVC)
+endif(NOT MSVC)
 
 install (TARGETS motorschip CONFIGURATIONS Release RUNTIME DESTINATION bin)

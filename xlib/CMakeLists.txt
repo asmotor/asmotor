@@ -8,6 +8,6 @@ target_link_libraries (xlib util)
 
 if(NOT MSVC)
     target_link_libraries (xlib m)
-endif(MSVC)
+endif(NOT MSVC)
 
 install (TARGETS xlib CONFIGURATIONS Release RUNTIME DESTINATION bin)

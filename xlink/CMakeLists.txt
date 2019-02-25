@@ -31,6 +31,6 @@ target_link_libraries (xlink util)
 
 if(NOT MSVC)
     target_link_libraries (xlink m)
-endif(MSVC)
+endif(NOT MSVC)
 
 install (TARGETS xlink CONFIGURATIONS Release RUNTIME DESTINATION bin)

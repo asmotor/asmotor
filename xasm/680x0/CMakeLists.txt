@@ -18,6 +18,6 @@ target_link_libraries (motor68k xasm util)
 
 if(NOT MSVC)
     target_link_libraries (motor68k m)
-endif(MSVC)
+endif(NOT MSVC)
 
 install (TARGETS motor68k CONFIGURATIONS Release RUNTIME DESTINATION bin)

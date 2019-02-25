@@ -30,7 +30,7 @@ steps:
   displayName: 'Generate makefiles'
 - task: CMake@1
   inputs:
-    cmakeArgs: '--build . --target install'
+    cmakeArgs: '--build . --config Release --target install'
   displayName: 'Build'
 - task: ArchiveFiles@2
   inputs:

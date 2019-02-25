@@ -16,6 +16,6 @@ target_link_libraries(motorz80 xasm util)
 
 if(NOT MSVC)
     target_link_libraries (motorz80 m)
-endif(MSVC)
+endif(NOT MSVC)
 
 install (TARGETS motorz80 CONFIGURATIONS Release RUNTIME DESTINATION bin)

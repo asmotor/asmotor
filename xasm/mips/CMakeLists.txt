@@ -16,6 +16,6 @@ target_link_libraries (motormips xasm util)
 
 if(NOT MSVC)
     target_link_libraries (motormips m)
-endif(MSVC)
+endif(NOT MSVC)
 
 install (TARGETS motormips CONFIGURATIONS Release RUNTIME DESTINATION bin)
