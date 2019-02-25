@@ -39,7 +39,7 @@ steps:
 - task: GithubRelease@0 
   displayName: 'Create GitHub Release'      
   inputs:
-    githubConnection: asmotor
+    githubConnection: csoren
     repositoryName: asmotor/asmotor
     action: create
     tagSource: auto
