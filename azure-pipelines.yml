@@ -12,5 +12,5 @@ pool:
 steps:
 - task: CMake@1
   inputs:
-    cmakeArgs: '-DCMAKE_BUILD_TYPE=Release -S . -B build/release'
+    cmakeArgs: '-DCMAKE_BUILD_TYPE=Release -S ..'
   displayName: 'Build using CMake'
