@@ -12,5 +12,10 @@ add_executable (motormips
     mips_tokens.h
     )
 
-target_link_libraries (motormips xasm util m)
+target_link_libraries (motormips xasm util)
+
+if(NOT MSVC)
+    target_link_libraries (motormips m)
+endif(MSVC)
+
 install (TARGETS motormips CONFIGURATIONS Release RUNTIME DESTINATION bin)

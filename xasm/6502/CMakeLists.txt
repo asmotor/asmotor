@@ -13,5 +13,10 @@ add_executable (motor6502
     x65_tokens.h
     )
 
-target_link_libraries (motor6502 xasm util m)
+target_link_libraries (motor6502 xasm util)
+
+if(NOT MSVC)
+    target_link_libraries (motor6502 m)
+endif(MSVC)
+
 install (TARGETS motor6502 CONFIGURATIONS Release RUNTIME DESTINATION bin)

@@ -11,5 +11,10 @@ add_executable (motordcpu16
     dcpu16_tokens.h
     dcpu16_main.c)
 
-target_link_libraries (motordcpu16 xasm util m)
+target_link_libraries (motordcpu16 xasm util)
+
+if(NOT MSVC)
+    target_link_libraries (motordcpu16 m)
+endif(MSVC)
+
 install (TARGETS motordcpu16 CONFIGURATIONS Release RUNTIME DESTINATION bin)

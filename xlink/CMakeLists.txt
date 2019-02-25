@@ -27,5 +27,10 @@ add_executable (xlink
     symbol.h
     xlink.h)
 
-target_link_libraries (xlink util m)
+target_link_libraries (xlink util)
+
+if(NOT MSVC)
+    target_link_libraries (xlink m)
+endif(MSVC)
+
 install (TARGETS xlink CONFIGURATIONS Release RUNTIME DESTINATION bin)

@@ -4,5 +4,10 @@ add_executable (xlib
     module.h
     main.c)
 
-target_link_libraries (xlib util m)
+target_link_libraries (xlib util)
+
+if(NOT MSVC)
+    target_link_libraries (xlib m)
+endif(MSVC)
+
 install (TARGETS xlib CONFIGURATIONS Release RUNTIME DESTINATION bin)

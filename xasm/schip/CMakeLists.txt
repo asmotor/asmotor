@@ -13,5 +13,10 @@ add_executable (motorschip
     schip_tokens.h
     )
 
-target_link_libraries (motorschip xasm util m)
+target_link_libraries (motorschip xasm util)
+
+if(NOT MSVC)
+    target_link_libraries (motorschip m)
+endif(MSVC)
+
 install (TARGETS motorschip CONFIGURATIONS Release RUNTIME DESTINATION bin)
