@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required (VERSION 3.12)
+
+include (ucm.cmake)
 
 set (CMAKE_C_STANDARD 99)
 
@@ -7,6 +9,8 @@ if(MSVC)
 else(MSVC)
   add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unused-parameter)
 endif(MSVC)
+
+ucm_set_runtime (STATIC)
 
 include_directories ("${PROJECT_SOURCE_DIR}/util")
 

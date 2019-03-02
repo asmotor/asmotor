@@ -34,7 +34,7 @@ steps:
   displayName: 'Build'
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)' 
+    rootFolderOrFile: '$(Build.BinariesDirectory)/b/bin' 
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Agent.OS).zip' 
     replaceExistingArchive: true 
   displayName: 'Archive files'

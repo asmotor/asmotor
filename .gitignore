@@ -54,3 +54,4 @@ map.map
 test/gameboy/minios/.d
 PortIndex
 PortIndex.quick
+bin/
