@@ -1,3 +1,5 @@
 #!/bin/sh
+rm -rf build/cmake/release
+cmake -DCMAKE_INSTALL_PREFIX=$HOME/ -DCMAKE_BUILD_TYPE=Release -S . -B build/cmake/release
 cd build/cmake/release
-make -j 14 DESTDIR=~/ install 
+make install 

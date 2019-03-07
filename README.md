@@ -8,6 +8,21 @@ Currently supported CPUs are the 680x0 family, 6502, MIPS32, Z80, Game Boy, DCPU
 
 ASMotor is the spiritual successor to RGBDS, which was a fairly popular development package for the Game Boy. ASMotor is written by the original RGBDS author.
 
+# Installing
+
+## Building from source
+
+### Linux and macOS
+A script (```install.sh```) is included that will install the compiled binaries into the $HOME/bin directory. This path should be added to your $PATH for easier use.
+
+Provided you have the necessary prerequisites, ```git``` and ```cmake```, installed, the latest version of ASMotor is easily installed using
+
+```
+    git clone --recursive https://github.com/asmotor/asmotor.git && cd asmotor && ./install.sh
+```
+
+To install ```git``` and ```cmake```, it is suggested you use [brew](https://brew.sh) or [MacPorts](https://www.macports.org).
+
 # Further reading
 Dive into the documentation to learn more about:
 
