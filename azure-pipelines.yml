@@ -26,7 +26,7 @@ steps:
   displayName: 'Update submodules'
 - task: CMake@1
   inputs:
-    cmakeArgs: '-DCMAKE_INSTALL_PREFIX=$(Build.BinariesDirectory) -DCMAKE_BUILD_TYPE=Release -S ..'
+    cmakeArgs: '-DCMAKE_INSTALL_PREFIX=$(Build.BinariesDirectory) -DCMAKE_BUILD_TYPE=Release -DCMAKE_GENERATOR_PLATFORM=x64 -S ..'
   displayName: 'Generate makefiles'
 - task: CMake@1
   inputs:
