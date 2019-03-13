@@ -18,7 +18,7 @@ A script (```install.sh```) is included that will install the compiled binaries 
 Provided you have the necessary prerequisites, ```git``` and ```cmake```, installed, the latest version of ASMotor is easily installed using
 
 ```
-    git clone --recursive https://github.com/asmotor/asmotor.git && cd asmotor && ./install.sh
+    curl https://raw.githubusercontent.com/asmotor/asmotor/master/bootstrap.sh | sh
 ```
 
 To install ```git``` and ```cmake```, it is suggested you use [brew](https://brew.sh) or [MacPorts](https://www.macports.org).
