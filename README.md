@@ -13,15 +13,22 @@ ASMotor is the spiritual successor to RGBDS, which was a fairly popular developm
 ## Building from source
 
 ### Linux and macOS
-A script (```install.sh```) is included that will install the compiled binaries into the $HOME/bin directory. This path should be added to your $PATH for easier use.
+A script (```install.sh```) is included that will install the compiled binaries into the $HOME/bin directory. This path should be added to your $PATH for easier use. This script will also accept the
+destination root (for instance ```/usr/local```).
 
-Provided you have the necessary prerequisites, ```git``` and ```cmake```, installed, the latest version of ASMotor is easily installed using
+For even easier installation, provided you have the necessary prerequisites, ```git``` and ```cmake```, installed, the latest version of ASMotor can be installed using
 
 ```
     curl https://raw.githubusercontent.com/asmotor/asmotor/master/bootstrap.sh | sh
 ```
 
-To install ```git``` and ```cmake```, it is suggested you use [brew](https://brew.sh) or [MacPorts](https://www.macports.org).
+If you want to install it globally, you can supply the installation prefix as a parameter:
+
+```
+    curl https://raw.githubusercontent.com/asmotor/asmotor/master/bootstrap.sh | sh -s /usr/local
+```
+
+To install ```git``` and ```cmake```, it is suggested you use your distribution's package manager. For macOS, use [brew](https://brew.sh) or [MacPorts](https://www.macports.org).
 
 # Further reading
 Dive into the documentation to learn more about:
