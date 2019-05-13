@@ -106,7 +106,7 @@ static char*
 expandStreamIncluding(char* destination, char* stopChars, char* sequenceChars, char* (*next)(char*, char)) {
     for (;;) {
         char ch = lex_PeekChar(0);
-        if (ch == 0 || ch == '\n') {
+        if (ch == 0 || ch == '\n' || ch == ']') {
             break;
         }
 
@@ -344,6 +344,10 @@ stateMacroArguments() {
     } else if (lex_MatchChar(',')) {
         lex_Current.length = 1;
         lex_Current.token = T_COMMA;
+        return true;
+    } else if (lex_PeekChar(0) == ']') {
+        lex_Current.length = 1;
+        lex_Current.token = T_LINEFEED;
         return true;
     } else {
         lex_Current.token = T_NONE;

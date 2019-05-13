@@ -55,3 +55,4 @@ test/gameboy/minios/.d
 PortIndex
 PortIndex.quick
 bin/
+.vscode/ipch
