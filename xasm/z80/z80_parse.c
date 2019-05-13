@@ -705,27 +705,31 @@ handleIm(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 }
 
 static bool
-handleInOut(SInstruction* instruction, SAddressingMode* addrMode, ERegisterD regD) {
-	if (addrMode->mode & MODE_REG_C_IND) {
+handleInOut(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	if (addrMode1->mode & MODE_REG_C_IND) {
 		sect_OutputConst8(instruction->prefix);
-		sect_OutputConst8(instruction->opcode | regD << 3u);
+		sect_OutputConst8(instruction->opcode | addrMode2->registerD << 3u);
 		return true;
 	}
 
-	sect_OutputConst8((uint8_t) (0xDBu ^ ((instruction->opcode & 1u) << 3u)));
-	sect_OutputExpr8(createExpression8U(addrMode->expression));
+	if (addrMode2->mode & (MODE_REG_A | MODE_NONE)) {
+		sect_OutputConst8((uint8_t) (0xDBu ^ ((instruction->opcode & 1u) << 3u)));
+		sect_OutputExpr8(createExpression8U(addrMode1->expression));
+		return true;
+	}
 
+	err_Error(ERROR_OPERAND);
 	return true;
 }
 
 static bool
 handleIn(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	return handleInOut(instruction, addrMode2, addrMode1->registerD);
+	return handleInOut(instruction, addrMode2, addrMode1);
 }
 
 static bool
 handleOut(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	return handleInOut(instruction, addrMode1, addrMode2->registerD);
+	return handleInOut(instruction, addrMode1, addrMode2);
 }
 
 static bool

@@ -402,7 +402,6 @@ expr_Symbol(string* symbolName) {
         }
     }
 
-    err_Fail(ERROR_SYMBOL_IN_EXPR);
     return NULL;
 }
 
