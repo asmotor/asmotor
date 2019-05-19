@@ -422,25 +422,27 @@ group_SetupSegaMegaDrive() {
 
 void
 group_SetupSegaMasterSystem(int size) {
-    MemoryPool* codepool;
     MemoryGroup* group;
 
-    codepool = pool_Create(0, 0, 0, size - 16);
+    MemoryPool* homepool = pool_Create(0, 0, 0, 0x400);
+    MemoryPool* codepool = pool_Create(0x400, 0x400, 0, size - 16 - 0x400);
 
     //	Create CODE group
 
-    group = group_Create("CODE", 1);
-    group->pools[0] = codepool;
+    group = group_Create("CODE", 2);
+    group->pools[0] = homepool;
+    group->pools[1] = codepool;
 
     //	Create HOME group
 
     group = group_Create("HOME", 1);
-    group->pools[0] = codepool;
+    group->pools[0] = homepool;
 
     //	Create DATA group
 
-    group = group_Create("DATA", 1);
-    group->pools[0] = codepool;
+    group = group_Create("DATA", 2);
+    group->pools[0] = homepool;
+    group->pools[1] = codepool;
 
     //	Create BSS group
 
@@ -454,30 +456,33 @@ group_SetupSegaMasterSystem(int size) {
 
 void
 group_SetupSegaMasterSystemBanked(void) {
-    MemoryPool* codepools[63];
+    MemoryPool* homepool;
+    MemoryPool* codepools[64];
     MemoryGroup* group;
 
-    codepools[0] = pool_Create(0, 0, 0, 0x8000);
-
-    for (int i = 2; i < 64; ++i)
+    homepool = pool_Create(0, 0, 0, 0x400);
+    codepools[0] = pool_Create(0x400, 0x400, 0, 0x4000 - 0x400);
+    for (int i = 1; i < 64; ++i)
         codepools[i - 1] = pool_Create(i * 0x4000, 0x8000, i, 0x4000);
 
     //	Create HOME group
 
     group = group_Create("HOME", 1);
-    group->pools[0] = codepools[0];
+    group->pools[0] = homepool;
 
     //	Create CODE group
 
-    group = group_Create("CODE", 63);
-    for (int i = 0; i < 63; ++i)
-        group->pools[i] = codepools[i];
+    group = group_Create("CODE", 65);
+    group->pools[0] = homepool;
+    for (int i = 1; i < 65; ++i)
+        group->pools[i] = codepools[i - 1];
 
     //	Create DATA group
 
     group = group_Create("DATA", 63);
-    for (int i = 0; i < 63; ++i)
-        group->pools[i] = codepools[i];
+    group->pools[0] = homepool;
+    for (int i = 1; i < 65; ++i)
+        group->pools[i] = codepools[i - 1];
 
     //	Create BSS group
 

@@ -31,6 +31,7 @@
 #include "mapfile.h"
 #include "object.h"
 #include "patch.h"
+#include "section.h"
 #include "sega.h"
 #include "smart.h"
 #include "xlink.h"
@@ -86,9 +87,9 @@ printUsage(void) {
            "Usage: xlink [options] file1 [file2 [... filen]]\n"
            "Options: (a forward slash (/) can be used instead of the dash (-))\n"
            "\t-h\t\tThis text\n"
-           //			"\t-m<mapfile>\tWrite a mapfile\n"
+           "\t-m<mapfile>\tWrite a mapfile\n"
            "\t-o<output>\tWrite output to file <output>\n"
-           //			"\t-s<symbol>\tPerform smart linking starting with <symbol>\n"
+           "\t-s<symbol>\tPerform smart linking starting with <symbol>\n"
            "\t-t\t\tOutput target\n"
            "\t    -ta\t\tAmiga executable\n"
            "\t    -tb\t\tAmiga link object\n"
@@ -100,12 +101,12 @@ printUsage(void) {
            "\t    -tc264\tCommodore 264 series .prg\n"
            "\t    -tg\t\tGame Boy ROM image\n"
            "\t    -ts\t\tGame Boy small mode (32 KiB)\n"
-           "\t    -tmd\t\tSega Mega Drive\n"
-           "\t    -tms8\t\tSega Master System (8 KiB)\n"
-           "\t    -tms16\t\tSega Master System (16 KiB)\n"
-           "\t    -tms32\t\tSega Master System (32 KiB)\n"
-           "\t    -tms48\t\tSega Master System (48 KiB)\n"
-           "\t    -tmsb\t\tSega Master System banked (64+ KiB)\n"
+           "\t    -tmd\tSega Mega Drive\n"
+           "\t    -tms8\tSega Master System (8 KiB)\n"
+           "\t    -tms16\tSega Master System (16 KiB)\n"
+           "\t    -tms32\tSega Master System (32 KiB)\n"
+           "\t    -tms48\tSega Master System (48 KiB)\n"
+           "\t    -tmsb\tSega Master System banked (64+ KiB)\n"
 //			"\t    -tm<mach>\tUse file <mach>\n"
     );
     exit(EXIT_SUCCESS);
@@ -341,10 +342,12 @@ main(int argc, char* argv[]) {
     }
 
     if (mapFilename != NULL) {
-        if (!target_SupportsReloc(targetType))
+        if (!target_SupportsReloc(targetType)) {
+            sect_ResolveUnresolved();
             map_Write(mapFilename);
-        else
+        } else {
             error("Output format does not support producing a mapfile");
+        }
     }
         
 

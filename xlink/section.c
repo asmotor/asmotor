@@ -108,6 +108,16 @@ resolveSymbol(Section* section, Symbol* symbol, bool allowImports) {
     }
 }
 
+static void
+resolveUnresolvedSymbols(Section* section, intptr_t data) {
+    for (uint32_t i = 0; i < section->totalSymbols; ++i) {
+        Symbol* symbol = &section->symbols[i];
+        if (!symbol->resolved)
+            resolveSymbol(section, symbol, true);
+    }
+}
+
+
 Symbol*
 sect_GetSymbol(Section* section, uint32_t symbolId, bool allowImports) {
     if (symbolId >= section->totalSymbols) {
@@ -154,6 +164,11 @@ sect_ForEachUsedSection(void (* function)(Section*, intptr_t), intptr_t data) {
             function(section, data);
     }
 
+}
+
+void
+sect_ResolveUnresolved(void) {
+    sect_ForEachUsedSection(resolveUnresolvedSymbols, 0);
 }
 
 Section*
