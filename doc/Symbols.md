@@ -54,7 +54,7 @@ AnExportedLabel:
 AutomaticExport::
 ```
 
-## <a name="integer_symbols></a> Integer symbols
+## <a name="integer_symbols"></a> Integer symbols
 Instead of hardcoding constants it's often better to give them a name. The assembler supports two kinds of integer symbols, one that is constant and one that may change its value during assembling. The assembler instruction ```EQU``` is used to define constants and ```SET``` is used for variables. Instead of ```SET``` it's also possible use ```=```. Note that an integer symbol is never followed by a colon.
 
 ```
@@ -77,7 +77,7 @@ Integer symbols are often used to define the offsets of structure members. While
 The ```__RSB```, ```__RSW``` and ```__RSL``` directives are always available as a portable way to define RS symbols. The different CPU's use different conventions and have other, possibly more convenient, aliases available:
 
 | Portable | 6502 | Z80 | M68K | MIPS | DCPU-16 | SCHIP |
-|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|
 | ```__RSB``` | ```RB``` | ```RB``` | ```RS.B``` | ```RB``` | n/a | ```RB``` |
 | ```__RSW``` | ```RW``` | ```RW``` | ```RS.W``` | ```RH``` | ```RW``` | ```RW``` |
 | ```__RSL``` | n/a | n/a | ```RS.L``` | ```RW``` | ```RL``` | n/a |
@@ -126,7 +126,7 @@ Note that string symbols cannot be used in place of a string literal directly - 
     DC.B {StringSymbol},0
 ```
 
-## <a name="group_symbols></a> Group symbols
+## <a name="group_symbols"></a> Group symbols
 Though rarely used, it is hoewever possible to define new groups for use with the ```SECTION``` directive.
 These groups are also present in the object file for later consumption by a linker. Two different kinds can be defined, ```TEXT``` and ```RAM```.
 
