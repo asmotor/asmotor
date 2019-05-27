@@ -35,7 +35,7 @@ Dive into the documentation to learn more about:
 
 * [Introduction](doc/Introduction.md), goals and background
 * [Invoking the assembler](doc/Assembler.md) and basic syntax
-* [Symbols](doc/Symbol.md) and labels
+* [Symbols](doc/Symbols.md) and labels
 * [Control structures](doc/ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
 * [Expressions](doc/Expressions.md) and how they're built
 * [Printing diagnostic messages](doc/Diagnostics.md), warnings and errors
