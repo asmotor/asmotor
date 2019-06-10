@@ -196,6 +196,11 @@ createExpression16U(SExpression* expression) {
 }
 
 static SExpression*
+createExpression16SU(SExpression* expression) {
+    return createExpressionNBit(expression, -32768, 65535, 16);
+}
+
+static SExpression*
 createExpression8SU(SExpression* expression) {
     return createExpressionNBit(expression, -128, 255, 8);
 }
@@ -471,7 +476,7 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		uint8_t regSS = (uint8_t) addrMode1->registerSS << 4u;
 		outputGroupHL(addrMode1);
 		sect_OutputConst8((uint8_t) 0x01u | regSS);
-		sect_OutputExpr16(createExpression16U(addrMode2->expression));
+		sect_OutputExpr16(createExpression16SU(addrMode2->expression));
 	} else if (IS_GB && (addrMode1->mode & MODE_REG_A) && (addrMode2->mode & MODE_REG_C_IND)) {
 		sect_OutputConst8(0xF2);
 	} else if (IS_GB && (addrMode1->mode & MODE_REG_HL) && (addrMode2->mode & MODE_REG_SP_DISP)) {
