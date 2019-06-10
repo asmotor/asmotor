@@ -68,6 +68,20 @@ This option is used to select the CPU type. The default is Z80.
 | g | Gameboy |
 | z | Z80 (default) |
 
+### -ms<x> option
+This option enables certain synthesized instructions.
+
+| x | Synthesized instructions |
+|---|---|
+| 0 | Disabled |
+| 1 | Enabled |
+
+Synthesized instructions are safe sequences with no unintended side effects.
+
+| Mnemonic | Notes |
+|---|---|
+| LD reg16,reg16 | reg16 = BC, DE or HL |
+
 ## __DCB, __RS, __DSB
 
 || 8 bit | 16 bit | 32 bit |

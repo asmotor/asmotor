@@ -23,7 +23,8 @@ static const char* g_errors[] = {
     "Register SP expected",
     "Consider using %s instead",
     "Expression must be in the $FF00-$FFFF range",
-    "Instruction not supported by selected CPU"
+    "Instruction not supported by selected CPU",
+    "Synthesized instructions must be enabled"
 };
 
 const char*

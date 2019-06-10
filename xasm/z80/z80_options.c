@@ -50,6 +50,7 @@ z80_SetDefaultOptions(SMachineOptions* options) {
     options->gameboyLiteralCharacters[2] = '2';
     options->gameboyLiteralCharacters[3] = '3';
     options->cpu = CPUF_Z80;
+    options->synthesizedInstructions = false;
 }
 
 void
@@ -100,6 +101,13 @@ z80_ParseOption(const char* s) {
             }
             err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
             return false;
+        case 's':
+            if (strlen(&s[1]) == 1) {
+                opt_Current->machineOptions->synthesizedInstructions = s[1] == '1';
+                return true;
+            }
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            return false;
         default:
             err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
             return false;
@@ -113,4 +121,7 @@ z80_PrintOptions(void) {
     printf("    -mc<x>    Change CPU type:\n"
            "                  g - Gameboy\n"
            "                  z - Z80\n");
+    printf("    -ms<x>    Synthesized instructions:\n"
+           "                  0 - Disabled (default)\n"
+           "                  1 - Enabled\n");
 }

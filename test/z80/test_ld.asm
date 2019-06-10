@@ -88,3 +88,7 @@ Data:	EQU	$1234
 	ld		sp,iy   
 	ld		sp,Data
 
+	OPT		ms1
+	ld		bc,de
+	ld		de,hl
+	

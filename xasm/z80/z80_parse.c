@@ -138,6 +138,12 @@ typedef struct _Opcode {
 #define MODE_CC_Z80          0x08000000u
 #define MODE_REG_CONTROL     0x10000000u
 
+static ETargetToken g_registerPairsSS[3][2] = {
+	{ T_MODE_B, T_MODE_C },
+	{ T_MODE_D, T_MODE_E },
+	{ T_MODE_H, T_MODE_L }
+};
+
 static SAddressingMode g_addressModes[T_CC_M - T_MODE_B + 1] = {
 	{ MODE_GROUP_D, NULL, CPUF_Z80 | CPUF_GB, REG_D_B, REG_SS_NONE, REG_RR_NONE, REG_HL_NONE, CC_NONE, CTRL_NONE },	// B
 	{ MODE_GROUP_D | MODE_CC_GB | MODE_CC_Z80, NULL, CPUF_Z80 | CPUF_GB, REG_D_C, REG_SS_NONE, REG_RR_NONE, REG_HL_NONE, CC_C, CTRL_NONE },	// C
@@ -523,6 +529,18 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 			sect_OutputConst8((uint8_t) 0x4Bu | regSS);
 		}
 		sect_OutputExpr16(createExpression16U(addrMode2->expression));
+	} else if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_HL) && (addrMode2->mode & MODE_GROUP_SS) && (addrMode2->registerSS <= REG_SS_HL)) {
+		if (opt_Current->machineOptions->synthesizedInstructions) {
+			ETargetToken* destTokens = g_registerPairsSS[addrMode1->registerSS];
+			ETargetToken* srcTokens = g_registerPairsSS[addrMode2->registerSS];
+			for (int i = 0; i <= 1; ++i) {
+				if (!handleLd(instruction, &g_addressModes[destTokens[i] - T_MODE_B], &g_addressModes[srcTokens[i] - T_MODE_B]))
+					return false;
+			}
+			return true;
+		} else {
+			err_Error(MERROR_SYNTHESIZED_INSTRUCTIONS);
+		}
 	} else {
         err_Error(ERROR_OPERAND);
 	}
