@@ -344,6 +344,7 @@ main(int argc, char* argv[]) {
     if (mapFilename != NULL) {
         if (!target_SupportsReloc(targetType)) {
             sect_ResolveUnresolved();
+            sect_SortSections();
             map_Write(mapFilename);
         } else {
             error("Output format does not support producing a mapfile");
