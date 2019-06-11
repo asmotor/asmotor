@@ -21,7 +21,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcz", "test_literal.asm"],
+            "args": ["-mcz", "test_ld.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/z80",
             "environment": [],

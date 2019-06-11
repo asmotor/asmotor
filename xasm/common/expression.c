@@ -436,6 +436,19 @@ expr_Free(SExpression* expression) {
     }
 }
 
+SExpression*
+expr_Copy(SExpression* expression) {
+    if (expression == NULL)
+        return NULL;
+
+    SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
+    *r = *expression;
+    r->right = expr_Copy(expression->right);
+    r->left = expr_Copy(expression->left);
+
+    return r;
+}
+
 bool
 expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resultOffset) {
     if (expression == NULL)

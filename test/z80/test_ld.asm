@@ -91,4 +91,6 @@ Data:	EQU	$1234
 	OPT		ms1
 	ld		bc,de
 	ld		de,hl
-	
+
+	ld		hl,(ix+64)
+	ld		bc,(iy-5)

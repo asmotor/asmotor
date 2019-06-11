@@ -541,6 +541,22 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		} else {
 			err_Error(MERROR_SYNTHESIZED_INSTRUCTIONS);
 		}
+	} else if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_HL) && (addrMode2->mode & MODE_GROUP_I_IND_DISP)) {
+		if (opt_Current->machineOptions->synthesizedInstructions) {
+			ETargetToken* destTokens = g_registerPairsSS[addrMode1->registerSS];
+			if (!handleLd(instruction, &g_addressModes[destTokens[1] - T_MODE_B], addrMode2))
+				return false;
+			SAddressingMode offsetPlusOne = *addrMode2;
+			offsetPlusOne.expression = 
+				expr_Add(
+					expr_Copy(addrMode2->expression),
+					expr_Const(1));
+			if (!handleLd(instruction, &g_addressModes[destTokens[0] - T_MODE_B], &offsetPlusOne))
+				return false;
+			return true;
+		} else {
+			err_Error(MERROR_SYNTHESIZED_INSTRUCTIONS);
+		}
 	} else {
         err_Error(ERROR_OPERAND);
 	}

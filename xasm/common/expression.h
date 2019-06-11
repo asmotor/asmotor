@@ -176,6 +176,9 @@ expr_Bank(string* symbolName);
 extern void
 expr_Free(SExpression* expression);
 
+extern SExpression*
+expr_Copy(SExpression* expression);
+
 extern void
 expr_Clear(SExpression* expression);
 
