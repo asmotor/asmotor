@@ -547,12 +547,31 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 			if (!handleLd(instruction, &g_addressModes[destTokens[1] - T_MODE_B], addrMode2))
 				return false;
 			SAddressingMode offsetPlusOne = *addrMode2;
-			offsetPlusOne.expression = 
+			offsetPlusOne.expression =
+				addrMode2->expression == NULL ? expr_Const(1) :
 				createExpression8S(
 					expr_Add(
 						expr_Copy(addrMode2->expression),
 						expr_Const(1)));
 			if (!handleLd(instruction, &g_addressModes[destTokens[0] - T_MODE_B], &offsetPlusOne))
+				return false;
+			return true;
+		} else {
+			err_Error(MERROR_SYNTHESIZED_INSTRUCTIONS);
+		}
+	} else if ((addrMode1->mode & MODE_GROUP_I_IND_DISP) && (addrMode2->mode & MODE_GROUP_SS) && (addrMode2->registerSS <= REG_SS_HL)) {
+		if (opt_Current->machineOptions->synthesizedInstructions) {
+			ETargetToken* destTokens = g_registerPairsSS[addrMode2->registerSS];
+			if (!handleLd(instruction, addrMode1, &g_addressModes[destTokens[1] - T_MODE_B]))
+				return false;
+			SAddressingMode offsetPlusOne = *addrMode1;
+			offsetPlusOne.expression =
+				addrMode1->expression == NULL ? expr_Const(1) :
+				createExpression8S(
+					expr_Add(
+						expr_Copy(addrMode1->expression),
+						expr_Const(1)));
+			if (!handleLd(instruction, &offsetPlusOne, &g_addressModes[destTokens[0] - T_MODE_B]))
 				return false;
 			return true;
 		} else {

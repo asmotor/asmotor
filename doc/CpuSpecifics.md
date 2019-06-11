@@ -82,6 +82,7 @@ Synthesized instructions are safe sequences with no unintended side effects.
 |---|---|
 | LD reg16,reg16 | reg16 = BC, DE or HL |
 | LD reg16,(ireg+n8) | reg16 = BC, DE or HL, ireg = IX or IY |
+| LD (ireg+n8),reg16 | reg16 = BC, DE or HL, ireg = IX or IY |
 
 ## __DCB, __RS, __DSB
 

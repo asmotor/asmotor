@@ -92,5 +92,7 @@ Data:	EQU	$1234
 	ld		bc,de
 	ld		de,hl
 
+	ld		hl,(ix)
+	ld		(ix+2),bc
 	ld		hl,(ix+64)
 	ld		bc,(iy-5)
