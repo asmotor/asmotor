@@ -548,9 +548,10 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 				return false;
 			SAddressingMode offsetPlusOne = *addrMode2;
 			offsetPlusOne.expression = 
-				expr_Add(
-					expr_Copy(addrMode2->expression),
-					expr_Const(1));
+				createExpression8S(
+					expr_Add(
+						expr_Copy(addrMode2->expression),
+						expr_Const(1)));
 			if (!handleLd(instruction, &g_addressModes[destTokens[0] - T_MODE_B], &offsetPlusOne))
 				return false;
 			return true;

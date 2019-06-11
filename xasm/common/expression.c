@@ -356,14 +356,11 @@ expr_FixedDivision(SExpression* left, SExpression* right) {
 
 SExpression*
 expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
-    SExpression* exprLow = expr_Const(low);
-    SExpression* exprHigh = expr_Const(high);
+    expression = expr_LowLimit(expression, expr_Const(low));
+    if (expression != NULL) {
+        return expr_HighLimit(expression, expr_Const(high));
+    }
 
-    expression = expr_LowLimit(expression, exprLow);
-    if (expression != NULL)
-        return expr_HighLimit(expression, exprHigh);
-
-    expr_Free(exprHigh);
     return NULL;
 }
 
@@ -442,9 +439,12 @@ expr_Copy(SExpression* expression) {
         return NULL;
 
     SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
-    *r = *expression;
-    r->right = expr_Copy(expression->right);
+    r->isConstant = expression->isConstant;
     r->left = expr_Copy(expression->left);
+    r->right = expr_Copy(expression->right);
+    r->operation = expression->operation;
+    r->type = expression->type;
+    r->value = expression->value;
 
     return r;
 }
