@@ -108,6 +108,8 @@ typedef struct _Opcode {
     bool (* handler)(struct _Opcode* code, SAddressingMode* mode1, SAddressingMode* mode2);
 } SInstruction;
 
+static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1];
+
 #define MODE_NONE            0x00000001u
 #define MODE_REG_A           0x00000002u
 #define MODE_REG_C_IND       0x00000004u
@@ -186,6 +188,14 @@ static SAddressingMode g_addressModes[T_CC_M - T_MODE_B + 1] = {
 
 #define IS_Z80 (opt_Current->machineOptions->cpu & CPUF_Z80)
 #define IS_GB  (opt_Current->machineOptions->cpu & CPUF_GB)
+
+static bool
+ensureSynthesizedEnabled(void) {
+	if (opt_Current->machineOptions->synthesizedInstructions)
+		return true;
+	
+	return err_Error(MERROR_SYNTHESIZED_INSTRUCTIONS);
+}
 
 static SExpression*
 createExpressionNBit(SExpression* expression, int lowLimit, int highLimit, int bits) {
@@ -530,53 +540,50 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		}
 		sect_OutputExpr16(createExpression16U(addrMode2->expression));
 	} else if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_HL) && (addrMode2->mode & MODE_GROUP_SS) && (addrMode2->registerSS <= REG_SS_HL)) {
-		if (opt_Current->machineOptions->synthesizedInstructions) {
-			ETargetToken* destTokens = g_registerPairsSS[addrMode1->registerSS];
-			ETargetToken* srcTokens = g_registerPairsSS[addrMode2->registerSS];
-			for (int i = 0; i <= 1; ++i) {
-				if (!handleLd(instruction, &g_addressModes[destTokens[i] - T_MODE_B], &g_addressModes[srcTokens[i] - T_MODE_B]))
-					return false;
-			}
-			return true;
-		} else {
-			err_Error(MERROR_SYNTHESIZED_INSTRUCTIONS);
+		if (!ensureSynthesizedEnabled())
+			return false;
+
+		ETargetToken* destTokens = g_registerPairsSS[addrMode1->registerSS];
+		ETargetToken* srcTokens = g_registerPairsSS[addrMode2->registerSS];
+		for (int i = 0; i <= 1; ++i) {
+			if (!handleLd(instruction, &g_addressModes[destTokens[i] - T_MODE_B], &g_addressModes[srcTokens[i] - T_MODE_B]))
+				return false;
 		}
+		return true;
 	} else if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_HL) && (addrMode2->mode & MODE_GROUP_I_IND_DISP)) {
-		if (opt_Current->machineOptions->synthesizedInstructions) {
-			ETargetToken* destTokens = g_registerPairsSS[addrMode1->registerSS];
-			if (!handleLd(instruction, &g_addressModes[destTokens[1] - T_MODE_B], addrMode2))
-				return false;
-			SAddressingMode offsetPlusOne = *addrMode2;
-			offsetPlusOne.expression =
-				addrMode2->expression == NULL ? expr_Const(1) :
-				createExpression8S(
-					expr_Add(
-						expr_Copy(addrMode2->expression),
-						expr_Const(1)));
-			if (!handleLd(instruction, &g_addressModes[destTokens[0] - T_MODE_B], &offsetPlusOne))
-				return false;
-			return true;
-		} else {
-			err_Error(MERROR_SYNTHESIZED_INSTRUCTIONS);
-		}
+		if (!ensureSynthesizedEnabled())
+			return false;
+
+		ETargetToken* destTokens = g_registerPairsSS[addrMode1->registerSS];
+		if (!handleLd(instruction, &g_addressModes[destTokens[1] - T_MODE_B], addrMode2))
+			return false;
+		SAddressingMode offsetPlusOne = *addrMode2;
+		offsetPlusOne.expression =
+			addrMode2->expression == NULL ? expr_Const(1) :
+			createExpression8S(
+				expr_Add(
+					expr_Copy(addrMode2->expression),
+					expr_Const(1)));
+		if (!handleLd(instruction, &g_addressModes[destTokens[0] - T_MODE_B], &offsetPlusOne))
+			return false;
+		return true;
 	} else if ((addrMode1->mode & MODE_GROUP_I_IND_DISP) && (addrMode2->mode & MODE_GROUP_SS) && (addrMode2->registerSS <= REG_SS_HL)) {
-		if (opt_Current->machineOptions->synthesizedInstructions) {
-			ETargetToken* destTokens = g_registerPairsSS[addrMode2->registerSS];
-			if (!handleLd(instruction, addrMode1, &g_addressModes[destTokens[1] - T_MODE_B]))
-				return false;
-			SAddressingMode offsetPlusOne = *addrMode1;
-			offsetPlusOne.expression =
-				addrMode1->expression == NULL ? expr_Const(1) :
-				createExpression8S(
-					expr_Add(
-						expr_Copy(addrMode1->expression),
-						expr_Const(1)));
-			if (!handleLd(instruction, &offsetPlusOne, &g_addressModes[destTokens[0] - T_MODE_B]))
-				return false;
-			return true;
-		} else {
-			err_Error(MERROR_SYNTHESIZED_INSTRUCTIONS);
-		}
+		if (!ensureSynthesizedEnabled())
+			return false;
+
+		ETargetToken* destTokens = g_registerPairsSS[addrMode2->registerSS];
+		if (!handleLd(instruction, addrMode1, &g_addressModes[destTokens[1] - T_MODE_B]))
+			return false;
+		SAddressingMode offsetPlusOne = *addrMode1;
+		offsetPlusOne.expression =
+			addrMode1->expression == NULL ? expr_Const(1) :
+			createExpression8S(
+				expr_Add(
+					expr_Copy(addrMode1->expression),
+					expr_Const(1)));
+		if (!handleLd(instruction, &offsetPlusOne, &g_addressModes[destTokens[0] - T_MODE_B]))
+			return false;
+		return true;
 	} else {
         err_Error(ERROR_OPERAND);
 	}
@@ -643,6 +650,23 @@ handleRotate(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingM
 
 	sect_OutputConst8((uint8_t) addrMode1->registerD | instruction->opcode);
 	return true;
+}
+
+static bool
+handleSRA(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_HL)) {
+		if (!ensureSynthesizedEnabled())
+			return false;
+
+		ETargetToken* registers = g_registerPairsSS[addrMode1->registerSS];
+		if (!handleRotate(&g_instructions[T_Z80_SRA - T_Z80_ADC], &g_addressModes[registers[0] - T_MODE_B], NULL))
+			return false;
+		if (!handleRotate(&g_instructions[T_Z80_RR  - T_Z80_ADC], &g_addressModes[registers[1] - T_MODE_B], NULL))
+			return false;
+		return true;
+	}
+
+	return handleRotate(instruction, addrMode1, addrMode2);
 }
 
 static bool
@@ -872,7 +896,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_IMM, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, handleBit },				/* SET */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleRotate },	/* SLA */
 	{ CPUF_Z80, 0x00, 0x30, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleRotate },	/* SLL */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleRotate },	/* SRA */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSRA },	/* SRA */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleRotate },	/* SRL */
 	{ CPUF_GB, 0x00, 0x10, 0, 0, handleStop },	/* STOP */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x10, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, handleAlu },	/* SUB */
