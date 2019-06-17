@@ -653,17 +653,32 @@ handleRotate(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingM
 }
 
 static bool
+handle16BitShifts(SInstruction* instruction, ETargetToken synthesizedInstruction1, ETargetToken register1, ETargetToken synthesizedInstruction2, ETargetToken register2) {
+	if (!ensureSynthesizedEnabled())
+		return false;
+
+	if (!handleRotate(&g_instructions[synthesizedInstruction1 - T_Z80_ADC], &g_addressModes[register1 - T_MODE_B], NULL))
+		return false;
+	if (!handleRotate(&g_instructions[synthesizedInstruction2 - T_Z80_ADC], &g_addressModes[register2 - T_MODE_B], NULL))
+		return false;
+	return true;
+}
+
+static bool
 handleSRx(SInstruction* instruction, ETargetToken upperSynthesizedInstruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_HL)) {
-		if (!ensureSynthesizedEnabled())
-			return false;
-
 		ETargetToken* registers = g_registerPairsSS[addrMode1->registerSS];
-		if (!handleRotate(&g_instructions[upperSynthesizedInstruction - T_Z80_ADC], &g_addressModes[registers[0] - T_MODE_B], NULL))
-			return false;
-		if (!handleRotate(&g_instructions[T_Z80_RR  - T_Z80_ADC], &g_addressModes[registers[1] - T_MODE_B], NULL))
-			return false;
-		return true;
+		return handle16BitShifts(instruction, upperSynthesizedInstruction, registers[0], T_Z80_RR, registers[1]);
+	}
+
+	return handleRotate(instruction, addrMode1, addrMode2);
+}
+
+static bool
+handleSLx(SInstruction* instruction, ETargetToken lowerSynthesizedInstruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_HL)) {
+		ETargetToken* registers = g_registerPairsSS[addrMode1->registerSS];
+		return handle16BitShifts(instruction, lowerSynthesizedInstruction, registers[1], T_Z80_RL, registers[0]);
 	}
 
 	return handleRotate(instruction, addrMode1, addrMode2);
@@ -677,6 +692,16 @@ handleSRA(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 static bool
 handleSRL(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	return handleSRx(instruction, T_Z80_SRL, addrMode1, addrMode2);
+}
+
+static bool
+handleSLA(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	return handleSLx(instruction, T_Z80_SLA, addrMode1, addrMode2);
+}
+
+static bool
+handleSLL(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	return handleSLx(instruction, T_Z80_SLL, addrMode1, addrMode2);
 }
 
 static bool
@@ -904,8 +929,8 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x18, MODE_REG_A | MODE_REG_HL, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_SS, handleSbc },	/* SBC */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x37, 0, 0, handleImplied },	/* SCF */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_IMM, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, handleBit },				/* SET */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleRotate },	/* SLA */
-	{ CPUF_Z80, 0x00, 0x30, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleRotate },	/* SLL */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSLA },	/* SLA */
+	{ CPUF_Z80, 0x00, 0x30, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSLL },	/* SLL */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSRA },	/* SRA */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSRL },	/* SRL */
 	{ CPUF_GB, 0x00, 0x10, 0, 0, handleStop },	/* STOP */

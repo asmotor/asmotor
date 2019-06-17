@@ -84,6 +84,8 @@ readabilility of source code.
 | LD reg16,reg16 | reg16 = BC, DE or HL |
 | LD reg16,(ireg+n8) | reg16 = BC, DE or HL, ireg = IX or IY |
 | LD (ireg+n8),reg16 | reg16 = BC, DE or HL, ireg = IX or IY |
+| SLA reg16 | reg16 = BC, DE or HL |
+| SLL reg16 | reg16 = BC, DE or HL |
 | SRA reg16 | reg16 = BC, DE or HL |
 | SRL reg16 | reg16 = BC, DE or HL |
 

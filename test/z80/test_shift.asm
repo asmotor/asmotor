@@ -21,4 +21,6 @@
 
 	sra		bc
 	srl		bc
+	sla		bc
+	sll		bc
 
