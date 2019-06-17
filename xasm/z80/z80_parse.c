@@ -653,13 +653,13 @@ handleRotate(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingM
 }
 
 static bool
-handleSRA(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+handleSRx(SInstruction* instruction, ETargetToken upperSynthesizedInstruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_HL)) {
 		if (!ensureSynthesizedEnabled())
 			return false;
 
 		ETargetToken* registers = g_registerPairsSS[addrMode1->registerSS];
-		if (!handleRotate(&g_instructions[T_Z80_SRA - T_Z80_ADC], &g_addressModes[registers[0] - T_MODE_B], NULL))
+		if (!handleRotate(&g_instructions[upperSynthesizedInstruction - T_Z80_ADC], &g_addressModes[registers[0] - T_MODE_B], NULL))
 			return false;
 		if (!handleRotate(&g_instructions[T_Z80_RR  - T_Z80_ADC], &g_addressModes[registers[1] - T_MODE_B], NULL))
 			return false;
@@ -667,6 +667,16 @@ handleSRA(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 	}
 
 	return handleRotate(instruction, addrMode1, addrMode2);
+}
+
+static bool
+handleSRA(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	return handleSRx(instruction, T_Z80_SRA, addrMode1, addrMode2);
+}
+
+static bool
+handleSRL(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	return handleSRx(instruction, T_Z80_SRL, addrMode1, addrMode2);
 }
 
 static bool
@@ -897,7 +907,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleRotate },	/* SLA */
 	{ CPUF_Z80, 0x00, 0x30, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleRotate },	/* SLL */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSRA },	/* SRA */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleRotate },	/* SRL */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSRL },	/* SRL */
 	{ CPUF_GB, 0x00, 0x10, 0, 0, handleStop },	/* STOP */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x10, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, handleAlu },	/* SUB */
 	{ CPUF_GB, 0x00, 0x30, MODE_GROUP_D, 0, handleRotate },	/* SWAP */

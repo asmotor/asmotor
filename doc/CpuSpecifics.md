@@ -76,7 +76,8 @@ This option enables certain synthesized instructions.
 | 0 | Disabled |
 | 1 | Enabled |
 
-Synthesized instructions are safe sequences with no unintended side effects.
+Synthesized instructions are safe sequences with no unintended side effects. These can be used to improve
+readabilility of source code.
 
 | Mnemonic | Notes |
 |---|---|
@@ -84,6 +85,7 @@ Synthesized instructions are safe sequences with no unintended side effects.
 | LD reg16,(ireg+n8) | reg16 = BC, DE or HL, ireg = IX or IY |
 | LD (ireg+n8),reg16 | reg16 = BC, DE or HL, ireg = IX or IY |
 | SRA reg16 | reg16 = BC, DE or HL |
+| SRL reg16 | reg16 = BC, DE or HL |
 
 ## __DCB, __RS, __DSB
 

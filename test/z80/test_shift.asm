@@ -16,3 +16,9 @@
 	srl		(ix+1)
 	srl		(iy+2)
 	srl		e
+
+	OPT		ms1
+
+	sra		bc
+	srl		bc
+
