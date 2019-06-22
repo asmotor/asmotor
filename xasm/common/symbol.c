@@ -421,12 +421,9 @@ sym_Purge(string* name) {
         }
         str_Free(symbol->name);
         mem_Free(symbol);
-
-        return true;
     }
 
-    err_Warn(WARN_CANNOT_PURGE);
-    return false;
+    return true;
 }
 
 bool
