@@ -555,8 +555,6 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 			return false;
 
 		ETargetToken* destTokens = g_registerPairsSS[addrMode1->registerSS];
-		if (!handleLd(instruction, &g_addressModes[destTokens[1] - T_MODE_B], addrMode2))
-			return false;
 		SAddressingMode offsetPlusOne = *addrMode2;
 		offsetPlusOne.expression =
 			addrMode2->expression == NULL ? expr_Const(1) :
@@ -564,6 +562,8 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 				expr_Add(
 					expr_Copy(addrMode2->expression),
 					expr_Const(1)));
+		if (!handleLd(instruction, &g_addressModes[destTokens[1] - T_MODE_B], addrMode2))
+			return false;
 		if (!handleLd(instruction, &g_addressModes[destTokens[0] - T_MODE_B], &offsetPlusOne))
 			return false;
 		return true;
@@ -572,8 +572,6 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 			return false;
 
 		ETargetToken* destTokens = g_registerPairsSS[addrMode2->registerSS];
-		if (!handleLd(instruction, addrMode1, &g_addressModes[destTokens[1] - T_MODE_B]))
-			return false;
 		SAddressingMode offsetPlusOne = *addrMode1;
 		offsetPlusOne.expression =
 			addrMode1->expression == NULL ? expr_Const(1) :
@@ -581,6 +579,8 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 				expr_Add(
 					expr_Copy(addrMode1->expression),
 					expr_Const(1)));
+		if (!handleLd(instruction, addrMode1, &g_addressModes[destTokens[1] - T_MODE_B]))
+			return false;
 		if (!handleLd(instruction, &offsetPlusOne, &g_addressModes[destTokens[0] - T_MODE_B]))
 			return false;
 		return true;
@@ -1064,6 +1064,7 @@ z80_ParseInstruction(void) {
 						&& (instruction->allowedModes1 & MODE_REG_A)
 						&& (instruction->allowedModes2 & addrMode1.mode)) {
 					addrMode2 = addrMode1;
+					addrMode1.expression = NULL;
 					addrMode1.mode = MODE_REG_A | MODE_GROUP_D;
 					addrMode1.registerD = REG_D_A;
 				}
