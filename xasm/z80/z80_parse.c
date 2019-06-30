@@ -853,11 +853,41 @@ handleInOut(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMo
 
 static bool
 handleIn(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	if ((addrMode1->mode & MODE_GROUP_D) && (addrMode1->registerD == REG_D_HL_IND))
+		return err_Error(ERROR_DEST_OPERAND);
+
+	if (addrMode1->mode & MODE_REG_C_IND) {
+		if (addrMode2 != NULL && addrMode2->mode != 0)
+			return err_Error(ERROR_SOURCE_OPERAND);
+		if (!ensureUndocumentedEnabled())
+			return false;
+
+		sect_OutputConst8(0xED);
+		sect_OutputConst8(0x70);
+		return false;
+	}
+
 	return handleInOut(instruction, addrMode2, addrMode1);
 }
 
 static bool
 handleOut(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	if ((addrMode2->mode & MODE_GROUP_D) && (addrMode2->registerD == REG_D_HL_IND))
+		return err_Error(ERROR_SOURCE_OPERAND);
+
+	if (addrMode2->mode & MODE_IMM) {
+		if (!ensureUndocumentedEnabled())
+			return false;
+		
+		if (expr_IsConstant(addrMode2->expression) && (addrMode2->expression->value.integer == 0)) {
+			sect_OutputConst8(0xED);
+			sect_OutputConst8(0x71);
+			return true;
+		}
+
+		return err_Error(ERROR_SOURCE_OPERAND);
+	}		
+
 	return handleInOut(instruction, addrMode1, addrMode2);
 }
 
@@ -895,7 +925,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_Z80, 0x00, 0xD9, 0, 0, handleImplied },	/* EXX */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x76, 0, 0, handleImplied },							/* HALT */
 	{ CPUF_Z80, 0xED, 0x46, MODE_IMM, 0, handleIm },	/* IM */
-	{ CPUF_Z80, 0xED, 0x40, MODE_GROUP_D, MODE_IMM_IND | MODE_REG_C_IND, handleIn },	/* IN */
+	{ CPUF_Z80, 0xED, 0x40, MODE_GROUP_D | MODE_REG_C_IND, MODE_IMM_IND | MODE_REG_C_IND | MODE_NONE, handleIn },	/* IN */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP | MODE_GROUP_HL, 0, handleDec },			/* INC */
 	{ CPUF_Z80, 0xED, 0xAA, 0, 0, handleImplied },							/* IND */
 	{ CPUF_Z80, 0xED, 0xBA, 0, 0, handleImplied },							/* INDR */
@@ -917,7 +947,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x30, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, handleAlu },	/* OR */
 	{ CPUF_Z80, 0xED, 0xBB, 0, 0, handleImplied },	/* OTDR */
 	{ CPUF_Z80, 0xED, 0xB3, 0, 0, handleImplied },	/* OTIR */
-	{ CPUF_Z80, 0xED, 0x41, MODE_IMM_IND | MODE_REG_C_IND, MODE_GROUP_D, handleOut },	/* OUT */
+	{ CPUF_Z80, 0xED, 0x41, MODE_IMM_IND | MODE_REG_C_IND, MODE_GROUP_D | MODE_IMM, handleOut },	/* OUT */
 	{ CPUF_Z80, 0xED, 0xAB, 0, 0, handleImplied },	/* OUTD */
 	{ CPUF_Z80, 0xED, 0xA3, 0, 0, handleImplied },	/* OUTI */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC1, MODE_GROUP_SS_AF | MODE_GROUP_HL, 0, handlePop },	/* POP */

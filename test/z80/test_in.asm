@@ -12,3 +12,8 @@
 	indr
 	ini
 	inir
+
+	OPT		mu1
+
+	in		(c)
+	out		(c),0
