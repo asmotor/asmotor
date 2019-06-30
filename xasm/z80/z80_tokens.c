@@ -145,6 +145,10 @@ static SLexConstantsWord g_tokens[] = {
 	{ "E",		T_MODE_E		},
 	{ "H",		T_MODE_H		},
 	{ "L",		T_MODE_L		},
+	{ "IXH",	T_MODE_IXH		},
+	{ "IXL",	T_MODE_IXL		},
+	{ "IYH",	T_MODE_IYH		},
+	{ "IYL",	T_MODE_IYL		},
 	{ "I",		T_MODE_I		},
 	{ "R",		T_MODE_R		},
 

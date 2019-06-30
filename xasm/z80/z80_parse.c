@@ -40,7 +40,11 @@ typedef enum {
     REG_D_D,
     REG_D_E,
     REG_D_H,
+    REG_D_IXH = REG_D_H,
+    REG_D_IYH = REG_D_H,
     REG_D_L,
+    REG_D_IXL = REG_D_L,
+    REG_D_IYL = REG_D_L,
     REG_D_HL_IND,
     REG_D_A
 } ERegisterD;
@@ -139,6 +143,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1];
 #define MODE_CC_GB           0x04000000u
 #define MODE_CC_Z80          0x08000000u
 #define MODE_REG_CONTROL     0x10000000u
+#define MODE_GROUP_IXYLH       0x20000000u
 
 static ETargetToken g_registerPairsSS[3][2] = {
 	{ T_MODE_B, T_MODE_C },
@@ -155,6 +160,10 @@ static SAddressingMode g_addressModes[T_CC_M - T_MODE_B + 1] = {
 	{ MODE_GROUP_D, NULL, CPUF_Z80 | CPUF_GB, REG_D_L, REG_SS_NONE, REG_RR_NONE, REG_HL_NONE, CC_NONE, CTRL_NONE },	// L
 	{ MODE_REG_HL_IND | MODE_GROUP_D, NULL, CPUF_Z80 | CPUF_GB, REG_D_HL_IND, REG_SS_NONE, REG_RR_NONE, REG_HL_NONE, CC_NONE, CTRL_NONE }, // (HL)
 	{ MODE_REG_A | MODE_GROUP_D, NULL, CPUF_Z80 | CPUF_GB, REG_D_A, REG_SS_NONE, REG_RR_NONE, REG_HL_NONE, CC_NONE, CTRL_NONE }, // A
+	{ MODE_GROUP_IXYLH, NULL, CPUF_Z80, REG_D_H, REG_SS_NONE, REG_RR_NONE, REG_HL_IX, CC_NONE, CTRL_NONE },	// IXH
+	{ MODE_GROUP_IXYLH, NULL, CPUF_Z80, REG_D_L, REG_SS_NONE, REG_RR_NONE, REG_HL_IX, CC_NONE, CTRL_NONE },	// IXL
+	{ MODE_GROUP_IXYLH, NULL, CPUF_Z80, REG_D_H, REG_SS_NONE, REG_RR_NONE, REG_HL_IY, CC_NONE, CTRL_NONE },	// IYH
+	{ MODE_GROUP_IXYLH, NULL, CPUF_Z80, REG_D_L, REG_SS_NONE, REG_RR_NONE, REG_HL_IY, CC_NONE, CTRL_NONE },	// IYL
 	{ MODE_GROUP_SS | MODE_GROUP_SS_AF, NULL, CPUF_Z80 | CPUF_GB, REG_D_NONE, REG_SS_BC, REG_RR_NONE, REG_HL_NONE, CC_NONE, CTRL_NONE },	// BC
 	{ MODE_REG_DE | MODE_GROUP_SS | MODE_GROUP_SS_AF, NULL, CPUF_Z80 | CPUF_GB, REG_D_NONE, REG_SS_DE, REG_RR_NONE, REG_HL_NONE, CC_NONE, CTRL_NONE },	// DE
 	{ MODE_REG_HL | MODE_GROUP_SS | MODE_GROUP_SS_AF | MODE_GROUP_HL, NULL, CPUF_Z80 | CPUF_GB, REG_D_NONE, REG_SS_HL, REG_RR_NONE, REG_HL_HL, CC_NONE, CTRL_NONE },	// HL
@@ -261,12 +270,20 @@ createExpressionImmHi(SExpression* expression) {
 
 static void
 outputIXIY(SAddressingMode* addrMode, uint8_t opcode) {
-    sect_OutputConst8((uint8_t) (addrMode->mode & MODE_GROUP_IX_IND_DISP ? 0xDDu : 0xFDu));
+	if (addrMode->mode & MODE_GROUP_IXYLH) {
+	    sect_OutputConst8((uint8_t) (addrMode->registerHL == REG_HL_IX ? 0xDDu : 0xFDu));
+	} else {
+	    sect_OutputConst8((uint8_t) (addrMode->mode & MODE_GROUP_IX_IND_DISP ? 0xDDu : 0xFDu));
+	}
+	
     sect_OutputConst8(opcode);
-    if (addrMode->expression != NULL)
-        sect_OutputExpr8(addrMode->expression);
-    else
-        sect_OutputConst8(0);
+
+	if (addrMode->mode & MODE_GROUP_I_IND_DISP) {
+		if (addrMode->expression != NULL)
+			sect_OutputExpr8(addrMode->expression);
+		else
+			sect_OutputConst8(0);
+	}
 }
 
 static void
@@ -435,6 +452,8 @@ handleDec(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 		sect_OutputConst8((uint8_t) (0x03u | opcode | regSS));
 	} else if (addrMode1->mode & MODE_GROUP_I_IND_DISP) {
 		outputIXIY(addrMode1, (uint8_t) (0x04u | instruction->opcode | (6u << 3u)));
+	} else if (addrMode1->mode & MODE_GROUP_IXYLH) {
+		outputIXIY(addrMode1, (uint8_t) (0x04u | instruction->opcode | (addrMode1->registerD << 3u)));
 	} else {
 		uint8_t regD = (uint8_t) addrMode1->registerD << 3u;
 		sect_OutputConst8((uint8_t) (0x04u | instruction->opcode | regD));
@@ -926,7 +945,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x76, 0, 0, handleImplied },							/* HALT */
 	{ CPUF_Z80, 0xED, 0x46, MODE_IMM, 0, handleIm },	/* IM */
 	{ CPUF_Z80, 0xED, 0x40, MODE_GROUP_D | MODE_REG_C_IND, MODE_IMM_IND | MODE_REG_C_IND | MODE_NONE, handleIn },	/* IN */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP | MODE_GROUP_HL, 0, handleDec },			/* INC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP | MODE_GROUP_HL | MODE_GROUP_IXYLH, 0, handleDec },			/* INC */
 	{ CPUF_Z80, 0xED, 0xAA, 0, 0, handleImplied },							/* IND */
 	{ CPUF_Z80, 0xED, 0xBA, 0, 0, handleImplied },							/* INDR */
 	{ CPUF_Z80, 0xED, 0xA2, 0, 0, handleImplied },							/* INI */
@@ -997,6 +1016,10 @@ parse_AddrMode(SAddressingMode* addrMode) {
 		}
 
 		*addrMode = g_addressModes[mode - T_MODE_B];
+
+		if (addrMode->mode & MODE_GROUP_IXYLH)
+			return ensureUndocumentedEnabled();
+
 		return true;
 	}
 	

@@ -102,6 +102,11 @@ typedef enum {
     T_MODE_HL_IND,
     T_MODE_A,
 
+    T_MODE_IXH,
+    T_MODE_IXL,
+    T_MODE_IYH,
+    T_MODE_IYL,
+
     T_MODE_BC,
     T_MODE_DE,
     T_MODE_HL,
