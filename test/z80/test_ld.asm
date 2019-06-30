@@ -96,3 +96,7 @@ Data:	EQU	$1234
 	ld		(ix+2),bc
 	ld		hl,(ix+64)
 	ld		bc,(iy-5)
+
+	OPT		mu1
+	ld		ixh,64
+	ld		iyl,64

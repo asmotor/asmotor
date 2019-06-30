@@ -275,7 +275,7 @@ outputIXIY(SAddressingMode* addrMode, uint8_t opcode) {
 	} else {
 	    sect_OutputConst8((uint8_t) (addrMode->mode & MODE_GROUP_IX_IND_DISP ? 0xDDu : 0xFDu));
 	}
-	
+
     sect_OutputConst8(opcode);
 
 	if (addrMode->mode & MODE_GROUP_I_IND_DISP) {
@@ -496,8 +496,11 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 			sect_OutputConst8((uint8_t) (IS_GB ? 0xFAu : 0x3Au));
 			sect_OutputExpr16(createExpression16U(addrMode2->expression));
 		}
-	} else if ((addrMode1->mode & MODE_GROUP_D) && (addrMode2->mode & MODE_IMM)) {
+	} else if ((addrMode1->mode & (MODE_GROUP_D | MODE_GROUP_IXYLH)) && (addrMode2->mode & MODE_IMM)) {
 		uint8_t regD = (uint8_t) addrMode1->registerD << 3u;
+		if (addrMode1->mode & MODE_GROUP_IXYLH) {
+		    sect_OutputConst8((uint8_t) (addrMode1->registerHL == REG_HL_IX ? 0xDDu : 0xFDu));
+		}
 		sect_OutputConst8((uint8_t) 0x06u | regD);
 		sect_OutputExpr8(createExpression8SU(addrMode2->expression));
 	} else if ((addrMode1->mode & MODE_IMM_IND) && (addrMode2->mode & MODE_REG_A)) {
@@ -953,7 +956,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC3, MODE_CC_Z80 | MODE_IMM | MODE_REG_HL_IND | MODE_REG_IX_IND | MODE_REG_IY_IND, MODE_IMM | MODE_NONE, handleJp },	/* JP */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_CC_GB | MODE_IMM, MODE_IMM | MODE_NONE, handleJr },	/* JR */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00,
-		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_HL | MODE_REG_CONTROL | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND | MODE_GROUP_I_IND_DISP,
+		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_HL | MODE_REG_CONTROL | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND | MODE_GROUP_I_IND_DISP | MODE_GROUP_IXYLH,
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_HL | MODE_REG_CONTROL | MODE_REG_SP_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_I_IND_DISP, handleLd },	/* LD */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x32, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, handleLdd },	/* LDD */
 	{ CPUF_Z80, 0xED, 0xB8, 0, 0, handleImplied },	/* LDDR */
