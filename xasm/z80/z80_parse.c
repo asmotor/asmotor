@@ -151,6 +151,23 @@ static ETargetToken g_registerPairsSS[3][2] = {
 	{ T_MODE_H, T_MODE_L }
 };
 
+static ETargetToken g_registerPairsIX[2] = {
+	T_MODE_IXH, T_MODE_IXL,
+};
+
+static ETargetToken g_registerPairsIY[2] = {
+	T_MODE_IYH, T_MODE_IYL,
+};
+
+static ETargetToken* groupHLPairs(ERegisterHL reg) {
+	switch (reg) {
+		default:
+		case REG_HL_HL: return g_registerPairsSS[REG_SS_HL];
+		case REG_HL_IX: return g_registerPairsIX;
+		case REG_HL_IY: return g_registerPairsIY;
+	}
+}
+
 static SAddressingMode g_addressModes[T_CC_M - T_MODE_B + 1] = {
 	{ MODE_GROUP_D, NULL, CPUF_Z80 | CPUF_GB, REG_D_B, REG_SS_NONE, REG_RR_NONE, REG_HL_NONE, CC_NONE, CTRL_NONE },	// B
 	{ MODE_GROUP_D | MODE_CC_GB | MODE_CC_Z80, NULL, CPUF_Z80 | CPUF_GB, REG_D_C, REG_SS_NONE, REG_RR_NONE, REG_HL_NONE, CC_C, CTRL_NONE },	// C
@@ -595,6 +612,28 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 
 		ETargetToken* destTokens = g_registerPairsSS[addrMode1->registerSS];
 		ETargetToken* srcTokens = g_registerPairsSS[addrMode2->registerSS];
+		for (int i = 0; i <= 1; ++i) {
+			if (!handleLd(instruction, &g_addressModes[destTokens[i] - T_MODE_B], &g_addressModes[srcTokens[i] - T_MODE_B]))
+				return false;
+		}
+		return true;
+	} else if ((addrMode1->mode & MODE_GROUP_HL) && (addrMode2->mode & MODE_GROUP_SS) && (addrMode2->registerSS <= REG_SS_DE)) {
+		if (!(ensureSynthesizedEnabled() && ensureUndocumentedEnabled()))
+			return false;
+
+		ETargetToken* destTokens = groupHLPairs(addrMode1->registerHL);
+		ETargetToken* srcTokens = g_registerPairsSS[addrMode2->registerSS];
+		for (int i = 0; i <= 1; ++i) {
+			if (!handleLd(instruction, &g_addressModes[destTokens[i] - T_MODE_B], &g_addressModes[srcTokens[i] - T_MODE_B]))
+				return false;
+		}
+		return true;
+	} else if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_DE) && (addrMode2->mode & MODE_GROUP_HL)) {
+		if (!(ensureSynthesizedEnabled() && ensureUndocumentedEnabled()))
+			return false;
+
+		ETargetToken* destTokens = g_registerPairsSS[addrMode1->registerSS];
+		ETargetToken* srcTokens = groupHLPairs(addrMode2->registerHL);
 		for (int i = 0; i <= 1; ++i) {
 			if (!handleLd(instruction, &g_addressModes[destTokens[i] - T_MODE_B], &g_addressModes[srcTokens[i] - T_MODE_B]))
 				return false;

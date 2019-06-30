@@ -82,6 +82,8 @@ readabilility of source code.
 | Mnemonic | Notes |
 |---|---|
 | LD reg16,reg16 | reg16 = BC, DE or HL |
+| LD ireg,reg16 | ireg = IX or IY, reg16 = BC or DE - needs undocumented instructions enabled |
+| LD reg16,ireg | ireg = IX or IY, reg16 = BC or DE - needs undocumented instructions enabled |
 | LD reg16,(ireg+n8) | reg16 = BC, DE or HL, ireg = IX or IY |
 | LD (ireg+n8),reg16 | reg16 = BC, DE or HL, ireg = IX or IY |
 | SLA reg16 | reg16 = BC, DE or HL |
