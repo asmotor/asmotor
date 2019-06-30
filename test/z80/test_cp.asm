@@ -16,3 +16,8 @@
 	cpdr
 	cpi
 	cpir
+
+	OPT		mu1
+	
+	cp		a,ixl
+	cp		a,iyh

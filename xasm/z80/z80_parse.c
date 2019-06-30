@@ -300,9 +300,13 @@ handleAlu(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
             return true;
         }
 
-        if (addrMode2->mode & MODE_GROUP_D) {
+        if (addrMode2->mode & (MODE_GROUP_D | MODE_GROUP_IXYLH)) {
             uint8_t regD = (uint8_t) addrMode2->registerD;
-            sect_OutputConst8((uint8_t) (0x80u | instruction->opcode | regD));
+			uint8_t opcode = (uint8_t) (0x80u | instruction->opcode | regD);
+			if (addrMode2->mode & MODE_GROUP_IXYLH)
+				outputIXIY(addrMode2, opcode);
+			else
+	            sect_OutputConst8(opcode);
             return true;
         }
 
@@ -942,13 +946,13 @@ handleReti(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMod
 
 
 static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
-	{ CPUF_GB | CPUF_Z80, 0xED, 0x08, MODE_REG_A | MODE_REG_HL, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_SS, handleAdc },	/* ADC */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_REG_A | MODE_GROUP_HL | MODE_REG_SP, MODE_GROUP_D | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_HL | MODE_GROUP_I_IND_DISP, handleAdd },	/* ADD */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, handleAlu },	/* AND */
+	{ CPUF_GB | CPUF_Z80, 0xED, 0x08, MODE_REG_A | MODE_REG_HL, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_SS | MODE_GROUP_IXYLH, handleAdc },	/* ADC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_REG_A | MODE_GROUP_HL | MODE_REG_SP, MODE_GROUP_D | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_HL | MODE_GROUP_I_IND_DISP | MODE_GROUP_IXYLH, handleAdd },	/* ADD */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_IXYLH, handleAlu },	/* AND */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x40, MODE_IMM, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, handleBit },				/* BIT */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xCD, MODE_CC_Z80 | MODE_IMM, MODE_IMM | MODE_NONE, handleCall },	/* CALL */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x3F, 0, 0, handleImplied },							/* CCF */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, handleAlu },	/* CP */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_IXYLH, handleAlu },	/* CP */
 	{ CPUF_Z80, 0xED, 0xA9, 0, 0, handleImplied },	/* CPD */
 	{ CPUF_Z80, 0xED, 0xB9, 0, 0, handleImplied },	/* CPDR */
 	{ CPUF_Z80, 0xED, 0xA1, 0, 0, handleImplied },	/* CPI */
@@ -982,7 +986,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB, 0x00, 0xF8, MODE_REG_SP, MODE_IMM, handleLdhl },	/* LDHL */
 	{ CPUF_Z80, 0xED, 0x44, 0, 0, handleImplied },	/* NEG */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, 0, 0, handleImplied },	/* NOP */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x30, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, handleAlu },	/* OR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x30, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_IXYLH, handleAlu },	/* OR */
 	{ CPUF_Z80, 0xED, 0xBB, 0, 0, handleImplied },	/* OTDR */
 	{ CPUF_Z80, 0xED, 0xB3, 0, 0, handleImplied },	/* OTIR */
 	{ CPUF_Z80, 0xED, 0x41, MODE_IMM_IND | MODE_REG_C_IND, MODE_GROUP_D | MODE_IMM, handleOut },	/* OUT */
@@ -1005,7 +1009,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x0F, 0, 0, handleImplied },	/* RRCA */
 	{ CPUF_Z80, 0xED, 0x67, 0, 0, handleImplied },	/* RRD */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC7, MODE_IMM, 0, handleRst },	/* RST */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x18, MODE_REG_A | MODE_REG_HL, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_SS, handleSbc },	/* SBC */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x18, MODE_REG_A | MODE_REG_HL, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_SS | MODE_GROUP_IXYLH, handleSbc },	/* SBC */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x37, 0, 0, handleImplied },	/* SCF */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0xC0, MODE_IMM, MODE_GROUP_D | MODE_GROUP_I_IND_DISP, handleBit },				/* SET */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x20, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSLA },	/* SLA */
@@ -1013,9 +1017,9 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSRA },	/* SRA */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x38, MODE_GROUP_SS | MODE_GROUP_D | MODE_GROUP_I_IND_DISP, 0, handleSRL },	/* SRL */
 	{ CPUF_GB, 0x00, 0x10, 0, 0, handleStop },	/* STOP */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x10, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, handleAlu },	/* SUB */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x10, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_IXYLH, handleAlu },	/* SUB */
 	{ CPUF_GB, 0x00, 0x30, MODE_GROUP_D, 0, handleRotate },	/* SWAP */
-	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP, handleAlu },	/* XOR */
+	{ CPUF_GB | CPUF_Z80, 0x00, 0x28, MODE_REG_A, MODE_GROUP_D | MODE_IMM | MODE_GROUP_I_IND_DISP | MODE_GROUP_IXYLH, handleAlu },	/* XOR */
 };
 
 static bool
@@ -1037,7 +1041,7 @@ parse_AddrMode(SAddressingMode* addrMode) {
 		*addrMode = g_addressModes[mode - T_MODE_B];
 
 		if (addrMode->mode & MODE_GROUP_IXYLH)
-			return ensureUndocumentedEnabled();
+			return IS_Z80 && ensureUndocumentedEnabled();
 
 		return true;
 	}

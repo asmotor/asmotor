@@ -11,3 +11,8 @@
 	sub		a,l
 	sub		a,a
 	sub		a,2
+
+	OPT		mu1
+
+	sub		a,ixl
+	sub		a,iyh

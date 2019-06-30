@@ -15,3 +15,8 @@
 	sbc		hl,de
 	sbc		hl,hl
 	sbc		hl,sp
+
+	OPT		mu1
+
+	sbc		a,ixl
+	sbc		a,iyh

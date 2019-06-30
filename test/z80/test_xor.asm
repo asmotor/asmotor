@@ -11,3 +11,7 @@
 	xor		a,l
 	xor		a,a
 	xor		a,2
+
+	OPT		mu1
+	xor		a,ixl
+	xor		a,iyh

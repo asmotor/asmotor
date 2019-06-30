@@ -23,3 +23,8 @@
 	add		iy,de
 	add		iy,iy
 	add		iy,sp
+
+	OPT		mu1
+
+	add		a,ixl
+	add		a,iyh

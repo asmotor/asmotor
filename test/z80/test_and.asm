@@ -11,3 +11,8 @@
 	and		a,l
 	and		a,a
 	and		a,2
+
+	OPT		mu1
+	
+	and		a,ixl
+	and		a,iyh

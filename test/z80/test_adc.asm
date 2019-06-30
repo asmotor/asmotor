@@ -15,3 +15,8 @@
 	adc		hl,de
 	adc		hl,hl
 	adc		hl,sp
+
+	OPT		mu1
+
+	adc		a,ixl
+	adc		a,iyh
