@@ -479,11 +479,27 @@ handleJr(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 
 static bool
 handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
-	if ((addrMode1->mode & MODE_GROUP_D) && (addrMode2->mode & MODE_GROUP_D)
+	if ((addrMode1->mode & (MODE_GROUP_D | MODE_GROUP_IXYLH)) && (addrMode2->mode & (MODE_GROUP_D | MODE_GROUP_IXYLH))
 		&& (addrMode1->registerD != REG_D_HL_IND || addrMode2->registerD != REG_D_HL_IND)) {
+		bool undocumented1 = addrMode1->mode & MODE_GROUP_IXYLH;
+		bool undocumented2 = addrMode2->mode & MODE_GROUP_IXYLH;
+		if (undocumented1 && undocumented2) {
+ 			if (addrMode1->registerHL != addrMode2->registerHL)
+				return err_Error(ERROR_OPERAND);
+			if ((addrMode1->mode == MODE_GROUP_D) && (addrMode1->registerD == REG_D_H || addrMode1->registerD == REG_D_L))
+				return err_Error(ERROR_DEST_OPERAND);
+			if ((addrMode2->mode == MODE_GROUP_D) && (addrMode2->registerD == REG_D_H || addrMode2->registerD == REG_D_L))
+				return err_Error(ERROR_SOURCE_OPERAND);
+		}
 		uint8_t regD1 = (uint8_t) addrMode1->registerD << 3u;
 		uint8_t regD2 = (uint8_t) addrMode2->registerD;
-		sect_OutputConst8((uint8_t) (0x40u | regD1 | regD2));
+		uint8_t opcode = (uint8_t) (0x40u | regD1 | regD2);
+		if (undocumented1)
+			outputIXIY(addrMode1, opcode);
+		else if (undocumented2)
+			outputIXIY(addrMode2, opcode);
+		else
+			sect_OutputConst8(opcode);
 	} else if ((addrMode1->mode & MODE_REG_A) && (addrMode2->mode & MODE_GROUP_RR)) {
 		uint8_t regRR = (uint8_t) addrMode2->registerRR << 4u;
 		sect_OutputConst8((uint8_t) 0x0Au | regRR);
@@ -957,7 +973,7 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00, MODE_CC_GB | MODE_IMM, MODE_IMM | MODE_NONE, handleJr },	/* JR */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x00,
 		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_HL | MODE_REG_CONTROL | MODE_GROUP_D | MODE_GROUP_RR | MODE_GROUP_SS | MODE_IMM_IND | MODE_GROUP_I_IND_DISP | MODE_GROUP_IXYLH,
-		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_HL | MODE_REG_CONTROL | MODE_REG_SP_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_I_IND_DISP, handleLd },	/* LD */
+		MODE_REG_A | MODE_REG_C_IND | MODE_REG_HL | MODE_REG_SP | MODE_GROUP_HL | MODE_REG_CONTROL | MODE_REG_SP_DISP | MODE_GROUP_D | MODE_GROUP_RR | MODE_IMM_IND | MODE_IMM | MODE_GROUP_SS | MODE_GROUP_I_IND_DISP | MODE_GROUP_IXYLH, handleLd },	/* LD */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x32, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, handleLdd },	/* LDD */
 	{ CPUF_Z80, 0xED, 0xB8, 0, 0, handleImplied },	/* LDDR */
 	{ CPUF_GB | CPUF_Z80, 0x00, 0x22, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, MODE_NONE | MODE_REG_A | MODE_REG_HL_IND, handleLdd },	/* LDI */

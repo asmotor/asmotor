@@ -100,3 +100,6 @@ Data:	EQU	$1234
 	OPT		mu1
 	ld		ixh,64
 	ld		iyl,64
+	ld		ixh,b
+	ld		ixh,ixl
+	ld		e,iyl
