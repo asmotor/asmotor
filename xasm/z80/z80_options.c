@@ -108,6 +108,13 @@ z80_ParseOption(const char* s) {
             }
             err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
             return false;
+        case 'u':
+            if (strlen(&s[1]) == 1) {
+                opt_Current->machineOptions->undocumentedInstructions = s[1] == '1';
+                return true;
+            }
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            return false;
         default:
             err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
             return false;
@@ -122,6 +129,9 @@ z80_PrintOptions(void) {
            "                  g - Gameboy\n"
            "                  z - Z80\n");
     printf("    -ms<x>    Synthesized instructions:\n"
+           "                  0 - Disabled (default)\n"
+           "                  1 - Enabled\n");
+    printf("    -mu<x>    Undocumented instructions:\n"
            "                  0 - Disabled (default)\n"
            "                  1 - Enabled\n");
 }

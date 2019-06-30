@@ -24,7 +24,8 @@ static const char* g_errors[] = {
     "Consider using %s instead",
     "Expression must be in the $FF00-$FFFF range",
     "Instruction not supported by selected CPU",
-    "Synthesized instructions must be enabled"
+    "Synthesized instructions must be enabled",
+    "Undocumented instructions must be enabled"
 };
 
 const char*

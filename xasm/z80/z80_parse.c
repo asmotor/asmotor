@@ -197,6 +197,14 @@ ensureSynthesizedEnabled(void) {
 	return err_Error(MERROR_SYNTHESIZED_INSTRUCTIONS);
 }
 
+static bool
+ensureUndocumentedEnabled(void) {
+	if (opt_Current->machineOptions->undocumentedInstructions)
+		return true;
+	
+	return err_Error(MERROR_UNDOCUMENTED_INSTRUCTIONS);
+}
+
 static SExpression*
 createExpressionNBit(SExpression* expression, int lowLimit, int highLimit, int bits) {
     expression = expr_CheckRange(expression, lowLimit, highLimit);
@@ -701,6 +709,9 @@ handleSLA(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 
 static bool
 handleSLL(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	if (!ensureUndocumentedEnabled())
+		return false;
+
 	return handleSLx(instruction, T_Z80_SLL, addrMode1, addrMode2);
 }
 

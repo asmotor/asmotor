@@ -4,10 +4,6 @@
 	sla		(ix+1)
 	sla		(iy+2)
 	sla		b
-	sll		(hl)
-	sll		(ix+1)
-	sll		(iy+2)
-	sll		c
 	sra		(hl)
 	sra		(ix+1)
 	sra		(iy+2)
@@ -22,5 +18,11 @@
 	sra		bc
 	srl		bc
 	sla		bc
-	sll		bc
 
+	OPT		mu1
+	
+	sll		bc
+	sll		(hl)
+	sll		(ix+1)
+	sll		(iy+2)
+	sll		c
