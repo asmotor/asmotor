@@ -227,7 +227,7 @@ sym_GetValueByName(string* name) {
     if (symbol->flags & SYMF_CONSTANT)
         return sym_GetValue(symbol);
 
-    err_Fail(ERROR_SYMBOL_CONSTANT);
+    err_Error(ERROR_SYMBOL_CONSTANT);
     return 0;
 }
 
@@ -457,7 +457,7 @@ sym_GetStringValue(SSymbol* symbol) {
         }
     }
 
-    err_Fail(ERROR_SYMBOL_EQUS);
+    err_Error(ERROR_SYMBOL_EQUS);
     return NULL;
 }
 

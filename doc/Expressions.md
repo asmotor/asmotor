@@ -12,13 +12,14 @@ An expression is said to be constant when it doesn't change its value during lin
 ### Integer literals
 The assembler supports several numeric formats:
 
-| Type | Example |
-|---|---|
-| Hexadecimal | $0123456789ABCDEF (case-insensitive) |
-| Decimal | 0123456789 |
-| Binary | %01 |
-| Fixedpoint (16.16) | 01234.56789 |
-| Character | "ABYZ" |
+| Type | Example | Note |
+|---|---|---|
+| Hexadecimal | $0123456789ABCDEF (case-insensitive) ||
+| Decimal | 0123456789 ||
+| Binary | %01 ||
+| Fixedpoint (16.16) | 01234.56789 ||
+| Character | "ABYZ" ||
+| Code | { RTS } | The value is the address of the embedded code. May span several lines |
 
 ### Operators
 The assembler supports all the usual integer operators at intuitive precedence, and also a few novel ones for fixed point math.

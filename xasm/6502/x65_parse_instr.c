@@ -72,7 +72,7 @@ handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputExpr16(addrMode->expr);
             return true;
         default:
-            err_Fail(MERROR_ILLEGAL_ADDRMODE);
+            err_Error(MERROR_ILLEGAL_ADDRMODE);
             return true;
     }
 
@@ -111,7 +111,7 @@ handleStandardAbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputExpr8(addrMode->expr);
             return true;
         default:
-            err_Fail(MERROR_ILLEGAL_ADDRMODE);
+            err_Error(MERROR_ILLEGAL_ADDRMODE);
             return true;
     }
 }
@@ -142,7 +142,7 @@ handleStandardImm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputExpr16(addrMode->expr);
             return true;
         default:
-            err_Fail(MERROR_ILLEGAL_ADDRMODE);
+            err_Error(MERROR_ILLEGAL_ADDRMODE);
             return true;
     }
 }
@@ -170,7 +170,7 @@ handleStandardRotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputExpr16(addrMode->expr);
             return true;
         default:
-            err_Fail(MERROR_ILLEGAL_ADDRMODE);
+            err_Error(MERROR_ILLEGAL_ADDRMODE);
             return true;
     }
 }

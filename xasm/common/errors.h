@@ -104,4 +104,14 @@ err_PatchError(const SPatch* patch, uint32_t errorNumber, ...);
 extern bool
 err_PatchFail(const SPatch* patch, uint32_t errorNumber, ...);
 
+extern void
+err_Suspend(void);
+
+extern int
+err_AcceptSuspended(void);
+
+extern int
+err_DiscardSuspended(void);
+
+
 #endif

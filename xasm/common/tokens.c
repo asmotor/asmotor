@@ -277,7 +277,7 @@ parseSymbol(size_t size) {
                 }
             }
 
-            err_Fail(ERROR_ID_MALFORMED);
+            err_Error(ERROR_ID_MALFORMED);
             strbuf_Free(symbolBuffer);
             return false;
         }

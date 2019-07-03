@@ -88,14 +88,14 @@ expressionPriority9(size_t maxStringConstLength) {
             parse_GetToken();
             return expr_Const(val);
         }
-        case '[': {
+        case '{': {
             parse_GetToken();
 
             sect_Push();
             switchToLiteralSection();
             string* symbolName = createLiteralName();
             sym_CreateLabel(symbolName);
-            parse_Until(']');
+            parse_Until('}');
             sect_Pop();
             parse_GetToken();
 
@@ -309,7 +309,7 @@ handleDefFunction() {
             }
             expr_Free(t1);
         } else {
-            err_Fail(ERROR_DEF_SYMBOL);
+            err_Error(ERROR_DEF_SYMBOL);
         }
     }
     return NULL;
@@ -335,7 +335,7 @@ handleBankFunction() {
             }
             expr_Free(t1);
         } else {
-            err_Fail(ERROR_BANK_SYMBOL);
+            err_Error(ERROR_BANK_SYMBOL);
         }
     }
     return NULL;

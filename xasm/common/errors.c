@@ -19,6 +19,11 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+
+#include "mem.h"
+#include "str.h"
+#include "strbuf.h"
 
 #include "xasm.h"
 #include "filestack.h"
@@ -107,19 +112,108 @@ getError(size_t errorNumber) {
     }
 }
 
-static void
-printError(const SPatch* patch, char severity, size_t errorNumber, va_list args) {
-    const char* errorString = getError(errorNumber);
+typedef struct Messages {
+    uint32_t totalMessages;
+    string** messages;
+} SMessages;
 
-    printf("%c%04d ", severity, (int) errorNumber);
+typedef struct SuspendedErrors {
+    struct SuspendedErrors* next;
+    SMessages errors;
+    SMessages warnings;
+} SSuspendedErrors;
+
+static SSuspendedErrors* 
+g_suspendedErrors = NULL;
+
+static void
+initializeMessages(SMessages* msg) {
+    msg->totalMessages = 0;
+    msg->messages = NULL;
+}
+
+static void
+addMessage(SMessages* msg, string* str) {
+    msg->totalMessages += 1;
+    msg->messages = (string**) mem_Realloc(msg->messages, msg->totalMessages * sizeof(string*));
+    msg->messages[msg->totalMessages - 1] = str_Copy(str);
+}
+
+static void
+freeMessages(SMessages* msg) {
+    for (uint32_t i = 0; i < msg->totalMessages; ++i) {
+        str_Free(msg->messages[i]);
+    }
+    mem_Free(msg->messages);
+}
+
+void
+err_Suspend(void) {
+    SSuspendedErrors* errors = (SSuspendedErrors*) mem_Alloc(sizeof(SSuspendedErrors));
+
+    errors->next = g_suspendedErrors;
+    initializeMessages(&errors->errors);
+    initializeMessages(&errors->warnings);
+
+    g_suspendedErrors = errors;
+}
+
+void
+err_Discard(void) {
+    assert(g_suspendedErrors != NULL);
+
+    freeMessages(&g_suspendedErrors->errors);
+    freeMessages(&g_suspendedErrors->warnings);
+
+    SSuspendedErrors* block = g_suspendedErrors;
+    g_suspendedErrors = block->next;
+    mem_Free(block);    
+}
+
+static void
+printMessages(const SMessages* messages, uint32_t* total) {
+    for (uint32_t i = 0; i < messages->totalMessages; ++i) {
+        printf("%s\n", str_String(messages->messages[i]));
+    }
+    *total += messages->totalMessages;
+}
+
+void
+err_Accept(void) {
+    assert(g_suspendedErrors != NULL);
+    
+    printMessages(&g_suspendedErrors->warnings, &xasm_TotalWarnings);
+    printMessages(&g_suspendedErrors->errors, &xasm_TotalErrors);
+
+    err_Discard();
+}
+
+static void
+printError(const SPatch* patch, char severity, size_t errorNumber, uint32_t* count, va_list args) {
+    string_buffer* buf = strbuf_Create();
+
+    strbuf_AppendFormat(buf, "%c%04d ", severity, (int) errorNumber);
     if (patch != NULL) {
-        printf("%s(%d): ", str_String(patch->filename), patch->lineNumber);
+        strbuf_AppendFormat(buf, "%s(%d): ", patch->filename, patch->lineNumber);
     } else {
-        fstk_Dump();
+        string* stack = fstk_Dump();
+        strbuf_AppendString(buf, stack);
+        str_Free(stack);
     }
 
-    vprintf(errorString, args);
-    printf("\n");
+    strbuf_AppendArgs(buf, getError(errorNumber), args);
+
+    string* str = strbuf_String(buf);
+    strbuf_Free(buf);
+
+    if (g_suspendedErrors == NULL) {
+        printf("%s\n", str_String(str));
+        *count += 1;
+    } else {
+        SMessages* msg = severity == 'W' ? &g_suspendedErrors->warnings : &g_suspendedErrors->errors;
+        addMessage(msg, str);
+    }
+    str_Free(str);
 }
 
 static bool
@@ -137,10 +231,8 @@ err_Warn(uint32_t errorNumber, ...) {
         va_list args;
 
         va_start(args, errorNumber);
-        printError(NULL, 'W', errorNumber, args);
+        printError(NULL, 'W', errorNumber, &xasm_TotalWarnings, args);
         va_end(args);
-
-        ++xasm_TotalWarnings;
     }
     return true;
 }
@@ -150,10 +242,9 @@ err_Error(int n, ...) {
     va_list args;
 
     va_start(args, n);
-    printError(NULL, 'E', n, args);
+    printError(NULL, 'E', n, &xasm_TotalErrors, args);
     va_end(args);
 
-    ++xasm_TotalErrors;
     return false;
 }
 
@@ -162,7 +253,7 @@ err_PatchError(const SPatch* patch, int n, ...) {
     va_list args;
 
     va_start(args, n);
-    printError(patch, 'E', n, args);
+    printError(patch, 'E', n, &xasm_TotalErrors, args);
     va_end(args);
 
     ++xasm_TotalErrors;
@@ -174,7 +265,7 @@ err_Fail(int n, ...) {
     va_list args;
 
     va_start(args, n);
-    printError(NULL, 'F', n, args);
+    printError(NULL, 'F', n, &xasm_TotalErrors, args);
     va_end(args);
 
     printf("Bailing out.\n");
@@ -186,7 +277,7 @@ err_PatchFail(SPatch* patch, int n, ...) {
     va_list args;
 
     va_start(args, n);
-    printError(patch, 'F', n, args);
+    printError(patch, 'F', n, &xasm_TotalErrors, args);
     va_end(args);
 
     printf("Bailing out.\n");

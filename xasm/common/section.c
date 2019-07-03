@@ -92,7 +92,7 @@ findSection(const string* name, SSymbol* group) {
 				if (newSection->group == group) {
 					return newSection;
 				} else {
-                    err_Fail(ERROR_SECT_EXISTS);
+                    err_Error(ERROR_SECT_EXISTS);
 					return NULL;
 				}
 			} else {
@@ -419,7 +419,7 @@ sect_OutputBinaryFile(string* filename) {
 
 		fclose(fileHandle);
 	} else {
-        err_Fail(ERROR_NO_FILE);
+        err_Error(ERROR_NO_FILE);
 	}
 
 	str_Free(filename);
@@ -492,7 +492,7 @@ sect_SwitchTo_LOAD(const string* sectname, SSymbol* group, uint32_t load) {
 			sect_Current = newSection;
 			return true;
 		} else {
-            err_Fail(ERROR_SECT_EXISTS_LOAD);
+            err_Error(ERROR_SECT_EXISTS_LOAD);
 			return false;
 		}
 	} else {
@@ -521,7 +521,7 @@ sect_SwitchTo_BANK(const string* sectname, SSymbol* group, uint32_t bank) {
 			return true;
 		}
 
-        err_Fail(ERROR_SECT_EXISTS_BANK);
+        err_Error(ERROR_SECT_EXISTS_BANK);
 		return false;
 	}
 
@@ -548,7 +548,7 @@ sect_SwitchTo_LOAD_BANK(const string* sectname, SSymbol* group, uint32_t origin,
 			return true;
 		}
 
-        err_Fail(ERROR_SECT_EXISTS_BANK_LOAD);
+        err_Error(ERROR_SECT_EXISTS_BANK_LOAD);
 		return false;
 	}
 
@@ -569,7 +569,7 @@ sect_SwitchTo_NAMEONLY(const string* sectname) {
 	if ((sect_Current = findSection(sectname, NULL)) != NULL) {
 		return true;
 	} else {
-        err_Fail(ERROR_NO_SECT);
+        err_Error(ERROR_NO_SECT);
 		return false;
 	}
 }

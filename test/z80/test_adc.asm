@@ -1,5 +1,5 @@
 	SECTION	"Test",CODE[0]
-
+Symbol:
 	adc		a,(hl)
 	adc		a,(ix+$7F)
 	adc		a,(iy)

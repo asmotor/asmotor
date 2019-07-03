@@ -134,8 +134,11 @@ readSymbol(FILE* fileHandle, Symbol* symbol) {
 
     if (symbol->type != SYM_IMPORT && symbol->type != SYM_LOCALIMPORT)
         symbol->value = fgetll(fileHandle);
+    else
+        symbol->value = 0;
 
     symbol->resolved = false;
+    symbol->section = NULL;
 }
 
 static uint32_t

@@ -4,14 +4,15 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Debug xlink",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-otest.gb", "-ts", "irqtest.obj"],
+            "args": ["-tb", "-oamigaobj.68k.bin", "amigaobj.68k.obj"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/../gb-irqtest",
+            "cwd": "${workspaceFolder}/test/680x0",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"
@@ -21,9 +22,21 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcz", "test_ld.asm"],
+            "args": ["-mcz", "test_literal.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/z80",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "Debug motor68k",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/motor68k",
+            "args": ["test.68k"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/test/680x0",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"

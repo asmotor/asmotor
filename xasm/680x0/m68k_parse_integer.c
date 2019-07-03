@@ -324,7 +324,7 @@ handleCMP(ESize size, SAddressingMode* src, SAddressingMode* dest) {
     if (dest->mode == AM_DREG)
         return handleArithmeticLogical(0xB000, size, src, dest);
 
-    err_Fail(ERROR_DEST_OPERAND);
+    err_Error(ERROR_DEST_OPERAND);
     return false;
 }
 

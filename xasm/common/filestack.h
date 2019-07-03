@@ -86,7 +86,7 @@ fstk_Init(string* filename);
 extern void
 fstk_Cleanup(void);
 
-extern void
+extern string*
 fstk_Dump(void);
 
 extern string*

@@ -112,7 +112,7 @@ expr_ ## NAME(SExpression* left, SExpression* right) {           \
     if (!assertExpressions(left, right))                         \
         return NULL;                                             \
     if (right->value.integer == 0) {                             \
-        err_Fail(ERROR_ZERO_DIVIDE);                             \
+        err_Error(ERROR_ZERO_DIVIDE);                             \
         return NULL;                                             \
     }                                                            \
     int32_t value = left->value.integer OP right->value.integer; \
@@ -350,7 +350,7 @@ expr_FixedDivision(SExpression* left, SExpression* right) {
         return left;
     }
 
-    err_Fail(ERROR_ZERO_DIVIDE);
+    err_Error(ERROR_ZERO_DIVIDE);
     return NULL;
 }
 

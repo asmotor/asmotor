@@ -103,10 +103,10 @@ expandEscapeSequence(char** destination, char escapeSymbol) {
 }
 
 static char*
-expandStreamIncluding(char* destination, char* stopChars, char* sequenceChars, char* (*next)(char*, char)) {
+expandStreamIncluding(char* destination, const char* stopChars, const char* sequenceBeginChars, char* (*next)(char*, char)) {
     for (;;) {
         char ch = lex_PeekChar(0);
-        if (ch == 0 || ch == '\n' || ch == ']') {
+        if (ch == 0 || ch == '\n') {
             break;
         }
 
@@ -120,7 +120,7 @@ expandStreamIncluding(char* destination, char* stopChars, char* sequenceChars, c
 
         if (ch == '\\') {
             expandEscapeSequence(&destination, lex_GetChar());
-        } else if (strchr(sequenceChars, ch) != NULL) {
+        } else if (strchr(sequenceBeginChars, ch) != NULL) {
             *destination++ = ch;
             destination = next(destination, ch);
         } else {
@@ -141,9 +141,14 @@ expandExpressionIncluding(char* destination, char terminator) {
 }
 
 static char*
+expandStringIncludingSeveral(char* destination, const char* stopChars) {
+    return expandStreamIncluding(destination, stopChars, "{", expandExpressionIncluding);
+}
+
+static char*
 expandStringIncluding(char* destination, char terminator) {
 	char stopChars[] = { terminator, 0 };
-    return expandStreamIncluding(destination, stopChars, "{", expandExpressionIncluding);
+    return expandStringIncludingSeveral(destination, stopChars);
 }
 
 static bool
@@ -240,8 +245,29 @@ acceptChar(void) {
 }
 
 static bool
+consumeComment(bool wasSpace, bool lineStart) {
+    char ch = lex_PeekChar(0);
+
+    if (ch == ';' || (ch == '*' && (wasSpace || lineStart))) {
+        lex_GetChar();
+        while (true) {
+            ch = lex_PeekChar(0);
+            if (ch == '\n' || ch == 0)
+                break;
+            lex_GetChar();
+        }
+        return true;
+    }
+    return wasSpace;
+}
+
+static bool
 matchNext(bool lineStart) {
-    lineStart = !skipUnimportantWhitespace() && lineStart;
+    bool wasSpace = skipUnimportantWhitespace();
+    lineStart &= !wasSpace;
+
+    wasSpace = consumeComment(wasSpace, lineStart);
+    lineStart &= !wasSpace;
 
     size_t variadicLength;
     const SVariadicWordDefinition* variadicWord;
@@ -282,11 +308,16 @@ stateNormal() {
 }
 
 static bool
+isMacroArgument0Terminator(uint8_t ch) {
+    return isspace(ch) || ch == ';';
+}
+
+static bool
 stateMacroArgument0(void) {
     if (lex_MatchChar('.')) {
         int i = 0;
 
-        while (!isspace((unsigned char) lex_PeekChar(0))) {
+        while (!isMacroArgument0Terminator((unsigned char) lex_PeekChar(0))) {
             lex_Current.value.string[i++] = lex_GetChar();
         }
         lex_Current.value.string[i] = 0;
@@ -305,6 +336,17 @@ trimTokenStringRight() {
 }
 
 static void
+getStringUntilTerminators(const char* terminators) {
+    char* lastChar = expandStringIncludingSeveral(lex_Current.value.string, terminators);
+    lex_Current.length = lastChar - lex_Current.value.string;
+    if (lex_Current.length > 0 && strchr(terminators, lex_Current.value.string[lex_Current.length - 1]) != 0) {
+        char terminator = lex_Current.value.string[lex_Current.length - 1];
+        lex_Current.value.string[--lex_Current.length] = 0;
+        unputChar(terminator);
+    }
+}
+
+static void
 getStringUntilTerminator(char terminator) {
     char* lastChar = expandStringIncluding(lex_Current.value.string, terminator);
     lex_Current.length = lastChar - lex_Current.value.string;
@@ -312,11 +354,15 @@ getStringUntilTerminator(char terminator) {
         lex_Current.value.string[--lex_Current.length] = 0;
         unputChar(terminator);
     }
-
 }
 
 static bool
 stateMacroArguments() {
+    if (lex_MatchChar(';')) {
+        while (lex_PeekChar(0) != '\n')
+            lex_GetChar();
+    }
+
     while (isspace((unsigned char) lex_PeekChar(0)) && lex_PeekChar(0) != '\n') {
         lex_GetChar();
     }
@@ -327,11 +373,12 @@ stateMacroArguments() {
         getStringUntilTerminator('>');
         lex_GetChar();
     } else {
-        getStringUntilTerminator(',');
+        getStringUntilTerminators(",;}");
     }
 
     if (lex_Current.length > 0) {
-        if (lex_PeekChar(0) == '\n') {
+        char ch = lex_PeekChar(0);
+        if (ch == '\n' || ch == ';') {
             trimTokenStringRight();
         }
         lex_Current.token = T_STRING;
@@ -345,7 +392,7 @@ stateMacroArguments() {
         lex_Current.length = 1;
         lex_Current.token = T_COMMA;
         return true;
-    } else if (lex_PeekChar(0) == ']') {
+    } else if (lex_PeekChar(0) == '}') {
         lex_Current.length = 1;
         lex_Current.token = T_LINEFEED;
         return true;
@@ -509,75 +556,58 @@ lex_FreeBuffer(SLexerBuffer* buffer) {
 
 SLexerBuffer*
 lex_CreateMemoryBuffer(const char* memory, size_t size) {
-    SLexerBuffer* pBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
+    SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
 
-    pBuffer->buffer = (char*) mem_Alloc(size);
-    memcpy(pBuffer->buffer, memory, size);
-    pBuffer->charStack.count = 0;
-    pBuffer->index = 0;
-    pBuffer->bufferSize = size;
-    pBuffer->atLineStart = true;
-    pBuffer->state = LEX_STATE_NORMAL;
-    return pBuffer;
+    lexerBuffer->buffer = (char*) mem_Alloc(size);
+    memcpy(lexerBuffer->buffer, memory, size);
+    lexerBuffer->charStack.count = 0;
+    lexerBuffer->index = 0;
+    lexerBuffer->bufferSize = size;
+    lexerBuffer->atLineStart = true;
+    lexerBuffer->state = LEX_STATE_NORMAL;
+    return lexerBuffer;
 }
 
 SLexerBuffer*
 lex_CreateFileBuffer(FILE* fileHandle) {
-    char strterm = 0;
-    char* pFile;
-    bool bWasSpace = true;
+//    char strterm = 0;
+    char* fileContent;
+    bool wasSpace = true;
 
-    SLexerBuffer* pBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
-    memset(pBuffer, 0, sizeof(SLexerBuffer));
+    SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
+    memset(lexerBuffer, 0, sizeof(SLexerBuffer));
 
     size_t size = fsize(fileHandle);
 
-    pFile = (char*) mem_Alloc(size);
-    size = fread(pFile, sizeof(uint8_t), size, fileHandle);
+    fileContent = (char*) mem_Alloc(size);
+    size = fread(fileContent, sizeof(uint8_t), size, fileHandle);
 
-    pBuffer->buffer = (char*) mem_Alloc(size + 1);
-    char* dest = pBuffer->buffer;
+    lexerBuffer->buffer = (char*) mem_Alloc(size + 1);
+    char* dest = lexerBuffer->buffer;
 
-    char* mem = pFile;
+    char* mem = fileContent;
 
-    while (mem < pFile + size) {
-        if (*mem == '"' || *mem == '\'') {
-            strterm = *mem;
-            *dest++ = *mem++;
-            while (*mem && *mem != strterm) {
-                if (*mem == '\\')
-                    *dest++ = *mem++;
-
-                *dest++ = *mem++;
-            }
-            *dest++ = *mem++;
-            bWasSpace = false;
-        } else if ((mem[0] == 10 && mem[1] == 13) || (mem[0] == 13 && mem[1] == 10)) {
+    while (mem < fileContent + size) {
+        if ((mem[0] == 10 && mem[1] == 13) || (mem[0] == 13 && mem[1] == 10)) {
             *dest++ = '\n';
             mem += 2;
-            bWasSpace = true;
+            wasSpace = true;
         } else if (mem[0] == 10 || mem[0] == 13) {
             *dest++ = '\n';
             mem += 1;
-            bWasSpace = true;
-        } else if (*mem == ';' || (bWasSpace && mem[0] == '*')) {
-            ++mem;
-            while (*mem && *mem != 13 && *mem != 10)
-                ++mem;
-            bWasSpace = false;
+            wasSpace = true;
         } else {
-            bWasSpace = isspace((uint8_t) *mem) ? true : false;
+            wasSpace = isspace((uint8_t) *mem) ? true : false;
             *dest++ = *mem++;
         }
     }
 
-
     *dest++ = '\n';
-    pBuffer->bufferSize = dest - pBuffer->buffer;
-    pBuffer->atLineStart = true;
+    lexerBuffer->bufferSize = dest - lexerBuffer->buffer;
+    lexerBuffer->atLineStart = true;
 
-    mem_Free(pFile);
-    return pBuffer;
+    mem_Free(fileContent);
+    return lexerBuffer;
 }
 
 void

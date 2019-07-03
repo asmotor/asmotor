@@ -24,6 +24,7 @@
 #include "asmotor.h"
 #include "file.h"
 #include "mem.h"
+#include "strbuf.h"
 
 // From xasm
 #include "xasm.h"
@@ -221,28 +222,32 @@ fstk_FindFile(string* filename) {
     return fullPath;
 }
 
-void
+string*
 fstk_Dump(void) {
-    SFileStackEntry* stack;
+    string_buffer* buf = strbuf_Create();
 
     if (fstk_Current == NULL) {
-        printf("(From commandline) ");
-        return;
-    }
-
-    stack = fstk_Current;
-    while (list_GetNext(stack)) {
-        stack = list_GetNext(stack);
-    }
-
-    while (stack != NULL) {
-        if (stack->name != NULL) {
-            printf("%s(%d)", str_String(stack->name), stack->lineNumber);
+        strbuf_AppendStringZero(buf, "(From commandline) ");
+    } else {
+        SFileStackEntry* stack = fstk_Current;
+        while (list_GetNext(stack)) {
+            stack = list_GetNext(stack);
         }
-        stack = list_GetPrev(stack);
 
-        printf(stack != NULL ? "->" : ": ");
+        while (stack != NULL) {
+            if (stack->name != NULL) {
+                strbuf_AppendFormat(buf, "%s(%d)", str_String(stack->name), stack->lineNumber);
+            }
+            stack = list_GetPrev(stack);
+
+            strbuf_AppendStringZero(buf, stack != NULL ? "->" : ": ");
+        }
     }
+
+    string* str = strbuf_String(buf);
+    strbuf_Free(buf);
+
+    return str;
 }
 
 bool
@@ -376,7 +381,7 @@ fstk_ProcessMacro(string* macroName) {
         g_newMacroArgument0 = NULL;
         setNewContext(newContext);
     } else {
-        err_Fail(ERROR_NO_MACRO);
+        err_Error(ERROR_NO_MACRO);
     }
 }
 

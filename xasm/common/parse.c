@@ -131,7 +131,7 @@ parse_ExpectChar(char ch) {
 void
 parse_GetToken(void) {
     if (!lex_GetNextToken()) {
-        err_Fail(ERROR_END_OF_FILE);
+        err_Error(ERROR_END_OF_FILE);
     }
 }
 

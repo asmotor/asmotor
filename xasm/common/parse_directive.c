@@ -438,7 +438,7 @@ handleShift() {
             expr_Free(expr);
             return true;
         } else {
-            err_Fail(ERROR_EXPR_CONST);
+            err_Error(ERROR_EXPR_CONST);
             return false;
         }
     } else {
