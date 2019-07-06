@@ -123,6 +123,8 @@ expressionPriority9(size_t maxStringConstLength) {
             return NULL;
         }
         case T_ID: {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
             if (strcmp(lex_Current.value.string, "@") != 0) {
                 string* str = str_Create(lex_Current.value.string);
                 SExpression* expr = expr_Symbol(str);
@@ -132,6 +134,7 @@ expressionPriority9(size_t maxStringConstLength) {
 
                 return expr;
             }
+#pragma GCC diagnostic pop
             // fall through to @
         }
         case T_OP_MULTIPLY:

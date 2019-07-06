@@ -147,10 +147,14 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                             break;
                         case 'g':
                         case 'h':
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
                             if (xasm_Configuration->supportAmiga) {
                                 format = argv[argn][2];
                                 break;
                             }
+#pragma GCC diagnostic pop 
+                            // Fall through                          
                         default:
                             err_Warn(WARN_OPTION, argv[argn]);
                             break;

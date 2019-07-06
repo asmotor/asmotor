@@ -570,9 +570,7 @@ lex_CreateMemoryBuffer(const char* memory, size_t size) {
 
 SLexerBuffer*
 lex_CreateFileBuffer(FILE* fileHandle) {
-//    char strterm = 0;
     char* fileContent;
-    bool wasSpace = true;
 
     SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
     memset(lexerBuffer, 0, sizeof(SLexerBuffer));
@@ -591,13 +589,10 @@ lex_CreateFileBuffer(FILE* fileHandle) {
         if ((mem[0] == 10 && mem[1] == 13) || (mem[0] == 13 && mem[1] == 10)) {
             *dest++ = '\n';
             mem += 2;
-            wasSpace = true;
         } else if (mem[0] == 10 || mem[0] == 13) {
             *dest++ = '\n';
             mem += 1;
-            wasSpace = true;
         } else {
-            wasSpace = isspace((uint8_t) *mem) ? true : false;
             *dest++ = *mem++;
         }
     }
@@ -625,8 +620,11 @@ lex_GetNextToken(void) {
         case LEX_STATE_MACRO_ARGUMENT0: {
             g_currentBuffer->state = LEX_STATE_MACRO_ARGUMENT;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
             if (stateMacroArgument0())
                 return true;
+#pragma GCC diagnostic pop
 
             // fall through
         }
