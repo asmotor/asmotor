@@ -40,7 +40,7 @@ static SConfiguration g_xasmConfiguration = {
 
 	"RB", "RH", "RW",
 	"DB", "DH", "DW",
-	"DSB", "DSH", "DSL",
+	"DSB", "DSH", "DSW",
 
 	mips_GetError,
 	mips_DefineTokens,
