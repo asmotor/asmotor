@@ -30,6 +30,9 @@ If you want to install it globally, you can supply the installation prefix as a 
 
 To install ```git``` and ```cmake```, it is suggested you use your distribution's package manager. For macOS, use [brew](https://brew.sh) or [MacPorts](https://www.macports.org).
 
+# Editing code
+A VSCode extension that enables syntax highlighting is also available at https://marketplace.visualstudio.com/items?itemName=ASMotor.asmotor-syntax
+
 # Further reading
 Dive into the documentation to learn more about:
 
