@@ -22,9 +22,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcz", "test_literal.asm"],
+            "args": ["-mcz", "-ms1", "-mu1", "-z0", "-oobjects.obj", "objects.asm"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/test/z80",
+            "cwd": "${workspaceFolder}/../mastersystem-test",
             "environment": [],
             "externalConsole": true,
             "MIMode": "lldb"
