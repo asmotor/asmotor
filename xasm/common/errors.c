@@ -194,7 +194,7 @@ printError(const SPatch* patch, char severity, size_t errorNumber, uint32_t* cou
 
     strbuf_AppendFormat(buf, "%c%04d ", severity, (int) errorNumber);
     if (patch != NULL) {
-        strbuf_AppendFormat(buf, "%s(%d): ", patch->filename, patch->lineNumber);
+        strbuf_AppendFormat(buf, "%s(%d): ", str_String(patch->filename), patch->lineNumber);
     } else {
         string* stack = fstk_Dump();
         strbuf_AppendString(buf, stack);
