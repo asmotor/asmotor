@@ -59,7 +59,7 @@ pushStringCopy(const char* stringValue) {
 static void
 pushIntAsString(uint32_t intValue) {
     char* value = mem_Alloc(16);
-    sprintf(value, "%u", intValue);
+    snprintf(value, 16, "%u", intValue);
 
     pushString(value);
 }
@@ -116,8 +116,9 @@ combinePatchStrings(char* operator) {
 
     popStringPair(&left, &right);
 
-    result = (char*) mem_Alloc(strlen(left) + strlen(right) + strlen(operator) + 5);
-    sprintf(result, "(%s)%s(%s)", left, operator, right);
+    size_t sz = strlen(left) + strlen(right) + strlen(operator) + 5;
+    result = (char*) mem_Alloc(sz);
+    snprintf(result, sz, "(%s)%s(%s)", left, operator, right);
 
     pushString(result);
 
@@ -133,8 +134,9 @@ combinePatchFunctionStrings(char* function) {
 
     popStringPair(&left, &right);
 
-    result = (char*) mem_Alloc(strlen(left) + strlen(right) + strlen(function) + 4);
-    sprintf(result, "%s(%s,%s)", function, left, right);
+    size_t sz = strlen(left) + strlen(right) + strlen(function) + 4;
+    result = (char*) mem_Alloc(sz);
+    snprintf(result, sz, "%s(%s,%s)", function, left, right);
 
     pushString(result);
 
@@ -149,8 +151,9 @@ combinePatchFunctionString(char* function) {
 
     left = popString();
 
-    result = (char*) mem_Alloc(strlen(left) + strlen(function) + 3);
-    sprintf(result, "%s(%s)", function, left);
+    size_t sz = strlen(left) + strlen(function) + 3;
+    result = (char*) mem_Alloc(sz);
+    snprintf(result, sz, "%s(%s)", function, left);
 
     pushString(result);
 
@@ -303,12 +306,13 @@ makePatchString(Patch* patch, Section* section) {
 
                 symbolName = sect_GetSymbolName(section, symbolId);
 
-                copy = mem_Alloc(strlen(symbolName) + 7);
-                sprintf(copy, "BANK(%s)", symbolName);
+                size_t sz = strlen(symbolName) + 7;
+                copy = mem_Alloc(sz);
+                snprintf(copy, sz, "BANK(%s)", symbolName);
 
                 pushString(copy);
 
-                size -= 4;
+                size -= 4; 
                 break;
             }
             case OBJ_PC_REL: {

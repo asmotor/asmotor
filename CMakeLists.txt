@@ -12,6 +12,8 @@ endif(MSVC)
 
 ucm_set_runtime (STATIC)
 
+add_definitions(-DASMOTOR_VERSION="${ASMOTOR_VERSION}")
+
 include_directories ("${PROJECT_SOURCE_DIR}/util")
 
 add_subdirectory (util)

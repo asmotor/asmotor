@@ -286,10 +286,7 @@ expr_PcRelative(SExpression* pExpr, int adjustment) {
 
 SExpression*
 expr_Pc() {
-    char symbolName[MAX_SYMBOL_NAME_LENGTH + 20];
-    sprintf(symbolName, "$%s%u", str_String(sect_Current->name), sect_Current->cpuProgramCounter);
-
-    string* nameString = str_Create(symbolName);
+    string* nameString = str_CreateFormat("$%s%u", str_String(sect_Current->name), sect_Current->cpuProgramCounter);
     SSymbol* symbol = sym_CreateLabel(nameString);
     str_Free(nameString);
 

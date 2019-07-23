@@ -38,7 +38,7 @@ fatalError(const char* s) {
 
 static void
 printUsage(void) {
-    printf("xlib v" LIB_VERSION " (part of ASMotor " ASMOTOR_VERSION ")\n\n"
+    printf("xlib (ASMotor v" ASMOTOR_VERSION ")\n\n"
            "Usage: xlib library command [module1 [module2 [... modulen]]]\n"
            "Commands:\n\ta\tAdd/replace modules to library\n"
            "\td\tDelete modules from library\n"

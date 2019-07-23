@@ -83,10 +83,7 @@ static string* getAmigaDateString() {
     time_t currentTime = time(NULL);
     struct tm* localTime = localtime(&currentTime);
 
-    char dateString[16];
-    size_t stringLength = sprintf(dateString, "%d.%d.%d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year + 1900);
-
-    return str_CreateLength(dateString, stringLength);
+    return str_CreateFormat("%2d.%2d.%4d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year + 1900);
 }
 
 static string*
@@ -342,9 +339,7 @@ sym_GetSymbolValueAsStringByName(const string* name) {
     switch (symbol->type) {
         case SYM_EQU:
         case SYM_SET: {
-            char destination[16];
-            sprintf(destination, "%d", sym_GetValue(symbol));
-            return str_Create(destination);
+            return str_CreateFormat("%d", sym_GetValue(symbol));
         }
         case SYM_EQUS: {
             return sym_GetStringValue(symbol);
