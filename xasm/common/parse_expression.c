@@ -59,10 +59,7 @@ switchToLiteralSection(void) {
 static string*
 createLiteralName(void) {
     static uint32_t id = 0;
-    char label[24];
-    sprintf(label, "__$Literal_%d", id);
-    ++id;
-    return str_Create(label);
+    return str_CreateFormat("__$Literal_%u", id++);
 }
 
 static SExpression*

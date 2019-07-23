@@ -48,7 +48,7 @@ writeHeader(FILE* fileHandle, uint32_t baseAddress) {
     fputc(baseAddress & 0xFFu, fileHandle);
     fputc((baseAddress >> 8u) & 0xFFu, fileHandle);
 
-    sprintf((char*) &basicSys[SYS_ASCII_ADDRESS], "%d", startAddress);
+    snprintf((char*) &basicSys[SYS_ASCII_ADDRESS], 5, "%5d", startAddress);
 
     fwrite(basicSys, 1, sizeof(basicSys), fileHandle);
 }

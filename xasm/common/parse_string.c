@@ -84,15 +84,14 @@ parseFormatSpecifier(char* format, uint32_t* precision) {
 
 static string*
 formatValue(int32_t value, char format, int32_t precision) {
-    char formatted[16];
+    string_buffer* buf = strbuf_Create();
     switch (format) {
         case 'D': {
-            char* t = formatted;
             if (value < 0) {
-                *t++ = '-';
+                strbuf_AppendChar(buf, '-');
                 value = -value;
             }
-            sprintf(t, "%0*d", precision < 0 ? 0 : precision, value);
+            strbuf_AppendFormat(buf, "%0*d", precision < 0 ? 0 : precision, value);
             break;
         }
         case 'F': {
@@ -101,27 +100,30 @@ formatValue(int32_t value, char format, int32_t precision) {
 
             uint32_t low = imuldiv(value & 0xFFFF, 100000, 65536);
             char fraction[8];
-            sprintf(fraction, "%05d", low);
+            snprintf(fraction, sizeof(fraction), "%05d", low);
             fraction[precision] = 0;
 
             int32_t high = asr(value, 16);
-            sprintf(formatted, "%d.%s", high, fraction);
+            strbuf_AppendFormat(buf, "%d.%s", high, fraction);
             break;
         }
         case 'X': {
-            sprintf(formatted, "%08X", value);
+            char formatted[10];
+            snprintf(formatted, sizeof(formatted), "%08X", value);
             if (precision > 0)
                 memcpy(formatted, formatted + 8 - precision, precision + 1);
+            strbuf_AppendStringZero(buf, formatted);
             break;
         }
         case 'C': {
-            formatted[0] = value & 0xFF;
-            formatted[1] = 0;
+            strbuf_AppendChar(buf, value & 0xFF);
             break;
         }
     }
 
-    return str_Create(formatted);
+    string *str = strbuf_String(buf);
+    strbuf_Free(buf);
+    return str;
 }
 
 static int32_t

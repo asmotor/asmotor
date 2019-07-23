@@ -64,11 +64,7 @@ static uint32_t g_newMacroArgumentsCount;
 static string*
 createUniqueId(void) {
     static uint32_t runId = 0;
-
-    char symbolName[MAX_SYMBOL_NAME_LENGTH + 1];
-    sprintf(symbolName, "_%u", runId++);
-
-    return str_Create(symbolName);
+    return str_CreateFormat("_%u", runId++);
 }
 
 static void
