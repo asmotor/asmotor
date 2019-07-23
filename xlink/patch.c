@@ -312,7 +312,7 @@ makePatchString(Patch* patch, Section* section) {
 
                 pushString(copy);
 
-                size -= 4;
+                size -= 4; 
                 break;
             }
             case OBJ_PC_REL: {
