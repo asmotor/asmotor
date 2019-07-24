@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "file.h"
+
 #include "group.h"
 #include "image.h"
 #include "section.h"
@@ -48,7 +50,7 @@ writeHeader(FILE* fileHandle, uint32_t baseAddress) {
     fputc(baseAddress & 0xFFu, fileHandle);
     fputc((baseAddress >> 8u) & 0xFFu, fileHandle);
 
-    snprintf((char*) &basicSys[SYS_ASCII_ADDRESS], 5, "%5d", startAddress);
+    snprintf((char*) &basicSys[SYS_ASCII_ADDRESS], 5, "%d", startAddress);
 
     fwrite(basicSys, 1, sizeof(basicSys), fileHandle);
 }

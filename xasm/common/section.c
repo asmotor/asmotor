@@ -22,9 +22,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include "mem.h"
-
 #include "asmotor.h"
+#include "file.h"
+#include "mem.h"
 
 #include "xasm.h"
 #include "dependency.h"

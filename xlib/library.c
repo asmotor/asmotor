@@ -34,6 +34,7 @@
 #include "types.h"
 #include "file.h"
 #include "mem.h"
+#include "str.h"
 
 #include "module.h"
 
@@ -41,14 +42,14 @@ extern void
 fatalError(const char* s);
 
 static void
-truncateFileName(char* dest, const char* src) {
+truncateFileName(char* dest, size_t count, const char* src) {
     int32_t l;
 
     l = (int32_t) strlen(src) - 1;
     while ((l >= 0) && (src[l] != '\\') && (src[l] != '/'))
         --l;
 
-    strcpy(dest, &src[l + 1]);
+    strncpy(dest, &src[l + 1], count);
 }
 
 static SModule*
@@ -146,7 +147,7 @@ lib_Write(SModule* library, const char* filename) {
 SModule*
 lib_Find(SModule* library, const char* filename) {
     char truncatedName[MAXNAMELENGTH];
-    truncateFileName(truncatedName, filename);
+    truncateFileName(truncatedName, sizeof(truncatedName), filename);
 
     while (library != NULL) {
         if (strcmp(library->name, truncatedName) == 0)
@@ -164,7 +165,7 @@ lib_AddReplace(SModule* library, const char* filename) {
 
     if (fileHandle != NULL) {
         char truncatedName[MAXNAMELENGTH];
-        truncateFileName(truncatedName, filename);
+        truncateFileName(truncatedName, sizeof(truncatedName), filename);
 
         SModule* module = lib_Find(library, filename);
         if (module == NULL) {
@@ -177,7 +178,7 @@ lib_AddReplace(SModule* library, const char* filename) {
         }
 
         module->byteLength = (uint32_t) fsize(fileHandle);
-        strcpy(module->name, truncatedName);
+        strncpy(module->name, truncatedName, sizeof(module->name));
         module->data = (uint8_t*) mem_Alloc(module->byteLength);
 
         if (module->byteLength != fread(module->data, sizeof(uint8_t), module->byteLength, fileHandle))
@@ -196,7 +197,7 @@ lib_DeleteModule(SModule* library, const char* filename) {
     first = pp = &library;
 
     char truncatedName[MAXNAMELENGTH];
-    truncateFileName(truncatedName, filename);
+    truncateFileName(truncatedName, sizeof(truncatedName), filename);
 
     bool found = false;
     while (*pp != NULL && !found) {

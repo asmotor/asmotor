@@ -111,7 +111,7 @@ static bool
 handleRexit() {
     if (fstk_Current->type == CONTEXT_REPT) {
         fstk_Current->block.repeat.remaining = 0;
-        fstk_Current->lineNumber += lex_SkipCurrentBuffer();
+        fstk_Current->lineNumber += (uint32_t) lex_SkipCurrentBuffer();
     } else {
         err_Warn(WARN_REXIT_OUTSIDE_REPT);
     }

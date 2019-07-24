@@ -35,7 +35,7 @@ SOptions* opt_Current;
 static bool
 handleDisableWarning(const char* warning) {
     int warningInt;
-    if (opt_Current->disabledWarningsCount < MAX_DISABLED_WARNINGS && 1 == sscanf(warning, "%d", &warningInt)) {
+    if (opt_Current->disabledWarningsCount < MAX_DISABLED_WARNINGS && decimalToInt(warning, &warningInt)) {
         opt_Current->disabledWarnings[opt_Current->disabledWarningsCount++] = (uint16_t) warningInt;
         return true;
     }
@@ -83,9 +83,9 @@ handleUnitializedFill(const char* fill) {
             return true;
         } else {
             uint32_t uninitializedValue;
-            int result = sscanf(fill, "%x", &uninitializedValue);
+            bool success = hexToInt(fill, &uninitializedValue);
             opt_Current->uninitializedValue = (uint8_t) uninitializedValue;
-            return !(result == EOF || result != 1);
+            return success;
         }
     }
 
