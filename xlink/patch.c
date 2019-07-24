@@ -20,6 +20,7 @@
 
 #include "fmath.h"
 #include "mem.h"
+#include "str.h"
 
 #include "asmotor.h"
 
@@ -50,8 +51,9 @@ pushString(char* stringValue) {
 
 static void
 pushStringCopy(const char* stringValue) {
-    char* copy = mem_Alloc(strlen(stringValue) + 1);
-    strcpy(copy, stringValue);
+    size_t len = strlen(stringValue) + 1;
+    char* copy = mem_Alloc(len);
+    strncpy(copy, stringValue, len);
 
     pushString(copy);
 }

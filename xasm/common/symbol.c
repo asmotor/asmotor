@@ -51,6 +51,18 @@ SSymbol* sym_hashedSymbols[SYMBOL_HASH_SIZE];
 
 // Symbol value callbacks
 
+
+static bool
+util_localtime(struct tm* const tmDest, time_t const* const sourceTime) {
+#if defined(_MSC_VER)
+    return localtime_s(tmDest, sourceTime) == 0;
+#else
+    *tmDest = *localtime(sourceTime);
+    return true;
+#endif
+}
+
+
 static int32_t
 callback__NARG(SSymbol* symbol) {
     return fstk_GetMacroArgumentCount();
@@ -63,27 +75,32 @@ callback__LINE(SSymbol* symbol) {
 
 static string* getDateString() {
     time_t currentTime = time(NULL);
+    struct tm tm;
+    util_localtime(&tm, &currentTime);
 
     char dateString[16];
-    size_t stringLength = strftime(dateString, sizeof(dateString), "%Y-%m-%d", localtime(&currentTime));
+    size_t stringLength = strftime(dateString, sizeof(dateString), "%Y-%m-%d", &tm);
 
     return str_CreateLength(dateString, stringLength);
 }
 
 static string* getTimeString() {
     time_t currentTime = time(NULL);
+    struct tm tm;
+    util_localtime(&tm, &currentTime);
 
     char timeString[16];
-    size_t stringLength = strftime(timeString, sizeof(timeString), "%X", localtime(&currentTime));
+    size_t stringLength = strftime(timeString, sizeof(timeString), "%X", &tm);
 
     return str_CreateLength(timeString, stringLength);
 }
 
 static string* getAmigaDateString() {
     time_t currentTime = time(NULL);
-    struct tm* localTime = localtime(&currentTime);
+    struct tm localTime;
+    util_localtime(&localTime, &currentTime);
 
-    return str_CreateFormat("%2d.%2d.%4d", localTime->tm_mday, localTime->tm_mon + 1, localTime->tm_year + 1900);
+    return str_CreateFormat("%2d.%2d.%4d", localTime.tm_mday, localTime.tm_mon + 1, localTime.tm_year + 1900);
 }
 
 static string*

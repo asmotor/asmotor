@@ -17,6 +17,7 @@
 */
 
 #include "asmotor.h"
+#include "file.h"
 #include "mem.h"
 #include "str.h"
 

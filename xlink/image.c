@@ -19,6 +19,7 @@
 #include <memory.h>
 
 // From util
+#include "file.h"
 #include "fmath.h"
 #include "mem.h"
 

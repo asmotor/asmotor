@@ -20,6 +20,7 @@
 
 // From util
 #include "types.h"
+#include "file.h"
 
 // From xasm
 #include "xasm.h"

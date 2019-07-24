@@ -17,6 +17,7 @@
 */
 
 #include "mem.h"
+#include "str.h"
 #include "types.h"
 
 #include "symbol.h"
@@ -59,7 +60,7 @@ group_Create(const char* groupName, uint32_t totalBanks) {
 
     *ppgroup = (MemoryGroup*) mem_Alloc(sizeof(MemoryGroup) + sizeof(MemoryPool*) * totalBanks);
 
-    strcpy((*ppgroup)->name, groupName);
+    strncpy((*ppgroup)->name, groupName, sizeof((*ppgroup)->name));
     (*ppgroup)->nextGroup = NULL;
     (*ppgroup)->totalPools = totalBanks;
 

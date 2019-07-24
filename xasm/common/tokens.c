@@ -24,6 +24,7 @@
 #include "asmotor.h"
 #include "fmath.h"
 #include "mem.h"
+#include "str.h"
 #include "strbuf.h"
 
 // From xasm
@@ -304,7 +305,7 @@ parseSymbol(size_t size) {
         r = false;
         str_Free(value);
     } else {
-        strcpy(lex_Current.value.string, str_String(symbolName));
+        strncpy(lex_Current.value.string, str_String(symbolName), sizeof(lex_Current.value.string));
         r = true;
     }
 

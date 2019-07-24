@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "file.h"
+
 #include "group.h"
 #include "image.h"
 #include "section.h"
