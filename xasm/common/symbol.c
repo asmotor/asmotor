@@ -100,7 +100,7 @@ static string* getAmigaDateString() {
     struct tm localTime;
     util_localtime(&localTime, &currentTime);
 
-    return str_CreateFormat("%2d.%2d.%4d", localTime.tm_mday, localTime.tm_mon + 1, localTime.tm_year + 1900);
+    return str_CreateFormat("%d.%d.%d", localTime.tm_mday, localTime.tm_mon + 1, localTime.tm_year + 1900);
 }
 
 static string*
