@@ -22,6 +22,7 @@
 #include <ctype.h>
 
 #include "asmotor.h"
+#include "file.h"
 #include "types.h"
 
 #include "library.h"

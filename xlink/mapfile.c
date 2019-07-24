@@ -16,6 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "file.h"
+
 #include "section.h"
 #include "xlink.h"
 

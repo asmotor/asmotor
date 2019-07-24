@@ -20,6 +20,7 @@
 #include <stdarg.h>
 
 #include "asmotor.h"
+#include "file.h"
 #include "str.h"
 
 #include "amiga.h"
