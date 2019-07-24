@@ -57,7 +57,7 @@ util_localtime(struct tm* const tmDest, time_t const* const sourceTime) {
 #if defined(_MSC_VER)
     return localtime_s(tmDest, sourceTime) == 0;
 #else
-    *tmDest = localtime(*sourceTime);
+    *tmDest = *localtime(sourceTime);
     return true;
 #endif
 }
