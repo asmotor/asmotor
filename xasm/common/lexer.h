@@ -20,10 +20,11 @@
 #define XASM_COMMON_LEXER_H_INCLUDED_
 
 #include <stdio.h>
-#include <str.h>
+
+#include "xasm.h"
+#include "str.h"
 #include "types.h"
 #include "tokens.h"
-#include "xasm.h"
 
 typedef enum {
     LEX_STATE_NORMAL,

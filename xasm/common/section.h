@@ -49,6 +49,7 @@ struct Section {
 
     uint8_t* data;
 };
+
 typedef struct Section SSection;
 
 #define SECTF_LOADFIXED 0x01u

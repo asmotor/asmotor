@@ -70,7 +70,7 @@ callback__NARG(SSymbol* symbol) {
 
 static int32_t
 callback__LINE(SSymbol* symbol) {
-    return fstk_GetMostCurrentStackEntry()->lineNumber;
+    return fstk_CurrentLineNumber();
 }
 
 static string* getDateString() {
@@ -182,6 +182,8 @@ createSymbol(const string* name, SSymbol* scope) {
     SET_TYPE_AND_FLAGS(newSymbol, SYM_UNDEFINED);
     newSymbol->name = str_Copy(name);
     newSymbol->scope = scope;
+    newSymbol->filename = str_Copy(fstk_CurrentFilename());
+    newSymbol->lineNumber = fstk_CurrentLineNumber();
 
     SSymbol** hashTableEntry = &sym_hashedSymbols[hash(name)];
     list_Insert(*hashTableEntry, newSymbol);

@@ -31,6 +31,7 @@
 #include "errors.h"
 #include "expression.h"
 #include "filestack.h"
+#include "linemap.h"
 #include "options.h"
 #include "parse.h"
 #include "patch.h"
@@ -85,10 +86,9 @@ createSection(const string* name) {
 
 static SSection*
 findSection(const string* name, SSymbol* group) {
-	SSection* newSection = sect_Sections;
-	while (newSection) {
+	for (SSection* newSection = sect_Sections; newSection != NULL; newSection = list_GetNext(newSection)) {
 		if (str_Equal(newSection->name, name)) {
-			if (group) {
+			if (group != NULL) {
 				if (newSection->group == group) {
 					return newSection;
 				} else {
@@ -99,7 +99,6 @@ findSection(const string* name, SSymbol* group) {
 				return newSection;
 			}
 		}
-		newSection = list_GetNext(newSection);
 	}
 
 	return NULL;
@@ -156,6 +155,8 @@ sect_OutputConst8(uint8_t value) {
 	if (checkAvailableSpace(1)) {
 		switch (currentSectionType()) {
 			case GROUP_TEXT: {
+				linemap_AddCurrent();
+
 				sect_Current->freeSpace -= 1;
 				sect_Current->data[sect_Current->usedSpace++] = value;
 				sect_Current->cpuProgramCounter += 1;
@@ -180,6 +181,8 @@ sect_OutputReloc8(SExpression* expression) {
 	if (checkAvailableSpace(1)) {
 		switch (currentSectionType()) {
 			case GROUP_TEXT: {
+				linemap_AddCurrent();
+
 				patch_Create(sect_Current, sect_Current->usedSpace, expression, PATCH_8);
 				sect_Current->cpuProgramCounter += 1;
 				sect_Current->usedSpace += 1;
@@ -219,6 +222,8 @@ sect_OutputConst16(uint16_t value) {
 	if (checkAvailableSpace(2)) {
 		switch (currentSectionType()) {
 			case GROUP_TEXT: {
+				linemap_AddCurrent();
+
 				switch (opt_Current->endianness) {
 					case ASM_LITTLE_ENDIAN: {
 						sect_Current->data[sect_Current->usedSpace++] = (uint8_t) (value);
@@ -258,6 +263,8 @@ sect_OutputReloc16(SExpression* expression) {
 	if (checkAvailableSpace(2)) {
 		switch (currentSectionType()) {
 			case GROUP_TEXT: {
+				linemap_AddCurrent();
+
 				patch_Create(sect_Current, sect_Current->usedSpace, expression,
 							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_16 : PATCH_BE_16);
 				sect_Current->freeSpace -= 2;
@@ -299,6 +306,8 @@ sect_OutputConst32(uint32_t value) {
 	if (checkAvailableSpace(4)) {
 		switch (currentSectionType()) {
 			case GROUP_TEXT: {
+				linemap_AddCurrent();
+
 				switch (opt_Current->endianness) {
 					case ASM_LITTLE_ENDIAN: {
 						sect_Current->data[sect_Current->usedSpace++] = (uint8_t) (value);
@@ -342,6 +351,8 @@ sect_OutputRel32(SExpression* expression) {
 	if (checkAvailableSpace(4)) {
 		switch (currentSectionType()) {
 			case GROUP_TEXT: {
+				linemap_AddCurrent();
+
 				patch_Create(sect_Current, sect_Current->usedSpace, expression,
 							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_32 : PATCH_BE_32);
 				sect_Current->freeSpace -= 4;
@@ -395,9 +406,9 @@ sect_OutputBinaryFile(string* filename) {
 		if (checkAvailableSpace(size)) {
 			switch (currentSectionType()) {
 				case GROUP_TEXT: {
-					size_t read;
+					linemap_AddCurrent();
 
-					read = fread(&sect_Current->data[sect_Current->usedSpace], sizeof(uint8_t), size, fileHandle);
+					size_t read = fread(&sect_Current->data[sect_Current->usedSpace], sizeof(uint8_t), size, fileHandle);
 					sect_Current->freeSpace -= size;
 					sect_Current->usedSpace += size;
 					sect_Current->cpuProgramCounter += size / xasm_Configuration->minimumWordSize;
@@ -441,7 +452,8 @@ sect_SkipBytes(uint32_t count) {
 	assert((uint32_t) xasm_Configuration->minimumWordSize <= count);
 
 	if (checkAvailableSpace(count)) {
-		//printf("*DEBUG* skipping %d bytes\n", count);
+		linemap_AddCurrent();
+
 		switch (currentSectionType()) {
 			case GROUP_TEXT: {
 				while (count >= 2) {

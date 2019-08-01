@@ -17,6 +17,8 @@ add_library (xasm
     lexer_constants.h
     lexer_variadics.c
     lexer_variadics.h
+    linemap.c
+    linemap.h
     object.c
     object.h
     options.c

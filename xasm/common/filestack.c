@@ -141,7 +141,6 @@ fstk_GetMacroArgValue(char argumentId) {
     return NULL;
 }
 
-
 string*
 fstk_GetMacroUniqueId(void) {
     return str_Copy(fstk_Current->uniqueId);
@@ -354,20 +353,21 @@ fstk_ProcessRepeatBlock(char* buffer, size_t size, uint32_t count) {
 
 void
 fstk_ProcessMacro(string* macroName) {
-    SSymbol* sym;
+    SSymbol* symbol = sym_GetSymbol(macroName);
 
-    if ((sym = sym_GetSymbol(macroName)) != NULL) {
+    if (symbol != NULL) {
         SFileStackEntry* newContext = mem_Alloc(sizeof(SFileStackEntry));
 
         memset(newContext, 0, sizeof(SFileStackEntry));
         newContext->type = CONTEXT_MACRO;
 
         newContext->name = str_Copy(macroName);
-        newContext->lexBuffer = lex_CreateMemoryBuffer(str_String(sym->value.macro), str_Length(sym->value.macro));
+        newContext->lexBuffer = lex_CreateMemoryBuffer(str_String(symbol->value.macro), str_Length(symbol->value.macro));
 
         lex_SetBuffer(newContext->lexBuffer);
         lex_SetState(LEX_STATE_NORMAL);
         newContext->lineNumber = UINT32_MAX;
+        newContext->block.macro.symbol = symbol;
         newContext->block.macro.argument0 = g_newMacroArgument0;
         newContext->block.macro.arguments = g_newMacroArguments;
         newContext->block.macro.argumentCount = g_newMacroArgumentsCount;
@@ -417,7 +417,43 @@ void
 fstk_Cleanup(void) {
 }
 
-SFileStackEntry*
-fstk_GetMostCurrentStackEntry(void) {
-    return fstk_Current;
+static string*
+getMostRecentFilename(SFileStackEntry* stackEntry) {
+    if (stackEntry == NULL)
+        return NULL;
+
+    switch (stackEntry->type) {
+        case CONTEXT_FILE:
+            return stackEntry->name;
+        case CONTEXT_MACRO:
+            return stackEntry->block.macro.symbol->filename;
+        case CONTEXT_REPT:
+            return getMostRecentFilename(stackEntry->pNext);
+    }
 }
+
+string*
+fstk_CurrentFilename() {
+    return getMostRecentFilename(fstk_Current);
+}
+
+static uint32_t
+getMostRecentLineNumber(SFileStackEntry* stackEntry) {
+    if (stackEntry == NULL)
+        return 0;
+
+    switch (stackEntry->type) {
+        case CONTEXT_FILE:
+            return stackEntry->lineNumber;
+        case CONTEXT_MACRO:
+            return stackEntry->lineNumber + stackEntry->block.macro.symbol->lineNumber;
+        case CONTEXT_REPT:
+            return stackEntry->lineNumber + getMostRecentLineNumber(stackEntry->pNext);
+    }
+}
+
+uint32_t
+fstk_CurrentLineNumber() {
+    return getMostRecentLineNumber(fstk_Current);
+}
+

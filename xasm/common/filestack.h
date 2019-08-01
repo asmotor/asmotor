@@ -46,6 +46,7 @@ typedef struct FileStackEntry {
             uint32_t remaining;
         } repeat;
         struct {
+            SSymbol* symbol;
             string* argument0;
             string** arguments;
             uint32_t argumentCount;
@@ -98,9 +99,13 @@ fstk_ShiftMacroArgs(int32_t count);
 extern void
 fstk_AddIncludePath(string* pathname);
 
-extern SFileStackEntry*
-fstk_GetMostCurrentStackEntry(void);
+extern string*
+fstk_CurrentFilename();
 
-extern SFileStackEntry* fstk_Current;
+extern uint32_t
+fstk_CurrentLineNumber();
+
+extern SFileStackEntry*
+fstk_Current;
 
 #endif /* XASM_COMMON_FILESTACK_H_INCLUDED_ */
