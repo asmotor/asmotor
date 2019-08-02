@@ -20,7 +20,7 @@
  * xLink - OBJECT.C
  * Copyright 1996-1998 Carsten Sorensen (csorensen@ea.com)
  *
- *	char	ID[4]="XOB\1";
+ *	char	ID[4]="XOB\2";
  *	[>=v1] char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
@@ -61,12 +61,26 @@
  *					ENDR
  *			ENDC
  *	ENDR
+ *	IF Version >= 2
+ *		uint32_t NumberOfFiles
+ *		REPT NumberOfFiles
+ *			ASCIIZ		Name
+ *			uint32_t	CRC32
+ *			uint32_t	NumberOfLineMappings
+ *			REPT NumberOfLineMappings
+ *				uint32_t	LineNumber
+ *				uint32_t	SectionId
+ *				uint32_t	Offset
+ *			ENDR
+ *		ENDR
+ *	ENDC
  */
 
 #include <string.h>
 
 #include "file.h"
 #include "mem.h"
+#include "str.h"
 
 #include "group.h"
 #include "object.h"
@@ -220,13 +234,14 @@ readSection(FILE* fileHandle, Section* section, Groups* groups, int version) {
     }
 }
 
-static void
+static Section**
 readSections(Groups* groups, FILE* fileHandle, int version) {
-    uint32_t totalsections;
+    uint32_t totalSections = fgetll(fileHandle);
+    Section** sections = mem_Alloc(sizeof(Section*) * totalSections);
 
-    totalsections = fgetll(fileHandle);
-    while (totalsections--) {
+    for (uint32_t i = 0; i < totalSections; ++i) {
         Section* section = sect_CreateNew();
+        sections[i] = section;
 
         section->minimumWordSize = g_minimumWordSize;
         section->fileId = g_fileId;
@@ -240,18 +255,73 @@ readSections(Groups* groups, FILE* fileHandle, int version) {
     }
 
     g_fileId += 1;
+
+    return sections;
+}
+
+typedef struct {
+	uint32_t lineNumber;
+	Section* section;
+	uint32_t offset;
+} SLineMapping;
+
+typedef struct {
+    string* name;
+    uint32_t crc32;
+    uint32_t totalLineMappings;
+    SLineMapping* lineMapping;
+} SLineMappingFile;
+
+
+static void
+readLineMapping(FILE* fileHandle, SLineMapping* lineMapping, Section** sections) {
+    lineMapping->lineNumber = fgetll(fileHandle);
+    lineMapping->section = sections[fgetll(fileHandle)];
+    lineMapping->offset = fgetll(fileHandle); 
+}
+
+
+static void
+readLineMappingFile(FILE* fileHandle, SLineMappingFile* lineMappingFile, Section** sections) {
+    lineMappingFile->name = fgetstr(fileHandle);
+    lineMappingFile->crc32 = fgetll(fileHandle);
+    lineMappingFile->totalLineMappings = fgetll(fileHandle);
+    lineMappingFile->lineMapping = mem_Alloc(sizeof(SLineMapping) * lineMappingFile->totalLineMappings);
+    for (uint32_t i = 0; i < lineMappingFile->totalLineMappings; ++i) {
+        readLineMapping(fileHandle, &lineMappingFile->lineMapping[i], sections);
+    }
+}
+
+
+static void
+readLineMappings(FILE* fileHandle, Section** sections) {
+    uint32_t totalFiles = fgetll(fileHandle);
+    SLineMappingFile* files = mem_Alloc(sizeof(SLineMappingFile) * totalFiles);
+    for (uint32_t i = 0; i < totalFiles; ++i) {
+        readLineMappingFile(fileHandle, &files[i], sections);
+    } 
 }
 
 static void
 readXOB0(FILE* fileHandle) {
     g_minimumWordSize = 1;
-    readSections(readGroups(fileHandle), fileHandle, 0);
+    Section** sections = readSections(readGroups(fileHandle), fileHandle, 0);
+    mem_Free(sections);
 }
 
 static void
 readXOB1(FILE* fileHandle) {
     g_minimumWordSize = fgetc(fileHandle);
-    readSections(readGroups(fileHandle), fileHandle, 1);
+    Section** sections = readSections(readGroups(fileHandle), fileHandle, 1);
+    mem_Free(sections);
+}
+
+static void
+readXOB2(FILE* fileHandle) {
+    g_minimumWordSize = fgetc(fileHandle);
+    Section** sections = readSections(readGroups(fileHandle), fileHandle, 1);
+    readLineMappings(fileHandle, sections);
+    mem_Free(sections);
 }
 
 static void
@@ -282,6 +352,11 @@ readChunk(FILE* fileHandle) {
 
         case MAKE_ID('X', 'O', 'B', 1): {
             readXOB1(fileHandle);
+            break;
+        }
+
+        case MAKE_ID('X', 'O', 'B', 2): {
+            readXOB2(fileHandle);
             break;
         }
 

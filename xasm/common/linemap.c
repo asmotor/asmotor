@@ -23,23 +23,6 @@
 
 #define INITIAL_ALLOCATION 32
 
-typedef struct LineMapEntry {
-    uint32_t lineNumber;
-    SSection* section;
-    uint32_t offset;
-} SLineMapEntry;
-
-
-typedef struct LineMapFile {
-    struct LineMapFile* next;
-
-    string* filename;
-    uint32_t totalEntries;
-    uint32_t allocatedEntries;
-    SLineMapEntry* entries;
-} SLineMapFile;
-
-
 static SLineMapFile* g_lineMapFiles = NULL;
 
 
@@ -74,7 +57,8 @@ findLineMapFile(string* filename) {
 }
 
 
-static SLineMapEntry* allocLineMapEntry(SLineMapFile* file) {
+static SLineMapEntry*
+allocLineMapEntry(SLineMapFile* file) {
     if (file->totalEntries == file->allocatedEntries) {
         file->allocatedEntries *= 2;
         file->entries = (SLineMapEntry*) mem_Realloc(file->entries, file->allocatedEntries * sizeof(SLineMapEntry));
@@ -84,12 +68,24 @@ static SLineMapEntry* allocLineMapEntry(SLineMapFile* file) {
 }
 
 
+static SLineMapEntry*
+mostRecentLineMapEntry(SLineMapFile* file) {
+    if (file->totalEntries > 0)
+        return &file->entries[file->totalEntries - 1];
+    else
+        return NULL;
+}
+    
+
 static void
 addEntry(SLineMapFile* file, uint32_t lineNumber, SSection* section, uint32_t offset) {
-    SLineMapEntry* entry = allocLineMapEntry(file);
-    entry->lineNumber = lineNumber;
-    entry->section = section;
-    entry->offset = offset;
+    SLineMapEntry* mostRecentEntry = mostRecentLineMapEntry(file);
+    if (mostRecentEntry == NULL || mostRecentEntry->section != section || mostRecentEntry->lineNumber != lineNumber) {
+        SLineMapEntry* entry = allocLineMapEntry(file);
+        entry->lineNumber = lineNumber;
+        entry->section = section;
+        entry->offset = offset;
+    }
 }
 
 
@@ -102,4 +98,20 @@ linemap_Add(string* filename, uint32_t lineNumber, SSection* section, uint32_t o
 extern void
 linemap_AddCurrent(void) {
     linemap_Add(fstk_CurrentFilename(), fstk_CurrentLineNumber(), sect_Current, sect_Current->cpuProgramCounter);
+}
+
+
+extern uint32_t
+linemap_TotalFiles(void) {
+    uint32_t result = 0;
+    for (SLineMapFile *file = g_lineMapFiles; file != NULL; file = file->next)
+        result += 1;
+    return result;
+}
+
+
+extern void
+linemap_ForEachFile(void (*callback)(const SLineMapFile*, intptr_t data), intptr_t data) {
+    for (SLineMapFile *file = g_lineMapFiles; file != NULL; file = file->next)
+        callback(file, data);
 }

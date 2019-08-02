@@ -23,10 +23,36 @@
 
 #include "section.h"
 
+
+struct LineMapEntry {
+    uint32_t lineNumber;
+    SSection* section;
+    uint32_t offset;
+};
+typedef struct LineMapEntry SLineMapEntry;
+
+
+struct LineMapFile {
+    struct LineMapFile* next;
+
+    string* filename;
+    uint32_t totalEntries;
+    uint32_t allocatedEntries;
+    SLineMapEntry* entries;
+};
+typedef struct LineMapFile SLineMapFile;
+
+
 extern void
 linemap_Add(string* filename, uint32_t lineNumber, SSection* section, uint32_t offset);
 
 extern void
 linemap_AddCurrent(void);
+
+extern uint32_t
+linemap_TotalFiles(void);
+
+extern void
+linemap_ForEachFile(void (*callback)(const SLineMapFile*, intptr_t), intptr_t data);
 
 #endif
