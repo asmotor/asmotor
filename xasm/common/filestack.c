@@ -25,6 +25,7 @@
 #include "file.h"
 #include "mem.h"
 #include "strbuf.h"
+#include "strcoll.h"
 
 // From xasm
 #include "xasm.h"
@@ -40,6 +41,14 @@
 
 #define MAX_INCLUDE_PATHS 16
 
+#if defined(WIN32)
+# define PATH_SEPARATOR '\\'
+# define PATH_REPLACE '/'
+#else
+# define PATH_SEPARATOR '/'
+# define PATH_REPLACE '\\'
+#endif
+
 /* Internal variables */
 
 SFileStackEntry* fstk_Current;
@@ -51,15 +60,28 @@ static string* g_newMacroArgument0;
 static string** g_newMacroArguments;
 static uint32_t g_newMacroArgumentsCount;
 
-#if defined(WIN32)
-# define PATH_SEPARATOR '\\'
-# define PATH_REPLACE '/'
-#else
-# define PATH_SEPARATOR '/'
-# define PATH_REPLACE '\\'
-#endif
+static map_t* g_fileNameMap = NULL;
+
 
 /* Private functions */
+
+static void
+freeFileNameInfo(intptr_t userData, intptr_t element) {
+    mem_Free((void*) element);
+}
+
+static void
+createFileNameMapEntry(string* fileName) {
+    static uint32_t nextFileId = 0;
+
+    if (!strmap_HasKey(g_fileNameMap, fileName)) {
+        SFileInfo* entry = mem_Alloc(sizeof(SFileInfo));
+        entry->fileName = str_Copy(fileName);
+        entry->fileId = nextFileId++;
+        entry->crc32 = 0;
+        strmap_Insert(g_fileNameMap, fileName, (intptr_t) entry);
+    }
+}
 
 static string*
 createUniqueId(void) {
@@ -91,14 +113,14 @@ getMacroContext(void) {
 }
 
 static string*
-fixPathSeparators(string* filename) {
-    return str_Replace(filename, PATH_REPLACE, PATH_SEPARATOR);
+fixPathSeparators(string* fileName) {
+    return str_Replace(fileName, PATH_REPLACE, PATH_SEPARATOR);
 }
 
 static string*
-replaceFileComponent(string* fullPath, string* filename) {
+replaceFileComponent(string* fullPath, string* fileName) {
     if (fullPath == NULL)
-        return filename;
+        return fileName;
 
     const char* lastSlash = str_String(fullPath) + str_Length(fullPath) - 1;
 
@@ -106,10 +128,10 @@ replaceFileComponent(string* fullPath, string* filename) {
         --lastSlash;
 
     if (lastSlash == str_String(fullPath))
-        return str_Copy(filename);
+        return str_Copy(fileName);
 
     string* basePath = str_Slice(fullPath, 0, lastSlash + 1 - str_String(fullPath));
-    string* newFullPath = str_Concat(basePath, filename);
+    string* newFullPath = str_Concat(basePath, fileName);
     str_Free(basePath);
 
     string* fixedPath = fixPathSeparators(newFullPath);
@@ -117,9 +139,40 @@ replaceFileComponent(string* fullPath, string* filename) {
     return fixedPath;
 }
 
+static string*
+getMostRecentFilename(SFileStackEntry* stackEntry) {
+    if (stackEntry == NULL)
+        return NULL;
+
+    switch (stackEntry->type) {
+        case CONTEXT_FILE:
+            return stackEntry->name;
+        case CONTEXT_MACRO:
+            return stackEntry->block.macro.symbol->fileName;
+        case CONTEXT_REPT:
+            return getMostRecentFilename(stackEntry->pNext);
+    }
+}
+
+static uint32_t
+getMostRecentLineNumber(SFileStackEntry* stackEntry) {
+    if (stackEntry == NULL)
+        return 0;
+
+    switch (stackEntry->type) {
+        case CONTEXT_FILE:
+            return stackEntry->lineNumber;
+        case CONTEXT_MACRO:
+            return stackEntry->lineNumber + stackEntry->block.macro.symbol->lineNumber;
+        case CONTEXT_REPT:
+            return stackEntry->lineNumber + getMostRecentLineNumber(stackEntry->pNext);
+    }
+}
+
+
 /* Public functions */
 
-string*
+extern string*
 fstk_GetMacroArgValue(char argumentId) {
     if (argumentId == '@') {
         return fstk_GetMacroUniqueId();
@@ -141,29 +194,29 @@ fstk_GetMacroArgValue(char argumentId) {
     return NULL;
 }
 
-string*
+extern string*
 fstk_GetMacroUniqueId(void) {
     return str_Copy(fstk_Current->uniqueId);
 }
 
-int32_t
+extern int32_t
 fstk_GetMacroArgumentCount(void) {
     SFileStackEntry* entry = getMacroContext();
     return entry != NULL ? entry->block.macro.argumentCount : 0;
 }
 
-void
+extern void
 fstk_AddMacroArgument(const char* str) {
     g_newMacroArguments = (string**) mem_Realloc(g_newMacroArguments, sizeof(string*) * (g_newMacroArgumentsCount + 1));
     g_newMacroArguments[g_newMacroArgumentsCount++] = str_Create(str);
 }
 
-void
+extern void
 fstk_SetMacroArgument0(const char* str) {
     g_newMacroArgument0 = str_Create(str);
 }
 
-void
+extern void
 fstk_ShiftMacroArgs(int32_t count) {
     SFileStackEntry* context = getMacroContext();
     if (context != NULL) {
@@ -182,19 +235,19 @@ fstk_ShiftMacroArgs(int32_t count) {
     }
 }
 
-string*
-fstk_FindFile(string* filename) {
+extern string*
+fstk_FindFile(string* fileName) {
     string* fullPath = NULL;
-    filename = fixPathSeparators(filename);
+    fileName = fixPathSeparators(fileName);
 
     if (fstk_Current->name == NULL) {
-        if (fexists(str_String(filename))) {
-            fullPath = str_Copy(filename);
+        if (fexists(str_String(fileName))) {
+            fullPath = str_Copy(fileName);
         }
     }
 
     if (fullPath == NULL) {
-        string* candidate = replaceFileComponent(fstk_Current->name, filename);
+        string* candidate = replaceFileComponent(fstk_Current->name, fileName);
         if (candidate != NULL) {
             if (fexists(str_String(candidate))) {
                 STR_MOVE(fullPath, candidate);
@@ -204,7 +257,7 @@ fstk_FindFile(string* filename) {
 
     if (fullPath == NULL) {
         for (uint32_t count = 0; count < g_totalIncludePaths; count += 1) {
-            string* candidate = str_Concat(g_includePaths[count], filename);
+            string* candidate = str_Concat(g_includePaths[count], fileName);
 
             if (fexists(str_String(candidate))) {
                 STR_MOVE(fullPath, candidate);
@@ -213,11 +266,11 @@ fstk_FindFile(string* filename) {
         }
     }
 
-    str_Free(filename);
+    str_Free(fileName);
     return fullPath;
 }
 
-string*
+extern string*
 fstk_Dump(void) {
     string_buffer* buf = strbuf_Create();
 
@@ -245,7 +298,7 @@ fstk_Dump(void) {
     return str;
 }
 
-bool
+extern bool
 fstk_ProcessNextBuffer(void) {
     if (list_IsLast(fstk_Current)) {
         return false;
@@ -289,7 +342,7 @@ fstk_ProcessNextBuffer(void) {
     }
 }
 
-void
+extern void
 fstk_AddIncludePath(string* pathname) {
     char ch;
 
@@ -308,13 +361,13 @@ fstk_AddIncludePath(string* pathname) {
     }
 }
 
-void
-fstk_ProcessIncludeFile(string* filename) {
+extern void
+fstk_ProcessIncludeFile(string* fileName) {
     SFileStackEntry* newContext = mem_Alloc(sizeof(SFileStackEntry));
     list_Init(newContext);
 
     newContext->type = CONTEXT_FILE;
-    newContext->name = fstk_FindFile(filename);
+    newContext->name = fstk_FindFile(fileName);
 
     FILE* fileHandle;
     if (newContext->name != NULL && (fileHandle = fopen(str_String(newContext->name), "rt")) != NULL) {
@@ -331,7 +384,7 @@ fstk_ProcessIncludeFile(string* filename) {
     }
 }
 
-void
+extern void
 fstk_ProcessRepeatBlock(char* buffer, size_t size, uint32_t count) {
     SFileStackEntry* newContext = mem_Alloc(sizeof(SFileStackEntry));
     list_Init(newContext);
@@ -351,7 +404,7 @@ fstk_ProcessRepeatBlock(char* buffer, size_t size, uint32_t count) {
     }
 }
 
-void
+extern void
 fstk_ProcessMacro(string* macroName) {
     SSymbol* symbol = sym_GetSymbol(macroName);
 
@@ -381,15 +434,17 @@ fstk_ProcessMacro(string* macroName) {
     }
 }
 
-bool
-fstk_Init(string* filename) {
+extern bool
+fstk_Init(string* fileName) {
     g_newMacroArgumentsCount = 0;
     g_newMacroArguments = NULL;
 
-    dep_AddDependency(filename);
+    g_fileNameMap = strmap_Create(freeFileNameInfo);
+    createFileNameMapEntry(fileName);
+    dep_AddDependency(fileName);
 
     string* symbolName = str_Create("__FILE");
-    sym_CreateEqus(symbolName, filename);
+    sym_CreateEqus(symbolName, fileName);
     str_Free(symbolName);
 
     fstk_Current = mem_Alloc(sizeof(SFileStackEntry));
@@ -397,7 +452,7 @@ fstk_Init(string* filename) {
     fstk_Current->type = CONTEXT_FILE;
 
     FILE* fileHandle;
-    if ((fstk_Current->name = fstk_FindFile(filename)) != NULL
+    if ((fstk_Current->name = fstk_FindFile(fileName)) != NULL
         && (fileHandle = fopen(str_String(fstk_Current->name), "rt")) != NULL) {
 
         fstk_Current->lexBuffer = lex_CreateFileBuffer(fileHandle);
@@ -413,47 +468,32 @@ fstk_Init(string* filename) {
     return false;
 }
 
-void
+extern void
 fstk_Cleanup(void) {
 }
 
-static string*
-getMostRecentFilename(SFileStackEntry* stackEntry) {
-    if (stackEntry == NULL)
-        return NULL;
-
-    switch (stackEntry->type) {
-        case CONTEXT_FILE:
-            return stackEntry->name;
-        case CONTEXT_MACRO:
-            return stackEntry->block.macro.symbol->filename;
-        case CONTEXT_REPT:
-            return getMostRecentFilename(stackEntry->pNext);
-    }
-}
-
-string*
+extern string*
 fstk_CurrentFilename() {
     return getMostRecentFilename(fstk_Current);
 }
 
-static uint32_t
-getMostRecentLineNumber(SFileStackEntry* stackEntry) {
-    if (stackEntry == NULL)
-        return 0;
-
-    switch (stackEntry->type) {
-        case CONTEXT_FILE:
-            return stackEntry->lineNumber;
-        case CONTEXT_MACRO:
-            return stackEntry->lineNumber + stackEntry->block.macro.symbol->lineNumber;
-        case CONTEXT_REPT:
-            return stackEntry->lineNumber + getMostRecentLineNumber(stackEntry->pNext);
-    }
-}
-
-uint32_t
+extern uint32_t
 fstk_CurrentLineNumber() {
     return getMostRecentLineNumber(fstk_Current);
+}
+
+static void
+copyFileInfo(intptr_t key, intptr_t value, intptr_t data) {
+    SFileInfo* fileInfo = (SFileInfo*) value;
+    SFileInfo** array = (SFileInfo**) data;
+    array[fileInfo->fileId] = fileInfo;
+}
+
+extern SFileInfo**
+fstk_GetFileInfo(size_t* totalFiles) {
+    *totalFiles = map_Count(g_fileNameMap);
+    SFileInfo** result = mem_Alloc(*totalFiles * sizeof(SFileInfo*));
+    map_ForEachKeyValue(g_fileNameMap, copyFileInfo, (intptr_t) result);
+    return result;
 }
 

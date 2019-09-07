@@ -23,8 +23,8 @@
 
 static int
 compareSymbols(const void* element1, const void* element2) {
-    const Symbol* symbol1 = (const Symbol*) element1;
-    const Symbol* symbol2 = (const Symbol*) element2;
+    const SSymbol* symbol1 = (const SSymbol*) element1;
+    const SSymbol* symbol2 = (const SSymbol*) element2;
 
     bool symbol1Import = sym_IsImport(symbol1);
     bool symbol2Import = sym_IsImport(symbol2);
@@ -36,18 +36,18 @@ compareSymbols(const void* element1, const void* element2) {
 }
 
 static void
-sortSymbols(Symbol* symbolArray, uint32_t totalSymbols) {
-    qsort(symbolArray, totalSymbols, sizeof(Symbol), compareSymbols);
+sortSymbols(SSymbol* symbolArray, uint32_t totalSymbols) {
+    qsort(symbolArray, totalSymbols, sizeof(SSymbol), compareSymbols);
 }
 
 static void
-writeSectionToMapFile(Section* section, intptr_t data) {
+writeSectionToMapFile(SSection* section, intptr_t data) {
     FILE* fileHandle = (FILE*) data;
 
     sortSymbols(section->symbols, section->totalSymbols);
 
     for (uint32_t i = 0; i < section->totalSymbols; ++i) {
-        Symbol* symbol = &section->symbols[i];
+        SSymbol* symbol = &section->symbols[i];
 
         if (!sym_IsImport(symbol) && symbol->resolved) {
             if (section->cpuBank != -1) {

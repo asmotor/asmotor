@@ -61,7 +61,7 @@ typedef struct Symbol {
     ESymbolType type;
     uint32_t flags;
 
-    string* filename;
+    string* fileName;
     uint32_t lineNumber;
     
     struct Symbol* scope;

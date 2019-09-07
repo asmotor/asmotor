@@ -20,7 +20,7 @@
 #include "xlink.h"
 
 static void
-assignOrgAndBankFixedSection(Section* section, intptr_t data) {
+assignOrgAndBankFixedSection(SSection* section, intptr_t data) {
     if (!section->assigned && !sect_IsEquSection(section) && section->cpuByteLocation != -1 && section->cpuBank != -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
                                     &section->cpuBank, &section->imageLocation))
@@ -31,7 +31,7 @@ assignOrgAndBankFixedSection(Section* section, intptr_t data) {
 }
 
 static void
-assignOrgFixedSection(Section* section, intptr_t data) {
+assignOrgFixedSection(SSection* section, intptr_t data) {
     if (!section->assigned && !sect_IsEquSection(section) && section->cpuByteLocation != -1 && section->cpuBank == -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
                                     &section->cpuBank, &section->imageLocation))
@@ -42,7 +42,7 @@ assignOrgFixedSection(Section* section, intptr_t data) {
 }
 
 static void
-assignBankFixedSection(Section* section, intptr_t data) {
+assignBankFixedSection(SSection* section, intptr_t data) {
     if (!section->assigned && !sect_IsEquSection(section) && section->cpuByteLocation == -1 && section->cpuBank != -1) {
         if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
                                   &section->cpuBank, &section->imageLocation))
@@ -54,7 +54,7 @@ assignBankFixedSection(Section* section, intptr_t data) {
 }
 
 static void
-assignTextSection(Section* section, intptr_t data) {
+assignTextSection(SSection* section, intptr_t data) {
     if (!section->assigned && !sect_IsEquSection(section) && section->group->type == GROUP_TEXT) {
         if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
                                   &section->cpuBank, &section->imageLocation))
@@ -66,7 +66,7 @@ assignTextSection(Section* section, intptr_t data) {
 }
 
 static void
-assignSection(Section* section, intptr_t data) {
+assignSection(SSection* section, intptr_t data) {
     if (sect_IsEquSection(section)) {
         //	This is a special exported EQU symbol section
 

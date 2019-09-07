@@ -54,6 +54,12 @@ typedef struct FileStackEntry {
     } block;
 } SFileStackEntry;
 
+typedef struct SFileInfo {
+    string* fileName;
+    uint32_t fileId;
+    uint32_t crc32;
+} SFileInfo;
+
 extern string*
 fstk_GetMacroUniqueId(void);
 
@@ -62,6 +68,9 @@ fstk_GetMacroArgValue(char argumentId);
 
 extern int32_t
 fstk_GetMacroArgumentCount(void);
+
+extern SFileInfo**
+fstk_GetFileInfo(size_t* totalFileNames);
 
 extern void
 fstk_AddMacroArgument(const char* str);

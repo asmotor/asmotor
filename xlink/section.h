@@ -19,6 +19,7 @@
 #ifndef XLINK_SECTION_H_INCLUDED_
 #define XLINK_SECTION_H_INCLUDED_
 
+#include "str.h"
 #include "types.h"
 
 #include "group.h"
@@ -26,7 +27,19 @@
 #include "patch.h"
 #include "symbol.h"
 
-typedef struct Section_ {
+typedef struct FileInfo {
+    string* fileName;
+    uint32_t crc32;
+    uint32_t index;
+} SFileInfo;
+
+typedef struct LineMapping {
+    SFileInfo* fileInfo;
+	uint32_t lineNumber;
+	uint32_t offset;
+} SLineMapping;
+
+typedef struct Section {
     uint32_t fileId;
     uint32_t sectionId;
 
@@ -43,35 +56,38 @@ typedef struct Section_ {
     char name[MAX_SYMBOL_NAME_LENGTH];
 
     uint32_t totalSymbols;
-    Symbol* symbols;
+    SSymbol* symbols;
+
+    uint32_t totalLineMappings;
+    SLineMapping* lineMappings;
 
     uint32_t size;
     uint8_t* data;
 
-    Patches* patches;
+    SPatches* patches;
 
     bool used;
     bool assigned;
 
-    struct Section_* nextSection;
-} Section;
+    struct Section* nextSection;
+} SSection;
 
-extern Section* sect_Sections;
+extern SSection* sect_Sections;
 
-extern Section*
+extern SSection*
 sect_CreateNew(void);
 
-extern Symbol*
-sect_GetSymbol(Section* section, uint32_t symbolId, bool allowImports);
+extern SSymbol*
+sect_GetSymbol(SSection* section, uint32_t symbolId, bool allowImports);
 
 extern bool
-sect_GetConstantSymbolBank(Section* section, uint32_t symbolId, int32_t* outValue);
+sect_GetConstantSymbolBank(SSection* section, uint32_t symbolId, int32_t* outValue);
 
 extern char*
-sect_GetSymbolName(Section* section, uint32_t symbolId);
+sect_GetSymbolName(SSection* section, uint32_t symbolId);
 
 extern void
-sect_ForEachUsedSection(void (* function)(Section*, intptr_t), intptr_t data);
+sect_ForEachUsedSection(void (* function)(SSection*, intptr_t), intptr_t data);
 
 extern uint32_t
 sect_TotalSections(void);
@@ -79,14 +95,14 @@ sect_TotalSections(void);
 extern void
 sect_SortSections(void);
 
-extern Section*
+extern SSection*
 sect_FindSectionWithExportedSymbol(const char* symbol);
 
-extern Section*
+extern SSection*
 sect_FindSectionWithLocallyExportedSymbol(const char* symbolName, uint32_t fileId);
 
 extern bool
-sect_IsEquSection(Section* section);
+sect_IsEquSection(SSection* section);
 
 extern void
 sect_ResolveUnresolved(void);

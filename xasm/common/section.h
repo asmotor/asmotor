@@ -22,9 +22,10 @@
 #include "str.h"
 #include "lists.h"
 
+struct Expression;
+struct LineMapSection;
 struct Patch;
 struct Symbol;
-struct Expression;
 
 struct Section {
     list_Data(struct Section);
@@ -46,6 +47,8 @@ struct Section {
     uint32_t cpuAdjust;
 
     uint32_t bank;
+
+    struct LineMapSection* lineMap;
 
     struct Patch* patches;
 

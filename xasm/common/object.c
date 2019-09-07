@@ -21,6 +21,13 @@
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
  *							; 4 - A CPU address points to a 32 bit word in memory (CPU address 0x1000 is the 0x4000th byte)
+ *	IF Version >= 2
+ *		uint32_t NumberOfFiles
+ *		REPT NumberOfFiles
+ *			ASCIIZ		Name
+ *			uint32_t	CRC32
+ *		ENDR
+ *	ENDC
  *	uint32_t	NumberOfGroups
  *	REPT	NumberOfGroups
  *			ASCIIZ	Name
@@ -45,6 +52,14 @@
  *						int32_t	value
  *					ENDC
  *			ENDR
+ *          IF Version >= 2
+ *				uint32_t	NumberOfLineMappings
+ *				REPT NumberOfLineMappings
+ *					uint32_t	FileId
+ *					uint32_t	LineNumber
+ *					uint32_t	Offset
+ *				ENDR
+ *			ENDC
  *			uint32_t	Size
  *			IF	SectionCanContainData
  *					uint8_t	Data[Size]
@@ -62,14 +77,6 @@
  *		REPT NumberOfFiles
  *			ASCIIZ		Name
  *			uint32_t	CRC32
- *			uint32_t	NumberOfLineMappings
- *			REPT NumberOfLineMappings
- *				uint32_t	LineNumber
- *				uint32_t	SectionId
- *				uint32_t	Offset
- *			ENDR
- *		ENDR
- *	ENDC
  */
 
 #include <assert.h>
@@ -81,6 +88,7 @@
 #include "file.h"
 
 #include "expression.h"
+#include "filestack.h"
 #include "linemap.h"
 #include "object.h"
 #include "patch.h"
@@ -415,31 +423,13 @@ writeSectionPatches(FILE* fileHandle, SSection* section) {
 }
 
 static void
-writeSection(FILE* fileHandle, SSection* section) {
-	fputll(section->group->id, fileHandle);
-	fputsz(str_String(section->name), fileHandle);
-	if (section->flags & SECTF_BANKFIXED) {
-		assert(xasm_Configuration->supportBanks);
-		fputll(section->bank, fileHandle);
-	} else {
-		fputll(UINT32_MAX, fileHandle);
-	}
-
-	fputll(section->flags & SECTF_LOADFIXED ? section->imagePosition : UINT32_MAX, fileHandle);
-	fputll(section->flags & SECTF_LOADFIXED ? section->cpuOrigin : UINT32_MAX, fileHandle);
-
-	writeSectionSymbols(fileHandle, section);
-
-	fputll(section->usedSpace, fileHandle);
-	if (section->group->value.groupType == GROUP_TEXT) {
-		fwrite(section->data, 1, section->usedSpace, fileHandle);
-		writeSectionPatches(fileHandle, section);
-	}
+writeLineMappings(FILE* fileHandle, const SSection* section) {
+	fputll(0, fileHandle);
 }
 
-
+/*
 static void
-writeFileDebugInfo(const SLineMapFile* linemap, intptr_t intData) {
+writeSectionDebugInfo(const SLineMapSection* linemap, intptr_t intData) {
 	FILE* file = (FILE*) intData;
 
 	fputsz(str_String(linemap->filename), file);
@@ -461,14 +451,50 @@ writeFileDebugInfo(const SLineMapFile* linemap, intptr_t intData) {
 }
 
 static void
-writeDebugInfo(FILE* fileHandle) {
+writeFileInfo(FILE* fileHandle) {
 	fputll(linemap_TotalFiles(), fileHandle);
 	linemap_ForEachFile(writeFileDebugInfo, (intptr_t) fileHandle);
 }
+*/
+
+static void
+writeSection(FILE* fileHandle, SSection* section) {
+	fputll(section->group->id, fileHandle);
+	fputsz(str_String(section->name), fileHandle);
+	if (section->flags & SECTF_BANKFIXED) {
+		assert(xasm_Configuration->supportBanks);
+		fputll(section->bank, fileHandle);
+	} else {
+		fputll(UINT32_MAX, fileHandle);
+	}
+
+	fputll(section->flags & SECTF_LOADFIXED ? section->imagePosition : UINT32_MAX, fileHandle);
+	fputll(section->flags & SECTF_LOADFIXED ? section->cpuOrigin : UINT32_MAX, fileHandle);
+
+	writeSectionSymbols(fileHandle, section);
+
+	writeLineMappings(fileHandle, section);
+
+	fputll(section->usedSpace, fileHandle);
+	if (section->group->value.groupType == GROUP_TEXT) {
+		fwrite(section->data, 1, section->usedSpace, fileHandle);
+		writeSectionPatches(fileHandle, section);
+	}
+}
+
+static void
+writeFileNames(FILE* fileHandle, SFileInfo** fileInfo, size_t fileCount) {
+	fputll(fileCount, fileHandle);
+	for (uint32_t i = 0; i < fileCount; ++i) {
+		fputsz(str_String(fileInfo[i]->fileName), fileHandle);
+		fputll(fileInfo[i]->crc32, fileHandle);
+	}
+}
+
 
 /* Public functions */
 
-bool
+extern bool
 obj_Write(string* pName) {
 	FILE* fileHandle;
 	if ((fileHandle = fopen(str_String(pName), "wb")) == NULL)
@@ -476,6 +502,10 @@ obj_Write(string* pName) {
 
 	fwrite("XOB\2", 1, 4, fileHandle);
 	fputc(xasm_Configuration->minimumWordSize, fileHandle);
+
+	size_t fileCount;
+	SFileInfo** fileInfo = fstk_GetFileInfo(&fileCount);
+	writeFileNames(fileHandle, fileInfo, fileCount);
 
 	writeGroups(fileHandle);
 
@@ -494,8 +524,7 @@ obj_Write(string* pName) {
 		writeSection(fileHandle, section);
 	}
 
-	//	Output debug info
-	writeDebugInfo(fileHandle);
+	mem_Free(fileInfo);
 
 	fclose(fileHandle);
 	return true;

@@ -148,20 +148,7 @@ createEqusCallback(const char* name, string* (*callback)(struct Symbol*)) {
 
 static uint32_t
 hash(const string* name) {
-    uint32_t result = 0;
-    size_t length = str_Length(name);
-
-    for (size_t i = 0; i < length; ++i) {
-        result += str_CharAt(name, i);
-        result += result << 10U;
-        result ^= result >> 6U;
-    }
-
-    result += result << 3U;
-    result ^= result >> 11U;
-    result += result << 15U;
-
-    return result & (SYMBOL_HASH_SIZE - 1);
+    return str_JenkinsHash(name) & (SYMBOL_HASH_SIZE - 1);
 }
 
 static SSymbol*
@@ -182,7 +169,7 @@ createSymbol(const string* name, SSymbol* scope) {
     SET_TYPE_AND_FLAGS(newSymbol, SYM_UNDEFINED);
     newSymbol->name = str_Copy(name);
     newSymbol->scope = scope;
-    newSymbol->filename = str_Copy(fstk_CurrentFilename());
+    newSymbol->fileName = str_Copy(fstk_CurrentFilename());
     newSymbol->lineNumber = fstk_CurrentLineNumber();
 
     SSymbol** hashTableEntry = &sym_hashedSymbols[hash(name)];
@@ -223,35 +210,6 @@ isModifiable(const SSymbol* symbol) {
     return symbol->flags & SYMF_MODIFIABLE ? true : false;
 }
 
-/* ----------------------------------------------------------------------- */
-
-
-int32_t
-sym_GetValue(SSymbol* symbol) {
-    assert (symbol->type != SYM_EQUS);
-
-    if (symbol->callback.integer)
-        return symbol->callback.integer(symbol);
-
-    return symbol->value.integer;
-}
-
-int32_t
-sym_GetValueByName(string* name) {
-    SSymbol* symbol = findOrCreateSymbol(name);
-
-    if (symbol->flags & SYMF_CONSTANT)
-        return sym_GetValue(symbol);
-
-    err_Error(ERROR_SYMBOL_CONSTANT);
-    return 0;
-}
-
-SSymbol*
-sym_GetSymbol(string* name) {
-    return findOrCreateSymbol(name);
-}
-
 static SSymbol*
 createSymbolOfType(string* name, ESymbolType type) {
     SSymbol* symbol = findOrCreateSymbol(name);
@@ -265,7 +223,36 @@ createSymbolOfType(string* name, ESymbolType type) {
     return NULL;
 }
 
-SSymbol*
+
+/* Exported functions */
+
+extern int32_t
+sym_GetValue(SSymbol* symbol) {
+    assert (symbol->type != SYM_EQUS);
+
+    if (symbol->callback.integer)
+        return symbol->callback.integer(symbol);
+
+    return symbol->value.integer;
+}
+
+extern int32_t
+sym_GetValueByName(string* name) {
+    SSymbol* symbol = findOrCreateSymbol(name);
+
+    if (symbol->flags & SYMF_CONSTANT)
+        return sym_GetValue(symbol);
+
+    err_Error(ERROR_SYMBOL_CONSTANT);
+    return 0;
+}
+
+extern SSymbol*
+sym_GetSymbol(string* name) {
+    return findOrCreateSymbol(name);
+}
+
+extern SSymbol*
 sym_CreateGroup(string* name, EGroupType value) {
     SSymbol* symbol = createSymbolOfType(name, SYM_GROUP);
     if (symbol != NULL) {
@@ -274,7 +261,7 @@ sym_CreateGroup(string* name, EGroupType value) {
     return symbol;
 }
 
-SSymbol*
+extern SSymbol*
 sym_CreateEqus(string* name, string* value) {
     SSymbol* symbol = createSymbolOfType(name, SYM_EQUS);
     if (symbol != NULL) {
@@ -283,7 +270,7 @@ sym_CreateEqus(string* name, string* value) {
     return symbol;
 }
 
-SSymbol*
+extern SSymbol*
 sym_CreateMacro(string* name, char* macroData, size_t macroSize) {
     SSymbol* symbol = createSymbolOfType(name, SYM_MACRO);
     if (symbol != NULL) {
@@ -292,7 +279,7 @@ sym_CreateMacro(string* name, char* macroData, size_t macroSize) {
     return symbol;
 }
 
-SSymbol*
+extern SSymbol*
 sym_CreateEqu(string* name, int32_t value) {
     SSymbol* symbol = findOrCreateSymbol(name);
 
@@ -310,7 +297,7 @@ sym_CreateEqu(string* name, int32_t value) {
     return NULL;
 }
 
-SSymbol*
+extern SSymbol*
 sym_CreateSet(string* name, int32_t value) {
     SSymbol* symbol = createSymbolOfType(name, SYM_SET);
     if (symbol != NULL) {
@@ -319,7 +306,7 @@ sym_CreateSet(string* name, int32_t value) {
     return symbol;
 }
 
-SSymbol*
+extern SSymbol*
 sym_CreateLabel(string* name) {
     SSymbol* symbol = findOrCreateSymbol(name);
 
@@ -351,7 +338,7 @@ sym_CreateLabel(string* name) {
     return NULL;
 }
 
-string*
+extern string*
 sym_GetSymbolValueAsStringByName(const string* name) {
     SSymbol* symbol = findOrCreateSymbol(name);
 
@@ -375,7 +362,7 @@ sym_GetSymbolValueAsStringByName(const string* name) {
     }
 }
 
-SSymbol*
+extern SSymbol*
 sym_Export(string* name) {
     SSymbol* symbol = findOrCreateSymbol(name);
 
@@ -388,7 +375,7 @@ sym_Export(string* name) {
     return symbol;
 }
 
-SSymbol*
+extern SSymbol*
 sym_Import(string* name) {
     SSymbol* symbol = findOrCreateSymbol(name);
 
@@ -402,7 +389,7 @@ sym_Import(string* name) {
     return NULL;
 }
 
-SSymbol*
+extern SSymbol*
 sym_Global(string* name) {
     SSymbol* symbol = findOrCreateSymbol(name);
 
@@ -422,7 +409,7 @@ sym_Global(string* name) {
     return NULL;
 }
 
-bool
+extern bool
 sym_Purge(string* name) {
     SSymbol** hashTableEntry = &sym_hashedSymbols[hash(name)];
     SSymbol* symbol = getSymbol(name, assumedScopeOf(name));
@@ -440,28 +427,28 @@ sym_Purge(string* name) {
     return true;
 }
 
-bool
+extern bool
 sym_IsString(const string* name) {
     SSymbol* symbol = getSymbol(name, assumedScopeOf(name));
 
     return symbol != NULL && symbol->type == SYM_EQUS;
 }
 
-bool
+extern bool
 sym_IsMacro(const string* name) {
     SSymbol* symbol = getSymbol(name, assumedScopeOf(name));
 
     return symbol != NULL && symbol->type == SYM_MACRO;
 }
 
-bool
+extern bool
 sym_IsDefined(const string* pName) {
     SSymbol* pSym = getSymbol(pName, assumedScopeOf(pName));
 
     return pSym != NULL && pSym->type != SYM_UNDEFINED;
 }
 
-string*
+extern string*
 sym_GetStringValue(SSymbol* symbol) {
     if (symbol->type == SYM_EQUS) {
         if (symbol->callback.string) {
@@ -475,7 +462,7 @@ sym_GetStringValue(SSymbol* symbol) {
     return NULL;
 }
 
-string*
+extern string*
 sym_GetStringValueByName(const string* name) {
     SSymbol* pSym = getSymbol(name, assumedScopeOf(name));
 
@@ -485,7 +472,7 @@ sym_GetStringValueByName(const string* name) {
     return NULL;
 }
 
-bool
+extern bool
 sym_Init(void) {
     g_currentScope = NULL;
 

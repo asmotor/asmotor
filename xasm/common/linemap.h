@@ -19,28 +19,26 @@
 #ifndef XASM_COMMON_LINEMAP_H_INCLUDED_
 #define XASM_COMMON_LINEMAP_H_INCLUDED_
 
+#include "set.h"
 #include "str.h"
 
 #include "section.h"
 
 
 struct LineMapEntry {
+    string* fileName;
     uint32_t lineNumber;
-    SSection* section;
     uint32_t offset;
 };
 typedef struct LineMapEntry SLineMapEntry;
 
 
-struct LineMapFile {
-    struct LineMapFile* next;
-
-    string* filename;
+struct LineMapSection {
     uint32_t totalEntries;
     uint32_t allocatedEntries;
     SLineMapEntry* entries;
 };
-typedef struct LineMapFile SLineMapFile;
+typedef struct LineMapSection SLineMapSection;
 
 
 extern void
@@ -48,11 +46,5 @@ linemap_Add(string* filename, uint32_t lineNumber, SSection* section, uint32_t o
 
 extern void
 linemap_AddCurrent(void);
-
-extern uint32_t
-linemap_TotalFiles(void);
-
-extern void
-linemap_ForEachFile(void (*callback)(const SLineMapFile*, intptr_t), intptr_t data);
 
 #endif

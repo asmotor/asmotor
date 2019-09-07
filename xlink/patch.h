@@ -27,7 +27,7 @@ typedef enum {
     PATCH_BE_32,
     PATCH_NONE,
     PATCH_RELOC
-} PatchType;
+} EPatchType;
 
 typedef enum {
     OBJ_OP_SUB,
@@ -64,29 +64,29 @@ typedef enum {
     OBJ_SYMBOL,
     OBJ_PC_REL,
     OBJ_FUNC_BANK,
-} ExpressionOperator;
+} EExpressionOperator;
 
 typedef struct {
-    PatchType type;
+    EPatchType type;
 
-    struct Symbol_* valueSymbol;
-    struct Section_* valueSection;
+    struct Symbol* valueSymbol;
+    struct Section* valueSection;
 
     uint32_t offset;
 
     uint32_t expressionSize;
     uint8_t* expression;
-} Patch;
+} SPatch;
 
-typedef struct {
+typedef struct Patches {
     uint32_t totalPatches;
-    Patch patches[];
-} Patches;
+    SPatch patches[];
+} SPatches;
 
 extern void
 patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports);
 
-extern Patches*
+extern SPatches*
 patch_Alloc(uint32_t totalPatches);
 
 #endif
