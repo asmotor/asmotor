@@ -168,6 +168,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                 break;
             case 'b':
             case 'e':
+            case 'g':
             case 'i':
             case 'm':
             case 'w':

@@ -16,6 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -505,6 +506,8 @@ copyFileInfo(intptr_t key, intptr_t value, intptr_t data) {
 extern SFileInfo**
 fstk_GetFileInfo(size_t* totalFiles) {
     *totalFiles = map_Count(g_fileNameMap);
+    assert (*totalFiles != 0);
+
     SFileInfo** result = mem_Alloc(*totalFiles * sizeof(SFileInfo*));
     map_ForEachKeyValue(g_fileNameMap, copyFileInfo, (intptr_t) result);
     return result;
