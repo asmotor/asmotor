@@ -9,9 +9,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-tb", "-oamigaobj.68k.bin", "amigaobj.68k.obj"],
+            "args": ["-mtest.sym", "-otest.sms", "-tms32", "vectors.obj", "entry.obj", "initialize.obj", "joypad.obj", "background.obj", "player.obj", "sprites.obj", "camera.obj", "memoryblocks.obj", "objects.obj", "missile.obj"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/test/680x0",
+            "cwd": "${workspaceFolder}/../mastersystem-test",
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb"

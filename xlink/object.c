@@ -226,9 +226,13 @@ readLineMapping(FILE* fileHandle, SLineMapping* lineMapping, uint32_t fileInfoIn
 static uint32_t
 readLineMappings(FILE* fileHandle, SLineMapping** lineMappings, uint32_t fileInfoIndex) {
     uint32_t total = fgetll(fileHandle);
-    *lineMappings = (SLineMapping*) mem_Alloc(sizeof(SLineMapping) * total);
-    for (uint32_t i = 0; i < total; ++i) {
-        readLineMapping(fileHandle, lineMappings[i], fileInfoIndex);
+    if (total > 0) {
+        *lineMappings = (SLineMapping*) mem_Alloc(sizeof(SLineMapping) * total);
+        for (uint32_t i = 0; i < total; ++i) {
+            readLineMapping(fileHandle, lineMappings[i], fileInfoIndex);
+        }
+    } else {
+        *lineMappings = NULL;
     }
     return total;
 }

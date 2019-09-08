@@ -381,6 +381,8 @@ writeExportedConstantsSection(FILE* fileHandle) {
 	fputll(integerExportCount, fileHandle);
 	fseeko(fileHandle, 0, SEEK_END);
 
+	fputll(0, fileHandle); // Line mappings
+
 	fputll(0, fileHandle); // Size
 }
 
@@ -432,40 +434,10 @@ writeLineMappings(FILE* fileHandle, const SSection* section) {
 			fputll(entry->lineNumber, fileHandle);
 			fputll(entry->offset, fileHandle);
 		}
-	} else  {
+	} else {
 		fputll(0, fileHandle);
 	}
 }
-
-/*
-static void
-writeSectionDebugInfo(const SLineMapSection* linemap, intptr_t intData) {
-	FILE* file = (FILE*) intData;
-
-	fputsz(str_String(linemap->filename), file);
-	fputll(0, file);
-
-	off_t totalLineMappingsOffset = ftello(file);
-	uint32_t totalLineMappings = 0;
-	for (uint32_t i = 0; i < linemap->totalEntries; ++i) {
-		SLineMapEntry* entry = &linemap->entries[i];
-		fputll(entry->lineNumber, file);
-		fputll(entry->section->id, file);
-		fputll(entry->offset, file);
-		totalLineMappings += 1;
-	}
-
-	fseeko(file, totalLineMappingsOffset, SEEK_SET);
-	fputll(totalLineMappings, file);
-	fseeko(file, 0, SEEK_END);
-}
-
-static void
-writeFileInfo(FILE* fileHandle) {
-	fputll(linemap_TotalFiles(), fileHandle);
-	linemap_ForEachFile(writeFileDebugInfo, (intptr_t) fileHandle);
-}
-*/
 
 static void
 writeSection(FILE* fileHandle, SSection* section) {
