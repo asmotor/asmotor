@@ -20,7 +20,7 @@
 #define XASM_COMMON_DEPENDENCY_H_INCLUDED_
 
 extern void
-dep_SetOutputFilename(const char* filename);
+dep_Initialize(const char* outputFileName);
 
 extern void
 dep_SetMainOutput(string* filename);

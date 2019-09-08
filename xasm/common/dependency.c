@@ -50,8 +50,9 @@ writeTarget(intptr_t element, intptr_t data) {
 /* Exported functions */
 
 extern void
-dep_SetOutputFilename(const char* filename) {
-    g_outputFilename = str_Create(filename);
+dep_Initialize(const char* outputFileName) {
+    g_outputFilename = str_Create(outputFileName);
+    g_dependencySet = strset_Create();
 }
 
 extern void

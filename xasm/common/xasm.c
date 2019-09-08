@@ -134,7 +134,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                 printUsage();
                 break;
             case 'd':
-                dep_SetOutputFilename(&argv[argn][2]);
+                dep_Initialize(&argv[argn][2]);
                 break;
             case 'f':
                 if (strlen(argv[argn]) > 2) {
