@@ -81,16 +81,21 @@ freeFileNameInfo(intptr_t userData, intptr_t element) {
     mem_Free((void*) element);
 }
 
-static void
-createFileNameMapEntry(string* fileName) {
+static SFileInfo*
+createFileInfo(string* fileName) {
     static uint32_t nextFileId = 0;
 
-    if (!strmap_HasKey(g_fileNameMap, fileName)) {
+    intptr_t value;
+    if (strmap_Value(g_fileNameMap, fileName, &value)) {
+        return (SFileInfo*) value;
+    } else {
         SFileInfo* entry = mem_Alloc(sizeof(SFileInfo));
         entry->fileName = str_Copy(fileName);
         entry->fileId = nextFileId++;
         entry->crc32 = 0;
         strmap_Insert(g_fileNameMap, fileName, (intptr_t) entry);
+
+        return entry;
     }
 }
 
@@ -157,9 +162,8 @@ getMostRecentFileInfo(SFileStackEntry* stackEntry) {
 
     switch (stackEntry->type) {
         case CONTEXT_FILE:
-            return stackEntry->fileInfo;
         case CONTEXT_MACRO:
-            return stackEntry->block.macro.symbol->fileInfo;
+            return stackEntry->fileInfo;
         case CONTEXT_REPT:
             return getMostRecentFileInfo(stackEntry->pNext);
     }
@@ -172,12 +176,18 @@ getMostRecentLineNumber(SFileStackEntry* stackEntry) {
 
     switch (stackEntry->type) {
         case CONTEXT_FILE:
-            return stackEntry->lineNumber;
         case CONTEXT_MACRO:
-            return stackEntry->lineNumber + stackEntry->block.macro.symbol->lineNumber;
+            return stackEntry->lineNumber;
         case CONTEXT_REPT:
             return stackEntry->lineNumber + getMostRecentLineNumber(stackEntry->pNext);
     }
+}
+
+static void
+copyFileInfo(intptr_t key, intptr_t value, intptr_t data) {
+    SFileInfo* fileInfo = (SFileInfo*) value;
+    SFileInfo** array = (SFileInfo**) data;
+    array[fileInfo->fileId] = fileInfo;
 }
 
 
@@ -379,7 +389,7 @@ fstk_ProcessIncludeFile(string* fileName) {
 
     newContext->type = CONTEXT_FILE;
     newContext->name = fstk_FindFile(fileName);
-    newContext->fileInfo = getFileInfoFor(fileName);
+    newContext->fileInfo = createFileInfo(newContext->name);
 
     FILE* fileHandle;
     if (newContext->name != NULL && (fileHandle = fopen(str_String(newContext->name), "rt")) != NULL) {
@@ -428,12 +438,12 @@ fstk_ProcessMacro(string* macroName) {
         newContext->type = CONTEXT_MACRO;
 
         newContext->name = str_Copy(macroName);
-        newContext->fileInfo = NULL;
+        newContext->fileInfo = symbol->fileInfo;
         newContext->lexBuffer = lex_CreateMemoryBuffer(str_String(symbol->value.macro), str_Length(symbol->value.macro));
 
         lex_SetBuffer(newContext->lexBuffer);
         lex_SetState(LEX_STATE_NORMAL);
-        newContext->lineNumber = UINT32_MAX;
+        newContext->lineNumber = symbol->lineNumber;
         newContext->block.macro.symbol = symbol;
         newContext->block.macro.argument0 = g_newMacroArgument0;
         newContext->block.macro.arguments = g_newMacroArguments;
@@ -454,7 +464,7 @@ fstk_Init(string* fileName) {
     g_newMacroArguments = NULL;
 
     g_fileNameMap = strmap_Create(freeFileNameInfo);
-    createFileNameMapEntry(fileName);
+    createFileInfo(fileName);
     dep_AddDependency(fileName);
 
     string* symbolName = str_Create("__FILE");
@@ -469,6 +479,7 @@ fstk_Init(string* fileName) {
     if ((fstk_Current->name = fstk_FindFile(fileName)) != NULL
         && (fileHandle = fopen(str_String(fstk_Current->name), "rt")) != NULL) {
 
+        fstk_Current->fileInfo = getFileInfoFor(fstk_Current->name);
         fstk_Current->lexBuffer = lex_CreateFileBuffer(fileHandle);
         fclose(fileHandle);
 
@@ -494,13 +505,6 @@ fstk_CurrentFileInfo() {
 extern uint32_t
 fstk_CurrentLineNumber() {
     return getMostRecentLineNumber(fstk_Current);
-}
-
-static void
-copyFileInfo(intptr_t key, intptr_t value, intptr_t data) {
-    SFileInfo* fileInfo = (SFileInfo*) value;
-    SFileInfo** array = (SFileInfo**) data;
-    array[fileInfo->fileId] = fileInfo;
 }
 
 extern SFileInfo**
