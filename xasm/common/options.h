@@ -41,7 +41,10 @@ typedef struct Options {
     uint16_t disabledWarnings[MAX_DISABLED_WARNINGS];
 
     struct MachineOptions* machineOptions;
+
     bool allowReservedKeywordLabels;
+
+    bool enableDebugInfo;
 } SOptions;
 
 extern void

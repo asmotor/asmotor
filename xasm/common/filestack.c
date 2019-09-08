@@ -65,6 +65,16 @@ static map_t* g_fileNameMap = NULL;
 
 /* Private functions */
 
+static SFileInfo*
+getFileInfoFor(const string* fileName) {
+    intptr_t value;
+    if (strmap_Value(g_fileNameMap, fileName, &value)) {
+        return (SFileInfo*) value;
+    } else {
+        return NULL;
+    }
+}
+
 static void
 freeFileNameInfo(intptr_t userData, intptr_t element) {
     mem_Free((void*) element);
@@ -139,18 +149,18 @@ replaceFileComponent(string* fullPath, string* fileName) {
     return fixedPath;
 }
 
-static string*
-getMostRecentFilename(SFileStackEntry* stackEntry) {
+static SFileInfo*
+getMostRecentFileInfo(SFileStackEntry* stackEntry) {
     if (stackEntry == NULL)
         return NULL;
 
     switch (stackEntry->type) {
         case CONTEXT_FILE:
-            return stackEntry->name;
+            return stackEntry->fileInfo;
         case CONTEXT_MACRO:
-            return stackEntry->block.macro.symbol->fileName;
+            return stackEntry->block.macro.symbol->fileInfo;
         case CONTEXT_REPT:
-            return getMostRecentFilename(stackEntry->pNext);
+            return getMostRecentFileInfo(stackEntry->pNext);
     }
 }
 
@@ -368,6 +378,7 @@ fstk_ProcessIncludeFile(string* fileName) {
 
     newContext->type = CONTEXT_FILE;
     newContext->name = fstk_FindFile(fileName);
+    newContext->fileInfo = getFileInfoFor(fileName);
 
     FILE* fileHandle;
     if (newContext->name != NULL && (fileHandle = fopen(str_String(newContext->name), "rt")) != NULL) {
@@ -390,6 +401,7 @@ fstk_ProcessRepeatBlock(char* buffer, size_t size, uint32_t count) {
     list_Init(newContext);
 
     newContext->name = str_Create("REPT");
+    newContext->fileInfo = NULL;
     newContext->type = CONTEXT_REPT;
 
     if ((newContext->lexBuffer = lex_CreateMemoryBuffer(buffer, size)) != NULL) {
@@ -415,6 +427,7 @@ fstk_ProcessMacro(string* macroName) {
         newContext->type = CONTEXT_MACRO;
 
         newContext->name = str_Copy(macroName);
+        newContext->fileInfo = NULL;
         newContext->lexBuffer = lex_CreateMemoryBuffer(str_String(symbol->value.macro), str_Length(symbol->value.macro));
 
         lex_SetBuffer(newContext->lexBuffer);
@@ -472,9 +485,9 @@ extern void
 fstk_Cleanup(void) {
 }
 
-extern string*
-fstk_CurrentFilename() {
-    return getMostRecentFilename(fstk_Current);
+extern SFileInfo*
+fstk_CurrentFileInfo() {
+    return getMostRecentFileInfo(fstk_Current);
 }
 
 extern uint32_t

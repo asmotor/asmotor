@@ -30,11 +30,20 @@ typedef enum {
     CONTEXT_MACRO
 } EContextType;
 
+typedef struct FileInfo {
+    string* fileName;
+    uint32_t fileId;
+    uint32_t crc32;
+} SFileInfo;
+
+struct Symbol;
+
 typedef struct FileStackEntry {
     list_Data(struct FileStackEntry);
 
     EContextType type;
     string* name;
+    SFileInfo* fileInfo;
     SLexerBuffer* lexBuffer;
     uint32_t lineNumber;
 
@@ -46,19 +55,13 @@ typedef struct FileStackEntry {
             uint32_t remaining;
         } repeat;
         struct {
-            SSymbol* symbol;
+            struct Symbol* symbol;
             string* argument0;
             string** arguments;
             uint32_t argumentCount;
         } macro;
     } block;
 } SFileStackEntry;
-
-typedef struct SFileInfo {
-    string* fileName;
-    uint32_t fileId;
-    uint32_t crc32;
-} SFileInfo;
 
 extern string*
 fstk_GetMacroUniqueId(void);
@@ -108,8 +111,8 @@ fstk_ShiftMacroArgs(int32_t count);
 extern void
 fstk_AddIncludePath(string* pathname);
 
-extern string*
-fstk_CurrentFilename();
+extern SFileInfo*
+fstk_CurrentFileInfo();
 
 extern uint32_t
 fstk_CurrentLineNumber();

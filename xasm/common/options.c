@@ -156,6 +156,10 @@ opt_Parse(char* option) {
                 err_Warn(WARN_OPTION, option);
             break;
         }
+        case 'g': {
+            opt_Current->enableDebugInfo = true;
+            break;
+        }
         case 'i': {
             handleAddIncludePath(&option[1]);
             break;
@@ -192,6 +196,7 @@ opt_Open(void) {
     opt_Current->uninitializedValue = 0xFF;
     opt_Current->disabledWarningsCount = 0;
     opt_Current->allowReservedKeywordLabels = true;
+    opt_Current->enableDebugInfo = false;
 
     xasm_Configuration->setDefaultOptions(opt_Current->machineOptions);
     optionsUpdated();

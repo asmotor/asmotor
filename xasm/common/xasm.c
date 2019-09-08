@@ -81,7 +81,7 @@ printUsage(void) {
 }
 
 static bool
-writeOutput(char format, string* outputFilename, bool debugInfo, string* sourceFilename) {
+writeOutput(char format, string* outputFilename, string* sourceFilename) {
     switch (format) {
         case 'x':
             return obj_Write(outputFilename);
@@ -90,7 +90,7 @@ writeOutput(char format, string* outputFilename, bool debugInfo, string* sourceF
         case 'v':
             return bin_WriteVerilog(outputFilename);
         case 'g':
-            return ami_WriteExecutable(outputFilename, debugInfo);
+            return ami_WriteExecutable(outputFilename);
         case 'h':
             return ami_WriteObject(outputFilename, sourceFilename);
         default:
@@ -126,7 +126,6 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 
     char format = 'x';
     string* outputFilename = NULL;
-    bool debugInfo = false;
     bool verbose = false;
     while (argc && argv[argn][0] == '-') {
         switch (argv[argn][1]) {
@@ -161,19 +160,16 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                     }
                 }
                 break;
-            case 'g':
-                debugInfo = true;
-                break;
             case 'o':
                 outputFilename = str_Create(&argv[argn][2]);
                 break;
             case 'v':
                 verbose = true;
                 break;
-            case 'i':
-            case 'e':
-            case 'm':
             case 'b':
+            case 'e':
+            case 'i':
+            case 'm':
             case 'w':
             case 'z':
                 opt_Parse(&argv[argn][1]);
@@ -216,10 +212,10 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 
                 if (outputFilename != NULL) {
                     dep_SetMainOutput(outputFilename);
-                    if (!writeOutput(format, outputFilename, debugInfo, source)) {
-                        remove(str_String(outputFilename));
-                    } else  {
+                    if (writeOutput(format, outputFilename, source)) {
                         dep_WriteDependencyFile();
+                    } else  {
+                        remove(str_String(outputFilename));
                     }
                 }
             } else {

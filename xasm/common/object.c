@@ -424,7 +424,17 @@ writeSectionPatches(FILE* fileHandle, SSection* section) {
 
 static void
 writeLineMappings(FILE* fileHandle, const SSection* section) {
-	fputll(0, fileHandle);
+	if (opt_Current->enableDebugInfo && section->lineMap != NULL && section->lineMap->totalEntries != 0) {
+		fputll(section->lineMap->totalEntries, fileHandle);
+		for (uint32_t i = 0; i < section->lineMap->totalEntries; ++i) {
+			SLineMapEntry* entry = &section->lineMap->entries[i];
+			fputll(entry->fileInfo->fileId, fileHandle);
+			fputll(entry->lineNumber, fileHandle);
+			fputll(entry->offset, fileHandle);
+		}
+	} else  {
+		fputll(0, fileHandle);
+	}
 }
 
 /*
@@ -495,17 +505,22 @@ writeFileNames(FILE* fileHandle, SFileInfo** fileInfo, size_t fileCount) {
 /* Public functions */
 
 extern bool
-obj_Write(string* pName) {
+obj_Write(string* fileName) {
 	FILE* fileHandle;
-	if ((fileHandle = fopen(str_String(pName), "wb")) == NULL)
+	if ((fileHandle = fopen(str_String(fileName), "wb")) == NULL)
 		return false;
 
 	fwrite("XOB\2", 1, 4, fileHandle);
 	fputc(xasm_Configuration->minimumWordSize, fileHandle);
 
-	size_t fileCount;
-	SFileInfo** fileInfo = fstk_GetFileInfo(&fileCount);
-	writeFileNames(fileHandle, fileInfo, fileCount);
+	if (opt_Current->enableDebugInfo) {
+		size_t fileCount;
+		SFileInfo** fileInfo = fstk_GetFileInfo(&fileCount);
+		writeFileNames(fileHandle, fileInfo, fileCount);
+		mem_Free(fileInfo);
+	} else {
+		fputll(0, fileHandle);
+	}
 
 	writeGroups(fileHandle);
 
@@ -523,8 +538,6 @@ obj_Write(string* pName) {
 		section->id = sectionId++;
 		writeSection(fileHandle, section);
 	}
-
-	mem_Free(fileInfo);
 
 	fclose(fileHandle);
 	return true;

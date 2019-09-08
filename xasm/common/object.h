@@ -22,7 +22,7 @@
 #include "str.h"
 
 extern bool
-obj_Write(string* name);
+obj_Write(string* fileName);
 
 enum {
     OBJ_OP_SUB,

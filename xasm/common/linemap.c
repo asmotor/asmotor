@@ -72,11 +72,11 @@ mostRecentLineMapEntry(SLineMapSection* sectionMap) {
     
 
 static void
-addEntry(SLineMapSection* sectionMap, string* fileName, uint32_t lineNumber, uint32_t offset) {
+addEntry(SLineMapSection* sectionMap, SFileInfo* fileInfo, uint32_t lineNumber, uint32_t offset) {
     SLineMapEntry* mostRecentEntry = mostRecentLineMapEntry(sectionMap);
-    if (mostRecentEntry == NULL || !str_Equal(mostRecentEntry->fileName, fileName) || mostRecentEntry->lineNumber != lineNumber) {
+    if (mostRecentEntry == NULL || mostRecentEntry->fileInfo != fileInfo || mostRecentEntry->lineNumber != lineNumber) {
         SLineMapEntry* entry = allocLineMapEntry(sectionMap);
-        entry->fileName = str_Copy(fileName);
+        entry->fileInfo = fileInfo;
         entry->lineNumber = lineNumber;
         entry->offset = offset;
     }
@@ -86,12 +86,12 @@ addEntry(SLineMapSection* sectionMap, string* fileName, uint32_t lineNumber, uin
 /* Exported functions */
 
 extern void
-linemap_Add(string* fileName, uint32_t lineNumber, SSection* section, uint32_t offset) {
-    addEntry(findLineMapSection(section), fileName, lineNumber, offset);
+linemap_Add(SFileInfo* fileInfo, uint32_t lineNumber, SSection* section, uint32_t offset) {
+    addEntry(findLineMapSection(section), fileInfo, lineNumber, offset);
 }
 
 
 extern void
 linemap_AddCurrent(void) {
-    linemap_Add(fstk_CurrentFilename(), fstk_CurrentLineNumber(), sect_Current, sect_Current->cpuProgramCounter);
+    linemap_Add(fstk_CurrentFileInfo(), fstk_CurrentLineNumber(), sect_Current, sect_Current->cpuProgramCounter);
 }

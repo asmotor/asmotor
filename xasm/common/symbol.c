@@ -169,7 +169,7 @@ createSymbol(const string* name, SSymbol* scope) {
     SET_TYPE_AND_FLAGS(newSymbol, SYM_UNDEFINED);
     newSymbol->name = str_Copy(name);
     newSymbol->scope = scope;
-    newSymbol->fileName = str_Copy(fstk_CurrentFilename());
+    newSymbol->fileInfo = fstk_CurrentFileInfo();
     newSymbol->lineNumber = fstk_CurrentLineNumber();
 
     SSymbol** hashTableEntry = &sym_hashedSymbols[hash(name)];

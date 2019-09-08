@@ -216,40 +216,25 @@ readPatches(FILE* fileHandle) {
     error("Out of memory");
 }
 
-/*
 static void
-readLineMapping(FILE* fileHandle, SLineMapping* lineMapping, Section** sections) {
-    lineMapping->lineNumber = fgetll(fileHandle);
-    lineMapping->section = sections[fgetll(fileHandle)];
-    lineMapping->offset = fgetll(fileHandle); 
-}
-
-
-static void
-readLineMappingFile(FILE* fileHandle, SLineMappingFile* lineMappingFile, Section** sections) {
-}
-*/
-
-
-static void
-readLineMapping(FILE* fileHandle, SLineMapping* lineMapping) {
-    lineMapping->fileInfo = &g_fileInfo[fgetll(fileHandle)];
+readLineMapping(FILE* fileHandle, SLineMapping* lineMapping, uint32_t fileInfoIndex) {
+    lineMapping->fileInfo = &g_fileInfo[fileInfoIndex + fgetll(fileHandle)];
     lineMapping->lineNumber = fgetll(fileHandle);
     lineMapping->offset = fgetll(fileHandle);
 }
 
 static uint32_t
-readLineMappings(FILE* fileHandle, SLineMapping** lineMappings) {
+readLineMappings(FILE* fileHandle, SLineMapping** lineMappings, uint32_t fileInfoIndex) {
     uint32_t total = fgetll(fileHandle);
     *lineMappings = (SLineMapping*) mem_Alloc(sizeof(SLineMapping) * total);
     for (uint32_t i = 0; i < total; ++i) {
-        readLineMapping(fileHandle, lineMappings[i]);
+        readLineMapping(fileHandle, lineMappings[i], fileInfoIndex);
     }
     return total;
 }
 
 static void
-readSection(FILE* fileHandle, SSection* section, Groups* groups, int version) {
+readSection(FILE* fileHandle, SSection* section, Groups* groups, int version, uint32_t fileInfoIndex) {
     section->group = groups_GetGroup(groups, fgetll(fileHandle));
     fgetsz(section->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
     section->cpuBank = fgetll(fileHandle);
@@ -262,7 +247,7 @@ readSection(FILE* fileHandle, SSection* section, Groups* groups, int version) {
     section->totalSymbols = readSymbols(fileHandle, &section->symbols);
 
     if (version >= 2) {
-        section->totalLineMappings = readLineMappings(fileHandle, &section->lineMappings);
+        section->totalLineMappings = readLineMappings(fileHandle, &section->lineMappings, fileInfoIndex);
     } else {
         section->totalLineMappings = 0;
         section->lineMappings = NULL;
@@ -279,7 +264,7 @@ readSection(FILE* fileHandle, SSection* section, Groups* groups, int version) {
 }
 
 static SSection**
-readSections(Groups* groups, FILE* fileHandle, int version) {
+readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoIndex) {
     uint32_t totalSections = fgetll(fileHandle);
     SSection** sections = mem_Alloc(sizeof(SSection*) * totalSections);
 
@@ -290,7 +275,7 @@ readSections(Groups* groups, FILE* fileHandle, int version) {
         section->minimumWordSize = g_minimumWordSize;
         section->fileId = g_fileId;
 
-        readSection(fileHandle, section, groups, version);
+        readSection(fileHandle, section, groups, version, fileInfoIndex);
 
         if (group_isText(section->group) && strcmp(section->group->name, "HOME") == 0) {
             section->cpuBank = 0;
@@ -314,13 +299,14 @@ static SFileInfo* findFileInfo(string* filename, uint32_t crc32) {
 
 static uint32_t
 readFileInfo(FILE* fileHandle) {
-    uint32_t result = g_fileInfoCount;
+    uint32_t fileInfoIndex = g_fileInfoCount;
     uint32_t fileInfoInObject = fgetll(fileHandle);
-    uint32_t totalFiles = fileInfoInObject + g_fileInfoCount;
-    g_fileInfo = mem_Realloc(g_fileInfo, sizeof(SFileInfo) * totalFiles);
+
+    g_fileInfoCount += fileInfoInObject;
+    g_fileInfo = mem_Realloc(g_fileInfo, sizeof(SFileInfo) * g_fileInfoCount);
 
     for (uint32_t i = 0; i < fileInfoInObject; ++i) {
-        uint32_t index = i + result;
+        uint32_t index = i + fileInfoIndex;
         g_fileInfo[index].fileName = fgetstr(fileHandle);
         g_fileInfo[index].crc32 = fgetll(fileHandle);
 
@@ -332,30 +318,29 @@ readFileInfo(FILE* fileHandle) {
 
         }
     } 
-    g_fileInfoCount = totalFiles;
 
-    return result;
+    return fileInfoIndex;
 }
 
 static void
 readXOB0(FILE* fileHandle) {
     g_minimumWordSize = 1;
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 0);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 0, 0);
     mem_Free(sections);
 }
 
 static void
 readXOB1(FILE* fileHandle) {
     g_minimumWordSize = fgetc(fileHandle);
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 1);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 1, 0);
     mem_Free(sections);
 }
 
 static void
 readXOB2(FILE* fileHandle) {
     g_minimumWordSize = fgetc(fileHandle);
-    readFileInfo(fileHandle);
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 2);
+    uint32_t fileInfoIndex = readFileInfo(fileHandle);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 2, fileInfoIndex);
     mem_Free(sections);
 }
 
