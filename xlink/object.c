@@ -229,7 +229,7 @@ readLineMappings(FILE* fileHandle, SLineMapping** lineMappings, uint32_t fileInf
     if (total > 0) {
         *lineMappings = (SLineMapping*) mem_Alloc(sizeof(SLineMapping) * total);
         for (uint32_t i = 0; i < total; ++i) {
-            readLineMapping(fileHandle, lineMappings[i], fileInfoIndex);
+            readLineMapping(fileHandle, &(*lineMappings)[i], fileInfoIndex);
         }
     } else {
         *lineMappings = NULL;
@@ -307,21 +307,23 @@ readFileInfo(FILE* fileHandle) {
     uint32_t fileInfoInObject = fgetll(fileHandle);
 
     g_fileInfoCount += fileInfoInObject;
-    g_fileInfo = mem_Realloc(g_fileInfo, sizeof(SFileInfo) * g_fileInfoCount);
+    if (g_fileInfoCount > 0) {
+        g_fileInfo = mem_Realloc(g_fileInfo, sizeof(SFileInfo) * g_fileInfoCount);
 
-    for (uint32_t i = 0; i < fileInfoInObject; ++i) {
-        uint32_t index = i + fileInfoIndex;
-        g_fileInfo[index].fileName = fgetstr(fileHandle);
-        g_fileInfo[index].crc32 = fgetll(fileHandle);
+        for (uint32_t i = 0; i < fileInfoInObject; ++i) {
+            uint32_t index = i + fileInfoIndex;
+            g_fileInfo[index].fileName = fgetstr(fileHandle);
+            g_fileInfo[index].crc32 = fgetll(fileHandle);
 
-        SFileInfo* fileInfo = findFileInfo(g_fileInfo[i].fileName, g_fileInfo[i].crc32);
-        if (fileInfo != NULL) {
-            g_fileInfo[index].index = fileInfo->index;
-        } else {
-            g_fileInfo[index].index = index;
+            SFileInfo* fileInfo = findFileInfo(g_fileInfo[i].fileName, g_fileInfo[i].crc32);
+            if (fileInfo != NULL) {
+                g_fileInfo[index].index = fileInfo->index;
+            } else {
+                g_fileInfo[index].index = index;
 
-        }
-    } 
+            }
+        } 
+    }
 
     return fileInfoIndex;
 }

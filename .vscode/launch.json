@@ -8,6 +8,7 @@
             "name": "Debug xlink",
             "type": "cppdbg",
             "request": "launch",
+            "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
             "args": ["-mtest.sym", "-otest.sms", "-tms32", "vectors.obj", "entry.obj", "initialize.obj", "joypad.obj", "background.obj", "player.obj", "sprites.obj", "camera.obj", "memoryblocks.obj", "objects.obj", "missile.obj"],
             "stopAtEntry": true,
