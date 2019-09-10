@@ -69,7 +69,7 @@ extern SLexerBuffer*
 lex_CreateMemoryBuffer(const char* memory, size_t size);
 
 extern SLexerBuffer*
-lex_CreateFileBuffer(FILE* f);
+lex_CreateFileBuffer(FILE* f, uint32_t* checkSum);
 
 extern void
 lex_FreeBuffer(SLexerBuffer* buffer);

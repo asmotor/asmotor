@@ -394,7 +394,7 @@ fstk_ProcessIncludeFile(string* fileName) {
     FILE* fileHandle;
     if (newContext->name != NULL && (fileHandle = fopen(str_String(newContext->name), "rt")) != NULL) {
         dep_AddDependency(newContext->name);
-        if ((newContext->lexBuffer = lex_CreateFileBuffer(fileHandle)) != NULL) {
+        if ((newContext->lexBuffer = lex_CreateFileBuffer(fileHandle, &newContext->fileInfo->crc32)) != NULL) {
             lex_SetBuffer(newContext->lexBuffer);
             lex_SetState(LEX_STATE_NORMAL);
             newContext->lineNumber = 0;
@@ -480,7 +480,7 @@ fstk_Init(string* fileName) {
         && (fileHandle = fopen(str_String(fstk_Current->name), "rt")) != NULL) {
 
         fstk_Current->fileInfo = getFileInfoFor(fstk_Current->name);
-        fstk_Current->lexBuffer = lex_CreateFileBuffer(fileHandle);
+        fstk_Current->lexBuffer = lex_CreateFileBuffer(fileHandle, &fstk_Current->fileInfo->crc32);
         fclose(fileHandle);
 
         lex_SetBuffer(fstk_Current->lexBuffer);
