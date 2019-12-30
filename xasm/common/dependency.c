@@ -62,21 +62,25 @@ dep_SetMainOutput(string* filename) {
 
 extern void
 dep_AddDependency(string* filename) {
-    if (g_mainDependency == NULL) {
-        g_mainDependency = str_Copy(filename);
+    if (g_dependencySet != NULL) {
+        if (g_mainDependency == NULL) {
+            g_mainDependency = str_Copy(filename);
+        }
+        strset_Insert(g_dependencySet, filename);
     }
-    strset_Insert(g_dependencySet, filename);
 }
 
 extern void
 dep_WriteDependencyFile(void) {
-    FILE* fileHandle = fopen(str_String(g_outputFilename), "wt");
-    if (fileHandle != NULL) {
-        fprintf(fileHandle, "%s:", str_String(g_mainOutput));
-        set_ForEachElement(g_dependencySet, writeDependency, (intptr_t) fileHandle);
+    if (g_dependencySet != NULL) {
+        FILE* fileHandle = fopen(str_String(g_outputFilename), "wt");
+        if (fileHandle != NULL) {
+            fprintf(fileHandle, "%s:", str_String(g_mainOutput));
+            set_ForEachElement(g_dependencySet, writeDependency, (intptr_t) fileHandle);
 
-        fprintf(fileHandle, "\n\n");
-        strset_Remove(g_dependencySet, g_mainDependency);
-        set_ForEachElement(g_dependencySet, writeTarget, (intptr_t) fileHandle);
+            fprintf(fileHandle, "\n\n");
+            strset_Remove(g_dependencySet, g_mainDependency);
+            set_ForEachElement(g_dependencySet, writeTarget, (intptr_t) fileHandle);
+        }
     }
 }
