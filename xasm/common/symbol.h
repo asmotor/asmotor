@@ -143,6 +143,9 @@ sym_IsString(const string* name);
 extern bool
 sym_IsMacro(const string* name);
 
+extern void
+sym_ErrorOnUndefined(void);
+
 INLINE bool
 sym_IsNotDefined(const string* symbolName) {
     return !sym_IsDefined((symbolName));

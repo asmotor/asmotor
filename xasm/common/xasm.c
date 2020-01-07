@@ -188,14 +188,16 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     if (argc == 1) {
         string* source = str_Create(argv[argn]);
         if (fstk_Init(source)) {
-            bool b = parse_Do();
+            bool parseResult = parse_Do();
 
-            if (b) {
+            if (parseResult) {
                 patch_OptimizeAll();
                 patch_BackPatch();
             }
 
-            if (b && xasm_TotalErrors == 0) {
+            sym_ErrorOnUndefined();
+
+            if (parseResult && xasm_TotalErrors == 0) {
                 if (verbose) {
                     clock_t endClock = clock();
 

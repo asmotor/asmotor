@@ -29,23 +29,25 @@
 #include "symbol.h"
 #include "patch.h"
 
-static bool
+static SPatch*
 needsOrg() {
     for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         if (section->patches != NULL)
-            return true;
+            return section->patches;
     }
-    return false;
+    return NULL;
 }
 
 static bool
 commonPatch() {
+    SPatch* firstPatch;
+
     if (sect_Sections == NULL)
         return false;
 
     // Check first section
-    if (needsOrg() && (sect_Sections->flags & SECTF_LOADFIXED) == 0) {
-        err_Error(ERROR_SECTION_MUST_LOAD);
+    if ((firstPatch = needsOrg()) != NULL && (sect_Sections->flags & SECTF_LOADFIXED) == 0) {
+        err_PatchError(firstPatch, ERROR_SECTION_MUST_LOAD);
         return false;
     }
 

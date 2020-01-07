@@ -189,12 +189,14 @@ err_Accept(void) {
 }
 
 static void
-printError(const SPatch* patch, char severity, size_t errorNumber, uint32_t* count, va_list args) {
+printError(const SPatch* patch, const SSymbol* symbol, char severity, size_t errorNumber, uint32_t* count, va_list args) {
     string_buffer* buf = strbuf_Create();
 
     strbuf_AppendFormat(buf, "%c%04d ", severity, (int) errorNumber);
     if (patch != NULL) {
         strbuf_AppendFormat(buf, "%s(%d): ", str_String(patch->filename), patch->lineNumber);
+    } else if (symbol != NULL) {
+        strbuf_AppendFormat(buf, "%s(%d): ", str_String(symbol->fileInfo->fileName), symbol->lineNumber);
     } else {
         string* stack = fstk_Dump();
         strbuf_AppendString(buf, stack);
@@ -231,7 +233,7 @@ err_Warn(uint32_t errorNumber, ...) {
         va_list args;
 
         va_start(args, errorNumber);
-        printError(NULL, 'W', errorNumber, &xasm_TotalWarnings, args);
+        printError(NULL, NULL, 'W', errorNumber, &xasm_TotalWarnings, args);
         va_end(args);
     }
     return true;
@@ -242,7 +244,7 @@ err_Error(int n, ...) {
     va_list args;
 
     va_start(args, n);
-    printError(NULL, 'E', n, &xasm_TotalErrors, args);
+    printError(NULL, NULL, 'E', n, &xasm_TotalErrors, args);
     va_end(args);
 
     return false;
@@ -253,7 +255,19 @@ err_PatchError(const SPatch* patch, int n, ...) {
     va_list args;
 
     va_start(args, n);
-    printError(patch, 'E', n, &xasm_TotalErrors, args);
+    printError(patch, NULL, 'E', n, &xasm_TotalErrors, args);
+    va_end(args);
+
+    ++xasm_TotalErrors;
+    return false;
+}
+
+bool
+err_SymbolError(const SSymbol* symbol, int n, ...) {
+    va_list args;
+
+    va_start(args, n);
+    printError(NULL, symbol, 'E', n, &xasm_TotalErrors, args);
     va_end(args);
 
     ++xasm_TotalErrors;
@@ -265,7 +279,7 @@ err_Fail(int n, ...) {
     va_list args;
 
     va_start(args, n);
-    printError(NULL, 'F', n, &xasm_TotalErrors, args);
+    printError(NULL, NULL, 'F', n, &xasm_TotalErrors, args);
     va_end(args);
 
     printf("Bailing out.\n");
@@ -277,7 +291,7 @@ err_PatchFail(SPatch* patch, int n, ...) {
     va_list args;
 
     va_start(args, n);
-    printError(patch, 'F', n, &xasm_TotalErrors, args);
+    printError(patch, NULL, 'F', n, &xasm_TotalErrors, args);
     va_end(args);
 
     printf("Bailing out.\n");

@@ -472,6 +472,16 @@ sym_GetStringValueByName(const string* name) {
     return NULL;
 }
 
+extern void
+sym_ErrorOnUndefined(void) {
+    for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+        for (SSymbol* symbol = sym_hashedSymbols[i]; symbol; symbol = list_GetNext(symbol)) {
+            if (symbol->type == SYM_UNDEFINED)
+                err_SymbolError(symbol, ERROR_SYMBOL_UNDEFINED, str_String(symbol->name));
+        }
+    }
+}
+
 extern bool
 sym_Init(void) {
     g_currentScope = NULL;
