@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.10)
 
+project(ASMotor)
+
 include (ucm.cmake)
 
 set (CMAKE_C_STANDARD 99)
