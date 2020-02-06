@@ -51,6 +51,7 @@ static void
 printUsage(void) {
     printf("%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
            "Options:\n"
+           "    -a<n>    Section alignment when writing binary file (default is %d bytes)\n"
            "    -b<AS>   Change the two characters used for binary constants\n"
            "             (default is 01)\n"
            "    -d<FILE> Output dependency file for GNU Make\n"
@@ -59,7 +60,7 @@ printUsage(void) {
            "                 x - xobj (default)\n"
            "                 b - binary file\n"
            "                 v - verilog readmemh file\n", xasm_Configuration->executableName,
-           xasm_Configuration->backendVersion, xasm_Configuration->executableName);
+           xasm_Configuration->backendVersion, xasm_Configuration->executableName, xasm_Configuration->sectionAlignment);
 
     if (xasm_Configuration->supportAmiga) {
         printf("                 g - Amiga executable file\n"
@@ -166,6 +167,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
             case 'v':
                 verbose = true;
                 break;
+            case 'a':
             case 'b':
             case 'e':
             case 'g':
