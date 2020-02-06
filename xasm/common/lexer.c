@@ -228,7 +228,7 @@ acceptVariadic(size_t variadicLength, const SVariadicWordDefinition* variadicWor
 static bool
 acceptConstantWord(size_t constantLength, const SLexConstantsWord* constantWord) {
     lex_Current.length = constantLength;
-    lex_GetChars(lex_Current.value.string, lex_Current.length);
+    lex_GetZeroTerminatedString(lex_Current.value.string, lex_Current.length);
     lex_Current.token = constantWord->token;
     return true;
 }
@@ -438,9 +438,9 @@ lex_GetChar(void) {
 }
 
 size_t
-lex_GetChars(char* dest, size_t length) {
+lex_GetZeroTerminatedString(char* dest, size_t actualCharacters) {
     size_t copiedLines = 0;
-    for (size_t i = 0; i < length; ++i) {
+    for (size_t i = 0; i < actualCharacters; ++i) {
         char ch = lex_GetChar();
         *dest++ = ch;
         if (ch == '\n')

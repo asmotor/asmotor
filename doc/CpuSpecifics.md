@@ -122,7 +122,8 @@ This option is used to select the CPU type. The default is MIPS32 R2
 
 # M68K
 ## Section alignment
-Sections are aligned to a multiple of 8 bytes.
+Sections are aligned to a multiple of 8 bytes. 
+
 ## Command line
 ### -mc\<x> option
 This option is used to select the CPU type. The default is 68000.
