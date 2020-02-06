@@ -37,11 +37,16 @@ typedef struct Options {
     uint8_t binaryLiteralCharacters[2];
     uint8_t uninitializedValue;
 
+    int32_t sectionAlignment;
+
     uint8_t disabledWarningsCount;
     uint16_t disabledWarnings[MAX_DISABLED_WARNINGS];
 
     struct MachineOptions* machineOptions;
+
     bool allowReservedKeywordLabels;
+
+    bool enableDebugInfo;
 } SOptions;
 
 extern void

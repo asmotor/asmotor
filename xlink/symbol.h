@@ -30,19 +30,19 @@ typedef enum {
     SYM_LOCAL,
     SYM_LOCALEXPORT,
     SYM_LOCALIMPORT
-} SymbolType;
+} ESymbolType;
 
-typedef struct Symbol_ {
+typedef struct Symbol {
     char name[MAX_SYMBOL_NAME_LENGTH];
-    SymbolType type;
+    ESymbolType type;
     int32_t value;
     bool resolved;
 
-    struct Section_* section;
-} Symbol;
+    struct Section* section;
+} SSymbol;
 
 static inline bool
-symbol_IsLocal(Symbol* symbol) {
+symbol_IsLocal(SSymbol* symbol) {
     switch (symbol->type) {
         case SYM_LOCAL:
         case SYM_LOCALEXPORT:
@@ -56,7 +56,7 @@ symbol_IsLocal(Symbol* symbol) {
 }
 
 INLINE bool
-sym_IsImport(const Symbol* symbol) {
+sym_IsImport(const SSymbol* symbol) {
     return symbol->type == SYM_IMPORT || symbol->type == SYM_LOCALIMPORT;
 }
 

@@ -20,10 +20,11 @@
 #define XASM_COMMON_LEXER_H_INCLUDED_
 
 #include <stdio.h>
-#include <str.h>
+
+#include "xasm.h"
+#include "str.h"
 #include "types.h"
 #include "tokens.h"
-#include "xasm.h"
 
 typedef enum {
     LEX_STATE_NORMAL,
@@ -68,7 +69,7 @@ extern SLexerBuffer*
 lex_CreateMemoryBuffer(const char* memory, size_t size);
 
 extern SLexerBuffer*
-lex_CreateFileBuffer(FILE* f);
+lex_CreateFileBuffer(FILE* f, uint32_t* checkSum);
 
 extern void
 lex_FreeBuffer(SLexerBuffer* buffer);

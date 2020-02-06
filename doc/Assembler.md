@@ -3,6 +3,7 @@ Depending on the target ISA, the executable to invoke will be named motor, follo
 
 ## Command line options
 ```
+-a<n>   Section alignment when writing binary file
 -b<AS>  Change the two characters used for binary constants
         (default is 01)
 -e(l|b) Change endianness

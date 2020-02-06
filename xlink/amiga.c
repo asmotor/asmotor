@@ -64,7 +64,7 @@ writeString(FILE* fileHandle, char* string, uint32_t extFlags) {
 }
 
 static uint32_t
-sectionSize(Section* section) {
+sectionSize(SSection* section) {
     uint32_t size = longSize(section->size);
     if (section->group->flags & GROUP_FLAG_CHIP)
         size |= HUNKF_CHIP;
@@ -75,7 +75,7 @@ sectionSize(Section* section) {
 static void
 writeSectionNames(FILE* fileHandle, bool debugInfo) {
     if (debugInfo) {
-        for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+        for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
             if (section->used && !sect_IsEquSection(section))
                 writeString(fileHandle, section->name, 0);
         }
@@ -86,7 +86,7 @@ writeSectionNames(FILE* fileHandle, bool debugInfo) {
 
 static void
 writeSectionSizes(FILE* fileHandle) {
-    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
         if (section->used && !sect_IsEquSection(section))
             fputbl(sectionSize(section), fileHandle);
     }
@@ -120,12 +120,12 @@ writeHunkHeader(FILE* fileHandle, bool debugInfo, uint32_t totalSections) {
 }
 
 static void
-writeExtHunk(FILE* fileHandle, Section* section, Patches* importPatches, uint32_t codePos) {
+writeExtHunk(FILE* fileHandle, SSection* section, SPatches* importPatches, uint32_t codePos) {
     // TODO: Implement when writing Amiga linker object
 }
 
 static uint32_t
-hunkType(Section* section) {
+hunkType(SSection* section) {
     uint32_t hunkType;
 
     switch (section->group->type) {
@@ -146,17 +146,17 @@ hunkType(Section* section) {
     return hunkType;
 }
 
-typedef struct {
+typedef struct Offsets {
     uint32_t capacity;
     uint32_t total;
     uint32_t offsets[];
-} Offsets;
+} SOffsets;
 
-static Offsets**
+static SOffsets**
 allocOffsets(uint32_t totalSections) {
-    Offsets** offsets = mem_Alloc(sizeof(Offsets*) * totalSections);
+    SOffsets** offsets = mem_Alloc(sizeof(SOffsets*) * totalSections);
     for (uint32_t i = 0; i < totalSections; ++i) {
-        Offsets* offset = mem_Alloc(sizeof(Offsets) + sizeof(uint32_t) * 4);
+        SOffsets* offset = mem_Alloc(sizeof(SOffsets) + sizeof(uint32_t) * 4);
         offset->capacity = 4;
         offset->total = 0;
         offsets[i] = offset;
@@ -166,26 +166,26 @@ allocOffsets(uint32_t totalSections) {
 }
 
 static void
-freeOffsets(Offsets** offsets, uint32_t totalSections) {
+freeOffsets(SOffsets** offsets, uint32_t totalSections) {
     for (uint32_t i = 0; i < totalSections; ++i)
         mem_Free(offsets[i]);
 
     mem_Free(offsets);
 }
 
-static Offsets**
-getPatchSectionOffsets(Patches* patches, uint32_t totalSections) {
+static SOffsets**
+getPatchSectionOffsets(SPatches* patches, uint32_t totalSections) {
     bool hasReloc = false;
-    Offsets** offsets = allocOffsets(totalSections);
-    Patch* patch = patches->patches;
+    SOffsets** offsets = allocOffsets(totalSections);
+    SPatch* patch = patches->patches;
 
     for (uint32_t index = 0; index < patches->totalPatches; ++index, ++patch) {
         if (patch->type == PATCH_RELOC) {
             if (patch->type == PATCH_RELOC && patch->valueSection != NULL) {
-                Offsets** offset = &offsets[patch->valueSection->sectionId];
+                SOffsets** offset = &offsets[patch->valueSection->sectionId];
                 if ((*offset)->total == (*offset)->capacity) {
                     (*offset)->capacity *= 2;
-                    *offset = mem_Realloc(*offset, sizeof(Offsets) + sizeof(uint32_t) * (*offset)->capacity);
+                    *offset = mem_Realloc(*offset, sizeof(SOffsets) + sizeof(uint32_t) * (*offset)->capacity);
                 }
                 (*offset)->offsets[(*offset)->total++] = patch->offset;
                 hasReloc = true;
@@ -202,13 +202,13 @@ getPatchSectionOffsets(Patches* patches, uint32_t totalSections) {
 }
 
 static void
-writeReloc32(FILE* fileHandle, Section* section, uint32_t totalSections) {
-    Offsets** offsets = getPatchSectionOffsets(section->patches, totalSections);
+writeReloc32(FILE* fileHandle, SSection* section, uint32_t totalSections) {
+    SOffsets** offsets = getPatchSectionOffsets(section->patches, totalSections);
 
     if (offsets != NULL) {
         fputbl(HUNK_RELOC32, fileHandle);
         for (uint32_t sectionId = 0; sectionId < totalSections; ++sectionId) {
-            Offsets* offset = offsets[sectionId];
+            SOffsets* offset = offsets[sectionId];
             if (offset->total > 0) {
                 fputbl(offset->total, fileHandle);
                 fputbl(sectionId, fileHandle);
@@ -224,11 +224,11 @@ writeReloc32(FILE* fileHandle, Section* section, uint32_t totalSections) {
 }
 
 static void
-writeSymbolHunk(FILE* fileHandle, Section* section) {
+writeSymbolHunk(FILE* fileHandle, SSection* section) {
 }
 
 static void
-writeSection(FILE* fileHandle, Section* section, bool debugInfo, uint32_t totalSections, bool linkObject) {
+writeSection(FILE* fileHandle, SSection* section, bool debugInfo, uint32_t totalSections, bool linkObject) {
     if (linkObject)
         writeHunkName(fileHandle, section->name);
 
@@ -251,7 +251,7 @@ writeSection(FILE* fileHandle, Section* section, bool debugInfo, uint32_t totalS
 
 static void
 writeSections(FILE* fileHandle, bool debugInfo, uint32_t totalSections, bool linkObject) {
-    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
         if (section->used && !sect_IsEquSection(section))
             writeSection(fileHandle, section, debugInfo, totalSections, linkObject);
     }
@@ -261,7 +261,7 @@ static uint32_t
 updateSectionIds() {
     uint32_t sectionId = 0;
 
-    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
         if (section->used && !sect_IsEquSection(section))
             section->sectionId = sectionId++;
         else

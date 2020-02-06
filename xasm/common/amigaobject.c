@@ -194,7 +194,7 @@ writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSection
 }
 
 static bool
-writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t totalSections, bool isLinkObject) {
+writeSection(FILE* fileHandle, SSection* section, bool enableDebugInfo, uint32_t totalSections, bool isLinkObject) {
     if (section->group->value.groupType == GROUP_TEXT) {
         SPatch** patchesPerSection = mem_Alloc(sizeof(SPatch*) * totalSections);
         for (uint32_t i = 0; i < totalSections; ++i)
@@ -286,16 +286,17 @@ writeSection(FILE* fileHandle, SSection* section, bool writeDebugInfo, uint32_t 
             writeExtHunk(fileHandle, section, NULL, 0);
     }
 
-    if (writeDebugInfo)
+    if (enableDebugInfo) {
         writeSymbolHunk(fileHandle, section);
+    }
 
     fputbl(HUNK_END, fileHandle);
     return true;
 }
 
 static void
-writeSectionNames(FILE* fileHandle, bool writeDebugInfo) {
-    if (writeDebugInfo) {
+writeSectionNames(FILE* fileHandle) {
+    if (opt_Current->enableDebugInfo) {
         for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
             fputstr(section->name, fileHandle, 0);
         }
@@ -331,8 +332,8 @@ ami_WriteObject(string* destFilename, string* sourceFilename) {
     return r;
 }
 
-bool
-ami_WriteExecutable(string* destFilename, bool writeDebugInfo) {
+extern bool
+ami_WriteExecutable(string* destFilename) {
     bool r = true;
 
     FILE* fileHandle = fopen(str_String(destFilename), "wb");
@@ -340,7 +341,7 @@ ami_WriteExecutable(string* destFilename, bool writeDebugInfo) {
         return false;
 
     fputbl(HUNK_HEADER, fileHandle);
-    writeSectionNames(fileHandle, writeDebugInfo);
+    writeSectionNames(fileHandle);
 
     uint32_t totalSections = sect_TotalSections();
     fputbl(totalSections, fileHandle);
@@ -355,7 +356,7 @@ ami_WriteExecutable(string* destFilename, bool writeDebugInfo) {
     }
 
     for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
-        if (!writeSection(fileHandle, section, writeDebugInfo, totalSections, false)) {
+        if (!writeSection(fileHandle, section, opt_Current->enableDebugInfo, totalSections, false)) {
             r = false;
             break;
         }

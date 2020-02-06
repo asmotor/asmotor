@@ -57,7 +57,7 @@ image_WriteBinaryToFile(FILE* fileHandle, int padding) {
     char* emptyBytes = allocEmptyBytes();
     uint32_t currentFileSize = headerSize;
 
-    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
         //	This is a special exported EQU symbol section
         if (sect_IsEquSection(section))
             continue;

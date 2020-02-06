@@ -33,7 +33,7 @@
 #define STACKSIZE 256
 
 typedef struct StackEntry_ {
-    Symbol* symbol;
+    SSymbol* symbol;
     int32_t value;
 } StackEntry;
 
@@ -82,7 +82,7 @@ popStringPair(char** outLeft, char** outRight) {
 }
 
 static void
-pushSymbolInt(Symbol* symbol, int32_t value) {
+pushSymbolInt(SSymbol* symbol, int32_t value) {
     if (g_stackIndex >= STACKSIZE)
         error("patch too complex");
 
@@ -163,7 +163,7 @@ combinePatchFunctionString(char* function) {
 }
 
 static char*
-makePatchString(Patch* patch, Section* section) {
+makePatchString(SPatch* patch, SSection* section) {
     int32_t size = patch->expressionSize;
     uint8_t* expression = patch->expression;
 
@@ -173,7 +173,7 @@ makePatchString(Patch* patch, Section* section) {
         char* left;
         char* right;
 
-        switch ((ExpressionOperator) *expression++) {
+        switch ((EExpressionOperator) *expression++) {
             case OBJ_OP_SUB:
                 combinePatchStrings("-");
                 break;
@@ -365,7 +365,7 @@ makePatchString(Patch* patch, Section* section) {
     }
 
 static bool
-calculatePatchValue(Patch* patch, Section* section, bool allowImports, int32_t* outValue, Symbol** outSymbol) {
+calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t* outValue, SSymbol** outSymbol) {
     int32_t size = patch->expressionSize;
     uint8_t* expression = patch->expression;
 
@@ -376,7 +376,7 @@ calculatePatchValue(Patch* patch, Section* section, bool allowImports, int32_t* 
 
         --size;
 
-        switch ((ExpressionOperator) *expression++) {
+        switch ((EExpressionOperator) *expression++) {
             case OBJ_OP_SUB: {
                 popIntPair(&left, &right);
                 if (left.symbol == NULL && right.symbol == NULL)
@@ -544,7 +544,7 @@ calculatePatchValue(Patch* patch, Section* section, bool allowImports, int32_t* 
             }
             case OBJ_SYMBOL: {
                 uint32_t symbolId;
-                Symbol* symbol;
+                SSymbol* symbol;
 
                 symbolId = (*expression++);
                 symbolId |= (*expression++) << 8u;
@@ -601,15 +601,14 @@ calculatePatchValue(Patch* patch, Section* section, bool allowImports, int32_t* 
 }
 
 static void
-patchSection(Section* section, bool allowReloc, bool onlySectionRelativeReloc, bool allowImports) {
-    Patches* patches = section->patches;
+patchSection(SSection* section, bool allowReloc, bool onlySectionRelativeReloc, bool allowImports) {
+    SPatches* patches = section->patches;
 
     if (patches != NULL) {
-        Patch* patch = patches->patches;
-        uint32_t i;
+        SPatch* patch = patches->patches;
 
-        for (i = patches->totalPatches; i > 0; --i, ++patch) {
-            Symbol* valueSymbol;
+        for (uint32_t i = patches->totalPatches; i > 0; --i, ++patch) {
+            SSymbol* valueSymbol;
             int32_t value;
 
             if (calculatePatchValue(patch, section, allowImports, &value, &valueSymbol)) {
@@ -699,17 +698,17 @@ patchSection(Section* section, bool allowReloc, bool onlySectionRelativeReloc, b
     }
 }
 
-void
+extern void
 patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports) {
-    for (Section* section = sect_Sections; section != NULL; section = section->nextSection) {
+    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
         if (section->used)
             patchSection(section, allowReloc, onlySectionRelativeReloc, allowImports);
     }
 }
 
-Patches*
+extern SPatches*
 patch_Alloc(uint32_t totalPatches) {
-    Patches* patches = mem_Alloc(sizeof(Patches) + totalPatches * sizeof(Patch));
+    SPatches* patches = mem_Alloc(sizeof(SPatches) + totalPatches * sizeof(SPatch));
     if (patches != NULL) {
         patches->totalPatches = totalPatches;
     }

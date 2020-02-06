@@ -146,6 +146,11 @@ opt_Pop(void) {
 void
 opt_Parse(char* option) {
     switch (option[0]) {
+        case 'a': {
+            if (!decimalToInt(&option[1], &opt_Current->sectionAlignment))
+                err_Warn(WARN_OPTION, option);
+            break;
+        }
         case 'b': {
             if (!handleBinaryLiteralChars(&option[1]))
                 err_Warn(WARN_OPTION, option);
@@ -154,6 +159,10 @@ opt_Parse(char* option) {
         case 'e': {
             if (!handleEndianness(option[1]))
                 err_Warn(WARN_OPTION, option);
+            break;
+        }
+        case 'g': {
+            opt_Current->enableDebugInfo = true;
             break;
         }
         case 'i': {
@@ -190,8 +199,10 @@ opt_Open(void) {
     opt_Current->binaryLiteralCharacters[0] = '0';
     opt_Current->binaryLiteralCharacters[1] = '1';
     opt_Current->uninitializedValue = 0xFF;
+    opt_Current->sectionAlignment = xasm_Configuration->sectionAlignment;
     opt_Current->disabledWarningsCount = 0;
     opt_Current->allowReservedKeywordLabels = true;
+    opt_Current->enableDebugInfo = false;
 
     xasm_Configuration->setDefaultOptions(opt_Current->machineOptions);
     optionsUpdated();

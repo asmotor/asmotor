@@ -22,9 +22,10 @@
 #include "str.h"
 #include "lists.h"
 
+struct Expression;
+struct LineMapSection;
 struct Patch;
 struct Symbol;
-struct Expression;
 
 struct Section {
     list_Data(struct Section);
@@ -32,6 +33,8 @@ struct Section {
     string* name;
     struct Symbol* group;
     uint32_t flags;
+
+    uint32_t id;                // Assigned when writing object
 
     uint32_t usedSpace;         // How many bytes are used in the section
     uint32_t freeSpace;         // How many bytes are free
@@ -45,10 +48,13 @@ struct Section {
 
     uint32_t bank;
 
+    struct LineMapSection* lineMap;
+
     struct Patch* patches;
 
     uint8_t* data;
 };
+
 typedef struct Section SSection;
 
 #define SECTF_LOADFIXED 0x01u

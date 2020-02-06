@@ -25,6 +25,6 @@ extern bool
 ami_WriteObject(string* destFilename, string* sourceFilename);
 
 extern bool
-ami_WriteExecutable(string* destFilename, bool writeDebugInfo);
+ami_WriteExecutable(string* destFilename);
 
 #endif /* XASM_COMMON_AMIGAOBJECT_H_INCLUDED_ */

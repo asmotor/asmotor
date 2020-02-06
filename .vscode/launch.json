@@ -4,29 +4,30 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "Debug xlink",
             "type": "cppdbg",
             "request": "launch",
+            "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-tb", "-oamigaobj.68k.bin", "amigaobj.68k.obj"],
+            "args": ["-mtest.sym", "-otest.sms", "-tms32", "vectors.obj", "entry.obj", "initialize.obj", "joypad.obj", "background.obj", "player.obj", "sprites.obj", "camera.obj", "memoryblocks.obj", "objects.obj", "missile.obj"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/test/680x0",
+            "cwd": "${workspaceFolder}/../mastersystem-test",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false,
             "MIMode": "lldb"
         },
         {
             "name": "Debug motorz80",
             "type": "cppdbg",
             "request": "launch",
+            "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcz", "-ms1", "-mu1", "-z0", "-oobjects.obj", "objects.asm"],
-            "stopAtEntry": true,
+            "args": ["-g", "-d.d/entry.Td", "-mcz", "-ms1", "-mu1", "-z0", "-oentry.obj", "entry.asm"],
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}/../mastersystem-test",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false,
             "MIMode": "lldb"
         },
         {

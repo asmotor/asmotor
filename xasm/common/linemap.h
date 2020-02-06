@@ -1,4 +1,4 @@
-/*  Copyright 2008-2017 Carsten Elton Sorensen
+/*  Copyright 2008-2019 Carsten Elton Sorensen
 
     This file is part of ASMotor.
 
@@ -16,20 +16,35 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_COMMON_DEPENDENCY_H_INCLUDED_
-#define XASM_COMMON_DEPENDENCY_H_INCLUDED_
+#ifndef XASM_COMMON_LINEMAP_H_INCLUDED_
+#define XASM_COMMON_LINEMAP_H_INCLUDED_
+
+#include "set.h"
+#include "str.h"
+
+#include "section.h"
+
+
+struct LineMapEntry {
+    SFileInfo* fileInfo;
+    uint32_t lineNumber;
+    uint32_t offset;
+};
+typedef struct LineMapEntry SLineMapEntry;
+
+
+struct LineMapSection {
+    uint32_t totalEntries;
+    uint32_t allocatedEntries;
+    SLineMapEntry* entries;
+};
+typedef struct LineMapSection SLineMapSection;
+
 
 extern void
-dep_Initialize(const char* outputFileName);
+linemap_Add(SFileInfo* filename, uint32_t lineNumber, SSection* section, uint32_t offset);
 
 extern void
-dep_SetMainOutput(string* filename);
-
-extern void
-dep_AddDependency(string* filename);
-
-extern void
-dep_WriteDependencyFile(void);
-
+linemap_AddCurrent(void);
 
 #endif

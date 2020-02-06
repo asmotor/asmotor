@@ -51,6 +51,7 @@ static void
 printUsage(void) {
     printf("%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
            "Options:\n"
+           "    -a<n>    Section alignment when writing binary file (default is %d bytes)\n"
            "    -b<AS>   Change the two characters used for binary constants\n"
            "             (default is 01)\n"
            "    -d<FILE> Output dependency file for GNU Make\n"
@@ -59,7 +60,7 @@ printUsage(void) {
            "                 x - xobj (default)\n"
            "                 b - binary file\n"
            "                 v - verilog readmemh file\n", xasm_Configuration->executableName,
-           xasm_Configuration->backendVersion, xasm_Configuration->executableName);
+           xasm_Configuration->backendVersion, xasm_Configuration->executableName, xasm_Configuration->sectionAlignment);
 
     if (xasm_Configuration->supportAmiga) {
         printf("                 g - Amiga executable file\n"
@@ -81,7 +82,7 @@ printUsage(void) {
 }
 
 static bool
-writeOutput(char format, string* outputFilename, bool debugInfo, string* sourceFilename) {
+writeOutput(char format, string* outputFilename, string* sourceFilename) {
     switch (format) {
         case 'x':
             return obj_Write(outputFilename);
@@ -90,7 +91,7 @@ writeOutput(char format, string* outputFilename, bool debugInfo, string* sourceF
         case 'v':
             return bin_WriteVerilog(outputFilename);
         case 'g':
-            return ami_WriteExecutable(outputFilename, debugInfo);
+            return ami_WriteExecutable(outputFilename);
         case 'h':
             return ami_WriteObject(outputFilename, sourceFilename);
         default:
@@ -126,7 +127,6 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 
     char format = 'x';
     string* outputFilename = NULL;
-    bool debugInfo = false;
     bool verbose = false;
     while (argc && argv[argn][0] == '-') {
         switch (argv[argn][1]) {
@@ -135,7 +135,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                 printUsage();
                 break;
             case 'd':
-                dep_SetOutputFilename(&argv[argn][2]);
+                dep_Initialize(&argv[argn][2]);
                 break;
             case 'f':
                 if (strlen(argv[argn]) > 2) {
@@ -161,19 +161,18 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                     }
                 }
                 break;
-            case 'g':
-                debugInfo = true;
-                break;
             case 'o':
                 outputFilename = str_Create(&argv[argn][2]);
                 break;
             case 'v':
                 verbose = true;
                 break;
-            case 'i':
-            case 'e':
-            case 'm':
+            case 'a':
             case 'b':
+            case 'e':
+            case 'g':
+            case 'i':
+            case 'm':
             case 'w':
             case 'z':
                 opt_Parse(&argv[argn][1]);
@@ -191,14 +190,16 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     if (argc == 1) {
         string* source = str_Create(argv[argn]);
         if (fstk_Init(source)) {
-            bool b = parse_Do();
+            bool parseResult = parse_Do();
 
-            if (b) {
+            if (parseResult) {
                 patch_OptimizeAll();
                 patch_BackPatch();
             }
 
-            if (b && xasm_TotalErrors == 0) {
+            sym_ErrorOnUndefined();
+
+            if (parseResult && xasm_TotalErrors == 0) {
                 if (verbose) {
                     clock_t endClock = clock();
 
@@ -216,10 +217,10 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 
                 if (outputFilename != NULL) {
                     dep_SetMainOutput(outputFilename);
-                    if (!writeOutput(format, outputFilename, debugInfo, source)) {
-                        remove(str_String(outputFilename));
-                    } else  {
+                    if (writeOutput(format, outputFilename, source)) {
                         dep_WriteDependencyFile();
+                    } else  {
+                        remove(str_String(outputFilename));
                     }
                 }
             } else {

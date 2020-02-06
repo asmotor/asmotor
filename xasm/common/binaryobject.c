@@ -29,43 +29,46 @@
 #include "symbol.h"
 #include "patch.h"
 
-static bool
+static SPatch*
 needsOrg() {
     for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         if (section->patches != NULL)
-            return true;
+            return section->patches;
     }
-    return false;
+    return NULL;
 }
 
 static bool
 commonPatch() {
+    SPatch* firstPatch;
+
     if (sect_Sections == NULL)
         return false;
 
     // Check first section
-    if (needsOrg() && (sect_Sections->flags & SECTF_LOADFIXED) == 0) {
-        err_Error(ERROR_SECTION_MUST_LOAD);
+    if ((firstPatch = needsOrg()) != NULL && (sect_Sections->flags & SECTF_LOADFIXED) == 0) {
+        err_PatchError(firstPatch, ERROR_SECTION_MUST_LOAD);
         return false;
     }
 
-    uint32_t nAddress = sect_Sections->imagePosition;
+    uint32_t imagePos = sect_Sections->imagePosition;
     SSection* section = sect_Sections;
     do {
-        uint32_t alignment = xasm_Configuration->sectionAlignment - 1u;
-        nAddress += (section->usedSpace + alignment) & ~alignment;
         section = list_GetNext(section);
         if (section != NULL) {
             if (section->flags & SECTF_LOADFIXED) {
-                if (section->imagePosition < nAddress) {
+                if (section->imagePosition < imagePos) {
                     err_Error(ERROR_SECTION_LOAD, section->name, section->cpuOrigin);
                     return false;
                 }
-                nAddress = section->imagePosition;
+                imagePos = section->imagePosition;
             } else {
+                uint32_t alignment = opt_Current->sectionAlignment - 1u;
+                imagePos += (section->usedSpace + alignment) & ~alignment;
+
                 section->flags |= SECTF_LOADFIXED;
-                section->imagePosition = nAddress;
-                section->cpuOrigin = nAddress / xasm_Configuration->minimumWordSize;
+                section->imagePosition = imagePos;
+                section->cpuOrigin = imagePos / xasm_Configuration->minimumWordSize;
             }
         }
     } while (section != NULL);

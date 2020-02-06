@@ -237,7 +237,7 @@ parse_CopyReptBlock(char** reptBlock, size_t* size) {
 
     *size = len;
 
-    *reptBlock = (char*) mem_Alloc(len);
+    *reptBlock = (char*) mem_Alloc(len + 1);
     lex_GetChars(*reptBlock, len);
     fstk_Current->lineNumber += (uint32_t) lex_SkipBytes(ENDR_LEN);
 
@@ -250,7 +250,7 @@ parse_CopyMacroBlock(char** dest, size_t* size) {
 
     *size = len;
 
-    *dest = (char*) mem_Alloc(len);
+    *dest = (char*) mem_Alloc(len + 1);
     fstk_Current->lineNumber += (uint32_t) lex_GetChars(*dest, len);
     fstk_Current->lineNumber += (uint32_t) lex_SkipBytes(ENDM_LEN);
     return true;

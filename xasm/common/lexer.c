@@ -23,16 +23,18 @@
 #include <string.h>
 
 #include "asmotor.h"
+#include "crc32.h"
 #include "file.h"
+#include "lists.h"
 #include "mem.h"
 #include "strbuf.h"
-#include "lists.h"
+
+#include "errors.h"
 #include "lexer.h"
 #include "lexer_constants.h"
 #include "lexer_variadics.h"
 #include "filestack.h"
 #include "symbol.h"
-#include "errors.h"
 
 
 static SLexerBuffer* g_currentBuffer;
@@ -569,7 +571,7 @@ lex_CreateMemoryBuffer(const char* memory, size_t size) {
 }
 
 SLexerBuffer*
-lex_CreateFileBuffer(FILE* fileHandle) {
+lex_CreateFileBuffer(FILE* fileHandle, uint32_t* checkSum) {
     char* fileContent;
 
     SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
@@ -579,6 +581,9 @@ lex_CreateFileBuffer(FILE* fileHandle) {
 
     fileContent = (char*) mem_Alloc(size);
     size = fread(fileContent, sizeof(uint8_t), size, fileHandle);
+
+    if (checkSum != NULL && opt_Current->enableDebugInfo)
+        *checkSum = crc32((uint8_t*) fileContent, size);
 
     lexerBuffer->buffer = (char*) mem_Alloc(size + 1);
     char* dest = lexerBuffer->buffer;

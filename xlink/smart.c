@@ -26,10 +26,10 @@ static void
 useSectionWithLocalExport(const char* name, uint32_t fileId);
 
 static void
-markReferencedSectionsUsed(Section* section) {
+markReferencedSectionsUsed(SSection* section) {
     section->used = true;
     for (uint32_t i = 0; i < section->totalSymbols; ++i) {
-        Symbol* symbol = &section->symbols[i];
+        SSymbol* symbol = &section->symbols[i];
         if (symbol->type == SYM_LOCALIMPORT)
             useSectionWithLocalExport(symbol->name, section->fileId);
         else if (symbol->type == SYM_IMPORT)
@@ -39,7 +39,7 @@ markReferencedSectionsUsed(Section* section) {
 
 static void
 useSectionWithGlobalExport(const char* name) {
-    Section* section = sect_FindSectionWithExportedSymbol(name);
+    SSection* section = sect_FindSectionWithExportedSymbol(name);
     if (section != NULL && !section->used) {
         markReferencedSectionsUsed(section);
     }
@@ -47,19 +47,22 @@ useSectionWithGlobalExport(const char* name) {
 
 static void
 useSectionWithLocalExport(const char* name, uint32_t fileId) {
-    Section* section = sect_FindSectionWithLocallyExportedSymbol(name, fileId);
+    SSection* section = sect_FindSectionWithLocallyExportedSymbol(name, fileId);
     if (section != NULL && !section->used) {
         markReferencedSectionsUsed(section);
     }
 }
 
-void
+
+/* Exported functions */
+
+extern void
 smart_Process(const char* name) {
     if (name != NULL) {
         useSectionWithGlobalExport(name);
     } else {
         // Link in all sections
-        Section* section = sect_Sections;
+        SSection* section = sect_Sections;
 
         while (section != NULL) {
             section->used = true;

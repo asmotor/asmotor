@@ -20,11 +20,18 @@
  * xLink - OBJECT.C
  * Copyright 1996-1998 Carsten Sorensen (csorensen@ea.com)
  *
- *	char	ID[4]="XOB\1";
+ *	char	ID[4]="XOB\2";
  *	[>=v1] char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
  *							; 4 - A CPU address points to a 32 bit word in memory (CPU address 0x1000 is the 0x4000th byte)
+ *	IF Version >= 2
+ *		uint32_t NumberOfFiles
+ *		REPT NumberOfFiles
+ *			ASCIIZ		Name
+ *			uint32_t	CRC32
+ *		ENDR
+ *	ENDC
  *	uint32_t	NumberOfGroups
  *	REPT	NumberOfGroups
  *			ASCIIZ	Name
@@ -49,6 +56,14 @@
  *						int32_t	value
  *					ENDC
  *			ENDR
+ *          IF Version >= 2
+ *				uint32_t	NumberOfLineMappings
+ *				REPT NumberOfLineMappings
+ *					uint32_t	FileId
+ *					uint32_t	LineNumber
+ *					uint32_t	Offset
+ *				ENDR
+ *			ENDC
  *			uint32_t	Size
  *			IF	SectionCanContainData
  *					uint8_t	Data[Size]
@@ -67,6 +82,7 @@
 
 #include "file.h"
 #include "mem.h"
+#include "str.h"
 
 #include "group.h"
 #include "object.h"
@@ -79,6 +95,9 @@
 
 static uint32_t g_fileId = 0;
 static uint32_t g_minimumWordSize = 0;
+
+static uint32_t g_fileInfoCount = 0;
+static SFileInfo* g_fileInfo = NULL;
 
 static void
 readGroup(FILE* fileHandle, Group* group) {
@@ -127,10 +146,10 @@ readGroups(FILE* fileHandle) {
 }
 
 static void
-readSymbol(FILE* fileHandle, Symbol* symbol) {
+readSymbol(FILE* fileHandle, SSymbol* symbol) {
     fgetsz(symbol->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
 
-    symbol->type = (SymbolType) fgetll(fileHandle);
+    symbol->type = (ESymbolType) fgetll(fileHandle);
 
     if (symbol->type != SYM_IMPORT && symbol->type != SYM_LOCALIMPORT)
         symbol->value = fgetll(fileHandle);
@@ -142,14 +161,14 @@ readSymbol(FILE* fileHandle, Symbol* symbol) {
 }
 
 static uint32_t
-readSymbols(FILE* fileHandle, Symbol** outputSymbols) {
+readSymbols(FILE* fileHandle, SSymbol** outputSymbols) {
     uint32_t totalSymbols = fgetll(fileHandle);
 
     if (totalSymbols == 0) {
         *outputSymbols = NULL;
         return 0;
     } else {
-        Symbol* symbol = mem_Alloc(totalSymbols * sizeof(Symbol));
+        SSymbol* symbol = mem_Alloc(totalSymbols * sizeof(SSymbol));
         if (symbol != NULL) {
             *outputSymbols = symbol;
 
@@ -164,11 +183,11 @@ readSymbols(FILE* fileHandle, Symbol** outputSymbols) {
 }
 
 static void
-readPatch(FILE* fileHandle, Patch* patch) {
+readPatch(FILE* fileHandle, SPatch* patch) {
     patch->offset = fgetll(fileHandle);
     patch->valueSymbol = NULL;
     patch->valueSection = NULL;
-    patch->type = (PatchType) fgetll(fileHandle);
+    patch->type = (EPatchType) fgetll(fileHandle);
     patch->expressionSize = fgetll(fileHandle);
 
     if ((patch->expression = mem_Alloc(patch->expressionSize)) != NULL) {
@@ -179,13 +198,13 @@ readPatch(FILE* fileHandle, Patch* patch) {
     }
 }
 
-static Patches*
+static SPatches*
 readPatches(FILE* fileHandle) {
-    Patches* patches;
+    SPatches* patches;
     int totalPatches = fgetll(fileHandle);
 
     if ((patches = patch_Alloc(totalPatches)) != NULL) {
-        Patch* patch = patches->patches;
+        SPatch* patch = patches->patches;
         int i;
 
         for (i = 0; i < totalPatches; i += 1)
@@ -198,7 +217,28 @@ readPatches(FILE* fileHandle) {
 }
 
 static void
-readSection(FILE* fileHandle, Section* section, Groups* groups, int version) {
+readLineMapping(FILE* fileHandle, SLineMapping* lineMapping, uint32_t fileInfoIndex) {
+    lineMapping->fileInfo = &g_fileInfo[fileInfoIndex + fgetll(fileHandle)];
+    lineMapping->lineNumber = fgetll(fileHandle);
+    lineMapping->offset = fgetll(fileHandle);
+}
+
+static uint32_t
+readLineMappings(FILE* fileHandle, SLineMapping** lineMappings, uint32_t fileInfoIndex) {
+    uint32_t total = fgetll(fileHandle);
+    if (total > 0) {
+        *lineMappings = (SLineMapping*) mem_Alloc(sizeof(SLineMapping) * total);
+        for (uint32_t i = 0; i < total; ++i) {
+            readLineMapping(fileHandle, &(*lineMappings)[i], fileInfoIndex);
+        }
+    } else {
+        *lineMappings = NULL;
+    }
+    return total;
+}
+
+static void
+readSection(FILE* fileHandle, SSection* section, Groups* groups, int version, uint32_t fileInfoIndex) {
     section->group = groups_GetGroup(groups, fgetll(fileHandle));
     fgetsz(section->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
     section->cpuBank = fgetll(fileHandle);
@@ -210,6 +250,13 @@ readSection(FILE* fileHandle, Section* section, Groups* groups, int version) {
 
     section->totalSymbols = readSymbols(fileHandle, &section->symbols);
 
+    if (version >= 2) {
+        section->totalLineMappings = readLineMappings(fileHandle, &section->lineMappings, fileInfoIndex);
+    } else {
+        section->totalLineMappings = 0;
+        section->lineMappings = NULL;
+    }
+
     section->size = fgetll(fileHandle);
     if (group_isText(section->group)) {
         if ((section->data = mem_Alloc(section->size)) != NULL) {
@@ -220,18 +267,19 @@ readSection(FILE* fileHandle, Section* section, Groups* groups, int version) {
     }
 }
 
-static void
-readSections(Groups* groups, FILE* fileHandle, int version) {
-    uint32_t totalsections;
+static SSection**
+readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoIndex) {
+    uint32_t totalSections = fgetll(fileHandle);
+    SSection** sections = mem_Alloc(sizeof(SSection*) * totalSections);
 
-    totalsections = fgetll(fileHandle);
-    while (totalsections--) {
-        Section* section = sect_CreateNew();
+    for (uint32_t i = 0; i < totalSections; ++i) {
+        SSection* section = sect_CreateNew();
+        sections[i] = section;
 
         section->minimumWordSize = g_minimumWordSize;
         section->fileId = g_fileId;
 
-        readSection(fileHandle, section, groups, version);
+        readSection(fileHandle, section, groups, version, fileInfoIndex);
 
         if (group_isText(section->group) && strcmp(section->group->name, "HOME") == 0) {
             section->cpuBank = 0;
@@ -240,18 +288,66 @@ readSections(Groups* groups, FILE* fileHandle, int version) {
     }
 
     g_fileId += 1;
+
+    return sections;
+}
+
+static SFileInfo* findFileInfo(string* filename, uint32_t crc32) {
+    for (uint32_t i = 0; i < g_fileInfoCount; ++i) {
+        if (str_Equal(g_fileInfo[i].fileName, filename) && g_fileInfo[i].crc32 == crc32) {
+            return &g_fileInfo[i];
+        }
+    }
+    return NULL;
+}
+
+static uint32_t
+readFileInfo(FILE* fileHandle) {
+    uint32_t fileInfoIndex = g_fileInfoCount;
+    uint32_t fileInfoInObject = fgetll(fileHandle);
+
+    g_fileInfoCount += fileInfoInObject;
+    if (g_fileInfoCount > 0) {
+        g_fileInfo = mem_Realloc(g_fileInfo, sizeof(SFileInfo) * g_fileInfoCount);
+
+        for (uint32_t i = 0; i < fileInfoInObject; ++i) {
+            uint32_t index = i + fileInfoIndex;
+            g_fileInfo[index].fileName = fgetstr(fileHandle);
+            g_fileInfo[index].crc32 = fgetll(fileHandle);
+
+            SFileInfo* fileInfo = findFileInfo(g_fileInfo[i].fileName, g_fileInfo[i].crc32);
+            if (fileInfo != NULL) {
+                g_fileInfo[index].index = fileInfo->index;
+            } else {
+                g_fileInfo[index].index = index;
+
+            }
+        } 
+    }
+
+    return fileInfoIndex;
 }
 
 static void
 readXOB0(FILE* fileHandle) {
     g_minimumWordSize = 1;
-    readSections(readGroups(fileHandle), fileHandle, 0);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 0, 0);
+    mem_Free(sections);
 }
 
 static void
 readXOB1(FILE* fileHandle) {
     g_minimumWordSize = fgetc(fileHandle);
-    readSections(readGroups(fileHandle), fileHandle, 1);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 1, 0);
+    mem_Free(sections);
+}
+
+static void
+readXOB2(FILE* fileHandle) {
+    g_minimumWordSize = fgetc(fileHandle);
+    uint32_t fileInfoIndex = readFileInfo(fileHandle);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 2, fileInfoIndex);
+    mem_Free(sections);
 }
 
 static void
@@ -282,6 +378,11 @@ readChunk(FILE* fileHandle) {
 
         case MAKE_ID('X', 'O', 'B', 1): {
             readXOB1(fileHandle);
+            break;
+        }
+
+        case MAKE_ID('X', 'O', 'B', 2): {
+            readXOB2(fileHandle);
             break;
         }
 

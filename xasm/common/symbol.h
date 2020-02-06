@@ -26,6 +26,8 @@
 
 #define SYMBOL_HASH_SIZE 1024U
 
+struct FileInfo;
+
 typedef enum {
     SYM_LABEL = 0,
     SYM_EQU,
@@ -61,6 +63,9 @@ typedef struct Symbol {
     ESymbolType type;
     uint32_t flags;
 
+    struct FileInfo* fileInfo;
+    uint32_t lineNumber;
+    
     struct Symbol* scope;
     struct Section* section;
 
@@ -137,6 +142,9 @@ sym_IsString(const string* name);
 
 extern bool
 sym_IsMacro(const string* name);
+
+extern void
+sym_ErrorOnUndefined(void);
 
 INLINE bool
 sym_IsNotDefined(const string* symbolName) {

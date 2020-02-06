@@ -99,6 +99,9 @@ extern bool
 err_Fail(uint32_t errorNumber, ...);
 
 extern bool
+err_SymbolError(const SSymbol* patch, uint32_t errorNumber, ...);
+
+extern bool
 err_PatchError(const SPatch* patch, uint32_t errorNumber, ...);
 
 extern bool

@@ -30,11 +30,20 @@ typedef enum {
     CONTEXT_MACRO
 } EContextType;
 
+typedef struct FileInfo {
+    string* fileName;
+    uint32_t fileId;
+    uint32_t crc32;
+} SFileInfo;
+
+struct Symbol;
+
 typedef struct FileStackEntry {
     list_Data(struct FileStackEntry);
 
     EContextType type;
     string* name;
+    SFileInfo* fileInfo;
     SLexerBuffer* lexBuffer;
     uint32_t lineNumber;
 
@@ -46,6 +55,7 @@ typedef struct FileStackEntry {
             uint32_t remaining;
         } repeat;
         struct {
+            struct Symbol* symbol;
             string* argument0;
             string** arguments;
             uint32_t argumentCount;
@@ -61,6 +71,9 @@ fstk_GetMacroArgValue(char argumentId);
 
 extern int32_t
 fstk_GetMacroArgumentCount(void);
+
+extern SFileInfo**
+fstk_GetFileInfo(size_t* totalFileNames);
 
 extern void
 fstk_AddMacroArgument(const char* str);
@@ -98,9 +111,13 @@ fstk_ShiftMacroArgs(int32_t count);
 extern void
 fstk_AddIncludePath(string* pathname);
 
-extern SFileStackEntry*
-fstk_GetMostCurrentStackEntry(void);
+extern SFileInfo*
+fstk_CurrentFileInfo();
 
-extern SFileStackEntry* fstk_Current;
+extern uint32_t
+fstk_CurrentLineNumber();
+
+extern SFileStackEntry*
+fstk_Current;
 
 #endif /* XASM_COMMON_FILESTACK_H_INCLUDED_ */

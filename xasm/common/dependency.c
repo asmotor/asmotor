@@ -20,22 +20,39 @@
 #include "file.h"
 #include "mem.h"
 #include "str.h"
+#include "strcoll.h"
 
-typedef struct Dependency {
-    string* filename;
-    struct Dependency* next;
-} SDependency;
-
+/* Internal variables */
 
 static string* g_outputFilename = NULL;
 static string* g_mainOutput = NULL;
-static SDependency* g_dependencies = NULL;
-static SDependency** g_nextDependency = &g_dependencies;
+static string* g_mainDependency = NULL;
+static set_t * g_dependencySet = NULL;
 
 
-void
-dep_SetOutputFilename(const char* filename) {
-    g_outputFilename = str_Create(filename);
+/* Internal functions */
+
+static void
+writeDependency(intptr_t element, intptr_t data) {
+    FILE* fileHandle = (FILE*) data;
+    string* str = (string*) element;
+    fprintf(fileHandle, " %s", str_String(str));
+}
+
+static void
+writeTarget(intptr_t element, intptr_t data) {
+    FILE* fileHandle = (FILE*) data;
+    string* str = (string*) element;
+    fprintf(fileHandle, "%s:\n\n", str_String(str));
+}
+
+
+/* Exported functions */
+
+extern void
+dep_Initialize(const char* outputFileName) {
+    g_outputFilename = str_Create(outputFileName);
+    g_dependencySet = strset_Create();
 }
 
 extern void
@@ -43,39 +60,27 @@ dep_SetMainOutput(string* filename) {
     g_mainOutput = str_Copy(filename);
 }
 
-static bool
-hasDependency(string* filename) {
-    for (SDependency* dependency = g_dependencies; dependency != NULL; dependency = dependency->next) {
-        if (str_Equal(filename, dependency->filename))
-            return true;
-    }
-
-    return false;
-}
-
 extern void
 dep_AddDependency(string* filename) {
-    if (!hasDependency(filename)) {
-        SDependency* dependency = (SDependency*) mem_Alloc(sizeof(SDependency));
-        dependency->filename = str_Copy(filename);
-        dependency->next = NULL;
-        *g_nextDependency = dependency;
-        g_nextDependency = &dependency->next;
+    if (g_dependencySet != NULL) {
+        if (g_mainDependency == NULL) {
+            g_mainDependency = str_Copy(filename);
+        }
+        strset_Insert(g_dependencySet, filename);
     }
 }
 
 extern void
 dep_WriteDependencyFile(void) {
-    FILE* fileHandle = fopen(str_String(g_outputFilename), "wt");
-    if (fileHandle != NULL) {
-        fprintf(fileHandle, "%s:", str_String(g_mainOutput));
-        for (SDependency* dependency = g_dependencies; dependency != NULL; dependency = dependency->next) {
-            fprintf(fileHandle, " %s", str_String(dependency->filename));
-        }
-        fprintf(fileHandle, "\n\n");
-        for (SDependency* dependency = g_dependencies->next; dependency != NULL; dependency = dependency->next) {
-            fprintf(fileHandle, "%s:\n\n", str_String(dependency->filename));
+    if (g_dependencySet != NULL) {
+        FILE* fileHandle = fopen(str_String(g_outputFilename), "wt");
+        if (fileHandle != NULL) {
+            fprintf(fileHandle, "%s:", str_String(g_mainOutput));
+            set_ForEachElement(g_dependencySet, writeDependency, (intptr_t) fileHandle);
+
+            fprintf(fileHandle, "\n\n");
+            strset_Remove(g_dependencySet, g_mainDependency);
+            set_ForEachElement(g_dependencySet, writeTarget, (intptr_t) fileHandle);
         }
     }
 }
-
