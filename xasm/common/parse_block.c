@@ -237,7 +237,7 @@ parse_CopyReptBlock(char** reptBlock, size_t* size) {
 
     *size = len;
 
-    *reptBlock = (char*) mem_Alloc(len);
+    *reptBlock = (char*) mem_Alloc(len + 1);
     lex_GetChars(*reptBlock, len);
     fstk_Current->lineNumber += (uint32_t) lex_SkipBytes(ENDR_LEN);
 

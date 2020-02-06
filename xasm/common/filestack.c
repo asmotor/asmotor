@@ -166,6 +166,8 @@ getMostRecentFileInfo(SFileStackEntry* stackEntry) {
             return stackEntry->fileInfo;
         case CONTEXT_REPT:
             return getMostRecentFileInfo(stackEntry->pNext);
+        default:
+            return 0;
     }
 }
 
@@ -180,6 +182,8 @@ getMostRecentLineNumber(SFileStackEntry* stackEntry) {
             return stackEntry->lineNumber;
         case CONTEXT_REPT:
             return stackEntry->lineNumber + getMostRecentLineNumber(stackEntry->pNext);
+        default:
+            return 0;
     }
 }
 
