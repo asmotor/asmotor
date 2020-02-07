@@ -20,9 +20,9 @@ The data declaration statements will be called something different depending on 
 
 | Portable | 6502 | Z80 | M68K | MIPS | DCPU-16 | SCHIP |
 |---|---|---|---|---|---|---|
-| ```__DCB``` | ```DB``` | ```DB``` | ```DS.B``` | ```DB``` | n/a | ```DB``` |
-| ```__DCW``` | ```DW``` | ```DW``` | ```DS.W``` | ```DH``` | ```DW``` | ```DW``` |
-| ```__DCL``` | n/a | n/a | ```DS.L``` | ```DW``` | ```DL``` | n/a |
+| ```__DCB``` | ```DB``` | ```DB``` | ```DC.B``` | ```DB``` | n/a | ```DB``` |
+| ```__DCW``` | ```DW``` | ```DW``` | ```DC.W``` | ```DH``` | ```DW``` | ```DW``` |
+| ```__DCL``` | n/a | n/a | ```DC.L``` | ```DW``` | ```DL``` | n/a |
 
 ### <a name="binary"></a> Binary files
 Data can also be declared by simply including a binary file directly from the file system:
@@ -49,6 +49,8 @@ Sections are naturally aligned to a CPU specific byte alignment:
 | 6502 | Z80 | M68K | MIPS | 0x10C | SCHIP |
 |---|---|---|---|---|---|
 | 1 | 1 | 8 | 8 | 2 | 1 |
+
+Fixed sections are not aligned. The section alignment can be changed with the ```-a``` option.
 
 #### CNOP
 

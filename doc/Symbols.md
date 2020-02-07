@@ -35,7 +35,7 @@ AnotherGlobalLabel:
 
 ### <a name="import_export"></a> Exporting and importing labels
 
-Most of the time programs consists of several source files that are assembled individually and the resulting object files then linked into an executable. This improves the time spent assembling and help manage a project.
+Most of the time programs consist of several source files that are assembled individually and the resulting object files then linked into an executable. This improves the time spent assembling and helps manage a project.
 
 To export a symbol (to let other source files use the symbol,) you use the keyword ```EXPORT``` (or its synonym ```XDEF```) followed by the symbol that should be exported. To import a symbol (to make an externally defined symbol available in the current source file,) the keyword ```IMPORT``` (or its synonym ```XREF```) is used.
 
@@ -127,7 +127,7 @@ Note that string symbols cannot be used in place of a string literal directly - 
 ```
 
 ## <a name="group_symbols"></a> Group symbols
-Though rarely used, it is hoewever possible to define new groups for use with the ```SECTION``` directive.
+Though rarely used, it is however possible to define new groups for use with the ```SECTION``` directive.
 These groups are also present in the object file for later consumption by a linker. Two different kinds can be defined, ```TEXT``` and ```RAM```.
 
 ```

@@ -102,7 +102,7 @@ The same mask can be used in both directions, the assemblers reverses it as nece
 
 Whenever the assembler excepts a string literal, a string expression may be used instead. The simplest string expression is a string literal - a string contained in double quotes.
 
-### String literals
+### <a name="string_literals"></a>String literals
 A string literal is enclosed in double quotes.
 
 ```
