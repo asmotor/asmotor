@@ -6,7 +6,7 @@ Simple diagnostic messages are possible with ```PRINTT```, ```PRINTF``` and ```P
 ```
 PRINTT "A simple message\n" ; Remember \n for newline
 PRINTV (2+3)/5              ; Prints an integer
-PRINTF 3.14**,2             ; Prints a fixed point value
+PRINTF 3.14**2              ; Prints a fixed point value
 ```
 
 See also ["string literals"](Expressions.md#string_literals) for more advanced formatting options.
