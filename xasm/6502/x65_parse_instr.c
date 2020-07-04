@@ -177,16 +177,15 @@ handleStandardRotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 static bool
 handleBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
-    SExpression* pExpr;
-
     sect_OutputConst8(baseOpcode);
-    pExpr = expr_PcRelative(addrMode->expr, -1);
-    pExpr = expr_CheckRange(pExpr, -128, 127);
-    if (pExpr == NULL) {
+
+    SExpression* expression = expr_PcRelative(addrMode->expr, -1);
+    expression = expr_CheckRange(expression, -128, 127);
+    if (expression == NULL) {
         err_Error(ERROR_OPERAND_RANGE);
         return true;
     } else {
-        sect_OutputExpr8(pExpr);
+        sect_OutputExpr8(expression);
     }
 
     return true;

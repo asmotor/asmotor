@@ -159,9 +159,11 @@ acceptString(void) {
     if (ch == '"' || ch == '\'') {
         lex_GetChar();
         expandStringIncluding(lex_Current.value.string, ch);
-        lex_Current.length = strlen(lex_Current.value.string);
-        lex_Current.value.string[--lex_Current.length] = 0;
         lex_Current.token = T_STRING;
+        lex_Current.length = strlen(lex_Current.value.string);
+        if (lex_Current.length > 0)
+            lex_Current.value.string[--lex_Current.length] = 0;
+
         return true;
     }
     return false;

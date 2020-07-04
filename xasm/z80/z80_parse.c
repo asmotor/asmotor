@@ -956,7 +956,7 @@ handleOut(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 	if ((addrMode2->mode & MODE_GROUP_D) && (addrMode2->registerD == REG_D_HL_IND))
 		return err_Error(ERROR_SOURCE_OPERAND);
 
-	if (addrMode2->mode & MODE_IMM) {
+	if (addrMode1->mode == MODE_REG_C_IND && addrMode2->mode & MODE_IMM) {
 		if (!ensureUndocumentedEnabled())
 			return false;
 		

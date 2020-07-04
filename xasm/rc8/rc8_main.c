@@ -17,16 +17,48 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
 
-static char* g_errors[] = {
-    "Result of operation is undefined",
-    "Register expected"
+#include "xasm.h"
+
+#include "rc8_errors.h"
+#include "rc8_options.h"
+#include "rc8_parse.h"
+#include "rc8_symbols.h"
+#include "rc8_tokens.h"
+
+static SConfiguration
+g_xasmConfiguration = {
+	"motorrc8",
+	"1.0",
+	0x10000,
+	ASM_BIG_ENDIAN,
+	false,
+	false,
+	MINSIZE_8BIT,
+	1,
+	"CODE",
+
+	"RB", "RW", NULL,
+	"DB", "DW", NULL,
+	"DS", NULL, NULL,
+
+	rc8_GetError,
+	rc8_DefineTokens,
+	rc8_DefineSymbols,
+
+	rc8_AllocOptions,
+	rc8_SetDefaultOptions,
+	rc8_CopyOptions,
+	rc8_ParseOption,
+	rc8_OptionsUpdated,
+	rc8_PrintOptions,
+
+	rc8_ParseFunction,
+	rc8_ParseInstruction,
 };
 
-const char*
-mips_GetError(size_t errorNumber) {
-    if (errorNumber < 1000)
-        return NULL;
-
-    return g_errors[errorNumber - 1000];
+extern int
+main(int argc, char* argv[]) {
+	return xasm_Main(&g_xasmConfiguration, argc, argv);
 }

@@ -16,17 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#ifndef	XASM_RC8_ERRORS_H_INCLUDED_
+#define	XASM_RC8_ERRORS_H_INCLUDED_
 
-static char* g_errors[] = {
-    "Result of operation is undefined",
-    "Register expected"
-};
+typedef enum {
+	MERROR_ILLEGAL_ADDRMODE = 1000,
+	MERROR_EXPECTED_CONDITION_CODE,
+	MERROR_REQUIRES_SYNTHESIZED
+} EMachineError;
 
-const char*
-mips_GetError(size_t errorNumber) {
-    if (errorNumber < 1000)
-        return NULL;
+extern const char*
+rc8_GetError(size_t errorNumber);
 
-    return g_errors[errorNumber - 1000];
-}
+#endif	/* LOCALASM_H */

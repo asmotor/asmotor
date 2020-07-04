@@ -261,17 +261,18 @@ expr_Bit(SExpression* right) {
 }
 
 SExpression*
-expr_PcRelative(SExpression* pExpr, int adjustment) {
-    if (!assertExpression(pExpr))
+expr_PcRelative(SExpression* expression, int adjustment) {
+    if (!assertExpression(expression))
         return NULL;
 
-    if (expr_IsConstant(pExpr) && (sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
-        pExpr->value.integer -=
-                (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin + sect_Current->cpuAdjust - adjustment);
-        return pExpr;
+    if (expr_IsConstant(expression) && (sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
+        expression->value.integer -= (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin + sect_Current->cpuAdjust - adjustment);
+        return expression;
     } else if (sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
-        return expr_Add(pExpr, expr_Const(
-                adjustment - (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin + sect_Current->cpuAdjust)));
+        return expr_Add(
+            expression,
+            expr_Const(adjustment - (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin + sect_Current->cpuAdjust))
+        );
     } else {
         SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 
@@ -279,7 +280,7 @@ expr_PcRelative(SExpression* pExpr, int adjustment) {
         r->type = EXPR_PC_RELATIVE;
         r->isConstant = false;
         r->left = expr_Const(adjustment);
-        r->right = pExpr;
+        r->right = expression;
         return r;
     }
 }
@@ -357,6 +358,8 @@ expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
     if (expression != NULL) {
         return expr_HighLimit(expression, expr_Const(high));
     }
+
+    err_Error(ERROR_OPERAND_RANGE);
 
     return NULL;
 }
@@ -505,6 +508,20 @@ expr_GetSectionAndOffset(SExpression* expression, uint32_t* resultOffset) {
 
     *resultOffset = 0;
     return NULL;
+}
+
+SExpression* 
+expr_Clone(SExpression* expression) {
+    if (expression == NULL)
+        return NULL;
+
+    SExpression* result = (SExpression *) mem_Alloc(sizeof(SExpression));
+    
+    *result = *expression;
+    result->left = expr_Clone(result->left);
+    result->right = expr_Clone(result->right);
+
+    return result;
 }
 
 void

@@ -55,6 +55,7 @@ printUsage(void) {
            "    -b<AS>   Change the two characters used for binary constants\n"
            "             (default is 01)\n"
            "    -d<FILE> Output dependency file for GNU Make\n"
+           "    -D<NAME> Define EQU symbol with the value 1\n"
            "    -e(l|b)  Change endianness (CAUTION!)\n"
            "    -fF      Output format, one of\n"
            "                 x - xobj (default)\n"
@@ -118,6 +119,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     if (argc == 0)
         printUsage();
 
+    err_Init();
     sect_Init();
     sym_Init();
     tokens_Init();
@@ -137,6 +139,12 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
             case 'd':
                 dep_Initialize(&argv[argn][2]);
                 break;
+            case 'D': {
+                string* name = str_Create(&argv[argn][2]);
+                sym_CreateEqu(name, 1);
+                str_Free(name);
+                break;
+            }
             case 'f':
                 if (strlen(argv[argn]) > 2) {
                     switch (argv[argn][2]) {
@@ -195,9 +203,9 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
             if (parseResult) {
                 patch_OptimizeAll();
                 patch_BackPatch();
-            }
 
-            sym_ErrorOnUndefined();
+                sym_ErrorOnUndefined();
+            }
 
             if (parseResult && xasm_TotalErrors == 0) {
                 if (verbose) {
@@ -223,7 +231,11 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                         remove(str_String(outputFilename));
                     }
                 }
-            } else {
+            } 
+
+            if (xasm_TotalErrors > 0) {
+                err_PrintAll();
+
                 if (verbose) {
                     printf("Encountered %u error%s", xasm_TotalErrors, xasm_TotalErrors > 1 ? "s" : "");
                     if (xasm_TotalWarnings != 0)
@@ -236,6 +248,8 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
             fstk_Cleanup();
         }
         str_Free(source);
+    } else if (argc > 1) {
+        err_Error(ERROR_TOO_MANY_FILES);
     }
 
     str_Free(outputFilename);

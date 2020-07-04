@@ -57,6 +57,12 @@ group_SetupSegaMasterSystem(int size);
 extern void
 group_SetupSegaMasterSystemBanked(void);
 
+void
+group_SetupHC8XXROM(void);
+
+void
+group_SetupHC8XXCom(void);
+
 extern bool
 group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 

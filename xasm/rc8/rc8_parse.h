@@ -16,17 +16,19 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#ifndef XASM_RC8_PARSE_H_INCLUDED_
+#define XASM_RC8_PARSE_H_INCLUDED_
 
-static char* g_errors[] = {
-    "Result of operation is undefined",
-    "Register expected"
-};
+extern SExpression* 
+rc8_ExpressionSU16(void);
 
-const char*
-mips_GetError(size_t errorNumber) {
-    if (errorNumber < 1000)
-        return NULL;
+extern bool
+rc8_ParseIntegerInstruction(void);
 
-    return g_errors[errorNumber - 1000];
-}
+extern SExpression*
+rc8_ParseFunction(void);
+
+extern bool
+rc8_ParseInstruction(void);
+
+#endif

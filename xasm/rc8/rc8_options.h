@@ -16,17 +16,32 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#ifndef XASM_RC8_OPTIONS_H_INCLUDED_
+#define XASM_RC8_OPTIONS_H_INCLUDED_
 
-static char* g_errors[] = {
-    "Result of operation is undefined",
-    "Register expected"
-};
+typedef struct MachineOptions {
+    bool enableSynthInstructions;
+    bool enableSideeffectingSynthInstructions;
+} SMachineOptions;
 
-const char*
-mips_GetError(size_t errorNumber) {
-    if (errorNumber < 1000)
-        return NULL;
 
-    return g_errors[errorNumber - 1000];
-}
+extern SMachineOptions*
+rc8_AllocOptions(void);
+
+extern void
+rc8_SetDefaultOptions(SMachineOptions* options);
+
+extern void
+rc8_CopyOptions(SMachineOptions* dest, SMachineOptions* src);
+
+extern bool
+rc8_ParseOption(const char* s);
+
+extern void
+rc8_OptionsUpdated(SMachineOptions* options);
+
+extern void
+rc8_PrintOptions(void);
+
+
+#endif

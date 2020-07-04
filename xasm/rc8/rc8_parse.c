@@ -16,17 +16,44 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#include "xasm.h"
 
-static char* g_errors[] = {
-    "Result of operation is undefined",
-    "Register expected"
-};
+#include "errors.h"
+#include "expression.h"
+#include "lexer.h"
+#include "parse.h"
+#include "parse_expression.h"
+#include "section.h"
 
-const char*
-mips_GetError(size_t errorNumber) {
-    if (errorNumber < 1000)
-        return NULL;
+#include "rc8_parse.h"
 
-    return g_errors[errorNumber - 1000];
+SExpression*
+rc8_ExpressionSU16(void) {
+	SExpression* expr = parse_Expression(2);
+	if (expr == NULL)
+		return NULL;
+		
+	expr = expr_CheckRange(expr, -32768, 65535);
+	if (expr == NULL)
+		err_Error(ERROR_OPERAND_RANGE);
+
+	return expr;
+}
+
+
+SExpression*
+rc8_ParseFunction(void) {
+	switch (lex_Current.token) {
+		default:
+			return NULL;
+	}
+}
+
+
+bool
+rc8_ParseInstruction(void) {
+	if (rc8_ParseIntegerInstruction())
+		return true;
+
+	return false;
 }

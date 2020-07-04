@@ -108,6 +108,8 @@ printUsage(void) {
            "\t    -tms32\tSega Master System (32 KiB)\n"
            "\t    -tms48\tSega Master System (48 KiB)\n"
            "\t    -tmsb\tSega Master System banked (64+ KiB)\n"
+           "\t    -thc8b\tHC800 16 KiB ROM\n"
+           "\t    -thc8c\tHC800 COM executable (64 KiB text, 48 KiB BSS)\n"
 //			"\t    -tm<mach>\tUse file <mach>\n"
     );
     exit(EXIT_SUCCESS);
@@ -267,6 +269,20 @@ main(int argc, char* argv[]) {
                         targetDefined = true;
                         targetType = TARGET_MASTER_SYSTEM;
                         binaryPad = 0;
+                        ++argn;
+                    } else if (str_EqualConst(target, "hc8b")) {
+                        /* HC800 16 KiB */
+                        group_SetupHC8XXROM();
+                        targetDefined = true;
+                        targetType = TARGET_BINARY;
+                        binaryPad = 0;
+                        ++argn;
+                    } else if (str_EqualConst(target, "hc8c")) {
+                        /* HC800 COM, 64 KiB code, 48 KiB BSS*/
+                        group_SetupHC8XXCom();
+                        targetDefined = true;
+                        targetType = TARGET_BINARY;
+                        binaryPad = -1;
                         ++argn;
                     } else {
                         error("Unknown target \"%s\"", str_String(target));

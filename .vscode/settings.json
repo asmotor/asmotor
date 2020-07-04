@@ -2,6 +2,7 @@
   "editor.tabSize": 4,
   "editor.insertSpaces": true,
   "files.associations": {
+    "*.rc8": "asm.z80",
     "exec.h": "c",
     "xlink.h": "c",
     "limits": "c",
@@ -11,6 +12,7 @@
     "expression.h": "c",
     "dependency.h": "c",
     "strbuf.h": "c",
+    "rc8_errors.h": "c",
     "strcoll.h": "c"
   },
   "files.exclude": {
@@ -23,5 +25,9 @@
     "**/cmake_install.cmake": true,
     "**/*.a": true
   },
-  "cmake.configureOnOpen": true
+  "cmake.configureOnOpen": true,
+  "[asm.z80]": {
+      "editor.tabSize": 8,
+      "editor.insertSpaces": false
+  }
 }

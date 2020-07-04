@@ -49,7 +49,8 @@ truncateFileName(char* dest, size_t count, const char* src) {
     while ((l >= 0) && (src[l] != '\\') && (src[l] != '/'))
         --l;
 
-    strncpy(dest, &src[l + 1], count);
+    strncpy(dest, &src[l + 1], count - 1);
+    dest[count - 1] = 0;
 }
 
 static SModule*

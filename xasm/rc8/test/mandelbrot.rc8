@@ -1,0 +1,300 @@
+MAX_ITERATIONS: EQU	20
+
+LDS:		MACRO
+		ld	t,\1+1
+		push	(t)
+		push	(t)
+		pop	ft
+		ENDM
+
+		SECTION "Reset",CODE[0]
+		ld	ft,Main
+		j	(ft)
+
+		SECTION	"Main",CODE[$30]
+Main:
+		; Initialize stack pointer
+		ld	b,1
+		ld	ft,StackTop
+		lcr	(b),t
+		dec	b
+		ld	t,f
+		lcr	(b),t
+
+		ld	bc,$1234
+		jal	PrintHexBC
+		ld	bc,$ABCD
+		jal	PrintHexBC
+		
+		ld	bc,-$1080
+		ld	de,$2840
+		jal	mul12  ; = $D67E
+
+		ld	bc,ft
+		jal	PrintHexBC
+
+
+		ld	ft,@
+		j	(ft)
+
+		IF	0
+; bc - x
+; de - y
+IteratePixel:
+		xchg	de
+		push	ft
+
+		ld	ft,MAX_ITERATIONS
+		push	ft
+
+		; b - iteration
+		; c - max_iterations
+		; de - y0
+		; hl - x0
+		; +6 - return
+
+		push	hl
+		push	hl
+
+.iterate
+		; bc - y
+		; de - x
+		; h - iteration
+		; l - max_iterations
+		; +6 - y0
+		; +8 - x0
+		; +10 - return
+
+		push	de
+		push	hl
+		jal	mul12	; x * x
+
+		push	de
+		push	hl
+		jal	mul12	; y * y
+
+		ld	ft,$4000
+		push	ft
+
+		ld	ft,de
+		add	ft,hl
+
+		sltu	bc
+		j/nz	.inside
+
+		; bc - $4000
+		; de - y * y
+		; hl - x * x
+		; +6 - y
+		; +8 - x
+		; +10 - iteration
+		; +11 - max_iterations
+		; +12 - y0
+		; +14 - x0
+		; +16 - return
+
+		dsc	10
+		pop	t
+		dsc	5
+		xchg	bc
+		dsc	1
+		j	(ft)
+.inside
+
+		; bc - y*y
+		; de - x*x
+		; hl - y
+		; +6 - x
+		; +8 - iteration
+		; +9 - max_iterations
+		; +10 - y0
+		; +12 - x0
+		;    - return
+
+		ld	t,12+1
+		push	(t)
+		push	(t)
+
+		ld	ft,de
+		sub	ft,bc
+		add	ft,hl
+		dsc	4
+		ld	bc,ft
+
+		; bc - xtemp
+		; de - y
+		; hl - x
+		; +6 - iteration
+		; +7 - max_iterations
+		; +8 - y0
+		; +10 - x0
+		; +12 - return
+
+		push	hl
+		push	hl
+		jal	mul12	; x * y
+
+		; bc - x*y
+		; de - xtemp
+		; hl - y
+		; +6 - x
+		; +8 - iteration
+		; +9 - max_iterations
+		; +10 - y0
+		; +12 - x0
+		; +14 - return
+
+		ld	t,10+1
+		push	(t)
+		push	(t)
+		pop	ft
+		add	ft,bc
+		add	ft,bc
+		dsc	2
+		ld	de,ft	; y = 2*x*y + y0
+
+		pop	ft
+		ld	de,ft	; x = xtemp
+
+		ld	t,13
+		push	(t)
+		push	(t)
+		pop	ft
+		add	ft,bc
+		ENDC
+
+; -- Print Hex Number.
+; -- bc : hex number to print
+PrintHexBC:
+		pushr	hl
+
+		ld	ft,bc
+		ld	de,ft
+
+		clr	f
+		ld	t,d
+		ld	c,4
+		rs	ft,c
+		ld	b,t
+		jal	PrintHexChar
+
+		ld	t,$f
+		and	t,d
+		ld	b,t
+		jal	PrintHexChar
+
+		clr	f
+		ld	t,e
+		ld	c,4
+		rs	ft,c
+		ld	b,t
+		jal	PrintHexChar
+
+		ld	t,$f
+		and	t,e
+		ld	b,t
+		jal	PrintHexChar
+
+		popr	hl
+		j	(hl)
+
+; b - hex char
+PrintHexChar:
+		pushra
+
+		ld	t,b
+		ld	e,t
+		clr	d
+
+		clr	bc
+
+		; bc - 0 (I/O port)
+		; de - hex
+		; hl - return
+
+		ld	ft,.hexchars
+		add	ft,de
+		ld	t,(ft)
+		lio	(bc),t
+
+		popra
+		j	(hl)
+
+.hexchars	DB	"0123456789ABCDEF"
+
+; ft = bc*de/4096
+; (256*b + c) * (256*d + e)
+; = 256*b*(256*d + e) + c*(256*d + e)
+; = 65536*b*d + 256*b*e + 256*c*d + c*e
+; = 16*b*d + b*e/16 + c*d/16 + c*e/4096
+
+mul12:		
+		pushr	hl
+
+		ld	ft,bc
+		ld	hl,ft
+
+		; bc - acc
+		; de - de
+		; hl - bc
+
+		; = 16*h*d + h*e/16 + l*d/16 + l*e/4096
+
+		; bc = (h*d)<<4
+		ld	t,h
+		sm
+		ld	b,4
+		ls	ft,b
+		ld	bc,ft
+		ld	t,d
+		sm
+		mul
+		ld	bc,ft
+
+		; bc += (h*e)>>4
+		ld	t,h
+		sm
+		pushr	bc
+		ld	bc,ft
+		ld	t,e
+		clr	f
+		mul
+		ld	b,4
+		rsa	b
+		popr	bc
+		add	ft,bc
+		ld	bc,ft
+
+		; bc += (l*d)>>4
+		ld	t,d
+		sm
+		pushr	bc
+		ld	bc,ft
+		ld	t,l
+		clr	f
+		mul
+		ld	b,4
+		rsa	b
+		popr	bc
+		add	ft,bc
+		ld	bc,ft
+
+		; ft = bc + (l*e)>>12
+		ld	t,l
+		clr	f
+		pushr	bc
+		ld	bc,ft
+		clr	f
+		ld	t,e
+		mul
+		ld	b,12
+		rsa	b
+		popr	bc
+		add	ft,bc
+
+		popr	hl
+		j	(hl)
+
+		SECTION	"Stack",BSS
+Stack:		DS	128
+StackTop:

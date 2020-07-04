@@ -16,17 +16,19 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#include "xasm.h"
 
-static char* g_errors[] = {
-    "Result of operation is undefined",
-    "Register expected"
+static char* 
+g_errors[] = {
+	"Illegal addressing mode",
+    "Expected condition code",
+    "Requires synthesized instructions"
 };
 
 const char*
-mips_GetError(size_t errorNumber) {
-    if (errorNumber < 1000)
-        return NULL;
+rc8_GetError(size_t errorNumber) {
+	if (errorNumber < 1000)
+		return NULL;
 
-    return g_errors[errorNumber - 1000];
+	return g_errors[errorNumber - 1000];
 }

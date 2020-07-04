@@ -103,16 +103,20 @@ pool_AllocateAbsolute(MemoryPool* pool, uint32_t size, uint32_t cpuByteLocation)
         if (cpuByteLocation >= chunk->cpuByteLocation
             && cpuByteLocation + size <= chunk->cpuByteLocation + chunk->size) {
 
-            MemoryChunk* newChunk = (MemoryChunk*) mem_Alloc(sizeof(MemoryChunk));
+            if (cpuByteLocation == chunk->cpuByteLocation) {
+                chunk->cpuByteLocation += size;
+                chunk->size -= size;
+            } else {
+                MemoryChunk* newChunk = (MemoryChunk*) mem_Alloc(sizeof(MemoryChunk));
 
-            newChunk->nextChunk = chunk->nextChunk;
-            chunk->nextChunk = newChunk;
+                newChunk->nextChunk = chunk->nextChunk;
+                chunk->nextChunk = newChunk;
 
-            newChunk->cpuByteLocation = cpuByteLocation + size;
-            newChunk->size = chunk->cpuByteLocation + chunk->size - (cpuByteLocation + size);
+                newChunk->cpuByteLocation = cpuByteLocation + size;
+                newChunk->size = chunk->cpuByteLocation + chunk->size - (cpuByteLocation + size);
 
-            chunk->size = cpuByteLocation - chunk->cpuByteLocation;
-
+                chunk->size = cpuByteLocation - chunk->cpuByteLocation;
+            }
             return true;
         }
     }
@@ -437,7 +441,7 @@ group_SetupSegaMasterSystem(int size) {
     //	Create HOME group
 
     group = group_Create("HOME", 1);
-    group->pools[0] = homepool;
+    group->pools[0] = codepool;
 
     //	Create DATA group
 
@@ -457,11 +461,11 @@ group_SetupSegaMasterSystem(int size) {
 
 void
 group_SetupSegaMasterSystemBanked(void) {
-    MemoryPool* homepool;
+    MemoryPool* codepool;
     MemoryPool* codepools[64];
     MemoryGroup* group;
 
-    homepool = pool_Create(0, 0, 0, 0x400);
+    codepool = pool_Create(0, 0, 0, 0x400);
     codepools[0] = pool_Create(0x400, 0x400, 0, 0x4000 - 0x400);
     for (int i = 1; i < 64; ++i)
         codepools[i - 1] = pool_Create(i * 0x4000, 0x8000, i, 0x4000);
@@ -469,19 +473,19 @@ group_SetupSegaMasterSystemBanked(void) {
     //	Create HOME group
 
     group = group_Create("HOME", 1);
-    group->pools[0] = homepool;
+    group->pools[0] = codepool;
 
     //	Create CODE group
 
     group = group_Create("CODE", 65);
-    group->pools[0] = homepool;
+    group->pools[0] = codepool;
     for (int i = 1; i < 65; ++i)
         group->pools[i] = codepools[i - 1];
 
     //	Create DATA group
 
     group = group_Create("DATA", 63);
-    group->pools[0] = homepool;
+    group->pools[0] = codepool;
     for (int i = 1; i < 65; ++i)
         group->pools[i] = codepools[i - 1];
 
@@ -489,6 +493,66 @@ group_SetupSegaMasterSystemBanked(void) {
 
     group = group_Create("BSS", 1);
     group->pools[0] = pool_Create(-1, 0xC000, 0, 0x1FF8);
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+
+
+void
+group_SetupHC8XXROM(void) {
+    MemoryPool* codepool;
+    MemoryGroup* group;
+
+    codepool = pool_Create(0, 0, 0, 0x4000);
+
+    //	Create HOME group
+
+    group = group_Create("HOME", 1);
+    group->pools[0] = codepool;
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 1);
+    group->pools[0] = codepool;
+
+    //	Create DATA group
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 1);
+    group->pools[0] = pool_Create(-1, 0x0000, 0, 0x4000);
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+
+
+void
+group_SetupHC8XXCom(void) {
+    MemoryPool* codepool;
+    MemoryGroup* group;
+
+    codepool = pool_Create(0, 0, 0, 0x10000);
+
+    //	Create HOME group
+
+    group = group_Create("HOME", 1);
+    group->pools[0] = codepool;
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 1);
+    group->pools[0] = codepool;
+
+    //	Create DATA group
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 1);
+    group->pools[0] = pool_Create(-1, 0x4000, 0, 0xC000);
 
     //	initialise memory chunks
 

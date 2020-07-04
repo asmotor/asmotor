@@ -89,23 +89,18 @@ commonPatch() {
     return true;
 }
 
-bool
-bin_Write(string* filename) {
+static bool
+internalWrite(string* filename, const char* opentype, void (*writeSection)(FILE*, SSection*, uint32_t)) {
     if (!commonPatch())
         return false;
 
     FILE* fileHandle;
-    if ((fileHandle = fopen(str_String(filename), "wb")) != NULL) {
+    if ((fileHandle = fopen(str_String(filename), opentype)) != NULL) {
         uint32_t position = sect_Sections->imagePosition;
 
         for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
             if (section->data) {
-                while (position < section->imagePosition) {
-                    ++position;
-                    fputc(0, fileHandle);
-                }
-
-                fwrite(section->data, 1, section->usedSpace, fileHandle);
+                writeSection(fileHandle, section, position);
             }
 
             position += section->usedSpace;
@@ -118,31 +113,37 @@ bin_Write(string* filename) {
     return false;
 }
 
-bool
-bin_WriteVerilog(string* filename) {
-    if (!commonPatch())
-        return false;
-
-    FILE* fileHandle;
-    if ((fileHandle = fopen(str_String(filename), "wt")) != NULL) {
-        uint32_t position = sect_Sections->imagePosition;
-
-        for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
-            while (position < section->imagePosition) {
-                ++position;
-                fprintf(fileHandle, "00\n");
-            }
-
-            for (uint32_t i = 0; i < section->usedSpace; ++i) {
-                uint8_t b = (uint8_t) (section->data ? section->data[i] : 0u);
-                fprintf(fileHandle, "%02X\n", b);
-            }
-            position += section->usedSpace;
-        }
-
-        fclose(fileHandle);
-        return true;
+static void
+writeBinarySection(FILE* fileHandle, SSection* section, uint32_t position) {
+    while (position < section->imagePosition) {
+        ++position;
+        fputc(0, fileHandle);
     }
 
-    return false;
+    fwrite(section->data, 1, section->usedSpace, fileHandle);
+}
+
+static void
+writeVerilogSection(FILE* fileHandle, SSection* section, uint32_t position) {
+    while (position < section->imagePosition) {
+        ++position;
+        fprintf(fileHandle, "00\n");
+    }
+
+    for (uint32_t i = 0; i < section->usedSpace; ++i) {
+        uint8_t b = (uint8_t) (section->data ? section->data[i] : 0u);
+        fprintf(fileHandle, "%02X\n", b);
+    }
+}
+
+
+bool
+bin_Write(string* filename) {
+    return internalWrite(filename, "wb", writeBinarySection);
+}
+
+
+bool
+bin_WriteVerilog(string* filename) {
+    return internalWrite(filename, "wt", writeVerilogSection);
 }

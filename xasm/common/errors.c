@@ -26,9 +26,12 @@
 #include "strbuf.h"
 
 #include "xasm.h"
+#include "errors.h"
 #include "filestack.h"
 #include "options.h"
 #include "patch.h"
+
+static string* g_lastErrorString = NULL;
 
 static char* g_warnings[] = {
     "Cannot \"PURGE\" undefined symbol",
@@ -97,7 +100,8 @@ static char* g_errors[] = {
     "Symbol %s is undefined",
     "Object file does not support expression",
     "Invalid MACRO argument",
-    "Not a string member function returning int"
+    "Not a string member function returning int",
+    "Too many files specified on command line"
 };
 
 static const char*
@@ -123,14 +127,42 @@ typedef struct SuspendedErrors {
     SMessages warnings;
 } SSuspendedErrors;
 
+static SMessages 
+g_allMessages;
+
 static SSuspendedErrors* 
 g_suspendedErrors = NULL;
+
+
 
 static void
 initializeMessages(SMessages* msg) {
     msg->totalMessages = 0;
     msg->messages = NULL;
 }
+
+
+static bool
+matchesLastMessage(string* str) {
+    if (str_Equal(str, g_lastErrorString)) {
+        return true;
+    }
+
+    STR_ASSIGN(g_lastErrorString, str);
+    return false;
+}
+
+static int
+compareStrings(const void* s1, const void* s2) {
+    return str_Compare(*(const string**) s1, *(const string**) s2);
+}
+
+
+static void
+sortMessages(SMessages* messages) {
+    qsort(messages->messages, messages->totalMessages, sizeof(string*), compareStrings);
+}
+
 
 static void
 addMessage(SMessages* msg, string* str) {
@@ -173,7 +205,7 @@ err_Discard(void) {
 static void
 printMessages(const SMessages* messages, uint32_t* total) {
     for (uint32_t i = 0; i < messages->totalMessages; ++i) {
-        printf("%s\n", str_String(messages->messages[i]));
+        addMessage(&g_allMessages, messages->messages[i]);
     }
     *total += messages->totalMessages;
 }
@@ -209,7 +241,7 @@ printError(const SPatch* patch, const SSymbol* symbol, char severity, size_t err
     strbuf_Free(buf);
 
     if (g_suspendedErrors == NULL) {
-        printf("%s\n", str_String(str));
+        addMessage(&g_allMessages, str);
         *count += 1;
     } else {
         SMessages* msg = severity == 'W' ? &g_suspendedErrors->warnings : &g_suspendedErrors->errors;
@@ -240,7 +272,7 @@ err_Warn(uint32_t errorNumber, ...) {
 }
 
 bool
-err_Error(int n, ...) {
+err_Error(uint32_t n, ...) {
     va_list args;
 
     va_start(args, n);
@@ -251,7 +283,7 @@ err_Error(int n, ...) {
 }
 
 bool
-err_PatchError(const SPatch* patch, int n, ...) {
+err_PatchError(const SPatch* patch, uint32_t n, ...) {
     va_list args;
 
     va_start(args, n);
@@ -263,7 +295,7 @@ err_PatchError(const SPatch* patch, int n, ...) {
 }
 
 bool
-err_SymbolError(const SSymbol* symbol, int n, ...) {
+err_SymbolError(const SSymbol* symbol, uint32_t n, ...) {
     va_list args;
 
     va_start(args, n);
@@ -275,25 +307,47 @@ err_SymbolError(const SSymbol* symbol, int n, ...) {
 }
 
 bool
-err_Fail(int n, ...) {
+err_Fail(uint32_t n, ...) {
     va_list args;
 
     va_start(args, n);
     printError(NULL, NULL, 'F', n, &xasm_TotalErrors, args);
     va_end(args);
 
+    err_PrintAll();
+
     printf("Bailing out.\n");
     exit(EXIT_FAILURE);
 }
 
 bool
-err_PatchFail(SPatch* patch, int n, ...) {
+err_PatchFail(const SPatch* patch, uint32_t n, ...) {
     va_list args;
 
     va_start(args, n);
     printError(patch, NULL, 'F', n, &xasm_TotalErrors, args);
     va_end(args);
 
+    err_PrintAll();
+
     printf("Bailing out.\n");
     exit(EXIT_FAILURE);
+}
+
+
+void
+err_Init(void) {
+    initializeMessages(&g_allMessages);
+}
+
+
+void
+err_PrintAll(void) {
+    sortMessages(&g_allMessages);
+    for (uint32_t i = 0; i < g_allMessages.totalMessages; ++i) {
+        string* str = g_allMessages.messages[i];
+        if (!matchesLastMessage(str)) {
+            printf("%s\n", str_String(str));
+        }
+    }
 }

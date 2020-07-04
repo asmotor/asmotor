@@ -416,11 +416,11 @@ patch_be_32(const SSection* section, const SPatch* patch, int32_t value) {
 typedef void (* applyPatch)(const SSection*, const SPatch*, int32_t);
 
 static applyPatch g_patchFunctions[PATCH_BE_32 - PATCH_8 + 1] = {
-        patch_8,
-        patch_le_16,
-        patch_be_16,
-        patch_le_32,
-        patch_be_32,
+    patch_8,
+    patch_le_16,
+    patch_be_16,
+    patch_le_32,
+    patch_be_32,
 };
 
 

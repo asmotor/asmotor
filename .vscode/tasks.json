@@ -6,7 +6,7 @@
         {
             "label": "make",
             "type": "shell",
-            "command": "cmake --build build/cmake/debug",
+            "command": "./b.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true

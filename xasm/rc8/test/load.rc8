@@ -1,0 +1,25 @@
+println:	MACRO
+		jal	Print
+		DB	\1,"\n",0
+		ENDM
+
+		SECTION "Reset",CODE[0]
+		ld	ft,Main
+		j	(ft)
+
+		SECTION "Main",CODE[$30]
+Main:
+		println "Welcome to the RC800 processor"
+		ld	ft,@
+		j	(ft)
+
+Print:
+		clr	bc
+		ld	de,.loop
+.loop		ld	t,(hl)
+		inc	hl
+		ld	f,t
+		j/z	(hl)
+		lio	(bc),t
+		j	(de)
+

@@ -393,10 +393,10 @@ fstk_ProcessIncludeFile(string* fileName) {
 
     newContext->type = CONTEXT_FILE;
     newContext->name = fstk_FindFile(fileName);
-    newContext->fileInfo = createFileInfo(newContext->name);
 
     FILE* fileHandle;
     if (newContext->name != NULL && (fileHandle = fopen(str_String(newContext->name), "rt")) != NULL) {
+        newContext->fileInfo = createFileInfo(newContext->name);
         dep_AddDependency(newContext->name);
         if ((newContext->lexBuffer = lex_CreateFileBuffer(fileHandle, &newContext->fileInfo->crc32)) != NULL) {
             lex_SetBuffer(newContext->lexBuffer);

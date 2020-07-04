@@ -16,17 +16,19 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#include "xasm.h"
+#include "symbol.h"
 
-static char* g_errors[] = {
-    "Result of operation is undefined",
-    "Register expected"
-};
+static void
+createGroup(const char* name, EGroupType type) {
+    string* nameStr = str_Create(name);
+    sym_CreateGroup(nameStr, type);
+    str_Free(nameStr);
+}
 
-const char*
-mips_GetError(size_t errorNumber) {
-    if (errorNumber < 1000)
-        return NULL;
-
-    return g_errors[errorNumber - 1000];
+void 
+rc8_DefineSymbols(void) {
+	createGroup("CODE", GROUP_TEXT);
+	createGroup("DATA", GROUP_TEXT);
+	createGroup("BSS", GROUP_BSS);
 }

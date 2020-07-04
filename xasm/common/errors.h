@@ -86,7 +86,8 @@ typedef enum {
     ERROR_SYMBOL_UNDEFINED,
     ERROR_OBJECTFILE_PATCH,
     ERROR_INVALID_MACRO_ARGUMENT,
-    ERROR_STRING_MEMBER_NOT_INT
+    ERROR_STRING_MEMBER_NOT_INT,
+    ERROR_TOO_MANY_FILES
 } EError;
 
 extern bool
@@ -115,6 +116,12 @@ err_AcceptSuspended(void);
 
 extern int
 err_DiscardSuspended(void);
+
+extern void
+err_Init(void);
+
+extern void
+err_PrintAll(void);
 
 
 #endif

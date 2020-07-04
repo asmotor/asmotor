@@ -19,6 +19,7 @@ Breakpoints_v2.xcbkptlist
 gbfade.gb
 amigaobj.68k.bin
 amigaexe.68k.bin
+xasm/rc8/test/*.bin
 cmake_install.cmake
 CMakeCache.txt
 Makefile
@@ -55,4 +56,5 @@ test/gameboy/minios/.d
 PortIndex
 PortIndex.quick
 bin/
-.vscode/ipch
+mmap_address.bin
+.vscode/ipch/**

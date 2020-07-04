@@ -182,6 +182,9 @@ expr_Copy(SExpression* expression);
 extern void
 expr_Clear(SExpression* expression);
 
+extern SExpression*
+expr_Clone(SExpression* expression);
+
 extern bool
 expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resultOffset);
 
