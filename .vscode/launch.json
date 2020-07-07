@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-mkernal.sym", "-okernal.bin", "-thc8b", "startup.obj", "main.obj", "syscall.obj", "commands.obj", "memory.obj", "uart.obj", "video.obj"],
+            "args": ["-sEntry", "-mascii.sym", "-oascii.com", "-thc8c", "ascii.obj", "../stdlib/std.lib"],
             "stopAtEntry": true,
-            "cwd": "/Users/ces/Dev/hc800/firmware/kernal",
+            "cwd": "/Users/ces/Dev/hc800/firmware/ascii",
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb"
