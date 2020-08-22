@@ -51,26 +51,28 @@ commonPatch() {
         return false;
     }
 
-    uint32_t imagePos = sect_Sections->imagePosition;
+    uint32_t imagePos = 0;
     SSection* section = sect_Sections;
     do {
-        section = list_GetNext(section);
         if (section != NULL) {
             if (section->flags & SECTF_LOADFIXED) {
                 if (section->imagePosition < imagePos) {
                     err_Error(ERROR_SECTION_LOAD, section->name, section->cpuOrigin);
                     return false;
                 }
-                imagePos = section->imagePosition;
+                imagePos = section->imagePosition + section->usedSpace;
             } else {
                 uint32_t alignment = opt_Current->sectionAlignment - 1u;
-                imagePos += (section->usedSpace + alignment) & ~alignment;
+                imagePos = (imagePos + alignment) & ~alignment;
 
                 section->flags |= SECTF_LOADFIXED;
                 section->imagePosition = imagePos;
                 section->cpuOrigin = imagePos / xasm_Configuration->minimumWordSize;
+
+                imagePos += section->usedSpace;
             }
         }
+        section = list_GetNext(section);
     } while (section != NULL);
 
     for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
@@ -96,14 +98,13 @@ internalWrite(string* filename, const char* opentype, void (*writeSection)(FILE*
 
     FILE* fileHandle;
     if ((fileHandle = fopen(str_String(filename), opentype)) != NULL) {
-        uint32_t position = sect_Sections->imagePosition;
+        uint32_t lastWrittenPosition = sect_Sections->imagePosition;
 
         for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
             if (section->data) {
-                writeSection(fileHandle, section, position);
+                writeSection(fileHandle, section, lastWrittenPosition);
+                lastWrittenPosition += section->usedSpace;
             }
-
-            position += section->usedSpace;
         }
 
         fclose(fileHandle);
@@ -114,9 +115,9 @@ internalWrite(string* filename, const char* opentype, void (*writeSection)(FILE*
 }
 
 static void
-writeBinarySection(FILE* fileHandle, SSection* section, uint32_t position) {
-    while (position < section->imagePosition) {
-        ++position;
+writeBinarySection(FILE* fileHandle, SSection* section, uint32_t lastWrittenPosition) {
+    while (lastWrittenPosition < section->imagePosition) {
+        ++lastWrittenPosition;
         fputc(0, fileHandle);
     }
 
@@ -124,9 +125,9 @@ writeBinarySection(FILE* fileHandle, SSection* section, uint32_t position) {
 }
 
 static void
-writeVerilogSection(FILE* fileHandle, SSection* section, uint32_t position) {
-    while (position < section->imagePosition) {
-        ++position;
+writeVerilogSection(FILE* fileHandle, SSection* section, uint32_t lastWrittenPosition) {
+    while (lastWrittenPosition < section->imagePosition) {
+        ++lastWrittenPosition;
         fprintf(fileHandle, "00\n");
     }
 
