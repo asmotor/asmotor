@@ -295,7 +295,7 @@ expr_Pc() {
 
     if (symbol->flags & SYMF_CONSTANT) {
         r->value.integer = symbol->value.integer;
-        r->type = EXPR_CONSTANT;
+        r->type = EXPR_INTEGER_CONSTANT;
         r->isConstant = true;
         r->left = NULL;
         r->right = NULL;
@@ -406,7 +406,7 @@ void
 expr_SetConst(SExpression* expression, int32_t nValue) {
     expression->left = NULL;
     expression->right = NULL;
-    expression->type = EXPR_CONSTANT;
+    expression->type = EXPR_INTEGER_CONSTANT;
     expression->isConstant = true;
     expression->value.integer = nValue;
 }
@@ -458,7 +458,7 @@ expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resu
         return expr_GetSectionOffset(expression->right, section, resultOffset);
     }
 
-    if (expr_Type(expression) == EXPR_CONSTANT && (section->flags & SECTF_LOADFIXED)) {
+    if (expr_Type(expression) == EXPR_INTEGER_CONSTANT && (section->flags & SECTF_LOADFIXED)) {
         *resultOffset = expression->value.integer - section->cpuOrigin;
         return true;
     }
@@ -539,7 +539,7 @@ expr_Optimize(SExpression* expression) {
     }
 
     if ((expression->type == EXPR_SYMBOL) && (expression->value.symbol->flags & SYMF_CONSTANT)) {
-        expression->type = EXPR_CONSTANT;
+        expression->type = EXPR_INTEGER_CONSTANT;
         expression->isConstant = true;
         expression->value.integer = expression->value.symbol->value.integer;
     }
@@ -550,7 +550,7 @@ expr_Optimize(SExpression* expression) {
         expr_Free(expression->right);
         expression->right = NULL;
 
-        expression->type = EXPR_CONSTANT;
+        expression->type = EXPR_INTEGER_CONSTANT;
         expression->operation = T_NONE;
     }
 }

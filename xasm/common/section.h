@@ -115,6 +115,9 @@ sect_OutputConst16(uint16_t value);
 extern void
 sect_OutputConst32(uint32_t value);
 
+extern void
+sect_OutputFloat32(long double value);
+
 extern bool
 sect_Push(void);
 

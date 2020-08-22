@@ -30,7 +30,7 @@ struct Symbol;
 typedef enum {
     EXPR_OPERATION,
     EXPR_PC_RELATIVE,
-    EXPR_CONSTANT,
+    EXPR_INTEGER_CONSTANT,
     EXPR_SYMBOL,
     EXPR_PARENS
 } EExpressionType;
@@ -42,6 +42,7 @@ typedef struct Expression {
     bool isConstant;
     EToken operation;
     union {
+        long double floating;
         int32_t integer;
         struct Symbol* symbol;
     } value;

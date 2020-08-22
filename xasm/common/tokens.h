@@ -31,6 +31,7 @@ typedef enum {
     T_LABEL,
     T_ID,
     T_NUMBER,
+    T_FLOAT,
 
     T_OP_EQUAL,
     T_OP_NOT_EQUAL,
@@ -67,6 +68,7 @@ typedef enum {
     T_FUNC_ACOS,
     T_FUNC_ATAN,
     T_FUNC_ATAN2,
+    T_FUNC_ASFLOAT,
 
     T_STR_MEMBER_COMPARETO,
     T_STR_MEMBER_INDEXOF,
@@ -79,6 +81,7 @@ typedef enum {
     T_SYM_ENDM,        /* Not needed but we have it here just to protect the name */
     T_SYM_EQU,
     T_SYM_EQUS,
+    T_SYM_EQUF,
     T_SYM_SET,
     T_SYM_GROUP,
 
@@ -163,7 +166,7 @@ typedef enum {
 } EToken;
 
 extern void
-tokens_Init(void);
+tokens_Init(bool supportFloat);
 
 extern bool tokens_ExpandStrings;
 extern uint32_t tokens_BinaryVariadicId;

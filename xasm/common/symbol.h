@@ -33,6 +33,7 @@ typedef enum {
     SYM_EQU,
     SYM_SET,
     SYM_EQUS,
+    SYM_EQUF,
     SYM_MACRO,
     SYM_IMPORT,
     SYM_GROUP,
@@ -76,6 +77,7 @@ typedef struct Symbol {
 
     union {
         int32_t integer;
+        long double floating;
         EGroupType groupType;
         string* macro;
     } value;

@@ -35,6 +35,7 @@ z80_XasmConfiguration = {
 	ASM_LITTLE_ENDIAN,
 	true,
 	false,
+	false,
 	MINSIZE_8BIT,
 	1,
 	"HOME",

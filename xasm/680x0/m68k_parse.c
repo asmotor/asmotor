@@ -81,28 +81,32 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
         case AM_IMM: {
             switch (mode->immediateSize) {
                 case SIZE_BYTE: {
-                    mode->immediate = m68k_ExpressionCheck8Bit(mode->immediate);
-                    if (mode->immediate) {
-                        sect_OutputExpr16(mode->immediate);
+                    mode->immediate.integer = m68k_ExpressionCheck8Bit(mode->immediate.integer);
+                    if (mode->immediate.integer) {
+                        sect_OutputExpr16(mode->immediate.integer);
                         return true;
                     }
                     return false;
                 }
                 default:
                 case SIZE_WORD: {
-                    mode->immediate = m68k_ExpressionCheck16Bit(mode->immediate);
-                    if (mode->immediate) {
-                        sect_OutputExpr16(mode->immediate);
+                    mode->immediate.integer = m68k_ExpressionCheck16Bit(mode->immediate.integer);
+                    if (mode->immediate.integer) {
+                        sect_OutputExpr16(mode->immediate.integer);
                         return true;
                     }
                     return false;
                 }
                 case SIZE_LONG: {
-                    if (mode->immediate) {
-                        sect_OutputExpr32(mode->immediate);
+                    if (mode->immediate.integer) {
+                        sect_OutputExpr32(mode->immediate.integer);
                         return true;
                     }
                     return false;
+                }
+                case SIZE_SINGLE: {
+                    sect_OutputFloat32(mode->immediate.floating);
+                    return true;
                 }
             }
         }
@@ -521,6 +525,7 @@ m68k_ParseCommonCpuFpu(SInstruction* pIns) {
     dest.mode = AM_EMPTY;
 
     if (pIns->allowedSourceModes != 0 && pIns->allowedSourceModes != AM_EMPTY) {
+        src.immediateSize = insSz;
         if (m68k_GetAddressingMode(&src)) {
             if (pIns->allowedSourceModes & AM_BITFIELD) {
                 if (!getBitfield(&src)) {
@@ -528,9 +533,6 @@ m68k_ParseCommonCpuFpu(SInstruction* pIns) {
                     return false;
                 }
             }
-
-            if (src.mode == AM_IMM)
-                src.immediateSize = insSz;
         } else {
             if ((pIns->allowedSourceModes & AM_EMPTY) == 0)
                 return true;

@@ -103,8 +103,8 @@ handleSUBX(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleQuick(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    src->immediate = expr_CheckRange(src->immediate, 1, 8);
-    if (src->immediate == NULL) {
+    src->immediate.integer = expr_CheckRange(src->immediate.integer, 1, 8);
+    if (src->immediate.integer == NULL) {
         err_Error(ERROR_OPERAND_RANGE);
         return true;
     }
@@ -112,7 +112,7 @@ handleQuick(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* dest)
     ins |= (uint16_t) (m68k_GetEffectiveAddressField(dest) | (getSizeField(sz) << 6));
 
     SExpression* expr = expr_Const(ins);
-    expr = expr_Or(expr, expr_Asl(expr_And(src->immediate, expr_Const(7)), expr_Const(9)));
+    expr = expr_Or(expr, expr_Asl(expr_And(src->immediate.integer, expr_Const(7)), expr_Const(9)));
 
     sect_OutputExpr16(expr);
     return m68k_OutputExtensionWords(dest);
@@ -130,8 +130,8 @@ handleSUBQ(ESize size, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleArithmeticA(ESize size, SAddressingMode* src, SAddressingMode* dest, ETargetToken quick, uint16_t opcode) {
-    if (src->mode == AM_IMM && expr_IsConstant(src->immediate) && src->immediate->value.integer >= 1
-        && src->immediate->value.integer <= 8) {
+    if (src->mode == AM_IMM && expr_IsConstant(src->immediate.integer) && src->immediate.integer->value.integer >= 1
+        && src->immediate.integer->value.integer <= 8) {
         return handleToken(quick, size, src, dest);
     }
 
@@ -155,15 +155,15 @@ handleArithmeticLogicalI(uint16_t opcode, ESize size, SAddressingMode* src, SAdd
     if (size == SIZE_BYTE) {
         opcode |= 0x0 << 6;
         sect_OutputConst16(opcode);
-        sect_OutputExpr16(expr_And(m68k_ExpressionCheck8Bit(src->immediate), expr_Const(0xFF)));
+        sect_OutputExpr16(expr_And(m68k_ExpressionCheck8Bit(src->immediate.integer), expr_Const(0xFF)));
     } else if (size == SIZE_WORD) {
         opcode |= 0x1 << 6;
         sect_OutputConst16(opcode);
-        sect_OutputExpr16(m68k_ExpressionCheck16Bit(src->immediate));
+        sect_OutputExpr16(m68k_ExpressionCheck16Bit(src->immediate.integer));
     } else {
         opcode |= 0x2 << 6;
         sect_OutputConst16(opcode);
-        sect_OutputExpr32(src->immediate);
+        sect_OutputExpr32(src->immediate.integer);
     }
 
     return m68k_OutputExtensionWords(dest);
@@ -171,8 +171,8 @@ handleArithmeticLogicalI(uint16_t opcode, ESize size, SAddressingMode* src, SAdd
 
 static bool
 handleArithmeticI(ESize size, SAddressingMode* src, SAddressingMode* dest, ETargetToken quick, uint16_t opcode) {
-    if (src->mode == AM_IMM && expr_IsConstant(src->immediate) && src->immediate->value.integer >= 1
-        && src->immediate->value.integer <= 8) {
+    if (src->mode == AM_IMM && expr_IsConstant(src->immediate.integer) && src->immediate.integer->value.integer >= 1
+        && src->immediate.integer->value.integer <= 8) {
         return handleToken(quick, size, src, dest);
     }
 
@@ -199,7 +199,7 @@ handleBitwiseI(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t
             }
 
             sect_OutputConst16(opcode | 0x003C);
-            sect_OutputExpr16(expr_And(src->immediate, expr_Const(0xFF)));
+            sect_OutputExpr16(expr_And(src->immediate.integer, expr_Const(0xFF)));
             return true;
         } else if (dest->directRegister == T_68K_REG_SR) {
             if (size != SIZE_WORD) {
@@ -209,7 +209,7 @@ handleBitwiseI(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t
 
             err_Warn(MERROR_INSTRUCTION_PRIV);
             sect_OutputConst16(opcode | 0x007C);
-            sect_OutputExpr16(src->immediate);
+            sect_OutputExpr16(src->immediate.integer);
             return true;
         }
         err_Error(ERROR_DEST_OPERAND);
@@ -284,21 +284,21 @@ handleCMPI(ESize size, SAddressingMode* src, SAddressingMode* dest) {
     sect_OutputConst16(opcode);
 
     if (size == SIZE_BYTE) {
-        SExpression* expr = m68k_ExpressionCheck8Bit(src->immediate);
+        SExpression* expr = m68k_ExpressionCheck8Bit(src->immediate.integer);
         if (expr == NULL) {
             err_Error(ERROR_OPERAND_RANGE);
             return true;
         }
         sect_OutputExpr16(expr_And(expr, expr_Const(0xFF)));
     } else if (size == SIZE_WORD) {
-        SExpression* expr = m68k_ExpressionCheck16Bit(src->immediate);
+        SExpression* expr = m68k_ExpressionCheck16Bit(src->immediate.integer);
         if (expr == NULL) {
             err_Error(ERROR_OPERAND_RANGE);
             return true;
         }
         sect_OutputExpr16(expr);
     } else if (size == SIZE_WORD) {
-        sect_OutputExpr32(src->immediate);
+        sect_OutputExpr32(src->immediate.integer);
     }
     return m68k_OutputExtensionWords(dest);
 }
@@ -357,7 +357,7 @@ handleShift(uint16_t opcode, uint16_t memoryOpcode, ESize size, SAddressingMode*
         opcode |= 0x0000 | getSizeField(size) << 6 | dest->directRegister;
         if (src->mode == AM_IMM) {
             SExpression* expr;
-            expr = expr_CheckRange(src->immediate, 1, 8);
+            expr = expr_CheckRange(src->immediate.integer, 1, 8);
             expr = expr_And(expr, expr_Const(7));
             if (expr == NULL) {
                 err_Error(ERROR_OPERAND_RANGE);
@@ -561,9 +561,9 @@ handleBitInstruction(uint16_t dataOpcode, uint16_t immediateOpcode, SAddressingM
         sect_OutputConst16(immediateOpcode);
 
         if (dest->mode == AM_DREG)
-            expr = expr_CheckRange(src->immediate, 0, 31);
+            expr = expr_CheckRange(src->immediate.integer, 0, 31);
         else
-            expr = expr_CheckRange(src->immediate, 0, 7);
+            expr = expr_CheckRange(src->immediate.integer, 0, 7);
 
         if (expr != NULL) {
             sect_OutputExpr16(expr);
@@ -674,7 +674,7 @@ handleBFINS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleBKPT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    SExpression* expr = expr_CheckRange(src->immediate, 0, 7);
+    SExpression* expr = expr_CheckRange(src->immediate.integer, 0, 7);
     if (expr == NULL) {
         err_Error(ERROR_OPERAND_RANGE);
         return true;
@@ -687,7 +687,7 @@ handleBKPT(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleCALLM(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    SExpression* expr = expr_CheckRange(src->immediate, 0, 255);
+    SExpression* expr = expr_CheckRange(src->immediate.integer, 0, 255);
     if (expr == NULL) {
         err_Error(ERROR_OPERAND_RANGE);
         return true;
@@ -1079,11 +1079,11 @@ handleLINK(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
     if (sz == SIZE_WORD) {
         sect_OutputConst16((uint16_t) (0x4E50 | src->directRegister));
-        sect_OutputExpr16(dest->immediate);
+        sect_OutputExpr16(dest->immediate.integer);
         return true;
     } else /*if(sz == SIZE_LONG)*/ {
         sect_OutputConst16((uint16_t) (0x4808 | src->directRegister));
-        sect_OutputExpr32(dest->immediate);
+        sect_OutputExpr32(dest->immediate.integer);
         return true;
     }
 }
@@ -1201,8 +1201,8 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     uint16_t destea;
     uint16_t ins;
 
-    if (src->mode == AM_IMM && dest->mode == AM_DREG && sz == SIZE_LONG && expr_IsConstant(src->immediate)
-        && src->immediate->value.integer >= -128 && src->immediate->value.integer < 127) {
+    if (src->mode == AM_IMM && dest->mode == AM_DREG && sz == SIZE_LONG && expr_IsConstant(src->immediate.integer)
+        && src->immediate.integer->value.integer >= -128 && src->immediate.integer->value.integer < 127) {
         return handleToken(T_68K_MOVEQ, sz, src, dest);
     }
 
@@ -1408,7 +1408,7 @@ handleMOVEP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleMOVEQ(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    SExpression* expr = expr_CheckRange(src->immediate, -128, 127);
+    SExpression* expr = expr_CheckRange(src->immediate.integer, -128, 127);
     if (expr == NULL) {
         err_Error(ERROR_OPERAND_RANGE);
         return true;
@@ -1528,7 +1528,7 @@ handlePackUnpack(uint16_t ins, ESize sz, SAddressingMode* src, SAddressingMode* 
     }
 
     sect_OutputConst16(ins | dy << 9 | rm << 3 | dx);
-    sect_OutputExpr16(adj.immediate);
+    sect_OutputExpr16(adj.immediate.integer);
     return true;
 }
 
@@ -1550,7 +1550,7 @@ handlePEA(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 static bool
 handleRTD(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     sect_OutputConst16(0x4E74);
-    sect_OutputExpr16(src->immediate);
+    sect_OutputExpr16(src->immediate.integer);
     return true;
 }
 
@@ -1677,7 +1677,7 @@ handleTAS(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
 
 static bool
 handleTRAP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
-    SExpression* expr = expr_CheckRange(src->immediate, 0, 15);
+    SExpression* expr = expr_CheckRange(src->immediate.integer, 0, 15);
     if (expr == NULL) {
         err_Error(ERROR_OPERAND_RANGE);
         return true;
@@ -1704,9 +1704,9 @@ handleTRAPcc(uint16_t code, ESize sz, SAddressingMode* src, SAddressingMode* des
 
     sect_OutputConst16(0x50F8 | opmode | code << 8);
     if (sz == SIZE_WORD)
-        sect_OutputExpr16(src->immediate);
+        sect_OutputExpr16(src->immediate.integer);
     else if (sz == SIZE_LONG)
-        sect_OutputExpr32(src->immediate);
+        sect_OutputExpr32(src->immediate.integer);
 
     return true;
 }
@@ -1821,7 +1821,7 @@ static bool
 handleSTOP(ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     err_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(0x4E72);
-    sect_OutputExpr16(src->immediate);
+    sect_OutputExpr16(src->immediate.integer);
     return true;
 }
 

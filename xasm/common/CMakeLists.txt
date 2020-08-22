@@ -31,6 +31,8 @@ add_library (xasm
     parse_directive.h
     parse_expression.c
     parse_expression.h
+    parse_float_expression.c
+    parse_float_expression.h
     parse_string.c
     parse_string.h
     parse_symbol.c

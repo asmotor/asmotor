@@ -155,7 +155,7 @@ reduceUnary(const SPatch* patch, SExpression* expression, int32_t* result, unary
         expr_Free(expression->right);
         expression->right = NULL;
 
-        expression->type = EXPR_CONSTANT;
+        expression->type = EXPR_INTEGER_CONSTANT;
         expression->isConstant = true;
 
         *result = expression->value.integer = operation(value);
@@ -191,7 +191,7 @@ reduceBit(const SPatch* patch, SExpression* expression, int32_t* result) {
         expr_Free(expression->right);
         expression->right = NULL;
 
-        expression->type = EXPR_CONSTANT;
+        expression->type = EXPR_INTEGER_CONSTANT;
         expression->isConstant = true;
 
         expression->value.integer = *result = bit;
@@ -339,7 +339,7 @@ reduceExpression(const SPatch* patch, SExpression* expression, int32_t* result) 
         expr_Free(expression->right);
         expression->right = NULL;
 
-        expression->type = EXPR_CONSTANT;
+        expression->type = EXPR_INTEGER_CONSTANT;
         *result = expression->value.integer;
 
         return true;
@@ -352,7 +352,7 @@ reduceExpression(const SPatch* patch, SExpression* expression, int32_t* result) 
             return reducePcRelative(patch, expression, result);
         case EXPR_OPERATION:
             return reduceOperation(patch, expression, result);
-        case EXPR_CONSTANT:
+        case EXPR_INTEGER_CONSTANT:
             *result = expression->value.integer;
             return true;
         case EXPR_SYMBOL:

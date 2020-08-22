@@ -17,14 +17,18 @@
 */
 
 #include "errors.h"
+#include "lexer.h"
+#include "options.h"
+#include "parse.h"
 
 #include "m68k_errors.h"
 #include "m68k_options.h"
 #include "m68k_parse.h"
+#include "m68k_tokens.h"
 
 #define FPU_INS 0xF200u
 
-#if 0
+
 static uint16_t parse_GetSourceSpecifier(ESize sz)
 {
     switch(sz)
@@ -41,31 +45,32 @@ static uint16_t parse_GetSourceSpecifier(ESize sz)
 }
 
 
-static bool parse_FpuGeneric(ESize sz, uint16_t opmode, SAddrMode* src, SAddrMode* dest)
+static bool parse_FpuGeneric(ESize sz, uint16_t opmode, SAddressingMode* src, SAddressingMode* dest)
 {
-    uint16_t rm = src->eMode == AM_FPUREG ? (uint16_t) 0x0000 : (uint16_t) 0x4000;
+    uint16_t rm = src->mode == AM_FPUREG ? (uint16_t) 0x0000 : (uint16_t) 0x4000;
 
-    if(dest->eMode != AM_FPUREG)
+    if(dest->mode != AM_FPUREG)
     {
         err_Error(MERROR_FPU_REGISTER_EXPECTED);
         return true;
     }
 
     sect_OutputConst16(FPU_INS | (rm ? m68k_GetEffectiveAddressField(src) : 0u));
-    sect_OutputConst16(rm | parse_GetSourceSpecifier(sz) | (dest->nDirectReg << 7) | opmode);
-    return parse_OutputExtWords(src);
+    sect_OutputConst16(rm | parse_GetSourceSpecifier(sz) | (dest->directRegister << 7) | opmode);
+    return m68k_OutputExtensionWords(src);
 }
 
 
-static bool parse_FABS(ESize sz, SAddrMode* src, SAddrMode* dest)
+static bool parse_FABS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
 {
-    if(dest == NULL && src->eMode == AM_FPUREG)
+    if(dest == NULL && src->mode == AM_FPUREG)
     {
         return parse_FABS(sz, src, src);
     }
 
     return parse_FpuGeneric(sz, 0x18, src, dest);
 }
+
 
 static SInstruction s_FpuInstructions[] =
 {
@@ -77,14 +82,12 @@ static SInstruction s_FpuInstructions[] =
         parse_FABS
     }
 };
-#endif
+
 
 bool
 m68k_ParseFpuInstruction(void) {
-    return false;
-    /*
-    int op;
-    SInstruction* pIns;
+    int tokenOp;
+    SInstruction* instruction;
 
     if(lex_Current.token < T_FPU_FIRST
     || lex_Current.token > T_FPU_LAST)
@@ -92,16 +95,15 @@ m68k_ParseFpuInstruction(void) {
         return false;
     }
 
-    op = lex_Current.token - T_FPU_FIRST;
+    tokenOp = lex_Current.token - T_FPU_FIRST;
     parse_GetToken();
 
-    pIns = &s_FpuInstructions[op];
-    if((pIns->nCPU & opt_Current->machineOptions->nFpu) == 0)
+    instruction = &s_FpuInstructions[tokenOp];
+    if((instruction->cpu & opt_Current->machineOptions->fpu) == 0)
     {
         err_Error(MERROR_INSTRUCTION_FPU);
         return true;
     }
 
-    return m68k_ParseCommonCpuFpu(op, pIns);
-    */
+    return m68k_ParseCommonCpuFpu(instruction);
 }

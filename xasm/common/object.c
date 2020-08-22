@@ -294,7 +294,7 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
 
 				break;
 			}
-			case EXPR_CONSTANT: {
+			case EXPR_INTEGER_CONSTANT: {
 				fputc(OBJ_CONSTANT, fileHandle);
 				fputll((uint32_t) expression->value.integer, fileHandle);
 				break;

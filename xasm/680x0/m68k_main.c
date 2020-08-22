@@ -35,6 +35,7 @@ g_680x0Configuration = {
 	ASM_BIG_ENDIAN,
 	false,
 	true,
+	true,
 	MINSIZE_8BIT,
 	8,
 	"CODE",

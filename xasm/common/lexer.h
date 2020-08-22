@@ -52,6 +52,7 @@ typedef struct {
     union {
         char string[MAX_TOKEN_LENGTH + 1];
         int32_t integer;
+        long double floating;
     } value;
 } SLexerToken;
 

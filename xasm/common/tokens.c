@@ -75,13 +75,14 @@ static SLexConstantsWord staticTokens[] = {
         {"ACOS",      T_FUNC_ACOS},
         {"ATAN",      T_FUNC_ATAN},
         {"ATAN2",     T_FUNC_ATAN2},
+        {"ASFLOAT",   T_FUNC_ASFLOAT},
 
         {"COMPARETO", T_STR_MEMBER_COMPARETO},
         {"INDEXOF",   T_STR_MEMBER_INDEXOF},
         {"SLICE",     T_STR_MEMBER_SLICE},
         {"LENGTH",    T_STR_MEMBER_LENGTH},
-        {"UPPER",   T_STR_MEMBER_UPPER},
-        {"LOWER",   T_STR_MEMBER_LOWER},
+        {"UPPER",     T_STR_MEMBER_UPPER},
+        {"LOWER",     T_STR_MEMBER_LOWER},
 
         {"PRINTT",    T_DIRECTIVE_PRINTT},
         {"PRINTV",    T_DIRECTIVE_PRINTV},
@@ -105,6 +106,7 @@ static SLexConstantsWord staticTokens[] = {
         {"ORG",       T_DIRECTIVE_ORG},
 
         {"EQU",       T_SYM_EQU},
+        {"EQUF",      T_SYM_EQUF},
         {"EQUS",      T_SYM_EQUS},
 
         {"PURGE",     T_DIRECTIVE_PURGE},
@@ -216,9 +218,22 @@ textToBinary(size_t len) {
 }
 
 static bool
-ParseNumber(size_t size) {
+parseNumber(size_t size) {
     lex_Current.value.integer = textToBinary(size);
     return true;
+}
+
+static bool
+parseFloat(size_t size) {
+    bool r = false;
+
+    string* str = lex_GetString(size - 1);
+    if (lex_MatchChar('f')) {
+        lex_Current.value.floating = strtold(str_String(str), NULL);
+        r = true;
+    }
+
+    return r;
 }
 
 static bool
@@ -354,7 +369,11 @@ static SVariadicWordDefinition g_fixedPointWord = {
 };
 
 static SVariadicWordDefinition g_integerWord = {
-        ParseNumber, T_NUMBER
+        parseNumber, T_NUMBER
+};
+
+static SVariadicWordDefinition g_floatWord = {
+        parseFloat, T_FLOAT
 };
 
 static SVariadicWordDefinition g_identifierWord = {
@@ -362,7 +381,7 @@ static SVariadicWordDefinition g_identifierWord = {
 };
 
 void
-tokens_Init(void) {
+tokens_Init(bool supportFloat) {
     tokens_ExpandStrings = true;
 
     lex_Init();
@@ -471,6 +490,16 @@ tokens_Init(void) {
     lex_VariadicAddCharRange(id, '0', '9', 0);
     lex_VariadicAddCharRangeRepeating(id, '0', '9', 1);
     lex_VariadicAddCharRangeRepeating(id, '.', '.', 1);
+
+    // Float constant
+
+    if (supportFloat) {
+        id = lex_VariadicCreateWord(&g_floatWord);
+        lex_VariadicAddCharRange(id, '0', '9', 0);
+        lex_VariadicAddCharRangeRepeating(id, '0', '9', 1);
+        lex_VariadicAddCharRangeRepeating(id, '.', '.', 1);
+        lex_VariadicAddSuffix(id, 'f');
+    }
 
     // Hex constant
 

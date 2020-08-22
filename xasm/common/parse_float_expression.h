@@ -16,50 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
-#include <stdio.h>
+#ifndef XASM_COMMON_PARSE_FLOAT_EXPRESSION_H_INCLUDED_
+#define XASM_COMMON_PARSE_FLOAT_EXPRESSION_H_INCLUDED_
 
-#include "xasm.h"
+#include "expression.h"
 
-#include "rc8_errors.h"
-#include "rc8_options.h"
-#include "rc8_parse.h"
-#include "rc8_symbols.h"
-#include "rc8_tokens.h"
+extern long double
+parse_FloatExpression(size_t maxStringConstLength);
 
-static SConfiguration
-g_xasmConfiguration = {
-	"motorrc8",
-	"1.0",
-	0x10000,
-	ASM_BIG_ENDIAN,
-	false,
-	false,
-	false,
-	MINSIZE_8BIT,
-	1,
-	"CODE",
-
-	"RB", "RW", NULL,
-	"DB", "DW", NULL,
-	"DS", NULL, NULL,
-
-	rc8_GetError,
-	rc8_DefineTokens,
-	rc8_DefineSymbols,
-
-	rc8_AllocOptions,
-	rc8_SetDefaultOptions,
-	rc8_CopyOptions,
-	rc8_ParseOption,
-	rc8_OptionsUpdated,
-	rc8_PrintOptions,
-
-	rc8_ParseFunction,
-	rc8_ParseInstruction,
-};
-
-extern int
-main(int argc, char* argv[]) {
-	return xasm_Main(&g_xasmConfiguration, argc, argv);
-}
+#endif // XASM_COMMON_PARSE_FLOAT_EXPRESSION_H_INCLUDED_

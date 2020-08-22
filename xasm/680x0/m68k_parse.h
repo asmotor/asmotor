@@ -100,12 +100,17 @@ typedef struct {
     ESize displacementSize;
 } SModeRegisters;
 
+#define isImmediateFloat(MODE) ((MODE)->immediateSize >= SIZE_SINGLE)
+
 typedef struct {
     EAddrMode mode;
 
     uint16_t directRegister;
 
-    SExpression* immediate;
+    union {
+        SExpression* integer;
+        long double floating;
+    } immediate;
     ESize immediateSize;
 
     SModeRegisters inner;

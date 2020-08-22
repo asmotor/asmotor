@@ -37,6 +37,7 @@ static uint32_t g_defaultSymbolFlags[] = {
     SYMF_CONSTANT | SYMF_EXPORTABLE | SYMF_EXPRESSION,  // SYM_EQU
     SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_MODIFIABLE,  // SYM_SET
     SYMF_HAS_DATA,                                      // SYM_EQUS
+    SYMF_CONSTANT,                                      // SYM_EQUF
     SYMF_HAS_DATA,                                      // SYM_MACRO
     SYMF_EXPRESSION | SYMF_RELOC,                       // SYM_IMPORT
     SYMF_EXPORT,                                        // SYM_GROUP

@@ -21,6 +21,7 @@
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
+#include "parse_float_expression.h"
 #include "errors.h"
 
 #include "m68k_errors.h"
@@ -517,8 +518,13 @@ m68k_GetAddressingMode(SAddressingMode* addrMode) {
     if (lex_Current.token == '#') {
         parse_GetToken();
         addrMode->mode = AM_IMM;
-        addrMode->immediate = parse_Expression(4);
-        return addrMode->immediate != NULL;
+        if (isImmediateFloat(addrMode)) {
+            addrMode->immediate.floating = parse_FloatExpression(4);
+            return true;
+        } else {
+            addrMode->immediate.integer = parse_Expression(4);
+            return addrMode->immediate.integer != NULL;
+        }
     }
 
     addrMode->outer.displacement = parse_Expression(4);

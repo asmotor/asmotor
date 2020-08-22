@@ -387,6 +387,15 @@ sect_OutputExpr32(SExpression* expression) {
 	}
 }
 
+
+void
+sect_OutputFloat32(long double value) {
+	float floatValue = (float) value;
+	uint32_t intValue = *(uint32_t *) &floatValue;
+	sect_OutputConst32(intValue);
+}
+
+
 void
 sect_OutputBinaryFile(string* filename) {
 	/* TODO: Handle minimum word size.

@@ -34,6 +34,7 @@ static SConfiguration x10c_XasmConfiguration = {
 	ASM_BIG_ENDIAN,
 	false,
 	false,
+	false,
 	MINSIZE_16BIT,
 	2,
 	"CODE",

@@ -56,7 +56,7 @@ printUsage(void) {
            "             (default is 01)\n"
            "    -d<FILE> Output dependency file for GNU Make\n"
            "    -D<NAME> Define EQU symbol with the value 1\n"
-           "    -e(l|b)  Change endianness (CAUTION!)\n"
+           "    -e(l|b)  Change endianness\n"
            "    -fF      Output format, one of\n"
            "                 x - xobj (default)\n"
            "                 b - binary file\n"
@@ -122,7 +122,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     err_Init();
     sect_Init();
     sym_Init();
-    tokens_Init();
+    tokens_Init(configuration->supportFloat);
     xasm_Configuration->defineTokens();
 
     opt_Open();

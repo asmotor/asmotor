@@ -34,6 +34,7 @@ static SConfiguration g_xasmConfiguration = {
 	ASM_BIG_ENDIAN,
 	false,
 	false,
+	false,
 	MINSIZE_8BIT,
 	1,
 	"CODE",
