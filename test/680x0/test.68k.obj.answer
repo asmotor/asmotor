@@ -33,20 +33,20 @@
 0001000 01 ae 99 43 59 48 5b 45 04 b8 00 00 01 ae 02 12
 0001020 92 70 55 20 01 ae 93 50 48 45 4a c5 4e 47 56 fc
 0001040 50 fa 01 00 52 fb 00 00 00 57 4e 76 87 4a 20 20
-0001060 87 8a 20 20
+0001060 87 8a 20 20 
 0001064
-W1008 test.68k(16): Instruction is privileged
-W1008 test.68k(17): Instruction is privileged
-W1008 test.68k(18): Instruction is privileged
-W1008 test.68k(19): Instruction is privileged
-W1008 test.68k(20): Instruction is privileged
-W1008 test.68k(21): Instruction is privileged
-W1008 test.68k(22): Instruction is privileged
-W1008 test.68k(23): Instruction is privileged
-W1008 test.68k(24): Instruction is privileged
-W1008 test.68k(26): Instruction is privileged
-W1008 test.68k(27): Instruction is privileged
-W1008 test.68k(28): Instruction is privileged
-W1008 test.68k(29): Instruction is privileged
-W1008 test.68k(33): Instruction is privileged
-W1000 test.68k(50): Result of operation is undefined
+test.68k:16: W1008 Instruction is privileged
+test.68k:17: W1008 Instruction is privileged
+test.68k:18: W1008 Instruction is privileged
+test.68k:19: W1008 Instruction is privileged
+test.68k:20: W1008 Instruction is privileged
+test.68k:21: W1008 Instruction is privileged
+test.68k:22: W1008 Instruction is privileged
+test.68k:23: W1008 Instruction is privileged
+test.68k:24: W1008 Instruction is privileged
+test.68k:26: W1008 Instruction is privileged
+test.68k:27: W1008 Instruction is privileged
+test.68k:28: W1008 Instruction is privileged
+test.68k:29: W1008 Instruction is privileged
+test.68k:33: W1008 Instruction is privileged
+test.68k:50: W1000 Result of operation is undefined

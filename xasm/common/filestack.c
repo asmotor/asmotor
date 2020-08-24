@@ -309,11 +309,11 @@ fstk_Dump(void) {
 
         while (stack != NULL) {
             if (stack->name != NULL) {
-                strbuf_AppendFormat(buf, "%s(%d)", str_String(stack->name), stack->lineNumber);
+                strbuf_AppendFormat(buf, "%s:%d", str_String(stack->name), stack->lineNumber);
             }
             stack = list_GetPrev(stack);
 
-            strbuf_AppendStringZero(buf, stack != NULL ? "->" : ": ");
+            strbuf_AppendStringZero(buf, stack != NULL ? " -> " : ": ");
         }
     }
 
@@ -447,7 +447,7 @@ fstk_ProcessMacro(string* macroName) {
 
         lex_SetBuffer(newContext->lexBuffer);
         lex_SetState(LEX_STATE_NORMAL);
-        newContext->lineNumber = symbol->lineNumber;
+        newContext->lineNumber = 1;
         newContext->block.macro.symbol = symbol;
         newContext->block.macro.argument0 = g_newMacroArgument0;
         newContext->block.macro.arguments = g_newMacroArguments;

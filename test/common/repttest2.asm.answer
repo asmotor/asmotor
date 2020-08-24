@@ -6,29 +6,24 @@
 02
 FF
 FF
-W0003 repttest2.asm(19): Line 19
-W0003 repttest2.asm(20)->Macro1(1): Line 5
-W0003 repttest2.asm(20)->Macro1(2): Macro Line 2 Arg1 2 (Arg0 = w)
-W0003 repttest2.asm(20)->Macro1(4): Line 8
-W0003 repttest2.asm(20)->Macro1(5): Macro Line 4 3	
-repttest2.asm repttest2.asm 7
-W0003 repttest2.asm(20)->Macro1(8): Line 13
-W0003 repttest2.asm(20)->Macro1(12): Line 17
-W0003 repttest2.asm(21): Line 21
-W0003 repttest2.asm(22)->REPT(1): Line 23
-W0003 repttest2.asm(22)->REPT(2): Outer
-W0003 repttest2.asm(22)->REPT(3)->REPT(1): Line 26
-W0003 repttest2.asm(22)->REPT(3)->REPT(2): Inner
-W0003 repttest2.asm(22)->REPT(3)->REPT(4): Line 29
-W0003 repttest2.asm(22)->REPT(3)->REPT(11): Line 36
-W0003 repttest2.asm(22)->REPT(3)->REPT(1): Line 26
-W0003 repttest2.asm(22)->REPT(3)->REPT(2): Inner
-W0003 repttest2.asm(22)->REPT(3)->REPT(4): Line 29
-W0003 repttest2.asm(22)->REPT(3)->REPT(11): Line 36
-W0003 repttest2.asm(22)->REPT(16): Line 38
-W0003 repttest2.asm(41): Line 41
-W0003 repttest2.asm(43): Line 43
-W0003 repttest2.asm(51): Line 51
-W0003 repttest2.asm(57): Line 57
-W0003 repttest2.asm(64): Line 64
-$1$4
+repttest2.asm repttest2.asm 9
+$1$4repttest2.asm:19: W0003 Line 19
+repttest2.asm:20 -> Macro1:10: W0003 Line 13
+repttest2.asm:20 -> Macro1:14: W0003 Line 17
+repttest2.asm:20 -> Macro1:3: W0003 Line 5
+repttest2.asm:20 -> Macro1:4: W0003 Macro Line 2 Arg1 2 (Arg0 = w)
+repttest2.asm:20 -> Macro1:6: W0003 Line 8
+repttest2.asm:20 -> Macro1:7: W0003 Macro Line 4 3	
+repttest2.asm:21: W0003 Line 21
+repttest2.asm:22 -> REPT:16: W0003 Line 38
+repttest2.asm:22 -> REPT:1: W0003 Line 23
+repttest2.asm:22 -> REPT:2: W0003 Outer
+repttest2.asm:22 -> REPT:3 -> REPT:11: W0003 Line 36
+repttest2.asm:22 -> REPT:3 -> REPT:1: W0003 Line 26
+repttest2.asm:22 -> REPT:3 -> REPT:2: W0003 Inner
+repttest2.asm:22 -> REPT:3 -> REPT:4: W0003 Line 29
+repttest2.asm:41: W0003 Line 41
+repttest2.asm:43: W0003 Line 43
+repttest2.asm:51: W0003 Line 51
+repttest2.asm:57: W0003 Line 57
+repttest2.asm:64: W0003 Line 64

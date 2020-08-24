@@ -231,18 +231,10 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                         remove(str_String(outputFilename));
                     }
                 }
-            } 
+            }
 
+            err_PrintAll();
             if (xasm_TotalErrors > 0) {
-                err_PrintAll();
-
-                if (verbose) {
-                    printf("Encountered %u error%s", xasm_TotalErrors, xasm_TotalErrors > 1 ? "s" : "");
-                    if (xasm_TotalWarnings != 0)
-                        printf(" and %u warning%s\n", xasm_TotalWarnings, xasm_TotalWarnings > 1 ? "s" : "");
-                    else
-                        printf("\n");
-                }
                 rcode = EXIT_FAILURE;
             }
             fstk_Cleanup();

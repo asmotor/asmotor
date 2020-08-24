@@ -826,7 +826,7 @@ AA
 AB
 AC
 AD
-W1002 allcodes.asm(367): Consider using RLA instead
-W1002 allcodes.asm(378): Consider using RLCA instead
-W1002 allcodes.asm(389): Consider using RRA instead
-W1002 allcodes.asm(400): Consider using RRCA instead
+allcodes.asm:367: W1002 Consider using RLA instead
+allcodes.asm:378: W1002 Consider using RLCA instead
+allcodes.asm:389: W1002 Consider using RRA instead
+allcodes.asm:400: W1002 Consider using RRCA instead

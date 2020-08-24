@@ -1,10 +1,10 @@
-E0106 test_invalid.asm(5): Invalid second operand
-E1004 test_invalid.asm(6): Instruction not supported by selected CPU
-E1004 test_invalid.asm(7): Instruction not supported by selected CPU
-E0107 test_invalid.asm(8): Invalid operand
-E1004 test_invalid.asm(9): Instruction not supported by selected CPU
-E0107 test_invalid.asm(10): Invalid operand
-E1004 test_invalid.asm(11): Instruction not supported by selected CPU
-E1004 test_invalid.asm(12): Instruction not supported by selected CPU
-E0107 test_invalid.asm(13): Invalid operand
-E1004 test_invalid.asm(14): Instruction not supported by selected CPU
+test_invalid.asm:10: E0107 Invalid operand
+test_invalid.asm:11: E1004 Instruction not supported by selected CPU
+test_invalid.asm:12: E1004 Instruction not supported by selected CPU
+test_invalid.asm:13: E0107 Invalid operand
+test_invalid.asm:14: E1004 Instruction not supported by selected CPU
+test_invalid.asm:5: E0106 Invalid second operand
+test_invalid.asm:6: E1004 Instruction not supported by selected CPU
+test_invalid.asm:7: E1004 Instruction not supported by selected CPU
+test_invalid.asm:8: E0107 Invalid operand
+test_invalid.asm:9: E1004 Instruction not supported by selected CPU

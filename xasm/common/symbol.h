@@ -56,6 +56,7 @@ typedef enum {
 #define SYMF_FILE_EXPORT    0x100u      // symbol should be exported to sections local to this file
 #define SYMF_DATA           0x40000000u
 #define SYMF_CHIP           0x20000000u
+#define SYMF_USED           0x10000000u
 
 typedef struct Symbol {
     list_Data(struct Symbol);
@@ -104,7 +105,7 @@ extern SSymbol*
 sym_CreateGroup(string* name, EGroupType value);
 
 extern SSymbol*
-sym_CreateMacro(string* name, char* macroData, size_t macroSize);
+sym_CreateMacro(string* name, char* macroData, size_t macroSize, uint32_t lineNumber);
 
 extern SSymbol*
 sym_GetSymbol(string* name);

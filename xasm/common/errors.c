@@ -225,16 +225,16 @@ static void
 printError(const SPatch* patch, const SSymbol* symbol, char severity, size_t errorNumber, uint32_t* count, va_list args) {
     string_buffer* buf = strbuf_Create();
 
-    strbuf_AppendFormat(buf, "%c%04d ", severity, (int) errorNumber);
     if (patch != NULL) {
-        strbuf_AppendFormat(buf, "%s(%d): ", str_String(patch->filename), patch->lineNumber);
+        strbuf_AppendFormat(buf, "%s:%d: ", str_String(patch->filename), patch->lineNumber);
     } else if (symbol != NULL) {
-        strbuf_AppendFormat(buf, "%s(%d): ", str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+        strbuf_AppendFormat(buf, "%s:%d: ", str_String(symbol->fileInfo->fileName), symbol->lineNumber);
     } else {
         string* stack = fstk_Dump();
         strbuf_AppendString(buf, stack);
         str_Free(stack);
     }
+    strbuf_AppendFormat(buf, "%c%04d ", severity, (int) errorNumber);
 
     strbuf_AppendArgs(buf, getError(errorNumber), args);
 

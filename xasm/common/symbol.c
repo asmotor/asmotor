@@ -272,10 +272,11 @@ sym_CreateEqus(string* name, string* value) {
 }
 
 extern SSymbol*
-sym_CreateMacro(string* name, char* macroData, size_t macroSize) {
+sym_CreateMacro(string* name, char* macroData, size_t macroSize, uint32_t lineNumber) {
     SSymbol* symbol = createSymbolOfType(name, SYM_MACRO);
     if (symbol != NULL) {
         symbol->value.macro = str_CreateLength(macroData, macroSize);
+        symbol->lineNumber = lineNumber;
     }
     return symbol;
 }
@@ -473,11 +474,34 @@ sym_GetStringValueByName(const string* name) {
     return NULL;
 }
 
+static void
+markUsedSymbolsFromExpression(SExpression* expression) {
+    if (expression != NULL) {
+        if (expression->type == EXPR_SYMBOL) {
+            expression->value.symbol->flags |= SYMF_USED;
+        } else {
+            markUsedSymbolsFromExpression(expression->left);
+            markUsedSymbolsFromExpression(expression->right);
+        }
+    }
+}
+
+static void
+markUsedSymbols(void) {
+    for (SSection* section = sect_Sections; section != NULL; section = section->pNext) {
+        for (SPatch* patch = section->patches; patch != NULL; patch = patch->pNext) {
+            markUsedSymbolsFromExpression(patch->expression);
+        }
+    }
+}
+
 extern void
 sym_ErrorOnUndefined(void) {
+    markUsedSymbols();
+
     for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
         for (SSymbol* symbol = sym_hashedSymbols[i]; symbol; symbol = list_GetNext(symbol)) {
-            if (symbol->type == SYM_UNDEFINED)
+            if (symbol->type == SYM_UNDEFINED && (symbol->flags & SYMF_USED))
                 err_SymbolError(symbol, ERROR_SYMBOL_UNDEFINED, str_String(symbol->name));
         }
     }
