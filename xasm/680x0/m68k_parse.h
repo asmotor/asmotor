@@ -100,17 +100,13 @@ typedef struct {
     ESize displacementSize;
 } SModeRegisters;
 
-#define isImmediateFloat(MODE) ((MODE)->immediateSize >= SIZE_SINGLE)
-
 typedef struct {
     EAddrMode mode;
 
     uint16_t directRegister;
 
-    union {
-        SExpression* integer;
-        long double floating;
-    } immediate;
+    SExpression* immediateInteger;
+    long double immediateFloat;
     ESize immediateSize;
 
     SModeRegisters inner;
@@ -151,7 +147,7 @@ extern uint16_t
 m68k_GetEffectiveAddressField(SAddressingMode* mode);
 
 extern bool
-m68k_GetAddressingMode(SAddressingMode* addrMode);
+m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat);
 
 extern ESize
 m68k_GetSizeSpecifier(ESize defaultSize);
@@ -169,7 +165,7 @@ extern bool
 m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest);
 
 extern bool
-m68k_ParseCommonCpuFpu(SInstruction* pIns);
+m68k_ParseCommonCpuFpu(SInstruction* pIns, bool allowFloat);
 
 extern bool
 m68k_ParseDirective();

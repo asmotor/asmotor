@@ -455,7 +455,9 @@ m68k_OptimizeDisplacement(SModeRegisters* pRegs) {
 }
 
 bool
-m68k_GetAddressingMode(SAddressingMode* addrMode) {
+m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
+    addrMode->immediateInteger = NULL;
+    addrMode->immediateFloat = 0;
     addrMode->inner.baseRegister = REG_NONE;
     addrMode->inner.indexRegister = REG_NONE;
     addrMode->inner.indexScale = NULL;
@@ -508,7 +510,7 @@ m68k_GetAddressingMode(SAddressingMode* addrMode) {
         return true;
     }
 
-    if (lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
+    if (allowFloat && lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
         addrMode->mode = AM_FPUREG;
         addrMode->outer.baseRegister = REG_FP0 + (lex_Current.token - T_FPUREG_0);
         parse_GetToken();
@@ -518,13 +520,11 @@ m68k_GetAddressingMode(SAddressingMode* addrMode) {
     if (lex_Current.token == '#') {
         parse_GetToken();
         addrMode->mode = AM_IMM;
-        if (isImmediateFloat(addrMode)) {
-            addrMode->immediate.floating = parse_FloatExpression(4);
-            return true;
-        } else {
-            addrMode->immediate.integer = parse_Expression(4);
-            return addrMode->immediate.integer != NULL;
+        addrMode->immediateInteger = parse_Expression(4);
+        if (addrMode->immediateInteger == NULL && allowFloat) {
+            addrMode->immediateFloat = parse_FloatExpression(4);
         }
+        return true;
     }
 
     addrMode->outer.displacement = parse_Expression(4);

@@ -105,5 +105,5 @@ m68k_ParseFpuInstruction(void) {
         return true;
     }
 
-    return m68k_ParseCommonCpuFpu(instruction);
+    return m68k_ParseCommonCpuFpu(instruction, true);
 }
