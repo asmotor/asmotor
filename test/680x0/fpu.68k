@@ -2,4 +2,5 @@
 
         SECTION "FPUTest",CODE[0]
 
-        fabs.x     fp1
+        fabs.x      fp1
+        fsabs.x     12(a0),fp1

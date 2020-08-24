@@ -124,11 +124,12 @@ typedef struct {
     uint8_t cpu;
     uint8_t allowedSizes;
     uint8_t defaultSize;
+    uint16_t data;
     EAddrMode allowedSourceModes;
     EAddrMode allowedDestModes;
     EAddrMode allowedSourceModes020;
     EAddrMode allowDestModes020;
-    bool (* handler)(ESize size, SAddressingMode* src, SAddressingMode* dest);
+    bool (* handler)(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t data);
 } SInstruction;
 
 extern SExpression*

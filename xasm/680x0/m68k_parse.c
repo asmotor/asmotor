@@ -506,7 +506,7 @@ m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddress
         return true;
     }
 
-    return pIns->handler(inssz, src, dest);
+    return pIns->handler(inssz, src, dest, pIns->data);
 }
 
 bool

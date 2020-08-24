@@ -29,10 +29,9 @@
 #define FPU_INS 0xF200u
 
 
-static uint16_t parse_GetSourceSpecifier(ESize sz)
-{
-    switch(sz)
-    {
+static uint16_t
+getSourceSpecifier(ESize sz) {
+    switch(sz) {
         case SIZE_LONG:		return 0 << 10;
         case SIZE_SINGLE:	return 1 << 10;
         case SIZE_EXTENDED: return 2 << 10;
@@ -45,42 +44,75 @@ static uint16_t parse_GetSourceSpecifier(ESize sz)
 }
 
 
-static bool parse_FpuGeneric(ESize sz, uint16_t opmode, SAddressingMode* src, SAddressingMode* dest)
-{
+static bool
+genericInstruction(ESize sz, uint16_t opmode, SAddressingMode* src, SAddressingMode* dest) {
     uint16_t rm = src->mode == AM_FPUREG ? (uint16_t) 0x0000 : (uint16_t) 0x4000;
 
-    if(dest->mode != AM_FPUREG)
-    {
+    if(dest->mode != AM_FPUREG) {
         err_Error(MERROR_FPU_REGISTER_EXPECTED);
         return true;
     }
 
     sect_OutputConst16(FPU_INS | (rm ? m68k_GetEffectiveAddressField(src) : 0u));
-    sect_OutputConst16(rm | parse_GetSourceSpecifier(sz) | (dest->directRegister << 7) | opmode);
+    sect_OutputConst16(rm | getSourceSpecifier(sz) | (dest->directRegister << 7) | opmode);
     return m68k_OutputExtensionWords(src);
 }
 
 
-static bool parse_FABS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
-{
-    if((dest == NULL || dest->mode == AM_EMPTY) && src->mode == AM_FPUREG)
-    {
-        return parse_FABS(sz, src, src);
+static bool
+singleOperandInstruction(ESize sz, uint16_t opmode, SAddressingMode* src, SAddressingMode* dest) {
+    if((dest == NULL || dest->mode == AM_EMPTY) && src->mode == AM_FPUREG) {
+        dest = src;
     }
 
-    return parse_FpuGeneric(sz, 0x18, src, dest);
+    return genericInstruction(sz, opmode, src, dest);
 }
 
 
-static SInstruction s_FpuInstructions[] =
-{
+static bool
+FABS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+    return singleOperandInstruction(sz, 0x18, src, dest);
+}
+
+
+static bool
+FSABS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+    return singleOperandInstruction(sz, 0x58, src, dest);
+}
+
+
+static bool
+FDABS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+    return singleOperandInstruction(sz, 0x5C, src, dest);
+}
+
+
+static SInstruction
+s_FpuInstructions[] = {
     {   // FABS
         FPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_EMPTY,
         AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_FPUREG,
-        parse_FABS
-    }
+        FABS
+    },
+    {   // FSABS
+        FPUF_68040 | FPUF_68060,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0000,
+        AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_EMPTY,
+        AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_FPUREG,
+        FSABS
+    },
+    {   // FDABS
+        FPUF_68040 | FPUF_68060,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0000,
+        AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_EMPTY,
+        AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_FPUREG,
+        FDABS
+    },
 };
 
 
