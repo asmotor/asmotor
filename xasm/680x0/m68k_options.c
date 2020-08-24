@@ -27,6 +27,7 @@
 #include "errors.h"
 #include "options.h"
 
+#include "m68k_errors.h"
 #include "m68k_options.h"
 
 void
@@ -47,6 +48,15 @@ m68k_SetDefaults(SMachineOptions* options) {
 
 void
 m68k_OptionsUpdated(SMachineOptions* options) {
+    if ((options->fpu & FPUF_6888X) != 0 && (options->cpu & (CPUF_68020|CPUF_68030)) == 0) {
+        err_Error(MERROR_FPU_NEEDS_020_030);
+    }
+    if ((options->fpu & FPUF_68040) != 0 && (options->cpu & CPUF_68040) == 0) {
+        err_Error(MERROR_FPU_NEEDS_040);
+    }
+    if ((options->fpu & FPUF_68060) != 0 && (options->cpu & CPUF_68060) == 0) {
+        err_Error(MERROR_FPU_NEEDS_060);
+    }
 }
 
 bool
@@ -88,13 +98,13 @@ m68k_ParseOption(const char* option) {
                     case '1':
                     case '2':
                     case 'x':
-                        opt_Current->machineOptions->cpu = FPUF_6888X;
+                        opt_Current->machineOptions->fpu = FPUF_6888X;
                         return true;
                     case '4':
-                        opt_Current->machineOptions->cpu = FPUF_68040;
+                        opt_Current->machineOptions->fpu = FPUF_68040;
                         return true;
                     case '6':
-                        opt_Current->machineOptions->cpu = FPUF_68060;
+                        opt_Current->machineOptions->fpu = FPUF_68060;
                         return true;
                     default:
                         break;
@@ -111,4 +121,5 @@ m68k_ParseOption(const char* option) {
 void
 m68k_PrintOptions(void) {
     printf("    -mc<X>  Enable CPU 680X0\n");
+    printf("    -mf<X>  Enable FPU 6888x (1, 2), 68040 (4), 68060 (6)\n");
 }

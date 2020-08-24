@@ -489,6 +489,13 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         return true;
     }
 
+    if (allowFloat && lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
+        addrMode->mode = AM_FPUREG;
+        addrMode->directRegister = REG_FP0 + (lex_Current.token - T_FPUREG_0);
+        parse_GetToken();
+        return true;
+    }
+
     if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A7_IND) {
         addrMode->mode = AM_AIND;
         addrMode->outer.baseRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);
@@ -506,13 +513,6 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
     if (lex_Current.token >= T_68K_REG_A0_INC && lex_Current.token <= T_68K_REG_A7_INC) {
         addrMode->mode = AM_AINC;
         addrMode->outer.baseRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0_INC);
-        parse_GetToken();
-        return true;
-    }
-
-    if (allowFloat && lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
-        addrMode->mode = AM_FPUREG;
-        addrMode->outer.baseRegister = REG_FP0 + (lex_Current.token - T_FPUREG_0);
         parse_GetToken();
         return true;
     }

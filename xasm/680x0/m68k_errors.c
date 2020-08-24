@@ -31,7 +31,10 @@ static const char* g_errors[] = {
 	"MOVEM instruction skipped due to empty register list",
 	"CAS misaligned word or long access is unimplemented on 68060",
 	"FPU register expected",
-	"Instruction not supported by selected FPU"
+	"Instruction not supported by selected FPU",
+	"Selected FPU 6888x needs CPU 68020 or 68030",
+	"Selected FPU 68040 needs CPU 68040",
+	"Selected FPU 68060 needs CPU 68060",
 };
 
 const char*

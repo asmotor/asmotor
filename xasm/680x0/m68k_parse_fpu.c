@@ -63,7 +63,7 @@ static bool parse_FpuGeneric(ESize sz, uint16_t opmode, SAddressingMode* src, SA
 
 static bool parse_FABS(ESize sz, SAddressingMode* src, SAddressingMode* dest)
 {
-    if(dest == NULL && src->mode == AM_FPUREG)
+    if((dest == NULL || dest->mode == AM_EMPTY) && src->mode == AM_FPUREG)
     {
         return parse_FABS(sz, src, src);
     }
@@ -77,8 +77,8 @@ static SInstruction s_FpuInstructions[] =
     {   // FABS
         FPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_FPUREG | AM_EMPTY,
-        AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_NONE,
+        AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_EMPTY,
+        AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_FPUREG,
         parse_FABS
     }
 };

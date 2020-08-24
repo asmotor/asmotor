@@ -173,6 +173,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 
         case AM_DREG:
         case AM_AREG:
+        case AM_FPUREG:
         case AM_AIND:
         case AM_AINC:
         case AM_ADEC:
@@ -473,6 +474,8 @@ m68k_GetEffectiveAddressField(SAddressingMode* mode) {
                 return (uint16_t) ((0x6 << 3) | (mode->inner.baseRegister & 7u));
             else
                 return 0x6 << 3 | 0;
+        case AM_FPUREG:
+            return 0;
         default:
             internalerror("Unknown addressing mode");
     }
@@ -553,7 +556,7 @@ m68k_ParseCommonCpuFpu(SInstruction* pIns, bool allowFloat) {
                     return false;
                 }
             }
-        }
+        } 
     }
 
     if ((pIns->allowedSizes & insSz) == 0 && pIns->allowedSizes != 0 && pIns->defaultSize != 0) {

@@ -1,0 +1,5 @@
+        OPT     mc4,mf4
+
+        SECTION "FPUTest",CODE[0]
+
+        fabs.x     fp1
