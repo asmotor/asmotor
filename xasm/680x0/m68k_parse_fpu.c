@@ -60,7 +60,7 @@ genericInstruction(ESize sz, uint16_t opmode, SAddressingMode* src, SAddressingM
 
 
 static bool
-singleOperandInstruction(ESize sz, uint16_t opmode, SAddressingMode* src, SAddressingMode* dest) {
+possiblyUnaryInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
     if((dest == NULL || dest->mode == AM_EMPTY) && src->mode == AM_FPUREG) {
         dest = src;
     }
@@ -69,49 +69,39 @@ singleOperandInstruction(ESize sz, uint16_t opmode, SAddressingMode* src, SAddre
 }
 
 
-static bool
-FABS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-    return singleOperandInstruction(sz, 0x18, src, dest);
-}
-
-
-static bool
-FSABS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-    return singleOperandInstruction(sz, 0x58, src, dest);
-}
-
-
-static bool
-FDABS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-    return singleOperandInstruction(sz, 0x5C, src, dest);
-}
-
-
 static SInstruction
 s_FpuInstructions[] = {
     {   // FABS
         FPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x0000,
+        0x0018,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_EMPTY,
         AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_FPUREG,
-        FABS
+        possiblyUnaryInstruction
     },
     {   // FSABS
         FPUF_68040 | FPUF_68060,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x0000,
+        0x0058,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_EMPTY,
         AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_FPUREG,
-        FSABS
+        possiblyUnaryInstruction
     },
     {   // FDABS
         FPUF_68040 | FPUF_68060,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x0000,
+        0x005C,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_EMPTY,
         AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_FPUREG,
-        FDABS
+        possiblyUnaryInstruction
+    },
+    {   // FACOS
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x001C,
+        AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP, /*dest*/ AM_EMPTY,
+        AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG, /*dest*/ AM_FPUREG,
+        possiblyUnaryInstruction
     },
 };
 
