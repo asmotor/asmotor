@@ -92,17 +92,6 @@ handleUnitializedFill(const char* fill) {
     return false;
 }
 
-static void
-optionsUpdated(void) {
-    lex_VariadicRemoveAll(tokens_BinaryVariadicId);
-
-    lex_VariadicAddCharRange(tokens_BinaryVariadicId, '%', '%', 0);
-    lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[0], opt_Current->binaryLiteralCharacters[0], 1);
-    lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[1], opt_Current->binaryLiteralCharacters[1], 1);
-
-    xasm_Configuration->onOptionsUpdated(opt_Current->machineOptions);
-}
-
 static SOptions*
 allocOptions(void) {
     SOptions* nopt = (SOptions*) mem_Alloc(sizeof(SOptions));
@@ -136,7 +125,7 @@ opt_Pop(void) {
 
         list_Remove(opt_Current, opt_Current);
         mem_Free(nopt);
-        optionsUpdated();
+        opt_Updated();
     } else {
         err_Warn(WARN_OPTION_POP);
     }
@@ -188,7 +177,6 @@ opt_Parse(char* option) {
             break;
         }
     }
-    optionsUpdated();
 }
 
 void
@@ -205,7 +193,7 @@ opt_Open(void) {
     opt_Current->enableDebugInfo = false;
 
     xasm_Configuration->setDefaultOptions(opt_Current->machineOptions);
-    optionsUpdated();
+    opt_Updated();
 }
 
 void
@@ -216,3 +204,15 @@ opt_Close(void) {
         mem_Free(t);
     }
 }
+
+extern void
+opt_Updated(void) {
+    lex_VariadicRemoveAll(tokens_BinaryVariadicId);
+
+    lex_VariadicAddCharRange(tokens_BinaryVariadicId, '%', '%', 0);
+    lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[0], opt_Current->binaryLiteralCharacters[0], 1);
+    lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[1], opt_Current->binaryLiteralCharacters[1], 1);
+
+    xasm_Configuration->onOptionsUpdated(opt_Current->machineOptions);
+}
+

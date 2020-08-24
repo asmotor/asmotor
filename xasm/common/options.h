@@ -64,6 +64,9 @@ opt_Open(void);
 extern void
 opt_Close(void);
 
+extern void
+opt_Updated(void);
+
 extern SOptions* opt_Current;
 
 #endif /* XASM_COMMON_OPTIONS_H_INCLUDED_ */

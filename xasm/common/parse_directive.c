@@ -581,6 +581,7 @@ handleOpt() {
         }
     }
     lex_SetState(LEX_STATE_NORMAL);
+    opt_Updated();
     return true;
 }
 

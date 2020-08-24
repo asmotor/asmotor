@@ -193,6 +193,8 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
         --argc;
     }
 
+    opt_Updated();
+
     rcode = EXIT_SUCCESS;
 
     if (argc == 1) {
