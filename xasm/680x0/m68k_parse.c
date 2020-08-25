@@ -35,6 +35,21 @@
 #include "m68k_parse.h"
 #include "m68k_tokens.h"
 
+static uint32_t
+enable020Modes(uint32_t modes) {
+    uint32_t modes020 = modes & (AM_IMM_WHEN20 | AM_PCDISP_WHEN20 | AM_PCXDISP_WHEN20);
+    if (modes020 != 0) {
+        if (modes020 & AM_IMM_WHEN20)
+            modes |= AM_IMM;
+        if (modes020 & AM_PCDISP_WHEN20)
+            modes |= AM_PCDISP;
+        if (modes020 & AM_PCXDISP_WHEN20)
+            modes |= AM_PCXDISP;
+    }
+
+    return modes;
+}
+
 static bool
 getBitfield(SAddressingMode* mode) {
     if (parse_ExpectChar('{')) {
@@ -490,7 +505,7 @@ m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddress
 
     allowedSrc = pIns->allowedSourceModes;
     if (opt_Current->machineOptions->cpu >= CPUF_68020)
-        allowedSrc |= pIns->allowedSourceModes020;
+        allowedSrc = enable020Modes(allowedSrc);
 
     if ((allowedSrc & src->mode) == 0 && !(allowedSrc == 0 && src->mode == AM_EMPTY)) {
         err_Error(ERROR_SOURCE_OPERAND);
@@ -499,7 +514,7 @@ m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddress
 
     allowedDest = pIns->allowedDestModes;
     if (opt_Current->machineOptions->cpu >= CPUF_68020)
-        allowedDest |= pIns->allowDestModes020;
+        allowedDest = enable020Modes(allowedDest);
 
     if ((allowedDest & dest->mode) == 0 && !(allowedDest == 0 && dest->mode == AM_EMPTY)) {
         err_Error(ERROR_DEST_OPERAND);

@@ -43,8 +43,11 @@ typedef enum {
     AM_PCXDISP020     = 0x00080000,    // (bd,PC,Xn)
     AM_PREINDPCXD020  = 0x00100000,    // ([bd,PC,Xn],od)
     AM_POSTINDPCXD020 = 0x00200000,    // ([bd,PC],Xn,od)
-    AM_SYSREG         = 0x01000000,    // CCR
-    AM_FPUREG         = 0x02000000,    // FPU
+    AM_SYSREG         = 0x00400000,    // CCR
+    AM_IMM_WHEN20     = 0x01000000,    // #xxx when >='020
+    AM_PCDISP_WHEN20  = 0x02000000,    // d16(PC) when >='020
+    AM_PCXDISP_WHEN20 = 0x04000000,    // d8(PC,Xn) when >='020
+    AM_FPUREG         = 0x10000000,    // FPU
     AM_BITFIELD       = 0x20000000,    // {offset:width}
     AM_EMPTY          = 0x40000000
 } EAddrMode;
@@ -127,8 +130,6 @@ typedef struct {
     uint16_t data;
     EAddrMode allowedSourceModes;
     EAddrMode allowedDestModes;
-    EAddrMode allowedSourceModes020;
-    EAddrMode allowDestModes020;
     bool (* handler)(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t data);
 } SInstruction;
 

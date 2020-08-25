@@ -8,3 +8,5 @@
         OPT     mc3,mfx
 
         facos       fp2
+        fasin       fp2,fp3
+        fatan.w     #1,fp3

@@ -304,6 +304,8 @@ static SLexConstantsWord g_tokens[] = {
 	{ "FDABS",	T_FPU_FDABS		},
 	{ "FACOS",	T_FPU_FACOS		},
 	{ "FADD",	T_FPU_FADD		},
+	{ "FSADD",	T_FPU_FSADD		},
+	{ "FDADD",	T_FPU_FDADD		},
 	{ "FASIN",	T_FPU_FASIN		},
 	{ "FATAN",	T_FPU_FATAN		},
 	{ "FATANH",	T_FPU_FATANH	},
