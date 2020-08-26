@@ -1,6 +1,8 @@
         SECTION "FPUTest",CODE[0]
 
         OPT     mc4,mf4
+.loop
+        fbf.l       .loop
 
         fabs.x      fp1
         fsabs.x     12(a0),fp1
@@ -10,3 +12,5 @@
         facos       fp2
         fasin       fp2,fp3
         fatan.w     #1,fp3
+
+        fbf         .loop

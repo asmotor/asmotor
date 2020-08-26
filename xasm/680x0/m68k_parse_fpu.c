@@ -72,6 +72,35 @@ possiblyUnaryInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, 
 }
 
 
+static bool
+handleFBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
+    if (sz == SIZE_DEFAULT) {
+        sz = src->mode == AM_WORD ? SIZE_WORD : SIZE_LONG;
+    }
+
+    opmode |= 0xF080 | FPU_INS;
+
+    if (sz == SIZE_WORD) {
+        SExpression* expr = expr_CheckRange(expr_PcRelative(src->outer.displacement, 0), -32768, 32767);
+        opmode |= 0x0040;
+
+        if (expr != NULL) {
+            sect_OutputConst16(opmode);
+            sect_OutputExpr16(expr);
+            return true;
+        }
+
+        err_Error(ERROR_OPERAND_RANGE);
+        return true;
+    } else /*if (sz == SIZE_LONG)*/ {
+        SExpression* expr = expr_PcRelative(src->outer.displacement, 0);
+        sect_OutputConst16(opmode);
+        sect_OutputExpr32(expr);
+        return true;
+    }
+}
+
+
 static SInstruction
 s_FpuInstructions[] = {
     {   // FABS
@@ -145,6 +174,270 @@ s_FpuInstructions[] = {
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
         possiblyUnaryInstruction
+    },
+    {   // FATANH
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x000D,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FBF
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0000,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBEQ
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0001,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBOGT
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0002,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBOGE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0003,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBOLT
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0004,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBOLE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0005,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBOGL
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0006,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBOR
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0007,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBUN
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0008,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBUEQ
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0009,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBUGT
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x000A,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBUGE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x000B,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBULT
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x000C,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBULE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x000D,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBNE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x000E,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBT
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x000F,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBSF
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0010,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBSEQ
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0011,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBGT
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0012,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBGE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0013,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBLT
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0014,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBLE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0015,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBGL
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0016,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBGLE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0017,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBNGLE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0018,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBNGL
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x0019,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBNLE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x001A,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBNLT
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x001B,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBNGE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x001C,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBNGT
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x001D,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBSNE
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x001E,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
+    },
+    {   // FBST
+        FPUF_ALL,
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
+        0x001F,
+        AM_WORD | AM_LONG,
+        AM_NONE,
+        handleFBcc
     },
 };
 
