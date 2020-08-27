@@ -78,7 +78,7 @@ handleFBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
         sz = src->mode == AM_WORD ? SIZE_WORD : SIZE_LONG;
     }
 
-    opmode |= 0xF080 | FPU_INS;
+    opmode |= 0x0080 | FPU_INS;
 
     if (sz == SIZE_WORD) {
         SExpression* expr = expr_CheckRange(expr_PcRelative(src->outer.displacement, 0), -32768, 32767);
@@ -98,6 +98,22 @@ handleFBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
         sect_OutputExpr32(expr);
         return true;
     }
+}
+
+
+static bool
+handleFDBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
+    SExpression* expr = expr_CheckRange(expr_PcRelative(dest->outer.displacement, 0), -32768, 32767);
+
+    if (expr != NULL) {
+        sect_OutputConst16(FPU_INS | 0x0024 | src->directRegister);
+        sect_OutputConst16(opmode);
+        sect_OutputExpr16(expr);
+        return true;
+    }
+
+    err_Error(ERROR_OPERAND_RANGE);
+    return true;
 }
 
 
@@ -170,7 +186,7 @@ s_FpuInstructions[] = {
     {   // FATAN
         FPUF_6888X,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x000A,
+        0x000F,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
         possiblyUnaryInstruction
@@ -438,6 +454,38 @@ s_FpuInstructions[] = {
         AM_WORD | AM_LONG,
         AM_NONE,
         handleFBcc
+    },
+    {   // FCMP
+        FPUF_ALL,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0038,
+        AM_FPU_SOURCE,
+        AM_FPUREG,
+        genericInstruction
+    },
+    {   // FCOS
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x001D,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FCOSH
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0019,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FDBF
+        FPUF_6888X | FPUF_68040,
+        SIZE_DEFAULT, SIZE_DEFAULT,
+        0x0000,
+        AM_DREG,
+        AM_WORD | AM_LONG,
+        handleFDBcc
     },
 };
 
