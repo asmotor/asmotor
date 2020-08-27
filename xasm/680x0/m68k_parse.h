@@ -61,6 +61,7 @@ typedef enum {
     SIZE_DOUBLE = 0x10,
     SIZE_EXTENDED = 0x20,
     SIZE_PACKED = 0x40,
+    SIZE_PACKED_DYNAMIC = 0x80,
 } ESize;
 
 typedef enum {

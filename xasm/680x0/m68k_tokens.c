@@ -387,6 +387,8 @@ static SLexConstantsWord g_tokens[] = {
 	{ "FDBST",		T_FPU_FDBST		},
 
 	{ "FDIV",		T_FPU_FDIV		},
+	{ "FSDIV",		T_FPU_FSDIV		},
+	{ "FDDIV",		T_FPU_FDDIV		},
 	{ "FETOX",		T_FPU_FETOX		},
 	{ "FETOXM1",	T_FPU_FETOXM1	},
 	{ "FGETEXP",	T_FPU_FGETEXP	},
@@ -399,6 +401,8 @@ static SLexConstantsWord g_tokens[] = {
 	{ "FLOGNP1",	T_FPU_FLOGNP1	},
 	{ "FMOD",		T_FPU_FMOD		},
 	{ "FMOVE",		T_FPU_FMOVE		},
+	{ "FSMOVE",		T_FPU_FSMOVE	},
+	{ "FDMOVE",		T_FPU_FDMOVE	},
 	{ "FMOVECR",	T_FPU_FMOVECR	},
 	{ "FMOVEM",		T_FPU_FMOVEM	},
 	{ "FMUL",		T_FPU_FMUL		},

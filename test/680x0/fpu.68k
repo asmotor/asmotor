@@ -1,6 +1,8 @@
         SECTION "FPUTest",CODE[0]
 
         OPT     mc4,mf4
+        fdmove      (a7,d5.w),fp3
+
 .loop
         fbf.l       .loop
 
@@ -14,3 +16,11 @@
         fatan.w     #1,fp3
 
         fbf         .loop
+
+        fdbf        d7,.loop
+        fdbst       d7,.loop
+        
+        fintrz      fp0,fp7
+
+        fmove       fp1,fp3
+        fmove.p     fp3,-(a7){d3}
