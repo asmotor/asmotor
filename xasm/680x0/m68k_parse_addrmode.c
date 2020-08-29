@@ -496,6 +496,13 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         return true;
     }
 
+    if (lex_Current.token >= T_FPU_CR_FIRST && lex_Current.token <= T_FPU_CR_LAST) {
+        addrMode->mode = AM_FPUCR;
+        addrMode->directRegister = lex_Current.token - T_FPU_CR_FIRST;
+        parse_GetToken();
+        return true;
+    }
+
     if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A7_IND) {
         addrMode->mode = AM_AIND;
         addrMode->outer.baseRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);

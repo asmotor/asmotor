@@ -33,6 +33,57 @@
 #define AM_FPU_SOURCE (AM_FPU_SOURCE_020 | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP)
 
 
+
+#define TRAPcc(opmode) \
+    {   \
+        FPUF_6888X | FPUF_68040,    \
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,    \
+        opmode, \
+        AM_IMM | AM_EMPTY,  \
+        AM_EMPTY,   \
+        handleFTRAPcc   \
+    }
+
+#define FScc(opmode)    \
+    {   \
+        FPUF_6888X | FPUF_68040,    \
+        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT, \
+        opmode, \
+        AM_FPU_SOURCE,  \
+        AM_FPUREG,  \
+        handleFScc  \
+    }
+
+#define FDBcc(opmode)   \
+    {   \
+        FPUF_6888X | FPUF_68040,    \
+        SIZE_DEFAULT, SIZE_DEFAULT, \
+        opmode, \
+        AM_DREG,    \
+        AM_WORD | AM_LONG,  \
+        handleFDBcc \
+    }
+
+#define FBcc(opmode) \
+    {   \
+        FPUF_ALL,   \
+        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,    \
+        opmode, \
+        AM_WORD | AM_LONG,  \
+        AM_NONE,    \
+        handleFBcc  \
+    }
+
+#define TRANS(opmode) \
+    {   \
+        FPUF_6888X, \
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED, \
+        opmode, \
+        AM_FPU_SOURCE,  \
+        AM_EMPTY | AM_FPUREG,   \
+        possiblyUnaryInstruction    \
+    }
+
 static uint16_t
 getSourceSpecifier(ESize sz, SAddressingMode* addr) {
     if (addr->mode == AM_FPUREG) {
@@ -95,6 +146,15 @@ possiblyUnaryInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, 
 
 
 static bool
+unaryInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
+    dest->mode = AM_FPUREG;
+    dest->directRegister = REG_FP0;
+
+    return genericInstruction(sz, src, dest, opmode);
+}
+
+
+static bool
 handleFBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
     if (sz == SIZE_DEFAULT) {
         sz = src->mode == AM_WORD ? SIZE_WORD : SIZE_LONG;
@@ -149,9 +209,26 @@ handleFScc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
 }
 
 
+static bool handleMOVEControlRegister(ESize sz, SAddressingMode* ea, uint16_t opmode) {
+    if (sz != SIZE_LONG && sz != SIZE_DEFAULT) {
+        err_Error(MERROR_INSTRUCTION_SIZE);
+        return true;
+    }
+
+    sect_OutputConst16(FPU_INS | getEffectiveAddressField(ea));
+    sect_OutputConst16(opmode);
+    m68k_OutputExtensionWords(ea);
+
+    return true;
+}
+
 static bool
 handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
-    if (dest->mode == AM_FPUREG) {
+    if (dest->mode == AM_FPUCR) {
+        return handleMOVEControlRegister(sz, src, 0x8000 | (0 << 13) | (1 << (dest->directRegister + 10)));
+    } else if (src->mode == AM_FPUCR) {
+        return handleMOVEControlRegister(sz, dest, 0x8000 | (1 << 13) | (1 << (src->directRegister + 10)));
+    } else if (dest->mode == AM_FPUREG) {
         return genericInstruction(sz, src, dest, 0x0000);
     } else if (src->mode == AM_FPUREG) {
         SExpression* kFactor;
@@ -482,6 +559,49 @@ handleFSINCOS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t op
 }
 
 
+static bool
+handleFTRAPcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
+    uint16_t firstWord = FPU_INS | 0x0078;
+    bool outputWord = false;
+    bool outputLong = false;
+
+    if (sz == SIZE_DEFAULT && src->mode == AM_EMPTY) {
+        firstWord |= 0x0004;
+    } else if (src->mode == AM_IMM) {
+        if (sz == SIZE_DEFAULT) {
+            if (src->immediateInteger->isConstant) {
+                if (src->immediateInteger->value.integer >= 0 && src->immediateInteger->value.integer <= 65535) {
+                    sz = SIZE_WORD;
+                } else {
+                    sz = SIZE_LONG;
+                }
+            }
+        }
+        if (sz == SIZE_WORD) {
+            firstWord |= 0x0002;
+            outputWord = true;
+        } else if (sz == SIZE_LONG) {
+            firstWord |= 0x0003;
+            outputLong = true;
+        }
+    } else {
+        err_Error(ERROR_OPERAND);
+        return true;
+    }
+
+    sect_OutputConst16(firstWord);
+    sect_OutputConst16(opmode);
+
+    if (outputWord) {
+        sect_OutputExpr16(expr_CheckRange(src->immediateInteger, 0, 65535));
+    } else if (outputLong) {
+        sect_OutputExpr32(src->immediateInteger);
+    }
+    
+    return true;
+}
+
+
 static SInstruction
 s_FpuInstructions[] = {
     {   // FABS
@@ -508,14 +628,9 @@ s_FpuInstructions[] = {
         AM_EMPTY | AM_FPUREG,
         possiblyUnaryInstruction
     },
-    {   // FACOS
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x001C,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
+
+    TRANS(0x001C),  // FACOS
+
     {   // FADD
         FPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
@@ -540,286 +655,44 @@ s_FpuInstructions[] = {
         AM_FPUREG,
         genericInstruction
     },
-    {   // FASIN
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x000C,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
-    {   // FATAN
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x000F,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
-    {   // FATANH
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x000D,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
-    {   // FBF
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0000,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBEQ
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0001,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBOGT
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0002,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBOGE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0003,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBOLT
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0004,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBOLE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0005,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBOGL
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0006,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBOR
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0007,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBUN
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0008,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBUEQ
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0009,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBUGT
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x000A,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBUGE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x000B,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBULT
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x000C,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBULE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x000D,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBNE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x000E,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBT
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x000F,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBSF
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0010,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBSEQ
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0011,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBGT
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0012,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBGE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0013,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBLT
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0014,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBLE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0015,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBGL
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0016,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBGLE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0017,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBNGLE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0018,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBNGL
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x0019,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBNLE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x001A,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBNLT
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x001B,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBNGE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x001C,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBNGT
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x001D,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBSNE
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x001E,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
-    {   // FBST
-        FPUF_ALL,
-        SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,
-        0x001F,
-        AM_WORD | AM_LONG,
-        AM_NONE,
-        handleFBcc
-    },
+
+    TRANS(0x000C),  // FASIN
+    TRANS(0x000F),  // FATAN
+    TRANS(0x000D),  // FATANH
+
+    FBcc(0x0000),    // FBF
+    FBcc(0x0001),    // FBEQ
+    FBcc(0x0002),    // FBOGT
+    FBcc(0x0003),    // FBOGE
+    FBcc(0x0004),    // FBOLT
+    FBcc(0x0005),    // FBOLE
+    FBcc(0x0006),    // FBOGL
+    FBcc(0x0007),    // FBOR
+    FBcc(0x0008),    // FBUN
+    FBcc(0x0009),    // FBUEQ
+    FBcc(0x000A),    // FBUGT
+    FBcc(0x000B),    // FBUGE
+    FBcc(0x000C),    // FBULT
+    FBcc(0x000D),    // FBULE
+    FBcc(0x000E),    // FBNE
+    FBcc(0x000F),    // FBT
+    FBcc(0x0010),    // FBSF
+    FBcc(0x0011),    // FBSEQ
+    FBcc(0x0012),    // FBGT
+    FBcc(0x0013),    // FBGE
+    FBcc(0x0014),    // FBLT
+    FBcc(0x0015),    // FBLE
+    FBcc(0x0016),    // FBGL
+    FBcc(0x0017),    // FBGLE
+    FBcc(0x0018),    // FBNGLE
+    FBcc(0x0019),    // FBNGL
+    FBcc(0x001A),    // FBNLE
+    FBcc(0x001B),    // FBNLT
+    FBcc(0x001C),    // FBNGE
+    FBcc(0x001D),    // FBNGT
+    FBcc(0x001E),    // FBSNE
+    FBcc(0x001F),    // FBST
+
     {   // FCMP
         FPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
@@ -828,278 +701,43 @@ s_FpuInstructions[] = {
         AM_FPUREG,
         genericInstruction
     },
-    {   // FCOS
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x001D,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
-    {   // FCOSH
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x0019,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
-    {   // FDBF
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0000,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBEQ
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0001,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDOGT
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0002,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDOGE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0003,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDOLT
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0004,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDOLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0005,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FBOGL
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0006,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBOR
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0007,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBUN
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0008,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBUEQ
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0009,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBUGT
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000A,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBUGE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000B,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBULT
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000C,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBULE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000D,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBNE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000E,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBT
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000F,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBSF
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0010,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBSEQ
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0011,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBGT
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0012,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBGE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0013,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBLT
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0014,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0015,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBGL
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0016,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBGLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0017,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBNGLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0018,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBNGL
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0019,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBNLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001A,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBNLT
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001B,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBNGE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001C,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBNGT
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001D,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBSNE
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001E,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
-    {   // FDBST
-        FPUF_6888X | FPUF_68040,
-        SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001F,
-        AM_DREG,
-        AM_WORD | AM_LONG,
-        handleFDBcc
-    },
+
+    TRANS(0x001D),  // FCOS
+    TRANS(0x0019),  // FCOSH
+
+    FDBcc(0x0000),   // FDBF
+    FDBcc(0x0001),   // FDBEQ
+    FDBcc(0x0002),   // FDOGT
+    FDBcc(0x0003),   // FDOGE
+    FDBcc(0x0004),   // FDOLT
+    FDBcc(0x0005),   // FDOLE
+    FDBcc(0x0006),   // FBOGL
+    FDBcc(0x0007),   // FDBOR
+    FDBcc(0x0008),   // FDBUN
+    FDBcc(0x0009),   // FDBUEQ
+    FDBcc(0x000A),   // FDBUGT
+    FDBcc(0x000B),   // FDBUGE
+    FDBcc(0x000C),   // FDBULT
+    FDBcc(0x000D),   // FDBULE
+    FDBcc(0x000E),   // FDBNE
+    FDBcc(0x000F),   // FDBT
+    FDBcc(0x0010),   // FDBSF
+    FDBcc(0x0011),   // FDBSEQ
+    FDBcc(0x0012),   // FDBGT
+    FDBcc(0x0013),   // FDBGE
+    FDBcc(0x0014),   // FDBLT
+    FDBcc(0x0015),   // FDBLE
+    FDBcc(0x0016),   // FDBGL
+    FDBcc(0x0017),   // FDBGLE
+    FDBcc(0x0018),   // FDBNGLE
+    FDBcc(0x0019),   // FDBNGL
+    FDBcc(0x001A),   // FDBNLE
+    FDBcc(0x001B),   // FDBNLT
+    FDBcc(0x001C),   // FDBNGE
+    FDBcc(0x001D),   // FDBNGT
+    FDBcc(0x001E),   // FDBSNE
+    FDBcc(0x001F),   // FDBST
+
     {   // FDIV
         FPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
@@ -1129,7 +767,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0010,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FETOXM1
@@ -1137,7 +775,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0008,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FGETEXP
@@ -1145,7 +783,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x001E,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FGETMAN
@@ -1153,7 +791,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x001F,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FINT
@@ -1161,7 +799,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0001,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FINTRZ
@@ -1169,7 +807,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0003,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FLOG10
@@ -1177,7 +815,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0015,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FLOG2
@@ -1185,7 +823,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0016,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FLOGN
@@ -1193,7 +831,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0014,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FLOGNP1
@@ -1201,7 +839,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0006,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FMOD
@@ -1216,8 +854,8 @@ s_FpuInstructions[] = {
         FPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0000,
-        AM_FPU_SOURCE,
-        AM_FPUREG | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_WORD | AM_LONG,
+        AM_FPU_SOURCE | AM_FPUCR,
+        AM_FPUCR | AM_FPUREG | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_WORD | AM_LONG,
         handleMOVE
     },
     {   // FSMOVE
@@ -1281,7 +919,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x001A,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FSNEG
@@ -1289,7 +927,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x005A,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FDNEG
@@ -1297,7 +935,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x005E,
         AM_FPU_SOURCE,
-        AM_FPUREG,
+        AM_FPUREG | AM_EMPTY,
         possiblyUnaryInstruction
     },
     {   // FNOP
@@ -1340,262 +978,39 @@ s_FpuInstructions[] = {
         AM_FPUREG,
         genericInstruction
     },
-    {   // FSF
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0000,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSEQ
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0001,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSOGT
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0002,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSOGE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0003,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSOLT
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0004,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSOLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0005,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSOGL
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0006,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSOR
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0007,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSUN
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0008,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSUEQ
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0009,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSUGT
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000A,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSUGE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000B,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSULT
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000C,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSULE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000D,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSNE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000E,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FST
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x000F,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSSF
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0010,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSSEQ
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0011,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSGT
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0012,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSGE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0013,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSLT
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0014,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0015,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSGL
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0016,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSGLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0017,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSNGLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0018,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSNGL
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x0019,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSNLE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001A,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSNLT
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001B,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSNGE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001C,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSNGT
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001D,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSSNE
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001E,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
-    {   // FSST
-        FPUF_6888X | FPUF_68040,
-        SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT,
-        0x001F,
-        AM_FPU_SOURCE,
-        AM_FPUREG,
-        handleFScc
-    },
+    FScc(0x0000), // FSF
+    FScc(0x0001), // FSEQ
+    FScc(0x0002), // FSOGT
+    FScc(0x0003), // FSOGE
+    FScc(0x0004), // FSOLT
+    FScc(0x0005), // FSOLE
+    FScc(0x0006), // FSOGL
+    FScc(0x0007), // FSOR
+    FScc(0x0008), // FSUN
+    FScc(0x0009), // FSUEQ
+    FScc(0x000A), // FSUGT
+    FScc(0x000B), // FSUGE
+    FScc(0x000C), // FSULT
+    FScc(0x000D), // FSULE
+    FScc(0x000E), // FSNE
+    FScc(0x000F), // FST
+    FScc(0x0010), // FSSF
+    FScc(0x0011), // FSSEQ
+    FScc(0x0012), // FSGT
+    FScc(0x0013), // FSGE
+    FScc(0x0014), // FSLT
+    FScc(0x0015), // FSLE
+    FScc(0x0016), // FSGL
+    FScc(0x0017), // FSGLE
+    FScc(0x0018), // FSNGLE
+    FScc(0x0019), // FSNGL
+    FScc(0x001A), // FSNLE
+    FScc(0x001B), // FSNLT
+    FScc(0x001C), // FSNGE
+    FScc(0x001D), // FSNGT
+    FScc(0x001E), // FSSNE
+    FScc(0x001F), // FSST
+
     {   // FSGLDIV
         FPUF_6888X,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
@@ -1612,14 +1027,9 @@ s_FpuInstructions[] = {
         AM_FPUREG,
         genericInstruction
     },
-    {   // FSIN
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x000E,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
+
+    TRANS(0x000E),  // FSIN
+
     {   // FSINCOS
         FPUF_6888X,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
@@ -1628,16 +1038,11 @@ s_FpuInstructions[] = {
         AM_FPUREG,
         handleFSINCOS
     },
-    {   // FSINH
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x0002,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
+
+    TRANS(0x0002),  // FSINH
+
     {   // FSQRT
-        FPUF_6888X,
+        FPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0004,
         AM_FPU_SOURCE,
@@ -1673,7 +1078,7 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0064,
         AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
+        AM_FPUREG,
         genericInstruction
     },
     {   // FDSUB
@@ -1681,29 +1086,51 @@ s_FpuInstructions[] = {
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x006C,
         AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
+        AM_FPUREG,
         genericInstruction
     },
-    {   // FTAN
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x000A,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
-    {   // FTANH
-        FPUF_6888X,
-        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
-        0x0009,
-        AM_FPU_SOURCE,
-        AM_EMPTY | AM_FPUREG,
-        possiblyUnaryInstruction
-    },
+
+    TRANS(0x000A),  // FTAN
+    TRANS(0x0009),  // FTANH
+
     {   // FTENTOX
         FPUF_6888X,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
         0x0012,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+
+    TRAPcc(0x0000),  // FTRAPF
+    TRAPcc(0x0001),  // FTRAPEQ
+    TRAPcc(0x0002),  // FTRAPOGT
+    TRAPcc(0x0003),  // FTRAPOGE
+    TRAPcc(0x0004),  // FTRAPOLT
+    TRAPcc(0x0005),  // FTRAPOLE
+    TRAPcc(0x0006),  // FTRAPOGL
+    TRAPcc(0x0007),  // FTRAPOR
+    TRAPcc(0x0008),  // FTRAPUN
+    TRAPcc(0x0009),  // FTRAPUEQ
+    TRAPcc(0x000A),  // FTRAPUGT
+    TRAPcc(0x000B),  // FTRAPUGE
+    TRAPcc(0x000C),  // FTRAPULT
+    TRAPcc(0x000D),  // FTRAPULE
+    TRAPcc(0x000E),  // FTRAPNE
+    TRAPcc(0x000F),  // FTRAPT
+
+    {   // FTST
+        FPUF_ALL,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x003A,
+        AM_FPU_SOURCE,
+        AM_NONE,
+        unaryInstruction
+    },
+    {   // FTOTOX
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0011,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
         possiblyUnaryInstruction

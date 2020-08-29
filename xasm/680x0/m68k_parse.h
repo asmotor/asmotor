@@ -47,6 +47,7 @@ typedef enum {
     AM_IMM_WHEN20     = 0x01000000,    // #xxx when >='020
     AM_PCDISP_WHEN20  = 0x02000000,    // d16(PC) when >='020
     AM_PCXDISP_WHEN20 = 0x04000000,    // d8(PC,Xn) when >='020
+    AM_FPUCR          = 0x08000000,    // FPU control register
     AM_FPUREG         = 0x10000000,    // FPn
     AM_BITFIELD       = 0x20000000,    // {offset:width}
     AM_EMPTY          = 0x40000000

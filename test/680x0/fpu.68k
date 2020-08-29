@@ -1,7 +1,14 @@
 		SECTION "FPUTest",CODE[0]
 
+		OPT     mc3,mfx
+		ftentox		fp0
+
 		OPT     mc4,mf4
-		fdmove      (a7,d5.w),fp3
+
+		ftrapf
+		ftrapf	#$064
+
+		fdmove      4(a7,d5.w),fp3
 
 .loop
 		fbf.l       .loop
@@ -34,3 +41,7 @@
 		fmovem	fpcr,d0
 		
 		fsincos	fp1,fp2,fp3
+
+		ftrapf.w #87
+
+		
