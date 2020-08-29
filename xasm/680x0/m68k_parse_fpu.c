@@ -73,6 +73,11 @@ genericInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16
         return true;
     }
 
+    if (src->mode == AM_FPUREG && sz != SIZE_EXTENDED) {
+        err_Error(ERROR_SOURCE_OPERAND);
+        return true;
+    }
+
     sect_OutputConst16(FPU_INS | getEffectiveAddressField(src));
     sect_OutputConst16(getSourceSpecifier(sz, src) | ((dest->directRegister & 7) << 7) | opmode);
     return m68k_OutputExtensionWords(src);
@@ -456,6 +461,24 @@ handleSingleWordInstruction(ESize sz, SAddressingMode* src, SAddressingMode* des
     err_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(FPU_INS | opmode | getEffectiveAddressField(src));
     return true;
+}
+
+
+static bool
+handleFSINCOS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
+    if (parse_ExpectComma()) {
+        if (lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
+            uint16_t fps = lex_Current.token - T_FPUREG_0;
+            uint16_t fpc = dest->directRegister & 7;
+
+            parse_GetToken();
+
+            dest->directRegister = fps;
+
+            return genericInstruction(sz, src, dest, fpc | 0x0030);
+        }
+    }
+    return false;
 }
 
 
@@ -1572,6 +1595,118 @@ s_FpuInstructions[] = {
         AM_FPU_SOURCE,
         AM_FPUREG,
         handleFScc
+    },
+    {   // FSGLDIV
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0024,
+        AM_FPU_SOURCE,
+        AM_FPUREG,
+        genericInstruction
+    },
+    {   // FSGLMUL
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0027,
+        AM_FPU_SOURCE,
+        AM_FPUREG,
+        genericInstruction
+    },
+    {   // FSIN
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x000E,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FSINCOS
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x000E,
+        AM_FPU_SOURCE,
+        AM_FPUREG,
+        handleFSINCOS
+    },
+    {   // FSINH
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0002,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FSQRT
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0004,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FSSQRT
+        FPUF_68040 | FPUF_68060,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0041,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FDSQRT
+        FPUF_68040 | FPUF_68060,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0045,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FSUB
+        FPUF_ALL,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0028,
+        AM_FPU_SOURCE,
+        AM_FPUREG,
+        genericInstruction
+    },
+    {   // FSSUB
+        FPUF_68040 | FPUF_68060,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0064,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        genericInstruction
+    },
+    {   // FDSUB
+        FPUF_68040 | FPUF_68060,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x006C,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        genericInstruction
+    },
+    {   // FTAN
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x000A,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FTANH
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0009,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
+    },
+    {   // FTENTOX
+        FPUF_6888X,
+        SIZE_BYTE | SIZE_WORD | SIZE_LONG | SIZE_SINGLE | SIZE_DOUBLE | SIZE_EXTENDED | SIZE_PACKED, SIZE_EXTENDED,
+        0x0012,
+        AM_FPU_SOURCE,
+        AM_EMPTY | AM_FPUREG,
+        possiblyUnaryInstruction
     },
 };
 

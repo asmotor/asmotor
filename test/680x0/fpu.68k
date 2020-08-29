@@ -33,3 +33,4 @@
 		fmovem	fpiar/fpcr,-(sp)
 		fmovem	fpcr,d0
 		
+		fsincos	fp1,fp2,fp3
