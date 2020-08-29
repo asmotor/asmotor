@@ -110,7 +110,7 @@ createUniqueLabel() {
 	static uint32_t id = 0;
     char sym[32];
 
-    sprintf(sym, "$target%u", id++);
+    snprintf(sym, sizeof(sym), "$target%u", id++);
     return str_Create(sym);
 }
 

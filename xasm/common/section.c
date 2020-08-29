@@ -373,7 +373,7 @@ sect_OutputRel32(SExpression* expression) {
 	}
 }
 
-void
+extern void
 sect_OutputExpr32(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
 
@@ -402,15 +402,6 @@ sect_OutputFloat64(long double value) {
 	uint32_t* intValue = (uint32_t *) &floatValue;
 	sect_OutputConst32(intValue[0]);
 	sect_OutputConst32(intValue[1]);
-}
-
-
-void
-sect_OutputFloat80(long double value) {
-	uint16_t* intValue = (uint16_t *) &value;
-	for (int i = 0; i < 5; ++i) {
-		sect_OutputConst32(intValue[i]);
-	}
 }
 
 

@@ -121,9 +121,6 @@ sect_OutputFloat32(long double value);
 extern void
 sect_OutputFloat64(long double value);
 
-extern void
-sect_OutputFloat80(long double value);
-
 extern bool
 sect_Push(void);
 

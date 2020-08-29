@@ -427,16 +427,35 @@ lex_PeekChar(size_t index) {
     }
 }
 
+string*
+lex_PeekString(size_t length) {
+    string_buffer* buf = strbuf_Create();
+
+    for (size_t i = 0; i < length; ++i) {
+        strbuf_AppendChar(buf, lex_PeekChar(i));
+    }
+
+    string* result = strbuf_String(buf);
+    strbuf_Free(buf);
+
+    return result;
+}
+
+
 char
 lex_GetChar(void) {
+    char r;
+
     if (g_currentBuffer->charStack.count > 0) {
-        return g_currentBuffer->charStack.stack[--(g_currentBuffer->charStack.count)];
-    }
-    if (g_currentBuffer->index < g_currentBuffer->bufferSize) {
-        return g_currentBuffer->buffer[g_currentBuffer->index++];
+        r = g_currentBuffer->charStack.stack[--(g_currentBuffer->charStack.count)];
+    } else if (g_currentBuffer->index < g_currentBuffer->bufferSize) {
+        r =  g_currentBuffer->buffer[g_currentBuffer->index++];
     } else {
-        return 0;
+        r = 0;
     }
+
+    printf("lex_GetChar returning %02X:'%c'\n", r, r);
+    return r;
 }
 
 size_t

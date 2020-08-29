@@ -81,6 +81,9 @@ lex_SetBuffer(SLexerBuffer* buffer);
 extern char
 lex_PeekChar(size_t index);
 
+extern string*
+lex_PeekString(size_t length);
+
 extern char
 lex_GetChar(void);
 

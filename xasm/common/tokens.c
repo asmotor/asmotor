@@ -227,11 +227,12 @@ static bool
 parseFloat(size_t size) {
     bool r = false;
 
-    string* str = lex_GetString(size - 1);
-    if (lex_MatchChar('f')) {
+    string* str = lex_PeekString(size);
+    if (str_CharAt(str, -1) == 'f') {
         lex_Current.value.floating = strtold(str_String(str), NULL);
         r = true;
     }
+    str_Free(str);
 
     return r;
 }

@@ -21,6 +21,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(_M_IX86) || defined(_M_X64)
+#   define __STDC_IEC_559__
+#endif
+
 #if !defined(__STDC_IEC_559__)
 #   error "Requires IEEE 754 floating point!"
 #endif
@@ -131,7 +135,6 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     if (configuration->supportFloat) {
         assert(sizeof(float) == 4);
         assert(sizeof(double) == 8);
-        assert(sizeof(long double) == 16);
     }
     xasm_Configuration->defineTokens();
 

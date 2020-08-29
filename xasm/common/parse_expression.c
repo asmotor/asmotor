@@ -140,6 +140,8 @@ expressionPriority9(size_t maxStringConstLength) {
             parse_GetToken();
             return expr;
         }
+        case T_FLOAT:
+            return NULL;
         default: {
             if (opt_Current->allowReservedKeywordLabels) {
                 if (lex_Current.length > 0 && lex_Current.token >= T_FIRST_TOKEN) {

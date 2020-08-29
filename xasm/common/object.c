@@ -466,7 +466,7 @@ writeSection(FILE* fileHandle, SSection* section) {
 
 static void
 writeFileNames(FILE* fileHandle, SFileInfo** fileInfo, size_t fileCount) {
-	fputll(fileCount, fileHandle);
+	fputll((uint32_t) fileCount, fileHandle);
 	for (uint32_t i = 0; i < fileCount; ++i) {
 		fputsz(str_String(fileInfo[i]->fileName), fileHandle);
 		fputll(fileInfo[i]->crc32, fileHandle);
