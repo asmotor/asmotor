@@ -1,6 +1,9 @@
 		SECTION "FPUTest",CODE[0]
 
 		OPT     mc3,mfx
+
+		fadd.s	#1.2f,fp2
+
 		ftentox		fp0
 
 		OPT     mc4,mf4

@@ -16,9 +16,14 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if !defined(__STDC_IEC_559__)
+#   error "Requires IEEE 754 floating point!"
+#endif
 
 #if defined(_DEBUG) && defined(_WIN32)
 #include <crtdbg.h>
@@ -123,6 +128,11 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     sect_Init();
     sym_Init();
     tokens_Init(configuration->supportFloat);
+    if (configuration->supportFloat) {
+        assert(sizeof(float) == 4);
+        assert(sizeof(double) == 8);
+        assert(sizeof(long double) == 16);
+    }
     xasm_Configuration->defineTokens();
 
     opt_Open();

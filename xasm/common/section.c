@@ -397,12 +397,25 @@ sect_OutputFloat32(long double value) {
 
 
 void
-sect_OutputBinaryFile(string* filename) {
-	/* TODO: Handle minimum word size.
-	 * Pad file if necessary.
-	 * Read words and output in chosen endianness
-	 */
+sect_OutputFloat64(long double value) {
+	double floatValue = (double) value;
+	uint32_t* intValue = (uint32_t *) &floatValue;
+	sect_OutputConst32(intValue[0]);
+	sect_OutputConst32(intValue[1]);
+}
 
+
+void
+sect_OutputFloat80(long double value) {
+	uint16_t* intValue = (uint16_t *) &value;
+	for (int i = 0; i < 5; ++i) {
+		sect_OutputConst32(intValue[i]);
+	}
+}
+
+
+void
+sect_OutputBinaryFile(string* filename) {
 	FILE* fileHandle;
 
 	if ((filename = fstk_FindFile(filename)) != NULL && (fileHandle = fopen(str_String(filename), "rb")) != NULL) {
