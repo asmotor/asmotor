@@ -1,26 +1,35 @@
-        SECTION "FPUTest",CODE[0]
+		SECTION "FPUTest",CODE[0]
 
-        OPT     mc4,mf4
-        fdmove      (a7,d5.w),fp3
+		OPT     mc4,mf4
+		fdmove      (a7,d5.w),fp3
 
 .loop
-        fbf.l       .loop
+		fbf.l       .loop
 
-        fabs.x      fp1
-        fsabs.x     12(a0),fp1
+		fabs.x      fp1
+		fsabs.x     12(a0),fp1
 
-        OPT     mc3,mfx
+		OPT     mc3,mfx
 
-        facos       fp2
-        fasin       fp2,fp3
-        fatan.w     #1,fp3
+		facos       fp2
+		fasin       fp2,fp3
+		fatan.w     #1,fp3
 
-        fbf         .loop
+		fbf         .loop
 
-        fdbf        d7,.loop
-        fdbst       d7,.loop
-        
-        fintrz      fp0,fp7
+		fdbf        d7,.loop
+		fdbst       d7,.loop
+		
+		fintrz      fp0,fp7
 
-        fmove       fp1,fp3
-        fmove.p     fp3,-(a7){d3}
+		fmove       fp1,fp3
+		fmove.p     fp3,-(a7){d3}
+
+		fmovecr     #$32,fp5
+
+		fmovem	fp0/fp2,-(a0)
+		fmovem	12(a0,d0.w),fp0/fp2
+		fmovem	12(a0),fpiar
+		fmovem	fpiar/fpcr,-(sp)
+		fmovem	fpcr,d0
+		

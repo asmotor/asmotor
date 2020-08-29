@@ -508,6 +508,10 @@ static SLexConstantsWord g_tokens[] = {
 	{ "FP6",	T_FPUREG_6 },
 	{ "FP7",	T_FPUREG_7 },
 
+	{ "FPSR",	T_FPU_FPSR  },
+	{ "FPCR",	T_FPU_FPCR  },
+	{ "FPIAR",	T_FPU_FPIAR },
+
 	{ NULL, 0 }
 };
 

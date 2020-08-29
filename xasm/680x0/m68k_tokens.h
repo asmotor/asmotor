@@ -500,7 +500,7 @@ typedef	enum {
 	T_FPU_FTWOTOX,
 
 	T_FPU_FIRST = T_FPU_FABS,
-	T_FPU_LAST = T_FPU_FDMOVE,
+	T_FPU_LAST = T_FPU_FMOVEM,
 	//T_FPU_LAST = T_FPU_FTWOTOX,
 
 	T_FPUREG_0,
@@ -511,6 +511,10 @@ typedef	enum {
 	T_FPUREG_5,
 	T_FPUREG_6,
 	T_FPUREG_7,
+
+	T_FPU_FPSR,
+	T_FPU_FPCR,
+	T_FPU_FPIAR,
 
 } ETargetToken;
 

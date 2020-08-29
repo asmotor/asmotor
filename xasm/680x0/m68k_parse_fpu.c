@@ -168,6 +168,266 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
 }
 
 
+static bool
+handleFMOVECR(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
+    SExpression* expr = 
+        expr_Or(
+            expr_Const(((dest->directRegister & 7) << 7) | 0x5C00),
+            expr_CheckRange(src->immediateInteger, 0, 127));
+
+    sect_OutputConst16(FPU_INS);
+    sect_OutputExpr16(expr);
+
+    return true;
+}
+
+
+static bool
+getFpuRegister(uint16_t* outRegister) {
+    if (lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
+        *outRegister = (uint16_t) (lex_Current.token - T_FPUREG_0);
+        parse_GetToken();
+        return true;
+    }
+
+    return false;
+}
+
+static bool
+getRegisterRange(uint16_t* outStart, uint16_t* outEnd) {
+    if (getFpuRegister(outStart)) {
+        if (lex_Current.token == T_OP_SUBTRACT) {
+            parse_GetToken();
+            if (!getFpuRegister(outEnd))
+                return 0;
+            return true;
+        }
+        *outEnd = *outStart;
+        return true;
+    }
+    return false;
+}
+
+
+static bool
+parseRegisterList(uint16_t* result) {
+    uint16_t r;
+    uint16_t start;
+    uint16_t end;
+
+    if (lex_Current.token == '#') {
+        int32_t expr;
+        parse_GetToken();
+        expr = parse_ConstantExpression();
+        if (expr >= 0 && expr <= 255) {
+            *result = expr;
+            return true;
+        }
+        return false;
+    }
+
+    r = 0;
+
+    while (getRegisterRange(&start, &end)) {
+        if (start > end) {
+            err_Error(ERROR_OPERAND);
+            return false;
+        }
+
+        while (start <= end)
+            r |= 1 << start++;
+
+        if (lex_Current.token != T_OP_DIVIDE) {
+            *result = r;
+            return true;
+        }
+
+        parse_GetToken();
+    }
+
+    return false;
+}
+
+
+static uint8_t
+reverseBits(uint8_t bits) {
+    uint8_t r = 0;
+    int i;
+
+    for (i = 0; i < 8; ++i)
+        r |= (bits & 1 << i) ? 1 << (7 - i) : 0;
+
+    return r;
+}
+
+
+static uint16_t
+reverseRegisterList(uint16_t opmode) {
+    if ((opmode & (3 << 11)) == (2 << 11)) {
+        return (opmode & 0xFF00) | reverseBits((uint8_t)opmode);
+    }
+
+    return opmode;
+}
+
+
+static bool
+handleFMOVEMMemoryDest(SAddressingMode* dest, uint16_t opmode) {
+    if (parse_ExpectChar(',')) {
+        uint32_t allowedModes = (AM_AIND | AM_ADEC | AM_ADISP | AM_AXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_WORD | AM_LONG);
+        if (m68k_GetAddressingMode(dest, false) && ((dest->mode & allowedModes) != 0)) {
+            if (dest->mode != AM_ADEC) {
+                opmode |= 2 << 11;
+            }
+            opmode = reverseRegisterList(opmode);
+
+            uint16_t firstWord = getEffectiveAddressField(dest) | FPU_INS;
+            sect_OutputConst16(firstWord);
+            sect_OutputConst16(opmode);
+            m68k_OutputExtensionWords(dest);
+            return true;
+        } else {
+            err_Error(ERROR_DEST_OPERAND);
+        }
+    }
+    return false;
+}
+
+
+static bool
+handleFMOVEMMemorySrc(SAddressingMode* src, uint16_t opmode) {
+    uint32_t allowedModes = (AM_AIND | AM_AINC | AM_ADISP | AM_AXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_WORD | AM_LONG);
+    if ((src->mode & allowedModes) != 0) {
+        opmode = reverseRegisterList(opmode);
+        uint16_t firstWord = getEffectiveAddressField(src) | FPU_INS;
+        sect_OutputConst16(firstWord);
+        sect_OutputConst16(opmode);
+        m68k_OutputExtensionWords(src);
+        return true;
+    } else {
+        err_Error(ERROR_SOURCE_OPERAND);
+    }
+    return false;
+}
+
+
+static bool
+parseControlRegisterList(uint16_t* result) {
+    uint16_t word = 0;
+
+    for (;;) {
+        switch (lex_Current.token) {
+            case T_FPU_FPCR:
+                word |= 1 << 12;
+                break;
+            case T_FPU_FPSR:
+                word |= 1 << 11;
+                break;
+            case T_FPU_FPIAR:
+                word |= 1 << 10;
+                break;
+            default:
+                return false;
+        }
+
+        parse_GetToken();
+
+        if (lex_Current.token != T_OP_DIVIDE) {
+            *result = word;
+            return true;
+        }
+
+        parse_GetToken();
+    }
+}
+
+
+static bool
+handleFMOVEMControl(SAddressingMode* addr, uint16_t opmode, uint16_t regList, ESize sz) {
+    bool oneRegisterSelected = (regList & -regList) == regList;
+    uint16_t firstWord = FPU_INS | getEffectiveAddressField(addr);
+
+    opmode |= 0x8000 | regList;
+
+    if ((sz != SIZE_LONG) && (sz != SIZE_DEFAULT))
+        return err_Error(MERROR_INSTRUCTION_SIZE);
+
+    if (addr->mode == AM_DREG && !oneRegisterSelected) {
+        // if source is data register, only one destination register may be specified
+        return err_Error(ERROR_OPERAND);
+    }
+
+    if (addr->mode == AM_AREG && regList != (1 << 10)) {
+        // if source is address register, destination register must be FPIAR
+        return err_Error(ERROR_OPERAND);
+    }
+
+    sect_OutputConst16(firstWord);
+    sect_OutputConst16(opmode);
+    m68k_OutputExtensionWords(addr);
+
+    return true;
+}
+
+
+static bool
+handleFMOVEM(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
+    uint16_t regList;
+
+    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+        // FMOVEM Dn,<ea>
+        int reg = lex_Current.token - T_68K_REG_D0;
+        opmode = 0xE000 | (reg << 4) | (1 << 11);
+        parse_GetToken();
+
+        if ((sz != SIZE_EXTENDED) && (sz != SIZE_DEFAULT))
+            return err_Error(MERROR_INSTRUCTION_SIZE);
+
+        return handleFMOVEMMemoryDest(dest, opmode);
+    } else if (parseRegisterList(&regList)) {
+        // FMOVEM register_list,<ea>
+        opmode = 0xE000 | regList | (0 << 11);
+
+        if ((sz != SIZE_EXTENDED) && (sz != SIZE_DEFAULT))
+            return err_Error(MERROR_INSTRUCTION_SIZE);
+
+        return handleFMOVEMMemoryDest(dest, opmode);
+    } else if (parseControlRegisterList(&regList)) {
+        // FMOVEM control_register_list,<ea>
+        if (parse_ExpectChar(',') && m68k_GetAddressingMode(dest, false)) {
+            return handleFMOVEMControl(dest, 1 << 13, regList, sz);
+        }
+    } else if (m68k_GetAddressingMode(src, false)) {
+        if (parse_ExpectChar(',')) {
+            if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+                // FMOVEM <ea>,Dn
+                int reg = lex_Current.token - T_68K_REG_D0;
+                opmode = 0xC000 | (reg << 4) | (3 << 11);
+                parse_GetToken();
+
+                if ((sz != SIZE_EXTENDED) && (sz != SIZE_DEFAULT))
+                    return err_Error(MERROR_INSTRUCTION_SIZE);
+
+                return handleFMOVEMMemorySrc(dest, opmode);
+            } else if (parseRegisterList(&regList)) {
+                // FMOVEM <ea>,register_list
+                opmode = 0xC000 | regList | (2 << 11);
+
+                if ((sz != SIZE_EXTENDED) && (sz != SIZE_DEFAULT))
+                    return err_Error(MERROR_INSTRUCTION_SIZE);
+
+                return handleFMOVEMMemorySrc(src, opmode);
+            } else if (parseControlRegisterList(&regList)) {
+                // FMOVEM <ea>,control_register_list
+                return handleFMOVEMControl(src, 0 << 13, regList, sz);
+            }
+        }
+    }
+
+    return false;
+}
+
+
 static SInstruction
 s_FpuInstructions[] = {
     {   // FABS
@@ -921,6 +1181,22 @@ s_FpuInstructions[] = {
         AM_FPU_SOURCE,
         AM_FPUREG,
         genericInstruction
+    },
+    {   // FMOVECR
+        FPUF_6888X,
+        SIZE_EXTENDED, SIZE_EXTENDED,
+        0x0044,
+        AM_IMM,
+        AM_FPUREG,
+        handleFMOVECR
+    },
+    {	// FMOVEM
+        CPUF_ALL,
+        SIZE_EXTENDED | SIZE_LONG | SIZE_DEFAULT, SIZE_DEFAULT,
+        0x0000,
+        AM_NONE, 
+        AM_NONE,
+        handleFMOVEM
     },
 };
 
