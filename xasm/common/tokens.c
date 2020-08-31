@@ -395,6 +395,8 @@ tokens_Init(bool supportFloat) {
         lex_ConstantsDefineWord("__RSW", T_DIRECTIVE_RW);
     if (xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
         lex_ConstantsDefineWord("__RSL", T_DIRECTIVE_RL);
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_64BIT)
+        lex_ConstantsDefineWord("__RSD", T_DIRECTIVE_RD);
 
     if (xasm_Configuration->reserveByteName && xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
         lex_ConstantsDefineWord(xasm_Configuration->reserveByteName, T_DIRECTIVE_RB);
@@ -402,6 +404,8 @@ tokens_Init(bool supportFloat) {
         lex_ConstantsDefineWord(xasm_Configuration->reserveWordName, T_DIRECTIVE_RW);
     if (xasm_Configuration->reserveLongName && xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
         lex_ConstantsDefineWord(xasm_Configuration->reserveLongName, T_DIRECTIVE_RL);
+    if (xasm_Configuration->reserveDoubleName && xasm_Configuration->minimumWordSize <= MINSIZE_64BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->reserveDoubleName, T_DIRECTIVE_RD);
 
     if (xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
         lex_ConstantsDefineWord("__DSB", T_DIRECTIVE_DSB);
@@ -409,6 +413,8 @@ tokens_Init(bool supportFloat) {
         lex_ConstantsDefineWord("__DSW", T_DIRECTIVE_DSW);
     if (xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
         lex_ConstantsDefineWord("__DSL", T_DIRECTIVE_DSL);
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_64BIT)
+        lex_ConstantsDefineWord("__DSD", T_DIRECTIVE_DSD);
 
     if (xasm_Configuration->defineByteSpaceName && xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
         lex_ConstantsDefineWord(xasm_Configuration->defineByteSpaceName, T_DIRECTIVE_DSB);
@@ -416,6 +422,8 @@ tokens_Init(bool supportFloat) {
         lex_ConstantsDefineWord(xasm_Configuration->defineWordSpaceName, T_DIRECTIVE_DSW);
     if (xasm_Configuration->defineLongSpaceName && xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
         lex_ConstantsDefineWord(xasm_Configuration->defineLongSpaceName, T_DIRECTIVE_DSL);
+    if (xasm_Configuration->defineDoubleSpaceName && xasm_Configuration->minimumWordSize <= MINSIZE_64BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->defineDoubleSpaceName, T_DIRECTIVE_DSD);
 
     if (xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
         lex_ConstantsDefineWord("__DCB", T_DIRECTIVE_DB);
@@ -423,6 +431,8 @@ tokens_Init(bool supportFloat) {
         lex_ConstantsDefineWord("__DCW", T_DIRECTIVE_DW);
     if (xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
         lex_ConstantsDefineWord("__DCL", T_DIRECTIVE_DL);
+    if (xasm_Configuration->minimumWordSize <= MINSIZE_64BIT)
+        lex_ConstantsDefineWord("__DCD", T_DIRECTIVE_DD);
 
     if (xasm_Configuration->defineByteName && xasm_Configuration->minimumWordSize <= MINSIZE_8BIT)
         lex_ConstantsDefineWord(xasm_Configuration->defineByteName, T_DIRECTIVE_DB);
@@ -430,6 +440,8 @@ tokens_Init(bool supportFloat) {
         lex_ConstantsDefineWord(xasm_Configuration->defineWordName, T_DIRECTIVE_DW);
     if (xasm_Configuration->defineLongName && xasm_Configuration->minimumWordSize <= MINSIZE_32BIT)
         lex_ConstantsDefineWord(xasm_Configuration->defineLongName, T_DIRECTIVE_DL);
+    if (xasm_Configuration->defineDoubleName && xasm_Configuration->minimumWordSize <= MINSIZE_64BIT)
+        lex_ConstantsDefineWord(xasm_Configuration->defineDoubleName, T_DIRECTIVE_DD);
 
     if (xasm_Configuration->supportBanks)
         lex_ConstantsDefineWord("BANK", T_FUNC_BANK);

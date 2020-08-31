@@ -40,9 +40,9 @@ x65_xasmConfiguration = {
 	1,
 	"CODE",
 
-	"RB", "RW", NULL,
-	"DB", "DW", NULL,
-	"DS", NULL, NULL,
+	"RB", "RW", NULL, NULL,
+	"DB", "DW", NULL, NULL,
+	"DS", NULL, NULL, NULL,
 
 	x65_GetError,
 	x65_DefineTokens,

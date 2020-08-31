@@ -34,6 +34,7 @@
 #include "parse_block.h"
 #include "parse_directive.h"
 #include "parse_expression.h"
+#include "parse_float_expression.h"
 #include "parse_string.h"
 #include "parse_symbol.h"
 
@@ -361,7 +362,28 @@ handleDl() {
         if (expr != NULL) {
             sect_OutputExpr32(expr);
         } else {
-            sect_SkipBytes(4); //err_Error(ERROR_INVALID_EXPRESSION);
+            long double result;
+            if (xasm_Configuration->supportFloat && parse_TryFloatExpression(4, &result)) {
+                sect_OutputFloat32(result);
+            } else {
+                sect_SkipBytes(4); //err_Error(ERROR_INVALID_EXPRESSION);
+            }
+        }
+    } while (lex_Current.token == ',');
+
+    return true;
+}
+
+static bool
+handleDd() {
+    do {
+        parse_GetToken();
+
+        long double result;
+        if (parse_TryFloatExpression(8, &result)) {
+            sect_OutputFloat64(result);
+        } else {
+            sect_SkipBytes(8); //err_Error(ERROR_INVALID_EXPRESSION);
         }
     } while (lex_Current.token == ',');
 
@@ -622,6 +644,7 @@ static SDirective g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
         {handleRs,        1},
         {handleRs,        2},
         {handleRs,        4},
+        {handleRs,        8},
         {handlePrintt,    0},
         {handlePrintv,    0},
         {handlePrintf,    0},
@@ -636,9 +659,11 @@ static SDirective g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
         {defineSpace,     1},
         {defineSpace,     2},
         {defineSpace,     4},
+        {defineSpace,     8},
         {handleDb,        0},
         {handleDw,        0},
         {handleDl,        0},
+        {handleDd,        0},
         {handleSection,   0},
         {handleOrg,       0},
         {handleShift,     0},

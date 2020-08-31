@@ -40,9 +40,9 @@ g_680x0Configuration = {
 	8,
 	"CODE",
 
-	"RS.B", "RS.W", "RS.L",
-	"DC.B", "DC.W", "DC.L",
-	"DS.B", "DS.W", "DS.L",
+	"RS.B", "RS.W", "RS.L", "RS.D",
+	"DC.B", "DC.W", "DC.L", "RS.D",
+	"DS.B", "DS.W", "DS.L", "RS.D",
 
 	m68k_GetError,
 	m68k_DefineTokens,

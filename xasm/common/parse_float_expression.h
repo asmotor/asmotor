@@ -21,6 +21,9 @@
 
 #include "expression.h"
 
+extern bool
+parse_TryFloatExpression(size_t maxStringConstLength, long double* result);
+
 extern long double
 parse_FloatExpression(size_t maxStringConstLength);
 

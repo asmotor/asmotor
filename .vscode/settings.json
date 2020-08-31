@@ -29,5 +29,6 @@
   "[asm.z80]": {
       "editor.tabSize": 8,
       "editor.insertSpaces": false
-  }
+  },
+  "C_Cpp.errorSquiggles": "Enabled"
 }

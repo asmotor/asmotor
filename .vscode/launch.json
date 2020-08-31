@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(Win) motor68k",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "make",
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/Debug/motor68k.exe",
+            "args": ["-ofpu.bin", "-fb", "fpu.68k"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/test/680x0",
+            "environment": [],
+            "externalConsole": false
+        },
+        {
             "name": "Debug xlink",
             "type": "cppdbg",
             "request": "launch",

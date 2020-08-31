@@ -47,6 +47,7 @@ typedef enum {
     MINSIZE_8BIT = 1,
     MINSIZE_16BIT = 2,
     MINSIZE_32BIT = 4,
+    MINSIZE_64BIT = 8,
 } EMinimumWordSize;
 
 typedef struct Configuration {
@@ -69,14 +70,17 @@ typedef struct Configuration {
     const char* reserveByteName;
     const char* reserveWordName;
     const char* reserveLongName;
+    const char* reserveDoubleName;
 
     const char* defineByteName;
     const char* defineWordName;
     const char* defineLongName;
+    const char* defineDoubleName;
 
     const char* defineByteSpaceName;
     const char* defineWordSpaceName;
     const char* defineLongSpaceName;
+    const char* defineDoubleSpaceName;
 
     const char* (*getMachineError)(size_t errorNumber);
     void (*defineTokens)(void);

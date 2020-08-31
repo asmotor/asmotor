@@ -39,9 +39,9 @@ static SConfiguration x10c_XasmConfiguration = {
 	2,
 	"CODE",
 	
-	NULL, "RW", "RL",
-	NULL, "DW", "DL",
-	NULL, "DSW", NULL,
+	NULL, "RW", "RL", NULL,
+	NULL, "DW", "DL", NULL,
+	NULL, "DSW", NULL, NULL,
 
 	x10c_GetError,
 	x10c_DefineTokens,

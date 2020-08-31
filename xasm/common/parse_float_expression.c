@@ -156,6 +156,13 @@ expressionPriority0(size_t maxStringConstLength, long double* result) {
     }
 }
 
+
+extern bool
+parse_TryFloatExpression(size_t maxStringConstLength, long double* result) {
+    return expressionPriority0(maxStringConstLength, result);
+}
+
+
 extern long double
 parse_FloatExpression(size_t maxStringConstLength) {
     long double result;

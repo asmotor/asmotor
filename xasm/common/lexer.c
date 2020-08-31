@@ -454,7 +454,6 @@ lex_GetChar(void) {
         r = 0;
     }
 
-    printf("lex_GetChar returning %02X:'%c'\n", r, r);
     return r;
 }
 

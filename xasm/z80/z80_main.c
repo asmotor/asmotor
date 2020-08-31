@@ -40,9 +40,9 @@ z80_XasmConfiguration = {
 	1,
 	"HOME",
 
-	"RB", "RW", NULL,
-	"DB", "DW", NULL,
-	"DS", NULL, NULL,
+	"RB", "RW", NULL, NULL,
+	"DB", "DW", NULL, NULL,
+	"DS", NULL, NULL, NULL,
 
 	z80_GetError,
 	z80_DefineTokens,

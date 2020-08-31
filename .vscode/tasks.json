@@ -7,6 +7,9 @@
             "label": "make",
             "type": "shell",
             "command": "./b.sh",
+            "windows": {
+                "command": ".\\b.ps1"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true

@@ -39,9 +39,9 @@ static SConfiguration g_xasmConfiguration = {
 	1,
 	"CODE",
 
-	"RB", "RW", NULL,
-	"DB", "DW", NULL,
-	"DSB", "DSW", NULL,
+	"RB",  "RW",  NULL, NULL,
+	"DB",  "DW",  NULL, NULL,
+	"DSB", "DSW", NULL, NULL,
 
 	schip_GetError,
 	schip_DefineTokens,

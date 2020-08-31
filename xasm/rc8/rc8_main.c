@@ -40,9 +40,9 @@ g_xasmConfiguration = {
 	1,
 	"CODE",
 
-	"RB", "RW", NULL,
-	"DB", "DW", NULL,
-	"DS", NULL, NULL,
+	"RB", "RW", NULL, NULL,
+	"DB", "DW", NULL, NULL,
+	"DS", NULL, NULL, NULL,
 
 	rc8_GetError,
 	rc8_DefineTokens,

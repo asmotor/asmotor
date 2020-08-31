@@ -39,9 +39,9 @@ static SConfiguration g_xasmConfiguration = {
 	8,
 	"CODE",
 
-	"RB", "RH", "RW",
-	"DB", "DH", "DW",
-	"DSB", "DSH", "DSW",
+	"RB",  "RH",  "RW",  NULL,
+	"DB",  "DH",  "DW",  NULL,
+	"DSB", "DSH", "DSW", NULL,
 
 	mips_GetError,
 	mips_DefineTokens,
