@@ -22,7 +22,10 @@
                     "${workspaceFolder}/**"
                 ],
                 "limitSymbolsToIncludedHeaders": true
-            }
+            },
+            "forcedInclude": [
+                "${workspaceFolder}/xasm/common/errors.h"
+            ]
         },
         {
             "name": "Win32",

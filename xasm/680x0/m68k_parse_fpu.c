@@ -32,11 +32,12 @@
 #define AM_FPU_SOURCE_020 (AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_FPUREG)
 #define AM_FPU_SOURCE (AM_FPU_SOURCE_020 | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP)
 
+// 68080 - FTRAPcc
 
 
 #define TRAPcc(opmode) \
     {   \
-        FPUF_6888X | FPUF_68040,    \
+        FPUF_6888X | FPUF_68040SP | FPUF_68060SP,    \
         SIZE_WORD | SIZE_LONG, SIZE_DEFAULT,    \
         opmode, \
         AM_IMM | AM_EMPTY,  \
@@ -87,7 +88,7 @@
 static uint16_t
 getSourceSpecifier(ESize sz, SAddressingMode* addr) {
     if (addr->mode == AM_FPUREG) {
-        return (addr->directRegister & 7) << 10;
+        return addr->directRegister << 10;
     } else {
         switch(sz) {
             case SIZE_LONG:		        return 0x4000 | (0 << 10);
@@ -130,7 +131,7 @@ genericInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16
     }
 
     sect_OutputConst16(FPU_INS | getEffectiveAddressField(src));
-    sect_OutputConst16(getSourceSpecifier(sz, src) | ((dest->directRegister & 7) << 7) | opmode);
+    sect_OutputConst16(getSourceSpecifier(sz, src) | (dest->directRegister << 7) | opmode);
     return m68k_OutputExtensionWords(src);
 }
 
@@ -148,7 +149,7 @@ possiblyUnaryInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, 
 static bool
 unaryInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
     dest->mode = AM_FPUREG;
-    dest->directRegister = REG_FP0;
+    dest->directRegister = 0;
 
     return genericInstruction(sz, src, dest, opmode);
 }
@@ -188,7 +189,7 @@ handleFDBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmo
     SExpression* expr = expr_CheckRange(expr_PcRelative(dest->outer.displacement, 0), -32768, 32767);
 
     if (expr != NULL) {
-        sect_OutputConst16(FPU_INS | 0x0048 | (src->directRegister & 7));
+        sect_OutputConst16(FPU_INS | 0x0048 | src->directRegister);
         sect_OutputConst16(opmode);
         sect_OutputExpr16(expr);
         return true;
@@ -269,7 +270,7 @@ static bool
 handleFMOVECR(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
     SExpression* expr = 
         expr_Or(
-            expr_Const(((dest->directRegister & 7) << 7) | 0x5C00),
+            expr_Const((dest->directRegister << 7) | 0x5C00),
             expr_CheckRange(src->immediateInteger, 0, 127));
 
     sect_OutputConst16(FPU_INS);
@@ -546,7 +547,7 @@ handleFSINCOS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t op
     if (parse_ExpectComma()) {
         if (lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
             uint16_t fps = lex_Current.token - T_FPUREG_0;
-            uint16_t fpc = dest->directRegister & 7;
+            uint16_t fpc = dest->directRegister;
 
             parse_GetToken();
 

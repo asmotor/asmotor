@@ -250,6 +250,12 @@ static SLexConstantsWord g_tokens[] = {
 	{ "IACR1",	T_68K_REG_IACR1	},
 	{ "DACR0",	T_68K_REG_DACR0	},
 	{ "DACR1",	T_68K_REG_DACR1	},
+	{ "BUSCR",	T_68K_REG_BUSCR	},
+	{ "PCR",	T_68K_REG_PCR	},
+	{ "BRK",	T_68K_REG_BRK	},
+	{ "CYC",	T_68K_REG_CYC	},
+	{ "BPC",	T_68K_REG_BPC	},
+	{ "BPW",	T_68K_REG_BPW	},
 
 	{ "PC",		T_68K_REG_PC		},
 	{ "(PC)",	T_68K_REG_PC_IND	},

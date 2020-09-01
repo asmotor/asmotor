@@ -102,7 +102,8 @@ static char* g_errors[] = {
     "Object file does not support expression",
     "Invalid MACRO argument",
     "Not a string member function returning int",
-    "Too many files specified on command line"
+    "Too many files specified on command line",
+    "Extended precision floating point not supported"
 };
 
 static const char*

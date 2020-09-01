@@ -25,12 +25,17 @@
 #define CPUF_68030 0x08
 #define CPUF_68040 0x10
 #define CPUF_68060 0x20
+#define CPUF_68080 0x40
 
-#define CPUF_ALL 0x3F
+#define CPUF_ALL 0x7F
 
-#define FPUF_6888X 0x01
-#define FPUF_68040 0x02
-#define FPUF_68060 0x04
+#define FPUF_6888X   0x01
+#define FPUF_68040   0x02
+#define FPUF_68040SP 0x04
+#define FPUF_68060   0x08
+#define FPUF_68060SP 0x10
+#define FPUF_68080   0x20
+#define FPUF_68080SP 0x40
 
 #define FPUF_ALL 0x07
 

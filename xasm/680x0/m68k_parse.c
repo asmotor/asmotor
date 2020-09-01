@@ -123,6 +123,13 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
                     sect_OutputFloat32(mode->immediateFloat);
                     return true;
                 }
+                case SIZE_DOUBLE: {
+                    sect_OutputFloat64(mode->immediateFloat);
+                    return true;
+                }
+                case SIZE_EXTENDED: {
+                    err_Error(ERROR_EXTENTED_PRECISION_UNSUPPORTED);
+                }
             }
         }
         case AM_WORD: {

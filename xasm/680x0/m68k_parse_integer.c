@@ -1523,11 +1523,11 @@ typedef struct {
 
 SControlRegister g_controlRegister[] = {
     {// SFC
-        CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         0x000
     },
     {// DFC
-        CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         0x001
     },
     {// USP
@@ -1535,47 +1535,47 @@ SControlRegister g_controlRegister[] = {
         0x800
     },
     {// VBR
-        CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68010 | CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         0x801
     },
     {// CACR
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         0x002
     },
     {// CAAR
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040,
         0x802
     },
     {// MSP
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040,
         0x803
     },
     {// ISP
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040,
         0x804
     },
     {// TC
-        CPUF_68040 | CPUF_68060,
+        CPUF_68040 | CPUF_68060 | CPUF_68080,
         0x003
     },
     {// ITT0
-        CPUF_68040 | CPUF_68060,
+        CPUF_68040 | CPUF_68060 | CPUF_68080,
         0x004
     },
     {// ITT1
-        CPUF_68040 | CPUF_68060,
+        CPUF_68040 | CPUF_68060 | CPUF_68080,
         0x005
     },
     {// DTT0
-        CPUF_68040 | CPUF_68060,
+        CPUF_68040 | CPUF_68060 | CPUF_68080,
         0x006
     },
     {// DTT1
-        CPUF_68040 | CPUF_68060,
+        CPUF_68040 | CPUF_68060 | CPUF_68080,
         0x007
     },
     {// MMUSR
-        CPUF_68040 | CPUF_68060,
+        CPUF_68040,
         0x805
     },
     {// URP
@@ -1601,6 +1601,30 @@ SControlRegister g_controlRegister[] = {
     {// DACR1
         CPUF_68040,
         0x007
+    },
+    {// BUSCR
+        CPUF_68060 | CPUF_68080,
+        0x008
+    },
+    {// PCR
+        CPUF_68060,
+        0x807
+    },
+    {// BRK
+        CPUF_68080,
+        0x009
+    },
+    {// CYC
+        CPUF_68080,
+        0x809
+    },
+    {// BPC
+        CPUF_68080,
+        0x80C
+    },
+    {// BPW
+        CPUF_68080,
+        0x80D
     },
 };
 
@@ -1888,7 +1912,7 @@ g_integerInstructions[] = {
         handleBitInstruction
     },
     {	// BFCHG
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0xEAC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, 
@@ -1896,7 +1920,7 @@ g_integerInstructions[] = {
         handleUnaryBitfieldInstruction
     },
     {	// BFCLR
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0xECC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD,
@@ -1904,7 +1928,7 @@ g_integerInstructions[] = {
         handleUnaryBitfieldInstruction
     },
     {	// BFEXTS
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0xEBC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, 
@@ -1912,7 +1936,7 @@ g_integerInstructions[] = {
         handleBinaryBitfieldInstruction
     },
     {	// BFEXTU
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0xE9C0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD,
@@ -1920,7 +1944,7 @@ g_integerInstructions[] = {
         handleBinaryBitfieldInstruction
     },
     {	// BFFFO
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0xEDC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD,
@@ -1928,7 +1952,7 @@ g_integerInstructions[] = {
         handleBinaryBitfieldInstruction
     },
     {	// BFINS
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0xEFC0,
         AM_DREG,
@@ -1936,7 +1960,7 @@ g_integerInstructions[] = {
         handleBFINS
     },
     {	// BFSET
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0xEEC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, 
@@ -1944,7 +1968,7 @@ g_integerInstructions[] = {
         handleUnaryBitfieldInstruction
     },
     {	// BFTST
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0xE8C0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, 
@@ -2000,7 +2024,7 @@ g_integerInstructions[] = {
         handleCALLM
     },
     {	// CAS
-        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060,
+        CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0000,
         AM_DREG, 
