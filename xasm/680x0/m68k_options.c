@@ -86,6 +86,9 @@ m68k_ParseOption(const char* option) {
                     case 6:
                         opt_Current->machineOptions->cpu = CPUF_68060;
                         return true;
+                    case 8:
+                        opt_Current->machineOptions->cpu = CPUF_68080;
+                        return true;
                     default:
                         break;
                 }
@@ -105,6 +108,9 @@ m68k_ParseOption(const char* option) {
                         return true;
                     case '6':
                         opt_Current->machineOptions->fpu = FPUF_68060;
+                        return true;
+                    case '8':
+                        opt_Current->machineOptions->fpu = FPUF_68080;
                         return true;
                     default:
                         break;

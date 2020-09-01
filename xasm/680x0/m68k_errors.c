@@ -35,6 +35,7 @@ static const char* g_errors[] = {
 	"Selected FPU 6888x needs CPU 68020 or 68030",
 	"Selected FPU 68040 needs CPU 68040",
 	"Selected FPU 68060 needs CPU 68060",
+	"Not an allowed 68080 mode"
 };
 
 const char*

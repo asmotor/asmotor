@@ -148,6 +148,48 @@ checkAvailableSpace(uint32_t count) {
 
 /* Public functions */
 
+uint32_t
+sect_CurrentSize(void) {
+	return sect_Current->usedSpace;
+}
+
+
+void
+sect_OutputConst16At(uint16_t value, uint32_t offset) {
+	if (offset + 2 <= sect_CurrentSize()) {
+		switch (currentSectionType()) {
+			case GROUP_TEXT: {
+				switch (opt_Current->endianness) {
+					case ASM_LITTLE_ENDIAN: {
+						sect_Current->data[offset++] = (uint8_t) (value);
+						sect_Current->data[offset++] = (uint8_t) (value >> 8u);
+						break;
+					}
+					case ASM_BIG_ENDIAN: {
+						sect_Current->data[offset++] = (uint8_t) (value >> 8u);
+						sect_Current->data[offset++] = (uint8_t) (value);
+						break;
+					}
+					default: {
+						internalerror("Unknown endianness");
+						break;
+					}
+				}
+				break;
+			}
+			case GROUP_BSS: {
+                err_Error(ERROR_SECTION_DATA);
+				break;
+			}
+			default: {
+				internalerror("Unknown GROUP type");
+				break;
+			}
+		}
+	}	
+}
+
+
 void
 sect_OutputConst8(uint8_t value) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);

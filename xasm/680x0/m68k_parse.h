@@ -82,22 +82,23 @@ typedef enum {
     REG_A5 = 13,
     REG_A6 = 14,
     REG_A7 = 15,
-    REG_FP0 = 16,
-    REG_FP1 = 17,
-    REG_FP2 = 18,
-    REG_FP3 = 19,
-    REG_FP4 = 20,
-    REG_FP5 = 21,
-    REG_FP6 = 22,
-    REG_FP7 = 23,
     REG_PC = 16,
     REG_NONE = 255
 } ERegister;
 
+typedef enum {
+    BANK_0 = 0,
+    BANK_1 = 1,
+    BANK_2 = 2,
+    BANK_3 = 3,
+} EBank;
+
 typedef struct {
     ERegister baseRegister;
+    EBank baseBank;
 
     ERegister indexRegister;
+    EBank indexBank;
     ESize indexSize;
     SExpression* indexScale;
 
@@ -109,6 +110,7 @@ typedef struct {
     EAddrMode mode;
 
     uint16_t directRegister;
+    EBank directRegisterBank;
 
     SExpression* immediateInteger;
     long double immediateFloat;

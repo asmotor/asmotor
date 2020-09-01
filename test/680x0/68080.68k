@@ -1,0 +1,12 @@
+	SECTION "Test",CODE
+
+	OPT	mc8,mf8
+
+Begin:
+	add.l	d0,d1
+	add.l	d8,d1
+	add.l	d8,d15
+
+	move.b	(a9,d8.w),d16
+	move.b	(a6,d8.w),d16
+

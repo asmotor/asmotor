@@ -461,7 +461,7 @@ m68k_GetEffectiveAddressField(SAddressingMode* mode) {
         case AM_DREG:
             return mode->directRegister;
         case AM_AREG:
-            return 0x1 << 3 | (mode->directRegister & 7u);
+            return 0x1 << 3 | mode->directRegister;
         case AM_AIND:
             return 0x2 << 3 | (mode->outer.baseRegister & 7u);
         case AM_AINC:
@@ -506,6 +506,17 @@ m68k_GetEffectiveAddressField(SAddressingMode* mode) {
     return 0;
 }
 
+uint16_t 
+get68080BankBits(SAddressingMode* addr) {
+    if ((addr->mode & (AM_DREG | AM_AREG)) != 0) {
+        return addr->directRegisterBank;
+    } else if ((addr->mode & (AM_AXDISP | AM_AXDISP020)) != 0) {
+        return (addr->outer.baseBank << 1) | (addr->outer.indexBank);
+    } else {
+        return 0;
+    }
+}
+
 bool
 m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest) {
     EAddrMode allowedSrc;
@@ -529,7 +540,41 @@ m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddress
         return true;
     }
 
-    return pIns->handler(inssz, src, dest, pIns->data);
+    uint16_t srcBanks = get68080BankBits(src);
+    uint16_t destBanks = get68080BankBits(dest);
+    bool prefix68080 = srcBanks != 0 || destBanks != 0;
+    uint32_t prefixOffset = sect_CurrentSize();
+
+    if (prefix68080) {
+        sect_OutputConst16(0);
+    }
+
+    bool result = pIns->handler(inssz, src, dest, pIns->data);
+
+    if (prefix68080) {
+        uint16_t size = (sect_CurrentSize() - prefixOffset - 4) >> 1;
+        sect_OutputConst16At(0x7100 | (size << 6) | (srcBanks << 2) | destBanks, prefixOffset);
+    }
+
+    return result;
+}
+
+static bool
+check68080ModesAllowed(SAddressingMode* addr) {
+    if ((opt_Current->machineOptions->cpu & CPUF_68080) == 0) {
+        return (addr->directRegisterBank == 0) && (addr->outer.baseBank == 0) && (addr->outer.indexBank == 0);
+    } else {
+        switch (addr->mode) {
+            case AM_AXDISP:
+            case AM_AXDISP020:
+                return (addr->outer.baseBank <= 1) && (addr->outer.indexBank <= 1);
+            case AM_DREG:
+            case AM_AREG:
+                return true;
+            default:
+                return (addr->directRegisterBank == 0) && (addr->outer.baseBank == 0) && (addr->outer.indexBank == 0);
+        }
+    }
 }
 
 bool
@@ -561,6 +606,11 @@ m68k_ParseCommonCpuFpu(SInstruction* pIns, bool allowFloat) {
 
             if (src.mode == AM_IMM)
                 src.immediateSize = insSz;
+
+            if (!check68080ModesAllowed(&src)) {
+                err_Error(MERROR_NOT_68080_MODE);
+                return true;
+            }
         } else {
             if ((pIns->allowedSourceModes & AM_EMPTY) == 0)
                 return true;
@@ -578,6 +628,11 @@ m68k_ParseCommonCpuFpu(SInstruction* pIns, bool allowFloat) {
                     err_Error(MERROR_EXPECT_BITFIELD);
                     return false;
                 }
+            }
+
+            if (!check68080ModesAllowed(&dest)) {
+                err_Error(MERROR_NOT_68080_MODE);
+                return true;
             }
         } 
     }

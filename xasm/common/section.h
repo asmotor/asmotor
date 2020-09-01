@@ -94,6 +94,9 @@ sect_SkipBytes(uint32_t count);
 extern void
 sect_Align(uint32_t align);
 
+extern uint32_t
+sect_CurrentSize(void);
+
 extern void
 sect_OutputExpr8(struct Expression* expr);
 
@@ -111,6 +114,9 @@ sect_OutputConst8(uint8_t value);
 
 extern void
 sect_OutputConst16(uint16_t value);
+
+extern void
+sect_OutputConst16At(uint16_t value, uint32_t offset);
 
 extern void
 sect_OutputConst32(uint32_t value);

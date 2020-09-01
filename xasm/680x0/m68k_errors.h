@@ -38,6 +38,7 @@ typedef enum {
     MERROR_FPU_NEEDS_020_030,
     MERROR_FPU_NEEDS_040,
     MERROR_FPU_NEEDS_060,
+    MERROR_NOT_68080_MODE
 } EMachineError;
 
 extern const char*

@@ -52,6 +52,10 @@ m68k_ParseDirective() {
             opt_Current->machineOptions->cpu = CPUF_68060;
             parse_GetToken();
             return true;
+        case T_68K_MC68080:
+            opt_Current->machineOptions->cpu = CPUF_68080;
+            parse_GetToken();
+            return true;
         case T_68K_FPU6888X:
             opt_Current->machineOptions->fpu = FPUF_6888X;
             parse_GetToken();
@@ -62,6 +66,10 @@ m68k_ParseDirective() {
             return true;
         case T_68K_FPU68060:
             opt_Current->machineOptions->fpu = FPUF_68060;
+            parse_GetToken();
+            return true;
+        case T_68K_FPU68080:
+            opt_Current->machineOptions->fpu = FPUF_68080;
             parse_GetToken();
             return true;
         default:
