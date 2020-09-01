@@ -157,15 +157,20 @@ unaryInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t
 
 static bool
 handleFBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
+    SExpression* offset = expr_PcRelative(src->outer.displacement, -2);
+
     if (sz == SIZE_DEFAULT) {
-        sz = src->mode == AM_WORD ? SIZE_WORD : SIZE_LONG;
+        if (offset->isConstant && offset->value.integer >= -32768 && offset->value.integer <= 32767) {
+            sz = SIZE_WORD;
+        } else {
+            sz = src->mode == AM_WORD ? SIZE_WORD : SIZE_LONG;
+        }
     }
 
     opmode |= 0x0080 | FPU_INS;
 
     if (sz == SIZE_WORD) {
-        SExpression* expr = expr_CheckRange(expr_PcRelative(src->outer.displacement, 0), -32768, 32767);
-        opmode |= 0x0040;
+        SExpression* expr = expr_CheckRange(offset, -32768, 32767);
 
         if (expr != NULL) {
             sect_OutputConst16(opmode);
@@ -176,9 +181,10 @@ handleFBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
         err_Error(ERROR_OPERAND_RANGE);
         return true;
     } else /*if (sz == SIZE_LONG)*/ {
-        SExpression* expr = expr_PcRelative(src->outer.displacement, 0);
+        opmode |= 0x0040;
+
         sect_OutputConst16(opmode);
-        sect_OutputExpr32(expr);
+        sect_OutputExpr32(offset);
         return true;
     }
 }
@@ -186,7 +192,7 @@ handleFBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
 
 static bool
 handleFDBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
-    SExpression* expr = expr_CheckRange(expr_PcRelative(dest->outer.displacement, 0), -32768, 32767);
+    SExpression* expr = expr_CheckRange(expr_PcRelative(dest->outer.displacement, -4), -32768, 32767);
 
     if (expr != NULL) {
         sect_OutputConst16(FPU_INS | 0x0048 | src->directRegister);
@@ -233,6 +239,8 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
         return genericInstruction(sz, src, dest, 0x0000);
     } else if (src->mode == AM_FPUREG) {
         SExpression* kFactor;
+        opmode = 0x6000;
+
         if (sz == SIZE_PACKED) {
             if (!parse_ExpectChar('{'))
                 return false;
@@ -240,6 +248,7 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
             if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
                 sz = SIZE_PACKED_DYNAMIC;
                 kFactor = expr_Const((lex_Current.token - T_68K_REG_D0) << 4);
+                opmode |= 0x1000;
                 parse_GetToken();
             } else {
                 kFactor = expr_CheckRange(parse_Expression(1), -64, 63);
@@ -257,7 +266,7 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
         }
 
         sect_OutputConst16(FPU_INS | getEffectiveAddressField(dest));
-        sect_OutputExpr16(expr_Or(expr_Const(0x6000 | getSourceSpecifier(sz, src)), kFactor));
+        sect_OutputExpr16(expr_Or(expr_Const(opmode | (src->directRegister << 7) | getSourceSpecifier(sz, src)), kFactor));
         return m68k_OutputExtensionWords(dest);
     }
 

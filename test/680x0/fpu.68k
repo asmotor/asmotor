@@ -6,15 +6,16 @@
 
 		ftentox		fp0
 
-		OPT     mc4,mf4
-
 		ftrapf
 		ftrapf	#$064
 
-		fdmove      4(a7,d5.w),fp3
+		OPT     mc4,mf4
+
+		fsmove      4(a7,d5.w),fp3
 
 .loop
-		fbf.l       .loop
+		fnop
+		fbf       .loop
 
 		fabs.x      fp1
 		fsabs.x     12(a0),fp1

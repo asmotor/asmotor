@@ -128,7 +128,8 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
                     return true;
                 }
                 case SIZE_EXTENDED: {
-                    err_Error(ERROR_EXTENTED_PRECISION_UNSUPPORTED);
+                    err_Error(ERROR_EXTENDED_PRECISION_UNSUPPORTED);
+                    return true;
                 }
             }
         }
