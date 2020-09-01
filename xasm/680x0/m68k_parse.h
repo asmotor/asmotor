@@ -134,6 +134,7 @@ typedef struct {
     uint16_t data;
     EAddrMode allowedSourceModes;
     EAddrMode allowedDestModes;
+    bool allowThirdOperand;
     bool (* handler)(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t data);
 } SInstruction;
 

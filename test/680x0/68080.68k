@@ -3,6 +3,7 @@
 	OPT	mc8,mf8
 
 Begin:
+	add.l	d0,d1,d2
 	add.l	d0,d1
 	add.l	d8,d1
 	add.l	d8,d15

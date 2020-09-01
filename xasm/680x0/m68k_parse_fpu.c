@@ -42,6 +42,7 @@
         opmode, \
         AM_IMM | AM_EMPTY,  \
         AM_EMPTY,   \
+        false,  \
         handleFTRAPcc   \
     }
 
@@ -50,8 +51,9 @@
         FPUF_6888X | FPUF_68040,    \
         SIZE_BYTE | SIZE_DEFAULT, SIZE_DEFAULT, \
         opmode, \
-        AM_FPU_SOURCE,  \
-        AM_FPUREG,  \
+        AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP,  \
+        AM_EMPTY,    \
+        false,  \
         handleFScc  \
     }
 
@@ -62,6 +64,7 @@
         opmode, \
         AM_DREG,    \
         AM_WORD | AM_LONG,  \
+        false,  \
         handleFDBcc \
     }
 
@@ -72,6 +75,7 @@
         opmode, \
         AM_WORD | AM_LONG,  \
         AM_NONE,    \
+        false,  \
         handleFBcc  \
     }
 
@@ -82,6 +86,7 @@
         opmode, \
         AM_FPU_SOURCE,  \
         AM_EMPTY | AM_FPUREG,   \
+        false,  \
         possiblyUnaryInstruction    \
     }
 
@@ -620,6 +625,7 @@ s_FpuInstructions[] = {
         0x0018,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
+        false,
         possiblyUnaryInstruction
     },
     {   // FSABS
@@ -628,6 +634,7 @@ s_FpuInstructions[] = {
         0x0058,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
+        false,
         possiblyUnaryInstruction
     },
     {   // FDABS
@@ -636,6 +643,7 @@ s_FpuInstructions[] = {
         0x005C,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
+        false,
         possiblyUnaryInstruction
     },
 
@@ -647,6 +655,7 @@ s_FpuInstructions[] = {
         0x0022,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FSADD
@@ -655,6 +664,7 @@ s_FpuInstructions[] = {
         0x0062,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FDADD
@@ -663,6 +673,7 @@ s_FpuInstructions[] = {
         0x0066,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
 
@@ -709,6 +720,7 @@ s_FpuInstructions[] = {
         0x0038,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        false,
         genericInstruction
     },
 
@@ -754,6 +766,7 @@ s_FpuInstructions[] = {
         0x0020,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FSDIV
@@ -762,6 +775,7 @@ s_FpuInstructions[] = {
         0x0060,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FDDIV
@@ -770,6 +784,7 @@ s_FpuInstructions[] = {
         0x0064,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FETOX
@@ -778,6 +793,7 @@ s_FpuInstructions[] = {
         0x0010,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FETOXM1
@@ -786,6 +802,7 @@ s_FpuInstructions[] = {
         0x0008,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FGETEXP
@@ -794,6 +811,7 @@ s_FpuInstructions[] = {
         0x001E,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FGETMAN
@@ -802,6 +820,7 @@ s_FpuInstructions[] = {
         0x001F,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FINT
@@ -810,6 +829,7 @@ s_FpuInstructions[] = {
         0x0001,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FINTRZ
@@ -818,6 +838,7 @@ s_FpuInstructions[] = {
         0x0003,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FLOG10
@@ -826,6 +847,7 @@ s_FpuInstructions[] = {
         0x0015,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FLOG2
@@ -834,6 +856,7 @@ s_FpuInstructions[] = {
         0x0016,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FLOGN
@@ -842,6 +865,7 @@ s_FpuInstructions[] = {
         0x0014,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FLOGNP1
@@ -850,6 +874,7 @@ s_FpuInstructions[] = {
         0x0006,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FMOD
@@ -858,6 +883,7 @@ s_FpuInstructions[] = {
         0x0021,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FMOVE
@@ -866,6 +892,7 @@ s_FpuInstructions[] = {
         0x0000,
         AM_FPU_SOURCE | AM_FPUCR,
         AM_FPUCR | AM_FPUREG | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_WORD | AM_LONG,
+        false,
         handleMOVE
     },
     {   // FSMOVE
@@ -874,6 +901,7 @@ s_FpuInstructions[] = {
         0x0040,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        false,
         genericInstruction
     },
     {   // FDMOVE
@@ -882,6 +910,7 @@ s_FpuInstructions[] = {
         0x0044,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        false,
         genericInstruction
     },
     {   // FMOVECR
@@ -890,6 +919,7 @@ s_FpuInstructions[] = {
         0x0044,
         AM_IMM,
         AM_FPUREG,
+        false,
         handleFMOVECR
     },
     {	// FMOVEM
@@ -898,6 +928,7 @@ s_FpuInstructions[] = {
         0x0000,
         AM_NONE, 
         AM_NONE,
+        false,
         handleFMOVEM
     },
     {   // FMUL
@@ -906,6 +937,7 @@ s_FpuInstructions[] = {
         0x0023,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FSMUL
@@ -914,6 +946,7 @@ s_FpuInstructions[] = {
         0x0063,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FDMUL
@@ -922,6 +955,7 @@ s_FpuInstructions[] = {
         0x0067,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FNEG
@@ -930,6 +964,7 @@ s_FpuInstructions[] = {
         0x001A,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FSNEG
@@ -938,6 +973,7 @@ s_FpuInstructions[] = {
         0x005A,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FDNEG
@@ -946,6 +982,7 @@ s_FpuInstructions[] = {
         0x005E,
         AM_FPU_SOURCE,
         AM_FPUREG | AM_EMPTY,
+        false,
         possiblyUnaryInstruction
     },
     {   // FNOP
@@ -954,6 +991,7 @@ s_FpuInstructions[] = {
         0x0000,
         AM_NONE,
         AM_NONE,
+        false,
         handleFNOP
     },
     {   // FREM
@@ -962,6 +1000,7 @@ s_FpuInstructions[] = {
         0x0025,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FRESTORE
@@ -970,6 +1009,7 @@ s_FpuInstructions[] = {
         0x0140,
         AM_AIND | AM_AINC | AM_ADISP | AM_AXDISP | AM_AXDISP020 | AM_POSTINDAXD020 | AM_PREINDAXD020 | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_NONE,
+        false,
         handleSingleWordInstruction
     },
     {   // FSAVE
@@ -978,6 +1018,7 @@ s_FpuInstructions[] = {
         0x0100,
         AM_AIND | AM_ADEC | AM_ADISP | AM_AXDISP | AM_AXDISP020 | AM_POSTINDAXD020 | AM_PREINDAXD020 | AM_WORD | AM_LONG,
         AM_NONE,
+        false,
         handleSingleWordInstruction
     },
     {   // FSCALE
@@ -986,6 +1027,7 @@ s_FpuInstructions[] = {
         0x0026,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     FScc(0x0000), // FSF
@@ -1027,6 +1069,7 @@ s_FpuInstructions[] = {
         0x0024,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FSGLMUL
@@ -1035,6 +1078,7 @@ s_FpuInstructions[] = {
         0x0027,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
 
@@ -1046,6 +1090,7 @@ s_FpuInstructions[] = {
         0x000E,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        false,
         handleFSINCOS
     },
 
@@ -1057,6 +1102,7 @@ s_FpuInstructions[] = {
         0x0004,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
+        false,
         possiblyUnaryInstruction
     },
     {   // FSSQRT
@@ -1065,6 +1111,7 @@ s_FpuInstructions[] = {
         0x0041,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
+        false,
         possiblyUnaryInstruction
     },
     {   // FDSQRT
@@ -1073,6 +1120,7 @@ s_FpuInstructions[] = {
         0x0045,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
+        false,
         possiblyUnaryInstruction
     },
     {   // FSUB
@@ -1081,6 +1129,7 @@ s_FpuInstructions[] = {
         0x0028,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FSSUB
@@ -1089,6 +1138,7 @@ s_FpuInstructions[] = {
         0x0064,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
     {   // FDSUB
@@ -1097,6 +1147,7 @@ s_FpuInstructions[] = {
         0x006C,
         AM_FPU_SOURCE,
         AM_FPUREG,
+        true,
         genericInstruction
     },
 
@@ -1109,6 +1160,7 @@ s_FpuInstructions[] = {
         0x0012,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
+        false,
         possiblyUnaryInstruction
     },
 
@@ -1135,6 +1187,7 @@ s_FpuInstructions[] = {
         0x003A,
         AM_FPU_SOURCE,
         AM_NONE,
+        false,
         unaryInstruction
     },
     {   // FTOTOX
@@ -1143,6 +1196,7 @@ s_FpuInstructions[] = {
         0x0011,
         AM_FPU_SOURCE,
         AM_EMPTY | AM_FPUREG,
+        false,
         possiblyUnaryInstruction
     },
 };

@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/Debug/motor68k.exe",
-            "args": ["-ofpu.bin", "-fb", "fpu.68k"],
+            "args": ["-ofpu.bin", "-fb", "68080.68k"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/test/680x0",
             "environment": [],

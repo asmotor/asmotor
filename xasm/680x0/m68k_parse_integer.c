@@ -1710,6 +1710,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_ADEC, 
         AM_DREG | AM_ADEC,
+        true,
         handleABCD
     },
     {	// ADD
@@ -1718,6 +1719,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for adda */ | AM_AREG| AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleADD
     },
     {	// ADDA
@@ -1726,6 +1728,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_AREG,
+        true,
         handleADDA
     },
     {	// ADDI
@@ -1734,6 +1737,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG| AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleADDI
     },
     {	// ADDQ
@@ -1742,13 +1746,16 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM,
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleADDQ
     },
     {	// ADDX
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0000,
-        AM_DREG | AM_ADEC, AM_DREG | AM_ADEC,
+        AM_DREG | AM_ADEC,
+        AM_DREG | AM_ADEC,
+        true,
         handleADDX
     },
     {	// AND
@@ -1757,6 +1764,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for ANDI */ | AM_SYSREG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleAND
     },
     {	// ANDI
@@ -1765,6 +1773,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleANDI
     },
     {	// ASL
@@ -1773,6 +1782,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
         AM_DREG | AM_EMPTY,
+        true,
         handleASL
     },
     {	// ASR
@@ -1781,6 +1791,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
         AM_DREG | AM_EMPTY,
+        true,
         handleASR
     },
     {	// BCC
@@ -1789,6 +1800,7 @@ g_integerInstructions[] = {
         0x0004,
         AM_LONG,
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BCS
@@ -1797,6 +1809,7 @@ g_integerInstructions[] = {
         0x0005,
         AM_LONG,
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BEQ
@@ -1805,6 +1818,7 @@ g_integerInstructions[] = {
         0x0007,
         AM_LONG,
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BGE
@@ -1813,6 +1827,7 @@ g_integerInstructions[] = {
         0x000C,
         AM_LONG,
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BGT
@@ -1821,6 +1836,7 @@ g_integerInstructions[] = {
         0x000E,
         AM_LONG,
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BHI
@@ -1829,6 +1845,7 @@ g_integerInstructions[] = {
         0x0002,
         AM_LONG,
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BLE
@@ -1837,6 +1854,7 @@ g_integerInstructions[] = {
         0x000F,
         AM_LONG, 
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BLS
@@ -1845,6 +1863,7 @@ g_integerInstructions[] = {
         0x0003,
         AM_LONG,
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BLT
@@ -1853,6 +1872,7 @@ g_integerInstructions[] = {
         0x000D,
         AM_LONG,
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BMI
@@ -1861,6 +1881,7 @@ g_integerInstructions[] = {
         0x000B,
         AM_LONG,
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BNE
@@ -1869,6 +1890,7 @@ g_integerInstructions[] = {
         0x0006,
         AM_LONG, 
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BPL
@@ -1877,6 +1899,7 @@ g_integerInstructions[] = {
         0x000A,
         AM_LONG, 
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BVC
@@ -1885,6 +1908,7 @@ g_integerInstructions[] = {
         0x0008,
         AM_LONG, 
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BVS
@@ -1893,6 +1917,7 @@ g_integerInstructions[] = {
         0x0009,
         AM_LONG, 
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BCHG
@@ -1901,6 +1926,7 @@ g_integerInstructions[] = {
         0x0040,
         AM_DREG | AM_IMM,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleBitInstruction
     },
     {	// BCLR
@@ -1909,6 +1935,7 @@ g_integerInstructions[] = {
         0x0080,
         AM_DREG | AM_IMM,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleBitInstruction
     },
     {	// BFCHG
@@ -1917,6 +1944,7 @@ g_integerInstructions[] = {
         0xEAC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, 
         AM_NONE,
+        false,
         handleUnaryBitfieldInstruction
     },
     {	// BFCLR
@@ -1925,6 +1953,7 @@ g_integerInstructions[] = {
         0xECC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD,
         AM_NONE,
+        false,
         handleUnaryBitfieldInstruction
     },
     {	// BFEXTS
@@ -1933,6 +1962,7 @@ g_integerInstructions[] = {
         0xEBC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, 
         AM_DREG,
+        false,
         handleBinaryBitfieldInstruction
     },
     {	// BFEXTU
@@ -1941,6 +1971,7 @@ g_integerInstructions[] = {
         0xE9C0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD,
         AM_DREG,
+        false,
         handleBinaryBitfieldInstruction
     },
     {	// BFFFO
@@ -1949,6 +1980,7 @@ g_integerInstructions[] = {
         0xEDC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD,
         AM_DREG,
+        false,
         handleBinaryBitfieldInstruction
     },
     {	// BFINS
@@ -1957,6 +1989,7 @@ g_integerInstructions[] = {
         0xEFC0,
         AM_DREG,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD,
+        false,
         handleBFINS
     },
     {	// BFSET
@@ -1965,6 +1998,7 @@ g_integerInstructions[] = {
         0xEEC0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, 
         AM_NONE,
+        false,
         handleUnaryBitfieldInstruction
     },
     {	// BFTST
@@ -1973,6 +2007,7 @@ g_integerInstructions[] = {
         0xE8C0,
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, 
         AM_NONE,
+        false,
         handleUnaryBitfieldInstruction
     },
     {	// BKPT
@@ -1981,6 +2016,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_NONE,
+        false,
         handleBKPT
     },
     {	// BRA
@@ -1989,6 +2025,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_LONG, 
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BSET
@@ -1997,6 +2034,7 @@ g_integerInstructions[] = {
         0x00C0,
         AM_DREG | AM_IMM,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleBitInstruction
     },
     {	// BSR
@@ -2005,6 +2043,7 @@ g_integerInstructions[] = {
         0x0001,
         AM_LONG, 
         AM_NONE,
+        false,
         handleBcc
     },
     {	// BTST
@@ -2013,6 +2052,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_IMM,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        false,
         handleBitInstruction
     },
     {	// CALLM
@@ -2021,6 +2061,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
+        false,
         handleCALLM
     },
     {	// CAS
@@ -2029,6 +2070,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG, 
         AM_DREG,
+        false,
         handleCAS
     },
     {	// CAS2
@@ -2037,6 +2079,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_NONE, 
         AM_NONE,
+        false,
         handleCAS2
     },
     {	// CHK
@@ -2045,6 +2088,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_DREG,
+        false,
         handleCHK
     },
     {	// CHK2
@@ -2053,6 +2097,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_DREG | AM_AREG,
+        false,
         handleCHK2
     },
     {	// CINVA
@@ -2061,6 +2106,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_SYSREG,
         AM_NONE,
+        false,
         handleCINVA
     },
     {	// CINVL
@@ -2069,6 +2115,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_SYSREG,
         AM_AIND,
+        false,
         handleCINVL
     },
     {	// CINVP
@@ -2077,6 +2124,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_SYSREG,
         AM_AIND,
+        false,
         handleCINVP
     },
     {	// CLR
@@ -2085,6 +2133,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
         AM_NONE,
+        false,
         handleCLR
     },
     {	// CMP
@@ -2093,6 +2142,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_DREG /* for CMPA */ | AM_AREG /* for CMPM */ | AM_AINC /* for CMPI */ | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG,
+        false,
         handleCMP
     },
     {	// CMPA
@@ -2101,6 +2151,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_AREG,
+        false,
         handleCMPA
     },
     {	// CMPI
@@ -2109,6 +2160,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_PCDISP_WHEN20 | AM_PCXDISP_WHEN20,
+        false,
         handleCMPI
     },
     {	// CMPM
@@ -2117,6 +2169,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AINC, 
         AM_AINC,
+        false,
         handleCMPM
     },
     {	// CMP2
@@ -2125,6 +2178,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_DREG | AM_AREG,
+        false,
         handleCMP2
     },
     {	// CPUSHA
@@ -2133,6 +2187,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_SYSREG, 
         AM_NONE,
+        false,
         handleCPUSHA
     },
     {	// CPUSHL
@@ -2141,6 +2196,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_SYSREG,
         AM_AIND,
+        false,
         handleCPUSHL
     },
     {	// CPUSHP
@@ -2149,6 +2205,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_SYSREG, 
         AM_AIND,
+        false,
         handleCPUSHP
     },
     {	// DBCC
@@ -2157,6 +2214,7 @@ g_integerInstructions[] = {
         0x0004,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBCS
@@ -2165,6 +2223,7 @@ g_integerInstructions[] = {
         0x0005,
         AM_DREG,
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBEQ
@@ -2173,6 +2232,7 @@ g_integerInstructions[] = {
         0x0007,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBF
@@ -2181,6 +2241,7 @@ g_integerInstructions[] = {
         0x0001,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBGE
@@ -2189,6 +2250,7 @@ g_integerInstructions[] = {
         0x000C,
         AM_DREG,
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBGT
@@ -2197,6 +2259,7 @@ g_integerInstructions[] = {
         0x000E,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBHI
@@ -2205,6 +2268,7 @@ g_integerInstructions[] = {
         0x0002,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBLE
@@ -2213,6 +2277,7 @@ g_integerInstructions[] = {
         0x000F,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBLS
@@ -2221,6 +2286,7 @@ g_integerInstructions[] = {
         0x0003,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBLT
@@ -2229,6 +2295,7 @@ g_integerInstructions[] = {
         0x000D,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBMI
@@ -2237,6 +2304,7 @@ g_integerInstructions[] = {
         0x000B,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBNE
@@ -2245,6 +2313,7 @@ g_integerInstructions[] = {
         0x0006,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBPL
@@ -2253,6 +2322,7 @@ g_integerInstructions[] = {
         0x000A,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBT
@@ -2261,6 +2331,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBVC
@@ -2269,6 +2340,7 @@ g_integerInstructions[] = {
         0x0008,
         AM_DREG, 
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DBVS
@@ -2277,6 +2349,7 @@ g_integerInstructions[] = {
         0x0009,
         AM_DREG,
         AM_WORD | AM_LONG,
+        false,
         handleDBcc
     },
     {	// DIVS
@@ -2285,6 +2358,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_DREG,
+        false,
         handleDIVS
     },
     {	// DIVSL
@@ -2293,6 +2367,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_DREG,
+        false,
         handleDIVSL
     },
     {	// DIVU
@@ -2301,6 +2376,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_DREG,
+        false,
         handleDIVU
     },
     {	// DIVUL
@@ -2309,6 +2385,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_DREG,
+        false,
         handleDIVUL
     },
     {	// EOR
@@ -2317,6 +2394,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM | AM_DREG, 
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleEOR
     },
     {	// EORI
@@ -2325,6 +2403,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleEORI
     },
     {	// EXG
@@ -2333,6 +2412,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG, 
         AM_DREG | AM_AREG,
+        false,
         handleEXG
     },
     {	// EXT
@@ -2341,6 +2421,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG, 
         AM_NONE,
+        false,
         handleEXT
     },
     {	// EXTB
@@ -2349,13 +2430,16 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG, 
         AM_NONE,
+        false,
         handleEXTB
     },
     {	// ILLEGAL
         CPUF_ALL,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0000,
-        AM_NONE, AM_NONE,
+        AM_NONE, 
+        AM_NONE,
+        false,
         handleILLEGAL
     },
     {	// JMP
@@ -2364,6 +2448,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_NONE,
+        false,
         handleJMP
     },
     {	// JSR
@@ -2372,6 +2457,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_NONE,
+        false,
         handleJSR
     },
     {	// LEA
@@ -2380,6 +2466,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_AREG,
+        false,
         handleLEA
     },
     {	// LINK
@@ -2388,6 +2475,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AREG, 
         AM_IMM,
+        false,
         handleLINK
     },
     {	// LSL
@@ -2396,6 +2484,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_DREG | AM_EMPTY,
+        true,
         handleLSL
     },
     {	// LSR
@@ -2404,6 +2493,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
         AM_DREG | AM_EMPTY,
+        true,
         handleLSR
     },
     {	// MOVE
@@ -2412,6 +2502,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_SYSREG | AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for movea */ | AM_AREG /* for move to ccr */ | AM_SYSREG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        false,
         handleMOVE
     },
     {	// MOVEA
@@ -2420,6 +2511,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_AREG,
+        false,
         handleMOVEA
     },
     {	// MOVEC
@@ -2428,6 +2520,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG | AM_SYSREG,
         AM_DREG | AM_AREG | AM_SYSREG,
+        false,
         handleMOVEC
     },
     {	// MOVE16
@@ -2436,6 +2529,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AIND | AM_AINC | AM_LONG, 
         AM_AIND | AM_AINC | AM_LONG,
+        false,
         handleMOVE16
     },
     {	// MOVEM
@@ -2444,6 +2538,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_NONE, 
         AM_NONE,
+        false,
         handleMOVEM
     },
     {	// MOVEP
@@ -2452,6 +2547,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_ADISP, 
         AM_DREG | AM_AIND | AM_ADISP,
+        false,
         handleMOVEP
     },
     {	// MOVEQ
@@ -2460,6 +2556,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_DREG,
+        false,
         handleMOVEQ
     },
     {	// MOVES
@@ -2468,6 +2565,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_PCXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_PCXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        false,
         handleMOVES
     },
     {	// MULS
@@ -2476,6 +2574,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020,
         AM_DREG,
+        false,
         handleMULS
     },
     {	// MULU
@@ -2484,6 +2583,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_DREG,
+        false,
         handleMULU
     },
     {	// NBCD
@@ -2492,13 +2592,16 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
         AM_NONE,
+        false,
         handleNBCD
     },
     {	// NEG
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0000,
-        AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, AM_NONE,
+        AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
+        AM_NONE,
+        false,
         handleNEG
     },
     {	// NEGX
@@ -2507,6 +2610,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleNEGX
     },
     {	// NOP
@@ -2515,6 +2619,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_NONE, 
         AM_NONE,
+        false,
         handleNOP
     },
     {	// NOT
@@ -2523,6 +2628,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
         AM_NONE,
+        false,
         handleNOT
     },
     {	// OR
@@ -2531,6 +2637,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for ORI */ | AM_SYSREG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleOR
     },
     {	// ORI
@@ -2539,6 +2646,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_SYSREG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleORI
     },
     {	// PACK
@@ -2547,6 +2655,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_ADEC, 
         AM_DREG | AM_ADEC,
+        false,
         handlePACK
     },
     {	// PEA
@@ -2555,6 +2664,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_NONE,
+        false,
         handlePEA
     },
     {	// RESET
@@ -2563,6 +2673,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_NONE, 
         AM_NONE,
+        false,
         handleRESET
     },
     {	// ROL
@@ -2571,6 +2682,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_DREG | AM_EMPTY,
+        true,
         handleROL
     },
     {	// ROR
@@ -2579,6 +2691,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_DREG | AM_EMPTY,
+        true,
         handleROR
     },
     {	// ROXL
@@ -2587,6 +2700,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_DREG | AM_EMPTY,
+        true,
         handleROXL
     },
     {	// ROXR
@@ -2595,6 +2709,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM | AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_DREG | AM_EMPTY,
+        true,
         handleROXR
     },
     {	// RTD
@@ -2603,6 +2718,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_NONE,
+        false,
         handleRTD
     },
     {	// RTE
@@ -2611,6 +2727,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_NONE, 
         AM_NONE,
+        false,
         handleRTE
     },
     {	// RTM
@@ -2619,6 +2736,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG, 
         AM_NONE,
+        false,
         handleRTM
     },
     {	// RTR
@@ -2627,6 +2745,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_NONE, 
         AM_NONE,
+        false,
         handleRTR
     },
     {	// RTS
@@ -2635,6 +2754,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_NONE, 
         AM_NONE,
+        false,
         handleRTS
     },
     {	// SBCD
@@ -2643,6 +2763,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_ADEC, 
         AM_DREG | AM_ADEC,
+        false,
         handleSBCD
     },
     {	// SCC
@@ -2651,6 +2772,7 @@ g_integerInstructions[] = {
         0x0004,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SCS
@@ -2659,6 +2781,7 @@ g_integerInstructions[] = {
         0x0005,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SEQ
@@ -2667,6 +2790,7 @@ g_integerInstructions[] = {
         0x0007,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SF
@@ -2675,6 +2799,7 @@ g_integerInstructions[] = {
         0x0001,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SGE
@@ -2683,6 +2808,7 @@ g_integerInstructions[] = {
         0x000C,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SGT
@@ -2691,6 +2817,7 @@ g_integerInstructions[] = {
         0x000E,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SHI
@@ -2699,6 +2826,7 @@ g_integerInstructions[] = {
         0x0002,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SLE
@@ -2707,6 +2835,7 @@ g_integerInstructions[] = {
         0x000F,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SLS
@@ -2715,6 +2844,7 @@ g_integerInstructions[] = {
         0x0003,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SLT
@@ -2723,6 +2853,7 @@ g_integerInstructions[] = {
         0x000D,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SMI
@@ -2731,6 +2862,7 @@ g_integerInstructions[] = {
         0x000B,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SNE
@@ -2739,6 +2871,7 @@ g_integerInstructions[] = {
         0x0006,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SPL
@@ -2747,6 +2880,7 @@ g_integerInstructions[] = {
         0x000A,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// ST
@@ -2755,6 +2889,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SVC
@@ -2763,6 +2898,7 @@ g_integerInstructions[] = {
         0x0008,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// SVS
@@ -2771,6 +2907,7 @@ g_integerInstructions[] = {
         0x0009,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleScc
     },
     {	// STOP
@@ -2779,6 +2916,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_NONE,
+        false,
         handleSTOP
     },
     {	// SUB
@@ -2787,6 +2925,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG /* for adda */ | AM_AREG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleSUB
     },
     {	// SUBA
@@ -2795,6 +2934,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_IMM | AM_PCDISP | AM_PCXDISP | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020, 
         AM_AREG,
+        true,
         handleSUBA
     },
     {	// SUBI
@@ -2803,6 +2943,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleSUBI
     },
     {	// SUBQ
@@ -2811,6 +2952,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_DREG | AM_AREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020,
+        true,
         handleSUBQ
     },
     {	// SUBX
@@ -2819,6 +2961,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_ADEC, 
         AM_DREG | AM_ADEC,
+        true,
         handleSUBX
     },
     {	// SWAP
@@ -2827,6 +2970,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG,
         AM_NONE,
+        false,
         handleSWAP
     },
     {	// TAS
@@ -2835,6 +2979,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020, 
         AM_NONE,
+        false,
         handleTAS
     },
     {	// TRAP
@@ -2843,6 +2988,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_IMM, 
         AM_NONE,
+        false,
         handleTRAP
     },
 
@@ -2852,6 +2998,7 @@ g_integerInstructions[] = {
         0x0004,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPCS
@@ -2860,6 +3007,7 @@ g_integerInstructions[] = {
         0x0005,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPEQ
@@ -2868,6 +3016,7 @@ g_integerInstructions[] = {
         0x0007,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPF
@@ -2876,6 +3025,7 @@ g_integerInstructions[] = {
         0x0001,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPGE
@@ -2884,6 +3034,7 @@ g_integerInstructions[] = {
         0x000C,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPGT
@@ -2892,6 +3043,7 @@ g_integerInstructions[] = {
         0x000E,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPHI
@@ -2900,6 +3052,7 @@ g_integerInstructions[] = {
         0x0002,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPLE
@@ -2908,6 +3061,7 @@ g_integerInstructions[] = {
         0x000F,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPLS
@@ -2916,6 +3070,7 @@ g_integerInstructions[] = {
         0x0003,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPLT
@@ -2924,6 +3079,7 @@ g_integerInstructions[] = {
         0x000D,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPMI
@@ -2932,6 +3088,7 @@ g_integerInstructions[] = {
         0x000B,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPNE
@@ -2940,6 +3097,7 @@ g_integerInstructions[] = {
         0x0006,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPPL
@@ -2948,6 +3106,7 @@ g_integerInstructions[] = {
         0x000A,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPT
@@ -2956,6 +3115,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPVC
@@ -2964,6 +3124,7 @@ g_integerInstructions[] = {
         0x0008,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPVS
@@ -2972,6 +3133,7 @@ g_integerInstructions[] = {
         0x0009,
         AM_EMPTY | AM_IMM, 
         AM_NONE,
+        false,
         handleTRAPcc
     },
     {	// TRAPV
@@ -2980,6 +3142,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_NONE, 
         AM_NONE,
+        false,
         handleTRAPV
     },
     {	// TST
@@ -2988,6 +3151,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_IMM_WHEN20 | AM_PCDISP_WHEN20 | AM_PCXDISP_WHEN20,
         AM_NONE,
+        false,
         handleTST
     },
 
@@ -2997,6 +3161,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_AREG, 
         AM_NONE,
+        false,
         handleUNLK
     },
     {	// UNPACK
@@ -3005,6 +3170,7 @@ g_integerInstructions[] = {
         0x0000,
         AM_DREG | AM_ADEC, 
         AM_DREG | AM_ADEC,
+        false,
         handleUNPACK
     },
 };

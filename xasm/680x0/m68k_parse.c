@@ -517,12 +517,71 @@ get68080BankBits(SAddressingMode* addr) {
     }
 }
 
+
+static bool
+thirdOperandAllowed(SInstruction* instruction, SAddressingMode* dest) {
+    return (opt_Current->machineOptions->cpu & CPUF_68080)
+    &&     instruction->allowThirdOperand
+    &&     (instruction->allowedDestModes & dest->mode & (AM_DREG | AM_AREG | AM_FPUREG));
+}
+
+static bool
+parseDataRegister(uint16_t* outRegister) {
+    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D31) {
+        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_D0);
+        parse_GetToken();
+        return true;
+    }
+
+    return false;
+}
+
+static bool
+parseAddressRegister(uint16_t* outRegister) {
+    if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A15) {
+        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_A0);
+        parse_GetToken();
+        return true;
+    }
+
+    return false;
+}
+
+static bool
+parseFpuRegister(uint16_t* outRegister) {
+    if (lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
+        *outRegister = (uint16_t) (lex_Current.token - T_FPUREG_0);
+        parse_GetToken();
+        return true;
+    }
+
+    return false;
+}
+
+
+static bool 
+parseThirdOperand(SInstruction* instruction, SAddressingMode* dest, uint16_t* thirdReg) {
+    if (thirdOperandAllowed(instruction, dest)) {
+        if (lex_Current.token == ',') {
+            parse_GetToken();
+            switch (dest->mode) {
+                case AM_DREG: return parseDataRegister(thirdReg);
+                case AM_AREG: return parseAddressRegister(thirdReg);
+                case AM_FPUREG: return parseFpuRegister(thirdReg);
+                default: return false;
+            }
+            return false;
+        }
+    }
+    return true;
+}
+
 bool
-m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest) {
+m68k_ParseOpCore(SInstruction* instruction, ESize inssz, SAddressingMode* src, SAddressingMode* dest) {
     EAddrMode allowedSrc;
     EAddrMode allowedDest;
 
-    allowedSrc = pIns->allowedSourceModes;
+    allowedSrc = instruction->allowedSourceModes;
     if (opt_Current->machineOptions->cpu >= CPUF_68020)
         allowedSrc = enable020Modes(allowedSrc);
 
@@ -531,7 +590,7 @@ m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddress
         return true;
     }
 
-    allowedDest = pIns->allowedDestModes;
+    allowedDest = instruction->allowedDestModes;
     if (opt_Current->machineOptions->cpu >= CPUF_68020)
         allowedDest = enable020Modes(allowedDest);
 
@@ -540,20 +599,29 @@ m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddress
         return true;
     }
 
+    uint16_t thirdReg = 0;
+    if (!parseThirdOperand(instruction, dest, &thirdReg)) {
+        err_Error(MERROR_THIRD_OPERAND_WRONG_TYPE);
+        return false;
+    }
+
     uint16_t srcBanks = get68080BankBits(src);
     uint16_t destBanks = get68080BankBits(dest);
-    bool prefix68080 = srcBanks != 0 || destBanks != 0;
+    bool prefix68080 = srcBanks != 0 || destBanks != 0 || thirdReg != 0;
     uint32_t prefixOffset = sect_CurrentSize();
 
     if (prefix68080) {
         sect_OutputConst16(0);
     }
 
-    bool result = pIns->handler(inssz, src, dest, pIns->data);
+    bool result = instruction->handler(inssz, src, dest, instruction->data);
 
     if (prefix68080) {
+        thirdReg ^= (dest->directRegisterBank << 3) | dest->directRegister;
+        uint16_t lowThird = (thirdReg & 0x03) << 4;
+        uint16_t highThird = (thirdReg & 0x1C) << 7;
         uint16_t size = (sect_CurrentSize() - prefixOffset - 4) >> 1;
-        sect_OutputConst16At(0x7100 | (size << 6) | (srcBanks << 2) | destBanks, prefixOffset);
+        sect_OutputConst16At(0x7100 | highThird | (size << 6) | lowThird | (srcBanks << 2) | destBanks, prefixOffset);
     }
 
     return result;
@@ -578,26 +646,26 @@ check68080ModesAllowed(SAddressingMode* addr) {
 }
 
 bool
-m68k_ParseCommonCpuFpu(SInstruction* pIns, bool allowFloat) {
+m68k_ParseCommonCpuFpu(SInstruction* instruction, bool allowFloat) {
     ESize insSz;
     SAddressingMode src;
     SAddressingMode dest;
 
-    if (pIns->allowedSizes == SIZE_DEFAULT) {
+    if (instruction->allowedSizes == SIZE_DEFAULT) {
         if (m68k_GetSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
             err_Warn(MERROR_IGNORING_SIZE);
             parse_GetToken();
         }
         insSz = SIZE_DEFAULT;
     } else
-        insSz = m68k_GetSizeSpecifier(pIns->defaultSize);
+        insSz = m68k_GetSizeSpecifier(instruction->defaultSize);
 
     src.mode = AM_EMPTY;
     dest.mode = AM_EMPTY;
 
-    if (pIns->allowedSourceModes != 0 && pIns->allowedSourceModes != AM_EMPTY) {
+    if (instruction->allowedSourceModes != 0 && instruction->allowedSourceModes != AM_EMPTY) {
         if (m68k_GetAddressingMode(&src, allowFloat)) {
-            if (pIns->allowedSourceModes & AM_BITFIELD) {
+            if (instruction->allowedSourceModes & AM_BITFIELD) {
                 if (!getBitfield(&src)) {
                     err_Error(MERROR_EXPECT_BITFIELD);
                     return false;
@@ -612,18 +680,18 @@ m68k_ParseCommonCpuFpu(SInstruction* pIns, bool allowFloat) {
                 return true;
             }
         } else {
-            if ((pIns->allowedSourceModes & AM_EMPTY) == 0)
+            if ((instruction->allowedSourceModes & AM_EMPTY) == 0)
                 return true;
         }
     }
 
-    if (pIns->allowedDestModes != 0) {
+    if (instruction->allowedDestModes != 0) {
         if (lex_Current.token == ',') {
             parse_GetToken();
             if (!m68k_GetAddressingMode(&dest, allowFloat))
                 return false;
 
-            if (pIns->allowedDestModes & AM_BITFIELD) {
+            if (instruction->allowedDestModes & AM_BITFIELD) {
                 if (!getBitfield(&dest)) {
                     err_Error(MERROR_EXPECT_BITFIELD);
                     return false;
@@ -637,11 +705,11 @@ m68k_ParseCommonCpuFpu(SInstruction* pIns, bool allowFloat) {
         } 
     }
 
-    if ((pIns->allowedSizes & insSz) == 0 && pIns->allowedSizes != 0 && pIns->defaultSize != 0) {
+    if ((instruction->allowedSizes & insSz) == 0 && instruction->allowedSizes != 0 && instruction->defaultSize != 0) {
         err_Error(MERROR_INSTRUCTION_SIZE);
     }
 
-    return m68k_ParseOpCore(pIns, insSz, &src, &dest);
+    return m68k_ParseOpCore(instruction, insSz, &src, &dest);
 
 }
 
