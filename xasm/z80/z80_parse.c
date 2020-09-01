@@ -1104,6 +1104,7 @@ parse_AddrMode(SAddressingMode* addrMode) {
 					addrMode->mode = regToken == T_MODE_IX ? MODE_REG_IX_IND_DISP :
 									  /*regToken == T_MODE_IY ? */ MODE_REG_IY_IND_DISP;
 					addrMode->expression = pExpr;
+					addrMode->registerD = REG_D_HL_IND;
 					return true;
 				}
 				expr_Free(pExpr);

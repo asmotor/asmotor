@@ -30,6 +30,18 @@
             "MIMode": "lldb"
         },
         {
+            "name": "(Win) motorz80",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "make",
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/Debug/motorz80",
+            "args": ["-mcz", "-fv", "-otest.r", "test_rot.asm"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/test/z80",
+            "environment": [],
+            "externalConsole": false
+        },
+        {
             "name": "Debug motorz80",
             "type": "cppdbg",
             "request": "launch",
