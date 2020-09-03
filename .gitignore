@@ -58,3 +58,6 @@ PortIndex.quick
 bin/
 mmap_address.bin
 .vscode/ipch/**
+gcc-predef.h
+build/.cmake/
+build/amiga/
