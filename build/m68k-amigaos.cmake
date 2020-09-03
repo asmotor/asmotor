@@ -71,7 +71,7 @@ endif()
 set(LIBNIX_SWAPSTACK_O ${TOOLCHAIN_PATH}/m68k-amigaos/libnix/lib/swapstack.o)
 
 # Compiler flags
-set(FLAGS_COMMON "${TOOLCHAIN_COMMON} -m${M68K_CPU} -m${M68K_FPU}-float -fomit-frame-pointer -mcrt=${M68K_CRT}")
+set(FLAGS_COMMON "${TOOLCHAIN_COMMON} -m${M68K_CPU} -m${M68K_FPU}-float -fomit-frame-pointer")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS_COMMON} ${TOOLCHAIN_CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS_COMMON} ${TOOLCHAIN_CXXFLAGS}")
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -m${M68K_CPU} -I${TOOLCHAIN_PATH}/m68k-amigaos/sys-include")
@@ -79,7 +79,7 @@ set(BUILD_SHARED_LIBS OFF)
 unset(FLAGS_COMMON)
 
 # Linker configuration
-set(CMAKE_EXE_LINKER_FLAGS "-mcrt=${M68K_CRT} -Xlinker --allow-multiple-definition ${TOOLCHAIN_LDFLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "-mcrt=${M68K_CRT} -Xlinker ${TOOLCHAIN_LDFLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -ldebug")
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
