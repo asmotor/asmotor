@@ -153,7 +153,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
             if (mode->outer.displacement)
                 mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 0);
         }
-            // fall through
+        // fall through
         case AM_ADISP: {
             if (mode->outer.displacement) {
                 if (mode->outer.displacementSize == SIZE_WORD || mode->outer.displacementSize == SIZE_DEFAULT) {
@@ -170,7 +170,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
             if (mode->outer.displacement)
                 mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 0);
         }
-            // fall through
+        // fall through
         case AM_AXDISP: {
             uint16_t ins = (uint16_t) (mode->outer.indexRegister << 12u);
             if (mode->outer.indexSize == SIZE_LONG)
@@ -206,7 +206,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
             if (mode->outer.displacement)
                 mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 2);
         }
-            // fall through
+        // fall through
         case AM_AXDISP020: {
             uint16_t ins = 0x0100;
             SExpression* expr;
@@ -268,7 +268,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
             if (mode->inner.displacement)
                 mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 2);
         }
-            // fall through
+        // fall through
         case AM_PREINDAXD020: {
             uint16_t ins = 0x0100;
             SExpression* expr;
@@ -359,7 +359,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
             if (mode->inner.displacement)
                 mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 2);
         }
-            // fall through
+        // fall through
         case AM_POSTINDAXD020: {
             uint16_t ins = 0x0100;
             SExpression* expr;

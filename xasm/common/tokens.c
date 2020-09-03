@@ -229,7 +229,7 @@ parseFloat(size_t size) {
 
     string* str = lex_PeekString(size);
     if (str_CharAt(str, -1) == 'f') {
-        lex_Current.value.floating = strtold(str_String(str), NULL);
+        sscanf(str_String(str), "%Lf", &lex_Current.value.floating);
         r = true;
     }
     str_Free(str);

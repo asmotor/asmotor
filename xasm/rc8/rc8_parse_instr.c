@@ -764,7 +764,7 @@ rc8_ParseIntegerInstruction(void) {
 		}
 
 		if (parseAddressingMode(&addrMode1, parser->firstModes)) {
-			string* jumpTarget;
+			string* jumpTarget = NULL;
 
 			if (lex_Current.token == ',') {
 				parse_GetToken();
@@ -785,7 +785,7 @@ rc8_ParseIntegerInstruction(void) {
 			if (!parser->parser(parser->baseOpcode, cc, &addrMode1, &addrMode2))
 				return err_Error(ERROR_OPERAND);
 
-			if (parser->condition == CONDITION_AUTO && cc != CC_ALWAYS) {
+			if (jumpTarget != NULL) {
 				sym_CreateLabel(jumpTarget);
 			}
 		} else {

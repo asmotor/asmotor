@@ -645,14 +645,10 @@ lex_GetNextToken(void) {
         case LEX_STATE_MACRO_ARGUMENT0: {
             g_currentBuffer->state = LEX_STATE_MACRO_ARGUMENT;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
             if (stateMacroArgument0())
                 return true;
-#pragma GCC diagnostic pop
-
-            // fall through
         }
+        // fall through
         case LEX_STATE_MACRO_ARGUMENT: {
             return stateMacroArguments();
         }

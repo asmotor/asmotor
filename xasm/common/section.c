@@ -433,7 +433,9 @@ sect_OutputExpr32(SExpression* expression) {
 void
 sect_OutputFloat32(long double value) {
 	float floatValue = (float) value;
-	uint32_t intValue = *(uint32_t *) &floatValue;
+	uint32_t intValue;
+	assert(sizeof(floatValue) == sizeof(uint32_t));
+	memcpy(&intValue, &floatValue, sizeof(uint32_t));
 	sect_OutputConst32(intValue);
 }
 

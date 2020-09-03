@@ -165,7 +165,7 @@ parse_TryFloatExpression(size_t maxStringConstLength, long double* result) {
 
 extern long double
 parse_FloatExpression(size_t maxStringConstLength) {
-    long double result;
+    long double result = 0;
     if (!expressionPriority0(maxStringConstLength, &result)) {
         err_Error(ERROR_INVALID_EXPRESSION);
     }

@@ -31,14 +31,6 @@
 
 #define MAX_TOKEN_LENGTH 256
 
-#if defined(__GNUC__) && !defined(__DJGPP__)
-extern void
-strupr(char* s);
-
-extern void
-strlwr(char* s);
-#endif
-
 extern uint32_t xasm_TotalLines;
 extern uint32_t xasm_TotalErrors;
 extern uint32_t xasm_TotalWarnings;

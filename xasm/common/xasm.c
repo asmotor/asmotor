@@ -25,7 +25,7 @@
 #   define __STDC_IEC_559__
 #endif
 
-#if !defined(__STDC_IEC_559__)
+#if !defined(__STDC_IEC_559__) && !defined(__GCC_IEC_559)
 #   error "Requires IEEE 754 floating point!"
 #endif
 
@@ -168,14 +168,11 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                             break;
                         case 'g':
                         case 'h':
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
                             if (xasm_Configuration->supportAmiga) {
                                 format = argv[argn][2];
                                 break;
                             }
-#pragma GCC diagnostic pop 
-                            // Fall through                          
+                        // fall through
                         default:
                             err_Warn(WARN_OPTION, argv[argn]);
                             break;
