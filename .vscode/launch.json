@@ -19,6 +19,18 @@
             "externalConsole": true
         },
         {
+            "name": "(Win) motor68k test.68k",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "make",
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/Debug/motor68k.exe",
+            "args": ["-fg", "-otest", "-iL:\\NDK39\\NDK_3.9\\Include\\include_i", "test.68k"],
+            "cwd": "L:\\",
+            "stopAtEntry": true,
+            "environment": [],
+            "externalConsole": true
+        },
+        {
             "name": "Debug xlink",
             "type": "cppdbg",
             "request": "launch",

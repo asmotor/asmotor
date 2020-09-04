@@ -369,13 +369,15 @@ getStringUntilTerminator(char terminator) {
 
 static bool
 stateMacroArguments() {
-    if (lex_MatchChar(';')) {
-        while (lex_PeekChar(0) != '\n')
-            lex_GetChar();
-    }
-
+    bool skippedSpace = false;
     while (isspace((unsigned char) lex_PeekChar(0)) && lex_PeekChar(0) != '\n') {
         lex_GetChar();
+        skippedSpace = true;
+    }
+
+    if (lex_MatchChar(';') || (skippedSpace && lex_MatchChar('*'))) {
+        while (lex_PeekChar(0) != '\n')
+            lex_GetChar();
     }
 
     lex_Current.length = 0;
@@ -384,12 +386,12 @@ stateMacroArguments() {
         getStringUntilTerminator('>');
         lex_GetChar();
     } else {
-        getStringUntilTerminators(",;}");
+        getStringUntilTerminators("\t ,;}");
     }
 
     if (lex_Current.length > 0) {
         char ch = lex_PeekChar(0);
-        if (ch == '\n' || ch == ';') {
+        if (ch == '\n' || ch == ';' || ch == ' ' || ch == '\t') {
             trimTokenStringRight();
         }
         lex_Current.token = T_STRING;

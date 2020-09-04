@@ -5,7 +5,7 @@ LONG    MACRO
 SOFFSET SET     SOFFSET+4
         ENDM
 
-        LONG    MyLong  * Test
+        LONG    MyLong  * Comment, more comments
 
         PRINTT  "MyLong = {|MyLong|}\n"
         PRINTT  "SOFFSET = {|SOFFSET|}\n"
