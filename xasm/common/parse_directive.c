@@ -638,7 +638,8 @@ typedef struct Directive {
 #	pragma warning(disable:4113)
 #endif
 
-static SDirective g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
+static SDirective 
+g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
         {handleRsreset,   0},
         {handleRsset,     0},
         {handleRs,        1},

@@ -284,8 +284,10 @@ stringExpressionPri2(void) {
 
             string* r = parse_StringExpression();
             if (r != NULL) {
-                if (parse_ExpectChar(')'))
+                if (lex_Current.token == ')') {
+                    parse_GetToken();
                     return r;
+                }
             }
 
             lex_Goto(&bm);

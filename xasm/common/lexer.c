@@ -334,9 +334,16 @@ stateMacroArgument0(void) {
 
 static void
 trimTokenStringRight() {
+    char* asterisk = strrchr(lex_Current.value.string, '*');
+    if (asterisk != NULL) {
+        *asterisk = 0;
+        lex_Current.length = asterisk - lex_Current.value.string;
+    }
+
     while (lex_Current.value.string[lex_Current.length - 1] == ' ') {
         lex_Current.value.string[--lex_Current.length] = 0;
     }
+
 }
 
 static void
