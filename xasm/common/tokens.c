@@ -18,6 +18,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <assert.h>
 
 // From util
@@ -259,16 +260,21 @@ parseDecimal(size_t size) {
     while (lex_PeekChar(index) >= '0' && lex_PeekChar(index) <= '9' && size-- > 0)
         value = value * 10 + lex_PeekChar(index++) - '0';
 
-    if (matchChar(&index, '.')) {
-        uint32_t fraction = 0;
-        uint32_t d = 1;
-        --size;
-        while (lex_PeekChar(index) >= '0' && lex_PeekChar(index) <= '9' && size-- > 0) {
-            fraction = fraction * 10 + lex_PeekChar(index++) - '0';
-            d *= 10;
-        }
+    if (lex_PeekChar(index) == '.' && isdigit(lex_PeekChar(index + 1))) {
+        if (matchChar(&index, '.')) {
+            uint32_t fraction = 0;
+            uint32_t d = 1;
+            --size;
+            while (lex_PeekChar(index) >= '0' && lex_PeekChar(index) <= '9' && size-- > 0) {
+                fraction = fraction * 10 + lex_PeekChar(index++) - '0';
+                d *= 10;
+            }
 
-        value = (value << 16u) + imuldiv(fraction, 65536, d);
+            if (lex_PeekChar(index - 1) == '.')
+                return false;
+
+            value = (value << 16u) + imuldiv(fraction, 65536, d);
+        }
     }
 
     lex_Current.length -= size;
@@ -362,27 +368,27 @@ enum {
 };
 
 static SVariadicWordDefinition g_macroArgumentWord = {
-        parseMacroArgumentSymbol, T_LEX_MACROARG
+    parseMacroArgumentSymbol, T_LEX_MACROARG
 };
 
 static SVariadicWordDefinition g_macroUniqueWord = {
-        parseUniqueIdSymbol, T_LEX_MACROUNIQUE
+    parseUniqueIdSymbol, T_LEX_MACROUNIQUE
 };
 
 static SVariadicWordDefinition g_fixedPointWord = {
-        parseDecimal, T_NUMBER
+    parseDecimal, T_NUMBER
 };
 
 static SVariadicWordDefinition g_integerWord = {
-        parseNumber, T_NUMBER
+    parseNumber, T_NUMBER
 };
 
 static SVariadicWordDefinition g_floatWord = {
-        parseFloat, T_FLOAT
+    parseFloat, T_FLOAT
 };
 
 static SVariadicWordDefinition g_identifierWord = {
-        parseSymbol, T_ID
+    parseSymbol, T_ID
 };
 
 void
