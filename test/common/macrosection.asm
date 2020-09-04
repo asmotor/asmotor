@@ -6,8 +6,10 @@ SOFFSET SET     SOFFSET+4
         ENDM
 
         LONG    MyLong  * Comment, more comments
+        LONG    MyLong2  * Comment
 
         PRINTT  "MyLong = {|MyLong|}\n"
+        PRINTT  "MyLong2 = {|MyLong2|}\n"
         PRINTT  "SOFFSET = {|SOFFSET|}\n"
 
 ID      EQU     ('B'<<24)!('A'<<16)!('D'<<8)
