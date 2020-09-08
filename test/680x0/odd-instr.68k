@@ -1,0 +1,8 @@
+        SECTION "Test",CODE
+
+        moveq   #0,d0
+
+        DC.B    "!"
+
+        moveq   #0,d0
+        

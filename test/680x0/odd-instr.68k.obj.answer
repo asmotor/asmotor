@@ -1,0 +1,2 @@
+odd-instr.68k:7: E0128 Syntax error
+odd-instr.68k:7: E1018 Instruction must be word aligned
