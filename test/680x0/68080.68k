@@ -1,8 +1,25 @@
-	SECTION "Test",CODE
+	SECTION "Test",CODE[0]
 
 	OPT	mc8,mf8
 
 Begin:
+	lea		$0.w,a14
+	move.l	a8,$A008A008
+	move.l	a14,a1
+	move.w	#$a004,a9
+	suba.l	a14,a14
+	lea		$A014A014,a14
+
+	move.l	a8,$A008A008
+
+	movea.l	({DC.L $A008A008}),a8
+
+	move.l	#$DEADBEEF,d15
+	move.w	#$A010,a10
+	move.l	#$DEADBEEF,a8
+	move.l	d8,$DEADBEEF
+	move.l	a8,$DEADBEEF
+	
 	move.l	4.w,a6
 	move.l	$4.w,a6
 	add.l	d0,d1,d2

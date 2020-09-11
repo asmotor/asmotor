@@ -61,3 +61,4 @@ mmap_address.bin
 gcc-predef.h
 build/.cmake/
 build/amiga/
+build/windows/

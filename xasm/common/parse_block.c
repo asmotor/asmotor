@@ -108,8 +108,12 @@ findControlToken(size_t index) {
         if (lex_PeekChar(index++) == ':')
             break;
     }
-    while (isWhiteSpace(lex_PeekChar(index)))
-        ++index;
+    for (;;) {
+        char ch = lex_PeekChar(index);
+        if (ch == 0 || !isWhiteSpace(ch))
+            break;
+        index += 1;
+    }
 
     return index;
 }
@@ -126,7 +130,8 @@ getMacroBodySize(size_t index);
 static bool
 skipRept(size_t* index) {
     if (isRept(*index)) {
-        *index = skipLine(*index + getReptBodySize(*index + REPT_LEN) + REPT_LEN + ENDR_LEN);
+        size_t blockLen = getReptBodySize(*index + REPT_LEN);
+        *index = skipLine(*index + blockLen + REPT_LEN + ENDR_LEN);
         return true;
     } else {
         return false;
@@ -138,7 +143,10 @@ skipIf(size_t* index) {
     if (isIf(*index)) {
         while (!isWhiteSpace(lex_PeekChar(*index)))
             *index += 1;
-        *index = skipLine(*index + getIfBodySize(*index) + ENDC_LEN);
+        size_t blockSize = getIfBodySize(*index);
+        if (blockSize == 0)
+            return false;
+        *index = skipLine(*index + blockSize + ENDC_LEN);
         return true;
     } else {
         return false;
@@ -148,7 +156,8 @@ skipIf(size_t* index) {
 static bool
 skipMacro(size_t* index) {
     if (isMacro(*index)) {
-        *index = skipLine(*index + getMacroBodySize(*index + MACRO_LEN) + MACRO_LEN + ENDM_LEN);
+        size_t blockLen = getMacroBodySize(*index + MACRO_LEN);
+        *index = skipLine(*index + blockLen + MACRO_LEN + ENDM_LEN);
         return true;
     } else {
         return false;

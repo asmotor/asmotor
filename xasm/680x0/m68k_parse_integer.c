@@ -29,6 +29,9 @@
 #include "m68k_parse.h"
 #include "m68k_tokens.h"
 
+static SInstruction
+g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1];
+
 static bool
 handleToken(ETargetToken token, ESize size, SAddressingMode* src, SAddressingMode* dest);
 
@@ -997,16 +1000,18 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data)
     if (src->mode == AM_IMM && dest->mode == AM_DREG && sz == SIZE_LONG && expr_IsConstant(src->immediateInteger)
         && src->immediateInteger->value.integer >= -128 && src->immediateInteger->value.integer < 127) {
         return handleToken(T_68K_MOVEQ, sz, src, dest);
-    }
-
-    if (src->mode == AM_SYSREG)
+    } else if (src->mode == AM_SYSREG) {
         return handleMOVEfromSYSREG(sz, src, dest, data);
-
-    if (dest->mode == AM_SYSREG)
+    } else if (dest->mode == AM_SYSREG) {
         return handleMOVEtoSYSREG(sz, src, dest);
-
-    if (dest->mode == AM_AREG)
+    } if (m68k_CanUseShortMOVEfromA(T_68K_MOVE, src, dest, sz)) {
+        // 68080 move.l a(8-15),<ea>
+        sz = SIZE_BYTE;
+        src->directRegisterBank = 0;
+        src->directRegister &= 7;
+    } else if (dest->mode == AM_AREG) {
         return handleToken(T_68K_MOVEA, sz, src, dest);
+    }
 
     destea = (uint16_t) m68k_GetEffectiveAddressField(dest);
     ins = (uint16_t) m68k_GetEffectiveAddressField(src);
@@ -1029,7 +1034,18 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data)
 
 static bool
 handleMOVEA(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-    uint16_t opcode = (uint16_t) (0x0040 | dest->directRegister << 9 | (sz == SIZE_WORD ? 0x3 : 0x2) << 12);
+    uint16_t sizeEncoding = sz == SIZE_WORD ? 0x3 : 0x2;
+
+    if (m68k_CanUseShortMOVEA(T_68K_MOVEA, src, dest, sz)) {
+        // 68080 move.l <ea>,a(8-15)
+        sizeEncoding = SIZE_BYTE;
+        dest->directRegisterBank = 0;
+        dest->directRegister &= 7;
+        src->directRegisterBank = 0;
+        src->directRegister &= 7;
+    }
+
+    uint16_t opcode = (uint16_t) (0x0040 | (dest->directRegister << 9) | (sizeEncoding << 12) | m68k_GetEffectiveAddressField(src));
     return outputOpcode(opcode, src);
 }
 
@@ -1703,7 +1719,7 @@ handleMOVES(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data
 }
 
 static SInstruction
-g_integerInstructions[] = {
+g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
     {	// ABCD
         CPUF_ALL,
         SIZE_BYTE, SIZE_BYTE,
@@ -3178,23 +3194,42 @@ g_integerInstructions[] = {
 static bool
 handleToken(ETargetToken token, ESize size, SAddressingMode* src, SAddressingMode* dest) {
     SInstruction* instruction = &g_integerInstructions[token - T_68K_INTEGER_FIRST];
-    return m68k_ParseOpCore(instruction, size, src, dest);
+    return instruction->handler(size, src, dest, instruction->data);
 }
 
-bool
+extern bool
+m68k_CanUseShortMOVEA(ETargetToken targetToken, SAddressingMode* src, SAddressingMode* dest, ESize insSz) {
+    return (targetToken == T_68K_MOVE || targetToken == T_68K_MOVEA)
+    && dest->mode == AM_AREG
+    && dest->directRegisterBank == 1
+    && insSz == SIZE_LONG
+    && m68k_Get68080BankBits(src) == 0;
+}
+
+extern bool
+m68k_CanUseShortMOVEfromA(ETargetToken targetToken, SAddressingMode* src, SAddressingMode* dest, ESize insSz) {
+    return (targetToken == T_68K_MOVE)
+    && src->mode == AM_AREG
+    && src->directRegisterBank == 1
+    && dest->mode != AM_AREG
+    && insSz == SIZE_LONG
+    && m68k_Get68080BankBits(dest) == 0;
+}
+
+extern bool
 m68k_IntegerInstruction(void) {
     if (lex_Current.token < T_68K_INTEGER_FIRST || lex_Current.token > T_68K_INTEGER_LAST) {
         return false;
     }
 
-    int op = lex_Current.token - T_68K_INTEGER_FIRST;
+    int token = lex_Current.token;
     parse_GetToken();
 
-    SInstruction* instruction = &g_integerInstructions[op];
+    SInstruction* instruction = &g_integerInstructions[token - T_68K_INTEGER_FIRST];
     if ((instruction->cpu & opt_Current->machineOptions->cpu) == 0) {
         err_Error(MERROR_INSTRUCTION_CPU);
         return true;
     }
 
-    return m68k_ParseCommonCpuFpu(instruction, false);
+    return m68k_ParseCommonCpuFpu(instruction, token, false);
 }

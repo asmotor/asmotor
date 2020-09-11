@@ -301,6 +301,9 @@ parseSymbol(size_t size) {
                     strbuf_AppendString(symbolBuffer, marg);
                     str_Free(marg);
                     continue;
+                } else {
+                    err_Warn(ERROR_ID_MALFORMED);
+                    continue;
                 }
             }
 

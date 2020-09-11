@@ -506,9 +506,9 @@ m68k_GetEffectiveAddressField(SAddressingMode* mode) {
     return 0;
 }
 
-uint16_t 
-get68080BankBits(SAddressingMode* addr) {
-    if ((addr->mode & (AM_DREG | AM_AREG)) != 0) {
+extern uint16_t 
+m68k_Get68080BankBits(SAddressingMode* addr) {
+    if ((addr->mode & (AM_DREG | AM_AREG | AM_AINC | AM_ADEC | AM_AIND)) != 0) {
         return addr->directRegisterBank;
     } else if ((addr->mode & (AM_AXDISP | AM_AXDISP020)) != 0) {
         return (addr->outer.baseBank << 1) | (addr->outer.indexBank);
@@ -561,6 +561,7 @@ parseFpuRegister(uint16_t* outRegister) {
 
 static bool 
 parseThirdOperand(SInstruction* instruction, SAddressingMode* dest, uint16_t* thirdReg) {
+    *thirdReg = 0xFFFF;
     if (thirdOperandAllowed(instruction, dest)) {
         if (lex_Current.token == ',') {
             parse_GetToken();
@@ -577,7 +578,60 @@ parseThirdOperand(SInstruction* instruction, SAddressingMode* dest, uint16_t* th
 }
 
 bool
-m68k_ParseOpCore(SInstruction* instruction, ESize inssz, SAddressingMode* src, SAddressingMode* dest) {
+parse_PrefixStart(SPrefix* prefix, SAddressingMode* src, SAddressingMode* dest) {
+    prefix->offset = sect_CurrentSize();
+
+    uint16_t srcBanks = m68k_Get68080BankBits(src);
+    uint16_t destBanks = m68k_Get68080BankBits(dest);
+    prefix->prefix = 0x7100 | (srcBanks << 2) | destBanks;
+
+    sect_OutputConst16(0);
+    return true;
+}
+
+
+bool
+parse_MaybePrefixStart(SPrefix* prefix, SInstruction* instruction, SAddressingMode* src, SAddressingMode* dest) {
+    uint16_t thirdReg = 0;
+    if (!parseThirdOperand(instruction, dest, &thirdReg)) {
+        err_Error(MERROR_THIRD_OPERAND_WRONG_TYPE);
+        return false;
+    }
+
+    prefix->offset = sect_CurrentSize();
+
+    uint16_t srcBanks = m68k_Get68080BankBits(src);
+    uint16_t destBanks = m68k_Get68080BankBits(dest);
+    bool prefix68080 = srcBanks != 0 || destBanks != 0 ||  thirdReg != 0xFFFF;
+
+    if (prefix68080) {
+        if (thirdReg == 0xFFFF) {
+            thirdReg = 0;
+        } else {
+            thirdReg ^= (dest->directRegisterBank << 3) | dest->directRegister;
+        }
+        uint16_t lowThird = (thirdReg & 0x03) << 4;
+        uint16_t highThird = (thirdReg & 0x1C) << 7;
+        prefix->prefix = 0x7100 | highThird | lowThird | (srcBanks << 2) | destBanks;
+
+        sect_OutputConst16(0);
+    } else {
+        prefix->prefix = 0;
+    }
+
+    return true;
+}
+
+void
+parse_PrefixEnd(SPrefix* prefix) {
+    if (prefix->prefix != 0) {
+        uint16_t size = (sect_CurrentSize() - prefix->offset - 4) >> 1;
+        sect_OutputConst16At(prefix->prefix | (size << 6), prefix->offset);
+    }    
+}
+
+bool
+m68k_ParseOpCore(SInstruction* instruction, ESize inssz, SAddressingMode* src, SAddressingMode* dest, bool disablePrefix) {
     EAddrMode allowedSrc;
     EAddrMode allowedDest;
 
@@ -599,30 +653,15 @@ m68k_ParseOpCore(SInstruction* instruction, ESize inssz, SAddressingMode* src, S
         return true;
     }
 
-    uint16_t thirdReg = 0;
-    if (!parseThirdOperand(instruction, dest, &thirdReg)) {
-        err_Error(MERROR_THIRD_OPERAND_WRONG_TYPE);
+    SPrefix prefix;
+    if ((!disablePrefix) && !parse_MaybePrefixStart(&prefix, instruction, src, dest)) {
         return false;
-    }
-
-    uint16_t srcBanks = get68080BankBits(src);
-    uint16_t destBanks = get68080BankBits(dest);
-    bool prefix68080 = srcBanks != 0 || destBanks != 0 || thirdReg != 0;
-    uint32_t prefixOffset = sect_CurrentSize();
-
-    if (prefix68080) {
-        sect_OutputConst16(0);
     }
 
     bool result = instruction->handler(inssz, src, dest, instruction->data);
 
-    if (prefix68080) {
-        thirdReg ^= (dest->directRegisterBank << 3) | dest->directRegister;
-        uint16_t lowThird = (thirdReg & 0x03) << 4;
-        uint16_t highThird = (thirdReg & 0x1C) << 7;
-        uint16_t size = (sect_CurrentSize() - prefixOffset - 4) >> 1;
-        sect_OutputConst16At(0x7100 | highThird | (size << 6) | lowThird | (srcBanks << 2) | destBanks, prefixOffset);
-    }
+    if (!disablePrefix)
+        parse_PrefixEnd(&prefix);
 
     return result;
 }
@@ -636,8 +675,11 @@ check68080ModesAllowed(SAddressingMode* addr) {
             case AM_AXDISP:
             case AM_AXDISP020:
                 return (addr->outer.baseBank <= 1) && (addr->outer.indexBank <= 1);
-            case AM_DREG:
             case AM_AREG:
+            case AM_AIND:
+            case AM_AINC:
+            case AM_ADEC:
+            case AM_DREG:
                 return true;
             default:
                 return (addr->directRegisterBank == 0) && (addr->outer.baseBank == 0) && (addr->outer.indexBank == 0);
@@ -646,10 +688,15 @@ check68080ModesAllowed(SAddressingMode* addr) {
 }
 
 bool
-m68k_ParseCommonCpuFpu(SInstruction* instruction, bool allowFloat) {
+m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat) {
     ESize insSz;
     SAddressingMode src;
     SAddressingMode dest;
+
+    if ((sect_CurrentSize() & 1) != 0) {
+        err_Error(MERROR_WORD_ALIGN);
+        return true;
+    }
 
     if (instruction->allowedSizes == SIZE_DEFAULT) {
         if (m68k_GetSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
@@ -709,8 +756,12 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, bool allowFloat) {
         err_Error(MERROR_INSTRUCTION_SIZE);
     }
 
-    return m68k_ParseOpCore(instruction, insSz, &src, &dest);
+    bool disablePrefix = false;
+    ETargetToken targetToken = (ETargetToken) token;
+    disablePrefix |= m68k_CanUseShortMOVEfromA(targetToken, &src, &dest, insSz);
+    disablePrefix |= m68k_CanUseShortMOVEA(targetToken, &src, &dest, insSz);
 
+    return m68k_ParseOpCore(instruction, insSz, &src, &dest, disablePrefix);
 }
 
 SExpression*

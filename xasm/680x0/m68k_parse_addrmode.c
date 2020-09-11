@@ -464,6 +464,7 @@ bool
 m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
     addrMode->immediateInteger = NULL;
     addrMode->immediateFloat = 0;
+    addrMode->directRegister = 0;
     addrMode->directRegisterBank = BANK_0;
     addrMode->inner.baseRegister = REG_NONE;
     addrMode->inner.baseBank = BANK_0;
@@ -521,6 +522,8 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
     if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A15_IND) {
         uint8_t reg = lex_Current.token - T_68K_REG_A0_IND;
         addrMode->mode = AM_AIND;
+        addrMode->directRegister = reg & 7;
+        addrMode->directRegisterBank = reg >> 3;
         addrMode->outer.baseRegister = REG_A0 + (reg & 7);
         addrMode->outer.baseBank = reg >> 3;
         parse_GetToken();
@@ -530,6 +533,8 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
     if (lex_Current.token >= T_68K_REG_A0_DEC && lex_Current.token <= T_68K_REG_A15_DEC) {
         uint8_t reg = lex_Current.token - T_68K_REG_A0_DEC;
         addrMode->mode = AM_ADEC;
+        addrMode->directRegister = reg & 7;
+        addrMode->directRegisterBank = reg >> 3;
         addrMode->outer.baseRegister = REG_A0 + (reg & 7);
         addrMode->outer.baseBank = reg >> 3;
         parse_GetToken();
@@ -539,6 +544,8 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
     if (lex_Current.token >= T_68K_REG_A0_INC && lex_Current.token <= T_68K_REG_A15_INC) {
         uint8_t reg = lex_Current.token - T_68K_REG_A0_INC;
         addrMode->mode = AM_AINC;
+        addrMode->directRegister = reg & 7;
+        addrMode->directRegisterBank = reg >> 3;
         addrMode->outer.baseRegister = REG_A0 + (reg & 7);
         addrMode->outer.baseBank = reg >> 3;
         parse_GetToken();

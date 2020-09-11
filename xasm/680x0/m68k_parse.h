@@ -20,6 +20,7 @@
 #define XASM_M68K_PARSE_H_INCLUDED_
 
 #include "expression.h"
+#include "m68k_tokens.h"
 
 #define REGLIST_FAIL 65536
 
@@ -138,6 +139,11 @@ typedef struct {
     bool (* handler)(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t data);
 } SInstruction;
 
+typedef struct {
+    uint16_t prefix;
+    uint32_t offset;
+} SPrefix;
+
 extern SExpression*
 m68k_ExpressionCheck8Bit(SExpression* expression);
 
@@ -163,16 +169,34 @@ extern uint32_t
 m68k_ParseRegisterList(void);
 
 extern bool
+m68k_CanUseShortMOVEA(ETargetToken targetToken, SAddressingMode* src, SAddressingMode* dest, ESize insSz);
+
+extern bool
+m68k_CanUseShortMOVEfromA(ETargetToken targetToken, SAddressingMode* src, SAddressingMode* dest, ESize insSz);
+
+extern uint16_t 
+m68k_Get68080BankBits(SAddressingMode* addr);
+
+extern bool
+parse_PrefixStart(SPrefix* prefix, SAddressingMode* src, SAddressingMode* dest);
+
+extern bool
+parse_MaybePrefixStart(SPrefix* prefix, SInstruction* instruction, SAddressingMode* src, SAddressingMode* dest);
+
+extern void
+parse_PrefixEnd(SPrefix* prefix);
+
+extern bool
 m68k_IntegerInstruction(void);
 
 extern bool
 m68k_ParseFpuInstruction(void);
 
 extern bool
-m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest);
+m68k_ParseOpCore(SInstruction* pIns, ESize inssz, SAddressingMode* src, SAddressingMode* dest, bool disablePrefix);
 
 extern bool
-m68k_ParseCommonCpuFpu(SInstruction* pIns, bool allowFloat);
+m68k_ParseCommonCpuFpu(SInstruction* pIns, EToken token, bool allowFloat);
 
 extern bool
 m68k_ParseDirective();

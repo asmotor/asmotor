@@ -30,5 +30,6 @@
       "editor.tabSize": 8,
       "editor.insertSpaces": false
   },
-  "C_Cpp.errorSquiggles": "Enabled"
+  "C_Cpp.errorSquiggles": "Enabled",
+  "C_Cpp.default.compilerPath": "c:\\Users\\ces\\.vscode\\extensions\\bartmanabyss.amiga-debug-1.0.0\\bin\\opt\\bin\\m68k-amiga-elf-gcc.exe"
 }

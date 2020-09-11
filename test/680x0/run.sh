@@ -30,6 +30,7 @@ test amigaobj.68k h
 test test.68k b
 test fpu.68k b
 test 68080.68k b
+test odd-instr.68k b
 
 testlink amigaexe.68k a
 testlink amigaobj.68k b

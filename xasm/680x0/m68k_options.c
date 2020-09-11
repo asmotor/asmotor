@@ -127,5 +127,5 @@ m68k_ParseOption(const char* option) {
 void
 m68k_PrintOptions(void) {
     printf("    -mc<X>  Enable CPU 680X0\n");
-    printf("    -mf<X>  Enable FPU 6888x (1, 2), 68040 (4), 68060 (6)\n");
+    printf("    -mf<X>  Enable FPU 6888x (1, 2), 68040 (4), 68060 (6), 68080 (8)\n");
 }

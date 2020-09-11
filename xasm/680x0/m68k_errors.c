@@ -36,7 +36,8 @@ static const char* g_errors[] = {
 	"Selected FPU 68040 needs CPU 68040",
 	"Selected FPU 68060 needs CPU 68060",
 	"Not an allowed 68080 mode",
-	"Third operand is the wrong kind"
+	"Third operand is the wrong kind",
+	"Instruction must be word aligned"
 };
 
 const char*

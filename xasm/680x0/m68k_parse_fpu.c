@@ -1204,7 +1204,6 @@ s_FpuInstructions[] = {
 
 bool
 m68k_ParseFpuInstruction(void) {
-    int tokenOp;
     SInstruction* instruction;
 
     if(lex_Current.token < T_FPU_FIRST
@@ -1213,7 +1212,8 @@ m68k_ParseFpuInstruction(void) {
         return false;
     }
 
-    tokenOp = lex_Current.token - T_FPU_FIRST;
+    EToken token = lex_Current.token;
+    int tokenOp = lex_Current.token - T_FPU_FIRST;
     parse_GetToken();
 
     instruction = &s_FpuInstructions[tokenOp];
@@ -1223,5 +1223,5 @@ m68k_ParseFpuInstruction(void) {
         return true;
     }
 
-    return m68k_ParseCommonCpuFpu(instruction, true);
+    return m68k_ParseCommonCpuFpu(instruction, token, true);
 }
