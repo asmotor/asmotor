@@ -127,6 +127,17 @@ expressionPriority9(size_t maxStringConstLength) {
 
                 parse_GetToken();
 
+                if (lex_Current.token == '\\') {
+                    parse_GetToken();
+                    if (lex_Current.token == T_ID && lex_Current.value.string[0] == '.') {
+                        str = str_Create(lex_Current.value.string);
+                        expr = expr_ScopedSymbol(expr, str);
+
+                        str_Free(str);
+                        parse_GetToken();
+                    }
+                }
+
                 return expr;
             }
         }

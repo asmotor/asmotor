@@ -329,8 +329,12 @@ expr_Sub(SExpression* left, SExpression* right) {
     left->value.integer = value;
 
     if (!expr_IsConstant(left) && isSymbol(left->left) && isSymbol(left->right)
-        && left->left->value.symbol->section == left->right->value.symbol->section) {
-        left->value.integer = left->left->value.symbol->value.integer - left->right->value.symbol->value.integer;
+    && left->left->value.symbol->section == left->right->value.symbol->section
+    && left->left->value.symbol->type == SYM_LABEL
+    && left->right->value.symbol->type == SYM_LABEL) {
+        int32_t newValue = left->left->value.symbol->value.integer - left->right->value.symbol->value.integer;
+        expr_Free(left);
+        return expr_Const(newValue);
     }
     return left;
 }
@@ -379,10 +383,8 @@ expr_Bank(string* symbolName) {
     return r;
 }
 
-SExpression*
-expr_Symbol(string* symbolName) {
-    SSymbol* symbol = sym_GetSymbol(symbolName);
-
+static SExpression*
+symbolExpression(SSymbol* symbol) {
     if (symbol->flags & SYMF_EXPRESSION) {
         if (symbol->flags & SYMF_CONSTANT) {
             return expr_Const(sym_GetValue(symbol));
@@ -401,6 +403,22 @@ expr_Symbol(string* symbolName) {
 
     return NULL;
 }
+
+SExpression*
+expr_Symbol(string* symbolName) {
+    SSymbol* symbol = sym_GetSymbol(symbolName);
+    return symbolExpression(symbol);
+}
+
+SExpression*
+expr_ScopedSymbol(SExpression* expr, string* symbolName) {
+    assert(isSymbol(expr));
+
+    SSymbol* symbol = sym_GetSymbolInScope(expr->value.symbol, symbolName);
+    expr_Free(expr);
+    return symbolExpression(symbol);
+}
+
 
 void
 expr_SetConst(SExpression* expression, int32_t nValue) {

@@ -190,8 +190,7 @@ assumedScopeOf(const string* name) {
 }
 
 static SSymbol*
-findOrCreateSymbol(const string* name) {
-    SSymbol* scope = assumedScopeOf(name);
+findOrCreateSymbolInScope(SSymbol* scope, const string* name) {
     SSymbol* symbol = getSymbol(name, scope);
 
     if (symbol == NULL) {
@@ -199,6 +198,11 @@ findOrCreateSymbol(const string* name) {
     }
 
     return symbol;
+}
+
+static SSymbol*
+findOrCreateSymbol(const string* name) {
+    return findOrCreateSymbolInScope(assumedScopeOf(name), name);
 }
 
 static bool
@@ -251,6 +255,11 @@ sym_GetValueByName(string* name) {
 extern SSymbol*
 sym_GetSymbol(string* name) {
     return findOrCreateSymbol(name);
+}
+
+extern SSymbol*
+sym_GetSymbolInScope(SSymbol* scope, string* name) {
+    return findOrCreateSymbolInScope(scope, name);
 }
 
 extern SSymbol*

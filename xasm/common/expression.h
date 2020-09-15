@@ -172,6 +172,9 @@ extern SExpression*
 expr_Symbol(string* symbolName);
 
 extern SExpression*
+expr_ScopedSymbol(SExpression* expr, string* symbolName);
+
+extern SExpression*
 expr_Bank(string* symbolName);
 
 extern void

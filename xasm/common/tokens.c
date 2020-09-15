@@ -307,9 +307,8 @@ parseSymbol(size_t size) {
                 }
             }
 
-            err_Error(ERROR_ID_MALFORMED);
-            strbuf_Free(symbolBuffer);
-            return false;
+            lex_Current.length -= 1;
+            break;
         }
 
         strbuf_AppendChar(symbolBuffer, ch);
@@ -356,13 +355,18 @@ parseMacroArgumentSymbol(size_t size) {
 
 static bool
 parseUniqueIdSymbol(size_t size) {
-    string* id = fstk_GetMacroUniqueId();
-    lex_SkipBytes(size);
-    if (id != NULL) {
-        lex_UnputString(str_String(id));
-        str_Free(id);
+    if (size == 2) {
+        string* id = fstk_GetMacroUniqueId();
+        lex_SkipBytes(size);
+        if (id != NULL) {
+            lex_UnputString(str_String(id));
+            str_Free(id);
+        }
+        return false;
+    } else {
+        lex_Current.length = 0;
+        return false;
     }
-    return false;
 }
 
 enum {

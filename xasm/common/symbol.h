@@ -110,6 +110,9 @@ sym_CreateMacro(string* name, char* macroData, size_t macroSize, uint32_t lineNu
 extern SSymbol*
 sym_GetSymbol(string* name);
 
+extern SSymbol*
+sym_GetSymbolInScope(SSymbol* scope, string* name);
+
 extern bool
 sym_Purge(string* name);
 

@@ -300,7 +300,7 @@ handleCMPI(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t dat
             return true;
         }
         sect_OutputExpr16(expr);
-    } else if (size == SIZE_WORD) {
+    } else if (size == SIZE_LONG) {
         sect_OutputExpr32(src->immediateInteger);
     }
     return m68k_OutputExtensionWords(dest);

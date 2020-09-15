@@ -594,10 +594,6 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         }
     }
 
-    if (getOuterMode(addrMode)) {
-        return optimizeMode(addrMode);
-    }
-
     m68k_OptimizeDisplacement(&addrMode->outer);
 
     if (addrMode->outer.displacement != NULL) {

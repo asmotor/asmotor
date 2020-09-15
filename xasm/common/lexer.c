@@ -212,6 +212,9 @@ static bool
 acceptVariadic(size_t variadicLength, const SVariadicWordDefinition* variadicWord, bool lineStart) {
     lex_Current.length = variadicLength;
     if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
+        if (lex_Current.length == 0)
+            return false;
+            
         return matchNext(lineStart);
     }
 
@@ -285,10 +288,11 @@ matchNext(bool lineStart) {
     if (constantWord != NULL && constantLength >= variadicLength) {
         return acceptConstantWord(constantLength, constantWord);
     } else if (variadicLength > 0) {
-        return acceptVariadic(variadicLength, variadicWord, lineStart);
-    } else {
-        return acceptString() || acceptChar();
+        if (acceptVariadic(variadicLength, variadicWord, lineStart))
+            return true;
     }
+
+    return acceptString() || acceptChar();
 }
 
 static bool
@@ -335,7 +339,7 @@ stateMacroArgument0(void) {
 static void
 trimTokenStringRight() {
     char* asterisk = strrchr(lex_Current.value.string, '*');
-    if (asterisk != NULL) {
+    if (asterisk != NULL && isspace(*(asterisk - 1))) {
         *asterisk = 0;
         lex_Current.length = asterisk - lex_Current.value.string;
     }
