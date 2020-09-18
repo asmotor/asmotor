@@ -1,8 +1,17 @@
-
 	SECTION "Hejsa",CODE[0]
 
 Start:
+	MC68080
+	move.l	a0,a9
+
 	MC68020
+
+	move.w	Scope\.local+2,d0
+
+	;dc.l	Scope|.local
+	dc.l	Scope\.local
+
+	moveq	#DataEnd-DataStart,d2
 
 	callm	#87,Symbol
 	rtm		a5
@@ -185,3 +194,21 @@ Symbol:
 
 	pack	-(a2),-(a3),#$2020
 	unpack	-(a2),-(a3),#$2020
+
+
+Scope:
+	move.w	d0,d1
+.local
+	rts
+
+
+	SECTION	"Const",DATA
+DataStart:
+	DC.B	"Test",0
+DataEnd:
+
+DataLength:	EQU	@-DataStart
+
+        PRINTV  DataLength
+        
+

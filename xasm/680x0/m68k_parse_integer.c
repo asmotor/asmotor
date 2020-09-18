@@ -3200,6 +3200,8 @@ handleToken(ETargetToken token, ESize size, SAddressingMode* src, SAddressingMod
 extern bool
 m68k_CanUseShortMOVEA(ETargetToken targetToken, SAddressingMode* src, SAddressingMode* dest, ESize insSz) {
     return (targetToken == T_68K_MOVE || targetToken == T_68K_MOVEA)
+    && src->mode != AM_AREG
+    && src->directRegisterBank == 1
     && dest->mode == AM_AREG
     && dest->directRegisterBank == 1
     && insSz == SIZE_LONG
@@ -3212,6 +3214,7 @@ m68k_CanUseShortMOVEfromA(ETargetToken targetToken, SAddressingMode* src, SAddre
     && src->mode == AM_AREG
     && src->directRegisterBank == 1
     && dest->mode != AM_AREG
+    && dest->directRegisterBank == 1
     && insSz == SIZE_LONG
     && m68k_Get68080BankBits(dest) == 0;
 }
