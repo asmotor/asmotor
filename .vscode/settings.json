@@ -1,19 +1,10 @@
 {
   "editor.tabSize": 4,
-  "editor.insertSpaces": true,
+  "editor.insertSpaces": false,
   "files.associations": {
     "*.rc8": "asm.z80",
-    "exec.h": "c",
-    "xlink.h": "c",
-    "limits": "c",
-    "type_traits": "c",
-    "options.h": "c",
-    "project.h": "c",
-    "expression.h": "c",
-    "dependency.h": "c",
-    "strbuf.h": "c",
-    "rc8_errors.h": "c",
-    "strcoll.h": "c"
+    "*.h": "c",
+    "*.c": "c"
   },
   "files.exclude": {
     "**/.git": true,
@@ -31,5 +22,6 @@
       "editor.insertSpaces": false
   },
   "C_Cpp.errorSquiggles": "Enabled",
-  "C_Cpp.default.compilerPath": "c:\\Users\\ces\\.vscode\\extensions\\bartmanabyss.amiga-debug-1.0.0\\bin\\opt\\bin\\m68k-amiga-elf-gcc.exe"
+  "C_Cpp.default.compilerPath": "c:\\Users\\ces\\.vscode\\extensions\\bartmanabyss.amiga-debug-1.0.0\\bin\\opt\\bin\\m68k-amiga-elf-gcc.exe",
+  "editor.detectIndentation": false
 }

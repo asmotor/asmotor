@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_M_IX86) || defined(_M_X64)
+#if defined(_M_IX86) || defined(_M_X64) || defined(__x86_64)
 #   define __STDC_IEC_559__
 #endif
 

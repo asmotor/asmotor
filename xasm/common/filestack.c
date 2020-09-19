@@ -42,14 +42,6 @@
 
 #define MAX_INCLUDE_PATHS 16
 
-#if defined(WIN32)
-# define PATH_SEPARATOR '\\'
-# define PATH_REPLACE '/'
-#else
-# define PATH_SEPARATOR '/'
-# define PATH_REPLACE '\\'
-#endif
-
 /* Internal variables */
 
 SFileStackEntry* fstk_Current;
@@ -126,33 +118,6 @@ getThisContextMacro(SFileStackEntry* context) {
 static SFileStackEntry*
 getMacroContext(void) {
     return getThisContextMacro(fstk_Current);
-}
-
-static string*
-fixPathSeparators(string* fileName) {
-    return str_Replace(fileName, PATH_REPLACE, PATH_SEPARATOR);
-}
-
-static string*
-replaceFileComponent(string* fullPath, string* fileName) {
-    if (fullPath == NULL)
-        return fileName;
-
-    const char* lastSlash = str_String(fullPath) + str_Length(fullPath) - 1;
-
-    while (lastSlash > str_String(fullPath) && *lastSlash != '/' && *lastSlash != '\\')
-        --lastSlash;
-
-    if (lastSlash == str_String(fullPath))
-        return str_Copy(fileName);
-
-    string* basePath = str_Slice(fullPath, 0, lastSlash + 1 - str_String(fullPath));
-    string* newFullPath = str_Concat(basePath, fileName);
-    str_Free(basePath);
-
-    string* fixedPath = fixPathSeparators(newFullPath);
-    str_Free(newFullPath);
-    return fixedPath;
 }
 
 static SFileInfo*
@@ -263,7 +228,7 @@ fstk_ShiftMacroArgs(int32_t count) {
 extern string*
 fstk_FindFile(string* fileName) {
     string* fullPath = NULL;
-    fileName = fixPathSeparators(fileName);
+    fileName = fcanonicalizePath(fileName);
 
     if (fstk_Current->name == NULL) {
         if (fexists(str_String(fileName))) {
@@ -272,7 +237,7 @@ fstk_FindFile(string* fileName) {
     }
 
     if (fullPath == NULL) {
-        string* candidate = replaceFileComponent(fstk_Current->name, fileName);
+        string* candidate = freplaceFileComponent(fstk_Current->name, fileName);
         if (candidate != NULL) {
             if (fexists(str_String(candidate))) {
                 STR_MOVE(fullPath, candidate);
