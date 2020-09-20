@@ -29,10 +29,10 @@
 #include "tokens.h"
 
 typedef enum {
-    LEX_STATE_NORMAL,
-    LEX_STATE_MACRO_ARGUMENT0,
-    LEX_STATE_MACRO_ARGUMENT
-} ELexerState;
+    LEXER_MODE_NORMAL,
+    LEXER_MODE_MACRO_ARGUMENT0,
+    LEXER_MODE_MACRO_ARGUMENT
+} ELexerMode;
 
 typedef struct LexerBuffer {
     SCharStack charStack;
@@ -40,7 +40,7 @@ typedef struct LexerBuffer {
     size_t index;
     size_t bufferSize;
     bool atLineStart;
-    ELexerState state;
+    ELexerMode mode;
 } SLexerBuffer;
 
 typedef struct {
@@ -116,7 +116,7 @@ extern bool
 lex_GetNextToken(void);
 
 extern void
-lex_SetState(ELexerState state);
+lex_SetMode(ELexerMode mode);
 
 extern void
 lex_Bookmark(SLexerBookmark* bookmark);

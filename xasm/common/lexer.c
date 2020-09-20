@@ -54,7 +54,7 @@ copyBuffer(SLexerBuffer* dest, const SLexerBuffer* source) {
     dest->index = source->index;
     dest->bufferSize = source->bufferSize;
     dest->atLineStart = source->atLineStart;
-    dest->state = source->state;
+    dest->mode = source->mode;
 }
 
 INLINE void
@@ -559,20 +559,14 @@ lex_UnputString(const char* str) {
 
 void
 lex_SetBuffer(SLexerBuffer* buffer) {
-    if (buffer) {
-        g_currentBuffer = buffer;
-    } else {
-        internalerror("Argument must not be NULL");
-    }
+    assert (buffer != NULL);
+	g_currentBuffer = buffer;
 }
 
 void
-lex_SetState(ELexerState state) {
-    if (g_currentBuffer) {
-        g_currentBuffer->state = state;
-    } else {
-        internalerror("g_pCurrentBuffer not initialized");
-    }
+lex_SetMode(ELexerMode mode) {
+    assert (g_currentBuffer != NULL);
+    g_currentBuffer->mode = mode;
 }
 
 void
@@ -599,7 +593,7 @@ lex_CreateMemoryBuffer(const char* memory, size_t size) {
     lexerBuffer->index = 0;
     lexerBuffer->bufferSize = size;
     lexerBuffer->atLineStart = true;
-    lexerBuffer->state = LEX_STATE_NORMAL;
+    lexerBuffer->mode = LEXER_MODE_NORMAL;
     return lexerBuffer;
 }
 
@@ -651,18 +645,18 @@ lex_Init(void) {
 
 bool
 lex_GetNextToken(void) {
-    switch (g_currentBuffer->state) {
-        case LEX_STATE_NORMAL: {
+    switch (g_currentBuffer->mode) {
+        case LEXER_MODE_NORMAL: {
             return stateNormal();
         }
-        case LEX_STATE_MACRO_ARGUMENT0: {
-            g_currentBuffer->state = LEX_STATE_MACRO_ARGUMENT;
+        case LEXER_MODE_MACRO_ARGUMENT0: {
+            g_currentBuffer->mode = LEXER_MODE_MACRO_ARGUMENT;
 
             if (stateMacroArgument0())
                 return true;
         }
         // fall through
-        case LEX_STATE_MACRO_ARGUMENT: {
+        case LEXER_MODE_MACRO_ARGUMENT: {
             return stateMacroArguments();
         }
     }

@@ -308,7 +308,7 @@ fstk_ProcessIncludeFile(string* fileName) {
         dep_AddDependency(newContext->name);
         if ((newContext->lexBuffer = lex_CreateFileBuffer(fileHandle, &newContext->fileInfo->crc32)) != NULL) {
             lex_SetBuffer(newContext->lexBuffer);
-            lex_SetState(LEX_STATE_NORMAL);
+            lex_SetMode(LEXER_MODE_NORMAL);
             newContext->lineNumber = 0;
             setNewContext(newContext);
         }
@@ -329,7 +329,7 @@ fstk_ProcessRepeatBlock(char* buffer, size_t size, uint32_t count) {
 
     if ((newContext->lexBuffer = lex_CreateMemoryBuffer(buffer, size)) != NULL) {
         lex_SetBuffer(newContext->lexBuffer);
-        lex_SetState(LEX_STATE_NORMAL);
+        lex_SetMode(LEXER_MODE_NORMAL);
         newContext->lineNumber = 0;
         newContext->block.repeat.buffer = buffer;
         newContext->block.repeat.size = size;
@@ -354,7 +354,7 @@ fstk_ProcessMacro(string* macroName) {
         newContext->lexBuffer = lex_CreateMemoryBuffer(str_String(symbol->value.macro), str_Length(symbol->value.macro));
 
         lex_SetBuffer(newContext->lexBuffer);
-        lex_SetState(LEX_STATE_NORMAL);
+        lex_SetMode(LEXER_MODE_NORMAL);
         newContext->lineNumber = 1;
         newContext->block.macro.symbol = symbol;
         newContext->block.macro.argument0 = g_newMacroArgument0;
@@ -396,7 +396,7 @@ fstk_Init(string* fileName) {
         fclose(fileHandle);
 
         lex_SetBuffer(fstk_Current->lexBuffer);
-        lex_SetState(LEX_STATE_NORMAL);
+        lex_SetMode(LEXER_MODE_NORMAL);
         fstk_Current->lineNumber = 1;
         return true;
     }

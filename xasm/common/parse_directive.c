@@ -591,7 +591,7 @@ handlePopo() {
 
 static bool
 handleOpt() {
-    lex_SetState(LEX_STATE_MACRO_ARGUMENT);
+    lex_SetMode(LEXER_MODE_MACRO_ARGUMENT);
     parse_GetToken();
     if (lex_Current.token == T_STRING) {
         opt_Parse(lex_Current.value.string);
@@ -602,7 +602,7 @@ handleOpt() {
             parse_GetToken();
         }
     }
-    lex_SetState(LEX_STATE_NORMAL);
+    lex_SetMode(LEXER_MODE_NORMAL);
     opt_Updated();
     return true;
 }

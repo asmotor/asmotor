@@ -45,7 +45,7 @@ handleMacroArgument() {
 
 static bool
 handleMacroArguments() {
-    lex_SetState(LEX_STATE_MACRO_ARGUMENT0);
+    lex_SetMode(LEXER_MODE_MACRO_ARGUMENT0);
     parse_GetToken();
 
     if (lex_Current.token == T_MACROARG0) {
@@ -63,7 +63,7 @@ handleMacroArguments() {
         }
     }
 
-    lex_SetState(LEX_STATE_NORMAL);
+    lex_SetMode(LEXER_MODE_NORMAL);
     return lex_Current.token == '\n';
 }
 
