@@ -595,7 +595,7 @@ lex_CreateMemoryBuffer(const char* memory, size_t size) {
 
     lexerBuffer->buffer = (char*) mem_Alloc(size);
     memcpy(lexerBuffer->buffer, memory, size);
-    lexerBuffer->charStack.count = 0;
+    chstk_Init(&lexerBuffer->charStack);
     lexerBuffer->index = 0;
     lexerBuffer->bufferSize = size;
     lexerBuffer->atLineStart = true;

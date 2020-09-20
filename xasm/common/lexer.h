@@ -24,6 +24,8 @@
 #include "xasm.h"
 #include "str.h"
 #include "types.h"
+
+#include "charstack.h"
 #include "tokens.h"
 
 typedef enum {
@@ -31,11 +33,6 @@ typedef enum {
     LEX_STATE_MACRO_ARGUMENT0,
     LEX_STATE_MACRO_ARGUMENT
 } ELexerState;
-
-typedef struct CharStack {
-    char stack[MAX_STRING_SYMBOL_SIZE];
-    size_t count;
-} SCharStack;
 
 typedef struct LexerBuffer {
     SCharStack charStack;

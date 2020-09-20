@@ -31,6 +31,7 @@ createUniqueValue(void) {
 extern SFileBuffer*
 fbuf_Create(string* buffer, vec_t* arguments) {
 	SFileBuffer* buf = mem_Alloc(sizeof(SFileBuffer));
+	chstk_Init(&buf->charStack);
 	buf->uniqueValue = createUniqueValue();
 	buf->text = str_Copy(buffer);
 	buf->index = 0;
@@ -50,7 +51,7 @@ fbuf_ShiftArguments(SFileBuffer* fbuffer, int32_t count) {
 
 static char
 nextChar(SFileBuffer* fbuffer) {
-	char ch = chstk_Pop(fbuffer->charStack);
+	char ch = chstk_Pop(&fbuffer->charStack);
 	if (ch != 0) {
 		return ch;
 	}
@@ -65,7 +66,7 @@ nextChar(SFileBuffer* fbuffer) {
 
 static char
 peekChar(SFileBuffer* fbuffer) {
-	char ch = chstk_Peek(fbuffer->charStack);
+	char ch = chstk_Peek(&fbuffer->charStack);
 	if (ch != 0) {
 		return ch;
 	}
@@ -93,13 +94,13 @@ fbuf_GetChar(SFileBuffer* fbuffer) {
 				if (index < strvec_Count(fbuffer->arguments)) {
 					string* value = strvec_StringAt(fbuffer->arguments, index);
 					if (value != NULL) {
-						chstk_PushString(fbuffer->charStack, value);
+						chstk_PushString(&fbuffer->charStack, value);
 					}
 				}
 			} else if (next == '@') {
 				nextChar(fbuffer);
 				if (fbuffer->uniqueValue != NULL) {
-					chstk_PushString(fbuffer->charStack, fbuffer->uniqueValue);
+					chstk_PushString(&fbuffer->charStack, fbuffer->uniqueValue);
 				}
 			} else {
 				return ch;

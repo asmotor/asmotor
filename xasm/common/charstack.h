@@ -29,6 +29,11 @@ typedef struct CharStack {
     size_t count;
 } SCharStack;
 
+INLINE void
+chstk_Init(SCharStack* stack) {
+	stack->count = 0;
+}
+
 extern SCharStack*
 chstk_Create(void);
 

@@ -25,7 +25,7 @@
 extern SCharStack*
 chstk_Create(void) {
 	SCharStack* stack = (SCharStack*) mem_Alloc(sizeof(SCharStack));
-	stack->count = 0;
+	chstk_Init(stack);
 	return stack;
 }
 

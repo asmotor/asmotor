@@ -24,7 +24,7 @@
 #include "strcoll.h"
 
 typedef struct FileBuffer {
-	SCharStack* charStack;
+	SCharStack charStack;
 	string* uniqueValue;
     string* text;
 	ssize_t index;
