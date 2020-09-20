@@ -91,7 +91,7 @@ extern void
 fstk_ProcessRepeatBlock(char* buffer, size_t size, uint32_t count);
 
 extern bool
-fstk_ProcessNextBuffer(void);
+fstk_EndCurrentBuffer(void);
 
 extern bool
 fstk_Init(string* filename);

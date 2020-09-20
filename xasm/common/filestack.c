@@ -251,7 +251,7 @@ fstk_Dump(void) {
 }
 
 extern bool
-fstk_ProcessNextBuffer(void) {
+fstk_EndCurrentBuffer(void) {
     if (list_IsLast(fstk_Current)) {
         return false;
     } else {

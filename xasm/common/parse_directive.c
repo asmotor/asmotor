@@ -123,7 +123,7 @@ handleRexit() {
 static bool
 handleMexit() {
     if (fstk_Current->type == CONTEXT_MACRO) {
-        fstk_ProcessNextBuffer();
+        fstk_EndCurrentBuffer();
     } else {
         err_Warn(WARN_MEXIT_OUTSIDE_MACRO);
     }

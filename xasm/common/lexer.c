@@ -304,7 +304,7 @@ stateNormal() {
         if (matchNext(lineStart)) {
             return true;
         } else {
-            if (fstk_ProcessNextBuffer()) {
+            if (fstk_EndCurrentBuffer()) {
                 lineStart = g_currentBuffer->atLineStart;
                 g_currentBuffer->atLineStart = false;
             } else {
