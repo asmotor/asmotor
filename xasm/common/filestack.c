@@ -22,7 +22,6 @@
 #include <string.h>
 
 // From util
-#include "asmotor.h"
 #include "file.h"
 #include "mem.h"
 #include "strbuf.h"
@@ -33,6 +32,7 @@
 #include "dependency.h"
 #include "errors.h"
 #include "filestack.h"
+#include "includes.h"
 #include "lexer.h"
 #include "symbol.h"
 #include "tokens.h"
@@ -45,9 +45,6 @@
 /* Internal variables */
 
 SFileStackEntry* fstk_Current;
-
-static string* g_includePaths[MAX_INCLUDE_PATHS];
-static uint8_t g_totalIncludePaths = 0;
 
 static string* g_newMacroArgument0;
 static string** g_newMacroArguments;
@@ -226,41 +223,6 @@ fstk_ShiftMacroArgs(int32_t count) {
 }
 
 extern string*
-fstk_FindFile(string* fileName) {
-    string* fullPath = NULL;
-    fileName = fcanonicalizePath(fileName);
-
-    if (fstk_Current->name == NULL) {
-        if (fexists(str_String(fileName))) {
-            fullPath = str_Copy(fileName);
-        }
-    }
-
-    if (fullPath == NULL) {
-        string* candidate = freplaceFileComponent(fstk_Current->name, fileName);
-        if (candidate != NULL) {
-            if (fexists(str_String(candidate))) {
-                STR_MOVE(fullPath, candidate);
-            }
-        }
-    }
-
-    if (fullPath == NULL) {
-        for (uint32_t count = 0; count < g_totalIncludePaths; count += 1) {
-            string* candidate = str_Concat(g_includePaths[count], fileName);
-
-            if (fexists(str_String(candidate))) {
-                STR_MOVE(fullPath, candidate);
-                break;
-            }
-        }
-    }
-
-    str_Free(fileName);
-    return fullPath;
-}
-
-extern string*
 fstk_Dump(void) {
     string_buffer* buf = strbuf_Create();
 
@@ -333,31 +295,12 @@ fstk_ProcessNextBuffer(void) {
 }
 
 extern void
-fstk_AddIncludePath(string* pathname) {
-    char ch;
-
-    if (g_totalIncludePaths == MAX_INCLUDE_PATHS) {
-        err_Fail(ERROR_INCLUDE_LIMIT);
-        return;
-    }
-
-    ch = str_CharAt(pathname, str_Length(pathname) - 1);
-    if (ch != '\\' && ch != '/') {
-        string* pSlash = str_Create("/");
-        g_includePaths[g_totalIncludePaths++] = str_Concat(pathname, pSlash);
-        str_Free(pSlash);
-    } else {
-        g_includePaths[g_totalIncludePaths++] = str_Copy(pathname);
-    }
-}
-
-extern void
 fstk_ProcessIncludeFile(string* fileName) {
     SFileStackEntry* newContext = mem_Alloc(sizeof(SFileStackEntry));
     list_Init(newContext);
 
     newContext->type = CONTEXT_FILE;
-    newContext->name = fstk_FindFile(fileName);
+    newContext->name = inc_FindFile(fileName);
 
     FILE* fileHandle;
     if (newContext->name != NULL && (fileHandle = fopen(str_String(newContext->name), "rt")) != NULL) {
@@ -445,7 +388,7 @@ fstk_Init(string* fileName) {
     fstk_Current->type = CONTEXT_FILE;
 
     FILE* fileHandle;
-    if ((fstk_Current->name = fstk_FindFile(fileName)) != NULL
+    if ((fstk_Current->name = inc_FindFile(fileName)) != NULL
         && (fileHandle = fopen(str_String(fstk_Current->name), "rt")) != NULL) {
 
         fstk_Current->fileInfo = getFileInfoFor(fstk_Current->name);

@@ -15,6 +15,8 @@ add_library (xasm
     filebuffer.h
     filestack.c
     filestack.h
+    includes.c
+    includes.h
     lexer.c
     lexer.h
     lexer_constants.c

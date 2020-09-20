@@ -102,14 +102,8 @@ fstk_Cleanup(void);
 extern string*
 fstk_Dump(void);
 
-extern string*
-fstk_FindFile(string* filename);
-
 extern void
 fstk_ShiftMacroArgs(int32_t count);
-
-extern void
-fstk_AddIncludePath(string* pathname);
 
 extern SFileInfo*
 fstk_CurrentFileInfo();

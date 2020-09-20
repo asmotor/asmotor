@@ -16,6 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// From util
+#include "file.h"
+
 // From xasm
 #include "xasm.h"
 #include "includes.h"
@@ -33,7 +36,9 @@ g_includePaths;
 /* Public functions */
 
 extern string*
-inc_FindFile(string* workingName, string* fileName) {
+inc_FindFile(string* fileName) {
+	string* workingName = fstk_Current->name;
+
     fileName = fcanonicalizePath(fileName);
 
     if (workingName == NULL) {

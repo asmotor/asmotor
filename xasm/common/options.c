@@ -26,6 +26,7 @@
 #include "xasm.h"
 #include "errors.h"
 #include "filestack.h"
+#include "includes.h"
 #include "lexer_variadics.h"
 #include "options.h"
 #include "tokens.h"
@@ -46,7 +47,7 @@ handleDisableWarning(const char* warning) {
 static void
 handleAddIncludePath(const char* path) {
     string* pathString = str_Create(path);
-    fstk_AddIncludePath(pathString);
+    inc_AddIncludePath(pathString);
     str_Free(pathString);
 }
 

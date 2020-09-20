@@ -19,6 +19,7 @@
 #ifndef XASM_COMMON_INCLUDE_H_INCLUDED_
 #define XASM_COMMON_INCLUDE_H_INCLUDED_
 
+#include "filestack.h"
 #include "strcoll.h"
 
 
@@ -26,6 +27,6 @@ extern void
 inc_AddIncludePath(string* pathname);
 
 extern string*
-inc_FindFile(string* workingName, string* fileName) {
+inc_FindFile(string* filename);
 
 #endif /* XASM_COMMON_INCLUDE_H_INCLUDED_ */

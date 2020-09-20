@@ -31,6 +31,7 @@
 #include "errors.h"
 #include "expression.h"
 #include "filestack.h"
+#include "includes.h"
 #include "linemap.h"
 #include "options.h"
 #include "parse.h"
@@ -453,7 +454,7 @@ void
 sect_OutputBinaryFile(string* filename) {
 	FILE* fileHandle;
 
-	if ((filename = fstk_FindFile(filename)) != NULL && (fileHandle = fopen(str_String(filename), "rb")) != NULL) {
+	if ((filename = inc_FindFile(filename)) != NULL && (fileHandle = fopen(str_String(filename), "rb")) != NULL) {
 		dep_AddDependency(filename);
 
 		fseek(fileHandle, 0, SEEK_END);
