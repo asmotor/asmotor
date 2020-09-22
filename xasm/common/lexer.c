@@ -141,16 +141,14 @@ acceptString(void) {
 
 static bool
 skipUnimportantWhitespace(void) {
-	bool didSkipCharacter = false;
-	for (;;) {
-		uint8_t ch = (uint8_t) lex_PeekChar(0);
-		if (isspace(ch) && ch != '\n') {
-			didSkipCharacter = true;
-			lex_GetChar();
-		} else {
-			return didSkipCharacter;
-		}
+	bool charSkipped = false;
+	char ch;
+	while ((ch = lex_GetChar()) != '\n' && ch != 0 && isspace(ch)) {
+		charSkipped = true;
 	}
+	if (ch != 0)
+		lex_UnputChar(ch);
+	return charSkipped;
 }
 
 static bool
@@ -556,21 +554,6 @@ lex_PeekChar(size_t index) {
 	}
 }
 
-string*
-lex_PeekString(size_t length) {
-	string_buffer* buf = strbuf_Create();
-
-	for (size_t i = 0; i < length; ++i) {
-		strbuf_AppendChar(buf, lex_PeekChar(i));
-	}
-
-	string* result = strbuf_String(buf);
-	strbuf_Free(buf);
-
-	return result;
-}
-
-
 char
 lex_GetChar(void) {
 	char r;
@@ -600,13 +583,14 @@ lex_GetZeroTerminatedString(char* dest, size_t actualCharacters) {
 }
 
 bool
-lex_MatchChar(char ch) {
-	if (lex_PeekChar(0) == ch) {
-		lex_GetChar();
+lex_MatchChar(char match) {
+	char ch = lex_GetChar();
+	if (ch == match) {
 		return true;
-	} else {
-		return false;
 	}
+	
+	lex_UnputChar(ch);
+	return false;
 }
 
 bool
@@ -616,11 +600,6 @@ lex_CompareNoCase(size_t index, const char* str, size_t length) {
 			return false;
 	}
 	return true;
-}
-
-bool
-lex_StartsWithNoCase(const char* str, size_t length) {
-	return lex_CompareNoCase(0, str, length);
 }
 
 void

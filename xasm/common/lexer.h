@@ -81,9 +81,6 @@ lex_SetBuffer(SLexerBuffer* buffer);
 extern char
 lex_PeekChar(size_t index);
 
-extern string*
-lex_PeekString(size_t length);
-
 extern char
 lex_GetChar(void);
 
@@ -99,9 +96,6 @@ lex_MatchChar(char ch);
 
 extern bool
 lex_CompareNoCase(size_t index, const char* str, size_t length);
-
-extern bool
-lex_StartsWithNoCase(const char* str, size_t length);
 
 extern size_t
 lex_SkipBytes(size_t count);
