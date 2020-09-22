@@ -20,14 +20,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "asmotor.h"
+#include "util.h"
 #include "mem.h"
 
 #include "xasm.h"
 #include "errors.h"
 #include "filestack.h"
 #include "includes.h"
-#include "lexer_variadics.h"
 #include "options.h"
 #include "tokens.h"
 
@@ -187,6 +186,10 @@ opt_Open(void) {
     opt_Current->endianness = xasm_Configuration->defaultEndianness;
     opt_Current->binaryLiteralCharacters[0] = '0';
     opt_Current->binaryLiteralCharacters[1] = '1';
+    opt_Current->gameboyLiteralCharacters[0] = '0';
+    opt_Current->gameboyLiteralCharacters[1] = '1';
+    opt_Current->gameboyLiteralCharacters[2] = '2';
+    opt_Current->gameboyLiteralCharacters[3] = '3';
     opt_Current->uninitializedValue = 0xFF;
     opt_Current->sectionAlignment = xasm_Configuration->sectionAlignment;
     opt_Current->disabledWarningsCount = 0;
@@ -208,12 +211,6 @@ opt_Close(void) {
 
 extern void
 opt_Updated(void) {
-    lex_VariadicRemoveAll(tokens_BinaryVariadicId);
-
-    lex_VariadicAddCharRange(tokens_BinaryVariadicId, '%', '%', 0);
-    lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[0], opt_Current->binaryLiteralCharacters[0], 1);
-    lex_VariadicAddCharRangeRepeating(tokens_BinaryVariadicId, opt_Current->binaryLiteralCharacters[1], opt_Current->binaryLiteralCharacters[1], 1);
-
     xasm_Configuration->onOptionsUpdated(opt_Current->machineOptions);
 }
 

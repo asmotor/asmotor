@@ -19,7 +19,7 @@
 #ifndef XLINK_SYMBOL_H_INCLUDED_
 #define XLINK_SYMBOL_H_INCLUDED_
 
-#include "asmotor.h"
+#include "util.h"
 #include "types.h"
 
 #define MAX_SYMBOL_NAME_LENGTH 256

@@ -16,7 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "asmotor.h"
+#include "util.h"
 #include "file.h"
 #include "mem.h"
 #include "str.h"

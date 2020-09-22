@@ -19,7 +19,7 @@
 #ifndef XLINK_XLINK_H_INCLUDED_
 #define XLINK_XLINK_H_INCLUDED_
 
-#include "asmotor.h"
+#include "util.h"
 
 NORETURN (extern void error(const char* fmt, ...));
 

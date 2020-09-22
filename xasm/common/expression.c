@@ -20,7 +20,7 @@
 #include <assert.h>
 
 // From util
-#include "asmotor.h"
+#include "util.h"
 #include "fmath.h"
 #include "mem.h"
 

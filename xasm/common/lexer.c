@@ -22,17 +22,17 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "asmotor.h"
+#include "util.h"
 #include "crc32.h"
 #include "file.h"
 #include "lists.h"
+#include "fmath.h"
 #include "mem.h"
 #include "strbuf.h"
 
 #include "errors.h"
 #include "lexer.h"
 #include "lexer_constants.h"
-#include "lexer_variadics.h"
 #include "filestack.h"
 #include "symbol.h"
 
@@ -57,11 +57,6 @@ copyBuffer(SLexerBuffer* dest, const SLexerBuffer* source) {
     dest->mode = source->mode;
 }
 
-INLINE void
-unputChar(char ch) {
-    g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = ch;
-}
-
 INLINE size_t
 charsAvailable(void) {
     return g_currentBuffer->bufferSize - g_currentBuffer->index + g_currentBuffer->charStack.count;
@@ -76,22 +71,6 @@ appendAndFreeString(char* destination, string* str) {
         return length;
     }
     return 0;
-}
-
-static void
-skip(size_t count) {
-    if (g_currentBuffer->charStack.count > 0) {
-        if (count >= g_currentBuffer->charStack.count) {
-            count -= g_currentBuffer->charStack.count;
-            g_currentBuffer->charStack.count = 0;
-        } else {
-            g_currentBuffer->charStack.count -= count;
-            return;
-        }
-    }
-    g_currentBuffer->index += count;
-    if (g_currentBuffer->index > g_currentBuffer->bufferSize)
-        g_currentBuffer->index = g_currentBuffer->bufferSize;
 }
 
 static void
@@ -155,9 +134,8 @@ expandStringIncluding(char* destination, char terminator) {
 
 static bool
 acceptString(void) {
-    char ch = lex_PeekChar(0);
+    char ch = lex_GetChar();
     if (ch == '"' || ch == '\'') {
-        lex_GetChar();
         expandStringIncluding(lex_Current.value.string, ch);
         lex_Current.token = T_STRING;
         lex_Current.length = strlen(lex_Current.value.string);
@@ -166,6 +144,7 @@ acceptString(void) {
 
         return true;
     }
+	lex_UnputChar(ch);
     return false;
 }
 
@@ -184,59 +163,7 @@ skipUnimportantWhitespace(void) {
 }
 
 static bool
-atBufferEnd(void) {
-    return lex_PeekChar(0) == 0;
-}
-
-static bool 
-getMatches(bool lineStart, size_t* variadicLength, const SVariadicWordDefinition** variadicWord, size_t* constantLength, const SLexConstantsWord** constantWord) {
-    if (atBufferEnd())
-        return false;
-
-    lex_VariadicMatchString(charsAvailable(), variadicLength, variadicWord);
-    bool doNotTryConstantWord = ((*variadicWord) != NULL && (*variadicWord)->token == T_ID && lineStart && lex_PeekChar(*variadicLength) == ':');
-
-    if (doNotTryConstantWord) {
-        *constantLength = 0;
-        *constantWord = NULL;
-    } else {
-        lex_ConstantsMatchWord(charsAvailable(), constantLength, constantWord);
-    }
-    return true;
-}
-
-static bool
-matchNext(bool lineStart);
-
-static bool
-acceptVariadic(size_t variadicLength, const SVariadicWordDefinition* variadicWord, bool lineStart) {
-    lex_Current.length = variadicLength;
-    if (variadicWord->callback && !variadicWord->callback(lex_Current.length)) {
-        if (lex_Current.length == 0)
-            return false;
-            
-        return matchNext(lineStart);
-    }
-
-    if (variadicWord->token == T_ID && lineStart) {
-        skip(lex_Current.length);
-        lex_Current.token = T_LABEL;
-        return true;
-    } else {
-        skip(lex_Current.length);
-        lex_Current.token = variadicWord->token;
-        return true;
-    }
-
-}
-
-static bool
-acceptConstantWord(size_t constantLength, const SLexConstantsWord* constantWord) {
-    lex_Current.length = constantLength;
-    lex_GetZeroTerminatedString(lex_Current.value.string, lex_Current.length);
-    lex_Current.token = constantWord->token;
-    return true;
-}
+acceptNext(bool lineStart);
 
 static bool
 acceptChar(void) {
@@ -252,46 +179,248 @@ acceptChar(void) {
 }
 
 static bool
+isLineEnd(char ch) {
+	return ch == '\n' || ch == 0;
+}
+
+static bool
 consumeComment(bool wasSpace, bool lineStart) {
-    char ch = lex_PeekChar(0);
+    char ch = lex_GetChar();
 
     if (ch == ';' || (ch == '*' && (wasSpace || lineStart))) {
         lex_GetChar();
-        while (true) {
-            ch = lex_PeekChar(0);
-            if (ch == '\n' || ch == 0)
-                break;
-            lex_GetChar();
-        }
-        return true;
+        while (!isLineEnd(ch = lex_GetChar())) {}
+		wasSpace = false;
     }
+	lex_UnputChar(ch);
     return wasSpace;
 }
 
 static bool
-matchNext(bool lineStart) {
+isSymbolCharacter(char ch) {
+	return isalnum(ch) ||  ch == '_' || ch == '#';
+}
+
+static bool
+verifyLocalLabel(void) {
+	for (size_t i = 0; i < lex_Current.length; ++i) {
+		if (!isdigit(lex_Current.value.string[i])) {
+			return err_Error(ERROR_ID_MALFORMED);
+		}
+	}
+	return true;
+}
+
+static bool
+acceptSymbolTail() {
+	char ch;
+	while (isSymbolCharacter(ch = lex_GetChar())) {
+		lex_Current.value.string[lex_Current.length++] = ch;
+	}
+	if (ch == '$') {
+		if (!verifyLocalLabel())
+			return false;
+		lex_Current.value.string[lex_Current.length++] = ch;
+	} else {
+		lex_UnputChar(ch);
+	}
+
+	ch = lex_Current.value.string[0];
+	bool correct = (lex_Current.length >= 2) || (ch != '.');
+	if (correct) {
+		lex_Current.value.string[lex_Current.length] = 0;
+		return true;
+	} else {
+		lex_UnputChar(ch);
+		return false;
+	}
+}
+
+static bool
+acceptLabel(void) {
+	char ch = lex_GetChar();
+	if (ch == '.' || isSymbolCharacter(ch)) {
+		lex_Current.length = 1;
+		lex_Current.value.string[0] = ch;
+		if (acceptSymbolTail()) {
+			lex_Current.token = T_LABEL;
+			return true;
+		}
+		return false;
+	}
+	lex_UnputChar(ch);
+	return false;
+}
+
+static bool
+acceptSymbolIfLonger(void) {
+	size_t tokenLength = lex_Current.length;
+
+	size_t index = 0;
+	if (tokenLength >= 2 && lex_Current.value.string[index] == '.')
+		++index;
+
+	while (index < tokenLength && isSymbolCharacter(lex_Current.value.string[index])) {
+		++index;
+	}
+
+	if (index == tokenLength) {
+		if (acceptSymbolTail() && lex_Current.length > tokenLength) {
+			lex_Current.token = T_ID;
+			return true;
+		}
+	}
+
+	lex_Current.length = tokenLength;
+	return false;
+}
+
+static int
+asciiToBinary(char ch) {
+	if (isdigit(ch)) {
+		return ch - '0';
+	} if ((ch >= 'a') && (ch <= 'f')) {
+		return ch - 'a' + 10;
+	} else if ((ch >= 'A') && (ch <= 'F')) {
+		return ch - 'A' + 10;
+	}
+	return -1;
+}
+
+static int
+asciiToRadixBinary(char ch, int radix) {
+	if (radix == 2) {
+		for (int i = 0; i < 2; ++i) {
+			if (ch == opt_Current->binaryLiteralCharacters[i])
+				return i;
+		}
+	}
+	int binary = asciiToBinary(ch);
+	return binary < radix ? binary : -1;
+}
+
+static bool
+acceptNumeric(int radix) {
+	int binary;
+	char ch;
+	uint32_t high = 0;
+
+	lex_Current.length = 0;
+	while ((binary = asciiToRadixBinary(ch = lex_GetChar(), radix)) != -1) {
+		high = high * radix + binary;
+		lex_Current.value.string[lex_Current.length++] = ch;
+	}
+
+	if (radix == 10 && ch == '$') {
+		if (!verifyLocalLabel())
+			return false;
+		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Current.token = T_ID;
+		return true;
+	}
+
+	uint32_t denominator = 1;
+	uint32_t low = 0;
+	bool dot = false;
+	if (ch == '.') {
+		dot = true;
+		while ((binary = asciiToRadixBinary(ch = lex_GetChar(), radix)) != -1) {
+			low = low * radix + binary;
+			denominator = denominator * radix;
+			lex_Current.value.string[lex_Current.length++] = ch;
+		}
+	}
+
+	if (ch == 'f') {
+		lex_Current.token = T_FLOAT;
+		lex_Current.value.floating = ((long double) high) + ((long double) low) / denominator;
+		return true;
+	}
+
+	lex_UnputChar(ch);
+
+	if (dot) {
+		lex_Current.token = T_NUMBER;
+		lex_Current.value.integer = high * 65536 + imuldiv(low, 65536, denominator);
+	} else {
+		lex_Current.token = T_NUMBER;
+		lex_Current.value.integer = high;
+	}
+
+	return true;
+}
+
+
+static int
+gameboyCharToInt(char ch) {
+	for (uint32_t i = 0; i <= 3; ++i) {
+		if (opt_Current->gameboyLiteralCharacters[i] == ch)
+			return i;
+	}
+
+	return -1;
+}
+
+
+static bool 
+acceptGameboyLiteral() {
+	uint32_t result = 0;
+	char ch = 0;
+	int value;
+
+	while ((value = gameboyCharToInt(ch = lex_GetChar())) != -1) {
+		result = result * 2 + ((value & 1u) << 8u) + ((value & 2u) >> 1u);
+	}
+
+	lex_Current.value.integer = result;
+	lex_Current.token = T_NUMBER;
+
+	return true;
+}
+
+
+static bool
+acceptVariadic(void) {
+	char ch = lex_GetChar();
+	lex_UnputChar(ch);
+
+	if (ch == '$') {
+		return acceptNumeric(16);
+	} else if (ch == '%') {
+		return acceptNumeric(2);
+	} else if (ch == '`') {
+		return acceptGameboyLiteral();
+	} else if (isdigit(ch)) {
+		return acceptNumeric(10);
+	}
+	return false;
+}
+
+static bool
+acceptNext(bool lineStart) {
+	if (lineStart) {
+		consumeComment(false, true);
+		if (acceptLabel()) {
+			return true;
+		}
+	}
+
     bool wasSpace = skipUnimportantWhitespace();
     lineStart &= !wasSpace;
 
     wasSpace = consumeComment(wasSpace, lineStart);
     lineStart &= !wasSpace;
 
-    size_t variadicLength;
-    const SVariadicWordDefinition* variadicWord;
+	if (acceptVariadic()) {
+		return true;
+	}
 
-    size_t constantLength;
-    const SLexConstantsWord* constantWord;
-
-    if (!getMatches(lineStart, &variadicLength, &variadicWord, &constantLength, &constantWord))
-        return false;
-
-    if (constantWord != NULL && constantLength >= variadicLength) {
-        return acceptConstantWord(constantLength, constantWord);
-    } else if (variadicLength > 0) {
-        if (acceptVariadic(variadicLength, variadicWord, lineStart))
-            return true;
+    const SLexConstantsWord* constantWord = lex_ConstantsMatchWord();
+    if (constantWord != NULL) {
+		acceptSymbolIfLonger();
+		return true;
     }
-
+	
     return acceptString() || acceptChar();
 }
 
@@ -301,7 +430,7 @@ stateNormal() {
     g_currentBuffer->atLineStart = false;
 
     for (;;) {
-        if (matchNext(lineStart)) {
+        if (acceptNext(lineStart)) {
             return true;
         } else {
             if (fstk_EndCurrentBuffer()) {
@@ -357,7 +486,7 @@ getStringUntilTerminators(const char* terminators) {
     if (lex_Current.length > 0 && strchr(terminators, lex_Current.value.string[lex_Current.length - 1]) != 0) {
         char terminator = lex_Current.value.string[lex_Current.length - 1];
         lex_Current.value.string[--lex_Current.length] = 0;
-        unputChar(terminator);
+        lex_UnputChar(terminator);
     }
 }
 
@@ -367,7 +496,7 @@ getStringUntilTerminator(char terminator) {
     lex_Current.length = lastChar - lex_Current.value.string;
     if (lex_Current.value.string[lex_Current.length - 1] == terminator) {
         lex_Current.value.string[--lex_Current.length] = 0;
-        unputChar(terminator);
+        lex_UnputChar(terminator);
     }
 }
 
@@ -424,6 +553,11 @@ stateMacroArguments() {
 SLexerToken lex_Current;
 
 /*	Public functions */
+
+void
+lex_UnputChar(char ch) {
+    g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = ch;
+}
 
 char
 lex_PeekChar(size_t index) {
@@ -548,7 +682,7 @@ void
 lex_UnputStringLength(const char* str, size_t length) {
     str += length;
     for (size_t i = 0; i < length; ++i) {
-        unputChar(*(--str));
+        lex_UnputChar(*(--str));
     }
 }
 
@@ -640,7 +774,6 @@ lex_CreateFileBuffer(FILE* fileHandle, uint32_t* checkSum) {
 void
 lex_Init(void) {
     lex_ConstantsInit();
-    lex_VariadicInit();
 }
 
 bool

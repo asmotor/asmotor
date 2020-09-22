@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "asmotor.h"
+#include "util.h"
 
 #include "xasm.h"
 #include "expression.h"

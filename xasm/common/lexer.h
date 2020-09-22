@@ -63,6 +63,9 @@ extern SLexerToken lex_Current;
 extern void
 lex_Init(void);
 
+extern void
+lex_UnputChar(char ch);
+
 extern SLexerBuffer*
 lex_CreateMemoryBuffer(const char* memory, size_t size);
 

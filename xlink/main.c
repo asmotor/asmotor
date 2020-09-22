@@ -19,7 +19,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#include "asmotor.h"
+#include "util.h"
 #include "file.h"
 #include "str.h"
 

@@ -21,7 +21,6 @@
 #include "xasm.h"
 #include "lexer.h"
 #include "lexer_constants.h"
-#include "lexer_variadics.h"
 #include "options.h"
 
 #include "z80_tokens.h"
@@ -155,50 +154,7 @@ static SLexConstantsWord g_tokens[] = {
     { NULL, 0 }
 };
 
-static uint32_t
-gameboyCharToInt(char ch) {
-	for (uint32_t i = 0; i <= 3; ++i) {
-		if (opt_Current->machineOptions->gameboyLiteralCharacters[i] == ch)
-			return i;
-	}
-
-	return 0;
-}
-
-
-static uint32_t 
-gameboyLiteralToInt(size_t index, size_t size) {
-	uint32_t result = 0;
-
-	while (index < size) {
-		uint32_t c = gameboyCharToInt(lex_PeekChar(index++));
-		result = result * 2 + ((c & 1u) << 8u) + ((c & 2u) >> 1u);
-	}
-
-	return result;
-}
-
-
-static bool
-parseGameboyLiteral(size_t size) {
-    lex_Current.value.integer = gameboyLiteralToInt(1, size);
-
-    return true;
-}
-
-
-static SVariadicWordDefinition gameboyLiteralWordDefinition = {
-	parseGameboyLiteral, T_NUMBER
-};
-
-
 void
 z80_DefineTokens(void) {
-	/* Gameboy literals */
-
-    z80_gameboyLiteralId = lex_VariadicCreateWord(&gameboyLiteralWordDefinition);
-    lex_VariadicAddCharRange(z80_gameboyLiteralId, '`', '`', 0);
-	lex_VariadicAddCharRangeRepeating(z80_gameboyLiteralId, '0', '3', 1);
-
 	lex_ConstantsDefineWords(g_tokens);
 }

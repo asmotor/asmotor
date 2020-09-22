@@ -64,7 +64,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcz", "-fv", "-otest.r", "test_section.asm"],
+            "args": ["-mcz", "-fv", "-otest.r", "test_xor.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/z80",
             "environment": [],

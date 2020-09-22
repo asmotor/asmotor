@@ -22,7 +22,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "asmotor.h"
+#include "util.h"
 #include "file.h"
 #include "mem.h"
 

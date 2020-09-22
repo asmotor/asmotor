@@ -19,8 +19,8 @@
 #ifndef XASM_COMMON_EXPRESSION_H_INCLUDED_
 #define XASM_COMMON_EXPRESSION_H_INCLUDED_
 
+#include "util.h"
 #include "str.h"
-#include "asmotor.h"
 #include "section.h"
 #include "symbol.h"
 #include "tokens.h"

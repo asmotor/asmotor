@@ -22,7 +22,6 @@
 #include "mem.h"
 
 #include "xasm.h"
-#include "lexer_variadics.h"
 #include "options.h"
 #include "errors.h"
 
@@ -45,26 +44,12 @@ z80_CopyOptions(SMachineOptions* dest, SMachineOptions* src) {
 
 void
 z80_SetDefaultOptions(SMachineOptions* options) {
-    options->gameboyLiteralCharacters[0] = '0';
-    options->gameboyLiteralCharacters[1] = '1';
-    options->gameboyLiteralCharacters[2] = '2';
-    options->gameboyLiteralCharacters[3] = '3';
     options->cpu = CPUF_Z80;
     options->synthesizedInstructions = false;
 }
 
 void
 z80_OptionsUpdated(SMachineOptions* options) {
-    lex_VariadicRemoveAll(z80_gameboyLiteralId);
-    lex_VariadicAddCharRange(z80_gameboyLiteralId, '`', '`', 0);
-
-    for (int i = 0; i <= 3; ++i) {
-        lex_VariadicAddCharRangeRepeating(
-                z80_gameboyLiteralId,
-                (uint8_t) options->gameboyLiteralCharacters[i],
-                (uint8_t) options->gameboyLiteralCharacters[i],
-                1);
-    }
 }
 
 bool
@@ -75,10 +60,10 @@ z80_ParseOption(const char* s) {
     switch (s[0]) {
         case 'g':
             if (strlen(&s[1]) == 4) {
-                opt_Current->machineOptions->gameboyLiteralCharacters[0] = s[1];
-                opt_Current->machineOptions->gameboyLiteralCharacters[1] = s[2];
-                opt_Current->machineOptions->gameboyLiteralCharacters[2] = s[3];
-                opt_Current->machineOptions->gameboyLiteralCharacters[3] = s[4];
+                opt_Current->gameboyLiteralCharacters[0] = s[1];
+                opt_Current->gameboyLiteralCharacters[1] = s[2];
+                opt_Current->gameboyLiteralCharacters[2] = s[3];
+                opt_Current->gameboyLiteralCharacters[3] = s[4];
                 return true;
             }
 

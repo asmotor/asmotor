@@ -34,8 +34,6 @@
 #endif
 
 #include "xasm.h"
-#include "asmotor.h"
-#include "amitime.h"
 #include "amigaobject.h"
 #include "binaryobject.h"
 #include "dependency.h"
@@ -48,6 +46,9 @@
 #include "section.h"
 #include "symbol.h"
 #include "tokens.h"
+
+#include "util.h"
+#include "amitime.h"
 
 uint32_t xasm_TotalLines = 0;
 uint32_t xasm_TotalErrors = 0;

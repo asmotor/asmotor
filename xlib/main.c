@@ -21,7 +21,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "asmotor.h"
+#include "util.h"
 #include "file.h"
 #include "types.h"
 

@@ -22,8 +22,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include "asmotor.h"
+#include "util.h"
 #include "mem.h"
+
 #include "xasm.h"
 #include "symbol.h"
 #include "filestack.h"

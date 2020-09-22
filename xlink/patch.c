@@ -22,7 +22,7 @@
 #include "mem.h"
 #include "str.h"
 
-#include "asmotor.h"
+#include "util.h"
 
 #include "patch.h"
 #include "section.h"

@@ -22,7 +22,7 @@
 #include <string.h>
 
 // From util
-#include "asmotor.h"
+#include "util.h"
 #include "mem.h"
 #include "file.h"
 #include "types.h"

@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "asmotor.h"
+#include "util.h"
 #include "types.h"
 #include "file.h"
 #include "mem.h"

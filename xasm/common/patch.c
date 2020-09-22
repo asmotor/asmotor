@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <memory.h>
 
-#include "asmotor.h"
+#include "util.h"
 #include "fmath.h"
 #include "mem.h"
 

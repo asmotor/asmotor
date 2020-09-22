@@ -23,7 +23,6 @@
 #define CPUF_Z80 0x02u
 
 typedef struct MachineOptions {
-    char gameboyLiteralCharacters[4];
     uint8_t cpu;
     bool synthesizedInstructions;
     bool undocumentedInstructions;

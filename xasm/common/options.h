@@ -35,6 +35,7 @@ typedef struct Options {
 
     EEndianness endianness;
     uint8_t binaryLiteralCharacters[2];
+    uint8_t gameboyLiteralCharacters[4];
     uint8_t uninitializedValue;
 
     int32_t sectionAlignment;
