@@ -382,7 +382,6 @@ acceptGameboyLiteral() {
 static bool
 acceptVariadic(void) {
 	char ch = lex_GetChar();
-	lex_UnputChar(ch);
 
 	if (ch == '$') {
 		return acceptNumeric(16);
@@ -390,9 +389,13 @@ acceptVariadic(void) {
 		return acceptNumeric(2);
 	} else if (ch == '`') {
 		return acceptGameboyLiteral();
-	} else if (isdigit(ch)) {
+	}
+	
+	lex_UnputChar(ch);
+	if (isdigit(ch)) {
 		return acceptNumeric(10);
 	}
+	
 	return false;
 }
 
@@ -419,7 +422,9 @@ acceptNext(bool lineStart) {
     if (constantWord != NULL) {
 		acceptSymbolIfLonger();
 		return true;
-    }
+    } else if (acceptLabel()) {
+		return true;
+	}
 	
     return acceptString() || acceptChar();
 }
