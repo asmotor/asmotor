@@ -37,222 +37,81 @@
 #define ENDM_LEN 4
 
 static bool
-isWhiteSpace(char s) {
-    return s == ' ' || s == '\t' || s == '\0' || s == '\n';
+isEndc(EToken token) {
+	return token == T_DIRECTIVE_ENDC;
 }
 
 static bool
-isToken(size_t index, const char* token) {
-    size_t len = strlen(token);
-    return lex_CompareNoCase(index, token, len) && isWhiteSpace(lex_PeekChar(index + len));
+isEndm(EToken token) {
+	return token == T_SYM_ENDM;
 }
 
 static bool
-isRept(size_t index) {
-    return isToken(index, "REPT");
+isEndr(EToken token) {
+	return token == T_DIRECTIVE_ENDR;
 }
 
 static bool
-isEndr(size_t index) {
-    return isToken(index, "ENDR");
+skipPastDirective(bool (*directive)(EToken)) {
+	for (;;)
+		if (directive(lex_Current.token)) {
+			lex_GetNextToken();
+			return true;
+		}
+
+		switch (lex_Current.token) {
+			case T_DIRECTIVE_IF:
+			case T_DIRECTIVE_IFC:
+			case T_DIRECTIVE_IFD:
+			case T_DIRECTIVE_IFEQ:
+			case T_DIRECTIVE_IFGE:
+			case T_DIRECTIVE_IFGT:
+			case T_DIRECTIVE_IFLE:
+			case T_DIRECTIVE_IFLT:
+			case T_DIRECTIVE_IFNC:
+			case T_DIRECTIVE_IFND: {
+				lex_GetNextDirective();
+				return skipPastDirective(isEndc);
+			}
+			case T_SYM_MACRO: {
+				lex_GetNextDirective();
+				return skipPastDirective(isEndm);
+			}
+			case T_DIRECTIVE_REPT: {
+				lex_GetNextDirective();
+				return skipPastDirective(isEndr);
+			}
+			default: {
+				if (!lex_GetNextDirective())
+					return false;
+				break;
+			}
+	}
 }
 
 static bool
-isIf(size_t index) {
-    return isToken(index, "IF") || isToken(index, "IFC") || isToken(index, "IFD") || isToken(index, "IFNC")
-           || isToken(index, "IFND") || isToken(index, "IFNE") || isToken(index, "IFEQ") || isToken(index, "IFGT")
-           || isToken(index, "IFGE") || isToken(index, "IFLT") || isToken(index, "IFLE");
+isFalseBranch(EToken token) {
+	return token == T_DIRECTIVE_ELSE || token == T_DIRECTIVE_ENDC;
 }
-
-static bool
-isElse(size_t index) {
-    return isToken(index, "ELSE");
-}
-
-static bool
-isEndc(size_t index) {
-    return isToken(index, "ENDC");
-}
-
-static bool
-isMacro(size_t index) {
-    return isToken(index, "MACRO");
-}
-
-static bool
-isEndm(size_t index) {
-    return isToken(index, "ENDM");
-}
-
-static size_t
-skipLine(size_t index) {
-    while (lex_PeekChar(index) != 0) {
-        if (lex_PeekChar(index++) == '\n')
-            return index;
-    }
-
-    return SIZE_MAX;
-}
-
-static size_t
-findControlToken(size_t index) {
-    if (index == SIZE_MAX)
-        return SIZE_MAX;
-
-    if (isRept(index) || isEndr(index) || isIf(index) || isElse(index) || isEndc(index) || isMacro(index)
-        || isEndm(index)) {
-        return index;
-    }
-
-    while (!isWhiteSpace(lex_PeekChar(index))) {
-        if (lex_PeekChar(index++) == ':')
-            break;
-    }
-    for (;;) {
-        char ch = lex_PeekChar(index);
-        if (ch == 0 || !isWhiteSpace(ch))
-            break;
-        index += 1;
-    }
-
-    return index;
-}
-
-static size_t
-getReptBodySize(size_t index);
-
-static size_t
-getIfBodySize(size_t index);
-
-static size_t
-getMacroBodySize(size_t index);
-
-static bool
-skipRept(size_t* index) {
-    if (isRept(*index)) {
-        size_t blockLen = getReptBodySize(*index + REPT_LEN);
-        *index = skipLine(*index + blockLen + REPT_LEN + ENDR_LEN);
-        return true;
-    } else {
-        return false;
-    }
-}
-
-static bool
-skipIf(size_t* index) {
-    if (isIf(*index)) {
-        while (!isWhiteSpace(lex_PeekChar(*index)))
-            *index += 1;
-        size_t blockSize = getIfBodySize(*index);
-        if (blockSize == 0)
-            return false;
-        *index = skipLine(*index + blockSize + ENDC_LEN);
-        return true;
-    } else {
-        return false;
-    }
-}
-
-static bool
-skipMacro(size_t* index) {
-    if (isMacro(*index)) {
-        size_t blockLen = getMacroBodySize(*index + MACRO_LEN);
-        *index = skipLine(*index + blockLen + MACRO_LEN + ENDM_LEN);
-        return true;
-    } else {
-        return false;
-    }
-}
-
-static size_t
-getBlockBodySize(size_t index, bool (*endPredicate)(size_t)) {
-    size_t start = index;
-
-    index = skipLine(index);
-    while ((index = findControlToken(index)) != SIZE_MAX) {
-        if (!skipRept(&index) && !skipIf(&index) && !skipMacro(&index)) {
-            if (endPredicate(index)) {
-                return index - start;
-            } else {
-                index = skipLine(index);
-            }
-        }
-    }
-
-    return 0;
-}
-
-static size_t
-getReptBodySize(size_t index) {
-    return getBlockBodySize(index, isEndr);
-}
-
-static size_t
-getMacroBodySize(size_t index) {
-    return getBlockBodySize(index, isEndm);
-}
-
-static size_t
-getIfBodySize(size_t index) {
-    return getBlockBodySize(index, isEndc);
-}
-
 
 /* Public functions */
 
 bool
-parse_SkipTrueBranch(void) {
-    size_t index = skipLine(0);
-    while ((index = findControlToken(index)) != SIZE_MAX) {
-        if (!skipRept(&index) && !skipIf(&index) && !skipMacro(&index)) {
-            if (isEndc(index)) {
-                fstk_Current->lineNumber += (uint32_t) lex_SkipBytes(index);
-                return true;
-            } else if (isElse(index)) {
-                fstk_Current->lineNumber += (uint32_t) lex_SkipBytes(index + ELSE_LEN);
-                return true;
-            } else {
-                index = skipLine(index);
-            }
-        }
-    }
-
-    return false;
+parse_SkipPastTrueBranch(void) {
+	return skipPastDirective(isFalseBranch);
 }
 
 bool
-parse_SkipToEndc(void) {
-    size_t index = skipLine(0);
-    while ((index = findControlToken(index)) != SIZE_MAX) {
-        if (!skipRept(&index) && !skipIf(&index) && !skipMacro(&index)) {
-            if (isEndc(index)) {
-                fstk_Current->lineNumber += (uint32_t) lex_SkipBytes(index);
-                return true;
-            } else {
-                index = skipLine(index);
-            }
-        }
-    }
-
-    return 0;
+parse_SkipPastEndc(void) {
+	return skipPastDirective(isEndc);
 }
 
 bool
-parse_CopyReptBlock(char** reptBlock, size_t* size) {
-    size_t len = getReptBodySize(0);
-
-    if (len == 0)
-        return false;
-
-    *size = len;
-
-    *reptBlock = (char*) mem_Alloc(len + 1);
-    lex_GetZeroTerminatedString(*reptBlock, len);
-    fstk_Current->lineNumber += (uint32_t) lex_SkipBytes(ENDR_LEN);
-
-    return true;
+parse_SkipPastEndr(void) {
+	return skipPastDirective(isEndr);
 }
 
+/*
 bool
 parse_CopyMacroBlock(char** dest, size_t* size) {
     size_t len = getMacroBodySize(0);
@@ -265,3 +124,4 @@ parse_CopyMacroBlock(char** dest, size_t* size) {
     return true;
 }
 
+*/

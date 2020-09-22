@@ -61,9 +61,9 @@ determineCodeEnd(const char* literal) {
 static bool
 parseFormatSpecifier(char* format, uint32_t* precision) {
     if (lex_Current.token == ':') {
-        char f = lex_PeekChar(0);
+        char f = lex_GetChar();
         if (isalpha(f)) {
-            *format = toupper(lex_GetChar());
+            *format = toupper(f);
             parse_GetToken();
 
             SExpression* expression = parse_Expression(4);
@@ -75,6 +75,7 @@ parseFormatSpecifier(char* format, uint32_t* precision) {
             expr_Free(expression);
             return true;
         }
+		lex_UnputChar(f);
     }
 
     *format = 'D';

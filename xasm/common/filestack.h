@@ -50,8 +50,7 @@ typedef struct FileStackEntry {
     string* uniqueId;    /*	The \@ symbol */
     union {
         struct {
-            char* buffer;
-            size_t size;
+			SLexerBookmark bookmark;
             uint32_t remaining;
         } repeat;
         struct {
@@ -88,7 +87,7 @@ extern void
 fstk_ProcessIncludeFile(string* filename);
 
 extern void
-fstk_ProcessRepeatBlock(char* buffer, size_t size, uint32_t count);
+fstk_ProcessRepeatBlock(uint32_t count);
 
 extern bool
 fstk_EndCurrentBuffer(void);

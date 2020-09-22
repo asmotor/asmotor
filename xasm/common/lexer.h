@@ -67,6 +67,9 @@ extern void
 lex_UnputChar(char ch);
 
 extern SLexerBuffer*
+lex_CreateBookmarkBuffer(SLexerBookmark* bookmark);
+
+extern SLexerBuffer*
 lex_CreateMemoryBuffer(const char* memory, size_t size);
 
 extern SLexerBuffer*
@@ -108,6 +111,9 @@ lex_UnputString(const char* str);
 
 extern void
 lex_UnputStringLength(const char* str, size_t length);
+
+extern bool
+lex_GetNextDirective(void);
 
 extern bool
 lex_GetNextToken(void);

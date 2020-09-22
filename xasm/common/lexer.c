@@ -436,7 +436,7 @@ stateNormal() {
 }
 
 static bool
-isMacroArgument0Terminator(uint8_t ch) {
+isMacroArgument0Terminator(char ch) {
 	return isspace(ch) || ch == ';';
 }
 
@@ -444,12 +444,14 @@ static bool
 stateMacroArgument0(void) {
 	if (lex_MatchChar('.')) {
 		int i = 0;
+		char ch;
 
-		while (!isMacroArgument0Terminator((unsigned char) lex_PeekChar(0))) {
-			lex_Current.value.string[i++] = lex_GetChar();
+		while (!isMacroArgument0Terminator(ch = lex_GetChar())) {
+			lex_Current.value.string[i++] = ch;
 		}
 		lex_Current.value.string[i] = 0;
 		lex_Current.token = T_MACROARG0;
+		lex_UnputChar(ch);
 		return true;
 	}
 
@@ -482,16 +484,7 @@ getStringUntilTerminators(const char* terminators) {
 
 static bool
 stateMacroArguments() {
-	bool skippedSpace = false;
-	while (isspace((unsigned char) lex_PeekChar(0)) && lex_PeekChar(0) != '\n') {
-		lex_GetChar();
-		skippedSpace = true;
-	}
-
-	if (lex_MatchChar(';') || (skippedSpace && lex_MatchChar('*'))) {
-		while (lex_PeekChar(0) != '\n')
-			lex_GetChar();
-	}
+	consumeComment(skipUnimportantWhitespace(), false);
 
 	lex_Current.length = 0;
 
@@ -503,11 +496,12 @@ stateMacroArguments() {
 	}
 
 	if (lex_Current.length > 0) {
-		char ch = lex_PeekChar(0);
+		char ch = lex_GetChar();
 		if (ch == '\n' || ch == ';' || ch == ' ' || ch == '\t') {
 			trimTokenStringRight();
 		}
 		lex_Current.token = T_STRING;
+		lex_UnputChar(ch);
 		return true;
 	} else if (lex_MatchChar('\n')) {
 		g_currentBuffer->atLineStart = true;
@@ -518,13 +512,17 @@ stateMacroArguments() {
 		lex_Current.length = 1;
 		lex_Current.token = T_COMMA;
 		return true;
-	} else if (lex_PeekChar(0) == '}') {
-		lex_Current.length = 1;
-		lex_Current.token = T_LINEFEED;
-		return true;
 	} else {
-		lex_Current.token = T_NONE;
-		return false;
+		char ch = lex_GetChar();
+		lex_UnputChar(ch);
+		if (ch == '}') {
+			lex_Current.length = 1;
+			lex_Current.token = T_LINEFEED;
+			return true;
+		} else {
+			lex_Current.token = T_NONE;
+			return false;
+		}
 	}
 }
 
@@ -679,6 +677,13 @@ lex_FreeBuffer(SLexerBuffer* buffer) {
 }
 
 SLexerBuffer*
+lex_CreateBookmarkBuffer(SLexerBookmark* bookmark) {
+	SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
+	copyBuffer(lexerBuffer, &bookmark->Buffer);
+	return lexerBuffer;
+}
+
+SLexerBuffer*
 lex_CreateMemoryBuffer(const char* memory, size_t size) {
 	SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
 
@@ -735,6 +740,16 @@ lex_CreateFileBuffer(FILE* fileHandle, uint32_t* checkSum) {
 void
 lex_Init(void) {
 	lex_ConstantsInit();
+}
+
+bool
+lex_GetNextDirective(void) {
+	char ch;
+	while ((ch = lex_GetChar()) != '\n') {
+	}
+	while (strchr(":\t ", (ch = lex_GetChar())) != NULL) {
+	}
+	return lex_ConstantsMatchWord() != NULL;
 }
 
 bool

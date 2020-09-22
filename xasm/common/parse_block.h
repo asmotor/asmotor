@@ -22,16 +22,18 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-extern bool
-parse_CopyReptBlock(char** reptBlock, size_t* size);
-
+/*
 extern bool
 parse_CopyMacroBlock(char** dest, size_t* size);
+*/
 
 extern bool
-parse_SkipTrueBranch(void);
+parse_SkipPastTrueBranch(void);
 
 extern bool
-parse_SkipToEndc(void);
+parse_SkipPastEndc(void);
+
+extern bool
+parse_SkipPastEndr(void);
 
 #endif // XASM_COMMON_PARSE_BLOCK_H_INCLUDED_

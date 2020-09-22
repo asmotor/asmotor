@@ -122,7 +122,7 @@ static SLexConstantsWord staticTokens[] = {
         {"INCBIN",    T_DIRECTIVE_INCBIN},
 
         {"REPT",      T_DIRECTIVE_REPT},
-        {"ENDR",      T_POP_ENDR},    /*	NOT NEEDED BUT WE HAVE IT HERE JUST TO PROTECT THE NAME */
+        {"ENDR",      T_DIRECTIVE_ENDR},
         {"REXIT",     T_DIRECTIVE_REXIT},
 
         {"IF",        T_DIRECTIVE_IF},

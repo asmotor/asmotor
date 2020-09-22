@@ -256,22 +256,24 @@ fstk_EndCurrentBuffer(void) {
         return false;
     } else {
         SFileStackEntry* oldContext = fstk_Current;
+        if (oldContext->type == CONTEXT_REPT) {
+			if (oldContext->block.repeat.remaining > 0) {
+				str_Free(oldContext->uniqueId);
+
+				oldContext->lineNumber = 0;
+				oldContext->uniqueId = createUniqueId();
+				lex_SetBuffer(&oldContext->block.repeat.bookmark.Buffer);
+				return true;
+			}
+			str_Free(oldContext->uniqueId);
+			mem_Free(oldContext);
+		} else {
         list_Remove(fstk_Current, fstk_Current);
         lex_FreeBuffer(oldContext->lexBuffer);
         str_Free(oldContext->name);
 
         switch (oldContext->type) {
             case CONTEXT_REPT: {
-                if (oldContext->block.repeat.remaining > 0) {
-                    fstk_ProcessRepeatBlock(oldContext->block.repeat.buffer, oldContext->block.repeat.size,
-                                            oldContext->block.repeat.remaining);
-                } else {
-                    fstk_Current->lineNumber += oldContext->lineNumber;
-                    lex_SetBuffer(fstk_Current->lexBuffer);
-                    mem_Free(oldContext->block.repeat.buffer);
-                }
-                str_Free(oldContext->uniqueId);
-                mem_Free(oldContext);
                 break;
             }
             case CONTEXT_MACRO: {
@@ -290,6 +292,7 @@ fstk_EndCurrentBuffer(void) {
                 break;
             }
         }
+		}
         return true;
     }
 }
@@ -319,22 +322,21 @@ fstk_ProcessIncludeFile(string* fileName) {
 }
 
 extern void
-fstk_ProcessRepeatBlock(char* buffer, size_t size, uint32_t count) {
+fstk_ProcessRepeatBlock(uint32_t count) {
     SFileStackEntry* newContext = mem_Alloc(sizeof(SFileStackEntry));
     list_Init(newContext);
 
     newContext->name = str_Create("REPT");
     newContext->fileInfo = NULL;
     newContext->type = CONTEXT_REPT;
+	newContext->lineNumber = 0;
+	newContext->uniqueId = createUniqueId();
+	newContext->block.repeat.remaining = count - 1;
+    lex_Bookmark(&newContext->block.repeat.bookmark);
 
-    if ((newContext->lexBuffer = lex_CreateMemoryBuffer(buffer, size)) != NULL) {
+    if ((newContext->lexBuffer = lex_CreateBookmarkBuffer(&newContext->block.repeat.bookmark)) != NULL) {
         lex_SetBuffer(newContext->lexBuffer);
         lex_SetMode(LEXER_MODE_NORMAL);
-        newContext->lineNumber = 0;
-        newContext->block.repeat.buffer = buffer;
-        newContext->block.repeat.size = size;
-        newContext->block.repeat.remaining = count - 1;
-        newContext->uniqueId = createUniqueId();
         setNewContext(newContext);
     }
 }

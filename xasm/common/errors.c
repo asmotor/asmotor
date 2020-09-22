@@ -40,7 +40,7 @@ static char* g_warnings[] = {
     "%s",
     "\"SHIFT\" used outside MACRO, ignored",
     "\"MEXIT\" used outside MACRO, ignored",
-    "\"REXIT\" used outside REPT, ignored",
+    "Not inside REPT block, ignored",
     "Error in machine option %s",
 };
 
