@@ -155,7 +155,7 @@ extern size_t
 fstk_GetMacroArgumentCount(void) {
 	SFileStackEntry* macro = getMacroContext();
 	if (macro != NULL) {
-		return strvec_Count(macro->lexBuffer->fileBuffer.arguments);
+		return strvec_Count(macro->lexBuffer->fileBuffer.arguments) - 1;
 	}
 	return 0;
 }

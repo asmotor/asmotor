@@ -625,7 +625,6 @@ lex_CreateFileBuffer(FILE* fileHandle, uint32_t* checkSum) {
 	memset(lexerBuffer, 0, sizeof(SLexerBuffer));
 
 	size_t size = fsize(fileHandle);
-
 	string* fileContent = str_ReadFile(fileHandle, size);
 
 	if (checkSum != NULL && opt_Current->enableDebugInfo)
@@ -634,6 +633,8 @@ lex_CreateFileBuffer(FILE* fileHandle, uint32_t* checkSum) {
 	fbuf_Init(&lexerBuffer->fileBuffer, fileContent, NULL);
 	lexerBuffer->atLineStart = true;
 	lexerBuffer->mode = LEXER_MODE_NORMAL;
+
+	str_Free(fileContent);
 
 	return lexerBuffer;
 }
