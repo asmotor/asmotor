@@ -121,7 +121,7 @@ expressionPriority9(size_t maxStringConstLength) {
         }
         case T_ID: {
             if (strcmp(lex_Current.value.string, "@") != 0) {
-                string* str = str_Create(lex_Current.value.string);
+                string* str = lex_TokenString();
                 SExpression* expr = expr_Symbol(str);
                 str_Free(str);
 
@@ -130,7 +130,7 @@ expressionPriority9(size_t maxStringConstLength) {
                 if (lex_Current.token == '\\') {
                     parse_GetToken();
                     if (lex_Current.token == T_ID && lex_Current.value.string[0] == '.') {
-                        str = str_Create(lex_Current.value.string);
+                        str = lex_TokenString();
                         expr = expr_ScopedSymbol(expr, str);
 
                         str_Free(str);
@@ -153,7 +153,7 @@ expressionPriority9(size_t maxStringConstLength) {
         default: {
             if (opt_Current->allowReservedKeywordLabels) {
                 if (lex_Current.length > 0 && lex_Current.token >= T_FIRST_TOKEN) {
-                    string* str = str_Create(lex_Current.value.string);
+                    string* str = lex_TokenString();
                     SExpression* expr = expr_Symbol(str);
                     str_Free(str);
                     parse_GetToken();
@@ -307,7 +307,7 @@ handleDefFunction() {
 
     if (parse_ExpectChar('(')) {
         if (lex_Current.token == T_ID) {
-            string* symbolName = str_Create(lex_Current.value.string);
+            string* symbolName = lex_TokenString();
             SExpression* t1 = expr_Const(sym_IsDefined(symbolName));
             str_Free(symbolName);
 
@@ -333,7 +333,7 @@ handleBankFunction() {
 
     if (parse_ExpectChar('(')) {
         if (lex_Current.token == T_ID) {
-            string* str = str_Create(lex_Current.value.string);
+            string* str = lex_TokenString();
             SExpression* t1 = expr_Bank(str);
             str_Free(str);
 

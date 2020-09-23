@@ -11,7 +11,21 @@
 	"algorithm": "c",
 	"bitset": "c",
 	"chrono": "c",
-	"unordered_map": "c"
+	"unordered_map": "c",
+	"__config": "c",
+	"__cxx_version": "c",
+	"__debug": "c",
+	"__locale": "c",
+	"__string": "c",
+	"cstdlib": "c",
+	"string": "c",
+	"ios": "c",
+	"iosfwd": "c",
+	"locale": "c",
+	"stdexcept": "c",
+	"string_view": "c",
+	"system_error": "c",
+	"typeinfo": "c"
 },
   "files.exclude": {
     "**/.git": true,

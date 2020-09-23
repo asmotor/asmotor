@@ -73,8 +73,10 @@ inc_AddIncludePath(string* pathname) {
     ch = str_CharAt(pathname, str_Length(pathname) - 1);
     if (ch != '\\' && ch != '/') {
         string* slash = str_Create("/");
-        strvec_PushBack(g_includePaths, str_Concat(pathname, slash));
+		string* cat = str_Concat(pathname, slash);
+        strvec_PushBack(g_includePaths, cat);
         str_Free(slash);
+		str_Free(cat);
     } else {
         strvec_PushBack(g_includePaths, pathname);
     }

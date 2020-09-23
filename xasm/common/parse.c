@@ -35,7 +35,9 @@
 static bool
 handleMacroArgument() {
     if (lex_Current.token == T_STRING) {
-        fstk_AddMacroArgument(lex_Current.value.string);
+		string* arg = lex_TokenString();
+        fstk_AddMacroArgument(arg);
+		str_Free(arg);
         parse_GetToken();
         return true;
     } else {
@@ -49,7 +51,9 @@ handleMacroArguments() {
     parse_GetToken();
 
     if (lex_Current.token == T_MACROARG0) {
-        fstk_SetMacroArgument0(lex_Current.value.string);
+		string* arg = lex_TokenString();
+        fstk_SetMacroArgument0(arg);
+		str_Free(arg);
         parse_GetToken();
     }
 
@@ -71,7 +75,7 @@ static bool
 handleMacroInvocation(void) {
     bool r = false;
     if (lex_Current.token == T_ID) {
-        string* symbolName = str_Create(lex_Current.value.string);
+        string* symbolName = lex_TokenString();
 
         if (sym_IsMacro(symbolName)) {
             if (handleMacroArguments()) {

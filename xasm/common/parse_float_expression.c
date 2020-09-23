@@ -52,7 +52,7 @@ expressionPriority3(size_t maxStringConstLength, long double* result) {
             return false;
         }
         case T_ID: {
-            string* str = str_Create(lex_Current.value.string);
+            string* str = lex_TokenString();;
             SSymbol* sym = sym_GetSymbol(str);
 
             str_Free(str);

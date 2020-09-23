@@ -25,10 +25,11 @@
 #include "util.h"
 #include "crc32.h"
 #include "file.h"
-#include "lists.h"
 #include "fmath.h"
+#include "lists.h"
 #include "mem.h"
 #include "strbuf.h"
+#include "strcoll.h"
 
 #include "errors.h"
 #include "lexer.h"
@@ -42,19 +43,15 @@ static SLexerBuffer* g_currentBuffer;
 /* Private functions */
 
 INLINE void
-copyCharStack(SCharStack* dest, const SCharStack* source) {
-	memcpy(dest->stack, source->stack, source->count);
-	dest->count = source->count;
-}
-
-INLINE void
 copyBuffer(SLexerBuffer* dest, const SLexerBuffer* source) {
-	copyCharStack(&dest->charStack, &source->charStack);
-	dest->buffer = source->buffer;
-	dest->index = source->index;
-	dest->bufferSize = source->bufferSize;
+	fbuf_Copy(&dest->fileBuffer, &source->fileBuffer);
 	dest->atLineStart = source->atLineStart;
 	dest->mode = source->mode;
+}
+
+INLINE char
+getUnexpandedChar(size_t index) {
+	return fbuf_GetUnexpandedChar(&g_currentBuffer->fileBuffer, index);
 }
 
 static bool 
@@ -532,21 +529,6 @@ stateMacroArguments() {
 	}
 }
 
-static char
-getUnexpandedChar(size_t index) {
-	if (index < g_currentBuffer->charStack.count) {
-		return g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count - index - 1];
-	} else {
-		index -= g_currentBuffer->charStack.count;
-	}
-	index += g_currentBuffer->index;
-	if (index < g_currentBuffer->bufferSize) {
-		return g_currentBuffer->buffer[index];
-	} else {
-		return 0;
-	}
-}
-
 /* Public variables */
 
 SLexerToken lex_Current;
@@ -555,32 +537,17 @@ SLexerToken lex_Current;
 
 void
 lex_UnputChar(char ch) {
-	g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = ch;
+	fbuf_UnputChar(&g_currentBuffer->fileBuffer, ch);
 }
 
-char
+extern char
 lex_GetChar(void) {
-	char r;
-
-	if (g_currentBuffer->charStack.count > 0) {
-		r = g_currentBuffer->charStack.stack[--(g_currentBuffer->charStack.count)];
-	} else if (g_currentBuffer->index < g_currentBuffer->bufferSize) {
-		r =  g_currentBuffer->buffer[g_currentBuffer->index++];
-	} else {
-		r = 0;
-	}
-
-	return r;
+	return fbuf_GetChar(&g_currentBuffer->fileBuffer);
 }
 
 extern void
 lex_CopyUnexpandedContent(char* dest, size_t count) {
-	for (int32_t i = g_currentBuffer->charStack.count - 1; i >= 0; --i) {
-		*dest++ = g_currentBuffer->charStack.stack[i];
-		--count;
-	}
-
-	memcpy(dest, g_currentBuffer->buffer + g_currentBuffer->index, count);
+	fbuf_CopyUnexpandedContent(&g_currentBuffer->fileBuffer, dest, count);
 }
 
 void
@@ -597,24 +564,7 @@ lex_Goto(SLexerBookmark* bookmark) {
 
 size_t
 lex_SkipBytes(size_t count) {
-	size_t linesSkipped = 0;
-
-	char ch;
-	while ((ch = chstk_Pop(&g_currentBuffer->charStack)) != 0) {
-		if (ch == '\n')
-			++linesSkipped;
-
-		--count;
-	}
-
-	for (size_t index = 0; index < count; ++index) {
-		if (getUnexpandedChar(index) == '\n')
-			++linesSkipped;
-	}
-
-	g_currentBuffer->index += count;
-
-	return linesSkipped;
+	return fbuf_SkipUnexpandedChars(&g_currentBuffer->fileBuffer, count);
 }
 
 void
@@ -644,12 +594,8 @@ lex_SetMode(ELexerMode mode) {
 
 void
 lex_FreeBuffer(SLexerBuffer* buffer) {
-	if (buffer) {
-		if (buffer->buffer) {
-			mem_Free(buffer->buffer);
-		} else {
-			internalerror("buf->pBufferStart not initialized");
-		}
+	if (buffer != NULL) {
+		fbuf_Destroy(&buffer->fileBuffer);
 		mem_Free(buffer);
 	} else {
 		internalerror("Argument must not be NULL");
@@ -664,14 +610,10 @@ lex_CreateBookmarkBuffer(SLexerBookmark* bookmark) {
 }
 
 SLexerBuffer*
-lex_CreateMemoryBuffer(const char* memory, size_t size) {
+lex_CreateMemoryBuffer(string* memory, vec_t* arguments) {
 	SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
 
-	lexerBuffer->buffer = (char*) mem_Alloc(size);
-	memcpy(lexerBuffer->buffer, memory, size);
-	chstk_Init(&lexerBuffer->charStack);
-	lexerBuffer->index = 0;
-	lexerBuffer->bufferSize = size;
+	fbuf_Init(&lexerBuffer->fileBuffer, memory, arguments);
 	lexerBuffer->atLineStart = true;
 	lexerBuffer->mode = LEXER_MODE_NORMAL;
 	return lexerBuffer;
@@ -679,41 +621,20 @@ lex_CreateMemoryBuffer(const char* memory, size_t size) {
 
 SLexerBuffer*
 lex_CreateFileBuffer(FILE* fileHandle, uint32_t* checkSum) {
-	char* fileContent;
-
 	SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
 	memset(lexerBuffer, 0, sizeof(SLexerBuffer));
 
 	size_t size = fsize(fileHandle);
 
-	fileContent = (char*) mem_Alloc(size);
-	size = fread(fileContent, sizeof(uint8_t), size, fileHandle);
+	string* fileContent = str_ReadFile(fileHandle, size);
 
 	if (checkSum != NULL && opt_Current->enableDebugInfo)
-		*checkSum = crc32((uint8_t*) fileContent, size);
+		*checkSum = crc32((const uint8_t *)str_String(fileContent), size);
 
-	lexerBuffer->buffer = (char*) mem_Alloc(size + 1);
-	char* dest = lexerBuffer->buffer;
-
-	char* mem = fileContent;
-
-	while (mem < fileContent + size) {
-		if ((mem[0] == 10 && mem[1] == 13) || (mem[0] == 13 && mem[1] == 10)) {
-			*dest++ = '\n';
-			mem += 2;
-		} else if (mem[0] == 10 || mem[0] == 13) {
-			*dest++ = '\n';
-			mem += 1;
-		} else {
-			*dest++ = *mem++;
-		}
-	}
-
-	*dest++ = '\n';
-	lexerBuffer->bufferSize = dest - lexerBuffer->buffer;
+	fbuf_Init(&lexerBuffer->fileBuffer, fileContent, NULL);
 	lexerBuffer->atLineStart = true;
+	lexerBuffer->mode = LEXER_MODE_NORMAL;
 
-	mem_Free(fileContent);
 	return lexerBuffer;
 }
 
@@ -777,4 +698,9 @@ lex_GetNextToken(void) {
 
 	internalerror("Abnormal error encountered");
 	return 0;
+}
+
+extern string*
+lex_TokenString(void) {
+	return str_CreateLength(lex_Current.value.string, lex_Current.length);
 }

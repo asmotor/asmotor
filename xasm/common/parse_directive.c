@@ -59,7 +59,7 @@ modifySymbol(intptr_t intModification) {
 
 	parse_GetToken();
 	while (lex_Current.token == T_ID) {
-		string *symbolName = str_Create(lex_Current.value.string);
+		string *symbolName = lex_TokenString();
 		modification(symbolName);
 		str_Free(symbolName);
 
@@ -146,7 +146,7 @@ handleSection() {
 		return false;
 	}
 
-	string *pGroup = str_Create(lex_Current.value.string);
+	string *pGroup = lex_TokenString();
 	SSymbol *sym = sym_GetSymbol(pGroup);
 	str_Free(pGroup);
 
@@ -494,7 +494,7 @@ handleIfSymbol(intptr_t intPredicate) {
 	parse_GetToken();
 
 	if (lex_Current.token == T_ID) {
-		string *symbolName = str_Create(lex_Current.value.string);
+		string *symbolName = lex_TokenString();
 		if (predicate(symbolName)) {
 			parse_GetToken();
 		} else {

@@ -31,6 +31,12 @@ typedef struct FileBuffer {
     vec_t* arguments;
 } SFileBuffer;
 
+extern void
+fbuf_Init(SFileBuffer* fileBuffer, string* buffer, vec_t* arguments);
+
+extern void
+fbuf_Destroy(SFileBuffer* fileBuffer);
+
 extern SFileBuffer*
 fbuf_Create(string* buffer, vec_t* arguments);
 
@@ -39,5 +45,24 @@ fbuf_ShiftArguments(SFileBuffer* fbuffer, int32_t count);
 
 extern char
 fbuf_GetChar(SFileBuffer* fbuffer);
+
+extern void
+fbuf_UnputChar(SFileBuffer* fbuffer, char ch);
+
+extern char
+fbuf_GetUnexpandedChar(SFileBuffer* fbuffer, size_t index);
+
+extern void
+fbuf_Copy(SFileBuffer* dest, const SFileBuffer* source);
+
+extern void
+fbuf_CopyUnexpandedContent(SFileBuffer* fbuffer, char* dest, size_t count);
+
+extern size_t
+fbuf_SkipUnexpandedChars(SFileBuffer* fbuffer, size_t count);
+
+extern void
+fbuf_RenewUniqueValue(SFileBuffer* fbuffer);
+
 
 #endif /* XASM_COMMON_FILEBUFFER_H_INCLUDED_ */

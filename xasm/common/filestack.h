@@ -47,7 +47,6 @@ typedef struct FileStackEntry {
     SLexerBuffer* lexBuffer;
     uint32_t lineNumber;
 
-    string* uniqueId;    /*	The \@ symbol */
     union {
         struct {
 			SLexerBookmark bookmark;
@@ -55,30 +54,21 @@ typedef struct FileStackEntry {
         } repeat;
         struct {
             struct Symbol* symbol;
-            string* argument0;
-            string** arguments;
-            uint32_t argumentCount;
         } macro;
     } block;
 } SFileStackEntry;
 
-extern string*
-fstk_GetMacroUniqueId(void);
-
-extern string*
-fstk_GetMacroArgValue(char argumentId);
-
-extern int32_t
-fstk_GetMacroArgumentCount(void);
-
 extern SFileInfo**
 fstk_GetFileInfo(size_t* totalFileNames);
 
-extern void
-fstk_AddMacroArgument(const char* str);
+extern size_t
+fstk_GetMacroArgumentCount(void);
 
 extern void
-fstk_SetMacroArgument0(const char* str);
+fstk_AddMacroArgument(string* str);
+
+extern void
+fstk_SetMacroArgument0(string* str);
 
 extern void
 fstk_ProcessMacro(string* macroName);

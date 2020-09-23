@@ -26,6 +26,7 @@
 #include "types.h"
 
 #include "charstack.h"
+#include "filebuffer.h"
 #include "tokens.h"
 
 typedef enum {
@@ -35,10 +36,7 @@ typedef enum {
 } ELexerMode;
 
 typedef struct LexerBuffer {
-    SCharStack charStack;
-    char* buffer;
-    size_t index;
-    size_t bufferSize;
+	SFileBuffer fileBuffer;
     bool atLineStart;
     ELexerMode mode;
 } SLexerBuffer;
@@ -70,7 +68,7 @@ extern SLexerBuffer*
 lex_CreateBookmarkBuffer(SLexerBookmark* bookmark);
 
 extern SLexerBuffer*
-lex_CreateMemoryBuffer(const char* memory, size_t size);
+lex_CreateMemoryBuffer(string* content, vec_t* arguments);
 
 extern SLexerBuffer*
 lex_CreateFileBuffer(FILE* f, uint32_t* checkSum);
@@ -113,5 +111,8 @@ lex_Bookmark(SLexerBookmark* bookmark);
 
 extern void
 lex_Goto(SLexerBookmark* bookmark);
+
+extern string*
+lex_TokenString(void);
 
 #endif /* XASM_COMMON_LEXER_H_INCLUDED_ */

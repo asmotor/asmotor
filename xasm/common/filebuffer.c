@@ -21,31 +21,12 @@
 #include "filebuffer.h"
 
 
+// Private functions
+
 static string*
 createUniqueValue(void) {
     static uint32_t runId = 0;
     return str_CreateFormat("_%u", runId++);
-}
-
-
-extern SFileBuffer*
-fbuf_Create(string* buffer, vec_t* arguments) {
-	SFileBuffer* buf = mem_Alloc(sizeof(SFileBuffer));
-	chstk_Init(&buf->charStack);
-	buf->uniqueValue = createUniqueValue();
-	buf->text = str_Copy(buffer);
-	buf->index = 0;
-	buf->arguments = arguments;
-
-	return buf;
-}
-
-
-extern void
-fbuf_ShiftArguments(SFileBuffer* fbuffer, int32_t count) {
-	while (count-- > 0 && strvec_Count(fbuffer->arguments) >= 2) {
-		strvec_RemoveAt(fbuffer->arguments, 1);
-	}
 }
 
 
@@ -79,6 +60,8 @@ peekChar(SFileBuffer* fbuffer) {
 }
 
 
+// Public functions
+
 extern char
 fbuf_GetChar(SFileBuffer* fbuffer) {
 	for (;;) {
@@ -108,5 +91,108 @@ fbuf_GetChar(SFileBuffer* fbuffer) {
 		} else {
 			return ch;
 		}
+	}
+}
+
+
+extern void
+fbuf_Init(SFileBuffer* fileBuffer, string* buffer, vec_t* arguments) {
+	chstk_Init(&fileBuffer->charStack);
+	fileBuffer->uniqueValue = createUniqueValue();
+	fileBuffer->text = str_Copy(buffer);
+	fileBuffer->index = 0;
+	fileBuffer->arguments = arguments;
+}
+
+
+extern void
+fbuf_Destroy(SFileBuffer* fileBuffer) {
+	strvec_Free(fileBuffer->arguments);
+	str_Free(fileBuffer->text);
+	str_Free(fileBuffer->uniqueValue);
+}
+
+
+extern SFileBuffer*
+fbuf_Create(string* buffer, vec_t* arguments) {
+	SFileBuffer* fileBuffer = mem_Alloc(sizeof(SFileBuffer));
+	fbuf_Init(fileBuffer, buffer, arguments);
+
+	return fileBuffer;
+}
+
+
+extern void
+fbuf_ShiftArguments(SFileBuffer* fbuffer, int32_t count) {
+	while (count-- > 0 && strvec_Count(fbuffer->arguments) >= 2) {
+		strvec_RemoveAt(fbuffer->arguments, 1);
+	}
+}
+
+
+extern void
+fbuf_Copy(SFileBuffer* dest, const SFileBuffer* source) {
+	chstk_Copy(&dest->charStack, &source->charStack);
+	dest->uniqueValue = str_Copy(source->uniqueValue);
+	dest->text = str_Copy(source->text);
+	dest->index = source->index;
+	dest->arguments = strvec_Clone(source->arguments);
+}
+
+extern size_t
+fbuf_SkipUnexpandedChars(SFileBuffer* fbuffer, size_t count) {
+	size_t linesSkipped = 0;
+
+	char ch;
+	while ((ch = chstk_Pop(&fbuffer->charStack)) != 0) {
+		if (ch == '\n')
+			++linesSkipped;
+
+		--count;
+	}
+
+	for (size_t index = 0; index < count; ++index) {
+		if (str_CharAt(fbuffer->text + fbuffer->index, index) == '\n')
+			++linesSkipped;
+	}
+
+	fbuffer->index += count;
+
+	return linesSkipped;
+}
+
+extern void
+fbuf_RenewUniqueValue(SFileBuffer* fbuffer) {
+	str_Free(fbuffer->uniqueValue);
+	fbuffer->uniqueValue = createUniqueValue();
+}
+
+extern void
+fbuf_CopyUnexpandedContent(SFileBuffer* fbuffer, char* dest, size_t count) {
+	for (int32_t i = fbuffer->charStack.count - 1; i >= 0; --i) {
+		*dest++ = fbuffer->charStack.stack[i];
+		--count;
+	}
+
+	memcpy(dest, fbuffer->text->data + fbuffer->index, count);
+}
+
+extern void
+fbuf_UnputChar(SFileBuffer* fbuffer, char ch) {
+	chstk_Push(&fbuffer->charStack, ch);
+}
+
+extern char
+fbuf_GetUnexpandedChar(SFileBuffer* fbuffer, size_t index) {
+	if (index < chstk_Count(&fbuffer->charStack)) {
+		return chstk_PeekAt(&fbuffer->charStack, index);
+	} else {
+		index -= chstk_Count(&fbuffer->charStack);
+	}
+	index += fbuffer->index;
+	if (index < (size_t) str_Length(fbuffer->text)) {
+		return str_CharAt(fbuffer->text, index);
+	} else {
+		return 0;
 	}
 }
