@@ -88,10 +88,10 @@ parse_SymbolDefinition(void) {
             } else {
                 uint32_t lineNumber = fstk_Current->lineNumber;
 
-                size_t reptSize;
-                char* reptBlock;
-                if (parse_CopyMacroBlock(&reptBlock, &reptSize)) {
-                    sym_CreateMacro(symbolName, reptBlock, reptSize, lineNumber);
+                size_t size;
+                char* block;
+                if (parse_CopyMacroBlock(&block, &size)) {
+                    sym_CreateMacro(symbolName, block, size, lineNumber);
                     parse_GetToken();
                     r = true;
                 } else {

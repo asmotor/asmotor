@@ -45,10 +45,12 @@ isEndr(EToken token) {
 }
 
 static bool
-skipPastDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
-	for (;;)
+skipPastDirective(bool (*directive)(EToken), bool (*getNextDirective)(void));
+
+static bool
+skipToDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
+	for (;;) {
 		if (directive(lex_Current.token)) {
-			lex_GetNextDirective();
 			return true;
 		}
 
@@ -63,15 +65,15 @@ skipPastDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
 			case T_DIRECTIVE_IFLT:
 			case T_DIRECTIVE_IFNC:
 			case T_DIRECTIVE_IFND: {
-				lex_GetNextDirective();
+				getNextDirective();
 				return skipPastDirective(isEndc, getNextDirective);
 			}
 			case T_SYM_MACRO: {
-				lex_GetNextDirective();
+				getNextDirective();
 				return skipPastDirective(isEndm, getNextDirective);
 			}
 			case T_DIRECTIVE_REPT: {
-				lex_GetNextDirective();
+				getNextDirective();
 				return skipPastDirective(isEndr, getNextDirective);
 			}
 			default: {
@@ -79,7 +81,16 @@ skipPastDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
 					return false;
 				break;
 			}
+		}
 	}
+}
+
+static bool
+skipPastDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
+	bool r = skipToDirective(directive, lex_GetNextDirective);
+	if (r)
+		getNextDirective();
+	return r;
 }
 
 static bool
@@ -88,6 +99,7 @@ isFalseBranch(EToken token) {
 }
 
 /* Public functions */
+
 
 bool
 parse_SkipPastTrueBranch(void) {
@@ -113,20 +125,23 @@ getNextDirectiveIndexed(void) {
 }
 
 static bool
-skipPastEndm(void) {
-	return skipPastDirective(isEndr, getNextDirectiveIndexed);
+skipToEndm(void) {
+	return skipToDirective(isEndm, getNextDirectiveIndexed);
 }
 
 bool
 parse_CopyMacroBlock(char** dest, size_t* size) {
 	getNextDirectiveIndex = 0;
-	skipPastEndm();
-    *size = getNextDirectiveIndex;
-	lex_SkipBytes(getNextDirectiveIndex);
+	lex_Current.token = T_NONE;
+	skipToEndm();
 
-    *dest = (char*) mem_Alloc(*size + 1);
-    lex_CopyUnexpandedContent(*dest, *size);
-	dest[*size] = 0;
+    *dest = (char*) mem_Alloc(getNextDirectiveIndex + 1);
+    lex_CopyUnexpandedContent(*dest, getNextDirectiveIndex);
+	(*dest)[getNextDirectiveIndex] = 0;
+
+    *size = getNextDirectiveIndex;
+
+	lex_SkipBytes(getNextDirectiveIndex);
 
     return true;
 }

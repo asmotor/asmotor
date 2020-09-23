@@ -57,11 +57,6 @@ copyBuffer(SLexerBuffer* dest, const SLexerBuffer* source) {
 	dest->mode = source->mode;
 }
 
-INLINE size_t
-charsAvailable(void) {
-	return g_currentBuffer->bufferSize - g_currentBuffer->index + g_currentBuffer->charStack.count;
-}
-
 static bool 
 acceptQuotedStringUntil(char terminator);
 
@@ -416,6 +411,17 @@ acceptNext(bool lineStart) {
 }
 
 static bool
+matchChar(char match) {
+	char ch = lex_GetChar();
+	if (ch == match) {
+		return true;
+	}
+	
+	lex_UnputChar(ch);
+	return false;
+}
+
+static bool
 stateNormal() {
 	bool lineStart = g_currentBuffer->atLineStart;
 	g_currentBuffer->atLineStart = false;
@@ -442,7 +448,7 @@ isMacroArgument0Terminator(char ch) {
 
 static bool
 stateMacroArgument0(void) {
-	if (lex_MatchChar('.')) {
+	if (matchChar('.')) {
 		int i = 0;
 		char ch;
 
@@ -488,7 +494,7 @@ stateMacroArguments() {
 
 	lex_Current.length = 0;
 
-	if (lex_MatchChar('<')) {
+	if (matchChar('<')) {
 		getStringUntilTerminators("\n>");
 		lex_GetChar();
 	} else {
@@ -503,12 +509,12 @@ stateMacroArguments() {
 		lex_Current.token = T_STRING;
 		lex_UnputChar(ch);
 		return true;
-	} else if (lex_MatchChar('\n')) {
+	} else if (matchChar('\n')) {
 		g_currentBuffer->atLineStart = true;
 		lex_Current.length = 1;
 		lex_Current.token = T_LINEFEED;
 		return true;
-	} else if (lex_MatchChar(',')) {
+	} else if (matchChar(',')) {
 		lex_Current.length = 1;
 		lex_Current.token = T_COMMA;
 		return true;
@@ -567,25 +573,14 @@ lex_GetChar(void) {
 	return r;
 }
 
-void
+extern void
 lex_CopyUnexpandedContent(char* dest, size_t count) {
 	for (int32_t i = g_currentBuffer->charStack.count - 1; i >= 0; --i) {
 		*dest++ = g_currentBuffer->charStack.stack[i];
 		--count;
 	}
 
-	memcpy(dest, g_currentBuffer->buffer, count);
-}
-
-bool
-lex_MatchChar(char match) {
-	char ch = lex_GetChar();
-	if (ch == match) {
-		return true;
-	}
-	
-	lex_UnputChar(ch);
-	return false;
+	memcpy(dest, g_currentBuffer->buffer + g_currentBuffer->index, count);
 }
 
 void
@@ -604,25 +599,22 @@ size_t
 lex_SkipBytes(size_t count) {
 	size_t linesSkipped = 0;
 
-	if (g_currentBuffer) {
-		for (size_t i = 0; i < count; ++i) {
-			char ch = lex_GetChar();
-			if (ch == 0) {
-				break;
-			} else if (ch == '\n') {
-				linesSkipped += 1;
-			}
-		}
-	} else {
-		internalerror("g_pCurrentBuffer not initialized");
+	char ch;
+	while ((ch = chstk_Pop(&g_currentBuffer->charStack)) != 0) {
+		if (ch == '\n')
+			++linesSkipped;
+
+		--count;
 	}
 
-	return linesSkipped;
-}
+	for (size_t index = 0; index < count; ++index) {
+		if (getUnexpandedChar(index) == '\n')
+			++linesSkipped;
+	}
 
-size_t
-lex_SkipCurrentBuffer(void) {
-	return lex_SkipBytes(charsAvailable());
+	g_currentBuffer->index += count;
+
+	return linesSkipped;
 }
 
 void
@@ -752,6 +744,7 @@ lex_GetNextDirectiveUnexpanded(size_t* index) {
 	while ((ch = getUnexpandedChar(*index)) != '\n') {
 		*index += 1;
 	}
+	*index += 1;
 	while (strchr(":\t ", (ch = getUnexpandedChar(*index))) != NULL) {
 		*index += 1;
 	}

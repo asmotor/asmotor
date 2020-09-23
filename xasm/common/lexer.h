@@ -82,26 +82,13 @@ extern void
 lex_SetBuffer(SLexerBuffer* buffer);
 
 extern char
-lex_PeekChar(size_t index);
-
-extern char
 lex_GetChar(void);
 
 extern void
 lex_CopyUnexpandedContent(char* dest, size_t count);
 
-INLINE string* lex_GetString(size_t length) {
-    return str_CreateStream(lex_GetChar, length);
-}
-
-extern bool
-lex_MatchChar(char ch);
-
 extern size_t
 lex_SkipBytes(size_t count);
-
-extern size_t
-lex_SkipCurrentBuffer(void);
 
 extern void
 lex_UnputString(const char* str);
