@@ -29,13 +29,6 @@
 
 /* Internal functions */
 
-#define REPT_LEN 4
-#define ENDR_LEN 4
-#define ELSE_LEN 4
-#define ENDC_LEN 4
-#define MACRO_LEN 5
-#define ENDM_LEN 4
-
 static bool
 isEndc(EToken token) {
 	return token == T_DIRECTIVE_ENDC;
@@ -52,10 +45,10 @@ isEndr(EToken token) {
 }
 
 static bool
-skipPastDirective(bool (*directive)(EToken)) {
+skipPastDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
 	for (;;)
 		if (directive(lex_Current.token)) {
-			lex_GetNextToken();
+			lex_GetNextDirective();
 			return true;
 		}
 
@@ -71,18 +64,18 @@ skipPastDirective(bool (*directive)(EToken)) {
 			case T_DIRECTIVE_IFNC:
 			case T_DIRECTIVE_IFND: {
 				lex_GetNextDirective();
-				return skipPastDirective(isEndc);
+				return skipPastDirective(isEndc, getNextDirective);
 			}
 			case T_SYM_MACRO: {
 				lex_GetNextDirective();
-				return skipPastDirective(isEndm);
+				return skipPastDirective(isEndm, getNextDirective);
 			}
 			case T_DIRECTIVE_REPT: {
 				lex_GetNextDirective();
-				return skipPastDirective(isEndr);
+				return skipPastDirective(isEndr, getNextDirective);
 			}
 			default: {
-				if (!lex_GetNextDirective())
+				if (!getNextDirective())
 					return false;
 				break;
 			}
@@ -98,30 +91,42 @@ isFalseBranch(EToken token) {
 
 bool
 parse_SkipPastTrueBranch(void) {
-	return skipPastDirective(isFalseBranch);
+	return skipPastDirective(isFalseBranch, lex_GetNextDirective);
 }
 
 bool
 parse_SkipPastEndc(void) {
-	return skipPastDirective(isEndc);
+	return skipPastDirective(isEndc, lex_GetNextDirective);
 }
 
 bool
 parse_SkipPastEndr(void) {
-	return skipPastDirective(isEndr);
+	return skipPastDirective(isEndr, lex_GetNextDirective);
 }
 
-/*
+static size_t
+getNextDirectiveIndex;
+
+static bool
+getNextDirectiveIndexed(void) {
+	return lex_GetNextDirectiveUnexpanded(&getNextDirectiveIndex);
+}
+
+static bool
+skipPastEndm(void) {
+	return skipPastDirective(isEndr, getNextDirectiveIndexed);
+}
+
 bool
 parse_CopyMacroBlock(char** dest, size_t* size) {
-    size_t len = getMacroBodySize(0);
+	getNextDirectiveIndex = 0;
+	skipPastEndm();
+    *size = getNextDirectiveIndex;
+	lex_SkipBytes(getNextDirectiveIndex);
 
-    *size = len;
+    *dest = (char*) mem_Alloc(*size + 1);
+    lex_CopyUnexpandedContent(*dest, *size);
+	dest[*size] = 0;
 
-    *dest = (char*) mem_Alloc(len + 1);
-    fstk_Current->lineNumber += (uint32_t) lex_GetZeroTerminatedString(*dest, len);
-    fstk_Current->lineNumber += (uint32_t) lex_SkipBytes(ENDM_LEN);
     return true;
 }
-
-*/

@@ -22,10 +22,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-/*
 extern bool
 parse_CopyMacroBlock(char** dest, size_t* size);
-*/
 
 extern bool
 parse_SkipPastTrueBranch(void);

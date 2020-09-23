@@ -130,6 +130,23 @@ lex_ConstantsMatchWord() {
 }
 
 
+const SLexConstantsWord*
+lex_ConstantsMatchTokenString() {
+	uint32_t hashCode = 0;
+	for (size_t i = 0; i < lex_Current.length; ++i) {
+		HASH(hashCode, toupper(lex_Current.value.string[i]));
+	}
+
+	for (SConstantWord* candidate = g_wordsHashTable[hashCode]; candidate != NULL; candidate = list_GetNext(candidate)) {
+		if (candidate->nameLength == lex_Current.length && _strnicmp(lex_Current.value.string, candidate->definition.name, candidate->nameLength) == 0) {
+			lex_Current.token = candidate->definition.token;
+			return &candidate->definition;
+		}
+	}
+
+	return NULL;
+}
+
 
 void
 lex_PrintMaxTokensPerHash(void) {

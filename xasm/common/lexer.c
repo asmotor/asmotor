@@ -526,19 +526,8 @@ stateMacroArguments() {
 	}
 }
 
-/* Public variables */
-
-SLexerToken lex_Current;
-
-/*	Public functions */
-
-void
-lex_UnputChar(char ch) {
-	g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = ch;
-}
-
-char
-lex_PeekChar(size_t index) {
+static char
+getUnexpandedChar(size_t index) {
 	if (index < g_currentBuffer->charStack.count) {
 		return g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count - index - 1];
 	} else {
@@ -550,6 +539,17 @@ lex_PeekChar(size_t index) {
 	} else {
 		return 0;
 	}
+}
+
+/* Public variables */
+
+SLexerToken lex_Current;
+
+/*	Public functions */
+
+void
+lex_UnputChar(char ch) {
+	g_currentBuffer->charStack.stack[g_currentBuffer->charStack.count++] = ch;
 }
 
 char
@@ -567,17 +567,14 @@ lex_GetChar(void) {
 	return r;
 }
 
-size_t
-lex_GetZeroTerminatedString(char* dest, size_t actualCharacters) {
-	size_t copiedLines = 0;
-	for (size_t i = 0; i < actualCharacters; ++i) {
-		char ch = lex_GetChar();
-		*dest++ = ch;
-		if (ch == '\n')
-			copiedLines += 1;
+void
+lex_CopyUnexpandedContent(char* dest, size_t count) {
+	for (int32_t i = g_currentBuffer->charStack.count - 1; i >= 0; --i) {
+		*dest++ = g_currentBuffer->charStack.stack[i];
+		--count;
 	}
-	*dest = 0;
-	return copiedLines;
+
+	memcpy(dest, g_currentBuffer->buffer, count);
 }
 
 bool
@@ -589,15 +586,6 @@ lex_MatchChar(char match) {
 	
 	lex_UnputChar(ch);
 	return false;
-}
-
-bool
-lex_CompareNoCase(size_t index, const char* str, size_t length) {
-	for (size_t i = 0; i < length; ++i) {
-		if (tolower(lex_PeekChar(index + i)) != tolower(str[i]))
-			return false;
-	}
-	return true;
 }
 
 void
@@ -749,7 +737,31 @@ lex_GetNextDirective(void) {
 	}
 	while (strchr(":\t ", (ch = lex_GetChar())) != NULL) {
 	}
-	return lex_ConstantsMatchWord() != NULL;
+	lex_Current.length = 0;
+	while (isalpha(ch = lex_GetChar())) {
+		lex_Current.value.string[lex_Current.length++] = ch;
+	}
+	lex_Current.value.string[lex_Current.length] = 0;
+	lex_UnputChar(ch);
+	return lex_ConstantsMatchTokenString() != NULL;
+}
+
+bool
+lex_GetNextDirectiveUnexpanded(size_t* index) {
+	char ch;
+	while ((ch = getUnexpandedChar(*index)) != '\n') {
+		*index += 1;
+	}
+	while (strchr(":\t ", (ch = getUnexpandedChar(*index))) != NULL) {
+		*index += 1;
+	}
+	lex_Current.length = 0;
+	while (isalpha(ch = getUnexpandedChar(*index))) {
+		lex_Current.value.string[lex_Current.length++] = ch;
+		*index += 1;
+	}
+	lex_Current.value.string[lex_Current.length] = 0;
+	return lex_ConstantsMatchTokenString() != NULL;
 }
 
 bool

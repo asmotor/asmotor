@@ -87,8 +87,8 @@ lex_PeekChar(size_t index);
 extern char
 lex_GetChar(void);
 
-extern size_t
-lex_GetZeroTerminatedString(char* dest, size_t actualCharacters);
+extern void
+lex_CopyUnexpandedContent(char* dest, size_t count);
 
 INLINE string* lex_GetString(size_t length) {
     return str_CreateStream(lex_GetChar, length);
@@ -96,9 +96,6 @@ INLINE string* lex_GetString(size_t length) {
 
 extern bool
 lex_MatchChar(char ch);
-
-extern bool
-lex_CompareNoCase(size_t index, const char* str, size_t length);
 
 extern size_t
 lex_SkipBytes(size_t count);
@@ -114,6 +111,9 @@ lex_UnputStringLength(const char* str, size_t length);
 
 extern bool
 lex_GetNextDirective(void);
+
+extern bool
+lex_GetNextDirectiveUnexpanded(size_t* index);
 
 extern bool
 lex_GetNextToken(void);

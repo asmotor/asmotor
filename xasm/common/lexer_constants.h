@@ -47,6 +47,9 @@ lex_ConstantsUndefineWords(const SLexConstantsWord* lex);
 extern const SLexConstantsWord*
 lex_ConstantsMatchWord();
 
+extern const SLexConstantsWord*
+lex_ConstantsMatchTokenString();
+
 extern void
 lex_ConstantsInit(void);
 
