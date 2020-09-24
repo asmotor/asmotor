@@ -86,6 +86,8 @@ fbuf_GetChar(SFileBuffer* fbuffer) {
 				if (fbuffer->uniqueValue != NULL) {
 					chstk_PushString(&fbuffer->charStack, fbuffer->uniqueValue);
 				}
+			} else {
+				return ch;
 			}
 			return nextChar(fbuffer);
 		} else {

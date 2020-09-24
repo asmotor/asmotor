@@ -3,9 +3,9 @@
 	OPT	mc8,mf8
 
 Begin:
+	lea		0.w,a8
 	lea		(a0,d10.w*2),a9
 	suba.l	a6,a6
-	lea		0.w,a8
 	rts
 	move.l	a8,$A008A008
 	move.l	a14,a1

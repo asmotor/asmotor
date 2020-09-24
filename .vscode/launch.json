@@ -141,11 +141,11 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/motor68k",
-            "args": ["fpu.68k"],
+            "args": ["test.68k"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/680x0",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false,
             "MIMode": "lldb"
         },
         {

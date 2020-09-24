@@ -290,7 +290,7 @@ asciiToRadixBinary(char ch, int radix) {
 }
 
 static bool
-acceptNumeric(int radix) {
+acceptNumericAndLocalLabel(int radix, bool lineStart) {
 	int binary;
 	char ch;
 	uint32_t high = 0;
@@ -305,7 +305,8 @@ acceptNumeric(int radix) {
 		if (!verifyLocalLabel())
 			return false;
 		lex_Current.value.string[lex_Current.length++] = ch;
-		lex_Current.token = T_ID;
+		lex_Current.value.string[lex_Current.length] = 0;
+		lex_Current.token = lineStart ? T_LABEL : T_ID;
 		return true;
 	}
 
@@ -313,11 +314,15 @@ acceptNumeric(int radix) {
 	uint32_t low = 0;
 	bool dot = false;
 	if (ch == '.') {
-		dot = true;
 		while ((binary = asciiToRadixBinary(ch = lex_GetChar(), radix)) != -1) {
+			dot = true;
 			low = low * radix + binary;
 			denominator = denominator * radix;
 			lex_Current.value.string[lex_Current.length++] = ch;
+		}
+		if (!dot) {
+			lex_UnputChar(ch);
+			ch = '.';
 		}
 	}
 
@@ -370,20 +375,20 @@ acceptGameboyLiteral() {
 
 
 static bool
-acceptVariadic(void) {
+acceptVariadic(bool lineStart) {
 	char ch = lex_GetChar();
 
 	if (ch == '$') {
-		return acceptNumeric(16);
+		return acceptNumericAndLocalLabel(16, lineStart);
 	} else if (ch == '%') {
-		return acceptNumeric(2);
+		return acceptNumericAndLocalLabel(2, lineStart);
 	} else if (ch == '`') {
 		return acceptGameboyLiteral();
 	}
 	
 	lex_UnputChar(ch);
 	if (isdigit(ch)) {
-		return acceptNumeric(10);
+		return acceptNumericAndLocalLabel(10, lineStart);
 	}
 
 	return false;
@@ -408,7 +413,7 @@ acceptNext(bool lineStart) {
 	wasSpace = consumeComment(wasSpace, lineStart);
 	lineStart &= !wasSpace;
 
-	if (acceptVariadic()) {
+	if (acceptVariadic(lineStart)) {
 		return true;
 	}
 

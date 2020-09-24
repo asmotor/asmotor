@@ -3,7 +3,8 @@
 test() {
 	echo Test assembling $1
 	../../build/cmake/debug/xasm/680x0/motor68k -f$2 -o$1.bin $1 >$1.out 2>&1
-    od -t x1 $1.bin | sed 's/  */ /g' | sed -e '$a\' >$1.r
+	touch $1.bin
+	od -t x1 $1.bin | sed 's/  */ /g' | sed -e '$a\' >$1.r
 	cat $1.r $1.out >$1.obj.output 2>/dev/null
 	rm $1.bin $1.r $1.out 2>/dev/null
 	diff -Z -b $1.obj.output $1.obj.answer
