@@ -51,7 +51,7 @@ chstk_Discard(SCharStack* stack, size_t count) {
 
 extern void
 chstk_PushString(SCharStack* stack, string* str) {
-	for (ssize_t i = str_Length(str); i >= 0; --i) {
+	for (ssize_t i = str_Length(str) - 1; i >= 0; --i) {
 		chstk_Push(stack, str_CharAt(str, i));
 	}
 }

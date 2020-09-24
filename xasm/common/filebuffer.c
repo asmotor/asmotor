@@ -72,24 +72,22 @@ fbuf_GetChar(SFileBuffer* fbuffer) {
 			return 0;
 		} else if (ch == '\\') {
 			char next = peekChar(fbuffer);
-			if (next == 0) {
-				return ch;
-			} else if (next >= '0' && next <= '9') {
+			if (next >= '0' && next <= '9') {
 				size_t index = nextChar(fbuffer) - '0';
 				if (index < strvec_Count(fbuffer->arguments)) {
 					string* value = strvec_StringAt(fbuffer->arguments, index);
 					if (value != NULL) {
 						chstk_PushString(&fbuffer->charStack, value);
 					}
+					str_Free(value);
 				}
 			} else if (next == '@') {
 				nextChar(fbuffer);
 				if (fbuffer->uniqueValue != NULL) {
 					chstk_PushString(&fbuffer->charStack, fbuffer->uniqueValue);
 				}
-			} else {
-				return ch;
 			}
+			return nextChar(fbuffer);
 		} else {
 			return ch;
 		}
@@ -115,15 +113,6 @@ fbuf_Destroy(SFileBuffer* fileBuffer) {
 }
 
 
-extern SFileBuffer*
-fbuf_Create(string* buffer, vec_t* arguments) {
-	SFileBuffer* fileBuffer = mem_Alloc(sizeof(SFileBuffer));
-	fbuf_Init(fileBuffer, buffer, arguments);
-
-	return fileBuffer;
-}
-
-
 extern void
 fbuf_ShiftArguments(SFileBuffer* fbuffer, int32_t count) {
 	while (count-- > 0 && strvec_Count(fbuffer->arguments) >= 2) {
@@ -140,6 +129,7 @@ fbuf_Copy(SFileBuffer* dest, const SFileBuffer* source) {
 	dest->index = source->index;
 	dest->arguments = strvec_Clone(source->arguments);
 }
+
 
 extern size_t
 fbuf_SkipUnexpandedChars(SFileBuffer* fbuffer, size_t count) {
@@ -163,11 +153,13 @@ fbuf_SkipUnexpandedChars(SFileBuffer* fbuffer, size_t count) {
 	return linesSkipped;
 }
 
+
 extern void
 fbuf_RenewUniqueValue(SFileBuffer* fbuffer) {
 	str_Free(fbuffer->uniqueValue);
 	fbuffer->uniqueValue = createUniqueValue();
 }
+
 
 extern void
 fbuf_CopyUnexpandedContent(SFileBuffer* fbuffer, char* dest, size_t count) {
@@ -179,10 +171,12 @@ fbuf_CopyUnexpandedContent(SFileBuffer* fbuffer, char* dest, size_t count) {
 	memcpy(dest, fbuffer->text->data + fbuffer->index, count);
 }
 
+
 extern void
 fbuf_UnputChar(SFileBuffer* fbuffer, char ch) {
 	chstk_Push(&fbuffer->charStack, ch);
 }
+
 
 extern char
 fbuf_GetUnexpandedChar(SFileBuffer* fbuffer, size_t index) {

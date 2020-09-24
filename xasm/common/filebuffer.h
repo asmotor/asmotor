@@ -37,9 +37,6 @@ fbuf_Init(SFileBuffer* fileBuffer, string* buffer, vec_t* arguments);
 extern void
 fbuf_Destroy(SFileBuffer* fileBuffer);
 
-extern SFileBuffer*
-fbuf_Create(string* buffer, vec_t* arguments);
-
 extern void
 fbuf_ShiftArguments(SFileBuffer* fbuffer, int32_t count);
 

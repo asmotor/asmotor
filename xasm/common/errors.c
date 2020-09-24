@@ -42,6 +42,7 @@ static char* g_warnings[] = {
     "\"MEXIT\" used outside MACRO, ignored",
     "Not inside REPT block, ignored",
     "Error in machine option %s",
+	"Symbol has reserved name",
 };
 
 static char* g_errors[] = {
@@ -173,6 +174,7 @@ addMessage(SMessages* msg, string* str) {
     msg->messages[msg->totalMessages - 1] = str_Copy(str);
 }
 
+
 static void
 freeMessages(SMessages* msg) {
     for (uint32_t i = 0; i < msg->totalMessages; ++i) {
@@ -180,6 +182,7 @@ freeMessages(SMessages* msg) {
     }
     mem_Free(msg->messages);
 }
+
 
 void
 err_Suspend(void) {

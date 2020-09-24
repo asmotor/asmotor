@@ -140,9 +140,9 @@ static SLexConstantsWord staticTokens[] = {
         {"ENDC",      T_DIRECTIVE_ENDC},
 
         {"MACRO",     T_SYM_MACRO},
-        {"ENDM",      T_SYM_ENDM},    /*	NOT NEEDED BUT WE HAVE IT HERE JUST TO PROTECT THE NAME */
         {"SHIFT",     T_DIRECTIVE_SHIFT},
         {"MEXIT",     T_DIRECTIVE_MEXIT},
+        {"ENDM",      T_DIRECTIVE_ENDM},
 
         {"PUSHS",     T_DIRECTIVE_PUSHS},
         {"POPS",      T_DIRECTIVE_POPS},

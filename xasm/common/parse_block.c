@@ -36,7 +36,7 @@ isEndc(EToken token) {
 
 static bool
 isEndm(EToken token) {
-	return token == T_SYM_ENDM;
+	return token == T_DIRECTIVE_ENDM;
 }
 
 static bool

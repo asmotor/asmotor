@@ -175,8 +175,13 @@ consumeComment(bool wasSpace, bool lineStart) {
 }
 
 static bool
+isStartSymbolCharacter(char ch) {
+	return isalpha(ch) ||  ch == '_';
+}
+
+static bool
 isSymbolCharacter(char ch) {
-	return isalnum(ch) ||  ch == '_' || ch == '#';
+	return isStartSymbolCharacter(ch) || isdigit(ch) || ch == '#';
 }
 
 static bool
@@ -215,18 +220,25 @@ acceptSymbolTail() {
 }
 
 static bool
-acceptLabel(void) {
+acceptLabel(EToken token) {
 	char ch = lex_GetChar();
-	if (ch == '.' || isSymbolCharacter(ch)) {
+	lex_Current.length = 0;
+	if (ch == '.') {
 		lex_Current.length = 1;
 		lex_Current.value.string[0] = ch;
+		ch = lex_GetChar();
+	}
+	lex_Current.value.string[lex_Current.length++] = ch;
+	if (isStartSymbolCharacter(ch)) {
 		if (acceptSymbolTail()) {
-			lex_Current.token = T_LABEL;
+			lex_Current.token = token;
 			return true;
 		}
 		return false;
 	}
-	lex_UnputChar(ch);
+	while (lex_Current.length > 0) {
+		lex_UnputChar(lex_Current.value.string[--lex_Current.length]);
+	}
 	return false;
 }
 
@@ -381,7 +393,11 @@ static bool
 acceptNext(bool lineStart) {
 	if (lineStart) {
 		consumeComment(false, true);
-		if (acceptLabel()) {
+		if (acceptLabel(T_LABEL)) {
+			if (lex_ConstantsMatchTokenString() != NULL) {
+				err_Warn(WARN_SYMBOL_WITH_RESERVED_NAME);
+				lex_Current.token = T_LABEL;
+			}
 			return true;
 		}
 	}
@@ -400,7 +416,7 @@ acceptNext(bool lineStart) {
 	if (constantWord != NULL) {
 		acceptSymbolIfLonger();
 		return true;
-	} else if (acceptLabel()) {
+	} else if (acceptLabel(T_ID)) {
 		return true;
 	}
 	
@@ -646,37 +662,43 @@ lex_Init(void) {
 
 bool
 lex_GetNextDirective(void) {
-	char ch;
-	while ((ch = lex_GetChar()) != '\n') {
+	for (;;) {
+		char ch;
+		while ((ch = lex_GetChar()) != '\n') {
+		}
+		while (strchr(":\t ", (ch = lex_GetChar())) != NULL) {
+		}
+		lex_Current.length = 0;
+		while (isalpha(ch = lex_GetChar())) {
+			lex_Current.value.string[lex_Current.length++] = ch;
+		}
+		lex_Current.value.string[lex_Current.length] = 0;
+		lex_UnputChar(ch);
+		if (lex_ConstantsMatchTokenString() != NULL)
+			return true;
 	}
-	while (strchr(":\t ", (ch = lex_GetChar())) != NULL) {
-	}
-	lex_Current.length = 0;
-	while (isalpha(ch = lex_GetChar())) {
-		lex_Current.value.string[lex_Current.length++] = ch;
-	}
-	lex_Current.value.string[lex_Current.length] = 0;
-	lex_UnputChar(ch);
-	return lex_ConstantsMatchTokenString() != NULL;
 }
 
 bool
 lex_GetNextDirectiveUnexpanded(size_t* index) {
-	char ch;
-	while ((ch = getUnexpandedChar(*index)) != '\n') {
+	for (;;) {
+		char ch;
+		while ((ch = getUnexpandedChar(*index)) != '\n') {
+			*index += 1;
+		}
 		*index += 1;
+		while (strchr(":\t ", (ch = getUnexpandedChar(*index))) != NULL) {
+			*index += 1;
+		}
+		lex_Current.length = 0;
+		while (isalpha(ch = getUnexpandedChar(*index))) {
+			lex_Current.value.string[lex_Current.length++] = ch;
+			*index += 1;
+		}
+		lex_Current.value.string[lex_Current.length] = 0;
+		if (lex_ConstantsMatchTokenString() != NULL)
+			return true;
 	}
-	*index += 1;
-	while (strchr(":\t ", (ch = getUnexpandedChar(*index))) != NULL) {
-		*index += 1;
-	}
-	lex_Current.length = 0;
-	while (isalpha(ch = getUnexpandedChar(*index))) {
-		lex_Current.value.string[lex_Current.length++] = ch;
-		*index += 1;
-	}
-	lex_Current.value.string[lex_Current.length] = 0;
-	return lex_ConstantsMatchTokenString() != NULL;
 }
 
 bool

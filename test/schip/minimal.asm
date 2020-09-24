@@ -55,7 +55,7 @@ GAMELOOP:
   CALL WAITDELAY
   
 
-JP GAMELOOP
+  JP GAMELOOP
 
 ; ================== functions ================
 INITPLAYER:
@@ -123,7 +123,7 @@ WAITDELAY:
   LD V0,DT	   ;Set V0 to DelayTimer
   SE V0,0	   ;Check zero
   JP WAITDELAY     
-RET  
+  RET  
 
 ; ================== graphics ================
 SPR_DUDE:

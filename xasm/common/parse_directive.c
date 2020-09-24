@@ -656,6 +656,7 @@ static SDirective
 		{handleOrg, 0},
 		{handleShift, 0},
 		{handleMexit, 0},
+		{handleMexit, 0},
 		{handleRept, 0},
 		{handleRexit, 0},
 		{handleRexit, 0},
