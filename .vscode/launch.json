@@ -103,7 +103,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcg", "-fv", "-otest.r", "allcodes.asm"],
+            "args": ["-mcg", "-fv", "-otest.r", "funkymac.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/gameboy",
             "environment": [],

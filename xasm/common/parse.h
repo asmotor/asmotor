@@ -23,6 +23,9 @@
 #include "lexer.h"
 
 extern bool
+parse_ExpandStrings;
+
+extern bool
 parse_Until(EToken endToken);
 
 extern bool

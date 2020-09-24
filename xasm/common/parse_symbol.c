@@ -75,7 +75,7 @@ parse_SymbolDefinition(void) {
     bool r = false;
 
     if (lex_Current.token == T_LABEL) {
-        string* symbolName = lex_TokenString();;
+        string* symbolName = lex_TokenString();
 
         parse_GetToken();
 

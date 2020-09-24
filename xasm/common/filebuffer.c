@@ -99,9 +99,11 @@ fbuf_GetChar(SFileBuffer* fbuffer) {
 
 extern void
 fbuf_Init(SFileBuffer* fileBuffer, string* buffer, vec_t* arguments) {
+	assert(arguments != NULL);
+
 	chstk_Init(&fileBuffer->charStack);
 	fileBuffer->uniqueValue = createUniqueValue();
-	fileBuffer->text = str_CanonicalizeLineEndings(buffer);
+	fileBuffer->text = str_Copy(buffer);
 	fileBuffer->index = 0;
 	fileBuffer->arguments = arguments;
 }

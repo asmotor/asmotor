@@ -81,9 +81,9 @@ modifySymbol(intptr_t intModification) {
 
 static bool
 purgeSymbol(intptr_t intModification) {
-	tokens_ExpandStrings = false;
+	parse_ExpandStrings = false;
 	bool result = modifySymbol(intModification);
-	tokens_ExpandStrings = true;
+	parse_ExpandStrings = true;
 	return result;
 }
 

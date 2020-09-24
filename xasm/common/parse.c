@@ -32,6 +32,9 @@
 #include "errors.h"
 #include "symbol.h"
 
+bool
+parse_ExpandStrings = true;
+
 static bool
 handleMacroArgument() {
     if (lex_Current.token == T_STRING) {
@@ -134,9 +137,22 @@ parse_ExpectChar(char ch) {
 
 void
 parse_GetToken(void) {
-    if (!lex_GetNextToken()) {
-        err_Error(ERROR_END_OF_FILE);
-    }
+	for (;;) {
+		if (!lex_GetNextToken()) {
+			err_Error(ERROR_END_OF_FILE);
+		}
+		if (!parse_ExpandStrings || lex_Current.token != T_ID)
+			break;
+
+		string* symbolName = lex_TokenString();
+		string* value = sym_GetStringSymbolValueByName(symbolName);
+		str_Free(symbolName);
+
+		if (value == NULL)
+			break;
+
+		lex_UnputStringLength(str_String(value), str_Length(value));
+	}
 }
 
 bool

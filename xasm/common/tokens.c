@@ -30,18 +30,16 @@
 
 // From xasm
 #include "xasm.h"
+#include "errors.h"
+#include "filestack.h"
 #include "lexer_constants.h"
 #include "options.h"
-#include "filestack.h"
-#include "errors.h"
+#include "parse.h"
 #include "symbol.h"
 
 #if defined(_MSC_VER)
 #   define sscanf sscanf_s
 #endif
-
-bool tokens_ExpandStrings;
-uint32_t tokens_BinaryVariadicId;
 
 // Private data
 
@@ -164,7 +162,7 @@ static SLexConstantsWord staticTokens[] = {
 
 void
 tokens_Init(bool supportFloat) {
-    tokens_ExpandStrings = true;
+    parse_ExpandStrings = true;
 
     lex_Init();
 

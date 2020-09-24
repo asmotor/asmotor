@@ -360,7 +360,7 @@ sym_GetSymbolValueAsStringByName(const string* name) {
             return str_CreateFormat("%d", sym_GetValue(symbol));
         }
         case SYM_EQUS: {
-            return sym_GetStringValue(symbol);
+            return sym_GetStringSymbolValue(symbol);
         }
         case SYM_LABEL:
         case SYM_MACRO:
@@ -461,7 +461,7 @@ sym_IsDefined(const string* pName) {
 }
 
 extern string*
-sym_GetStringValue(SSymbol* symbol) {
+sym_GetStringSymbolValue(SSymbol* symbol) {
     if (symbol->type == SYM_EQUS) {
         if (symbol->callback.string) {
             return symbol->callback.string(symbol);
@@ -470,16 +470,15 @@ sym_GetStringValue(SSymbol* symbol) {
         }
     }
 
-    err_Error(ERROR_SYMBOL_EQUS);
     return NULL;
 }
 
 extern string*
-sym_GetStringValueByName(const string* name) {
-    SSymbol* pSym = getSymbol(name, assumedScopeOf(name));
+sym_GetStringSymbolValueByName(const string* name) {
+    SSymbol* symbol = getSymbol(name, assumedScopeOf(name));
 
-    if (pSym != NULL)
-        return sym_GetStringValue(pSym);
+    if (symbol != NULL)
+        return sym_GetStringSymbolValue(symbol);
 
     return NULL;
 }

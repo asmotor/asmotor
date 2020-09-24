@@ -170,7 +170,4 @@ typedef enum {
 extern void
 tokens_Init(bool supportFloat);
 
-extern bool tokens_ExpandStrings;
-extern uint32_t tokens_BinaryVariadicId;
-
 #endif /* XASM_COMMON_TOKENS_H_INCLUDED_ */

@@ -262,9 +262,9 @@ stringExpressionPri2(void) {
             return result;
         }
         case T_OP_BITWISE_OR: {
-            tokens_ExpandStrings = false;
+            parse_ExpandStrings = false;
             parse_GetToken();
-            tokens_ExpandStrings = true;
+            parse_ExpandStrings = true;
 
             if (lex_Current.token == T_ID) {
                 string* result = NULL;

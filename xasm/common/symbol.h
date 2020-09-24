@@ -129,10 +129,10 @@ extern string*
 sym_GetSymbolValueAsStringByName(const string* name);
 
 extern string*
-sym_GetStringValue(SSymbol* symbol);
+sym_GetStringSymbolValue(SSymbol* symbol);
 
 extern string*
-sym_GetStringValueByName(const string* name);
+sym_GetStringSymbolValueByName(const string* name);
 
 extern int32_t
 sym_GetValue(SSymbol* symbol);

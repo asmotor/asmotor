@@ -647,15 +647,17 @@ lex_CreateFileBuffer(FILE* fileHandle, uint32_t* checkSum) {
 
 	size_t size = fsize(fileHandle);
 	string* fileContent = str_ReadFile(fileHandle, size);
+	string* canonicalizedContent = str_CanonicalizeLineEndings(fileContent);
+	str_Free(fileContent);
 
 	if (checkSum != NULL && opt_Current->enableDebugInfo)
 		*checkSum = crc32((const uint8_t *)str_String(fileContent), size);
 
-	fbuf_Init(&lexerBuffer->fileBuffer, fileContent, NULL);
+	fbuf_Init(&lexerBuffer->fileBuffer, canonicalizedContent, strvec_Create());
 	lexerBuffer->atLineStart = true;
 	lexerBuffer->mode = LEXER_MODE_NORMAL;
 
-	str_Free(fileContent);
+	str_Free(canonicalizedContent);
 
 	return lexerBuffer;
 }
