@@ -667,15 +667,96 @@ lex_Init(void) {
 	lex_ConstantsInit();
 }
 
+void
+skipToNextLine(void) {
+	char ch = lex_GetChar();
+	while (!isLineEnd(ch) && ch != 0) {
+		ch = lex_GetChar();
+	}
+}
+
+void
+skipToNextLineIndexed(size_t* index) {
+	for (;;) {
+		char ch = getUnexpandedChar(*index);
+		*index += 1;
+		if (isLineEnd(ch) || ch == 0)
+			return;
+	}
+}
+
+static bool
+charIs(char* candidates) {
+	char ch = lex_GetChar();
+	lex_UnputChar(ch);
+	return strchr(candidates, ch) != NULL;
+}
+
+static bool
+charIsIndexed(size_t* index, char* candidates) {
+	char ch = getUnexpandedChar(*index);
+	return strchr(candidates, ch) != NULL;
+}
+
+void
+skipLabel(void) {
+	char ch = lex_GetChar();
+	while (strchr(" \t",ch) == NULL && ch != 0) {
+		ch = lex_GetChar();
+	}
+	lex_UnputChar(ch);
+}
+
+void
+skipLabelIndexed(size_t* index) {
+	for (;;) {
+		char ch = getUnexpandedChar(*index);
+		if (strchr(" \t",ch) != NULL || ch == 0)
+			return;
+		*index += 1;
+	}
+}
+
+bool
+skipWhiteSpace(void) {
+	char ch = lex_GetChar();
+	while (ch != 0 && strchr("\t ", ch) != NULL) {
+		ch = lex_GetChar();
+		if (ch == '*') {
+			return true;
+		}
+	}
+	if (ch == ';')
+		return true;
+	lex_UnputChar(ch);
+	return false;
+}
+
+bool
+skipWhiteSpaceIndexed(size_t* index) {
+	char ch = getUnexpandedChar(*index);
+	while (ch != 0 && strchr("\t ", ch) != NULL) {
+		*index += 1;
+		ch = getUnexpandedChar(*index);
+		if (ch == '*') {
+			return true;
+		}
+	}
+	return ch == ';';
+}
+
 bool
 lex_GetNextDirective(void) {
 	for (;;) {
-		char ch;
-		while ((ch = lex_GetChar()) != '\n') {
-		}
-		while (strchr(":\t ", (ch = lex_GetChar())) != NULL) {
-		}
+		skipToNextLine();
+		if (charIs(";*"))
+			continue;
+		skipLabel();
+		if (skipWhiteSpace())
+			continue;
+
 		lex_Current.length = 0;
+		char ch;
 		while (isalpha(ch = lex_GetChar())) {
 			lex_Current.value.string[lex_Current.length++] = ch;
 		}
@@ -689,15 +770,15 @@ lex_GetNextDirective(void) {
 bool
 lex_GetNextDirectiveUnexpanded(size_t* index) {
 	for (;;) {
-		char ch;
-		while ((ch = getUnexpandedChar(*index)) != '\n') {
-			*index += 1;
-		}
-		*index += 1;
-		while (strchr(":\t ", (ch = getUnexpandedChar(*index))) != NULL) {
-			*index += 1;
-		}
+		skipToNextLineIndexed(index);
+		if (charIsIndexed(index, ";*"))
+			continue;
+		skipLabelIndexed(index);
+		if (skipWhiteSpaceIndexed(index))
+			continue;
+
 		lex_Current.length = 0;
+		char ch;
 		while (isalpha(ch = getUnexpandedChar(*index))) {
 			lex_Current.value.string[lex_Current.length++] = ch;
 			*index += 1;

@@ -22,6 +22,7 @@
 #include "mem.h"
 
 /* From xasm */
+#include "parse.h"
 #include "parse_block.h"
 #include "lexer.h"
 #include "filestack.h"
@@ -66,15 +67,21 @@ skipToDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
 			case T_DIRECTIVE_IFNC:
 			case T_DIRECTIVE_IFND: {
 				getNextDirective();
-				return skipPastDirective(isEndc, getNextDirective);
+				if (!skipPastDirective(isEndc, getNextDirective))
+					return false;
+				break;
 			}
 			case T_SYM_MACRO: {
 				getNextDirective();
-				return skipPastDirective(isEndm, getNextDirective);
+				if (!skipPastDirective(isEndm, getNextDirective))
+					return false;
+				break;
 			}
 			case T_DIRECTIVE_REPT: {
 				getNextDirective();
-				return skipPastDirective(isEndr, getNextDirective);
+				if (!skipPastDirective(isEndr, getNextDirective))
+					return false;
+				break;
 			}
 			default: {
 				if (!getNextDirective())
@@ -87,7 +94,7 @@ skipToDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
 
 static bool
 skipPastDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
-	bool r = skipToDirective(directive, lex_GetNextDirective);
+	bool r = skipToDirective(directive, getNextDirective);
 	if (r)
 		getNextDirective();
 	return r;
@@ -103,17 +110,35 @@ isFalseBranch(EToken token) {
 
 bool
 parse_SkipPastTrueBranch(void) {
-	return skipPastDirective(isFalseBranch, lex_GetNextDirective);
+	if (lex_Current.token == '\n')
+		lex_UnputChar('\n');
+	if (skipToDirective(isFalseBranch, lex_GetNextDirective)) {
+		parse_GetToken();
+		return true;
+	}
+	return false;
 }
 
 bool
 parse_SkipPastEndc(void) {
-	return skipPastDirective(isEndc, lex_GetNextDirective);
+	if (lex_Current.token == '\n')
+		lex_UnputChar('\n');
+	if (skipToDirective(isEndc, lex_GetNextDirective)) {
+		parse_GetToken();
+		return true;
+	}
+	return false;
 }
 
 bool
 parse_SkipPastEndr(void) {
-	return skipPastDirective(isEndr, lex_GetNextDirective);
+	if (lex_Current.token == '\n')
+		lex_UnputChar('\n');
+	if (skipToDirective(isEndr, lex_GetNextDirective)) {
+		parse_GetToken();
+		return true;
+	}
+	return false;
 }
 
 static size_t
