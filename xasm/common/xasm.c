@@ -21,8 +21,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_M_IX86) || defined(_M_X64) || defined(__x86_64)
-#   define __STDC_IEC_559__
+#if !defined(__STDC_IEC_559__)
+#	if defined(_M_IX86) || defined(_M_X64) || defined(__x86_64)
+#   	define __STDC_IEC_559__
+#	endif
 #endif
 
 #if !defined(__STDC_IEC_559__) && !defined(__GCC_IEC_559)

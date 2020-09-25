@@ -166,7 +166,7 @@ parse_CopyMacroBlock(char** dest, size_t* size) {
 
     *size = getNextDirectiveIndex;
 
-	lex_SkipBytes(getNextDirectiveIndex);
+	fstk_Current->lineNumber += lex_SkipBytes(getNextDirectiveIndex);
 
     return true;
 }

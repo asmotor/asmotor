@@ -148,7 +148,7 @@ fbuf_SkipUnexpandedChars(SFileBuffer* fbuffer, size_t count) {
 	}
 
 	for (size_t index = 0; index < count; ++index) {
-		if (str_CharAt(fbuffer->text + fbuffer->index, index) == '\n')
+		if (str_CharAt(fbuffer->text, fbuffer->index + index) == '\n')
 			++linesSkipped;
 	}
 

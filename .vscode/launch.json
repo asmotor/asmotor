@@ -108,7 +108,7 @@
             "cwd": "${workspaceFolder}/test/gameboy",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
         {
             "name": "Debug motorz80 (common)",

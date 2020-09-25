@@ -550,6 +550,85 @@ stateMacroArguments() {
 	}
 }
 
+
+static void
+skipToNextLine(void) {
+	char ch = lex_GetChar();
+	while (!isLineEnd(ch) && ch != 0) {
+		ch = lex_GetChar();
+	}
+}
+
+static void
+skipToNextLineIndexed(size_t* index) {
+	for (;;) {
+		char ch = getUnexpandedChar(*index);
+		*index += 1;
+		if (isLineEnd(ch) || ch == 0)
+			return;
+	}
+}
+
+static bool
+charIs(char* candidates) {
+	char ch = lex_GetChar();
+	lex_UnputChar(ch);
+	return strchr(candidates, ch) != NULL;
+}
+
+static bool
+charIsIndexed(size_t* index, char* candidates) {
+	char ch = getUnexpandedChar(*index);
+	return strchr(candidates, ch) != NULL;
+}
+
+static void
+skipLabel(void) {
+	char ch = lex_GetChar();
+	while (strchr(" \t",ch) == NULL && ch != 0) {
+		ch = lex_GetChar();
+	}
+	lex_UnputChar(ch);
+}
+
+static void
+skipLabelIndexed(size_t* index) {
+	for (;;) {
+		char ch = getUnexpandedChar(*index);
+		if (strchr(" \t",ch) != NULL || ch == 0)
+			return;
+		*index += 1;
+	}
+}
+
+static bool
+skipWhiteSpace(void) {
+	char ch = lex_GetChar();
+	while (ch != 0 && strchr("\t ", ch) != NULL) {
+		ch = lex_GetChar();
+		if (ch == '*') {
+			return true;
+		}
+	}
+	if (ch == ';')
+		return true;
+	lex_UnputChar(ch);
+	return false;
+}
+
+static bool
+skipWhiteSpaceIndexed(size_t* index) {
+	char ch = getUnexpandedChar(*index);
+	while (ch != 0 && strchr("\t ", ch) != NULL) {
+		*index += 1;
+		ch = getUnexpandedChar(*index);
+		if (ch == '*') {
+			return true;
+		}
+	}
+	return ch == ';';
+}
+
 /* Public variables */
 
 SLexerToken lex_Current;
@@ -667,88 +746,11 @@ lex_Init(void) {
 	lex_ConstantsInit();
 }
 
-void
-skipToNextLine(void) {
-	char ch = lex_GetChar();
-	while (!isLineEnd(ch) && ch != 0) {
-		ch = lex_GetChar();
-	}
-}
-
-void
-skipToNextLineIndexed(size_t* index) {
-	for (;;) {
-		char ch = getUnexpandedChar(*index);
-		*index += 1;
-		if (isLineEnd(ch) || ch == 0)
-			return;
-	}
-}
-
-static bool
-charIs(char* candidates) {
-	char ch = lex_GetChar();
-	lex_UnputChar(ch);
-	return strchr(candidates, ch) != NULL;
-}
-
-static bool
-charIsIndexed(size_t* index, char* candidates) {
-	char ch = getUnexpandedChar(*index);
-	return strchr(candidates, ch) != NULL;
-}
-
-void
-skipLabel(void) {
-	char ch = lex_GetChar();
-	while (strchr(" \t",ch) == NULL && ch != 0) {
-		ch = lex_GetChar();
-	}
-	lex_UnputChar(ch);
-}
-
-void
-skipLabelIndexed(size_t* index) {
-	for (;;) {
-		char ch = getUnexpandedChar(*index);
-		if (strchr(" \t",ch) != NULL || ch == 0)
-			return;
-		*index += 1;
-	}
-}
-
-bool
-skipWhiteSpace(void) {
-	char ch = lex_GetChar();
-	while (ch != 0 && strchr("\t ", ch) != NULL) {
-		ch = lex_GetChar();
-		if (ch == '*') {
-			return true;
-		}
-	}
-	if (ch == ';')
-		return true;
-	lex_UnputChar(ch);
-	return false;
-}
-
-bool
-skipWhiteSpaceIndexed(size_t* index) {
-	char ch = getUnexpandedChar(*index);
-	while (ch != 0 && strchr("\t ", ch) != NULL) {
-		*index += 1;
-		ch = getUnexpandedChar(*index);
-		if (ch == '*') {
-			return true;
-		}
-	}
-	return ch == ';';
-}
-
 bool
 lex_GetNextDirective(void) {
 	for (;;) {
 		skipToNextLine();
+		fstk_Current->lineNumber += 1;
 		if (charIs(";*"))
 			continue;
 		skipLabel();
