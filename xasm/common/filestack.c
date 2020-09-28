@@ -216,20 +216,24 @@ fstk_EndCurrentBuffer(void) {
 	} else {
 		SFileStackEntry* context = fstk_Current;
 		if (context->type == CONTEXT_REPT) {
-			if (context->block.repeat.remaining > 0) {
+			if (context->block.repeat.remaining-- > 0) {
 				lex_Goto(&context->block.repeat.bookmark);
 				context->lineNumber = 0;
 				fbuf_RenewUniqueValue(&context->lexBuffer->fileBuffer);
+				return true;
+			} else {
+				list_Remove(fstk_Current, fstk_Current);
+				lex_CopyBuffer(fstk_Current->lexBuffer, context->lexBuffer);
 			}
-			return true;
 		} else {
 			list_Remove(fstk_Current, fstk_Current);
-			lex_FreeBuffer(context->lexBuffer);
-			str_Free(context->name);
-
-			mem_Free(context);
-			lex_SetBuffer(fstk_Current->lexBuffer);
 		}
+
+		lex_FreeBuffer(context->lexBuffer);
+		str_Free(context->name);
+
+		mem_Free(context);
+		lex_SetBuffer(fstk_Current->lexBuffer);
 		return true;
 	}
 }

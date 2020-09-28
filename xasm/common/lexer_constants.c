@@ -104,6 +104,9 @@ lex_ConstantsMatchWord() {
 			break;
 
 		lex_Current.value.string[lex_Current.length++] = ch;
+		
+		if (isspace(ch))
+			break;
 
 		HASH(hashCode, toupper(ch));
 		for (SConstantWord* candidate = g_wordsHashTable[hashCode]; candidate != NULL; candidate = list_GetNext(candidate)) {

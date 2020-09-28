@@ -115,4 +115,7 @@ lex_Goto(SLexerBookmark* bookmark);
 extern string*
 lex_TokenString(void);
 
+extern void
+lex_CopyBuffer(SLexerBuffer* dest, const SLexerBuffer* source);
+
 #endif /* XASM_COMMON_LEXER_H_INCLUDED_ */

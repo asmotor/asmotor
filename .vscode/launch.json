@@ -121,7 +121,7 @@
             "cwd": "${workspaceFolder}/test/common",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
         {
             "name": "Debug motorrc8",

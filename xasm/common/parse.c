@@ -97,7 +97,7 @@ handleMacroInvocation(void) {
 static bool
 handleLineBreak() {
     if (lex_Current.token == '\n') {
-        lex_GetNextToken();
+        parse_GetToken();
         fstk_Current->lineNumber += 1;
         xasm_TotalLines += 1;
         return true;
@@ -184,6 +184,6 @@ parse_Until(EToken endToken) {
 
 bool
 parse_Do(void) {
-    lex_GetNextToken();
+    parse_GetToken();
     return parse_Until(T_POP_END);
 }

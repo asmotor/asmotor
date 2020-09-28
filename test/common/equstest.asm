@@ -1,7 +1,7 @@
 
 	SECTION	"Test",CODE
 
-Print	EQUS	"\tPRINTT \"First\\n\"\nPRINTT \"Second\\n\"\n"
+Print	EQUS	"\tPRINTT \"First\\n\"\n\tPRINTT \"Second\\n\"\n"
 
 	REPT	3
 	Print

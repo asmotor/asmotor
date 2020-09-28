@@ -42,13 +42,6 @@ static SLexerBuffer* g_currentBuffer;
 
 /* Private functions */
 
-INLINE void
-copyBuffer(SLexerBuffer* dest, const SLexerBuffer* source) {
-	fbuf_Copy(&dest->fileBuffer, &source->fileBuffer);
-	dest->atLineStart = source->atLineStart;
-	dest->mode = source->mode;
-}
-
 INLINE char
 getUnexpandedChar(size_t index) {
 	return fbuf_GetUnexpandedChar(&g_currentBuffer->fileBuffer, index);
@@ -452,8 +445,8 @@ stateNormal() {
 				lineStart = g_currentBuffer->atLineStart;
 				g_currentBuffer->atLineStart = false;
 			} else {
-				lex_Current.token = T_NONE;
-				return false;
+				lex_Current.token = T_POP_END;
+				return true;
 			}
 		}
 	}
@@ -467,13 +460,12 @@ isMacroArgument0Terminator(char ch) {
 static bool
 stateMacroArgument0(void) {
 	if (matchChar('.')) {
-		int i = 0;
 		char ch;
-
+		lex_Current.length = 0;
 		while (!isMacroArgument0Terminator(ch = lex_GetChar())) {
-			lex_Current.value.string[i++] = ch;
+			lex_Current.value.string[lex_Current.length++] = ch;
 		}
-		lex_Current.value.string[i] = 0;
+		lex_Current.value.string[lex_Current.length] = 0;
 		lex_Current.token = T_MACROARG0;
 		lex_UnputChar(ch);
 		return true;
@@ -652,13 +644,13 @@ lex_CopyUnexpandedContent(char* dest, size_t count) {
 
 void
 lex_Bookmark(SLexerBookmark* bookmark) {
-	copyBuffer(&bookmark->Buffer, g_currentBuffer);
+	lex_CopyBuffer(&bookmark->Buffer, g_currentBuffer);
 	bookmark->Token = lex_Current;
 }
 
 void
 lex_Goto(SLexerBookmark* bookmark) {
-	copyBuffer(g_currentBuffer, &bookmark->Buffer);
+	lex_CopyBuffer(g_currentBuffer, &bookmark->Buffer);
 	lex_Current = bookmark->Token;
 }
 
@@ -705,7 +697,7 @@ lex_FreeBuffer(SLexerBuffer* buffer) {
 SLexerBuffer*
 lex_CreateBookmarkBuffer(SLexerBookmark* bookmark) {
 	SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
-	copyBuffer(lexerBuffer, &bookmark->Buffer);
+	lex_CopyBuffer(lexerBuffer, &bookmark->Buffer);
 	return lexerBuffer;
 }
 
@@ -816,4 +808,12 @@ lex_GetNextToken(void) {
 extern string*
 lex_TokenString(void) {
 	return str_CreateLength(lex_Current.value.string, lex_Current.length);
+}
+
+
+extern void
+lex_CopyBuffer(SLexerBuffer* dest, const SLexerBuffer* source) {
+	fbuf_Copy(&dest->fileBuffer, &source->fileBuffer);
+	dest->atLineStart = source->atLineStart;
+	dest->mode = source->mode;
 }

@@ -108,14 +108,26 @@ expectBankFixed(void) {
 }
 
 static bool
-handleRexit() {
+handleEndr() {
 	if (fstk_Current->type == CONTEXT_REPT) {
-		fstk_Current->block.repeat.remaining = 0;
 		fstk_EndCurrentBuffer();
 	} else {
 		err_Warn(WARN_REXIT_OUTSIDE_REPT);
 	}
 	parse_GetToken();
+	return true;
+}
+
+static bool
+handleRexit() {
+	if (fstk_Current->type == CONTEXT_REPT) {
+		parse_SkipPastEndr();
+		fstk_Current->block.repeat.remaining = 0;
+		fstk_EndCurrentBuffer();
+	} else {
+		err_Warn(WARN_REXIT_OUTSIDE_REPT);
+		parse_GetToken();
+	}
 	return true;
 }
 
@@ -659,7 +671,7 @@ static SDirective
 		{handleMexit, 0},
 		{handleRept, 0},
 		{handleRexit, 0},
-		{handleRexit, 0},
+		{handleEndr, 0},
 		{handleIfStrings, (intptr_t)str_Equal},
 		{handleIfStrings, (intptr_t)str_NotEqual},
 		{handleIfSymbol, (intptr_t)sym_IsDefined},
