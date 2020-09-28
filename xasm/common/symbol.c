@@ -27,7 +27,7 @@
 
 #include "xasm.h"
 #include "symbol.h"
-#include "filestack.h"
+#include "lexer_context.h"
 #include "errors.h"
 #include "section.h"
 
@@ -67,12 +67,12 @@ util_localtime(struct tm* const tmDest, time_t const* const sourceTime) {
 
 static int32_t
 callback__NARG(SSymbol* symbol) {
-    return fstk_GetMacroArgumentCount();
+    return lex_GetMacroArgumentCount();
 }
 
 static int32_t
 callback__LINE(SSymbol* symbol) {
-    return fstk_CurrentLineNumber();
+    return lex_CurrentLineNumber();
 }
 
 static string* getDateString() {
@@ -171,8 +171,8 @@ createSymbol(const string* name, SSymbol* scope) {
     SET_TYPE_AND_FLAGS(newSymbol, SYM_UNDEFINED);
     newSymbol->name = str_Copy(name);
     newSymbol->scope = scope;
-    newSymbol->fileInfo = fstk_CurrentFileInfo();
-    newSymbol->lineNumber = fstk_CurrentLineNumber();
+    newSymbol->fileInfo = lex_CurrentFileInfo();
+    newSymbol->lineNumber = lex_CurrentLineNumber();
 
     SSymbol** hashTableEntry = &sym_hashedSymbols[hash(name)];
     list_Insert(*hashTableEntry, newSymbol);

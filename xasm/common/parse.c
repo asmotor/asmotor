@@ -22,7 +22,7 @@
 
 #include "str.h"
 
-#include "filestack.h"
+#include "lexer_context.h"
 #include "lexer.h"
 #include "parse.h"
 #include "parse_block.h"
@@ -39,7 +39,7 @@ static bool
 handleMacroArgument() {
     if (lex_Current.token == T_STRING) {
 		string* arg = lex_TokenString();
-        fstk_AddMacroArgument(arg);
+        lex_AddMacroArgument(arg);
 		str_Free(arg);
         parse_GetToken();
         return true;
@@ -55,7 +55,7 @@ handleMacroArguments() {
 
     if (lex_Current.token == T_MACROARG0) {
 		string* arg = lex_TokenString();
-        fstk_SetMacroArgument0(arg);
+        lex_SetMacroArgument0(arg);
 		str_Free(arg);
         parse_GetToken();
     }
@@ -82,7 +82,7 @@ handleMacroInvocation(void) {
 
         if (sym_IsMacro(symbolName)) {
             if (handleMacroArguments()) {
-                fstk_ProcessMacro(symbolName);
+                lex_ProcessMacro(symbolName);
                 parse_GetToken();
                 r = true;
             }
@@ -98,7 +98,7 @@ static bool
 handleLineBreak() {
     if (lex_Current.token == '\n') {
         parse_GetToken();
-        fstk_Current->lineNumber += 1;
+        lex_Context->lineNumber += 1;
         xasm_TotalLines += 1;
         return true;
     }

@@ -25,7 +25,7 @@
 #include "fmath.h"
 #include "mem.h"
 
-#include "filestack.h"
+#include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
 #include "errors.h"
@@ -109,8 +109,8 @@ expectBankFixed(void) {
 
 static bool
 handleEndr() {
-	if (fstk_Current->type == CONTEXT_REPT) {
-		fstk_EndCurrentBuffer();
+	if (lex_Context->type == CONTEXT_REPT) {
+		lex_EndCurrentBuffer();
 	} else {
 		err_Warn(WARN_REXIT_OUTSIDE_REPT);
 	}
@@ -120,10 +120,10 @@ handleEndr() {
 
 static bool
 handleRexit() {
-	if (fstk_Current->type == CONTEXT_REPT) {
+	if (lex_Context->type == CONTEXT_REPT) {
 		parse_SkipPastEndr();
-		fstk_Current->block.repeat.remaining = 0;
-		fstk_EndCurrentBuffer();
+		lex_Context->block.repeat.remaining = 0;
+		lex_EndCurrentBuffer();
 	} else {
 		err_Warn(WARN_REXIT_OUTSIDE_REPT);
 		parse_GetToken();
@@ -133,8 +133,8 @@ handleRexit() {
 
 static bool
 handleMexit() {
-	if (fstk_Current->type == CONTEXT_MACRO) {
-		fstk_EndCurrentBuffer();
+	if (lex_Context->type == CONTEXT_MACRO) {
+		lex_EndCurrentBuffer();
 	} else {
 		err_Warn(WARN_MEXIT_OUTSIDE_MACRO);
 	}
@@ -439,7 +439,7 @@ handleRept() {
 	int32_t reptCount = parse_ConstantExpression();
 
 	if (reptCount > 0) {
-		fstk_ProcessRepeatBlock((uint32_t)reptCount);
+		lex_ProcessRepeatBlock((uint32_t)reptCount);
 	} else if (reptCount < 0) {
 		err_Error(ERROR_EXPR_POSITIVE);
 	} else if (!parse_SkipPastEndr()) {
@@ -456,7 +456,7 @@ handleShift() {
 	SExpression *expr = parse_Expression(4);
 	if (expr != NULL) {
 		if (expr_IsConstant(expr)) {
-			fstk_ShiftMacroArgs(expr->value.integer);
+			lex_ShiftMacroArgs(expr->value.integer);
 			expr_Free(expr);
 			return true;
 		} else {
@@ -464,7 +464,7 @@ handleShift() {
 			return false;
 		}
 	} else {
-		fstk_ShiftMacroArgs(1);
+		lex_ShiftMacroArgs(1);
 		return true;
 	}
 }
@@ -654,7 +654,7 @@ static SDirective
 		{purgeSymbol, (intptr_t)sym_Purge},
 		{handleUserError, (intptr_t)err_Fail},
 		{handleUserError, (intptr_t)err_Warn},
-		{handleFile, (intptr_t)fstk_ProcessIncludeFile},
+		{handleFile, (intptr_t)lex_ProcessIncludeFile},
 		{handleFile, (intptr_t)sect_OutputBinaryFile},
 		{defineSpace, 1},
 		{defineSpace, 2},

@@ -25,7 +25,7 @@
 #include "mem.h"
 
 #include "xasm.h"
-#include "filestack.h"
+#include "lexer_context.h"
 #include "parse.h"
 #include "patch.h"
 #include "errors.h"
@@ -441,8 +441,8 @@ patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatch
     patch->offset = offset;
     patch->type = type;
     patch->expression = expression;
-    patch->filename = str_Copy(fstk_Current->name);
-    patch->lineNumber = fstk_Current->lineNumber;
+    patch->filename = str_Copy(lex_Context->name);
+    patch->lineNumber = lex_Context->lineNumber;
 }
 
 void

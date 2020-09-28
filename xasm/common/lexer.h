@@ -58,8 +58,8 @@ typedef struct {
 
 extern SLexerToken lex_Current;
 
-extern void
-lex_Init(void);
+extern bool
+lex_Init(string* filename);
 
 extern void
 lex_UnputChar(char ch);

@@ -31,7 +31,7 @@
 // From xasm
 #include "xasm.h"
 #include "errors.h"
-#include "filestack.h"
+#include "lexer_context.h"
 #include "lexer_constants.h"
 #include "options.h"
 #include "parse.h"
@@ -163,8 +163,6 @@ static SLexConstantsWord staticTokens[] = {
 void
 tokens_Init(bool supportFloat) {
     parse_ExpandStrings = true;
-
-    lex_Init();
 
     lex_ConstantsDefineWords(staticTokens);
 

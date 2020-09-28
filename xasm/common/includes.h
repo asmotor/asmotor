@@ -19,7 +19,7 @@
 #ifndef XASM_COMMON_INCLUDE_H_INCLUDED_
 #define XASM_COMMON_INCLUDE_H_INCLUDED_
 
-#include "filestack.h"
+#include "lexer_context.h"
 #include "strcoll.h"
 
 

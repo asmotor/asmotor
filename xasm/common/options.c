@@ -25,7 +25,7 @@
 
 #include "xasm.h"
 #include "errors.h"
-#include "filestack.h"
+#include "lexer_context.h"
 #include "includes.h"
 #include "options.h"
 #include "tokens.h"

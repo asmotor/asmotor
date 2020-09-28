@@ -27,7 +27,7 @@
 
 #include "xasm.h"
 #include "errors.h"
-#include "filestack.h"
+#include "lexer_context.h"
 #include "options.h"
 #include "patch.h"
 
@@ -234,7 +234,7 @@ printError(const SPatch* patch, const SSymbol* symbol, char severity, size_t err
     } else if (symbol != NULL) {
         strbuf_AppendFormat(buf, "%s:%d: ", str_String(symbol->fileInfo->fileName), symbol->lineNumber);
     } else {
-        string* stack = fstk_Dump();
+        string* stack = lex_Dump();
         strbuf_AppendString(buf, stack);
         str_Free(stack);
     }

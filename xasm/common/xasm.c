@@ -40,7 +40,8 @@
 #include "binaryobject.h"
 #include "dependency.h"
 #include "errors.h"
-#include "filestack.h"
+#include "lexer.h"
+#include "lexer_context.h"
 #include "object.h"
 #include "options.h"
 #include "parse.h"
@@ -134,13 +135,6 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     err_Init();
     sect_Init();
     sym_Init();
-    tokens_Init(configuration->supportFloat);
-    if (configuration->supportFloat) {
-        assert(sizeof(float) == 4);
-        assert(sizeof(double) == 8);
-    }
-    xasm_Configuration->defineTokens();
-
     opt_Open();
 
     char format = 'x';
@@ -212,7 +206,16 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 
     if (argc == 1) {
         string* source = str_Create(argv[argn]);
-        if (fstk_Init(source)) {
+
+        if (lex_Init(source)) {
+
+			tokens_Init(configuration->supportFloat);
+			if (configuration->supportFloat) {
+				assert(sizeof(float) == 4);
+				assert(sizeof(double) == 8);
+			}
+			xasm_Configuration->defineTokens();
+
             bool parseResult = parse_Do();
 
             if (parseResult) {
@@ -252,7 +255,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
             if (xasm_TotalErrors > 0) {
                 rcode = EXIT_FAILURE;
             }
-            fstk_Cleanup();
+            lex_Cleanup();
         }
         str_Free(source);
     } else if (argc > 1) {

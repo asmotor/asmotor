@@ -19,7 +19,7 @@
 #include "mem.h"
 #include "strcoll.h"
 
-#include "filestack.h"
+#include "lexer_context.h"
 #include "linemap.h"
 
 #define INITIAL_ALLOCATION 32
@@ -93,5 +93,5 @@ linemap_Add(SFileInfo* fileInfo, uint32_t lineNumber, SSection* section, uint32_
 
 extern void
 linemap_AddCurrent(void) {
-    linemap_Add(fstk_CurrentFileInfo(), fstk_CurrentLineNumber(), sect_Current, sect_Current->cpuProgramCounter);
+    linemap_Add(lex_CurrentFileInfo(), lex_CurrentLineNumber(), sect_Current, sect_Current->cpuProgramCounter);
 }

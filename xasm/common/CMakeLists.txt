@@ -13,12 +13,12 @@ add_library (xasm
     expression.h
     filebuffer.c
     filebuffer.h
-    filestack.c
-    filestack.h
     includes.c
     includes.h
     lexer.c
     lexer.h
+    lexer_context.c
+    lexer_context.h
     lexer_constants.c
     lexer_constants.h
     linemap.c

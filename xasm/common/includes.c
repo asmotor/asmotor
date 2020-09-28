@@ -37,7 +37,7 @@ g_includePaths;
 
 extern string*
 inc_FindFile(string* fileName) {
-	string* workingName = fstk_Current->name;
+	string* workingName = lex_Context->name;
 
     fileName = fcanonicalizePath(fileName);
 

@@ -30,7 +30,7 @@
 #include "dependency.h"
 #include "errors.h"
 #include "expression.h"
-#include "filestack.h"
+#include "lexer_context.h"
 #include "includes.h"
 #include "linemap.h"
 #include "options.h"

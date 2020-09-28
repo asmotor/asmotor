@@ -88,7 +88,7 @@
 #include "file.h"
 
 #include "expression.h"
-#include "filestack.h"
+#include "lexer_context.h"
 #include "linemap.h"
 #include "object.h"
 #include "patch.h"
@@ -487,7 +487,7 @@ obj_Write(string* fileName) {
 
 	if (opt_Current->enableDebugInfo) {
 		size_t fileCount;
-		SFileInfo** fileInfo = fstk_GetFileInfo(&fileCount);
+		SFileInfo** fileInfo = lex_GetFileInfo(&fileCount);
 		writeFileNames(fileHandle, fileInfo, fileCount);
 		mem_Free(fileInfo);
 	} else {

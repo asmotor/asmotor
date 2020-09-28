@@ -25,7 +25,7 @@
 #include "parse.h"
 #include "parse_block.h"
 #include "lexer.h"
-#include "filestack.h"
+#include "lexer_context.h"
 
 
 /* Internal functions */
@@ -166,7 +166,7 @@ parse_CopyMacroBlock(char** dest, size_t* size) {
 
     *size = getNextDirectiveIndex;
 
-	fstk_Current->lineNumber += lex_SkipBytes(getNextDirectiveIndex);
+	lex_Context->lineNumber += lex_SkipBytes(getNextDirectiveIndex);
 
     return true;
 }

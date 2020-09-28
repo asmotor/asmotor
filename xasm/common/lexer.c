@@ -34,7 +34,7 @@
 #include "errors.h"
 #include "lexer.h"
 #include "lexer_constants.h"
-#include "filestack.h"
+#include "lexer_context.h"
 #include "symbol.h"
 
 
@@ -441,7 +441,7 @@ stateNormal() {
 		if (acceptNext(lineStart)) {
 			return true;
 		} else {
-			if (fstk_EndCurrentBuffer()) {
+			if (lex_EndCurrentBuffer()) {
 				lineStart = g_currentBuffer->atLineStart;
 				g_currentBuffer->atLineStart = false;
 			} else {
@@ -733,16 +733,17 @@ lex_CreateFileBuffer(FILE* fileHandle, uint32_t* checkSum) {
 	return lexerBuffer;
 }
 
-void
-lex_Init(void) {
+bool
+lex_Init(string* filename) {
 	lex_ConstantsInit();
+	return lex_ContextInit(filename);
 }
 
 bool
 lex_GetNextDirective(void) {
 	for (;;) {
 		skipToNextLine();
-		fstk_Current->lineNumber += 1;
+		lex_Context->lineNumber += 1;
 		if (charIs(";*"))
 			continue;
 		skipLabel();

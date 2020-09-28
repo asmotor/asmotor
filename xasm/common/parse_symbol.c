@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "filestack.h"
+#include "lexer_context.h"
 #include "lexer.h"
 #include "parse.h"
 #include "parse_block.h"
@@ -86,7 +86,7 @@ parse_SymbolDefinition(void) {
                 err_Error(ERROR_SYMBOL_EXPORT);
                 return false;
             } else {
-                uint32_t lineNumber = fstk_Current->lineNumber;
+                uint32_t lineNumber = lex_Context->lineNumber;
 
                 size_t size;
                 char* block;
@@ -95,7 +95,7 @@ parse_SymbolDefinition(void) {
                     parse_GetToken();
                     r = true;
                 } else {
-                    err_Fail(ERROR_NEED_ENDM, str_String(fstk_Current->name), lineNumber);
+                    err_Fail(ERROR_NEED_ENDM, str_String(lex_Context->name), lineNumber);
                     return false;
                 }
             }
