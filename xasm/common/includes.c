@@ -54,12 +54,14 @@ inc_FindFile(string* fileName) {
 		}
 	}
 
-	for (size_t count = 0; count < strvec_Count(g_includePaths); ++count) {
-		string* candidate = str_Concat(strvec_StringAt(g_includePaths, count), fileName);
+    if (g_includePaths != NULL) {
+        for (size_t count = 0; count < strvec_Count(g_includePaths); ++count) {
+            string* candidate = str_Concat(strvec_StringAt(g_includePaths, count), fileName);
 
-		if (fexists(str_String(candidate))) {
-			return str_Copy(candidate);
-		}
+            if (fexists(str_String(candidate))) {
+                return str_Copy(candidate);
+            }
+        }
     }
 
     return NULL;
@@ -68,9 +70,10 @@ inc_FindFile(string* fileName) {
 
 extern void
 inc_AddIncludePath(string* pathname) {
-    char ch;
+    if (g_includePaths == NULL)
+        g_includePaths = strvec_Create();
 
-    ch = str_CharAt(pathname, str_Length(pathname) - 1);
+    char ch = str_CharAt(pathname, str_Length(pathname) - 1);
     if (ch != '\\' && ch != '/') {
         string* slash = str_Create("/");
 		string* cat = str_Concat(pathname, slash);
