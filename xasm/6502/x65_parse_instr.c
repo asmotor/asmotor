@@ -321,9 +321,9 @@ static SParser g_instructionHandlers[T_6502U_XAS - T_6502_ADC + 1] = {
 
 bool
 x65_ParseIntegerInstruction(void) {
-    if (T_6502_ADC <= lex_Current.token && lex_Current.token <= T_6502U_XAS) {
+    if (T_6502_ADC <= lex_Context->token.id && lex_Context->token.id <= T_6502U_XAS) {
         SAddressingMode addrMode;
-        ETargetToken token = (ETargetToken) lex_Current.token;
+        ETargetToken token = (ETargetToken) lex_Context->token.id;
         SParser* handler = &g_instructionHandlers[token - T_6502_ADC];
 
         parse_GetToken();

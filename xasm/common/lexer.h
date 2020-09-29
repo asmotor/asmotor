@@ -26,58 +26,15 @@
 #include "types.h"
 
 #include "charstack.h"
-#include "filebuffer.h"
+#include "lexer_buffer.h"
+#include "lexer_context.h"
 #include "tokens.h"
-
-typedef enum {
-    LEXER_MODE_NORMAL,
-    LEXER_MODE_MACRO_ARGUMENT0,
-    LEXER_MODE_MACRO_ARGUMENT
-} ELexerMode;
-
-typedef struct LexerBuffer {
-	SFileBuffer fileBuffer;
-    bool atLineStart;
-    ELexerMode mode;
-} SLexerBuffer;
-
-typedef struct {
-    uint32_t token;
-    size_t length;
-    union {
-        char string[MAX_TOKEN_LENGTH + 1];
-        int32_t integer;
-        long double floating;
-    } value;
-} SLexerToken;
-
-typedef struct {
-    SLexerBuffer Buffer;
-    SLexerToken Token;
-} SLexerBookmark;
-
-extern SLexerToken lex_Current;
 
 extern bool
 lex_Init(string* filename);
 
 extern void
 lex_UnputChar(char ch);
-
-extern SLexerBuffer*
-lex_CreateBookmarkBuffer(SLexerBookmark* bookmark);
-
-extern SLexerBuffer*
-lex_CreateMemoryBuffer(string* content, vec_t* arguments);
-
-extern SLexerBuffer*
-lex_CreateFileBuffer(FILE* f, uint32_t* checkSum);
-
-extern void
-lex_FreeBuffer(SLexerBuffer* buffer);
-
-extern void
-lex_SetBuffer(SLexerBuffer* buffer);
 
 extern char
 lex_GetChar(void);
@@ -107,15 +64,12 @@ extern void
 lex_SetMode(ELexerMode mode);
 
 extern void
-lex_Bookmark(SLexerBookmark* bookmark);
+lex_Bookmark(SLexerContext* bookmark);
 
 extern void
-lex_Goto(SLexerBookmark* bookmark);
+lex_Goto(SLexerContext* bookmark);
 
 extern string*
 lex_TokenString(void);
-
-extern void
-lex_CopyBuffer(SLexerBuffer* dest, const SLexerBuffer* source);
 
 #endif /* XASM_COMMON_LEXER_H_INCLUDED_ */

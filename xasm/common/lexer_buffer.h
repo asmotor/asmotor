@@ -16,50 +16,54 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_COMMON_FILEBUFFER_H_INCLUDED_
-#define XASM_COMMON_FILEBUFFER_H_INCLUDED_
+#ifndef XASM_COMMON_LEXERBUFFER_H_INCLUDED_
+#define XASM_COMMON_LEXERBUFFER_H_INCLUDED_
 
 #include "charstack.h"
 #include "lists.h"
 #include "strcoll.h"
 
-typedef struct FileBuffer {
+typedef struct LexerBuffer {
 	SCharStack charStack;
+    string* name;
 	string* uniqueValue;
     string* text;
 	ssize_t index;
     vec_t* arguments;
-} SFileBuffer;
+} SLexerBuffer;
 
 extern void
-fbuf_Init(SFileBuffer* fileBuffer, string* buffer, vec_t* arguments);
+lexbuf_Init(SLexerBuffer* fileBuffer, string* name, string* buffer, vec_t* arguments);
 
 extern void
-fbuf_Destroy(SFileBuffer* fileBuffer);
+lexbuf_Destroy(SLexerBuffer* fileBuffer);
 
 extern void
-fbuf_ShiftArguments(SFileBuffer* fbuffer, int32_t count);
+lexbuf_ShiftArguments(SLexerBuffer* fbuffer, int32_t count);
 
 extern char
-fbuf_GetChar(SFileBuffer* fbuffer);
+lexbuf_GetChar(SLexerBuffer* fbuffer);
 
 extern void
-fbuf_UnputChar(SFileBuffer* fbuffer, char ch);
+lexbuf_UnputChar(SLexerBuffer* fbuffer, char ch);
 
 extern char
-fbuf_GetUnexpandedChar(SFileBuffer* fbuffer, size_t index);
+lexbuf_GetUnexpandedChar(SLexerBuffer* fbuffer, size_t index);
 
 extern void
-fbuf_Copy(SFileBuffer* dest, const SFileBuffer* source);
+lexbuf_Copy(SLexerBuffer* dest, const SLexerBuffer* source);
 
 extern void
-fbuf_CopyUnexpandedContent(SFileBuffer* fbuffer, char* dest, size_t count);
+lexbuf_ContinueFrom(SLexerBuffer* dest, const SLexerBuffer* source);
+
+extern void
+lexbuf_CopyUnexpandedContent(SLexerBuffer* fbuffer, char* dest, size_t count);
 
 extern size_t
-fbuf_SkipUnexpandedChars(SFileBuffer* fbuffer, size_t count);
+lexbuf_SkipUnexpandedChars(SLexerBuffer* fbuffer, size_t count);
 
 extern void
-fbuf_RenewUniqueValue(SFileBuffer* fbuffer);
+lexbuf_RenewUniqueValue(SLexerBuffer* fbuffer);
 
 
-#endif /* XASM_COMMON_FILEBUFFER_H_INCLUDED_ */
+#endif /* XASM_COMMON_LEXERBUFFER_H_INCLUDED_ */

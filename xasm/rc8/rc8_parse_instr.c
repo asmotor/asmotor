@@ -648,25 +648,25 @@ g_RegisterModes[T_RC8_REG_BC_L_IND - T_RC8_REG_F + 1] = {
 
 static bool
 parseAddressingMode(SAddressingMode* addrMode, int allowedModes) {
-	SLexerBookmark bm;
+	SLexerContext bm;
 	lex_Bookmark(&bm);
 
 	if (allowedModes & MODE_REGISTER_MASK) {
 		uint8_t mask = 0;
 		uint8_t registers = 0;
 
-		while (lex_Current.token >= T_RC8_REG_FT && lex_Current.token <= T_RC8_REG_HL) {
-			uint32_t firstToken = lex_Current.token;
+		while (lex_Context->token.id >= T_RC8_REG_FT && lex_Context->token.id <= T_RC8_REG_HL) {
+			uint32_t firstToken = lex_Context->token.id;
 
 			mask |= 1 << (firstToken - T_RC8_REG_FT);
 			registers += 1;
 
 			parse_GetToken();
 
-			if (lex_Current.token == T_OP_SUBTRACT) {
+			if (lex_Context->token.id == T_OP_SUBTRACT) {
 				parse_GetToken();
-				if (lex_Current.token > firstToken && lex_Current.token <= T_RC8_REG_HL) {
-					uint32_t lastToken = lex_Current.token;
+				if (lex_Context->token.id > firstToken && lex_Context->token.id <= T_RC8_REG_HL) {
+					uint32_t lastToken = lex_Context->token.id;
 
 					firstToken += 1;
 					while (firstToken <= lastToken) {
@@ -681,7 +681,7 @@ parseAddressingMode(SAddressingMode* addrMode, int allowedModes) {
 				}
 			}
 
-			if (lex_Current.token == T_OP_DIVIDE) {
+			if (lex_Context->token.id == T_OP_DIVIDE) {
 				parse_GetToken();
 				continue;
 			} else {
@@ -700,8 +700,8 @@ parseAddressingMode(SAddressingMode* addrMode, int allowedModes) {
 		lex_Goto(&bm);
 	}
 
-	if (lex_Current.token >= T_RC8_REG_F && lex_Current.token <= T_RC8_REG_BC_L_IND) {
-		SRegisterMode* mode = &g_RegisterModes[lex_Current.token - T_RC8_REG_F];
+	if (lex_Context->token.id >= T_RC8_REG_F && lex_Context->token.id <= T_RC8_REG_BC_L_IND) {
+		SRegisterMode* mode = &g_RegisterModes[lex_Context->token.id - T_RC8_REG_F];
 		if (allowedModes & mode->modeFlag) {
 			parse_GetToken();
 			addrMode->mode = mode->modeFlag;
@@ -742,20 +742,20 @@ parseAddressingMode(SAddressingMode* addrMode, int allowedModes) {
 
 bool
 rc8_ParseIntegerInstruction(void) {
-	if (T_RC8_ADD <= lex_Current.token && lex_Current.token <= T_RC8_XOR) {
+	if (T_RC8_ADD <= lex_Context->token.id && lex_Context->token.id <= T_RC8_XOR) {
 		SAddressingMode addrMode1;
 		SAddressingMode addrMode2;
-		ETargetToken token = lex_Current.token;
+		ETargetToken token = lex_Context->token.id;
 		SParser* parser = &g_Parsers[token - T_RC8_ADD];
 		EConditionCode cc = CC_ALWAYS;
 
 		parse_GetToken();
 
-		if (lex_Current.token == T_OP_DIVIDE) {
+		if (lex_Context->token.id == T_OP_DIVIDE) {
 			parse_GetToken();
 
-			if (lex_Current.token >= T_RC8_CC_LE && lex_Current.token <= T_RC8_CC_NE) {
-				cc = lex_Current.token - T_RC8_CC_LE;
+			if (lex_Context->token.id >= T_RC8_CC_LE && lex_Context->token.id <= T_RC8_CC_NE) {
+				cc = lex_Context->token.id - T_RC8_CC_LE;
 			} else {
 				err_Error(MERROR_EXPECTED_CONDITION_CODE);
 				return false;
@@ -766,7 +766,7 @@ rc8_ParseIntegerInstruction(void) {
 		if (parseAddressingMode(&addrMode1, parser->firstModes)) {
 			string* jumpTarget = NULL;
 
-			if (lex_Current.token == ',') {
+			if (lex_Context->token.id == ',') {
 				parse_GetToken();
 				if (!parseAddressingMode(&addrMode2, parser->secondModes))
 					return err_Error(MERROR_ILLEGAL_ADDRMODE);

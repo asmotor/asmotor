@@ -62,8 +62,8 @@ requireSCHIP(void) {
 
 static uint8_t
 getRegister(void) {
-    if (lex_Current.token >= T_CHIP_REG_V0 && lex_Current.token <= T_CHIP_REG_V15) {
-        uint8_t result = (uint8_t) (lex_Current.token - T_CHIP_REG_V0);
+    if (lex_Context->token.id >= T_CHIP_REG_V0 && lex_Context->token.id <= T_CHIP_REG_V15) {
+        uint8_t result = (uint8_t) (lex_Context->token.id - T_CHIP_REG_V0);
         parse_GetToken();
 
         return result;
@@ -76,7 +76,7 @@ static bool
 parseAddressMode(SAddressMode* pMode) {
     if ((pMode->registerIndex = getRegister()) != REGISTER_NONE) {
         pMode->mode = MODE_REG;
-        if (lex_Current.token != T_OP_ADD)
+        if (lex_Context->token.id != T_OP_ADD)
             return true;
 
         if (pMode->registerIndex == 0) {
@@ -86,23 +86,23 @@ parseAddressMode(SAddressMode* pMode) {
                 return true;
             }
         }
-    } else if (lex_Current.token == T_CHIP_REG_I) {
+    } else if (lex_Context->token.id == T_CHIP_REG_I) {
         parse_GetToken();
         pMode->mode = MODE_I;
         return true;
-    } else if (lex_Current.token == T_CHIP_REG_RPL) {
+    } else if (lex_Context->token.id == T_CHIP_REG_RPL) {
         parse_GetToken();
         pMode->mode = MODE_RPL;
         return true;
-    } else if (lex_Current.token == T_CHIP_REG_DT) {
+    } else if (lex_Context->token.id == T_CHIP_REG_DT) {
         parse_GetToken();
         pMode->mode = MODE_DT;
         return true;
-    } else if (lex_Current.token == T_CHIP_REG_ST) {
+    } else if (lex_Context->token.id == T_CHIP_REG_ST) {
         parse_GetToken();
         pMode->mode = MODE_ST;
         return true;
-    } else if (lex_Current.token == T_CHIP_REG_I_IND) {
+    } else if (lex_Context->token.id == T_CHIP_REG_I_IND) {
         parse_GetToken();
         pMode->mode = MODE_I_IND;
         return true;
@@ -303,8 +303,8 @@ static SInstruction instructionHandlers[T_CHIP_INSTR_LAST - T_CHIP_INSTR_FIRST +
 
 bool
 schip_ParseIntegerInstruction(void) {
-    if (T_CHIP_INSTR_FIRST <= lex_Current.token && lex_Current.token <= T_CHIP_INSTR_LAST) {
-        SInstruction* instruction = &instructionHandlers[lex_Current.token - T_CHIP_INSTR_FIRST];
+    if (T_CHIP_INSTR_FIRST <= lex_Context->token.id && lex_Context->token.id <= T_CHIP_INSTR_LAST) {
+        SInstruction* instruction = &instructionHandlers[lex_Context->token.id - T_CHIP_INSTR_FIRST];
 
         if ((instruction->cpu & opt_Current->machineOptions->cpu) == 0)
             return err_Error(MERROR_REQUIRES_SCHIP);

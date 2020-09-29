@@ -42,7 +42,7 @@ schip_ParseExpressionU12(void) {
 
 SExpression*
 schip_ParseFunction(void) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         default:
             return NULL;
     }

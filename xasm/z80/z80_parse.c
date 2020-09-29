@@ -1063,12 +1063,12 @@ static SInstruction g_instructions[T_Z80_XOR - T_Z80_ADC + 1] = {
 
 static bool
 parse_AddrMode(SAddressingMode* addrMode) {
-	if (lex_Current.token >= T_MODE_B && lex_Current.token <= T_CC_M) {
-		int mode = lex_Current.token;
+	if (lex_Context->token.id >= T_MODE_B && lex_Context->token.id <= T_CC_M) {
+		int mode = lex_Context->token.id;
 
 		parse_GetToken();
 
-		if (mode == T_MODE_SP && (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUBTRACT)) {
+		if (mode == T_MODE_SP && (lex_Context->token.id == T_OP_ADD || lex_Context->token.id == T_OP_SUBTRACT)) {
 			SExpression* expression = createExpression8S(parse_Expression(1));
 			if (expression != NULL) {
 				addrMode->mode = MODE_REG_SP_DISP;
@@ -1085,19 +1085,19 @@ parse_AddrMode(SAddressingMode* addrMode) {
 		return true;
 	}
 	
-	if (lex_Current.token == '[' || lex_Current.token == '(') {
-		char endToken = (char) (lex_Current.token == '[' ? ']' : ')');
-		SLexerBookmark bm;
+	if (lex_Context->token.id == '[' || lex_Context->token.id == '(') {
+		char endToken = (char) (lex_Context->token.id == '[' ? ']' : ')');
+		SLexerContext bm;
 
 		lex_Bookmark(&bm);
 		parse_GetToken();
 
-		if (lex_Current.token == T_MODE_IX || lex_Current.token == T_MODE_IY) {
-			int regToken = lex_Current.token;
+		if (lex_Context->token.id == T_MODE_IX || lex_Context->token.id == T_MODE_IY) {
+			int regToken = lex_Context->token.id;
 
 			parse_GetToken();
 
-			if (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUBTRACT) {
+			if (lex_Context->token.id == T_OP_ADD || lex_Context->token.id == T_OP_SUBTRACT) {
 				SExpression* pExpr = createExpression8S(parse_Expression(1));
 
 				if (pExpr != NULL && parse_ExpectChar(endToken)) {
@@ -1118,15 +1118,15 @@ parse_AddrMode(SAddressingMode* addrMode) {
 		lex_Goto(&bm);
 	}
 	
-	if (lex_Current.token == '[') {
-		SLexerBookmark bm;
+	if (lex_Context->token.id == '[') {
+		SLexerContext bm;
 		lex_Bookmark(&bm);
 
 		parse_GetToken();
 
 		SExpression* expression = parse_Expression(2);
 
-		if (expression != NULL && lex_Current.token == ']') {
+		if (expression != NULL && lex_Context->token.id == ']') {
 			parse_GetToken();
 			addrMode->mode = MODE_IMM_IND;
 			addrMode->expression = expression;
@@ -1136,7 +1136,7 @@ parse_AddrMode(SAddressingMode* addrMode) {
 		lex_Goto(&bm);
 	}
 
-	SLexerBookmark bm;
+	SLexerContext bm;
 	lex_Bookmark(&bm);
 
 	SExpression* expression = parse_Expression(2);
@@ -1164,7 +1164,7 @@ translateToken(uint32_t token) {
 
 bool
 z80_ParseInstruction(void) {
-	uint32_t token = translateToken(lex_Current.token);
+	uint32_t token = translateToken(lex_Context->token.id);
 	if (token >= T_Z80_ADC && token <= T_Z80_XOR) {
 		token = token - T_Z80_ADC;
 
@@ -1181,7 +1181,7 @@ z80_ParseInstruction(void) {
 
 		if (instruction->allowedModes1 != 0) {
 			if (parse_AddrMode(&addrMode1)) {
-				if (lex_Current.token == ',') {
+				if (lex_Context->token.id == ',') {
 					parse_GetToken();
 					if (!parse_AddrMode(&addrMode2)) {
                         err_Error(ERROR_SECOND_OPERAND);

@@ -37,9 +37,9 @@ parse_ExpandStrings = true;
 
 static bool
 handleMacroArgument() {
-    if (lex_Current.token == T_STRING) {
+    if (lex_Context->token.id == T_STRING) {
 		string* arg = lex_TokenString();
-        lex_AddMacroArgument(arg);
+        lexctx_AddMacroArgument(arg);
 		str_Free(arg);
         parse_GetToken();
         return true;
@@ -53,15 +53,15 @@ handleMacroArguments() {
     lex_SetMode(LEXER_MODE_MACRO_ARGUMENT0);
     parse_GetToken();
 
-    if (lex_Current.token == T_MACROARG0) {
+    if (lex_Context->token.id == T_MACROARG0) {
 		string* arg = lex_TokenString();
-        lex_SetMacroArgument0(arg);
+        lexctx_SetMacroArgument0(arg);
 		str_Free(arg);
         parse_GetToken();
     }
 
     if (handleMacroArgument()) {
-        while (lex_Current.token == ',') {
+        while (lex_Context->token.id == ',') {
             parse_GetToken();
             if (!handleMacroArgument()) {
                 err_Error(ERROR_INVALID_MACRO_ARGUMENT);
@@ -71,23 +71,23 @@ handleMacroArguments() {
     }
 
     lex_SetMode(LEXER_MODE_NORMAL);
-    return lex_Current.token == '\n';
+    return lex_Context->token.id == '\n';
 }
 
 static bool
 handleMacroInvocation(void) {
     bool r = false;
-    if (lex_Current.token == T_ID) {
+    if (lex_Context->token.id == T_ID) {
         string* symbolName = lex_TokenString();
 
         if (sym_IsMacro(symbolName)) {
             if (handleMacroArguments()) {
-                lex_ProcessMacro(symbolName);
+                lexctx_ProcessMacro(symbolName);
                 parse_GetToken();
                 r = true;
             }
         } else {
-            err_Error(ERROR_INSTR_UNKNOWN, lex_Current.value.string);
+            err_Error(ERROR_INSTR_UNKNOWN, lex_Context->token.value.string);
         }
         str_Free(symbolName);
     }
@@ -96,7 +96,7 @@ handleMacroInvocation(void) {
 
 static bool
 handleLineBreak() {
-    if (lex_Current.token == '\n') {
+    if (lex_Context->token.id == '\n') {
         parse_GetToken();
         lex_Context->lineNumber += 1;
         xasm_TotalLines += 1;
@@ -110,13 +110,13 @@ handleLineBreak() {
 
 bool
 parse_IsDot(void) {
-    if (lex_Current.token == '.') {
+    if (lex_Context->token.id == '.') {
         parse_GetToken();
         return true;
     }
 
-    if (lex_Current.token == T_ID && lex_Current.value.string[0] == '.') {
-        lex_UnputString(lex_Current.value.string + 1);
+    if (lex_Context->token.id == T_ID && lex_Context->token.value.string[0] == '.') {
+        lex_UnputString(lex_Context->token.value.string + 1);
         parse_GetToken();
         return true;
     }
@@ -126,7 +126,7 @@ parse_IsDot(void) {
 
 bool
 parse_ExpectChar(char ch) {
-    if (lex_Current.token == (uint32_t) ch) {
+    if (lex_Context->token.id == (uint32_t) ch) {
         parse_GetToken();
         return true;
     } else {
@@ -141,7 +141,7 @@ parse_GetToken(void) {
 		if (!lex_GetNextToken()) {
 			err_Error(ERROR_END_OF_FILE);
 		}
-		if (!parse_ExpandStrings || lex_Current.token != T_ID)
+		if (!parse_ExpandStrings || lex_Context->token.id != T_ID)
 			break;
 
 		string* symbolName = lex_TokenString();
@@ -157,7 +157,7 @@ parse_GetToken(void) {
 
 bool
 parse_Until(EToken endToken) {
-    while (lex_Current.token) {
+    while (lex_Context->token.id) {
         if (xasm_Configuration->parseInstruction())
             continue;
 
@@ -173,7 +173,7 @@ parse_Until(EToken endToken) {
         if (handleLineBreak())
             continue;
 
-        if (lex_Current.token == endToken)
+        if (lex_Context->token.id == endToken)
             return true;
 
         return err_Error(ERROR_SYNTAX);

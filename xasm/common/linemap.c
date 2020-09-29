@@ -93,5 +93,5 @@ linemap_Add(SFileInfo* fileInfo, uint32_t lineNumber, SSection* section, uint32_
 
 extern void
 linemap_AddCurrent(void) {
-    linemap_Add(lex_CurrentFileInfo(), lex_CurrentLineNumber(), sect_Current, sect_Current->cpuProgramCounter);
+    linemap_Add(lexctx_TokenFileInfo(), lexctx_TokenLineNumber(), sect_Current, sect_Current->cpuProgramCounter);
 }

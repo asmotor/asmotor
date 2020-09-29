@@ -255,7 +255,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
             if (xasm_TotalErrors > 0) {
                 rcode = EXIT_FAILURE;
             }
-            lex_Cleanup();
+            lexctx_Cleanup();
         }
         str_Free(source);
     } else if (argc > 1) {

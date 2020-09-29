@@ -58,19 +58,19 @@ modifySymbol(intptr_t intModification) {
 	bool (*modification)(string *) = (bool (*)(string *))intModification;
 
 	parse_GetToken();
-	while (lex_Current.token == T_ID) {
+	while (lex_Context->token.id == T_ID) {
 		string *symbolName = lex_TokenString();
 		modification(symbolName);
 		str_Free(symbolName);
 
 		parse_GetToken();
 
-		if (lex_Current.token != ',')
+		if (lex_Context->token.id != ',')
 			break;
 
 		parse_GetToken();
 
-		if (lex_Current.token != T_ID) {
+		if (lex_Context->token.id != T_ID) {
 			err_Error(ERROR_EXPECT_IDENTIFIER);
 			break;
 		}
@@ -91,7 +91,7 @@ static uint32_t
 expectBankFixed(void) {
 	assert(xasm_Configuration->supportBanks);
 
-	if (lex_Current.token == T_FUNC_BANK) {
+	if (lex_Context->token.id == T_FUNC_BANK) {
 		parse_GetToken();
 		if (parse_ExpectChar('[')) {
 			parse_GetToken();
@@ -110,7 +110,7 @@ expectBankFixed(void) {
 static bool
 handleEndr() {
 	if (lex_Context->type == CONTEXT_REPT) {
-		lex_EndCurrentBuffer();
+		lexctx_EndReptBlock();
 	} else {
 		err_Warn(WARN_REXIT_OUTSIDE_REPT);
 	}
@@ -123,7 +123,7 @@ handleRexit() {
 	if (lex_Context->type == CONTEXT_REPT) {
 		parse_SkipPastEndr();
 		lex_Context->block.repeat.remaining = 0;
-		lex_EndCurrentBuffer();
+		lexctx_EndReptBlock();
 	} else {
 		err_Warn(WARN_REXIT_OUTSIDE_REPT);
 		parse_GetToken();
@@ -134,11 +134,10 @@ handleRexit() {
 static bool
 handleMexit() {
 	if (lex_Context->type == CONTEXT_MACRO) {
-		lex_EndCurrentBuffer();
+		lexctx_EndCurrentBuffer();
 	} else {
 		err_Warn(WARN_MEXIT_OUTSIDE_MACRO);
 	}
-	parse_GetToken();
 	return true;
 }
 
@@ -153,7 +152,7 @@ handleSection() {
 	if (!parse_ExpectChar(','))
 		return sect_SwitchTo_NAMEONLY(name);
 
-	if (lex_Current.token != T_ID) {
+	if (lex_Context->token.id != T_ID) {
 		err_Error(ERROR_EXPECT_IDENTIFIER);
 		return false;
 	}
@@ -168,7 +167,7 @@ handleSection() {
 	}
 	parse_GetToken();
 
-	if (xasm_Configuration->supportBanks && lex_Current.token == ',') {
+	if (xasm_Configuration->supportBanks && lex_Context->token.id == ',') {
 		parse_GetToken();
 
 		uint32_t bank = expectBankFixed();
@@ -176,7 +175,7 @@ handleSection() {
 			return true;
 
 		return sect_SwitchTo_BANK(name, sym, bank);
-	} else if (lex_Current.token != '[') {
+	} else if (lex_Context->token.id != '[') {
 		return sect_SwitchTo(name, sym);
 	}
 
@@ -186,7 +185,7 @@ handleSection() {
 	if (!parse_ExpectChar(']'))
 		return true;
 
-	if (xasm_Configuration->supportBanks && lex_Current.token == ',') {
+	if (xasm_Configuration->supportBanks && lex_Context->token.id == ',') {
 		parse_GetToken();
 
 		uint32_t bank = expectBankFixed();
@@ -338,7 +337,7 @@ handleDb() {
 		} else {
 			sect_SkipBytes(1);
 		}
-	} while (lex_Current.token == ',');
+	} while (lex_Context->token.id == ',');
 
 	return true;
 }
@@ -359,7 +358,7 @@ handleDw() {
 		} else {
 			sect_SkipBytes(2);
 		}
-	} while (lex_Current.token == ',');
+	} while (lex_Context->token.id == ',');
 
 	return true;
 }
@@ -380,7 +379,7 @@ handleDl() {
 				sect_SkipBytes(4); //err_Error(ERROR_INVALID_EXPRESSION);
 			}
 		}
-	} while (lex_Current.token == ',');
+	} while (lex_Context->token.id == ',');
 
 	return true;
 }
@@ -396,7 +395,7 @@ handleDd() {
 		} else {
 			sect_SkipBytes(8); //err_Error(ERROR_INVALID_EXPRESSION);
 		}
-	} while (lex_Current.token == ',');
+	} while (lex_Context->token.id == ',');
 
 	return true;
 }
@@ -407,13 +406,19 @@ static string *getFilename(void) {
 	if (filename == NULL) {
 		lex_SetMode(LEXER_MODE_MACRO_ARGUMENT);
 		parse_GetToken();
-		if (lex_Current.token == T_STRING) {
-			filename = str_CreateLength(lex_Current.value.string, lex_Current.length);
+		if (lex_Context->token.id == T_STRING) {
+			filename = lex_TokenString();
 		}
 		lex_SetMode(LEXER_MODE_NORMAL);
 	}
 
 	return filename;
+}
+
+static void
+includeFile(string* name) {
+	lexctx_ProcessIncludeFile(name);
+	parse_GetToken();
 }
 
 static bool
@@ -439,7 +444,7 @@ handleRept() {
 	int32_t reptCount = parse_ConstantExpression();
 
 	if (reptCount > 0) {
-		lex_ProcessRepeatBlock((uint32_t)reptCount);
+		lexctx_ProcessRepeatBlock((uint32_t)reptCount);
 	} else if (reptCount < 0) {
 		err_Error(ERROR_EXPR_POSITIVE);
 	} else if (!parse_SkipPastEndr()) {
@@ -456,7 +461,7 @@ handleShift() {
 	SExpression *expr = parse_Expression(4);
 	if (expr != NULL) {
 		if (expr_IsConstant(expr)) {
-			lex_ShiftMacroArgs(expr->value.integer);
+			lexctx_ShiftMacroArgs(expr->value.integer);
 			expr_Free(expr);
 			return true;
 		} else {
@@ -464,7 +469,7 @@ handleShift() {
 			return false;
 		}
 	} else {
-		lex_ShiftMacroArgs(1);
+		lexctx_ShiftMacroArgs(1);
 		return true;
 	}
 }
@@ -505,7 +510,7 @@ handleIfSymbol(intptr_t intPredicate) {
 
 	parse_GetToken();
 
-	if (lex_Current.token == T_ID) {
+	if (lex_Context->token.id == T_ID) {
 		string *symbolName = lex_TokenString();
 		if (predicate(symbolName)) {
 			parse_GetToken();
@@ -592,12 +597,12 @@ static bool
 handleOpt() {
 	lex_SetMode(LEXER_MODE_MACRO_ARGUMENT);
 	parse_GetToken();
-	if (lex_Current.token == T_STRING) {
-		opt_Parse(lex_Current.value.string);
+	if (lex_Context->token.id == T_STRING) {
+		opt_Parse(lex_Context->token.value.string);
 		parse_GetToken();
-		while (lex_Current.token == ',') {
+		while (lex_Context->token.id == ',') {
 			parse_GetToken();
-			opt_Parse(lex_Current.value.string);
+			opt_Parse(lex_Context->token.value.string);
 			parse_GetToken();
 		}
 	}
@@ -654,7 +659,7 @@ static SDirective
 		{purgeSymbol, (intptr_t)sym_Purge},
 		{handleUserError, (intptr_t)err_Fail},
 		{handleUserError, (intptr_t)err_Warn},
-		{handleFile, (intptr_t)lex_ProcessIncludeFile},
+		{handleFile, (intptr_t)includeFile},
 		{handleFile, (intptr_t)sect_OutputBinaryFile},
 		{defineSpace, 1},
 		{defineSpace, 2},
@@ -698,8 +703,8 @@ static SDirective
 #endif
 
 bool parse_Directive(void) {
-	if (lex_Current.token >= T_DIRECTIVE_FIRST && lex_Current.token <= T_DIRECTIVE_LAST) {
-		SDirective *directive = &g_Directives[lex_Current.token - T_DIRECTIVE_FIRST];
+	if (lex_Context->token.id >= T_DIRECTIVE_FIRST && lex_Context->token.id <= T_DIRECTIVE_LAST) {
+		SDirective *directive = &g_Directives[lex_Context->token.id - T_DIRECTIVE_FIRST];
 		return directive->handler(directive->userData);
 	}
 	return false;

@@ -43,7 +43,7 @@ rc8_ExpressionSU16(void) {
 
 SExpression*
 rc8_ParseFunction(void) {
-	switch (lex_Current.token) {
+	switch (lex_Context->token.id) {
 		default:
 			return NULL;
 	}

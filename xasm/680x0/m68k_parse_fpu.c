@@ -250,9 +250,9 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
             if (!parse_ExpectChar('{'))
                 return false;
 
-            if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+            if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
                 sz = SIZE_PACKED_DYNAMIC;
-                kFactor = expr_Const((lex_Current.token - T_68K_REG_D0) << 4);
+                kFactor = expr_Const((lex_Context->token.id - T_68K_REG_D0) << 4);
                 opmode |= 0x1000;
                 parse_GetToken();
             } else {
@@ -296,8 +296,8 @@ handleFMOVECR(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t op
 
 static bool
 getFpuRegister(uint16_t* outRegister) {
-    if (lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
-        *outRegister = (uint16_t) (lex_Current.token - T_FPUREG_0);
+    if (lex_Context->token.id >= T_FPUREG_0 && lex_Context->token.id <= T_FPUREG_7) {
+        *outRegister = (uint16_t) (lex_Context->token.id - T_FPUREG_0);
         parse_GetToken();
         return true;
     }
@@ -308,7 +308,7 @@ getFpuRegister(uint16_t* outRegister) {
 static bool
 getRegisterRange(uint16_t* outStart, uint16_t* outEnd) {
     if (getFpuRegister(outStart)) {
-        if (lex_Current.token == T_OP_SUBTRACT) {
+        if (lex_Context->token.id == T_OP_SUBTRACT) {
             parse_GetToken();
             if (!getFpuRegister(outEnd))
                 return 0;
@@ -327,7 +327,7 @@ parseRegisterList(uint16_t* result) {
     uint16_t start;
     uint16_t end;
 
-    if (lex_Current.token == '#') {
+    if (lex_Context->token.id == '#') {
         int32_t expr;
         parse_GetToken();
         expr = parse_ConstantExpression();
@@ -349,7 +349,7 @@ parseRegisterList(uint16_t* result) {
         while (start <= end)
             r |= 1 << start++;
 
-        if (lex_Current.token != T_OP_DIVIDE) {
+        if (lex_Context->token.id != T_OP_DIVIDE) {
             *result = r;
             return true;
         }
@@ -428,7 +428,7 @@ parseControlRegisterList(uint16_t* result) {
     uint16_t word = 0;
 
     for (;;) {
-        switch (lex_Current.token) {
+        switch (lex_Context->token.id) {
             case T_FPU_FPCR:
                 word |= 1 << 12;
                 break;
@@ -444,7 +444,7 @@ parseControlRegisterList(uint16_t* result) {
 
         parse_GetToken();
 
-        if (lex_Current.token != T_OP_DIVIDE) {
+        if (lex_Context->token.id != T_OP_DIVIDE) {
             *result = word;
             return true;
         }
@@ -486,9 +486,9 @@ static bool
 handleFMOVEM(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
     uint16_t regList;
 
-    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+    if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
         // FMOVEM Dn,<ea>
-        int reg = lex_Current.token - T_68K_REG_D0;
+        int reg = lex_Context->token.id - T_68K_REG_D0;
         opmode = 0xE000 | (reg << 4) | (1 << 11);
         parse_GetToken();
 
@@ -511,9 +511,9 @@ handleFMOVEM(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opm
         }
     } else if (m68k_GetAddressingMode(src, false)) {
         if (parse_ExpectChar(',')) {
-            if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
+            if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
                 // FMOVEM <ea>,Dn
-                int reg = lex_Current.token - T_68K_REG_D0;
+                int reg = lex_Context->token.id - T_68K_REG_D0;
                 opmode = 0xC000 | (reg << 4) | (3 << 11);
                 parse_GetToken();
 
@@ -559,8 +559,8 @@ handleSingleWordInstruction(ESize sz, SAddressingMode* src, SAddressingMode* des
 static bool
 handleFSINCOS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
     if (parse_ExpectComma()) {
-        if (lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
-            uint16_t fps = lex_Current.token - T_FPUREG_0;
+        if (lex_Context->token.id >= T_FPUREG_0 && lex_Context->token.id <= T_FPUREG_7) {
+            uint16_t fps = lex_Context->token.id - T_FPUREG_0;
             uint16_t fpc = dest->directRegister;
 
             parse_GetToken();
@@ -1206,14 +1206,14 @@ bool
 m68k_ParseFpuInstruction(void) {
     SInstruction* instruction;
 
-    if(lex_Current.token < T_FPU_FIRST
-    || lex_Current.token > T_FPU_LAST)
+    if(lex_Context->token.id < T_FPU_FIRST
+    || lex_Context->token.id > T_FPU_LAST)
     {
         return false;
     }
 
-    EToken token = lex_Current.token;
-    int tokenOp = lex_Current.token - T_FPU_FIRST;
+    EToken token = lex_Context->token.id;
+    int tokenOp = lex_Context->token.id - T_FPU_FIRST;
     parse_GetToken();
 
     instruction = &s_FpuInstructions[tokenOp];

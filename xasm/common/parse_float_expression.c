@@ -29,20 +29,20 @@ expressionPriority0(size_t maxStringConstLength, long double* result);
 
 static bool
 expressionPriority3(size_t maxStringConstLength, long double* result) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_FLOAT: {
-            *result = lex_Current.value.floating;
+            *result = lex_Context->token.value.floating;
             parse_GetToken();
             return true;
         }
         case T_LEFT_PARENS: {
-            SLexerBookmark bookmark;
+            SLexerContext bookmark;
             lex_Bookmark(&bookmark);
 
             parse_GetToken();
 
             if (expressionPriority0(maxStringConstLength, result)) {
-                if (lex_Current.token == ')') {
+                if (lex_Context->token.id == ')') {
                     parse_GetToken();
                     return true;
                 }
@@ -79,7 +79,7 @@ expressionPriority3(size_t maxStringConstLength, long double* result) {
 
 static bool
 expressionPriority2(size_t maxStringConstLength, long double* result) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_FUNC_ASFLOAT: {
             parse_GetToken();
 
@@ -103,11 +103,11 @@ expressionPriority1(size_t maxStringConstLength, long double* result) {
     long double t1;
     if (expressionPriority2(maxStringConstLength, &t1)) {
         for (;;) {
-            switch (lex_Current.token) {
+            switch (lex_Context->token.id) {
                 case T_OP_MULTIPLY:
                 case T_OP_DIVIDE: {
                     long double t2;
-                    EToken op = lex_Current.token;
+                    EToken op = lex_Context->token.id;
                     parse_GetToken();
                     if (expressionPriority2(maxStringConstLength, &t2)) {
                         t1 = op == T_OP_MULTIPLY ? t1 * t2 : t1 / t2;
@@ -132,11 +132,11 @@ expressionPriority0(size_t maxStringConstLength, long double* result) {
     long double t1;
     if (expressionPriority1(maxStringConstLength, &t1)) {
         for (;;) {
-            switch (lex_Current.token) {
+            switch (lex_Context->token.id) {
                 case T_OP_ADD:
                 case T_OP_SUBTRACT: {
                     long double t2;
-                    EToken op = lex_Current.token;
+                    EToken op = lex_Context->token.id;
                     parse_GetToken();
                     if (expressionPriority1(maxStringConstLength, &t2)) {
                         t1 = op == T_OP_ADD ? t1 + t2 : t1 - t2;

@@ -27,7 +27,7 @@
 
 bool
 m68k_ParseDirective() {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_68K_MC68000:
             opt_Current->machineOptions->cpu = CPUF_68000;
             parse_GetToken();

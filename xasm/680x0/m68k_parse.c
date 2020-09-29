@@ -55,8 +55,8 @@ getBitfield(SAddressingMode* mode) {
     if (parse_ExpectChar('{')) {
         mode->hasBitfield = true;
 
-        if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
-            mode->bitfieldOffsetRegister = lex_Current.token - T_68K_REG_D0;
+        if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
+            mode->bitfieldOffsetRegister = lex_Context->token.id - T_68K_REG_D0;
             mode->bitfieldOffsetExpression = NULL;
             parse_GetToken();
         } else {
@@ -71,8 +71,8 @@ getBitfield(SAddressingMode* mode) {
         if (!parse_ExpectChar(':'))
             return false;
 
-        if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
-            mode->bitfieldWidthRegister = lex_Current.token - T_68K_REG_D0;
+        if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
+            mode->bitfieldWidthRegister = lex_Context->token.id - T_68K_REG_D0;
             mode->bitfieldWidthExpression = NULL;
             parse_GetToken();
         } else {
@@ -527,8 +527,8 @@ thirdOperandAllowed(SInstruction* instruction, SAddressingMode* dest) {
 
 static bool
 parseDataRegister(uint16_t* outRegister) {
-    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D31) {
-        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_D0);
+    if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D31) {
+        *outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_D0);
         parse_GetToken();
         return true;
     }
@@ -538,8 +538,8 @@ parseDataRegister(uint16_t* outRegister) {
 
 static bool
 parseAddressRegister(uint16_t* outRegister) {
-    if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A15) {
-        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_A0);
+    if (lex_Context->token.id >= T_68K_REG_A0 && lex_Context->token.id <= T_68K_REG_A15) {
+        *outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_A0);
         parse_GetToken();
         return true;
     }
@@ -549,8 +549,8 @@ parseAddressRegister(uint16_t* outRegister) {
 
 static bool
 parseFpuRegister(uint16_t* outRegister) {
-    if (lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
-        *outRegister = (uint16_t) (lex_Current.token - T_FPUREG_0);
+    if (lex_Context->token.id >= T_FPUREG_0 && lex_Context->token.id <= T_FPUREG_7) {
+        *outRegister = (uint16_t) (lex_Context->token.id - T_FPUREG_0);
         parse_GetToken();
         return true;
     }
@@ -563,7 +563,7 @@ static bool
 parseThirdOperand(SInstruction* instruction, SAddressingMode* dest, uint16_t* thirdReg) {
     *thirdReg = 0xFFFF;
     if (thirdOperandAllowed(instruction, dest)) {
-        if (lex_Current.token == ',') {
+        if (lex_Context->token.id == ',') {
             parse_GetToken();
             switch (dest->mode) {
                 case AM_DREG: return parseDataRegister(thirdReg);
@@ -733,7 +733,7 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
     }
 
     if (instruction->allowedDestModes != 0) {
-        if (lex_Current.token == ',') {
+        if (lex_Context->token.id == ',') {
             parse_GetToken();
             if (!m68k_GetAddressingMode(&dest, allowFloat))
                 return false;
@@ -766,7 +766,7 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
 
 SExpression*
 m68k_ParseFunction(void) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_68K_REGMASK: {
             parse_GetToken();
             if (!parse_ExpectChar('('))

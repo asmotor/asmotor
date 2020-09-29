@@ -567,4 +567,3 @@ FF
 FF
 FF
 FF
-test.asm:61: W0008 Symbol has reserved name

@@ -60,7 +60,7 @@ determineCodeEnd(const char* literal) {
 
 static bool
 parseFormatSpecifier(char* format, uint32_t* precision) {
-    if (lex_Current.token == ':') {
+    if (lex_Context->token.id == ':') {
         char f = lex_GetChar();
         if (isalpha(f)) {
             *format = toupper(f);
@@ -129,7 +129,7 @@ formatValue(int32_t value, char format, int32_t precision) {
 
 static int32_t
 parseAlignment(void) {
-    if (lex_Current.token == ',') {
+    if (lex_Context->token.id == ',') {
         parse_GetToken();
         return parse_ConstantExpression();
     }
@@ -175,7 +175,7 @@ parseStringExpressionAndFormat(void) {
 
 static string*
 parseSubstring(void) {
-    SLexerBookmark bookmark;
+    SLexerContext bookmark;
     lex_Bookmark(&bookmark);
 
     string* substr;
@@ -250,12 +250,12 @@ interpolateString(const char* literal) {
 
 static string*
 stringExpressionPri2(void) {
-    SLexerBookmark bm;
+    SLexerContext bm;
     lex_Bookmark(&bm);
 
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_STRING: {
-            string* literal = str_CreateLength(lex_Current.value.string, lex_Current.length);
+            string* literal = lex_TokenString();
             string* result = interpolateString(str_String(literal));
             str_Free(literal);
 
@@ -266,12 +266,12 @@ stringExpressionPri2(void) {
             parse_GetToken();
             parse_ExpandStrings = true;
 
-            if (lex_Current.token == T_ID) {
+            if (lex_Context->token.id == T_ID) {
                 string* result = NULL;
 
-                string* symbol = str_CreateLength(lex_Current.value.string, lex_Current.length);
+                string* symbol = lex_TokenString();
                 parse_GetToken();
-                if (lex_Current.token == T_OP_BITWISE_OR) {
+                if (lex_Context->token.id == T_OP_BITWISE_OR) {
                     parse_GetToken();
                     result = sym_GetSymbolValueAsStringByName(symbol);
                 }
@@ -285,7 +285,7 @@ stringExpressionPri2(void) {
 
             string* r = parse_StringExpression();
             if (r != NULL) {
-                if (lex_Current.token == ')') {
+                if (lex_Context->token.id == ')') {
                     parse_GetToken();
                     return r;
                 }
@@ -305,9 +305,9 @@ static string*
 stringExpressionPri1(void) {
     string* t = stringExpressionPri2();
 
-    SLexerBookmark bm;
+    SLexerContext bm;
     for (lex_Bookmark(&bm); parse_IsDot(); lex_Bookmark(&bm)) {
-        switch (lex_Current.token) {
+        switch (lex_Context->token.id) {
             case T_STR_MEMBER_SLICE: {
                 parse_GetToken();
 
@@ -325,7 +325,7 @@ stringExpressionPri1(void) {
                 }
 
                 int32_t count;
-                if (lex_Current.token == ',') {
+                if (lex_Context->token.id == ',') {
                     parse_GetToken();
                     count = parse_ConstantExpression();
                 } else {
@@ -380,7 +380,7 @@ string*
 parse_StringExpression(void) {
     string* s1 = stringExpressionPri1();
 
-    while (lex_Current.token == T_OP_ADD) {
+    while (lex_Context->token.id == T_OP_ADD) {
         parse_GetToken();
 
         string* s2 = stringExpressionPri1();

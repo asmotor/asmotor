@@ -6,24 +6,28 @@
 02
 FF
 FF
-repttest2.asm repttest2.asm 9
+repttest2.asm repttest2.asm 11
 $1$4repttest2.asm:19: W0003 Line 19
-repttest2.asm:20 -> Macro1:10: W0003 Line 13
-repttest2.asm:20 -> Macro1:14: W0003 Line 17
-repttest2.asm:20 -> Macro1:3: W0003 Line 5
-repttest2.asm:20 -> Macro1:4: W0003 Macro Line 2 Arg1 2 (Arg0 = w)
-repttest2.asm:20 -> Macro1:6: W0003 Line 8
-repttest2.asm:20 -> Macro1:7: W0003 Macro Line 4 3	
+repttest2.asm:20 -> repttest2.asm:12: W0003 Line 13
+repttest2.asm:20 -> repttest2.asm:16: W0003 Line 17
+repttest2.asm:20 -> repttest2.asm:5: W0003 Line 5
+repttest2.asm:20 -> repttest2.asm:6: W0003 Macro Line 2 Arg1 2 (Arg0 = w)
+repttest2.asm:20 -> repttest2.asm:8: W0003 Line 8
+repttest2.asm:20 -> repttest2.asm:9: W0003 Macro Line 4 3
 repttest2.asm:21: W0003 Line 21
-repttest2.asm:22 -> REPT:16: W0003 Line 38
-repttest2.asm:22 -> REPT:1: W0003 Line 23
-repttest2.asm:22 -> REPT:2: W0003 Outer
-repttest2.asm:22 -> REPT:3 -> REPT:11: W0003 Line 36
-repttest2.asm:22 -> REPT:3 -> REPT:1: W0003 Line 26
-repttest2.asm:22 -> REPT:3 -> REPT:2: W0003 Inner
-repttest2.asm:22 -> REPT:3 -> REPT:4: W0003 Line 29
-repttest2.asm:41: W0003 Line 41
-repttest2.asm:43: W0003 Line 43
-repttest2.asm:51: W0003 Line 51
-repttest2.asm:57: W0003 Line 57
-repttest2.asm:64: W0003 Line 64
+repttest2.asm:22 -> repttest2.asm:23: W0003 Line 23
+repttest2.asm:22 -> repttest2.asm:24: W0003 Outer
+repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:25: W0003 Line 26
+repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:26: W0003 Inner
+repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:26: W0003 Line 26
+repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:27: W0003 Inner
+repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:28: W0003 Line 29
+repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:29: W0003 Line 29
+repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:35: W0003 Line 36
+repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:36: W0003 Line 36
+repttest2.asm:22 -> repttest2.asm:37: W0003 Line 38
+repttest2.asm:40: W0003 Line 41
+repttest2.asm:42: W0003 Line 43
+repttest2.asm:50: W0003 Line 51
+repttest2.asm:55: W0003 Line 57
+repttest2.asm:62: W0003 Line 64

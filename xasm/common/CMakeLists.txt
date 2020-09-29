@@ -11,12 +11,12 @@ add_library (xasm
     errors.h
     expression.c
     expression.h
-    filebuffer.c
-    filebuffer.h
     includes.c
     includes.h
     lexer.c
     lexer.h
+    lexer_buffer.c
+    lexer_buffer.h
     lexer_context.c
     lexer_context.h
     lexer_constants.c

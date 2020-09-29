@@ -22,7 +22,7 @@
 #include "lists.h"
 #include "str.h"
 
-#include "lexer.h"
+#include "lexer_buffer.h"
 
 typedef enum {
     CONTEXT_FILE,
@@ -30,26 +30,47 @@ typedef enum {
     CONTEXT_MACRO
 } EContextType;
 
+typedef enum {
+    LEXER_MODE_NORMAL,
+    LEXER_MODE_MACRO_ARGUMENT0,
+    LEXER_MODE_MACRO_ARGUMENT
+} ELexerMode;
+
 typedef struct FileInfo {
     string* fileName;
     uint32_t fileId;
     uint32_t crc32;
 } SFileInfo;
 
+typedef struct {
+    uint32_t id;
+    size_t length;
+    union {
+        char string[MAX_TOKEN_LENGTH + 1];
+        int32_t integer;
+        long double floating;
+    } value;
+} SLexerToken;
+
 struct Symbol;
 
 typedef struct LexerContext {
     list_Data(struct LexerContext);
 
-    EContextType type;
-    string* name;
+	SLexerToken token;
+
+	EContextType type;
+    ELexerMode mode;
+
+	SLexerBuffer buffer;
+    bool atLineStart;
+
     SFileInfo* fileInfo;
-    SLexerBuffer* lexBuffer;
     uint32_t lineNumber;
 
     union {
         struct {
-			SLexerBookmark bookmark;
+			struct LexerContext* bookmark;
             uint32_t remaining;
         } repeat;
         struct {
@@ -59,46 +80,61 @@ typedef struct LexerContext {
 } SLexerContext;
 
 extern SFileInfo**
-lex_GetFileInfo(size_t* totalFileNames);
+lexctx_GetFileInfo(size_t* totalFileNames);
 
 extern size_t
-lex_GetMacroArgumentCount(void);
+lexctx_GetMacroArgumentCount(void);
 
 extern void
-lex_AddMacroArgument(string* str);
+lexctx_AddMacroArgument(string* str);
 
 extern void
-lex_SetMacroArgument0(string* str);
+lexctx_SetMacroArgument0(string* str);
 
 extern void
-lex_ProcessMacro(string* macroName);
+lexctx_ProcessMacro(string* macroName);
 
 extern void
-lex_ProcessIncludeFile(string* filename);
+lexctx_ProcessIncludeFile(string* filename);
 
 extern void
-lex_ProcessRepeatBlock(uint32_t count);
+lexctx_ProcessRepeatBlock(uint32_t count);
 
 extern bool
-lex_EndCurrentBuffer(void);
+lexctx_EndCurrentBuffer(void);
 
 extern bool
-lex_ContextInit(string* filename);
+lexctx_EndReptBlock(void);
+
+extern bool
+lexctx_ContextInit(string* filename);
 
 extern void
-lex_Cleanup(void);
+lexctx_Cleanup(void);
 
 extern string*
-lex_Dump(void);
+lexctx_Dump(void);
 
 extern void
-lex_ShiftMacroArgs(int32_t count);
+lexctx_ShiftMacroArgs(int32_t count);
 
 extern SFileInfo*
-lex_CurrentFileInfo();
+lexctx_TokenFileInfo();
 
 extern uint32_t
-lex_CurrentLineNumber();
+lexctx_TokenLineNumber();
+
+extern void
+lexctx_Copy(SLexerContext* dest, const SLexerContext* source);
+
+extern SLexerContext*
+lexctx_CreateMemoryContext(string* name, string* content, vec_t* arguments);
+
+extern SLexerContext*
+lexctx_CreateFileContext(FILE* f, string* name);
+
+extern void
+lexctx_FreeContext(SLexerContext* buffer);
 
 extern SLexerContext *
 lex_Context;

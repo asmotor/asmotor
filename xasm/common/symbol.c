@@ -67,12 +67,12 @@ util_localtime(struct tm* const tmDest, time_t const* const sourceTime) {
 
 static int32_t
 callback__NARG(SSymbol* symbol) {
-    return lex_GetMacroArgumentCount();
+    return lexctx_GetMacroArgumentCount();
 }
 
 static int32_t
 callback__LINE(SSymbol* symbol) {
-    return lex_CurrentLineNumber();
+    return lexctx_TokenLineNumber();
 }
 
 static string* getDateString() {
@@ -171,8 +171,8 @@ createSymbol(const string* name, SSymbol* scope) {
     SET_TYPE_AND_FLAGS(newSymbol, SYM_UNDEFINED);
     newSymbol->name = str_Copy(name);
     newSymbol->scope = scope;
-    newSymbol->fileInfo = lex_CurrentFileInfo();
-    newSymbol->lineNumber = lex_CurrentLineNumber();
+    newSymbol->fileInfo = lexctx_TokenFileInfo();
+    newSymbol->lineNumber = lexctx_TokenLineNumber();
 
     SSymbol** hashTableEntry = &sym_hashedSymbols[hash(name)];
     list_Insert(*hashTableEntry, newSymbol);

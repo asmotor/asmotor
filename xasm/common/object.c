@@ -487,7 +487,7 @@ obj_Write(string* fileName) {
 
 	if (opt_Current->enableDebugInfo) {
 		size_t fileCount;
-		SFileInfo** fileInfo = lex_GetFileInfo(&fileCount);
+		SFileInfo** fileInfo = lexctx_GetFileInfo(&fileCount);
 		writeFileNames(fileHandle, fileInfo, fileCount);
 		mem_Free(fileInfo);
 	} else {

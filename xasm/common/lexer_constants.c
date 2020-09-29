@@ -95,22 +95,22 @@ doesNotExist(const char* name) {
 const SLexConstantsWord*
 lex_ConstantsMatchWord() {
 	const SConstantWord* result = NULL;
-	lex_Current.length = 0;
+	lex_Context->token.length = 0;
 
 	uint32_t hashCode = 0;
-	while (lex_Current.length < g_maxWordLength) {
+	while (lex_Context->token.length < g_maxWordLength) {
 		char ch = lex_GetChar();
 		if (ch == 0)
 			break;
 
-		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
 		
 		if (isspace(ch))
 			break;
 
 		HASH(hashCode, toupper(ch));
 		for (SConstantWord* candidate = g_wordsHashTable[hashCode]; candidate != NULL; candidate = list_GetNext(candidate)) {
-			if (candidate->nameLength == lex_Current.length && _strnicmp(lex_Current.value.string, candidate->definition.name, candidate->nameLength) == 0) {
+			if (candidate->nameLength == lex_Context->token.length && _strnicmp(lex_Context->token.value.string, candidate->definition.name, candidate->nameLength) == 0) {
 				result = candidate;
 				break;
 			}
@@ -122,11 +122,11 @@ lex_ConstantsMatchWord() {
 	if (result != NULL) {
 		definition = &result->definition;
 		nameLength = result->nameLength;
-		lex_Current.token = definition->token;
+		lex_Context->token.id = definition->token;
 	}
 
-	while (lex_Current.length > nameLength) {
-		lex_UnputChar(lex_Current.value.string[--lex_Current.length]);
+	while (lex_Context->token.length > nameLength) {
+		lex_UnputChar(lex_Context->token.value.string[--lex_Context->token.length]);
 	}
 
 	return definition;
@@ -136,13 +136,13 @@ lex_ConstantsMatchWord() {
 const SLexConstantsWord*
 lex_ConstantsMatchTokenString() {
 	uint32_t hashCode = 0;
-	for (size_t i = 0; i < lex_Current.length; ++i) {
-		HASH(hashCode, toupper(lex_Current.value.string[i]));
+	for (size_t i = 0; i < lex_Context->token.length; ++i) {
+		HASH(hashCode, toupper(lex_Context->token.value.string[i]));
 	}
 
 	for (SConstantWord* candidate = g_wordsHashTable[hashCode]; candidate != NULL; candidate = list_GetNext(candidate)) {
-		if (candidate->nameLength == lex_Current.length && _strnicmp(lex_Current.value.string, candidate->definition.name, candidate->nameLength) == 0) {
-			lex_Current.token = candidate->definition.token;
+		if (candidate->nameLength == lex_Context->token.length && _strnicmp(lex_Context->token.value.string, candidate->definition.name, candidate->nameLength) == 0) {
+			lex_Context->token.id = candidate->definition.token;
 			return &candidate->definition;
 		}
 	}

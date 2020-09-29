@@ -67,13 +67,13 @@ expressionPriority0(size_t maxStringConstLength);
 
 static SExpression*
 expressionPriority9(size_t maxStringConstLength) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_STRING: {
-            if (lex_Current.length <= maxStringConstLength) {
+            if (lex_Context->token.length <= maxStringConstLength) {
                 uint32_t val = 0;
-                for (size_t i = 0; i < lex_Current.length; ++i) {
+                for (size_t i = 0; i < lex_Context->token.length; ++i) {
                     val = val << 8u;
-                    val |= (uint8_t) lex_Current.value.string[i];
+                    val |= (uint8_t) lex_Context->token.value.string[i];
                 }
                 parse_GetToken();
                 return expr_Const(val);
@@ -81,7 +81,7 @@ expressionPriority9(size_t maxStringConstLength) {
             return NULL;
         }
         case T_NUMBER: {
-            int32_t val = lex_Current.value.integer;
+            int32_t val = lex_Context->token.value.integer;
             parse_GetToken();
             return expr_Const(val);
         }
@@ -101,14 +101,14 @@ expressionPriority9(size_t maxStringConstLength) {
             return expression;
         }
         case T_LEFT_PARENS: {
-            SLexerBookmark bookmark;
+            SLexerContext bookmark;
             lex_Bookmark(&bookmark);
 
             parse_GetToken();
 
             SExpression* expr = expressionPriority0(maxStringConstLength);
             if (expr != NULL) {
-                if (lex_Current.token == ')') {
+                if (lex_Context->token.id == ')') {
                     parse_GetToken();
                     return expr_Parens(expr);
                 }
@@ -120,16 +120,16 @@ expressionPriority9(size_t maxStringConstLength) {
             return NULL;
         }
         case T_ID: {
-            if (strcmp(lex_Current.value.string, "@") != 0) {
+            if (strcmp(lex_Context->token.value.string, "@") != 0) {
                 string* str = lex_TokenString();
                 SExpression* expr = expr_Symbol(str);
                 str_Free(str);
 
                 parse_GetToken();
 
-                if (lex_Current.token == '\\') {
+                if (lex_Context->token.id == '\\') {
                     parse_GetToken();
-                    if (lex_Current.token == T_ID && lex_Current.value.string[0] == '.') {
+                    if (lex_Context->token.id == T_ID && lex_Context->token.value.string[0] == '.') {
                         str = lex_TokenString();
                         expr = expr_ScopedSymbol(expr, str);
 
@@ -152,7 +152,7 @@ expressionPriority9(size_t maxStringConstLength) {
             return NULL;
         default: {
             if (opt_Current->allowReservedKeywordLabels) {
-                if (lex_Current.length > 0 && lex_Current.token >= T_FIRST_TOKEN) {
+                if (lex_Context->token.length > 0 && lex_Context->token.id >= T_FIRST_TOKEN) {
                     string* str = lex_TokenString();
                     SExpression* expr = expr_Symbol(str);
                     str_Free(str);
@@ -168,7 +168,7 @@ expressionPriority9(size_t maxStringConstLength) {
 
 static SExpression*
 handleStringMemberFunctionReturningInt(string* s) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_STR_MEMBER_COMPARETO: {
             parse_GetToken();
 
@@ -220,7 +220,7 @@ handleStringMemberFunctionReturningInt(string* s) {
 
 static SExpression*
 expressionPriority8(size_t maxStringConstLength) {
-    SLexerBookmark bm;
+    SLexerContext bm;
     lex_Bookmark(&bm);
 
     string* s = parse_StringExpression();
@@ -230,7 +230,7 @@ expressionPriority8(size_t maxStringConstLength) {
             if (expression != NULL)
                 return expression;
         } else {
-            switch (lex_Current.token) {
+            switch (lex_Context->token.id) {
                 case T_OP_EQUAL: {
                     int32_t v = stringCompare(s);
                     return expr_Const(v == 0 ? true : false);
@@ -306,7 +306,7 @@ handleDefFunction() {
     parse_GetToken();
 
     if (parse_ExpectChar('(')) {
-        if (lex_Current.token == T_ID) {
+        if (lex_Context->token.id == T_ID) {
             string* symbolName = lex_TokenString();
             SExpression* t1 = expr_Const(sym_IsDefined(symbolName));
             str_Free(symbolName);
@@ -332,7 +332,7 @@ handleBankFunction() {
     parse_GetToken();
 
     if (parse_ExpectChar('(')) {
-        if (lex_Current.token == T_ID) {
+        if (lex_Context->token.id == T_ID) {
             string* str = lex_TokenString();
             SExpression* t1 = expr_Bank(str);
             str_Free(str);
@@ -353,7 +353,7 @@ handleBankFunction() {
 
 static SExpression*
 expressionPriority7(size_t maxStringConstLength) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_FUNC_ATAN2:
             return handleArityTwoFunction(expr_Atan2, maxStringConstLength);
         case T_FUNC_SIN:
@@ -384,7 +384,7 @@ expressionPriority7(size_t maxStringConstLength) {
 
 static SExpression*
 expressionPriority6(size_t maxStringConstLength) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_OP_SUBTRACT: {
             parse_GetToken();
             return expr_Sub(expr_Const(0), expressionPriority6(maxStringConstLength));
@@ -413,7 +413,7 @@ expressionPriority5(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority6(maxStringConstLength);
 
     for (;;) {
-        switch (lex_Current.token) {
+        switch (lex_Context->token.id) {
             case T_OP_BITWISE_ASL: {
                 parse_GetToken();
                 t1 = expr_Asl(t1, expressionPriority6(maxStringConstLength));
@@ -462,7 +462,7 @@ expressionPriority4(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority5(maxStringConstLength);
 
     for (;;) {
-        switch (lex_Current.token) {
+        switch (lex_Context->token.id) {
             case T_OP_BITWISE_XOR: {
                 parse_GetToken();
                 t1 = expr_Xor(t1, expressionPriority5(maxStringConstLength));
@@ -489,10 +489,10 @@ expressionPriority3(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority4(maxStringConstLength);
 
     for (;;) {
-        switch (lex_Current.token) {
+        switch (lex_Context->token.id) {
             case T_OP_ADD: {
                 SExpression* t2;
-                SLexerBookmark mark;
+                SLexerContext mark;
 
                 lex_Bookmark(&mark);
                 parse_GetToken();
@@ -521,7 +521,7 @@ expressionPriority2(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority3(maxStringConstLength);
 
     for (;;) {
-        switch (lex_Current.token) {
+        switch (lex_Context->token.id) {
             case T_OP_EQUAL: {
                 parse_GetToken();
                 t1 = expr_Equal(t1, expressionPriority3(maxStringConstLength));
@@ -560,7 +560,7 @@ expressionPriority2(size_t maxStringConstLength) {
 
 static SExpression*
 expressionPriority1(size_t maxStringConstLength) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_OP_BOOLEAN_NOT: {
             parse_GetToken();
             return expr_BooleanNot(expressionPriority1(maxStringConstLength));
@@ -577,7 +577,7 @@ expressionPriority0(size_t maxStringConstLength) {
     SExpression* t1 = expressionPriority1(maxStringConstLength);
 
     for (;;) {
-        switch (lex_Current.token) {
+        switch (lex_Context->token.id) {
             case T_OP_BOOLEAN_OR: {
                 parse_GetToken();
                 t1 = expr_BooleanOr(t1, expressionPriority1(maxStringConstLength));

@@ -41,7 +41,7 @@ x65_ParseExpressionSU8(void) {
 
 SExpression*
 x65_ParseFunction(void) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         default:
             return NULL;
     }

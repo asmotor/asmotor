@@ -606,8 +606,8 @@ handleCAS(ESize sz, SAddressingMode* dc, SAddressingMode* du, uint16_t data) {
 
 static bool
 expectDataRegister(uint16_t* outRegister) {
-    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
-        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_D0);
+    if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
+        *outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_D0);
         parse_GetToken();
         return true;
     }
@@ -618,8 +618,8 @@ expectDataRegister(uint16_t* outRegister) {
 
 static bool
 expectIndirectRegister(uint16_t* outRegister) {
-    if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A7_IND) {
-        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_A0_IND + 8);
+    if (lex_Context->token.id >= T_68K_REG_A0_IND && lex_Context->token.id <= T_68K_REG_A7_IND) {
+        *outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_A0_IND + 8);
         parse_GetToken();
         return true;
     }
@@ -742,7 +742,7 @@ handleDIVxx(bool sign, bool l, ESize sz, SAddressingMode* src, SAddressingMode* 
     if (l || sz == SIZE_LONG) {
         bool div64;
         uint16_t dq, dr;
-        if (lex_Current.token == ':') {
+        if (lex_Context->token.id == ':') {
             uint16_t reg;
             parse_GetToken();
             if (!expectDataRegister(&reg))
@@ -1238,7 +1238,7 @@ handleMULx(uint16_t sign, ESize sz, SAddressingMode* src, SAddressingMode* dest)
 
     if (sz == SIZE_LONG) {
         uint16_t dh, dl, mul64;
-        if (lex_Current.token == ':') {
+        if (lex_Context->token.id == ':') {
             parse_GetToken();
             if (!expectDataRegister(&dl))
                 return false;
@@ -3221,11 +3221,11 @@ m68k_CanUseShortMOVEfromA(ETargetToken targetToken, SAddressingMode* src, SAddre
 
 extern bool
 m68k_IntegerInstruction(void) {
-    if (lex_Current.token < T_68K_INTEGER_FIRST || lex_Current.token > T_68K_INTEGER_LAST) {
+    if (lex_Context->token.id < T_68K_INTEGER_FIRST || lex_Context->token.id > T_68K_INTEGER_LAST) {
         return false;
     }
 
-    int token = lex_Current.token;
+    int token = lex_Context->token.id;
     parse_GetToken();
 
     SInstruction* instruction = &g_integerInstructions[token - T_68K_INTEGER_FIRST];

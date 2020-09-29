@@ -110,8 +110,8 @@ expressionNoReservedIdentifiers() {
 
 static bool
 indirectComponent(uint32_t* reg, SExpression** address) {
-    if (lex_Current.token >= T_REG_A && lex_Current.token <= T_REG_J) {
-        *reg = lex_Current.token - T_REG_A;
+    if (lex_Context->token.id >= T_REG_A && lex_Context->token.id <= T_REG_J) {
+        *reg = lex_Context->token.id - T_REG_A;
         *address = NULL;
         parse_GetToken();
         return true;
@@ -167,7 +167,7 @@ static bool indirectSubtract(SExpression** address) {
 
 static bool
 indirectAddressing(SAddressingMode* outMode, uint32_t allowedModes) {
-    if (lex_Current.token == '[') {
+    if (lex_Context->token.id == '[') {
         uint32_t reg = UINT32_MAX;
         SExpression* address = NULL;
 
@@ -176,12 +176,12 @@ indirectAddressing(SAddressingMode* outMode, uint32_t allowedModes) {
         if (!indirectComponent(&reg, &address))
             return false;
 
-        while (lex_Current.token == T_OP_ADD || lex_Current.token == T_OP_SUBTRACT) {
-            if (lex_Current.token == T_OP_ADD) {
+        while (lex_Context->token.id == T_OP_ADD || lex_Context->token.id == T_OP_SUBTRACT) {
+            if (lex_Context->token.id == T_OP_ADD) {
                 parse_GetToken();
                 if (!indirectAdd(&reg, &address))
                     return false;
-            } else if (lex_Current.token == T_OP_SUBTRACT) {
+            } else if (lex_Context->token.id == T_OP_SUBTRACT) {
                 parse_GetToken();
                 if (!indirectSubtract(&address))
                     return false;
@@ -246,7 +246,7 @@ optimizeAddressingMode(SAddressingMode* addrMode) {
 
 static bool
 addressingMode(SAddressingMode* outMode, uint32_t allowedModes) {
-    switch (lex_Current.token) {
+    switch (lex_Context->token.id) {
         case T_REG_A:
         case T_REG_B:
         case T_REG_C:
@@ -255,7 +255,7 @@ addressingMode(SAddressingMode* outMode, uint32_t allowedModes) {
         case T_REG_Z:
         case T_REG_I:
         case T_REG_J: {
-            EAddrMode mode = ADDR_A + (lex_Current.token - T_REG_A);
+            EAddrMode mode = ADDR_A + (lex_Context->token.id - T_REG_A);
             parse_GetToken();
 
             if (allowedModes & (1u << mode)) {
@@ -272,7 +272,7 @@ addressingMode(SAddressingMode* outMode, uint32_t allowedModes) {
         case T_REG_SP:
         case T_REG_PC:
         case T_REG_O: {
-            EAddrMode eMode = ADDR_POP + (lex_Current.token - T_REG_POP);
+            EAddrMode eMode = ADDR_POP + (lex_Context->token.id - T_REG_POP);
             parse_GetToken();
 
             if (allowedModes & (1u << eMode)) {
@@ -396,7 +396,7 @@ translateToken(uint32_t token) {
 
 bool
 parseIntegerInstruction(void) {
-    uint32_t token = translateToken(lex_Current.token);
+    uint32_t token = translateToken(lex_Context->token.id);
 
     if (T_DCPU16_ADD <= token && token <= T_DCPU16_XOR) {
         ETargetToken nToken = (ETargetToken) token;

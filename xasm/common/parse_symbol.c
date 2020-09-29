@@ -19,8 +19,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "lexer_context.h"
 #include "lexer.h"
+#include "lexer_constants.h"
+#include "lexer_context.h"
 #include "parse.h"
 #include "parse_block.h"
 #include "parse_expression.h"
@@ -34,9 +35,9 @@ static string* rsName = NULL;
 
 static uint32_t
 colonCount(void) {
-    if (lex_Current.token == ':') {
+    if (lex_Context->token.id == ':') {
         parse_GetToken();
-        if (lex_Current.token == ':') {
+        if (lex_Context->token.id == ':') {
             parse_GetToken();
             return 2;
         }
@@ -74,14 +75,18 @@ bool
 parse_SymbolDefinition(void) {
     bool r = false;
 
-    if (lex_Current.token == T_LABEL) {
+    if (lex_Context->token.id == T_LABEL) {
+		if (lex_ConstantsMatchTokenString() != NULL) {
+			err_Warn(WARN_SYMBOL_WITH_RESERVED_NAME);
+		}
+
         string* symbolName = lex_TokenString();
 
         parse_GetToken();
 
         uint32_t totalColons = colonCount();
 
-        if (lex_Current.token == T_SYM_MACRO) {
+        if (lex_Context->token.id == T_SYM_MACRO) {
             if (totalColons != 1) {
                 err_Error(ERROR_SYMBOL_EXPORT);
                 return false;
@@ -95,12 +100,12 @@ parse_SymbolDefinition(void) {
                     parse_GetToken();
                     r = true;
                 } else {
-                    err_Fail(ERROR_NEED_ENDM, str_String(lex_Context->name), lineNumber);
+                    err_Fail(ERROR_NEED_ENDM, str_String(lex_Context->buffer.name), lineNumber);
                     return false;
                 }
             }
         } else {
-            switch (lex_Current.token) {
+            switch (lex_Context->token.id) {
                 default: {
                     sym_CreateLabel(symbolName);
                     break;
@@ -141,7 +146,7 @@ parse_SymbolDefinition(void) {
                     EGroupType groupType;
 
                     parse_GetToken();
-                    switch (lex_Current.token) {
+                    switch (lex_Context->token.id) {
                         case T_GROUP_TEXT:
                             groupType = GROUP_TEXT;
                             break;

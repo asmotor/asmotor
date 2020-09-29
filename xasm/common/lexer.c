@@ -38,13 +38,11 @@
 #include "symbol.h"
 
 
-static SLexerBuffer* g_currentBuffer;
-
 /* Private functions */
 
 INLINE char
 getUnexpandedChar(size_t index) {
-	return fbuf_GetUnexpandedChar(&g_currentBuffer->fileBuffer, index);
+	return lexbuf_GetUnexpandedChar(&lex_Context->buffer, index);
 }
 
 static bool 
@@ -54,7 +52,7 @@ static bool
 acceptStringInterpolation() {
 	char ch;
 	while ((ch = lex_GetChar()) != '}' || ch == 0) {
-		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
 		switch (ch) {
 			case '\'':
 			case '\"': {
@@ -68,7 +66,7 @@ acceptStringInterpolation() {
 		}
 	}
 	if (ch != 0) {
-		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
 		return true;
 	}
 	return false;
@@ -78,13 +76,13 @@ static bool
 acceptQuotedStringUntil(char terminator) {
 	char ch;
 	while ((ch = lex_GetChar()) != terminator || ch == 0) {
-		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
 		switch (ch) {
 			case '\\': {
 				if ((ch = lex_GetChar()) == 0)
 					return false;
 
-				lex_Current.value.string[lex_Current.length++] = ch;
+				lex_Context->token.value.string[lex_Context->token.length++] = ch;
 				break;
 			}
 			case '{': {
@@ -98,7 +96,7 @@ acceptQuotedStringUntil(char terminator) {
 		}
 	}
 	if (ch != 0) {
-		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
 		return true;
 	}
 	return false;
@@ -110,10 +108,10 @@ acceptString(void) {
 	switch (ch) {
 		case '"':
 		case '\'': {
-			lex_Current.length = 0;
+			lex_Context->token.length = 0;
 			if (acceptQuotedStringUntil(ch)) {
-				lex_Current.value.string[--lex_Current.length] = 0;
-				lex_Current.token = T_STRING;
+				lex_Context->token.value.string[--lex_Context->token.length] = 0;
+				lex_Context->token.id = T_STRING;
 				return true;
 			}
 			break;
@@ -141,11 +139,11 @@ acceptChar(void) {
 	uint8_t ch = (uint8_t) lex_GetChar();
 
 	if (ch == '\n') {
-		g_currentBuffer->atLineStart = true;
+		lex_Context->atLineStart = true;
 	}
 
-	lex_Current.length = 1;
-	lex_Current.token = (EToken) ch;
+	lex_Context->token.length = 1;
+	lex_Context->token.id = (EToken) ch;
 	return ch != 0;
 }
 
@@ -179,8 +177,8 @@ isSymbolCharacter(char ch) {
 
 static bool
 verifyLocalLabel(void) {
-	for (size_t i = 0; i < lex_Current.length; ++i) {
-		if (!isdigit(lex_Current.value.string[i])) {
+	for (size_t i = 0; i < lex_Context->token.length; ++i) {
+		if (!isdigit(lex_Context->token.value.string[i])) {
 			return err_Error(ERROR_ID_MALFORMED);
 		}
 	}
@@ -191,20 +189,20 @@ static bool
 acceptSymbolTail() {
 	char ch;
 	while (isSymbolCharacter(ch = lex_GetChar())) {
-		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
 	}
 	if (ch == '$') {
 		if (!verifyLocalLabel())
 			return false;
-		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
 	} else {
 		lex_UnputChar(ch);
 	}
 
-	ch = lex_Current.value.string[0];
-	bool correct = (lex_Current.length >= 2) || (ch != '.');
+	ch = lex_Context->token.value.string[0];
+	bool correct = (lex_Context->token.length >= 2) || (ch != '.');
 	if (correct) {
-		lex_Current.value.string[lex_Current.length] = 0;
+		lex_Context->token.value.string[lex_Context->token.length] = 0;
 		return true;
 	} else {
 		lex_UnputChar(ch);
@@ -215,46 +213,46 @@ acceptSymbolTail() {
 static bool
 acceptLabel(EToken token) {
 	char ch = lex_GetChar();
-	lex_Current.length = 0;
+	lex_Context->token.length = 0;
 	if (ch == '.') {
-		lex_Current.length = 1;
-		lex_Current.value.string[0] = ch;
+		lex_Context->token.length = 1;
+		lex_Context->token.value.string[0] = ch;
 		ch = lex_GetChar();
 	}
-	lex_Current.value.string[lex_Current.length++] = ch;
+	lex_Context->token.value.string[lex_Context->token.length++] = ch;
 	if (isStartSymbolCharacter(ch)) {
 		if (acceptSymbolTail()) {
-			lex_Current.token = token;
+			lex_Context->token.id = token;
 			return true;
 		}
 		return false;
 	}
-	while (lex_Current.length > 0) {
-		lex_UnputChar(lex_Current.value.string[--lex_Current.length]);
+	while (lex_Context->token.length > 0) {
+		lex_UnputChar(lex_Context->token.value.string[--lex_Context->token.length]);
 	}
 	return false;
 }
 
 static bool
 acceptSymbolIfLonger(void) {
-	size_t tokenLength = lex_Current.length;
+	size_t tokenLength = lex_Context->token.length;
 
 	size_t index = 0;
-	if (tokenLength >= 2 && lex_Current.value.string[index] == '.')
+	if (tokenLength >= 2 && lex_Context->token.value.string[index] == '.')
 		++index;
 
-	while (index < tokenLength && isSymbolCharacter(lex_Current.value.string[index])) {
+	while (index < tokenLength && isSymbolCharacter(lex_Context->token.value.string[index])) {
 		++index;
 	}
 
 	if (index == tokenLength) {
-		if (acceptSymbolTail() && lex_Current.length > tokenLength) {
-			lex_Current.token = T_ID;
+		if (acceptSymbolTail() && lex_Context->token.length > tokenLength) {
+			lex_Context->token.id = T_ID;
 			return true;
 		}
 	}
 
-	lex_Current.length = tokenLength;
+	lex_Context->token.length = tokenLength;
 	return false;
 }
 
@@ -288,18 +286,18 @@ acceptNumericAndLocalLabel(int radix, bool lineStart) {
 	char ch;
 	uint32_t high = 0;
 
-	lex_Current.length = 0;
+	lex_Context->token.length = 0;
 	while ((binary = asciiToRadixBinary(ch = lex_GetChar(), radix)) != -1) {
 		high = high * radix + binary;
-		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
 	}
 
 	if (radix == 10 && ch == '$') {
 		if (!verifyLocalLabel())
 			return false;
-		lex_Current.value.string[lex_Current.length++] = ch;
-		lex_Current.value.string[lex_Current.length] = 0;
-		lex_Current.token = lineStart ? T_LABEL : T_ID;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length] = 0;
+		lex_Context->token.id = lineStart ? T_LABEL : T_ID;
 		return true;
 	}
 
@@ -311,7 +309,7 @@ acceptNumericAndLocalLabel(int radix, bool lineStart) {
 			dot = true;
 			low = low * radix + binary;
 			denominator = denominator * radix;
-			lex_Current.value.string[lex_Current.length++] = ch;
+			lex_Context->token.value.string[lex_Context->token.length++] = ch;
 		}
 		if (!dot) {
 			lex_UnputChar(ch);
@@ -320,19 +318,19 @@ acceptNumericAndLocalLabel(int radix, bool lineStart) {
 	}
 
 	if (ch == 'f') {
-		lex_Current.token = T_FLOAT;
-		lex_Current.value.floating = ((long double) high) + ((long double) low) / denominator;
+		lex_Context->token.id = T_FLOAT;
+		lex_Context->token.value.floating = ((long double) high) + ((long double) low) / denominator;
 		return true;
 	}
 
 	lex_UnputChar(ch);
 
 	if (dot) {
-		lex_Current.token = T_NUMBER;
-		lex_Current.value.integer = high * 65536 + imuldiv(low, 65536, denominator);
+		lex_Context->token.id = T_NUMBER;
+		lex_Context->token.value.integer = high * 65536 + imuldiv(low, 65536, denominator);
 	} else {
-		lex_Current.token = T_NUMBER;
-		lex_Current.value.integer = high;
+		lex_Context->token.id = T_NUMBER;
+		lex_Context->token.value.integer = high;
 	}
 
 	return true;
@@ -360,8 +358,8 @@ acceptGameboyLiteral() {
 		result = result * 2 + ((value & 1u) << 8u) + ((value & 2u) >> 1u);
 	}
 
-	lex_Current.value.integer = result;
-	lex_Current.token = T_NUMBER;
+	lex_Context->token.value.integer = result;
+	lex_Context->token.id = T_NUMBER;
 
 	return true;
 }
@@ -392,10 +390,6 @@ acceptNext(bool lineStart) {
 	if (lineStart) {
 		consumeComment(false, true);
 		if (acceptLabel(T_LABEL)) {
-			if (lex_ConstantsMatchTokenString() != NULL) {
-				err_Warn(WARN_SYMBOL_WITH_RESERVED_NAME);
-				lex_Current.token = T_LABEL;
-			}
 			return true;
 		}
 	}
@@ -434,18 +428,18 @@ matchChar(char match) {
 
 static bool
 stateNormal() {
-	bool lineStart = g_currentBuffer->atLineStart;
-	g_currentBuffer->atLineStart = false;
+	bool lineStart = lex_Context->atLineStart;
+	lex_Context->atLineStart = false;
 
 	for (;;) {
 		if (acceptNext(lineStart)) {
 			return true;
 		} else {
-			if (lex_EndCurrentBuffer()) {
-				lineStart = g_currentBuffer->atLineStart;
-				g_currentBuffer->atLineStart = false;
+			if (lexctx_EndCurrentBuffer()) {
+				lineStart = lex_Context->atLineStart;
+				lex_Context->atLineStart = false;
 			} else {
-				lex_Current.token = T_POP_END;
+				lex_Context->token.id = T_POP_END;
 				return true;
 			}
 		}
@@ -461,12 +455,12 @@ static bool
 stateMacroArgument0(void) {
 	if (matchChar('.')) {
 		char ch;
-		lex_Current.length = 0;
+		lex_Context->token.length = 0;
 		while (!isMacroArgument0Terminator(ch = lex_GetChar())) {
-			lex_Current.value.string[lex_Current.length++] = ch;
+			lex_Context->token.value.string[lex_Context->token.length++] = ch;
 		}
-		lex_Current.value.string[lex_Current.length] = 0;
-		lex_Current.token = T_MACROARG0;
+		lex_Context->token.value.string[lex_Context->token.length] = 0;
+		lex_Context->token.id = T_MACROARG0;
 		lex_UnputChar(ch);
 		return true;
 	}
@@ -476,14 +470,14 @@ stateMacroArgument0(void) {
 
 static void
 trimTokenStringRight() {
-	char* asterisk = strrchr(lex_Current.value.string, '*');
+	char* asterisk = strrchr(lex_Context->token.value.string, '*');
 	if (asterisk != NULL && isspace(*(asterisk - 1))) {
 		*asterisk = 0;
-		lex_Current.length = asterisk - lex_Current.value.string;
+		lex_Context->token.length = asterisk - lex_Context->token.value.string;
 	}
 
-	while (lex_Current.value.string[lex_Current.length - 1] == ' ') {
-		lex_Current.value.string[--lex_Current.length] = 0;
+	while (lex_Context->token.value.string[lex_Context->token.length - 1] == ' ') {
+		lex_Context->token.value.string[--lex_Context->token.length] = 0;
 	}
 
 }
@@ -492,9 +486,9 @@ static void
 getStringUntilTerminators(const char* terminators) {
 	char ch;
 	while (strchr(terminators, ch = lex_GetChar()) == NULL) {
-		lex_Current.value.string[lex_Current.length++] = ch;
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
 	}
-	lex_Current.value.string[lex_Current.length] = 0;
+	lex_Context->token.value.string[lex_Context->token.length] = 0;
 	lex_UnputChar(ch);
 }
 
@@ -502,7 +496,7 @@ static bool
 stateMacroArguments() {
 	consumeComment(skipUnimportantWhitespace(), false);
 
-	lex_Current.length = 0;
+	lex_Context->token.length = 0;
 
 	if (matchChar('<')) {
 		getStringUntilTerminators("\n>");
@@ -511,32 +505,32 @@ stateMacroArguments() {
 		getStringUntilTerminators("\n\t ,;}");
 	}
 
-	if (lex_Current.length > 0) {
+	if (lex_Context->token.length > 0) {
 		char ch = lex_GetChar();
 		if (ch == '\n' || ch == ';' || ch == ' ' || ch == '\t') {
 			trimTokenStringRight();
 		}
-		lex_Current.token = T_STRING;
+		lex_Context->token.id = T_STRING;
 		lex_UnputChar(ch);
 		return true;
 	} else if (matchChar('\n')) {
-		g_currentBuffer->atLineStart = true;
-		lex_Current.length = 1;
-		lex_Current.token = T_LINEFEED;
+		lex_Context->atLineStart = true;
+		lex_Context->token.length = 1;
+		lex_Context->token.id = T_LINEFEED;
 		return true;
 	} else if (matchChar(',')) {
-		lex_Current.length = 1;
-		lex_Current.token = T_COMMA;
+		lex_Context->token.length = 1;
+		lex_Context->token.id = T_COMMA;
 		return true;
 	} else {
 		char ch = lex_GetChar();
 		lex_UnputChar(ch);
 		if (ch == '}') {
-			lex_Current.length = 1;
-			lex_Current.token = T_LINEFEED;
+			lex_Context->token.length = 1;
+			lex_Context->token.id = T_LINEFEED;
 			return true;
 		} else {
-			lex_Current.token = T_NONE;
+			lex_Context->token.id = T_NONE;
 			return false;
 		}
 	}
@@ -621,42 +615,36 @@ skipWhiteSpaceIndexed(size_t* index) {
 	return ch == ';';
 }
 
-/* Public variables */
-
-SLexerToken lex_Current;
-
 /*	Public functions */
 
 void
 lex_UnputChar(char ch) {
-	fbuf_UnputChar(&g_currentBuffer->fileBuffer, ch);
+	lexbuf_UnputChar(&lex_Context->buffer, ch);
 }
 
 extern char
 lex_GetChar(void) {
-	return fbuf_GetChar(&g_currentBuffer->fileBuffer);
+	return lexbuf_GetChar(&lex_Context->buffer);
 }
 
 extern void
 lex_CopyUnexpandedContent(char* dest, size_t count) {
-	fbuf_CopyUnexpandedContent(&g_currentBuffer->fileBuffer, dest, count);
+	lexbuf_CopyUnexpandedContent(&lex_Context->buffer, dest, count);
 }
 
 void
-lex_Bookmark(SLexerBookmark* bookmark) {
-	lex_CopyBuffer(&bookmark->Buffer, g_currentBuffer);
-	bookmark->Token = lex_Current;
+lex_Bookmark(SLexerContext* bookmark) {
+	lexctx_Copy(bookmark, lex_Context);
 }
 
 void
-lex_Goto(SLexerBookmark* bookmark) {
-	lex_CopyBuffer(g_currentBuffer, &bookmark->Buffer);
-	lex_Current = bookmark->Token;
+lex_Goto(SLexerContext* bookmark) {
+	lexctx_Copy(lex_Context, bookmark);
 }
 
 size_t
 lex_SkipBytes(size_t count) {
-	return fbuf_SkipUnexpandedChars(&g_currentBuffer->fileBuffer, count);
+	return lexbuf_SkipUnexpandedChars(&lex_Context->buffer, count);
 }
 
 void
@@ -673,70 +661,15 @@ lex_UnputString(const char* str) {
 }
 
 void
-lex_SetBuffer(SLexerBuffer* buffer) {
-	assert (buffer != NULL);
-	g_currentBuffer = buffer;
-}
-
-void
 lex_SetMode(ELexerMode mode) {
-	assert (g_currentBuffer != NULL);
-	g_currentBuffer->mode = mode;
-}
-
-void
-lex_FreeBuffer(SLexerBuffer* buffer) {
-	if (buffer != NULL) {
-		fbuf_Destroy(&buffer->fileBuffer);
-		mem_Free(buffer);
-	} else {
-		internalerror("Argument must not be NULL");
-	}
-}
-
-SLexerBuffer*
-lex_CreateBookmarkBuffer(SLexerBookmark* bookmark) {
-	SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
-	lex_CopyBuffer(lexerBuffer, &bookmark->Buffer);
-	return lexerBuffer;
-}
-
-SLexerBuffer*
-lex_CreateMemoryBuffer(string* memory, vec_t* arguments) {
-	SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
-
-	fbuf_Init(&lexerBuffer->fileBuffer, memory, arguments);
-	lexerBuffer->atLineStart = true;
-	lexerBuffer->mode = LEXER_MODE_NORMAL;
-	return lexerBuffer;
-}
-
-SLexerBuffer*
-lex_CreateFileBuffer(FILE* fileHandle, uint32_t* checkSum) {
-	SLexerBuffer* lexerBuffer = (SLexerBuffer*) mem_Alloc(sizeof(SLexerBuffer));
-	memset(lexerBuffer, 0, sizeof(SLexerBuffer));
-
-	size_t size = fsize(fileHandle);
-	string* fileContent = str_ReadFile(fileHandle, size);
-	string* canonicalizedContent = str_CanonicalizeLineEndings(fileContent);
-	str_Free(fileContent);
-
-	if (checkSum != NULL && opt_Current->enableDebugInfo)
-		*checkSum = crc32((const uint8_t *)str_String(fileContent), size);
-
-	fbuf_Init(&lexerBuffer->fileBuffer, canonicalizedContent, strvec_Create());
-	lexerBuffer->atLineStart = true;
-	lexerBuffer->mode = LEXER_MODE_NORMAL;
-
-	str_Free(canonicalizedContent);
-
-	return lexerBuffer;
+	assert (lex_Context != NULL);
+	lex_Context->mode = mode;
 }
 
 bool
 lex_Init(string* filename) {
 	lex_ConstantsInit();
-	return lex_ContextInit(filename);
+	return lexctx_ContextInit(filename);
 }
 
 bool
@@ -750,12 +683,12 @@ lex_GetNextDirective(void) {
 		if (skipWhiteSpace())
 			continue;
 
-		lex_Current.length = 0;
+		lex_Context->token.length = 0;
 		char ch;
 		while (isalpha(ch = lex_GetChar())) {
-			lex_Current.value.string[lex_Current.length++] = ch;
+			lex_Context->token.value.string[lex_Context->token.length++] = ch;
 		}
-		lex_Current.value.string[lex_Current.length] = 0;
+		lex_Context->token.value.string[lex_Context->token.length] = 0;
 		lex_UnputChar(ch);
 		if (lex_ConstantsMatchTokenString() != NULL)
 			return true;
@@ -772,13 +705,13 @@ lex_GetNextDirectiveUnexpanded(size_t* index) {
 		if (skipWhiteSpaceIndexed(index))
 			continue;
 
-		lex_Current.length = 0;
+		lex_Context->token.length = 0;
 		char ch;
 		while (isalpha(ch = getUnexpandedChar(*index))) {
-			lex_Current.value.string[lex_Current.length++] = ch;
+			lex_Context->token.value.string[lex_Context->token.length++] = ch;
 			*index += 1;
 		}
-		lex_Current.value.string[lex_Current.length] = 0;
+		lex_Context->token.value.string[lex_Context->token.length] = 0;
 		if (lex_ConstantsMatchTokenString() != NULL)
 			return true;
 	}
@@ -786,12 +719,12 @@ lex_GetNextDirectiveUnexpanded(size_t* index) {
 
 bool
 lex_GetNextToken(void) {
-	switch (g_currentBuffer->mode) {
+	switch (lex_Context->mode) {
 		case LEXER_MODE_NORMAL: {
 			return stateNormal();
 		}
 		case LEXER_MODE_MACRO_ARGUMENT0: {
-			g_currentBuffer->mode = LEXER_MODE_MACRO_ARGUMENT;
+			lex_Context->mode = LEXER_MODE_MACRO_ARGUMENT;
 
 			if (stateMacroArgument0())
 				return true;
@@ -808,13 +741,5 @@ lex_GetNextToken(void) {
 
 extern string*
 lex_TokenString(void) {
-	return str_CreateLength(lex_Current.value.string, lex_Current.length);
-}
-
-
-extern void
-lex_CopyBuffer(SLexerBuffer* dest, const SLexerBuffer* source) {
-	fbuf_Copy(&dest->fileBuffer, &source->fileBuffer);
-	dest->atLineStart = source->atLineStart;
-	dest->mode = source->mode;
+	return str_CreateLength(lex_Context->token.value.string, lex_Context->token.length);
 }

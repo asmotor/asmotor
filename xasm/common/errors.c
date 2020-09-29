@@ -234,7 +234,7 @@ printError(const SPatch* patch, const SSymbol* symbol, char severity, size_t err
     } else if (symbol != NULL) {
         strbuf_AppendFormat(buf, "%s:%d: ", str_String(symbol->fileInfo->fileName), symbol->lineNumber);
     } else {
-        string* stack = lex_Dump();
+        string* stack = lexctx_Dump();
         strbuf_AppendString(buf, stack);
         str_Free(stack);
     }

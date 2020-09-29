@@ -51,11 +51,11 @@ skipPastDirective(bool (*directive)(EToken), bool (*getNextDirective)(void));
 static bool
 skipToDirective(bool (*directive)(EToken), bool (*getNextDirective)(void)) {
 	for (;;) {
-		if (directive(lex_Current.token)) {
+		if (directive(lex_Context->token.id)) {
 			return true;
 		}
 
-		switch (lex_Current.token) {
+		switch (lex_Context->token.id) {
 			case T_DIRECTIVE_IF:
 			case T_DIRECTIVE_IFC:
 			case T_DIRECTIVE_IFD:
@@ -110,7 +110,7 @@ isFalseBranch(EToken token) {
 
 bool
 parse_SkipPastTrueBranch(void) {
-	if (lex_Current.token == '\n')
+	if (lex_Context->token.id == '\n')
 		lex_UnputChar('\n');
 	if (skipToDirective(isFalseBranch, lex_GetNextDirective)) {
 		parse_GetToken();
@@ -121,7 +121,7 @@ parse_SkipPastTrueBranch(void) {
 
 bool
 parse_SkipPastEndc(void) {
-	if (lex_Current.token == '\n')
+	if (lex_Context->token.id == '\n')
 		lex_UnputChar('\n');
 	if (skipToDirective(isEndc, lex_GetNextDirective)) {
 		parse_GetToken();
@@ -132,7 +132,7 @@ parse_SkipPastEndc(void) {
 
 bool
 parse_SkipPastEndr(void) {
-	if (lex_Current.token == '\n')
+	if (lex_Context->token.id == '\n')
 		lex_UnputChar('\n');
 	if (skipToDirective(isEndr, lex_GetNextDirective)) {
 		parse_GetToken();
@@ -157,7 +157,7 @@ skipToEndm(void) {
 bool
 parse_CopyMacroBlock(char** dest, size_t* size) {
 	getNextDirectiveIndex = 0;
-	lex_Current.token = T_NONE;
+	lex_Context->token.id = T_NONE;
 	skipToEndm();
 
     *dest = (char*) mem_Alloc(getNextDirectiveIndex + 1);

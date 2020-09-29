@@ -27,40 +27,40 @@
 
 bool
 x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
-    SLexerBookmark bm;
+    SLexerContext bm;
     lex_Bookmark(&bm);
 
-    if ((allowedModes & MODE_A) && lex_Current.token == T_6502_REG_A) {
+    if ((allowedModes & MODE_A) && lex_Context->token.id == T_6502_REG_A) {
         parse_GetToken();
         addrMode->mode = MODE_A;
         addrMode->expr = NULL;
         return true;
-    } else if ((allowedModes & MODE_IMM) && lex_Current.token == '#') {
+    } else if ((allowedModes & MODE_IMM) && lex_Context->token.id == '#') {
         parse_GetToken();
         addrMode->mode = MODE_IMM;
         addrMode->expr = x65_ParseExpressionSU8();
         return true;
     }
 
-    if ((allowedModes & (MODE_IND_X | MODE_IND_Y)) && lex_Current.token == '(') {
+    if ((allowedModes & (MODE_IND_X | MODE_IND_Y)) && lex_Context->token.id == '(') {
         parse_GetToken();
         addrMode->expr = x65_ParseExpressionSU8();
 
         if (addrMode->expr != NULL) {
-            if (lex_Current.token == ',') {
+            if (lex_Context->token.id == ',') {
                 parse_GetToken();
-                if (lex_Current.token == T_6502_REG_X) {
+                if (lex_Context->token.id == T_6502_REG_X) {
                     parse_GetToken();
                     if (parse_ExpectChar(')')) {
                         addrMode->mode = MODE_IND_X;
                         return true;
                     }
                 }
-            } else if (lex_Current.token == ')') {
+            } else if (lex_Context->token.id == ')') {
                 parse_GetToken();
-                if (lex_Current.token == ',') {
+                if (lex_Context->token.id == ',') {
                     parse_GetToken();
-                    if (lex_Current.token == T_6502_REG_Y) {
+                    if (lex_Context->token.id == T_6502_REG_Y) {
                         parse_GetToken();
                         addrMode->mode = MODE_IND_Y;
                         return true;
@@ -73,7 +73,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
     }
 
     if (allowedModes & MODE_IND) {
-        if (lex_Current.token == '(') {
+        if (lex_Context->token.id == '(') {
             parse_GetToken();
 
             addrMode->expr = parse_Expression(2);
@@ -93,13 +93,13 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         if (addrMode->expr != NULL) {
             if (expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer
                 && addrMode->expr->value.integer <= 255) {
-                if (lex_Current.token == ',') {
+                if (lex_Context->token.id == ',') {
                     parse_GetToken();
-                    if (lex_Current.token == T_6502_REG_X) {
+                    if (lex_Context->token.id == T_6502_REG_X) {
                         parse_GetToken();
                         addrMode->mode = MODE_ZP_X;
                         return true;
-                    } else if (lex_Current.token == T_6502_REG_Y) {
+                    } else if (lex_Context->token.id == T_6502_REG_Y) {
                         parse_GetToken();
                         addrMode->mode = MODE_ZP_Y;
                         return true;
@@ -109,14 +109,14 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
                 return true;
             }
 
-            if (lex_Current.token == ',') {
+            if (lex_Context->token.id == ',') {
                 parse_GetToken();
 
-                if (lex_Current.token == T_6502_REG_X) {
+                if (lex_Context->token.id == T_6502_REG_X) {
                     parse_GetToken();
                     addrMode->mode = MODE_ABS_X;
                     return true;
-                } else if (lex_Current.token == T_6502_REG_Y) {
+                } else if (lex_Context->token.id == T_6502_REG_Y) {
                     parse_GetToken();
                     addrMode->mode = MODE_ABS_Y;
                     return true;

@@ -82,7 +82,7 @@
             "cwd": "${workspaceFolder}/test/schip",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
         {
             "name": "Debug motorz80",
@@ -95,7 +95,7 @@
             "cwd": "${workspaceFolder}/test/z80",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
         {
             "name": "Debug motorz80 (Game Boy)",
@@ -131,10 +131,10 @@
             "program": "${workspaceFolder}/build/cmake/debug/xasm/rc8/motorrc8",
             "args": ["-fv", "-oallcodes.r", "allcodes.rc8"],
             "stopAtEntry": true,
-            "cwd": "/Users/ces/Dev/asmotor-r8r/test/rc8",
+            "cwd": "${workspaceFolder}/test/rc8",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
         {
             "name": "Debug motor68k",

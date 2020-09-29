@@ -41,8 +41,8 @@ expressionCheckScaleRange(SExpression* expression) {
 
 static bool
 getDataRegister(uint16_t* outRegister) {
-    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D7) {
-        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_D0);
+    if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
+        *outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_D0);
         parse_GetToken();
         return true;
     }
@@ -52,8 +52,8 @@ getDataRegister(uint16_t* outRegister) {
 
 static bool
 getAddressRegister(uint16_t* outRegister) {
-    if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A7) {
-        *outRegister = (uint16_t) (lex_Current.token - T_68K_REG_A0);
+    if (lex_Context->token.id >= T_68K_REG_A0 && lex_Context->token.id <= T_68K_REG_A7) {
+        *outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_A0);
         parse_GetToken();
         return true;
     }
@@ -77,7 +77,7 @@ getRegister(uint16_t* outRegister) {
 static bool
 getRegisterRange(uint16_t* outStart, uint16_t* outEnd) {
     if (getRegister(outStart)) {
-        if (lex_Current.token == T_OP_SUBTRACT) {
+        if (lex_Context->token.id == T_OP_SUBTRACT) {
             parse_GetToken();
             if (!getRegister(outEnd))
                 return 0;
@@ -91,12 +91,12 @@ getRegisterRange(uint16_t* outStart, uint16_t* outEnd) {
 
 static bool
 getIndexReg(SModeRegisters* outMode) {
-    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D15) {
-        uint8_t reg = lex_Current.token - T_68K_REG_D0;
+    if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D15) {
+        uint8_t reg = lex_Context->token.id - T_68K_REG_D0;
         outMode->indexRegister = REG_D0 + (reg & 7);
         outMode->indexBank = reg >> 3;
-    } else if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A15) {
-        uint8_t reg = lex_Current.token - T_68K_REG_A0;
+    } else if (lex_Context->token.id >= T_68K_REG_A0 && lex_Context->token.id <= T_68K_REG_A15) {
+        uint8_t reg = lex_Context->token.id - T_68K_REG_A0;
         outMode->indexRegister = REG_A0 + (reg & 7);
         outMode->indexBank = reg >> 3;
     }
@@ -110,7 +110,7 @@ getIndexReg(SModeRegisters* outMode) {
         return false;
     }
 
-    if (lex_Current.token == T_OP_MULTIPLY) {
+    if (lex_Context->token.id == T_OP_MULTIPLY) {
         parse_GetToken();
         if ((outMode->indexScale = parse_Expression(1)) == NULL) {
             err_Error(ERROR_EXPECT_EXPR);
@@ -128,7 +128,7 @@ singleModePart(SModeRegisters* outMode) {
     // parses xxxx, Ax, PC, Xn.S*scale
     SExpression* expr;
 
-    if (lex_Current.token == T_68K_REG_PC) {
+    if (lex_Context->token.id == T_68K_REG_PC) {
         if (outMode->baseRegister != REG_NONE)
             return false;
 
@@ -137,7 +137,7 @@ singleModePart(SModeRegisters* outMode) {
         return true;
     }
 
-    if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A15) {
+    if (lex_Context->token.id >= T_68K_REG_A0 && lex_Context->token.id <= T_68K_REG_A15) {
         ESize sz;
 
         if (outMode->baseRegister != REG_NONE) {
@@ -148,7 +148,7 @@ singleModePart(SModeRegisters* outMode) {
             return getIndexReg(outMode);
         }
 
-        int addressRegister = lex_Current.token - T_68K_REG_A0;
+        int addressRegister = lex_Context->token.id - T_68K_REG_A0;
         parse_GetToken();
         sz = m68k_GetSizeSpecifier(SIZE_DEFAULT);
         if (sz == SIZE_WORD) {
@@ -166,7 +166,7 @@ singleModePart(SModeRegisters* outMode) {
         return true;
     }
 
-    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D15) {
+    if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D15) {
         if (outMode->indexRegister != REG_NONE) {
             return false;
         }
@@ -193,12 +193,12 @@ getInnerMode(SAddressingMode* outMode) {
         if (!singleModePart(&outMode->inner))
             return false;
 
-        if (lex_Current.token == ']') {
+        if (lex_Context->token.id == ']') {
             parse_GetToken();
             return true;
         }
 
-        if (lex_Current.token == ',') {
+        if (lex_Context->token.id == ',') {
             parse_GetToken();
             continue;
         }
@@ -209,7 +209,7 @@ getInnerMode(SAddressingMode* outMode) {
 
 static bool
 getOuterPart(SAddressingMode* outMode) {
-    if (opt_Current->machineOptions->cpu >= CPUF_68020 && lex_Current.token == '[') {
+    if (opt_Current->machineOptions->cpu >= CPUF_68020 && lex_Context->token.id == '[') {
         parse_GetToken();
         return getInnerMode(outMode);
     }
@@ -223,12 +223,12 @@ getOuterMode(SAddressingMode* outMode) {
         if (!getOuterPart(outMode))
             return false;
 
-        if (lex_Current.token == ')') {
+        if (lex_Context->token.id == ')') {
             parse_GetToken();
             return true;
         }
 
-        if (lex_Current.token == ',') {
+        if (lex_Context->token.id == ',') {
             parse_GetToken();
             continue;
         }
@@ -480,15 +480,15 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
     addrMode->outer.displacement = NULL;
     addrMode->hasBitfield = false;
 
-    if (lex_Current.token >= T_68K_SYSREG_FIRST && lex_Current.token <= T_68K_SYSREG_LAST) {
+    if (lex_Context->token.id >= T_68K_SYSREG_FIRST && lex_Context->token.id <= T_68K_SYSREG_LAST) {
         addrMode->mode = AM_SYSREG;
-        addrMode->directRegister = lex_Current.token;
+        addrMode->directRegister = lex_Context->token.id;
         parse_GetToken();
         return true;
     }
 
-    if (lex_Current.token >= T_68K_REG_D0 && lex_Current.token <= T_68K_REG_D31) {
-        uint8_t reg = lex_Current.token - T_68K_REG_D0;
+    if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D31) {
+        uint8_t reg = lex_Context->token.id - T_68K_REG_D0;
         addrMode->mode = AM_DREG;
         addrMode->directRegister = reg & 7;
         addrMode->directRegisterBank = reg >> 3;
@@ -496,8 +496,8 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         return true;
     }
 
-    if (lex_Current.token >= T_68K_REG_A0 && lex_Current.token <= T_68K_REG_A15) {
-        uint8_t reg = lex_Current.token - T_68K_REG_A0;
+    if (lex_Context->token.id >= T_68K_REG_A0 && lex_Context->token.id <= T_68K_REG_A15) {
+        uint8_t reg = lex_Context->token.id - T_68K_REG_A0;
         addrMode->mode = AM_AREG;
         addrMode->directRegister = reg & 7;
         addrMode->directRegisterBank = reg >> 3;
@@ -505,22 +505,22 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         return true;
     }
 
-    if (allowFloat && lex_Current.token >= T_FPUREG_0 && lex_Current.token <= T_FPUREG_7) {
+    if (allowFloat && lex_Context->token.id >= T_FPUREG_0 && lex_Context->token.id <= T_FPUREG_7) {
         addrMode->mode = AM_FPUREG;
-        addrMode->directRegister = lex_Current.token - T_FPUREG_0;
+        addrMode->directRegister = lex_Context->token.id - T_FPUREG_0;
         parse_GetToken();
         return true;
     }
 
-    if (lex_Current.token >= T_FPU_CR_FIRST && lex_Current.token <= T_FPU_CR_LAST) {
+    if (lex_Context->token.id >= T_FPU_CR_FIRST && lex_Context->token.id <= T_FPU_CR_LAST) {
         addrMode->mode = AM_FPUCR;
-        addrMode->directRegister = lex_Current.token - T_FPU_CR_FIRST;
+        addrMode->directRegister = lex_Context->token.id - T_FPU_CR_FIRST;
         parse_GetToken();
         return true;
     }
 
-    if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A15_IND) {
-        uint8_t reg = lex_Current.token - T_68K_REG_A0_IND;
+    if (lex_Context->token.id >= T_68K_REG_A0_IND && lex_Context->token.id <= T_68K_REG_A15_IND) {
+        uint8_t reg = lex_Context->token.id - T_68K_REG_A0_IND;
         addrMode->mode = AM_AIND;
         addrMode->directRegister = reg & 7;
         addrMode->directRegisterBank = reg >> 3;
@@ -530,8 +530,8 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         return true;
     }
 
-    if (lex_Current.token >= T_68K_REG_A0_DEC && lex_Current.token <= T_68K_REG_A15_DEC) {
-        uint8_t reg = lex_Current.token - T_68K_REG_A0_DEC;
+    if (lex_Context->token.id >= T_68K_REG_A0_DEC && lex_Context->token.id <= T_68K_REG_A15_DEC) {
+        uint8_t reg = lex_Context->token.id - T_68K_REG_A0_DEC;
         addrMode->mode = AM_ADEC;
         addrMode->directRegister = reg & 7;
         addrMode->directRegisterBank = reg >> 3;
@@ -541,8 +541,8 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         return true;
     }
 
-    if (lex_Current.token >= T_68K_REG_A0_INC && lex_Current.token <= T_68K_REG_A15_INC) {
-        uint8_t reg = lex_Current.token - T_68K_REG_A0_INC;
+    if (lex_Context->token.id >= T_68K_REG_A0_INC && lex_Context->token.id <= T_68K_REG_A15_INC) {
+        uint8_t reg = lex_Context->token.id - T_68K_REG_A0_INC;
         addrMode->mode = AM_AINC;
         addrMode->directRegister = reg & 7;
         addrMode->directRegisterBank = reg >> 3;
@@ -552,7 +552,7 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         return true;
     }
 
-    if (lex_Current.token == '#') {
+    if (lex_Context->token.id == '#') {
         parse_GetToken();
         addrMode->mode = AM_IMM;
         addrMode->immediateInteger = parse_Expression(4);
@@ -567,7 +567,7 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         addrMode->outer.displacementSize = m68k_GetSizeSpecifier(SIZE_DEFAULT);
 
     // parse (xxxx)
-    if (lex_Current.token == '(') {
+    if (lex_Context->token.id == '(') {
         parse_GetToken();
 
         if (getOuterMode(addrMode)) {
@@ -577,16 +577,16 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
     }
 
     if (addrMode->outer.displacement != NULL) {
-        if (lex_Current.token == T_68K_REG_PC_IND) {
+        if (lex_Context->token.id == T_68K_REG_PC_IND) {
             addrMode->mode = AM_PCDISP;
             addrMode->outer.baseRegister = REG_PC;
             addrMode->outer.displacementSize = SIZE_WORD;
             parse_GetToken();
             return true;
-        } else if (lex_Current.token >= T_68K_REG_A0_IND && lex_Current.token <= T_68K_REG_A7_IND) {
+        } else if (lex_Context->token.id >= T_68K_REG_A0_IND && lex_Context->token.id <= T_68K_REG_A7_IND) {
             if ((addrMode->outer.displacement = m68k_ExpressionCheck16Bit(addrMode->outer.displacement)) != NULL) {
                 addrMode->mode = AM_ADISP;
-                addrMode->outer.baseRegister = REG_A0 + (lex_Current.token - T_68K_REG_A0_IND);
+                addrMode->outer.baseRegister = REG_A0 + (lex_Context->token.id - T_68K_REG_A0_IND);
                 addrMode->outer.displacementSize = SIZE_WORD;
                 parse_GetToken();
                 return true;
@@ -616,7 +616,7 @@ m68k_ParseRegisterList(void) {
     uint16_t start;
     uint16_t end;
 
-    if (lex_Current.token == '#') {
+    if (lex_Context->token.id == '#') {
         int32_t expr;
         parse_GetToken();
         expr = parse_ConstantExpression();
@@ -637,7 +637,7 @@ m68k_ParseRegisterList(void) {
         while (start <= end)
             r |= 1 << start++;
 
-        if (lex_Current.token != T_OP_DIVIDE)
+        if (lex_Context->token.id != T_OP_DIVIDE)
             return r;
 
         parse_GetToken();
@@ -648,26 +648,26 @@ m68k_ParseRegisterList(void) {
 
 ESize
 m68k_GetSizeSpecifier(ESize defaultSize) {
-    if (lex_Current.token == T_ID && strlen(lex_Current.value.string) == 2) {
-        if (_strnicmp(lex_Current.value.string, ".b", 2) == 0) {
+    if (lex_Context->token.id == T_ID && strlen(lex_Context->token.value.string) == 2) {
+        if (_strnicmp(lex_Context->token.value.string, ".b", 2) == 0) {
             parse_GetToken();
             return SIZE_BYTE;
-        } else if (_strnicmp(lex_Current.value.string, ".w", 2) == 0) {
+        } else if (_strnicmp(lex_Context->token.value.string, ".w", 2) == 0) {
             parse_GetToken();
             return SIZE_WORD;
-        } else if (_strnicmp(lex_Current.value.string, ".l", 2) == 0) {
+        } else if (_strnicmp(lex_Context->token.value.string, ".l", 2) == 0) {
             parse_GetToken();
             return SIZE_LONG;
-        } else if (_strnicmp(lex_Current.value.string, ".s", 2) == 0) {
+        } else if (_strnicmp(lex_Context->token.value.string, ".s", 2) == 0) {
             parse_GetToken();
             return SIZE_SINGLE;
-        } else if (_strnicmp(lex_Current.value.string, ".d", 2) == 0) {
+        } else if (_strnicmp(lex_Context->token.value.string, ".d", 2) == 0) {
             parse_GetToken();
             return SIZE_DOUBLE;
-        } else if (_strnicmp(lex_Current.value.string, ".x", 2) == 0) {
+        } else if (_strnicmp(lex_Context->token.value.string, ".x", 2) == 0) {
             parse_GetToken();
             return SIZE_EXTENDED;
-        } else if (_strnicmp(lex_Current.value.string, ".p", 2) == 0) {
+        } else if (_strnicmp(lex_Context->token.value.string, ".p", 2) == 0) {
             parse_GetToken();
             return SIZE_PACKED;
         }

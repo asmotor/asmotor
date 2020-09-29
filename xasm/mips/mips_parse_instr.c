@@ -29,8 +29,8 @@
 
 static int
 getRegister(void) {
-    if (lex_Current.token >= T_MIPS_REG_R0 && lex_Current.token <= T_MIPS_REG_R31) {
-        int r = lex_Current.token - T_MIPS_REG_R0;
+    if (lex_Context->token.id >= T_MIPS_REG_R0 && lex_Context->token.id <= T_MIPS_REG_R31) {
+        int r = lex_Context->token.id - T_MIPS_REG_R0;
         parse_GetToken();
 
         return r;
@@ -71,8 +71,8 @@ static uint32_t s_InstructionsRRR[T_MIPS_INTEGER_RRR_LAST - T_MIPS_INTEGER_RRR_F
 
 static bool
 handleIntegerInstructionRRR(void) {
-    if (lex_Current.token >= T_MIPS_INTEGER_RRR_FIRST && lex_Current.token <= T_MIPS_INTEGER_RRR_LAST) {
-        uint32_t opcode = s_InstructionsRRR[lex_Current.token - T_MIPS_INTEGER_RRR_FIRST];
+    if (lex_Context->token.id >= T_MIPS_INTEGER_RRR_FIRST && lex_Context->token.id <= T_MIPS_INTEGER_RRR_LAST) {
+        uint32_t opcode = s_InstructionsRRR[lex_Context->token.id - T_MIPS_INTEGER_RRR_FIRST];
 
         parse_GetToken();
 
@@ -118,8 +118,8 @@ static SInstructionRRI g_RRIInstructions[T_MIPS_INTEGER_RRI_LAST - T_MIPS_INTEGE
 
 static bool
 handleIntegerInstructionRRI(void) {
-    if (lex_Current.token >= T_MIPS_INTEGER_RRI_FIRST && lex_Current.token <= T_MIPS_INTEGER_RRI_LAST) {
-        SInstructionRRI* instruction = &g_RRIInstructions[lex_Current.token - T_MIPS_INTEGER_RRI_FIRST];
+    if (lex_Context->token.id >= T_MIPS_INTEGER_RRI_FIRST && lex_Context->token.id <= T_MIPS_INTEGER_RRI_LAST) {
+        SInstructionRRI* instruction = &g_RRIInstructions[lex_Context->token.id - T_MIPS_INTEGER_RRI_FIRST];
 
         parse_GetToken();
 
@@ -188,8 +188,8 @@ static SInstructionBranch g_branchInstructions[T_MIPS_BRANCH_LAST - T_MIPS_BRANC
 
 static bool
 handleBranch(void) {
-    if (lex_Current.token >= T_MIPS_BRANCH_FIRST && lex_Current.token <= T_MIPS_BRANCH_LAST) {
-        SInstructionBranch* instruction = &g_branchInstructions[lex_Current.token - T_MIPS_BRANCH_FIRST];
+    if (lex_Context->token.id >= T_MIPS_BRANCH_FIRST && lex_Context->token.id <= T_MIPS_BRANCH_LAST) {
+        SInstructionBranch* instruction = &g_branchInstructions[lex_Context->token.id - T_MIPS_BRANCH_FIRST];
 
         parse_GetToken();
 
@@ -245,8 +245,8 @@ static uint32_t g_shiftInstructions[T_MIPS_SHIFT_LAST - T_MIPS_SHIFT_FIRST + 1] 
 
 static bool
 handleShift(void) {
-    if (lex_Current.token >= T_MIPS_SHIFT_FIRST && lex_Current.token <= T_MIPS_SHIFT_LAST) {
-        uint32_t opcode = g_shiftInstructions[lex_Current.token - T_MIPS_SHIFT_FIRST];
+    if (lex_Context->token.id >= T_MIPS_SHIFT_FIRST && lex_Context->token.id <= T_MIPS_SHIFT_LAST) {
+        uint32_t opcode = g_shiftInstructions[lex_Context->token.id - T_MIPS_SHIFT_FIRST];
 
         parse_GetToken();
 
@@ -307,8 +307,8 @@ static uint32_t g_loadStoreInstructions[T_MIPS_LOADSTORE_LAST - T_MIPS_LOADSTORE
 
 static bool
 handleLoadStore(void) {
-    if (lex_Current.token >= T_MIPS_LOADSTORE_FIRST && lex_Current.token <= T_MIPS_LOADSTORE_LAST) {
-        uint32_t opcode = g_loadStoreInstructions[lex_Current.token - T_MIPS_LOADSTORE_FIRST];
+    if (lex_Context->token.id >= T_MIPS_LOADSTORE_FIRST && lex_Context->token.id <= T_MIPS_LOADSTORE_LAST) {
+        uint32_t opcode = g_loadStoreInstructions[lex_Context->token.id - T_MIPS_LOADSTORE_FIRST];
 
         parse_GetToken();
 
@@ -353,8 +353,8 @@ static uint32_t g_RSRTInstructions[T_MIPS_RSRT_LAST - T_MIPS_RSRT_FIRST + 1] = {
 
 static bool
 handleIntegerInstructionRSRT(void) {
-    if (lex_Current.token >= T_MIPS_RSRT_FIRST && lex_Current.token <= T_MIPS_RSRT_LAST) {
-        uint32_t opcode = g_RSRTInstructions[lex_Current.token - T_MIPS_RSRT_FIRST];
+    if (lex_Context->token.id >= T_MIPS_RSRT_FIRST && lex_Context->token.id <= T_MIPS_RSRT_LAST) {
+        uint32_t opcode = g_RSRTInstructions[lex_Context->token.id - T_MIPS_RSRT_FIRST];
 
         parse_GetToken();
 
@@ -385,8 +385,8 @@ static uint32_t g_RDRTInstructions[T_MIPS_RDRT_LAST - T_MIPS_RDRT_FIRST + 1] = {
 
 static bool
 handleIntegerInstructionRDRT(void) {
-    if (lex_Current.token >= T_MIPS_RDRT_FIRST && lex_Current.token <= T_MIPS_RDRT_LAST) {
-        uint32_t opcode = g_RDRTInstructions[lex_Current.token - T_MIPS_RDRT_FIRST];
+    if (lex_Context->token.id >= T_MIPS_RDRT_FIRST && lex_Context->token.id <= T_MIPS_RDRT_LAST) {
+        uint32_t opcode = g_RDRTInstructions[lex_Context->token.id - T_MIPS_RDRT_FIRST];
 
         parse_GetToken();
 
@@ -418,8 +418,8 @@ static uint32_t g_RSRTCodeInstructions[T_MIPS_RSRTCODE_LAST - T_MIPS_RSRTCODE_FI
 
 static bool
 handleIntegerInstructionRSRTCode(void) {
-    if (lex_Current.token >= T_MIPS_RSRTCODE_FIRST && lex_Current.token <= T_MIPS_RSRTCODE_LAST) {
-        uint32_t opcode = g_RSRTCodeInstructions[lex_Current.token - T_MIPS_RSRTCODE_FIRST];
+    if (lex_Context->token.id >= T_MIPS_RSRTCODE_FIRST && lex_Context->token.id <= T_MIPS_RSRTCODE_LAST) {
+        uint32_t opcode = g_RSRTCodeInstructions[lex_Context->token.id - T_MIPS_RSRTCODE_FIRST];
 
         parse_GetToken();
 
@@ -432,7 +432,7 @@ handleIntegerInstructionRSRTCode(void) {
 
         int rt = expectRegister();
         if (rt != REG_NONE) {
-            if (lex_Current.token == ',') {
+            if (lex_Context->token.id == ',') {
                 parse_GetToken();
 
                 SExpression* expression = parse_Expression(2);
@@ -472,8 +472,8 @@ static SInstructionRRI g_RIInstructions[T_MIPS_INTEGER_RI_LAST - T_MIPS_INTEGER_
 
 static bool
 handleIntegerInstructionRI(void) {
-    if (lex_Current.token >= T_MIPS_INTEGER_RI_FIRST && lex_Current.token <= T_MIPS_INTEGER_RI_LAST) {
-        SInstructionRRI* instruction = &g_RIInstructions[lex_Current.token - T_MIPS_INTEGER_RI_FIRST];
+    if (lex_Context->token.id >= T_MIPS_INTEGER_RI_FIRST && lex_Context->token.id <= T_MIPS_INTEGER_RI_LAST) {
+        SInstructionRRI* instruction = &g_RIInstructions[lex_Context->token.id - T_MIPS_INTEGER_RI_FIRST];
 
         parse_GetToken();
         int rs = expectRegister();
@@ -502,8 +502,8 @@ static uint32_t g_RDRSRTCopyInstructions[T_MIPS_INTEGER_RDRS_RTCOPY_LAST - T_MIP
 
 static bool
 handleIntegerInstructionRDRSRTCopy(void) {
-    if (lex_Current.token >= T_MIPS_INTEGER_RDRS_RTCOPY_FIRST && lex_Current.token <= T_MIPS_INTEGER_RDRS_RTCOPY_LAST) {
-        uint32_t opcode = g_RDRSRTCopyInstructions[lex_Current.token - T_MIPS_INTEGER_RDRS_RTCOPY_FIRST];
+    if (lex_Context->token.id >= T_MIPS_INTEGER_RDRS_RTCOPY_FIRST && lex_Context->token.id <= T_MIPS_INTEGER_RDRS_RTCOPY_LAST) {
+        uint32_t opcode = g_RDRSRTCopyInstructions[lex_Context->token.id - T_MIPS_INTEGER_RDRS_RTCOPY_FIRST];
 
         parse_GetToken();
 
@@ -539,8 +539,8 @@ static uint32_t g_noParameterInstructions[T_MIPS_INTEGER_NO_PARAMETER_LAST - T_M
 
 static bool
 handleIntegerNoParameter(void) {
-    if (lex_Current.token >= T_MIPS_INTEGER_NO_PARAMETER_FIRST && lex_Current.token <= T_MIPS_INTEGER_NO_PARAMETER_LAST) {
-        uint32_t opcode = g_noParameterInstructions[lex_Current.token - T_MIPS_INTEGER_NO_PARAMETER_FIRST];
+    if (lex_Context->token.id >= T_MIPS_INTEGER_NO_PARAMETER_FIRST && lex_Context->token.id <= T_MIPS_INTEGER_NO_PARAMETER_LAST) {
+        uint32_t opcode = g_noParameterInstructions[lex_Context->token.id - T_MIPS_INTEGER_NO_PARAMETER_FIRST];
 
         parse_GetToken();
 
@@ -558,8 +558,8 @@ static uint32_t g_RTInstructions[T_MIPS_INTEGER_RT_LAST - T_MIPS_INTEGER_RT_FIRS
 
 static bool
 handleIntegerRT(void) {
-    if (lex_Current.token >= T_MIPS_INTEGER_RT_FIRST && lex_Current.token <= T_MIPS_INTEGER_RT_LAST) {
-        uint32_t opcode = g_RTInstructions[lex_Current.token - T_MIPS_INTEGER_RT_FIRST];
+    if (lex_Context->token.id >= T_MIPS_INTEGER_RT_FIRST && lex_Context->token.id <= T_MIPS_INTEGER_RT_LAST) {
+        uint32_t opcode = g_RTInstructions[lex_Context->token.id - T_MIPS_INTEGER_RT_FIRST];
 
         parse_GetToken();
 
@@ -582,8 +582,8 @@ static uint32_t g_RDInstructions[T_MIPS_INTEGER_RD_LAST - T_MIPS_INTEGER_RD_FIRS
 
 static bool
 handleIntegerRD(void) {
-    if (lex_Current.token >= T_MIPS_INTEGER_RD_FIRST && lex_Current.token <= T_MIPS_INTEGER_RD_LAST) {
-        uint32_t opcode = g_RDInstructions[lex_Current.token - T_MIPS_INTEGER_RD_FIRST];
+    if (lex_Context->token.id >= T_MIPS_INTEGER_RD_FIRST && lex_Context->token.id <= T_MIPS_INTEGER_RD_LAST) {
+        uint32_t opcode = g_RDInstructions[lex_Context->token.id - T_MIPS_INTEGER_RD_FIRST];
 
         parse_GetToken();
 
@@ -607,8 +607,8 @@ static uint32_t g_RSInstructions[T_MIPS_INTEGER_RS_LAST - T_MIPS_INTEGER_RS_FIRS
 
 static bool
 handleIntegerRS(void) {
-    if (lex_Current.token >= T_MIPS_INTEGER_RS_FIRST && lex_Current.token <= T_MIPS_INTEGER_RS_LAST) {
-        uint32_t opcode = g_RSInstructions[lex_Current.token - T_MIPS_INTEGER_RS_FIRST];
+    if (lex_Context->token.id >= T_MIPS_INTEGER_RS_FIRST && lex_Context->token.id <= T_MIPS_INTEGER_RS_LAST) {
+        uint32_t opcode = g_RSInstructions[lex_Context->token.id - T_MIPS_INTEGER_RS_FIRST];
 
         parse_GetToken();
 
@@ -630,8 +630,8 @@ static uint32_t g_jumpAbsInstructions[T_MIPS_INTEGER_J_ABS_LAST - T_MIPS_INTEGER
 
 static bool
 handleIntegerJumpAbs(void) {
-    if (lex_Current.token >= T_MIPS_INTEGER_J_ABS_FIRST && lex_Current.token <= T_MIPS_INTEGER_J_ABS_LAST) {
-        uint32_t opcode = g_jumpAbsInstructions[lex_Current.token - T_MIPS_INTEGER_J_ABS_FIRST];
+    if (lex_Context->token.id >= T_MIPS_INTEGER_J_ABS_FIRST && lex_Context->token.id <= T_MIPS_INTEGER_J_ABS_LAST) {
+        uint32_t opcode = g_jumpAbsInstructions[lex_Context->token.id - T_MIPS_INTEGER_J_ABS_FIRST];
 
         parse_GetToken();
 
@@ -650,7 +650,7 @@ handleIntegerJumpAbs(void) {
 
 static bool
 handleLUI(void) {
-    if (lex_Current.token == T_MIPS_LUI) {
+    if (lex_Context->token.id == T_MIPS_LUI) {
         parse_GetToken();
 
         int rd = expectRegister();
@@ -802,8 +802,8 @@ static mnemonicHandler g_mnemonicHandlers[T_MIPS_LUI - T_MIPS_ADD + 1] = {
 
 bool
 mips_ParseIntegerInstruction(void) {
-    if (T_MIPS_ADD <= lex_Current.token && lex_Current.token <= T_MIPS_LUI) {
-        return g_mnemonicHandlers[lex_Current.token - T_MIPS_ADD]();
+    if (T_MIPS_ADD <= lex_Context->token.id && lex_Context->token.id <= T_MIPS_LUI) {
+        return g_mnemonicHandlers[lex_Context->token.id - T_MIPS_ADD]();
     }
 
     return false;

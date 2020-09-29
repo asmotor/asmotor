@@ -29,11 +29,11 @@
 
 // From xasm
 #include "xasm.h"
+#include "crc32.h"
 #include "dependency.h"
 #include "errors.h"
 #include "includes.h"
-#include "filebuffer.h"
-#include "lexer.h"
+#include "lexer_buffer.h"
 #include "lexer_context.h"
 #include "symbol.h"
 #include "tokens.h"
@@ -88,7 +88,7 @@ createFileInfo(string* fileName) {
 }
 
 static void
-setNewContext(SLexerContext* context) {
+pushContext(SLexerContext* context) {
 	list_Insert(lex_Context, context);
 }
 
@@ -153,37 +153,37 @@ copyFileInfo(intptr_t key, intptr_t value, intptr_t data) {
 /* Public functions */
 
 extern size_t
-lex_GetMacroArgumentCount(void) {
+lexctx_GetMacroArgumentCount(void) {
 	SLexerContext* macro = getMacroContext();
 	if (macro != NULL) {
-		return strvec_Count(macro->lexBuffer->fileBuffer.arguments) - 1;
+		return strvec_Count(macro->buffer.arguments) - 1;
 	}
 	return 0;
 }
 
 extern void
-lex_AddMacroArgument(string* str) {
+lexctx_AddMacroArgument(string* str) {
 	strvec_PushBack(g_newMacroArguments, str);
 }
 
 extern void
-lex_SetMacroArgument0(string* str) {
+lexctx_SetMacroArgument0(string* str) {
 	str_Free(strvec_StringAt(g_newMacroArguments, 0));
 	strvec_SetAt(g_newMacroArguments, 0, str_Copy(str));
 }
 
 extern void
-lex_ShiftMacroArgs(int32_t count) {
+lexctx_ShiftMacroArgs(int32_t count) {
 	SLexerContext* context = getMacroContext();
 	if (context != NULL) {
-		fbuf_ShiftArguments(&context->lexBuffer->fileBuffer, count);
+		lexbuf_ShiftArguments(&context->buffer, count);
 	} else {
 		err_Warn(WARN_SHIFT_MACRO);
 	}
 }
 
 extern string*
-lex_Dump(void) {
+lexctx_Dump(void) {
 	string_buffer* buf = strbuf_Create();
 
 	if (lex_Context == NULL) {
@@ -195,8 +195,8 @@ lex_Dump(void) {
 		}
 
 		while (stack != NULL) {
-			if (stack->name != NULL) {
-				strbuf_AppendFormat(buf, "%s:%d", str_String(stack->name), stack->lineNumber);
+			if (stack->buffer.name != NULL) {
+				strbuf_AppendFormat(buf, "%s:%d", str_String(stack->buffer.name), stack->lineNumber);
 			}
 			stack = list_GetPrev(stack);
 
@@ -210,108 +210,159 @@ lex_Dump(void) {
 	return str;
 }
 
+static void
+copyToken(SLexerToken* dest, const SLexerToken* src) {
+	dest->id = src->id;
+	dest->length = src->length;
+	memcpy(&dest->value, &src->value, dest->length < 10 ? 10 : dest->length);
+}
+
+static void
+continueFrom(SLexerContext* ctx) {
+	copyToken(&lex_Context->token, &ctx->token);
+	lex_Context->mode = ctx->mode;
+	lex_Context->atLineStart = ctx->atLineStart;
+	lex_Context->fileInfo = ctx->fileInfo;
+	lex_Context->lineNumber = ctx->lineNumber;
+	lexbuf_ContinueFrom(&lex_Context->buffer, &ctx->buffer);
+}
+
 extern bool
-lex_EndCurrentBuffer(void) {
+lexctx_EndReptBlock(void) {
+	assert (lex_Context->type == CONTEXT_REPT);
+
 	if (list_IsLast(lex_Context)) {
 		return false;
+	} else if (lex_Context->block.repeat.remaining-- > 0) {
+		continueFrom(lex_Context->block.repeat.bookmark);
+		lexbuf_RenewUniqueValue(&lex_Context->buffer);
+		return true;
 	} else {
 		SLexerContext* context = lex_Context;
-		if (context->type == CONTEXT_REPT) {
-			if (context->block.repeat.remaining-- > 0) {
-				lex_Goto(&context->block.repeat.bookmark);
-				context->lineNumber = 0;
-				fbuf_RenewUniqueValue(&context->lexBuffer->fileBuffer);
-				return true;
-			} else {
-				list_Remove(lex_Context, lex_Context);
-				lex_CopyBuffer(lex_Context->lexBuffer, context->lexBuffer);
-			}
-		} else {
-			list_Remove(lex_Context, lex_Context);
-		}
-
-		lex_FreeBuffer(context->lexBuffer);
-		str_Free(context->name);
-
-		mem_Free(context);
-		lex_SetBuffer(lex_Context->lexBuffer);
+		list_Remove(lex_Context, lex_Context);
+		continueFrom(context);
 		return true;
 	}
 }
 
+extern bool
+lexctx_EndCurrentBuffer(void) {
+	assert (lex_Context->type != CONTEXT_REPT);
+
+	if (list_IsLast(lex_Context)) {
+		return false;
+	} else {
+		SLexerContext* context = lex_Context;
+		list_Remove(lex_Context, lex_Context);
+		lexctx_FreeContext(context);
+		return true;
+	}
+}
+
+void
+lexctx_FreeContext(SLexerContext* context) {
+	if (context != NULL) {
+		lexbuf_Destroy(&context->buffer);
+		mem_Free(context);
+	} else {
+		internalerror("Argument must not be NULL");
+	}
+}
+
+SLexerContext*
+lexctx_CreateMemoryContext(string* name, string* memory, vec_t* arguments) {
+	SLexerContext* ctx = (SLexerContext*) mem_Alloc(sizeof(SLexerContext));
+
+	lexbuf_Init(&ctx->buffer, name, memory, arguments);
+	ctx->atLineStart = true;
+	ctx->mode = LEXER_MODE_NORMAL;
+	return ctx;
+}
+
+SLexerContext*
+lexctx_CreateFileContext(FILE* fileHandle, string* name) {
+	SLexerContext* ctx = (SLexerContext*) mem_Alloc(sizeof(SLexerContext));
+	list_Init(ctx);
+
+	size_t size = fsize(fileHandle);
+	string* fileContent = str_ReadFile(fileHandle, size);
+	string* canonicalizedContent = str_CanonicalizeLineEndings(fileContent);
+	str_Free(fileContent);
+
+	lexbuf_Init(&ctx->buffer, name, canonicalizedContent, strvec_Create());
+	ctx->type = CONTEXT_FILE;
+	ctx->atLineStart = true;
+	ctx->mode = LEXER_MODE_NORMAL;
+	ctx->lineNumber = 1;
+	ctx->fileInfo = getFileInfoFor(name);
+
+	if (opt_Current->enableDebugInfo)
+		ctx->fileInfo->crc32 = crc32((const uint8_t *)str_String(fileContent), size);
+
+	str_Free(canonicalizedContent);
+	str_Free(name);
+
+	return ctx;
+}
+
+
 extern void
-lex_ProcessIncludeFile(string* fileName) {
-	SLexerContext* newContext = mem_Alloc(sizeof(SLexerContext));
-	list_Init(newContext);
-
-	newContext->type = CONTEXT_FILE;
-	newContext->name = inc_FindFile(fileName);
-
+lexctx_ProcessIncludeFile(string* fileName) {
+	string* name = inc_FindFile(fileName);
 	FILE* fileHandle;
-	if (newContext->name != NULL && (fileHandle = fopen(str_String(newContext->name), "rt")) != NULL) {
-		newContext->fileInfo = createFileInfo(newContext->name);
-		dep_AddDependency(newContext->name);
-		if ((newContext->lexBuffer = lex_CreateFileBuffer(fileHandle, &newContext->fileInfo->crc32)) != NULL) {
-			lex_SetBuffer(newContext->lexBuffer);
-			lex_SetMode(LEXER_MODE_NORMAL);
-			newContext->lineNumber = 0;
-			setNewContext(newContext);
-		}
+	if (name != NULL && (fileHandle = fopen(str_String(name), "rt")) != NULL) {
+		SLexerContext* newContext = lexctx_CreateFileContext(fileHandle, name);
 		fclose(fileHandle);
+
+		newContext->fileInfo = createFileInfo(name);
+		dep_AddDependency(newContext->buffer.name);
+		pushContext(newContext);
 	} else {
 		err_Fail(ERROR_NO_FILE);
 	}
 }
 
 extern void
-lex_ProcessRepeatBlock(uint32_t count) {
+lexctx_ProcessRepeatBlock(uint32_t count) {
 	SLexerContext* newContext = mem_Alloc(sizeof(SLexerContext));
 	list_Init(newContext);
 
-	newContext->name = str_Create("REPT");
-	newContext->fileInfo = NULL;
+	lexctx_Copy(newContext, lex_Context);
+	lexbuf_RenewUniqueValue(&newContext->buffer);
 	newContext->type = CONTEXT_REPT;
-	newContext->lineNumber = 0;
+	newContext->mode = LEXER_MODE_NORMAL;
 	newContext->block.repeat.remaining = count - 1;
-	lex_Bookmark(&newContext->block.repeat.bookmark);
+	newContext->block.repeat.bookmark = lex_Context;
 
-	if ((newContext->lexBuffer = lex_CreateBookmarkBuffer(&newContext->block.repeat.bookmark)) != NULL) {
-		lex_SetBuffer(newContext->lexBuffer);
-		lex_SetMode(LEXER_MODE_NORMAL);
-		setNewContext(newContext);
-	}
+	pushContext(newContext);
 }
 
 extern void
-lex_ProcessMacro(string* macroName) {
+lexctx_ProcessMacro(string* macroName) {
 	SSymbol* symbol = sym_GetSymbol(macroName);
 
 	if (symbol != NULL) {
-		SLexerContext* newContext = mem_Alloc(sizeof(SLexerContext));
+		SLexerContext* newContext = lexctx_CreateMemoryContext(symbol->fileInfo->fileName, symbol->value.macro, g_newMacroArguments);
 
-		memset(newContext, 0, sizeof(SLexerContext));
 		newContext->type = CONTEXT_MACRO;
 
-		newContext->name = str_Copy(macroName);
 		newContext->fileInfo = symbol->fileInfo;
-		newContext->lexBuffer = lex_CreateMemoryBuffer(symbol->value.macro, g_newMacroArguments);
+		newContext->mode = LEXER_MODE_NORMAL;
 
 		g_newMacroArguments = strvec_Create();
 		strvec_PushBack(g_newMacroArguments, NULL);
 
-		lex_SetBuffer(newContext->lexBuffer);
-		lex_SetMode(LEXER_MODE_NORMAL);
-		newContext->lineNumber = 1;
+		newContext->lineNumber = symbol->lineNumber;
 		newContext->block.macro.symbol = symbol;
 
-		setNewContext(newContext);
+		pushContext(newContext);
 	} else {
 		err_Error(ERROR_NO_MACRO);
 	}
 }
 
 extern bool
-lex_ContextInit(string* fileName) {
+lexctx_ContextInit(string* fileName) {
 	g_newMacroArguments = strvec_Create();
 	strvec_PushBack(g_newMacroArguments, NULL);
 
@@ -323,21 +374,13 @@ lex_ContextInit(string* fileName) {
 	sym_CreateEqus(symbolName, fileName);
 	str_Free(symbolName);
 
-	lex_Context = mem_Alloc(sizeof(SLexerContext));
-	memset(lex_Context, 0, sizeof(SLexerContext));
-	lex_Context->type = CONTEXT_FILE;
-
 	FILE* fileHandle;
-	if ((lex_Context->name = inc_FindFile(fileName)) != NULL
-		&& (fileHandle = fopen(str_String(lex_Context->name), "rt")) != NULL) {
+	string* name;
+	if ((name = inc_FindFile(fileName)) != NULL
+		&& (fileHandle = fopen(str_String(name), "rt")) != NULL) {
 
-		lex_Context->fileInfo = getFileInfoFor(lex_Context->name);
-		lex_Context->lexBuffer = lex_CreateFileBuffer(fileHandle, &lex_Context->fileInfo->crc32);
+		lex_Context = lexctx_CreateFileContext(fileHandle, name);
 		fclose(fileHandle);
-
-		lex_SetBuffer(lex_Context->lexBuffer);
-		lex_SetMode(LEXER_MODE_NORMAL);
-		lex_Context->lineNumber = 1;
 		return true;
 	}
 
@@ -346,21 +389,21 @@ lex_ContextInit(string* fileName) {
 }
 
 extern void
-lex_Cleanup(void) {
+lexctx_Cleanup(void) {
 }
 
 extern SFileInfo*
-lex_CurrentFileInfo() {
+lexctx_TokenFileInfo() {
 	return getMostRecentFileInfo(lex_Context);
 }
 
 extern uint32_t
-lex_CurrentLineNumber() {
+lexctx_TokenLineNumber() {
 	return getMostRecentLineNumber(lex_Context);
 }
 
 extern SFileInfo**
-lex_GetFileInfo(size_t* totalFiles) {
+lexctx_GetFileInfo(size_t* totalFiles) {
 	*totalFiles = map_Count(g_fileNameMap);
 	assert (*totalFiles != 0);
 
@@ -369,3 +412,14 @@ lex_GetFileInfo(size_t* totalFiles) {
 	return result;
 }
 
+extern void
+lexctx_Copy(SLexerContext* dest, const SLexerContext* source) {
+	copyToken(&dest->token, &source->token);
+	dest->type = source->type;
+	dest->mode = source->mode;
+	lexbuf_Copy(&dest->buffer, &source->buffer);
+	dest->atLineStart = source->atLineStart;
+	dest->fileInfo = source->fileInfo;
+	dest->lineNumber = source->lineNumber;
+	dest->block = source->block;
+}
