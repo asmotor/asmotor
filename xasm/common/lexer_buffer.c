@@ -100,7 +100,6 @@ lexbuf_GetChar(SLexerBuffer* buffer) {
 extern void
 lexbuf_Init(SLexerBuffer* buffer, string* name, string* content, vec_t* arguments) {
 	assert (arguments != NULL);
-	assert (strvec_Frozen(arguments));
 
 	chstk_Init(&buffer->charStack);
 	buffer->name = str_Copy(name);
@@ -116,7 +115,6 @@ lexbuf_Destroy(SLexerBuffer* buffer) {
 	str_Free(buffer->name);
 	str_Free(buffer->text);
 	str_Free(buffer->uniqueValue);
-	strvec_Free(buffer->arguments);
 }
 
 
@@ -135,7 +133,7 @@ lexbuf_Copy(SLexerBuffer* dest, const SLexerBuffer* source) {
 	dest->uniqueValue = str_Copy(source->uniqueValue);
 	dest->text = str_Copy(source->text);
 	dest->index = source->index;
-	dest->arguments = strvec_Copy(source->arguments);
+	dest->arguments = source->arguments;
 }
 
 
@@ -145,7 +143,7 @@ lexbuf_ContinueFrom(SLexerBuffer* dest, const SLexerBuffer* source) {
 	dest->name = str_Copy(source->name);
 	dest->text = str_Copy(source->text);
 	dest->index = source->index;
-	dest->arguments = strvec_Copy(source->arguments);
+	dest->arguments = source->arguments;
 }
 
 

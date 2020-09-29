@@ -167,7 +167,7 @@ lexctx_GetMacroArgumentCount(void) {
 
 extern void
 lexctx_AddMacroArgument(string* str) {
-	strvec_PushBack(g_newMacroArguments, str);
+	strvec_PushBack(g_newMacroArguments, str_Copy(str));
 }
 
 extern void
@@ -266,6 +266,10 @@ lexctx_EndCurrentBuffer(void) {
 void
 lexctx_FreeContext(SLexerContext* context) {
 	if (context != NULL) {
+		if (context->type == CONTEXT_MACRO) {
+			strvec_Free(context->buffer.arguments);
+		}
+
 		lexbuf_Destroy(&context->buffer);
 		str_Free(context->token.tokenString);
 		mem_Free(context);
@@ -293,7 +297,7 @@ lexctx_CreateFileContext(FILE* fileHandle, string* name) {
 	string* canonicalizedContent = str_CanonicalizeLineEndings(fileContent);
 	str_Free(fileContent);
 
-	lexbuf_Init(&ctx->buffer, name, canonicalizedContent, strvec_Freeze(strvec_Create()));
+	lexbuf_Init(&ctx->buffer, name, canonicalizedContent, strvec_Create());
 	ctx->type = CONTEXT_FILE;
 	ctx->atLineStart = true;
 	ctx->mode = LEXER_MODE_NORMAL;
@@ -345,7 +349,7 @@ lexctx_ProcessMacro(string* macroName) {
 	SSymbol* symbol = sym_GetSymbol(macroName);
 
 	if (symbol != NULL) {
-		SLexerContext* newContext = lexctx_CreateMemoryContext(symbol->fileInfo->fileName, symbol->value.macro, strvec_Freeze(g_newMacroArguments));
+		SLexerContext* newContext = lexctx_CreateMemoryContext(symbol->fileInfo->fileName, symbol->value.macro, g_newMacroArguments);
 
 		newContext->type = CONTEXT_MACRO;
 
@@ -418,6 +422,7 @@ lexctx_GetFileInfo(size_t* totalFiles) {
 extern void
 lexctx_Copy(SLexerContext* dest, const SLexerContext* source) {
 	copyToken(&dest->token, &source->token);
+	dest->token.tokenString = str_Copy(source->token.tokenString);
 	dest->type = source->type;
 	dest->mode = source->mode;
 	lexbuf_Copy(&dest->buffer, &source->buffer);

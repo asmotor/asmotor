@@ -1,15 +1,15 @@
 MACRO: (_2), arg1 3987
 MACROREPT * 2 (_3), arg1 3987, narg 2
-MACROREPT * 2 (_4), arg1 3987, narg 1
-MACROEND: (_2), arg1 3987
+MACROREPT * 2 (_4), arg1 1234, narg 1
+MACROEND: (_2), arg1 
 MACRO: (_5), arg1 3987
 MACROREPT * 2 (_6), arg1 3987, narg 2
-MACROREPT * 2 (_7), arg1 3987, narg 1
-MACROEND: (_5), arg1 3987
+MACROREPT * 2 (_7), arg1 1234, narg 1
+MACROEND: (_5), arg1 
 MACRO: (_8), arg1 3987
 MACROREPT * 2 (_9), arg1 3987, narg 2
-MACROREPT * 2 (_10), arg1 3987, narg 1
-MACROEND: (_8), arg1 3987
+MACROREPT * 2 (_10), arg1 1234, narg 1
+MACROEND: (_8), arg1 
 1st REPT * 3 (start _11)
 	2nd REPT * 4 (_12)
 	2nd REPT * 4 (_13)
@@ -30,16 +30,16 @@ MACROEND: (_8), arg1 3987
 1st REPT * 3 (end _21)
 MACRO: (_27), arg1 3987
 MACROREPT * 2 (_28), arg1 3987, narg 2
-MACROREPT * 2 (_29), arg1 3987, narg 1
-MACROEND: (_27), arg1 3987
+MACROREPT * 2 (_29), arg1 1234, narg 1
+MACROEND: (_27), arg1 
 MACRO: (_30), arg1 3987
 MACROREPT * 2 (_31), arg1 3987, narg 2
-MACROREPT * 2 (_32), arg1 3987, narg 1
-MACROEND: (_30), arg1 3987
+MACROREPT * 2 (_32), arg1 1234, narg 1
+MACROEND: (_30), arg1 
 MACRO: (_33), arg1 3987
 MACROREPT * 2 (_34), arg1 3987, narg 2
-MACROREPT * 2 (_35), arg1 3987, narg 1
-MACROEND: (_33), arg1 3987
+MACROREPT * 2 (_35), arg1 1234, narg 1
+MACROEND: (_33), arg1 
 1st REPT * 3 (start _36)
 	2nd REPT * 4 (_37)
 	2nd REPT * 4 (_38)
@@ -60,13 +60,13 @@ MACROEND: (_33), arg1 3987
 1st REPT * 3 (end _46)
 MACRO: (_51), arg1 3987
 MACROREPT * 2 (_52), arg1 3987, narg 2
-MACROREPT * 2 (_53), arg1 3987, narg 1
-MACROEND: (_51), arg1 3987
+MACROREPT * 2 (_53), arg1 1234, narg 1
+MACROEND: (_51), arg1 
 MACRO: (_54), arg1 3987
 MACROREPT * 2 (_55), arg1 3987, narg 2
-MACROREPT * 2 (_56), arg1 3987, narg 1
-MACROEND: (_54), arg1 3987
+MACROREPT * 2 (_56), arg1 1234, narg 1
+MACROEND: (_54), arg1 
 MACRO: (_57), arg1 3987
 MACROREPT * 2 (_58), arg1 3987, narg 2
-MACROREPT * 2 (_59), arg1 3987, narg 1
-MACROEND: (_57), arg1 3987
+MACROREPT * 2 (_59), arg1 1234, narg 1
+MACROEND: (_57), arg1 
