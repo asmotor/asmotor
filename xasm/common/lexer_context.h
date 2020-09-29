@@ -43,6 +43,7 @@ typedef struct FileInfo {
 } SFileInfo;
 
 typedef struct {
+    string* tokenString;
     uint32_t id;
     size_t length;
     union {

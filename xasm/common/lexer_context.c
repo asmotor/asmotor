@@ -39,10 +39,6 @@
 #include "tokens.h"
 
 
-/* Internal structures */
-
-#define MAX_INCLUDE_PATHS 16
-
 /* Internal variables */
 
 SLexerContext* lex_Context;
@@ -53,6 +49,14 @@ static map_t* g_fileNameMap = NULL;
 
 
 /* Private functions */
+
+static SLexerContext*
+createContext(void) {
+	SLexerContext* ctx = (SLexerContext*)mem_Alloc(sizeof(SLexerContext));
+	list_Init(ctx);
+	ctx->token.tokenString = NULL;
+	return ctx;
+}
 
 static SFileInfo*
 getFileInfoFor(const string* fileName) {
@@ -263,6 +267,7 @@ void
 lexctx_FreeContext(SLexerContext* context) {
 	if (context != NULL) {
 		lexbuf_Destroy(&context->buffer);
+		str_Free(context->token.tokenString);
 		mem_Free(context);
 	} else {
 		internalerror("Argument must not be NULL");
@@ -271,7 +276,7 @@ lexctx_FreeContext(SLexerContext* context) {
 
 SLexerContext*
 lexctx_CreateMemoryContext(string* name, string* memory, vec_t* arguments) {
-	SLexerContext* ctx = (SLexerContext*) mem_Alloc(sizeof(SLexerContext));
+	SLexerContext* ctx = createContext();
 
 	lexbuf_Init(&ctx->buffer, name, memory, arguments);
 	ctx->atLineStart = true;
@@ -281,8 +286,7 @@ lexctx_CreateMemoryContext(string* name, string* memory, vec_t* arguments) {
 
 SLexerContext*
 lexctx_CreateFileContext(FILE* fileHandle, string* name) {
-	SLexerContext* ctx = (SLexerContext*) mem_Alloc(sizeof(SLexerContext));
-	list_Init(ctx);
+	SLexerContext* ctx = createContext();
 
 	size_t size = fsize(fileHandle);
 	string* fileContent = str_ReadFile(fileHandle, size);
@@ -324,8 +328,7 @@ lexctx_ProcessIncludeFile(string* fileName) {
 
 extern void
 lexctx_ProcessRepeatBlock(uint32_t count) {
-	SLexerContext* newContext = mem_Alloc(sizeof(SLexerContext));
-	list_Init(newContext);
+	SLexerContext* newContext = createContext();
 
 	lexctx_Copy(newContext, lex_Context);
 	lexbuf_RenewUniqueValue(&newContext->buffer);
