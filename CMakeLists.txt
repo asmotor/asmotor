@@ -7,9 +7,9 @@ include (ucm.cmake)
 set (CMAKE_C_STANDARD 99)
 
 if(MSVC)
-  add_compile_options(/W3 /WX /wd4068 /D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1)
+  add_compile_options(/W3 /WX /wd4068 /J /D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1)
 else(MSVC)
-  add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unused-parameter)
+  add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unused-parameter -funsigned-char)
 endif(MSVC)
 
 ucm_set_runtime (STATIC)
