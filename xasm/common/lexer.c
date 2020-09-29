@@ -157,7 +157,6 @@ consumeComment(bool wasSpace, bool lineStart) {
 	char ch = lex_GetChar();
 
 	if (ch == ';' || (ch == '*' && (wasSpace || lineStart))) {
-		lex_GetChar();
 		while (!isLineEnd(ch = lex_GetChar())) {}
 		wasSpace = false;
 	}

@@ -318,7 +318,7 @@ extern void
 lexctx_ProcessIncludeFile(string* fileName) {
 	string* name = inc_FindFile(fileName);
 	FILE* fileHandle;
-	if (name != NULL && (fileHandle = fopen(str_String(name), "rt")) != NULL) {
+	if (name != NULL && (fileHandle = fopen(str_String(name), "rb")) != NULL) {
 		SLexerContext* newContext = lexctx_CreateFileContext(fileHandle, name);
 		fclose(fileHandle);
 
@@ -384,7 +384,7 @@ lexctx_ContextInit(string* fileName) {
 	FILE* fileHandle;
 	string* name;
 	if ((name = inc_FindFile(fileName)) != NULL
-		&& (fileHandle = fopen(str_String(name), "rt")) != NULL) {
+		&& (fileHandle = fopen(str_String(name), "rb")) != NULL) {
 
 		lex_Context = lexctx_CreateFileContext(fileHandle, name);
 		fclose(fileHandle);
