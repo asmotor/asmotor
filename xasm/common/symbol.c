@@ -67,12 +67,12 @@ util_localtime(struct tm* const tmDest, time_t const* const sourceTime) {
 
 static int32_t
 callback__NARG(SSymbol* symbol) {
-    return lexctx_GetMacroArgumentCount();
+    return (int32_t) lexctx_GetMacroArgumentCount();
 }
 
 static int32_t
 callback__LINE(SSymbol* symbol) {
-    return lexctx_TokenLineNumber();
+    return (int32_t) lexctx_TokenLineNumber();
 }
 
 static string* getDateString() {

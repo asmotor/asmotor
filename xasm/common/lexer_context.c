@@ -289,7 +289,7 @@ lexctx_CreateFileContext(FILE* fileHandle, string* name) {
 	string* canonicalizedContent = str_CanonicalizeLineEndings(fileContent);
 	str_Free(fileContent);
 
-	lexbuf_Init(&ctx->buffer, name, canonicalizedContent, strvec_Create());
+	lexbuf_Init(&ctx->buffer, name, canonicalizedContent, strvec_Freeze(strvec_Create()));
 	ctx->type = CONTEXT_FILE;
 	ctx->atLineStart = true;
 	ctx->mode = LEXER_MODE_NORMAL;
@@ -342,7 +342,7 @@ lexctx_ProcessMacro(string* macroName) {
 	SSymbol* symbol = sym_GetSymbol(macroName);
 
 	if (symbol != NULL) {
-		SLexerContext* newContext = lexctx_CreateMemoryContext(symbol->fileInfo->fileName, symbol->value.macro, g_newMacroArguments);
+		SLexerContext* newContext = lexctx_CreateMemoryContext(symbol->fileInfo->fileName, symbol->value.macro, strvec_Freeze(g_newMacroArguments));
 
 		newContext->type = CONTEXT_MACRO;
 
