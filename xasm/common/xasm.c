@@ -265,5 +265,9 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     str_Free(outputFilename);
     opt_Close();
 
+    sym_Exit();
+
+    mem_ShowLeaks();
+
     return rcode;
 }

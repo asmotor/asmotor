@@ -537,3 +537,23 @@ sym_Init(void) {
 
     return true;
 }
+
+extern sym_Free(SSymbol* symbol) {
+    str_Free(symbol->name);
+    if (symbol->type == SYM_MACRO) {
+        str_Free(symbol->value.macro);
+    }
+    mem_Free(symbol);
+}
+
+extern void
+sym_Exit(void) {
+    for (size_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+        SSymbol* symbol = sym_hashedSymbols[i];
+        while (symbol != NULL) {
+            SSymbol* next = list_GetNext(symbol);
+            sym_Free(symbol);
+            symbol = next;
+        }
+    }
+}
