@@ -56,6 +56,15 @@ dep_Initialize(const char* outputFileName) {
 }
 
 extern void
+dep_Exit(void) {
+	str_Free(g_mainOutput);
+	str_Free(g_outputFilename);
+	str_Free(g_mainDependency);
+	if (g_dependencySet != NULL)
+		strset_Free(g_dependencySet);
+}
+
+extern void
 dep_SetMainOutput(string* filename) {
     g_mainOutput = str_Copy(filename);
 }

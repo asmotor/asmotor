@@ -43,13 +43,14 @@ inc_FindFile(string* fileName) {
 
     if (workingName == NULL) {
         if (fexists(str_String(fileName))) {
-            return str_Copy(fileName);
+            return fileName;
         }
     }
 
 	string* candidate = freplaceFileComponent(workingName, fileName);
 	if (candidate != NULL) {
 		if (fexists(str_String(candidate))) {
+			str_Free(fileName);
 			return str_Copy(candidate);
 		}
 	}
@@ -59,11 +60,13 @@ inc_FindFile(string* fileName) {
             string* candidate = str_Concat(strvec_StringAt(g_includePaths, count), fileName);
 
             if (fexists(str_String(candidate))) {
+				str_Free(fileName);
                 return str_Copy(candidate);
             }
         }
     }
 
+	str_Free(fileName);
     return NULL;
 }
 

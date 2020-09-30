@@ -54,6 +54,9 @@ extern void
 lexbuf_Copy(SLexerBuffer* dest, const SLexerBuffer* source);
 
 extern void
+lexbuf_ShallowCopy(SLexerBuffer* dest, const SLexerBuffer* source);
+
+extern void
 lexbuf_ContinueFrom(SLexerBuffer* dest, const SLexerBuffer* source);
 
 extern void

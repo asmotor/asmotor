@@ -138,6 +138,17 @@ lexbuf_Copy(SLexerBuffer* dest, const SLexerBuffer* source) {
 
 
 extern void
+lexbuf_ShallowCopy(SLexerBuffer* dest, const SLexerBuffer* source) {
+	chstk_Copy(&dest->charStack, &source->charStack);
+	dest->name = source->name;
+	dest->uniqueValue = source->uniqueValue;
+	dest->text = source->text;
+	dest->index = source->index;
+	dest->arguments = source->arguments;
+}
+
+
+extern void
 lexbuf_ContinueFrom(SLexerBuffer* dest, const SLexerBuffer* source) {
 	chstk_Copy(&dest->charStack, &source->charStack);
 	dest->name = str_Copy(source->name);

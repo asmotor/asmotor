@@ -128,11 +128,17 @@ lexctx_TokenLineNumber();
 extern void
 lexctx_Copy(SLexerContext* dest, const SLexerContext* source);
 
+extern void
+lexctx_ShallowCopy(SLexerContext* dest, const SLexerContext* source);
+
 extern SLexerContext*
 lexctx_CreateMemoryContext(string* name, string* content, vec_t* arguments);
 
 extern SLexerContext*
 lexctx_CreateFileContext(FILE* f, string* name);
+
+void
+lexctx_Destroy(SLexerContext* context);
 
 extern void
 lexctx_FreeContext(SLexerContext* buffer);

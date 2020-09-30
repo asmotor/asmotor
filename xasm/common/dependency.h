@@ -23,6 +23,9 @@ extern void
 dep_Initialize(const char* outputFileName);
 
 extern void
+dep_Exit(void);
+
+extern void
 dep_SetMainOutput(string* filename);
 
 extern void

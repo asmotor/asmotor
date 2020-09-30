@@ -52,7 +52,7 @@ static map_t* g_fileNameMap = NULL;
 
 static SLexerContext*
 createContext(void) {
-	SLexerContext* ctx = (SLexerContext*)mem_Alloc(sizeof(SLexerContext));
+	SLexerContext* ctx = (SLexerContext*) mem_Alloc(sizeof(SLexerContext));
 	list_Init(ctx);
 	ctx->token.tokenString = NULL;
 	return ctx;
@@ -264,14 +264,24 @@ lexctx_EndCurrentBuffer(void) {
 }
 
 void
-lexctx_FreeContext(SLexerContext* context) {
+lexctx_Destroy(SLexerContext* context) {
 	if (context != NULL) {
-		if (context->type == CONTEXT_MACRO) {
+		if (context->type == CONTEXT_MACRO && context->buffer.arguments != NULL) {
 			strvec_Free(context->buffer.arguments);
 		}
 
 		lexbuf_Destroy(&context->buffer);
 		str_Free(context->token.tokenString);
+		context->token.tokenString = NULL;
+	} else {
+		internalerror("Argument must not be NULL");
+	}
+}
+
+void
+lexctx_FreeContext(SLexerContext* context) {
+	if (context != NULL) {
+		lexctx_Destroy(context);
 		mem_Free(context);
 	} else {
 		internalerror("Argument must not be NULL");
@@ -381,14 +391,16 @@ lexctx_ContextInit(string* fileName) {
 	sym_CreateEqus(symbolName, fileName);
 	str_Free(symbolName);
 
-	FILE* fileHandle;
-	string* name;
-	if ((name = inc_FindFile(fileName)) != NULL
-		&& (fileHandle = fopen(str_String(name), "rb")) != NULL) {
-
-		lex_Context = lexctx_CreateFileContext(fileHandle, name);
-		fclose(fileHandle);
-		return true;
+	string* name = inc_FindFile(fileName);
+	if (name != NULL) {
+		FILE* fileHandle = fopen(str_String(name), "rb");
+		if (fileHandle != NULL) {
+			lex_Context = lexctx_CreateFileContext(fileHandle, name);
+			str_Free(name);
+			fclose(fileHandle);
+			return true;
+		}
+		str_Free(name);
 	}
 
 	err_Fail(ERROR_NO_FILE);
@@ -427,6 +439,19 @@ lexctx_Copy(SLexerContext* dest, const SLexerContext* source) {
 	dest->type = source->type;
 	dest->mode = source->mode;
 	lexbuf_Copy(&dest->buffer, &source->buffer);
+	dest->atLineStart = source->atLineStart;
+	dest->fileInfo = source->fileInfo;
+	dest->lineNumber = source->lineNumber;
+	dest->block = source->block;
+}
+
+extern void
+lexctx_ShallowCopy(SLexerContext* dest, const SLexerContext* source) {
+	copyToken(&dest->token, &source->token);
+	dest->token.tokenString = source->token.tokenString;
+	dest->type = source->type;
+	dest->mode = source->mode;
+	lexbuf_ShallowCopy(&dest->buffer, &source->buffer);
 	dest->atLineStart = source->atLineStart;
 	dest->fileInfo = source->fileInfo;
 	dest->lineNumber = source->lineNumber;

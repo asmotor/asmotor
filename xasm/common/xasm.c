@@ -205,9 +205,9 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     rcode = EXIT_SUCCESS;
 
     if (argc == 1) {
-        string* source = str_Create(argv[argn]);
+        string* sourcePath = str_Create(argv[argn]);
 
-        if (lex_Init(source)) {
+        if (lex_Init(sourcePath)) {
 
 			tokens_Init(configuration->supportFloat);
 			if (configuration->supportFloat) {
@@ -243,7 +243,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 
                 if (outputFilename != NULL) {
                     dep_SetMainOutput(outputFilename);
-                    if (writeOutput(format, outputFilename, source)) {
+                    if (writeOutput(format, outputFilename, sourcePath)) {
                         dep_WriteDependencyFile();
                     } else  {
                         remove(str_String(outputFilename));
@@ -256,7 +256,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                 rcode = EXIT_FAILURE;
             }
         }
-        str_Free(source);
+        str_Free(sourcePath);
     } else if (argc > 1) {
         err_Error(ERROR_TOO_MANY_FILES);
     }
@@ -264,6 +264,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
     str_Free(outputFilename);
     opt_Close();
 
+	dep_Exit();
     sym_Exit();
 	lex_Exit();
 

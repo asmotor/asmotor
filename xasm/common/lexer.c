@@ -633,12 +633,12 @@ lex_CopyUnexpandedContent(char* dest, size_t count) {
 
 void
 lex_Bookmark(SLexerContext* bookmark) {
-	lexctx_Copy(bookmark, lex_Context);
+	lexctx_ShallowCopy(bookmark, lex_Context);
 }
 
 void
 lex_Goto(SLexerContext* bookmark) {
-	lexctx_Copy(lex_Context, bookmark);
+	lexctx_ShallowCopy(lex_Context, bookmark);
 }
 
 size_t
