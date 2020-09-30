@@ -154,19 +154,16 @@ skipToEndm(void) {
 	return skipToDirective(isEndm, getNextDirectiveIndexed);
 }
 
-bool
-parse_CopyMacroBlock(char** dest, size_t* size) {
+extern string*
+parse_CopyMacroBlock(void) {
 	getNextDirectiveIndex = 0;
 	lex_Context->token.id = T_NONE;
 	skipToEndm();
 
-    *dest = (char*) mem_Alloc(getNextDirectiveIndex + 1);
-    lex_CopyUnexpandedContent(*dest, getNextDirectiveIndex);
-	(*dest)[getNextDirectiveIndex] = 0;
-
-    *size = getNextDirectiveIndex;
+	string* str = str_CreateLength(NULL, getNextDirectiveIndex);
+    lex_CopyUnexpandedContent((char*) str_String(str), getNextDirectiveIndex);
 
 	lex_Context->lineNumber += (uint32_t) lex_SkipBytes(getNextDirectiveIndex);
 
-    return true;
+    return str;
 }

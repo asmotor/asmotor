@@ -34,6 +34,9 @@ extern bool
 lex_Init(string* filename);
 
 extern void
+lex_Exit(void);
+
+extern void
 lex_UnputChar(char ch);
 
 extern char

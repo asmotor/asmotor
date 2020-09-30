@@ -108,7 +108,7 @@ extern SSymbol*
 sym_CreateGroup(string* name, EGroupType value);
 
 extern SSymbol*
-sym_CreateMacro(string* name, char* macroData, size_t macroSize, uint32_t lineNumber);
+sym_CreateMacro(string* name, string* macro, uint32_t lineNumber);
 
 extern SSymbol*
 sym_GetSymbol(string* name);

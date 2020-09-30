@@ -93,10 +93,10 @@ parse_SymbolDefinition(void) {
             } else {
                 uint32_t lineNumber = lex_Context->lineNumber;
 
-                size_t size;
-                char* block;
-                if (parse_CopyMacroBlock(&block, &size)) {
-                    sym_CreateMacro(symbolName, block, size, lineNumber);
+                string* block = parse_CopyMacroBlock();
+				if (block != NULL) {
+                    sym_CreateMacro(symbolName, block, lineNumber);
+					str_Free(block);
                     parse_GetToken();
                     r = true;
                 } else {

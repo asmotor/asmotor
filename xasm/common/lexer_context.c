@@ -397,6 +397,7 @@ lexctx_ContextInit(string* fileName) {
 
 extern void
 lexctx_Cleanup(void) {
+	map_Free(g_fileNameMap);
 }
 
 extern SFileInfo*

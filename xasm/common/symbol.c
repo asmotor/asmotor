@@ -148,6 +148,15 @@ createEqusCallback(const char* name, string* (*callback)(struct Symbol*)) {
 
 // Private functions
 
+static void
+freeSymbol(SSymbol* symbol) {
+    str_Free(symbol->name);
+    if (symbol->type == SYM_MACRO) {
+        str_Free(symbol->value.macro);
+    }
+    mem_Free(symbol);
+}
+
 static uint32_t
 hash(const string* name) {
     return str_JenkinsHash(name) & (SYMBOL_HASH_SIZE - 1);
@@ -282,10 +291,10 @@ sym_CreateEqus(string* name, string* value) {
 }
 
 extern SSymbol*
-sym_CreateMacro(string* name, char* macroData, size_t macroSize, uint32_t lineNumber) {
+sym_CreateMacro(string* name, string* macro, uint32_t lineNumber) {
     SSymbol* symbol = createSymbolOfType(name, SYM_MACRO);
     if (symbol != NULL) {
-        symbol->value.macro = str_CreateLength(macroData, macroSize);
+        symbol->value.macro = str_Copy(macro);
         symbol->lineNumber = lineNumber;
     }
     return symbol;
@@ -538,21 +547,13 @@ sym_Init(void) {
     return true;
 }
 
-extern sym_Free(SSymbol* symbol) {
-    str_Free(symbol->name);
-    if (symbol->type == SYM_MACRO) {
-        str_Free(symbol->value.macro);
-    }
-    mem_Free(symbol);
-}
-
 extern void
 sym_Exit(void) {
     for (size_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
         SSymbol* symbol = sym_hashedSymbols[i];
         while (symbol != NULL) {
             SSymbol* next = list_GetNext(symbol);
-            sym_Free(symbol);
+            freeSymbol(symbol);
             symbol = next;
         }
     }

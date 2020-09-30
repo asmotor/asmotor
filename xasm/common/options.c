@@ -124,6 +124,7 @@ opt_Pop(void) {
         SOptions* nopt = opt_Current;
 
         list_Remove(opt_Current, opt_Current);
+		mem_Free(nopt->machineOptions);
         mem_Free(nopt);
         opt_Updated();
     } else {
@@ -205,6 +206,7 @@ opt_Close(void) {
     while (opt_Current != NULL) {
         SOptions* t = opt_Current;
         list_Remove(opt_Current, opt_Current);
+		mem_Free(t->machineOptions);
         mem_Free(t);
     }
 }

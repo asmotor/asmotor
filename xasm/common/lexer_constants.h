@@ -53,4 +53,7 @@ lex_ConstantsMatchTokenString();
 extern void
 lex_ConstantsInit(void);
 
+extern void
+lex_ConstantsExit(void);
+
 #endif

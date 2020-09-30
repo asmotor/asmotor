@@ -30,7 +30,8 @@
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64",
-            "compilerPath": "/usr/bin/clang"
+            "compilerPath": "/usr/bin/clang",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
         },
         {
             "name": "Linux",

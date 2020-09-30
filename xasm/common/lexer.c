@@ -748,3 +748,9 @@ lex_TokenString(void) {
 
 	return str_Copy(lex_Context->token.tokenString);
 }
+
+extern void
+lex_Exit(void) {
+	lex_ConstantsExit();
+	lexctx_Cleanup();
+}

@@ -235,3 +235,18 @@ lex_ConstantsInit(void) {
 
 	g_maxWordLength = 0;
 }
+
+void
+lex_ConstantsExit(void) {
+	for (uint32_t i = 0; i < WORDS_HASH_SIZE; ++i) {
+		SConstantWord* word = g_wordsHashTable[i];
+		while (word != NULL) {
+			SConstantWord* next = list_GetNext(word);
+			mem_Free(word);
+			word = next;
+		}
+	}
+
+	g_maxWordLength = 0;
+	
+}
