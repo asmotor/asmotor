@@ -195,7 +195,7 @@ handleSection() {
 					sect_SwitchTo_LOAD_BANK(name, sym, loadAddress, bank);
 				}
 			} else {
-				return sect_SwitchTo_LOAD(name, sym, loadAddress);
+				sect_SwitchTo_LOAD(name, sym, loadAddress);
 			}
 		}
 	}
