@@ -168,13 +168,13 @@ lexctx_GetMacroArgumentCount(void) {
 
 extern void
 lexctx_AddMacroArgument(string* str) {
-	strvec_PushBack(g_newMacroArguments, str_Copy(str));
+	strvec_PushBack(g_newMacroArguments, str);
 }
 
 extern void
 lexctx_SetMacroArgument0(string* str) {
 	str_Free(strvec_StringAt(g_newMacroArguments, 0));
-	strvec_SetAt(g_newMacroArguments, 0, str_Copy(str));
+	strvec_SetAt(g_newMacroArguments, 0, str);
 }
 
 extern void

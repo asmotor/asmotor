@@ -356,4 +356,5 @@ err_PrintAll(void) {
         }
     }
 	freeMessages(&g_allMessages);
+	str_Free(g_lastErrorString);
 }

@@ -448,14 +448,19 @@ patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatch
 void
 patch_BackPatch(void) {
     for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
-        for (SPatch* patch = section->patches; patch != NULL; patch = list_GetNext(patch)) {
+		SPatch* patch = section->patches;
+        while (patch != NULL) {
+			SPatch* next = list_GetNext(patch);
             int32_t value;
 
             if (reduceExpression(patch, patch->expression, &value)) {
                 list_Remove(section->patches, patch);
-                str_Free(patch->filename);
                 g_patchFunctions[patch->type](section, patch, value);
+                str_Free(patch->filename);
+				expr_Free(patch->expression);
+				mem_Free(patch);
             }
+			patch = next;
         }
     }
 }
