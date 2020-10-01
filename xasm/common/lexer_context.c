@@ -269,7 +269,7 @@ lexctx_EndCurrentBuffer(void) {
 void
 lexctx_Destroy(SLexerContext* context) {
 	if (context != NULL) {
-		if (context->type == CONTEXT_MACRO && context->buffer.arguments != NULL) {
+		if ((context->type == CONTEXT_FILE || context->type == CONTEXT_MACRO) && context->buffer.arguments != NULL) {
 			strvec_Free(context->buffer.arguments);
 		}
 
@@ -418,6 +418,7 @@ lexctx_Cleanup(void) {
 		ctx = next;
 	}
 	strmap_Free(g_fileNameMap);
+	strvec_Free(g_newMacroArguments);
 }
 
 extern SFileInfo*
