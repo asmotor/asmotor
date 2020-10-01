@@ -51,8 +51,9 @@ inc_FindFile(string* fileName) {
 	if (candidate != NULL) {
 		if (fexists(str_String(candidate))) {
 			str_Free(fileName);
-			return str_Copy(candidate);
+			return candidate;
 		}
+		str_Free(candidate);
 	}
 
     if (g_includePaths != NULL) {

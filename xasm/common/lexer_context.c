@@ -337,6 +337,7 @@ lexctx_ProcessIncludeFile(string* fileName) {
 	} else {
 		err_Fail(ERROR_NO_FILE);
 	}
+	str_Free(name);
 }
 
 extern void

@@ -848,6 +848,7 @@ handleRst(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 	} else {
         err_Error(ERROR_EXPR_CONST);
 	}
+	expr_Free(addrMode1->expression);
 
 	return true;
 }
@@ -894,11 +895,14 @@ static bool
 handleIm(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	if (!expr_IsConstant(addrMode1->expression)) {
         err_Error(ERROR_EXPR_CONST);
+		expr_Free(addrMode1->expression);
 		return true;
 	}
 
+	int32_t value = addrMode1->expression->value.integer;
+	expr_Free(addrMode1->expression);
 	sect_OutputConst8(0xED);
-	switch (addrMode1->expression->value.integer) {
+	switch (value) {
 		case 0:
 			sect_OutputConst8(0x46);
 			return true;
@@ -963,6 +967,7 @@ handleOut(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 		if (expr_IsConstant(addrMode2->expression) && (addrMode2->expression->value.integer == 0)) {
 			sect_OutputConst8(0xED);
 			sect_OutputConst8(0x71);
+			expr_Free(addrMode2->expression);
 			return true;
 		}
 

@@ -340,10 +340,11 @@ handle_LD_R16_imm(SAddressingMode* dest, SExpression* expression) {
 		uint8_t high = value >> 8;
 		uint8_t low = value & 0xFF;
 
-		if (handle_LD_R16_3bytes(&registerHigh, &registerLow, high, low))
+		if (handle_LD_R16_3bytes(&registerHigh, &registerLow, high, low)
+		|| handle_LD_R16_4bytes(&registerHigh, &registerLow, high, low)) {
+			expr_Free(masked);
 			return true;
-		if (handle_LD_R16_4bytes(&registerHigh, &registerLow, high, low))
-			return true;
+		}
 	}
 
 	SExpression* high = expr_Asr(expr_Clone(masked), expr_Const(8));
@@ -787,6 +788,7 @@ rc8_ParseIntegerInstruction(void) {
 
 			if (jumpTarget != NULL) {
 				sym_CreateLabel(jumpTarget);
+				str_Free(jumpTarget);
 			}
 		} else {
 			return err_Error(ERROR_OPERAND);
