@@ -267,6 +267,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 	dep_Exit();
     sym_Exit();
 	lex_Exit();
+	sect_Exit();
 
     mem_ShowLeaks();
 

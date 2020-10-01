@@ -52,6 +52,13 @@ typedef struct SectionStackEntry {
 
 static SSectionStackEntry* g_sectionStack = NULL;
 
+static void
+freeSection(SSection* section) {
+	str_Free(section->name);
+	mem_Free(section->data);
+	mem_Free(section);
+}
+
 static EGroupType
 currentSectionType(void) {
 	if (sect_Current == NULL)
@@ -649,6 +656,16 @@ sect_Init(void) {
 	sect_Current = NULL;
 	sect_Sections = NULL;
 	return true;
+}
+
+void
+sect_Exit(void) {
+	SSection* section = sect_Sections;
+	while (section != NULL) {
+		SSection* next = list_GetNext(section);
+		freeSection(section);
+		section = next;
+	}
 }
 
 void

@@ -86,6 +86,9 @@ extern bool
 sect_Init(void);
 
 extern void
+sect_Exit(void);
+
+extern void
 sect_SetOriginAddress(uint32_t org);
 
 extern void

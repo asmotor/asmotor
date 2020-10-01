@@ -255,8 +255,10 @@ expressionPriority8(size_t maxStringConstLength) {
                     int32_t v = stringCompare(s);
                     return expr_Const(v < 0 ? true : false);
                 }
-                default:
+                default: {
+					str_Free(s);
                     break;
+				}
             }
         }
     }

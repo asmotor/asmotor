@@ -152,6 +152,7 @@ parse_GetToken(void) {
 			break;
 
 		lex_UnputStringLength(str_String(value), str_Length(value));
+		str_Free(value);
 	}
 }
 

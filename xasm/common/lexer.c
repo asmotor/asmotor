@@ -718,9 +718,6 @@ lex_GetNextDirectiveUnexpanded(size_t* index) {
 
 bool
 lex_GetNextToken(void) {
-	str_Free(lex_Context->token.tokenString);
-	lex_Context->token.tokenString = NULL;
-
 	switch (lex_Context->mode) {
 		case LEXER_MODE_NORMAL: {
 			return stateNormal();
@@ -743,10 +740,7 @@ lex_GetNextToken(void) {
 
 extern string*
 lex_TokenString(void) {
-	if (lex_Context->token.tokenString == NULL)
-		lex_Context->token.tokenString = str_CreateLength(lex_Context->token.value.string, lex_Context->token.length);
-
-	return str_Copy(lex_Context->token.tokenString);
+	return str_CreateLength(lex_Context->token.value.string, lex_Context->token.length);
 }
 
 extern void

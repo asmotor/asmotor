@@ -149,11 +149,15 @@ handleSection() {
 	if (name == NULL)
 		return true;
 
-	if (!parse_ExpectChar(','))
-		return sect_SwitchTo_NAMEONLY(name);
+	if (!parse_ExpectChar(',')) {
+		sect_SwitchTo_NAMEONLY(name);
+		str_Free(name);
+		return true;
+	}
 
 	if (lex_Context->token.id != T_ID) {
 		err_Error(ERROR_EXPECT_IDENTIFIER);
+		str_Free(name);
 		return false;
 	}
 
@@ -163,6 +167,7 @@ handleSection() {
 
 	if (sym->type != SYM_GROUP) {
 		err_Error(ERROR_IDENTIFIER_GROUP);
+		str_Free(name);
 		return true;
 	}
 	parse_GetToken();
@@ -171,31 +176,32 @@ handleSection() {
 		parse_GetToken();
 
 		uint32_t bank = expectBankFixed();
-		if (bank == UINT32_MAX)
-			return true;
-
-		return sect_SwitchTo_BANK(name, sym, bank);
+		if (bank != UINT32_MAX) {
+			sect_SwitchTo_BANK(name, sym, bank);
+		}
+		true;
 	} else if (lex_Context->token.id != '[') {
-		return sect_SwitchTo(name, sym);
-	}
-
-	parse_GetToken();
-
-	uint32_t loadAddress = (uint32_t)parse_ConstantExpression();
-	if (!parse_ExpectChar(']'))
-		return true;
-
-	if (xasm_Configuration->supportBanks && lex_Context->token.id == ',') {
+		sect_SwitchTo(name, sym);
+	} else {
 		parse_GetToken();
 
-		uint32_t bank = expectBankFixed();
-		if (bank == UINT32_MAX)
-			return true;
+		uint32_t loadAddress = (uint32_t) parse_ConstantExpression();
+		if (parse_ExpectChar(']')) {
+			if (xasm_Configuration->supportBanks && lex_Context->token.id == ',') {
+				parse_GetToken();
 
-		return sect_SwitchTo_LOAD_BANK(name, sym, loadAddress, bank);
+				uint32_t bank = expectBankFixed();
+				if (bank != UINT32_MAX) {
+					sect_SwitchTo_LOAD_BANK(name, sym, loadAddress, bank);
+				}
+			} else {
+				return sect_SwitchTo_LOAD(name, sym, loadAddress);
+			}
+		}
 	}
 
-	return sect_SwitchTo_LOAD(name, sym, loadAddress);
+	str_Free(name);
+	return true;
 }
 
 static bool

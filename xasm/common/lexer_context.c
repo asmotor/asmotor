@@ -54,7 +54,6 @@ static SLexerContext*
 createContext(void) {
 	SLexerContext* ctx = (SLexerContext*) mem_Alloc(sizeof(SLexerContext));
 	list_Init(ctx);
-	ctx->token.tokenString = NULL;
 	return ctx;
 }
 
@@ -274,8 +273,6 @@ lexctx_Destroy(SLexerContext* context) {
 		}
 
 		lexbuf_Destroy(&context->buffer);
-		str_Free(context->token.tokenString);
-		context->token.tokenString = NULL;
 	} else {
 		internalerror("Argument must not be NULL");
 	}
@@ -444,7 +441,6 @@ lexctx_GetFileInfo(size_t* totalFiles) {
 extern void
 lexctx_Copy(SLexerContext* dest, const SLexerContext* source) {
 	copyToken(&dest->token, &source->token);
-	dest->token.tokenString = str_Copy(source->token.tokenString);
 	dest->type = source->type;
 	dest->mode = source->mode;
 	lexbuf_Copy(&dest->buffer, &source->buffer);
