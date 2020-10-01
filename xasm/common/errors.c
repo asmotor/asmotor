@@ -355,4 +355,5 @@ err_PrintAll(void) {
             printf("%s\n", str_String(str));
         }
     }
+	freeMessages(&g_allMessages);
 }

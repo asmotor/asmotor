@@ -95,3 +95,10 @@ extern void
 linemap_AddCurrent(void) {
     linemap_Add(lexctx_TokenFileInfo(), lexctx_TokenLineNumber(), sect_Current, sect_Current->cpuProgramCounter);
 }
+
+
+extern void
+linemap_Free(SLineMapSection* linemap) {
+	mem_Free(linemap->entries);
+	mem_Free(linemap);
+}

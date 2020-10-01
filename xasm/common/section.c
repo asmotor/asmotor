@@ -54,6 +54,7 @@ static SSectionStackEntry* g_sectionStack = NULL;
 
 static void
 freeSection(SSection* section) {
+	linemap_Free(section->lineMap);
 	str_Free(section->name);
 	mem_Free(section->data);
 	mem_Free(section);

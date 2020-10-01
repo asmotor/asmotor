@@ -286,6 +286,7 @@ handleUserError(intptr_t intFail) {
 	if (result != NULL) {
 		fail(WARN_USER_GENERIC, str_String(result));
 	}
+	str_Free(result);
 	return true;
 }
 

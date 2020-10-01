@@ -47,4 +47,7 @@ linemap_Add(SFileInfo* filename, uint32_t lineNumber, SSection* section, uint32_
 extern void
 linemap_AddCurrent(void);
 
+extern void
+linemap_Free(SLineMapSection* linemap);
+
 #endif
