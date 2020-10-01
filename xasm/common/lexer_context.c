@@ -70,7 +70,9 @@ getFileInfoFor(const string* fileName) {
 
 static void
 freeFileNameInfo(intptr_t userData, intptr_t element) {
-	mem_Free((void*) element);
+	SFileInfo* fileInfo = (SFileInfo*) element;
+	str_Free(fileInfo->fileName);
+	mem_Free(fileInfo);
 }
 
 static SFileInfo*
@@ -245,6 +247,7 @@ lexctx_EndReptBlock(void) {
 		SLexerContext* context = lex_Context;
 		list_Remove(lex_Context, lex_Context);
 		continueFrom(context);
+		lexctx_FreeContext(context);
 		return true;
 	}
 }
@@ -318,7 +321,6 @@ lexctx_CreateFileContext(FILE* fileHandle, string* name) {
 		ctx->fileInfo->crc32 = crc32((const uint8_t *)str_String(fileContent), size);
 
 	str_Free(canonicalizedContent);
-	str_Free(name);
 
 	return ctx;
 }
@@ -409,7 +411,13 @@ lexctx_ContextInit(string* fileName) {
 
 extern void
 lexctx_Cleanup(void) {
-	map_Free(g_fileNameMap);
+	SLexerContext* ctx = lex_Context;
+	while (ctx != NULL) {
+		SLexerContext* next = list_GetNext(ctx);
+		lexctx_FreeContext(ctx);
+		ctx = next;
+	}
+	strmap_Free(g_fileNameMap);
 }
 
 extern SFileInfo*
@@ -447,6 +455,8 @@ lexctx_Copy(SLexerContext* dest, const SLexerContext* source) {
 
 extern void
 lexctx_ShallowCopy(SLexerContext* dest, const SLexerContext* source) {
+	*dest = *source;
+	/*
 	copyToken(&dest->token, &source->token);
 	dest->token.tokenString = source->token.tokenString;
 	dest->type = source->type;
@@ -456,4 +466,5 @@ lexctx_ShallowCopy(SLexerContext* dest, const SLexerContext* source) {
 	dest->fileInfo = source->fileInfo;
 	dest->lineNumber = source->lineNumber;
 	dest->block = source->block;
+	*/
 }

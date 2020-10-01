@@ -151,7 +151,7 @@ createEqusCallback(const char* name, string* (*callback)(struct Symbol*)) {
 static void
 freeSymbol(SSymbol* symbol) {
     str_Free(symbol->name);
-    if (symbol->type == SYM_MACRO) {
+    if ((symbol->type == SYM_MACRO || symbol->type == SYM_EQUS) && symbol->callback.string == NULL) {
         str_Free(symbol->value.macro);
     }
     mem_Free(symbol);
