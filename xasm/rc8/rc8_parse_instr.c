@@ -287,6 +287,7 @@ handle_LD_R8_imm(SAddressingMode* registerDest, SExpression* expression) {
 
 	if (expr_IsConstant(expression)) {
 		handle_LD_R8_const(registerDest, expression->value.integer);
+		expr_Free(expression);
 		return true;
 	} else {
 		SExpression* masked = expr_And(expression, expr_Const(0xFF));

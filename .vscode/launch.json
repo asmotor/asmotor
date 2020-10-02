@@ -129,7 +129,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/rc8/motorrc8",
-            "args": ["-fv", "-oallcodes.r", "synthesized.rc8"],
+            "args": ["-fv", "-oallcodes.r", "allcodes.rc8"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/rc8",
             "environment": [],
