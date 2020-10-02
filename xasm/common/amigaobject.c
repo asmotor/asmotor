@@ -91,7 +91,7 @@ writeSymbolHunk(FILE* fileHandle, const SSection* section) {
 }
 
 static void
-writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatches, off_t hunkPosition) {
+writeExtHunk(FILE* fileHandle, const SSection* section, SPatch* importPatches, off_t hunkPosition) {
     bool dataWritten = false;
     off_t startPosition = ftello(fileHandle);
 
@@ -107,7 +107,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
             off_t symbolCountPosition = ftello(fileHandle);
             fputbl(0, fileHandle);
 
-            const SPatch* patch = importPatches;
+            SPatch* patch = importPatches;
             do {
                 off_t offsetPosition = ftello(fileHandle);
 
@@ -129,6 +129,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
                         if (patch->pNext)
                             patch->pNext->pPrev = patch->pPrev;
 
+						patch_Free(patch);
                         break;
                     }
                 }
@@ -139,7 +140,9 @@ writeExtHunk(FILE* fileHandle, const SSection* section, const SPatch* importPatc
             fputbl(patchCount, fileHandle);
             fseeko(fileHandle, currentPosition, SEEK_SET);
         }
-        importPatches = list_GetNext(importPatches);
+		SPatch* next = list_GetNext(importPatches);
+		patch_Free(importPatches);
+		importPatches = next;
     }
 
     for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
@@ -276,6 +279,14 @@ writeSection(FILE* fileHandle, SSection* section, bool enableDebugInfo, uint32_t
         if (isLinkObject)
             writeExtHunk(fileHandle, section, importPatches, hunkPosition);
 
+        for (uint32_t i = 0; i < totalSections; ++i) {
+            SPatch* patch = patchesPerSection[i];
+			while (patch != NULL) {
+				SPatch* next = list_GetNext(patch);
+				patch_Free(patch);
+				patch = next;
+			}
+		}
         mem_Free(patchesPerSection);
     } else {
         uint32_t hunkType = HUNK_BSS;
