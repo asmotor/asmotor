@@ -51,6 +51,9 @@ extern void
 patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatchType type);
 
 extern void
+patch_Free(SPatch* patch);
+
+extern void
 patch_BackPatch(void);
 
 extern void

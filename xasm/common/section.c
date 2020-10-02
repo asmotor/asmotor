@@ -56,10 +56,18 @@ static void
 freeSection(SSection* section) {
 	if (section->lineMap != NULL)
 		linemap_Free(section->lineMap);
-		
+
+	SPatch* patch = section->patches;
+	while (patch != NULL) {
+		SPatch* next = list_GetNext(patch);
+		patch_Free(patch);
+		patch = next;
+	}
+
 	str_Free(section->name);
 	mem_Free(section->data);
 	mem_Free(section);
+
 }
 
 static EGroupType

@@ -90,7 +90,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcz", "-fv", "-otest.r", "test_section.asm"],
+            "args": ["-mcz", "-fv", "-otest.r", "test_invalid.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/z80",
             "environment": [],
@@ -103,7 +103,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcg", "-fv", "-otest.r", "gbtest.asm"],
+            "args": ["-mcg", "-fv", "-otest.r", "linkerror.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/gameboy",
             "environment": [],
@@ -129,7 +129,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/rc8/motorrc8",
-            "args": ["-fv", "-oallcodes.r", "allcodes.rc8"],
+            "args": ["-fv", "-oallcodes.r", "synthesized.rc8"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/rc8",
             "environment": [],
@@ -158,7 +158,7 @@
             "cwd": "${workspaceFolder}/test/rc8",
             "environment": [],
             "externalConsole": true,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
         {
             "name": "Assemble mandelbrot.rc8",
