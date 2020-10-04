@@ -1180,8 +1180,10 @@ z80_ParseInstruction(void) {
 		SAddressingMode addrMode2;
 
 		addrMode1.mode = 0;
+		addrMode1.expression = 0;
 		addrMode1.cpu = CPUF_Z80 | CPUF_GB;
 		addrMode2.mode = 0;
+		addrMode2.expression = 0;
 		addrMode2.cpu = CPUF_Z80 | CPUF_GB;
 
 		if (instruction->allowedModes1 != 0) {
@@ -1223,6 +1225,11 @@ z80_ParseInstruction(void) {
 		} else {
             err_Error(ERROR_FIRST_OPERAND);
 		}
+
+		if (addrMode1.expression != NULL)
+			expr_Free(addrMode1.expression);
+		if (addrMode2.expression != NULL)
+			expr_Free(addrMode2.expression);
 		return true;
 	}
 
