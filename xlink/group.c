@@ -60,7 +60,7 @@ group_Create(const char* groupName, uint32_t totalBanks) {
 
     *ppgroup = (MemoryGroup*) mem_Alloc(sizeof(MemoryGroup) + sizeof(MemoryPool*) * totalBanks);
 
-    strncpy((*ppgroup)->name, groupName, sizeof((*ppgroup)->name));
+    strncpy((*ppgroup)->name, groupName, sizeof((*ppgroup)->name) - 1);
     (*ppgroup)->nextGroup = NULL;
     (*ppgroup)->totalPools = totalBanks;
 

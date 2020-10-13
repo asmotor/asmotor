@@ -57,16 +57,6 @@ createContext(void) {
 	return ctx;
 }
 
-static SFileInfo*
-getFileInfoFor(const string* fileName) {
-	intptr_t value;
-	if (strmap_Value(g_fileNameMap, fileName, &value)) {
-		return (SFileInfo*) value;
-	} else {
-		return NULL;
-	}
-}
-
 static void
 freeFileNameInfo(intptr_t userData, intptr_t element) {
 	SFileInfo* fileInfo = (SFileInfo*) element;
@@ -312,7 +302,7 @@ lexctx_CreateFileContext(FILE* fileHandle, string* name) {
 	ctx->atLineStart = true;
 	ctx->mode = LEXER_MODE_NORMAL;
 	ctx->lineNumber = 1;
-	ctx->fileInfo = getFileInfoFor(name);
+	ctx->fileInfo = createFileInfo(name);
 
 	if (opt_Current->enableDebugInfo)
 		ctx->fileInfo->crc32 = crc32((const uint8_t *)str_String(fileContent), size);
@@ -331,7 +321,6 @@ lexctx_ProcessIncludeFile(string* fileName) {
 		SLexerContext* newContext = lexctx_CreateFileContext(fileHandle, name);
 		fclose(fileHandle);
 
-		newContext->fileInfo = createFileInfo(name);
 		dep_AddDependency(newContext->buffer.name);
 		pushContext(newContext);
 	} else {
@@ -415,8 +404,12 @@ lexctx_Cleanup(void) {
 		lexctx_FreeContext(ctx);
 		ctx = next;
 	}
-	strmap_Free(g_fileNameMap);
-	strvec_Free(g_newMacroArguments);
+
+	if (g_fileNameMap != NULL)
+		strmap_Free(g_fileNameMap);
+
+	if (g_newMacroArguments != NULL)
+		strvec_Free(g_newMacroArguments);
 }
 
 extern SFileInfo*

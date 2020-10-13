@@ -534,11 +534,13 @@ expr_Clone(SExpression* expression) {
         return NULL;
 
     SExpression* result = (SExpression *) mem_Alloc(sizeof(SExpression));
-    
-    *result = *expression;
-    result->left = expr_Clone(result->left);
-    result->right = expr_Clone(result->right);
+	result->isConstant = expression->isConstant;
+	result->operation = expression->operation;
+	result->type = expression->type;
+	result->value = expression->value;
 
+    result->left = expr_Clone(expression->left);
+    result->right = expr_Clone(expression->right);
     return result;
 }
 

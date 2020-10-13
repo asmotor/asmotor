@@ -19,7 +19,7 @@
 #ifndef XASM_COMMON_XASM_H_INCLUDED_
 #define XASM_COMMON_XASM_H_INCLUDED_
 
-#include "types.h"
+#include "util.h"
 
 #include "expression.h"
 #include "options.h"

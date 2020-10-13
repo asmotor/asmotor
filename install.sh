@@ -1,5 +1,5 @@
 #!/bin/sh
-DESTDIR=${1:-$HOME/} 
+DESTDIR=${1:-$HOME/.local} 
 
 rm -rf build/cmake/release
 mkdir -p build/cmake/release
