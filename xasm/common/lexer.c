@@ -495,43 +495,63 @@ static bool
 stateMacroArguments() {
 	consumeComment(skipUnimportantWhitespace(), false);
 
-	lex_Context->token.length = 0;
+	if (matchChar('\n')) {
+		lex_Context->atLineStart = true;
+		lex_Context->token.length = 1;
+		lex_Context->token.id = T_LINEFEED;
+		return true;
+	}
+
+	if (matchChar(',')) {
+		lex_Context->token.length = 1;
+		lex_Context->token.id = T_COMMA;
+		return true;
+	}
 
 	if (matchChar('<')) {
+		lex_Context->token.length = 0;
 		getStringUntilTerminators("\n>");
-		lex_GetChar();
-	} else {
-		getStringUntilTerminators("\n\t ,;}");
+		matchChar('>');
+		lex_Context->token.id = T_STRING;
+		return true;
+	}
+
+	if (matchChar('}')) {
+		lex_UnputChar('}');
+		lex_Context->token.length = 1;
+		lex_Context->token.id = T_LINEFEED;
+		return true;
+	}
+
+	lex_Context->token.length = 0;
+	bool wasSpace = false;
+	for (;;) {
+		char ch = lex_GetChar();
+		if (strchr("\n,;}", ch) != NULL) {
+			lex_UnputChar(ch);
+			break;
+		}
+
+		if (ch == '*' && wasSpace) {
+			lex_UnputString(" *");
+			break;
+		}
+
+		lex_Context->token.value.string[lex_Context->token.length++] = ch;
+		wasSpace = strchr("\t ", ch);
 	}
 
 	if (lex_Context->token.length > 0) {
 		char ch = lex_GetChar();
-		if (ch == '\n' || ch == ';' || ch == ' ' || ch == '\t') {
+		if (strchr("\n\t ;", ch) != NULL) {
 			trimTokenStringRight();
 		}
 		lex_Context->token.id = T_STRING;
 		lex_UnputChar(ch);
 		return true;
-	} else if (matchChar('\n')) {
-		lex_Context->atLineStart = true;
-		lex_Context->token.length = 1;
-		lex_Context->token.id = T_LINEFEED;
-		return true;
-	} else if (matchChar(',')) {
-		lex_Context->token.length = 1;
-		lex_Context->token.id = T_COMMA;
-		return true;
 	} else {
-		char ch = lex_GetChar();
-		lex_UnputChar(ch);
-		if (ch == '}') {
-			lex_Context->token.length = 1;
-			lex_Context->token.id = T_LINEFEED;
-			return true;
-		} else {
-			lex_Context->token.id = T_NONE;
-			return false;
-		}
+		lex_Context->token.id = T_NONE;
+		return false;
 	}
 }
 

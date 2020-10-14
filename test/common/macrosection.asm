@@ -19,3 +19,9 @@ ID      EQU     ('B'<<24)!('A'<<16)!('D'<<8)
 
         SECTION "Test",CODE
 
+STRMACRO	MACRO
+		PRINTT	\1
+		ENDM
+
+		STRMACRO	"\nThis is a test\n"
+
