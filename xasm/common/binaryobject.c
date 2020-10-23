@@ -29,6 +29,7 @@
 #include "symbol.h"
 #include "patch.h"
 
+
 static SPatch*
 needsOrg() {
     for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
@@ -37,6 +38,7 @@ needsOrg() {
     }
     return NULL;
 }
+
 
 static bool
 commonPatch() {
@@ -91,6 +93,7 @@ commonPatch() {
     return true;
 }
 
+
 static bool
 internalWrite(string* filename, const char* opentype, void (*writeSection)(FILE*, SSection*, uint32_t)) {
     if (!commonPatch())
@@ -114,6 +117,7 @@ internalWrite(string* filename, const char* opentype, void (*writeSection)(FILE*
     return false;
 }
 
+
 static void
 writeBinarySection(FILE* fileHandle, SSection* section, uint32_t lastWrittenPosition) {
     while (lastWrittenPosition < section->imagePosition) {
@@ -123,6 +127,7 @@ writeBinarySection(FILE* fileHandle, SSection* section, uint32_t lastWrittenPosi
 
     fwrite(section->data, 1, section->usedSpace, fileHandle);
 }
+
 
 static void
 writeVerilogSection(FILE* fileHandle, SSection* section, uint32_t lastWrittenPosition) {

@@ -41,10 +41,10 @@
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
             "args": ["-sEntry", "-mascii.sym", "-oascii.com", "-thc8c", "ascii.obj", "../stdlib/std.lib"],
             "stopAtEntry": true,
-            "cwd": "/Users/ces/Dev/hc800/firmware/ascii",
+            "cwd": "/home/quorum/dev/hc800/firmware/ascii",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
         {
             "name": "(Win) motorz80",
@@ -116,7 +116,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcg", "-fv", "-otest.r", "macrosection.asm"],
+            "args": ["-mcg", "-fv", "-otest.r", "repttest2.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/common",
             "environment": [],
@@ -129,9 +129,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/rc8/motorrc8",
-            "args": ["-fv", "-oallcodes.r", "allcodes.rc8"],
+            "args": [ "-d.d/stream.Td", "-g", "-el", "-z0", "-i../kernal", "-ostream.obj", "stream.asm"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/test/rc8",
+            "cwd": "/home/quorum/dev/hc800/firmware/stdlib",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
@@ -142,7 +142,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/motor68k",
-            "args": ["-fh", "-otest.r", "amigaobj.68k"],
+            "args": ["-fh", "-otest.r", "odd-instr.68k"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/680x0",
             "environment": [],

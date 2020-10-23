@@ -19,6 +19,7 @@
 #include "xasm.h"
 #include "symbol.h"
 
+
 static void
 createGroup(const char* name, EGroupType type) {
     string* nameStr = str_Create(name);
@@ -26,9 +27,11 @@ createGroup(const char* name, EGroupType type) {
     str_Free(nameStr);
 }
 
+
 void 
 rc8_DefineSymbols(void) {
 	createGroup("CODE", GROUP_TEXT);
 	createGroup("DATA", GROUP_TEXT);
 	createGroup("BSS", GROUP_BSS);
+    createGroup("BSS_S", GROUP_BSS);
 }

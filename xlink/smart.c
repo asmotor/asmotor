@@ -40,10 +40,11 @@ markReferencedSectionsUsed(SSection* section) {
 static void
 useSectionWithGlobalExport(const char* name) {
     SSection* section = sect_FindSectionWithExportedSymbol(name);
-    if (section != NULL && !section->used) {
-        markReferencedSectionsUsed(section);
+    if (section != NULL) {
+		if (!section->used)
+	        markReferencedSectionsUsed(section);
     } else {
-        error("Smart link entry symbol \"%s\" not found (it must be exported)", name);
+        error("Symbol \"%s\" not found (it must be exported)", name);
     }
     
 }

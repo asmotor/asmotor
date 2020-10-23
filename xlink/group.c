@@ -532,10 +532,10 @@ group_SetupHC8XXROM(void) {
 
 void
 group_SetupHC8XXCom(void) {
-    MemoryPool* codepool;
     MemoryGroup* group;
 
-    codepool = pool_Create(0, 0, 0, 0x10000);
+    MemoryPool* codepool = pool_Create(0, 0, 0, 0x10000);
+	MemoryPool* sharedBssPool = pool_Create(-1, 0x4000, 0, 0xC000);
 
     //	Create HOME group
 
@@ -549,10 +549,16 @@ group_SetupHC8XXCom(void) {
 
     //	Create DATA group
 
+    //	Create BSS_S (shared) group
+
+    group = group_Create("BSS_S", 1);
+    group->pools[0] = sharedBssPool;
+
     //	Create BSS group
 
-    group = group_Create("BSS", 1);
-    group->pools[0] = pool_Create(-1, 0x4000, 0, 0xC000);
+    group = group_Create("BSS", 2);
+    group->pools[0] = pool_Create(-1, 0x0000, 0, 0x4000);
+    group->pools[1] = sharedBssPool;
 
     //	initialise memory chunks
 
