@@ -621,7 +621,7 @@ typedef struct RegisterMode {
 
 
 static SRegisterMode 
-g_RegisterModes[T_RC8_REG_BC_L_IND - T_RC8_REG_F + 1] = {
+g_RegisterModes[T_RC8_REG_HL_IND - T_RC8_REG_F + 1] = {
 	{ MODE_REG_F,  T_RC8_REG_F, 0 },
 	{ MODE_REG_T,  T_RC8_REG_T, 1 },
 	{ MODE_REG_B,  T_RC8_REG_B, 2 },
@@ -639,12 +639,6 @@ g_RegisterModes[T_RC8_REG_BC_L_IND - T_RC8_REG_F + 1] = {
 	{ MODE_IND_BC, T_RC8_REG_BC_IND, 1 },
 	{ MODE_IND_DE, T_RC8_REG_DE_IND, 2 },
 	{ MODE_IND_HL, T_RC8_REG_HL_IND, 3 },
-	{ MODE_IND_BC_F, T_RC8_REG_BC_F_IND, 0 },
-	{ MODE_IND_BC_T, T_RC8_REG_BC_T_IND, 1 },
-	{ MODE_IND_BC_D, T_RC8_REG_BC_D_IND, 4 },
-	{ MODE_IND_BC_E, T_RC8_REG_BC_E_IND, 5 },
-	{ MODE_IND_BC_H, T_RC8_REG_BC_H_IND, 6 },
-	{ MODE_IND_BC_L, T_RC8_REG_BC_L_IND, 7 },
 };
 
 
@@ -702,7 +696,7 @@ parseAddressingMode(SAddressingMode* addrMode, int allowedModes) {
 		lex_Goto(&bm);
 	}
 
-	if (lex_Context->token.id >= T_RC8_REG_F && lex_Context->token.id <= T_RC8_REG_BC_L_IND) {
+	if (lex_Context->token.id >= T_RC8_REG_F && lex_Context->token.id <= T_RC8_REG_HL_IND) {
 		SRegisterMode* mode = &g_RegisterModes[lex_Context->token.id - T_RC8_REG_F];
 		if (allowedModes & mode->modeFlag) {
 			parse_GetToken();

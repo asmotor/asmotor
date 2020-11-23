@@ -73,12 +73,6 @@ g_tokens[] = {
 	{ "(BC)", T_RC8_REG_BC_IND },
 	{ "(DE)", T_RC8_REG_DE_IND },
 	{ "(HL)", T_RC8_REG_HL_IND },
-	{ "(BC+F)", T_RC8_REG_BC_F_IND },
-	{ "(BC+T)", T_RC8_REG_BC_T_IND },
-	{ "(BC+D)", T_RC8_REG_BC_D_IND },
-	{ "(BC+E)", T_RC8_REG_BC_E_IND },
-	{ "(BC+H)", T_RC8_REG_BC_H_IND },
-	{ "(BC+L)", T_RC8_REG_BC_L_IND },
 
 	{ "EQ",		T_RC8_CC_EQ},
 	{ "NE",		T_RC8_CC_NE},

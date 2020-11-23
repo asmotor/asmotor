@@ -72,12 +72,6 @@ typedef	enum {
 	T_RC8_REG_BC_IND,
 	T_RC8_REG_DE_IND,
 	T_RC8_REG_HL_IND,
-	T_RC8_REG_BC_F_IND,
-	T_RC8_REG_BC_T_IND,
-	T_RC8_REG_BC_D_IND,
-	T_RC8_REG_BC_E_IND,
-	T_RC8_REG_BC_H_IND,
-	T_RC8_REG_BC_L_IND,
 
 	/* Conditions */
 	T_RC8_CC_LE,
