@@ -535,7 +535,23 @@ handle_CMP(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 
 static bool
 handle_NOT(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	sect_OutputConst8(baseOpcode | (destination->registerIndex));
+	if (destination->mode & MODE_REG_T) {
+		if (!opt_Current->machineOptions->enableSynthInstructions)
+			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+		sect_OutputConst8(0xB2);	// XOR T,n8
+		sect_OutputConst8(0xFF);
+		return true;
+	} else if (destination->mode & MODE_REG_FT) {
+		if (!opt_Current->machineOptions->enableSynthInstructions)
+			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+		sect_OutputConst8(0xB2);	// XOR T,n8
+		sect_OutputConst8(0xFF);
+		sect_OutputConst8(baseOpcode);
+		return true;
+	} else if (destination->mode & MODE_REG_F) {
+		sect_OutputConst8(baseOpcode);
+		return true;
+	} 
 	return true;
 }
 
@@ -606,7 +622,7 @@ g_Parsers[T_RC8_XOR - T_RC8_ADD + 1] = {
 	{ 0xE0, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL | MODE_IMM, MODE_REG_8BIT_BCDEHL | MODE_IMM | MODE_NONE, handle_Shift },	/* LS */
 	{ 0x51, CONDITION_AUTO, MODE_REG_T | MODE_REG_FT, MODE_NONE, handle_NEG },						/* NEG */
 	{ 0x00, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* NOP */
-	{ 0x18, CONDITION_AUTO, MODE_REG_F | MODE_REG_T, MODE_NONE, handle_NOT },						/* NOT */
+	{ 0x18, CONDITION_AUTO, MODE_REG_F | MODE_REG_T | MODE_REG_FT, MODE_NONE, handle_NOT },						/* NOT */
 	{ 0x60, CONDITION_AUTO, MODE_REG_8BIT | MODE_IMM, MODE_NONE | MODE_REG_8BIT | MODE_IMM, handle_Bitwise },	/* OR */
 	{ 0xC4, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK, MODE_NONE, handle_RegisterStack },	/* POP */
 	{ 0xF9, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* POPA */

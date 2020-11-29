@@ -1,5 +1,7 @@
 	SECTION "Test",CODE
 
+	not	ft
+	not	t
 	sub	bc,4
 	sub	t,6
 	push	bc-hl
