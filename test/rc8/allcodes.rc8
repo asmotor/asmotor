@@ -5,29 +5,294 @@
 		ld	(bc),t
 		ld	(de),t
 		ld	(hl),t
-
 		ld	t,(ft)
 		ld	t,(bc)
 		ld	t,(de)
 		ld	t,(hl)
 
-		not	f
-		not	t
-		DB	$0A
-		DB	$0B
+		lio	(bc),t
+		lio	t,(bc)
+		lcr	(c),t
+		lcr	t,(c)
 		lco	t,(ft)
 		lco	t,(bc)
 		lco	t,(de)
 		lco	t,(hl)
 
-		ld	t,(bc+f)
-		ld	t,(bc+t)
+		exg	f
+		DB	$11
+		exg	b
+		exg	c
+		exg	d
+		exg	e
+		exg	h
+		exg	l
+
+		not	f
+		not	t
 		ei
 		di
-		ld	t,(bc+d)
-		ld	t,(bc+e)
-		ld	t,(bc+h)
-		ld	t,(bc+l)
+		DB	$1C
+		DB	$1D
+		DB	$1E
+		DB	$1F
+
+		DB	$20
+		DB	$21
+		DB	$22
+		DB	$23
+		DB	$24
+		DB	$25
+		DB	$26
+		DB	$27
+
+		DB	$28
+		DB	$29
+		DB	$2A
+		DB	$2B
+		DB	$2C
+		DB	$2D
+		DB	$2E
+		DB	$2F
+
+		DB	$30
+		DB	$31
+		DB	$32
+		DB	$33
+		DB	$34
+		DB	$35
+		DB	$36
+		DB	$37
+
+		jal	(ft)
+		jal	(bc)
+		jal	(de)
+		jal	(hl)
+		j	(ft)
+		j	(bc)
+		j	(de)
+		j	(hl)
+
+		add	t,f
+		add	t,t
+		add	t,b
+		add	t,c
+		add	d
+		add	e
+		add	h
+		add	l
+
+		cmp	t,f
+		ext
+		cmp	t,b
+		cmp	t,c
+		cmp	d
+		cmp	e
+		cmp	h
+		cmp	l
+
+		sub	t,f
+		neg	t
+		sub	t,b
+		sub	t,c
+		sub	d
+		sub	e
+		sub	h
+		sub	l
+
+		ld	t,f
+		reti
+		ld	t,b
+		ld	t,c
+		ld	t,d
+		ld	t,e
+		ld	t,h
+		ld	t,l
+
+		or	t,f
+		DB	$61
+		or	t,b
+		or	t,c
+		or	d
+		or	e
+		or	h
+		or	l
+
+		and	t,f
+		DB	$69
+		and	t,b
+		and	t,c
+		and	d
+		and	e
+		and	h
+		and	l
+
+		xor	t,f
+		DB	$71
+		xor	t,b
+		xor	t,c
+		xor	d
+		xor	e
+		xor	h
+		xor	l
+
+		ld	f,t
+		DB	$79
+		ld	b,t
+		ld	c,t
+		ld	d,t
+		ld	e,t
+		ld	h,t
+		ld	l,t
+
+		ld	f,$80
+		ld	t,$81
+		ld	b,$82
+		ld	c,$83
+		ld	d,$84
+		ld	e,$85
+		ld	h,$86
+		ld	l,$87
+
+		dj	f,.here
+		dj	t,.here
+		dj	b,.here
+		dj	c,.here
+		dj	d,.here
+		dj	e,.here
+		dj	h,.here
+		dj	l,.here
+.here
+
+		j/le	.end
+		j/gt	.end
+		j/lt	.end
+		j/ge	.end
+		j/leu	.end
+		j/gtu	.end
+		j/ltu	.end
+		j/geu	.end
+
+		j/eq	.end
+		j/ne	.end
+		j	.end
+		sys	$
+		DB	$9C
+		DB	$9D
+		DB	$9E
+		DB	$9F
+.end		
+		add	f,$A0
+		add	t,$A1
+		add	b,$A2
+		add	c,$A3
+		add	d,$A4
+		add	e,$A5
+		add	h,$A6
+		add	l,$A7
+
+		cmp	f,$A8
+		cmp	t,$A9
+		cmp	b,$AA
+		cmp	c,$AB
+		cmp	d,$AC
+		cmp	e,$AD
+		cmp	h,$AE
+		cmp	l,$AF
+
+		or	$B0
+		and	t,$B1
+		xor	$B2
+		DB	$B3
+		DB	$B4
+		DB	$B5
+		DB	$B6
+		DB	$B7
+
+		ls	$0F
+		rs	ft,$0F
+		DB	$BA
+		rsa	$01
+		DB	$BC
+		DB	$BD
+		DB	$BE
+		DB	$BF
+
+		push	ft
+		push	bc
+		push	de
+		push	hl
+		pop	ft
+		pop	bc
+		pop	de
+		pop	hl
+
+		DB	$C8
+		exg	bc		
+		exg	ft,de		
+		exg	hl,ft		
+		DB	$CC
+		cmp	bc
+		cmp	ft,de
+		cmp	hl
+
+		DB	$D0
+		ld	bc,ft
+		ld	de,ft
+		ld	hl,ft
+		tst	ft
+		tst	bc
+		tst	de
+		tst	hl
+
+		DB	$D8
+		ld	ft,bc
+		ld	ft,de
+		ld	ft,hl
+		DB	$DC
+		DB	$DD
+		DB	$DE
+		DB	$DF
+
+		DB	$E0
+		DB	$E1
+		ls	ft,b
+		ls	c
+		ls	ft,d
+		ls	ft,e
+		ls	ft,h
+		ls	ft,l
+
+		DB	$E8
+		DB	$E9
+		rs	ft,b
+		rs	c
+		rs	ft,d
+		rs	ft,e
+		rs	ft,h
+		rs	ft,l
+
+		neg	ft
+		sub	bc
+		sub	ft,de
+		sub	ft,hl
+		add	ft,ft
+		add	bc
+		add	ft,de
+		add	ft,hl
+
+		pusha
+		popa
+		rsa	ft,b
+		rsa	c
+		rsa	ft,d
+		rsa	ft,e
+		rsa	ft,h
+		rsa	ft,l
+
+	IF	0
+		DB	$0A
+		DB	$0B
 
 		ld	(bc+f),t
 		sys	$19
@@ -65,25 +330,6 @@
 		DB	$36
 		DB	$37
 
-		push	ft
-		push	bc
-		push	de
-		push	hl
-
-		pop	ft
-		pop	bc
-		pop	de
-		pop	hl
-
-		add	t,f
-		add	t,t
-		add	t,b
-		add	t,c
-		add	d
-		add	e
-		add	h
-		add	l
-
 		inc	f
 		inc	t
 		inc	b
@@ -111,33 +357,6 @@
 		dec	h
 		dec	l
 
-		ld	f,t
-		DB	$61
-		ld	b,t
-		ld	c,t
-		ld	d,t
-		ld	e,t
-		ld	h,t
-		ld	l,t
-
-		ld	t,f
-		reti
-		ld	t,b
-		ld	t,c
-		ld	t,d
-		ld	t,e
-		ld	t,h
-		ld	t,l
-
-		ld	f,$70
-		ld	t,$71
-		ld	b,$72
-		ld	c,$73
-		ld	d,$74
-		ld	e,$75
-		ld	h,$76
-		ld	l,$77
-
 		cmp	f
 		ext
 		cmp	b
@@ -147,43 +366,6 @@
 		cmp	h
 		cmp	l
 
-		j/le	.end
-		j/gt	.end
-		j/lt	.end
-		j/ge	.end
-		j/leu	.end
-		j/gtu	.end
-		j/ltu	.end
-		j/geu	.end
-
-		j/eq	.end
-		j/ne	.end
-		j	.end
-		DB	$8B
-		DB	$8C
-		DB	$8D
-		DB	$8E
-		DB	$8F
-.end		
-		dj	f,.here
-		dj	t,.here
-		dj	b,.here
-		dj	c,.here
-		dj	d,.here
-		dj	e,.here
-		dj	h,.here
-		dj	l,.here
-.here
-
-		jal	(ft)
-		jal	(bc)
-		jal	(de)
-		jal	(hl)
-		j	(ft)
-		j	(bc)
-		j	(de)
-		j	(hl)
-
 		tst	f
 		tst	t
 		tst	b
@@ -192,15 +374,6 @@
 		tst	e
 		tst	h
 		tst	l
-
-		or	t,f
-		DB	$A9
-		or	t,b
-		or	t,c
-		or	d
-		or	e
-		or	h
-		or	l
 
 		and	t,f
 		DB	$B1
@@ -235,14 +408,6 @@
 		swap	de
 		swap	hl
 
-		lcr	(c),t
-
-		cmp	bc
-		cmp	de
-		cmp	hl
-
-		lio	(bc),t
-
 		ld	bc,ft
 		ld	de,ft
 		ld	hl,ft
@@ -252,13 +417,9 @@
 		tst	de
 		tst	hl
 
-		lio	t,(bc)
-
 		ld	ft,bc
 		ld	ft,de
 		ld	ft,hl
-
-		lcr	t,(c)
 
 		DB	$DD
 		DB	$DE
@@ -284,23 +445,4 @@
 		rs	ft,h
 		rs	ft,l
 
-		neg	ft
-
-		sub	bc
-		sub	ft,de
-		sub	ft,hl
-
-		add	ft,ft
-		add	bc
-		add	ft,de
-		add	ft,hl
-
-		pusha
-		popa
-
-		rsa	ft,b
-		rsa	c
-		rsa	ft,d
-		rsa	ft,e
-		rsa	ft,h
-		rsa	ft,l
+	ENDC

@@ -1,12 +1,15 @@
 	SECTION "Test",CODE
 
-	j/z	(bc)
-	ld	de,-32768
-	ld	ft,$1234
-	ld	ft,$ff80
-	ld/z	ft,$1234
-	jal	$1234
-	cmp	$12
+	sub	bc,4
+	sub	t,6
 	push	bc-hl
 	push	ft
 	pop	ft/hl
+	jal	$1234
+	ld/z	ft,$1234
+	ld	ft,$1234
+	ld	ft,$FF80
+	ld	ft,$007F
+	ld	de,-32768
+	j/z	(bc)
+

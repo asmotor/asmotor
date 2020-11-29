@@ -49,14 +49,8 @@
 #define MODE_IND_HL	        0x0010000
 #define MODE_IMM            0x0020000
 #define MODE_ADDR           0x0040000
-#define MODE_IND_BC_L       0x0080000
-#define MODE_IND_BC_H       0x0100000
-#define MODE_IND_BC_E       0x0200000
-#define MODE_IND_BC_D       0x0400000
-#define MODE_IND_BC_T       0x0800000
-#define MODE_IND_BC_F       0x1000000
-#define MODE_REGISTER_MASK  0x2000000
-#define MODE_NONE           0x4000000
+#define MODE_REGISTER_MASK  0x0080000
+#define MODE_NONE           0x0100000
 
 #define MODE_REG_8BIT (MODE_REG_F | MODE_REG_T | MODE_REG_B | MODE_REG_C | MODE_REG_D | MODE_REG_E | MODE_REG_H | MODE_REG_L)
 #define MODE_REG_8BIT_FBCDEHL (MODE_REG_F | MODE_REG_B | MODE_REG_C | MODE_REG_D | MODE_REG_E | MODE_REG_H | MODE_REG_L)
@@ -66,8 +60,6 @@
 #define MODE_IND_16BIT (MODE_IND_FT | MODE_IND_BC | MODE_IND_DE | MODE_IND_HL)
 #define MODE_IND_16BIT_BCDEHL (MODE_IND_BC | MODE_IND_DE | MODE_IND_HL)
 #define MODE_IND_16BIT (MODE_IND_FT | MODE_IND_BC | MODE_IND_DE | MODE_IND_HL)
-#define MODE_IND_OFFSET (MODE_IND_BC_L | MODE_IND_BC_H | MODE_IND_BC_E | MODE_IND_BC_D | MODE_IND_BC_T | MODE_IND_BC_F)
-#define MODE_IND_OFFSET_FDEHL (MODE_IND_BC_L | MODE_IND_BC_H | MODE_IND_BC_E | MODE_IND_BC_D | MODE_IND_BC_F)
 
 typedef enum {
 	// These must be in the same order as the tokens and end with CC_ALWAYS
@@ -131,6 +123,57 @@ handle_OpcodeRegister(uint8_t baseOpcode, SAddressingMode* sourceMode) {
 }
 
 
+static bool
+handle_Op_Reg_Imm(uint8_t baseOpcode, int lowerBound, int upperBound, SAddressingMode* registerDest, SExpression* expression) {
+	SExpression* ranged = expr_CheckRange(expression, lowerBound, upperBound);
+	if (ranged == NULL) {
+		return err_Error(ERROR_OPERAND_RANGE);
+	}
+
+	SExpression* masked = 
+		expr_And(
+			ranged,
+			expr_Const(0xFF));
+
+	if (!expression) {
+		return false;
+	}
+
+	if (registerDest == NULL)
+		sect_OutputConst8(baseOpcode);
+	else
+		handle_OpcodeRegister(baseOpcode, registerDest);
+
+	sect_OutputExpr8(masked);
+
+	return true;
+}
+
+
+static bool
+handle_Op_Reg_SignedImm(uint8_t baseOpcode, SAddressingMode* registerDest, SExpression* expression) {
+	return handle_Op_Reg_Imm(baseOpcode, -128, 127, registerDest, expression);
+}
+
+
+static bool
+handle_Op_Reg_SignedOrUnsignedImm(uint8_t baseOpcode, SAddressingMode* registerDest, SExpression* expression) {
+	return handle_Op_Reg_Imm(baseOpcode, -128, 255, registerDest, expression);
+}
+
+
+static bool
+handle_Op_Reg_UnsignedImm(uint8_t baseOpcode, SAddressingMode* registerDest, SExpression* expression) {
+	return handle_Op_Reg_Imm(baseOpcode, 0, 255, registerDest, expression);
+}
+
+
+static bool
+handle_Op_Reg_UnsignedImm4(uint8_t baseOpcode, SAddressingMode* registerDest, SExpression* expression) {
+	return handle_Op_Reg_Imm(baseOpcode, 0, 15, registerDest, expression);
+}
+
+
 static void 
 ensureSource(SAddressingMode** destination, SAddressingMode** source) {
 	// If only destination has been specified, swap the two modes.
@@ -148,21 +191,46 @@ static bool
 handle_ADD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	ensureSource(&destination, &source);
 
-	if ((source->mode & MODE_REG_8BIT) && (destination->mode == MODE_NONE || destination->mode == MODE_REG_T))
+	if ((destination->mode & (MODE_REG_T | MODE_NONE)) && (source->mode & MODE_REG_8BIT))
 		return handle_OpcodeRegister(0x40, source);
-	else if ((source->mode & MODE_REG_16BIT) && (destination->mode == MODE_NONE || destination->mode == MODE_REG_FT))
+	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_16BIT))
 		return handle_OpcodeRegister(0xF4, source);
+	else if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM))
+		return handle_Op_Reg_SignedOrUnsignedImm(0xA0, destination, source->expression);
+	else if ((destination->mode & MODE_REG_16BIT) && (source->mode & MODE_IMM))
+		return handle_Op_Reg_SignedImm(0xBC, destination, source->expression);
 
 	return false;
 }
 
 
 static bool 
-handle_Common_FBCDEHL(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
+handle_Bitwise(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	ensureSource(&destination, &source);
 
-	if ((source->mode & MODE_REG_8BIT_FBCDEHL) && (destination->mode == MODE_NONE || destination->mode == MODE_REG_T))
+	if ((source->mode & MODE_REG_8BIT_FBCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_T)))
 		return handle_OpcodeRegister(baseOpcode, source);
+	else if ((source->mode & MODE_IMM) && (destination->mode & (MODE_NONE | MODE_REG_T))) {
+		baseOpcode = 0xB0 + ((baseOpcode >> 3) & 0x03);
+		return handle_Op_Reg_UnsignedImm(baseOpcode, NULL, source->expression);
+	}
+
+	return false;
+}
+
+
+static bool 
+handle_EXG(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
+	ensureSource(&destination, &source);
+
+	if ((destination->mode & MODE_REG_8BIT_FBCDEHL) && (source->mode & MODE_REG_T))
+		return handle_OpcodeRegister(baseOpcode, destination);
+	else if ((source->mode & MODE_REG_8BIT_FBCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_T)))
+		return handle_OpcodeRegister(baseOpcode, source);
+	else if ((destination->mode & MODE_REG_16BIT_BCDEHL) && (source->mode & MODE_REG_FT))
+		return handle_OpcodeRegister(0xC8, destination);
+	else if ((source->mode & MODE_REG_16BIT_BCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_FT)))
+		return handle_OpcodeRegister(0xC8, source);
 
 	return false;
 }
@@ -175,30 +243,6 @@ registerPair(SAddressingMode* high, SAddressingMode* low, SAddressingMode* src) 
 	high->registerIndex = registerBase;
 	low->mode = MODE_REG_T << registerBase;
 	low->registerIndex = registerBase + 1;
-}
-
-
-static bool
-handle_INC_DEC(uint8_t baseOpcode, uint8_t nBase16Opcode, SAddressingMode* destination, SAddressingMode* source) {
-	if (destination->mode & MODE_REG_8BIT) {
-		return handle_OpcodeRegister(baseOpcode, destination);
-	} else if (destination->mode & MODE_REG_16BIT) {
-		return handle_OpcodeRegister(nBase16Opcode, destination);
-	}
-
-	return false;
-}
-
-
-static bool
-handle_DEC(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	return handle_INC_DEC(0x58, 0xC4, destination, source);
-}
-
-
-static bool
-handle_INC(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	return handle_INC_DEC(0x48, 0xC0, destination, source);
 }
 
 
@@ -224,7 +268,7 @@ handle_JumpRelative(uint8_t opcode, SExpression* destination) {
 
 static bool
 handle_JumpRelativeCC(EConditionCode cc, SExpression* destination) {
-	return handle_JumpRelative(0x80 + cc, destination);
+	return handle_JumpRelative(0x90 + cc, destination);
 }
 
 
@@ -245,7 +289,7 @@ handle_J(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SA
 				return err_Error(MERROR_REQUIRES_SYNTHESIZED);
 
 			cc = invertCondition(cc);
-			sect_OutputConst8(0x80 + cc);
+			sect_OutputConst8(0x90 + cc);
 			sect_OutputConst8(0x02);
 		}
 
@@ -264,48 +308,30 @@ handle_LCO(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 static bool
 handle_LCR(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	if (destination->mode == MODE_IND_C && source->mode == MODE_REG_T)
-		return handle_Implicit(0xCC, cc, destination, source);
+		return handle_Implicit(baseOpcode, cc, destination, source);
 	else if (destination->mode == MODE_REG_T && source->mode == MODE_IND_C)
-		return handle_Implicit(0xDC, cc, destination, source);
+		return handle_Implicit(baseOpcode + 0x01, cc, destination, source);
 
 	return false;
 }
 
-
-static void
-handle_LD_R8_const(SAddressingMode* registerDest, uint8_t value) {
-	sect_OutputConst8(0x70 | registerDest->registerIndex);
-	sect_OutputConst8(value);
-}
-
-
-static bool
-handle_LD_R8_imm(SAddressingMode* registerDest, SExpression* expression) {
-	expression = expr_CheckRange(expression, -128, 255);
-	if (!expression)
+static bool 
+handle_LD_R8_const(SAddressingMode* reg, uint8_t n8) {
+	if (!handle_OpcodeRegister(0x80, reg))
 		return false;
 
-	if (expr_IsConstant(expression)) {
-		handle_LD_R8_const(registerDest, expression->value.integer);
-		expr_Free(expression);
-		return true;
-	} else {
-		SExpression* masked = expr_And(expression, expr_Const(0xFF));
-
-		handle_OpcodeRegister(0x70, registerDest);
-		sect_OutputExpr8(masked);
-
-		return true;
-	}
+	sect_OutputConst8(n8);
+	return true;
 }
 
 
 static bool 
 handle_LD_R16_3bytes(SAddressingMode* registerHigh, SAddressingMode* registerLow, uint8_t high, uint8_t low) {
 	if (registerHigh->registerIndex == 0 && registerLow->registerIndex == 1) {
-		if (high == 0xFF && (low == 0 || (low & 0x80))) {
+		if (((high == 0xFF) && (low & 0x80))
+		||  ((high == 0x00) && (low & 0x80) == 0)) {
 			handle_LD_R8_const(registerLow, low);	/* LD T,n8 */
-			sect_OutputConst8(0x99);				/* SMZ T */
+			sect_OutputConst8(0x49);				/* EXT */
 			return true;
 		} else if (high == low) {
 			handle_LD_R8_const(registerLow, low);	/* LD r8,n8 */
@@ -354,16 +380,16 @@ handle_LD_R16_imm(SAddressingMode* dest, SExpression* expression) {
 	if (high == NULL || low == NULL)
 		return false;
 
-	if (!handle_LD_R8_imm(&registerHigh, high))
+	if (!handle_Op_Reg_UnsignedImm(0x80, &registerHigh, high))
 		return false;
-	return handle_LD_R8_imm(&registerLow, low);
+	return handle_Op_Reg_UnsignedImm(0x80, &registerLow, low);
 }
 
 
 static bool 
 handle_LD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	if ((destination->mode & MODE_REG_8BIT) && source->mode == MODE_IMM) {
-		return handle_LD_R8_imm(destination, source->expression);
+		return handle_Op_Reg_SignedOrUnsignedImm(0x80, destination, source->expression);
 	} else if ((destination->mode & MODE_REG_16BIT) && source->mode == MODE_IMM && opt_Current->machineOptions->enableSynthInstructions) {
 		return handle_LD_R16_imm(destination, source->expression);
 	} else if ((destination->mode & MODE_IND_16BIT_BCDEHL) && source->mode == MODE_REG_T) {
@@ -371,17 +397,13 @@ handle_LD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, S
 	} else if (destination->mode == MODE_REG_T && (source->mode & MODE_IND_16BIT)) {
 		return handle_OpcodeRegister(0x04, source);
 	} else if ((destination->mode & MODE_REG_8BIT_FBCDEHL) && source->mode == MODE_REG_T) {
-		return handle_OpcodeRegister(0x60, destination);
+		return handle_OpcodeRegister(0x78, destination);
 	} else if (destination->mode == MODE_REG_T && (source->mode & MODE_REG_8BIT_FBCDEHL)) {
-		return handle_OpcodeRegister(0x68, source);
+		return handle_OpcodeRegister(0x58, source);
 	} else if ((destination->mode & MODE_REG_16BIT_BCDEHL) && source->mode == MODE_REG_FT) {
 		return handle_OpcodeRegister(0xD0, destination);
 	} else if (destination->mode == MODE_REG_FT && (source->mode & MODE_REG_16BIT_BCDEHL)) {
 		return handle_OpcodeRegister(0xD8, source);
-	} else if ((destination->mode & MODE_IND_OFFSET_FDEHL) && source->mode == MODE_REG_T) {
-		return handle_OpcodeRegister(0x18, destination);
-	} else if (destination->mode == MODE_REG_T && (source->mode & MODE_IND_OFFSET)) {
-		return handle_OpcodeRegister(0x10, source);
 	}
 
 	return false;
@@ -409,7 +431,7 @@ handle_LoadIndirect(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* dest
 	if (destination->mode == MODE_IND_BC && source->mode == MODE_REG_T)
 		return handle_Implicit(baseOpcode, cc, destination, source);
 	else if (destination->mode == MODE_REG_T && source->mode == MODE_IND_BC)
-		return handle_Implicit(baseOpcode + 0x08, cc, destination, source);
+		return handle_Implicit(baseOpcode + 0x01, cc, destination, source);
 
 	return false;
 }
@@ -484,6 +506,10 @@ handle_Shift(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination
 
 	if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_8BIT_BCDEHL))
 		return handle_OpcodeRegister(baseOpcode, source);
+	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_IMM)) {
+		baseOpcode = 0xB8 + ((baseOpcode >> 3) & 0x03);
+		return handle_Op_Reg_UnsignedImm4(baseOpcode, NULL, source->expression);
+	}
 
 	return false;
 }
@@ -491,18 +517,16 @@ handle_Shift(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination
 
 static bool
 handle_CMP(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	if (destination->mode & MODE_IMM) {
-		if (!opt_Current->machineOptions->enableSynthInstructions)
-			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
-			
-		sect_OutputConst8(0x70);	// LD F,n8
-		sect_OutputExpr8(destination->expression);
-		sect_OutputConst8(baseOpcode);
+	ensureSource(&destination, &source);
+
+	if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM)) {
+		handle_OpcodeRegister(0xA8, destination);
+		sect_OutputExpr8(source->expression);
 		return true;
-	} else if (destination->mode & MODE_REG_8BIT_FBCDEHL) {
-		return handle_OpcodeRegister(baseOpcode, destination);
-	} else if (destination->mode & MODE_REG_16BIT_BCDEHL) {
-		return handle_OpcodeRegister(baseOpcode + 0x54, destination);
+	} else if ((destination->mode & (MODE_REG_T | MODE_NONE)) && (source->mode & MODE_REG_8BIT_FBCDEHL)) {
+		return handle_OpcodeRegister(0x48, source);
+	} else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_16BIT_BCDEHL)) {
+		return handle_OpcodeRegister(0xCC, source);
 	}
 
 	return false;
@@ -518,13 +542,7 @@ handle_NOT(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 
 static bool
 handle_TST(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	if (destination->mode & MODE_REG_8BIT) {
-		return handle_OpcodeRegister(baseOpcode, destination);
-	} else if (destination->mode & MODE_REG_16BIT) {
-		return handle_OpcodeRegister(baseOpcode + 0x34, destination);
-	}
-
-	return false;
+	return handle_OpcodeRegister(baseOpcode, destination);
 }
 
 
@@ -540,12 +558,6 @@ handle_NEG(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 
 
 static bool
-handle_SWAP(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	return handle_OpcodeRegister(baseOpcode, destination);
-}
-
-
-static bool
 handle_SYS(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	sect_OutputConst8(baseOpcode);
 	sect_OutputExpr8(destination->expression);
@@ -557,20 +569,19 @@ static bool
 handle_SUB(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	ensureSource(&destination, &source);
 
-	if ((source->mode & MODE_REG_8BIT) && (destination->mode == MODE_NONE || destination->mode == MODE_REG_T))
+	if ((source->mode & MODE_REG_8BIT) && (destination->mode & (MODE_NONE | MODE_REG_T)))
 		return handle_OpcodeRegister(0x50, source);
-	else if ((source->mode & MODE_REG_16BIT_BCDEHL) && (destination->mode == MODE_NONE || destination->mode == MODE_REG_FT))
+	else if ((source->mode & MODE_REG_16BIT_BCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_FT)))
 		return handle_OpcodeRegister(0xF0, source);
-
-	return false;
-}
-
-
-static bool handle_XOR(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	ensureSource(&destination, &source);
-
-	if ((source->mode & MODE_REG_8BIT) && (destination->mode == MODE_NONE || destination->mode == MODE_REG_T))
-		return handle_OpcodeRegister(0xB8, source);
+	else if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM)) {
+		if (!opt_Current->machineOptions->enableSynthInstructions)
+			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+		return handle_Op_Reg_SignedOrUnsignedImm(0xA0, destination, expr_Sub(expr_Const(0), source->expression));
+	} else if ((destination->mode & MODE_REG_16BIT) && (source->mode & MODE_IMM)) {
+		if (!opt_Current->machineOptions->enableSynthInstructions)
+			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+		return handle_Op_Reg_SignedImm(0xBC, destination, expr_Sub(expr_Const(0), source->expression));
+	}
 
 	return false;
 }
@@ -578,45 +589,43 @@ static bool handle_XOR(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* d
 
 static SParser
 g_Parsers[T_RC8_XOR - T_RC8_ADD + 1] = {
-	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT, MODE_NONE | MODE_REG_8BIT | MODE_REG_16BIT, handle_ADD },	/* ADD */
-	{ 0xB0, CONDITION_AUTO, MODE_REG_8BIT, MODE_NONE | MODE_REG_8BIT, handle_Common_FBCDEHL },		/* AND */
-	{ 0x78, CONDITION_AUTO, MODE_IMM | MODE_REG_8BIT | MODE_REG_16BIT, MODE_NONE, handle_CMP },		/* CMP */
-	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT, MODE_NONE, handle_DEC },				/* DEC */
-	{ 0x13, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* DI */
-	{ 0x90, CONDITION_AUTO, MODE_REG_8BIT, MODE_ADDR, handle_DJ },									/* DJ */
-	{ 0x12, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* EI */
-	{ 0x79, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* EXT */
-	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT, MODE_NONE, handle_INC },				/* INC */
-	{ 0x9C, CONDITION_PASS, MODE_IND_16BIT | MODE_ADDR, MODE_NONE, handle_J },						/* J */
-	{ 0x98, CONDITION_AUTO, MODE_IND_16BIT | MODE_ADDR, MODE_NONE, handle_JAL },					/* JAL */
+	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT, MODE_IMM | MODE_REG_8BIT | MODE_REG_16BIT | MODE_NONE, handle_ADD },	/* ADD */
+	{ 0x68, CONDITION_AUTO, MODE_REG_8BIT | MODE_IMM, MODE_NONE | MODE_REG_8BIT | MODE_IMM, handle_Bitwise },	/* AND */
+	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT, MODE_IMM | MODE_REG_8BIT_FBCDEHL | MODE_REG_16BIT_BCDEHL | MODE_NONE, handle_CMP },		/* CMP */
+	{ 0x1B, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* DI */
+	{ 0x88, CONDITION_AUTO, MODE_REG_8BIT, MODE_ADDR, handle_DJ },									/* DJ */
+	{ 0x1A, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* EI */
+	{ 0x10, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT, MODE_NONE | MODE_REG_8BIT | MODE_REG_16BIT, handle_EXG },	/* EXG */
+	{ 0x49, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* EXT */
+	{ 0x3C, CONDITION_PASS, MODE_IND_16BIT | MODE_ADDR, MODE_NONE, handle_J },						/* J */
+	{ 0x38, CONDITION_AUTO, MODE_IND_16BIT | MODE_ADDR, MODE_NONE, handle_JAL },					/* JAL */
 	{ 0x0C, CONDITION_AUTO, MODE_REG_T, MODE_IND_16BIT, handle_LCO },								/* LCO */
-	{ 0x00, CONDITION_AUTO, MODE_IND_C | MODE_REG_T, MODE_IND_C | MODE_REG_T, handle_LCR },			/* LCR */
-	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT | MODE_IND_16BIT_BCDEHL | MODE_IND_16BIT | MODE_IND_OFFSET_FDEHL, MODE_IMM | MODE_REG_8BIT | MODE_REG_16BIT | MODE_IND_16BIT | MODE_IND_OFFSET, handle_LD },		/* LD */
-	{ 0xD0, CONDITION_AUTO, MODE_IND_BC | MODE_REG_T, MODE_IND_BC | MODE_REG_T, handle_LoadIndirect },	/* LIO */
-	{ 0xE0, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL, MODE_REG_8BIT_BCDEHL | MODE_NONE, handle_Shift },	/* LS */
+	{ 0x0A, CONDITION_AUTO, MODE_IND_C | MODE_REG_T, MODE_IND_C | MODE_REG_T, handle_LCR },			/* LCR */
+	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT | MODE_IND_16BIT_BCDEHL | MODE_IND_16BIT, MODE_IMM | MODE_REG_8BIT | MODE_REG_16BIT | MODE_IND_16BIT, handle_LD },		/* LD */
+	{ 0x08, CONDITION_AUTO, MODE_IND_BC | MODE_REG_T, MODE_IND_BC | MODE_REG_T, handle_LoadIndirect },	/* LIO */
+	{ 0xE0, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL | MODE_IMM, MODE_REG_8BIT_BCDEHL | MODE_IMM | MODE_NONE, handle_Shift },	/* LS */
 	{ 0x51, CONDITION_AUTO, MODE_REG_T | MODE_REG_FT, MODE_NONE, handle_NEG },						/* NEG */
 	{ 0x00, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* NOP */
-	{ 0x08, CONDITION_AUTO, MODE_REG_F | MODE_REG_T, MODE_NONE, handle_NOT },						/* NOT */
-	{ 0xA8, CONDITION_AUTO, MODE_REG_8BIT, MODE_NONE | MODE_REG_8BIT, handle_Common_FBCDEHL },		/* OR */
-	{ 0x3C, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK, MODE_NONE, handle_RegisterStack },	/* POP */
+	{ 0x18, CONDITION_AUTO, MODE_REG_F | MODE_REG_T, MODE_NONE, handle_NOT },						/* NOT */
+	{ 0x60, CONDITION_AUTO, MODE_REG_8BIT | MODE_IMM, MODE_NONE | MODE_REG_8BIT | MODE_IMM, handle_Bitwise },	/* OR */
+	{ 0xC4, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK, MODE_NONE, handle_RegisterStack },	/* POP */
 	{ 0xF9, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* POPA */
-	{ 0x38, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK, MODE_NONE, handle_RegisterStack },	/* PUSH */
+	{ 0xC0, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK, MODE_NONE, handle_RegisterStack },	/* PUSH */
 	{ 0xF8, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* PUSHA */
-	{ 0x69, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* RETI */
-	{ 0xE8, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL, MODE_REG_8BIT_BCDEHL | MODE_NONE, handle_Shift },	/* RS */
-	{ 0xF8, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL, MODE_REG_8BIT_BCDEHL | MODE_NONE, handle_Shift },	/* RSA */
+	{ 0x59, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* RETI */
+	{ 0xE8, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL | MODE_IMM, MODE_REG_8BIT_BCDEHL | MODE_IMM | MODE_NONE, handle_Shift },	/* RS */
+	{ 0xF8, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL | MODE_IMM, MODE_REG_8BIT_BCDEHL | MODE_IMM | MODE_NONE, handle_Shift },	/* RSA */
 	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT, MODE_NONE | MODE_REG_8BIT | MODE_REG_16BIT | MODE_IMM, handle_SUB },	/* SUB */
-	{ 0xC8, CONDITION_AUTO, MODE_REG_16BIT, MODE_NONE, handle_SWAP },								/* SWAP */
-	{ 0x19, CONDITION_AUTO, MODE_IMM, MODE_NONE, handle_SYS },										/* SYS */
-	{ 0xA0, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT, MODE_NONE, handle_TST },				/* TST */
-	{ 0xB8, CONDITION_AUTO, MODE_REG_8BIT, MODE_NONE | MODE_REG_8BIT, handle_XOR },					/* XOR */
+	{ 0x9B, CONDITION_AUTO, MODE_IMM, MODE_NONE, handle_SYS },										/* SYS */
+	{ 0xD4, CONDITION_AUTO, MODE_REG_16BIT, MODE_NONE, handle_TST },								/* TST */
+	{ 0x70, CONDITION_AUTO, MODE_REG_8BIT | MODE_IMM, MODE_NONE | MODE_REG_8BIT | MODE_IMM, handle_Bitwise },	/* XOR */
 };
 
 
 typedef struct RegisterMode {
 	uint32_t modeFlag;
-	uint32_t token;
-	uint32_t opcodeRegister;
+	uint16_t token;
+	uint8_t opcodeRegister;
 } SRegisterMode;
 
 
