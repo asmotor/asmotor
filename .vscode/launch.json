@@ -116,7 +116,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcg", "-fv", "-otest.r", "repttest2.asm"],
+            "args": ["-mcg", "-fv", "-otest.r", "endc2.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/common",
             "environment": [],

@@ -539,7 +539,10 @@ handleIfExpr(intptr_t intPredicate) {
 	parse_GetToken();
 
 	if (!predicate(parse_ConstantExpression())) {
-		parse_SkipPastTrueBranch();
+		uint32_t lineNumber = lex_Context->lineNumber;
+		if (!parse_SkipPastTrueBranch()) {
+			err_Fail(ERROR_NEED_ENDC, str_String(lex_Context->buffer.name), lineNumber);
+		}
 	}
 	return true;
 }

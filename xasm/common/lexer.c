@@ -527,7 +527,7 @@ stateMacroArguments() {
 	bool wasSpace = false;
 	for (;;) {
 		char ch = lex_GetChar();
-		if (strchr("\n,;}", ch) != NULL) {
+		if (ch != 0 && strchr("\n,;}", ch) != NULL) {
 			lex_UnputChar(ch);
 			break;
 		}
@@ -538,12 +538,12 @@ stateMacroArguments() {
 		}
 
 		lex_Context->token.value.string[lex_Context->token.length++] = ch;
-		wasSpace = strchr("\t ", ch);
+		wasSpace = strchr("\t ", ch) != NULL && ch != 0;
 	}
 
 	if (lex_Context->token.length > 0) {
 		char ch = lex_GetChar();
-		if (strchr("\n\t ;", ch) != NULL) {
+		if (strchr("\n\t ;", ch) != NULL && ch != 0) {
 			trimTokenStringRight();
 		}
 		lex_Context->token.id = T_STRING;
@@ -556,12 +556,18 @@ stateMacroArguments() {
 }
 
 
-static void
+static bool
 skipToNextLine(void) {
 	char ch = lex_GetChar();
+
+	if (ch == 0)
+		return false;
+
 	while (!isLineEnd(ch) && ch != 0) {
 		ch = lex_GetChar();
 	}
+
+	return true;
 }
 
 static void
@@ -578,19 +584,19 @@ static bool
 charIs(char* candidates) {
 	char ch = lex_GetChar();
 	lex_UnputChar(ch);
-	return strchr(candidates, ch) != NULL;
+	return ch != 0 && strchr(candidates, ch) != NULL;
 }
 
 static bool
 charIsIndexed(size_t* index, char* candidates) {
 	char ch = getUnexpandedChar(*index);
-	return strchr(candidates, ch) != NULL;
+	return ch != 0 && strchr(candidates, ch) != NULL;
 }
 
 static void
 skipLabel(void) {
 	char ch = lex_GetChar();
-	while (strchr(" \t",ch) == NULL && ch != 0) {
+	while (strchr(" \t\n",ch) == NULL && ch != 0) {
 		ch = lex_GetChar();
 	}
 	lex_UnputChar(ch);
@@ -694,7 +700,9 @@ lex_Init(string* filename) {
 bool
 lex_GetNextDirective(void) {
 	for (;;) {
-		skipToNextLine();
+		if (!skipToNextLine())
+			return false;
+
 		lex_Context->lineNumber += 1;
 		if (charIs(";*"))
 			continue;

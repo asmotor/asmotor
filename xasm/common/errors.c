@@ -104,7 +104,8 @@ static char* g_errors[] = {
     "Invalid MACRO argument",
     "Not a string member function returning int",
     "Too many files specified on command line",
-    "Extended precision floating point not supported"
+    "Extended precision floating point not supported",
+    "Unterminated IF block (started at %s, line %d)",
 };
 
 static const char*

@@ -29,7 +29,7 @@
 		exg	l
 
 		not	f
-		not	t
+		DB	$19
 		ei
 		di
 		DB	$1C
