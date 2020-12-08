@@ -39,21 +39,21 @@
 
 		DB	$20
 		DB	$21
-		DB	$22
-		DB	$23
-		DB	$24
-		DB	$25
-		DB	$26
-		DB	$27
+		ld	(ft),b
+		ld	(ft),c
+		ld	(ft),d
+		ld	(ft),e
+		ld	(ft),h
+		ld	(ft),l
 
-		DB	$28
+		ld	f,(ft)
 		DB	$29
-		DB	$2A
-		DB	$2B
-		DB	$2C
-		DB	$2D
-		DB	$2E
-		DB	$2F
+		ld	b,(ft)
+		ld	c,(ft)
+		ld	d,(ft)
+		ld	e,(ft)
+		ld	h,(ft)
+		ld	l,(ft)
 
 		DB	$30
 		DB	$31
