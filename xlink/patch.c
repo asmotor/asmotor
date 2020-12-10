@@ -202,7 +202,7 @@ makePatchString(SPatch* patch, SSection* section) {
                 combinePatchStrings("/");
                 break;
             case OBJ_OP_MOD:
-                combinePatchStrings("%");
+                combinePatchStrings("%%");
                 break;
             case OBJ_OP_BOOLEAN_OR:
                 combinePatchStrings("||");
@@ -416,11 +416,11 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
                 break;
             }
             case OBJ_OP_ASL: {
-                combine_bitwise(left, right, <<)
+                combine_operator(left, right, <<)
                 break;
             }
             case OBJ_OP_ASR: {
-                combine_bitwise(left, right, >>)
+                combine_operator(left, right, >>)
                 break;
             }
             case OBJ_OP_MUL: {
