@@ -158,7 +158,7 @@
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/rc8",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false,
             "MIMode": "gdb"
         },
         {

@@ -1,5 +1,10 @@
 	SECTION "Test",CODE
 
+	sub	bc,$1234
+	add	bc,$12AB
+	add	bc,$1234
+	add	bc,$8000
+	add	bc,$FFFF
 	not	ft
 	not	t
 	sub	bc,4

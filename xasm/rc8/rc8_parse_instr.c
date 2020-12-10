@@ -150,6 +150,16 @@ handle_Op_Reg_Imm(uint8_t baseOpcode, int lowerBound, int upperBound, SAddressin
 }
 
 
+static void 
+registerPair(SAddressingMode* high, SAddressingMode* low, SAddressingMode* src) {
+	uint32_t registerBase = src->registerIndex * 2;
+	high->mode = MODE_REG_F << registerBase;
+	high->registerIndex = registerBase;
+	low->mode = MODE_REG_T << registerBase;
+	low->registerIndex = registerBase + 1;
+}
+
+
 static bool
 handle_Op_Reg_SignedImm(uint8_t baseOpcode, SAddressingMode* registerDest, SExpression* expression) {
 	return handle_Op_Reg_Imm(baseOpcode, -128, 127, registerDest, expression);
@@ -197,8 +207,31 @@ handle_ADD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 		return handle_OpcodeRegister(0xF4, source);
 	else if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM))
 		return handle_Op_Reg_SignedOrUnsignedImm(0xA0, destination, source->expression);
-	else if ((destination->mode & MODE_REG_16BIT) && (source->mode & MODE_IMM))
-		return handle_Op_Reg_SignedImm(0xBC, destination, source->expression);
+	else if ((destination->mode & MODE_REG_16BIT) && (source->mode & MODE_IMM)) {
+		SExpression* expr = expr_Asr(expr_Asl(expr_CheckRange(source->expression, -32768, 65535), expr_Const(16)), expr_Const(16));
+		if (expr_IsConstant(source->expression) && expr->value.integer >= -128 && expr->value.integer <= 127) {
+			return handle_Op_Reg_SignedImm(0xBC, destination, expr);
+		}
+
+		if (!opt_Current->machineOptions->enableSynthInstructions)
+			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+
+		SAddressingMode highAddr, lowAddr;
+		registerPair(&highAddr, &lowAddr, destination);
+
+		SExpression* low = expr_Asr(expr_Asl(expr_Clone(expr), expr_Const(24)), expr_Const(24));
+		SExpression* highAdjust = expr_Asr(expr_Clone(low), expr_Const(8));
+		SExpression* high = expr_Sub(expr_Asr(expr_Clone(expr), expr_Const(8)), highAdjust);
+
+		if (!expr_IsConstant(low) || low->value.integer != 0) {
+			handle_Op_Reg_SignedImm(0xBC, destination, low);
+		}
+		if (!expr_IsConstant(high) || high->value.integer != 0) {
+			handle_Op_Reg_SignedImm(0xA0, &highAddr, high);
+		}
+
+		return true;
+	}
 
 	return false;
 }
@@ -233,16 +266,6 @@ handle_EXG(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 		return handle_OpcodeRegister(0xC8, source);
 
 	return false;
-}
-
-
-static void 
-registerPair(SAddressingMode* high, SAddressingMode* low, SAddressingMode* src) {
-	uint32_t registerBase = src->registerIndex * 2;
-	high->mode = MODE_REG_F << registerBase;
-	high->registerIndex = registerBase;
-	low->mode = MODE_REG_T << registerBase;
-	low->registerIndex = registerBase + 1;
 }
 
 
@@ -593,14 +616,11 @@ handle_SUB(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 		return handle_OpcodeRegister(0x50, source);
 	else if ((source->mode & MODE_REG_16BIT_BCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_FT)))
 		return handle_OpcodeRegister(0xF0, source);
-	else if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM)) {
+	else if ((destination->mode & (MODE_REG_8BIT | MODE_REG_16BIT)) && (source->mode & MODE_IMM)) {
 		if (!opt_Current->machineOptions->enableSynthInstructions)
 			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
-		return handle_Op_Reg_SignedOrUnsignedImm(0xA0, destination, expr_Sub(expr_Const(0), source->expression));
-	} else if ((destination->mode & MODE_REG_16BIT) && (source->mode & MODE_IMM)) {
-		if (!opt_Current->machineOptions->enableSynthInstructions)
-			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
-		return handle_Op_Reg_SignedImm(0xBC, destination, expr_Sub(expr_Const(0), source->expression));
+		source->expression = expr_Sub(expr_Const(0), source->expression);
+		return handle_ADD(0x00, cc, destination, source);
 	}
 
 	return false;
