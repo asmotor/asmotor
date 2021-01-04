@@ -12,6 +12,18 @@ ASMotor is the spiritual successor to RGBDS, which was a fairly popular developm
 
 ## Building from source
 
+### Windows
+A script (```install.sh```) is included that will install the compiled binaries into the %USERPROFILE%\\bin directory. This path should be added to your $PATH for easier use. This script will also accept the
+destination root (for instance ```%USERPROFILE\\bin```). The installation directory should be added to your path variable.
+
+To build from source, cmake must be installed. Installing cmake with [Chocolatey](https://chocolatey.org/) using command ```choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'``` is suggested. A C compiler that cmake can find must also be installed. Visual Studio Community edition is suggested.
+
+Then, using PowerShell, run the following commands:
+```
+	Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+	install.ps1
+```
+
 ### Linux and macOS
 A script (```install.sh```) is included that will install the compiled binaries into the $HOME/bin directory. This path should be added to your $PATH for easier use. This script will also accept the
 destination root (for instance ```/usr/local```).
