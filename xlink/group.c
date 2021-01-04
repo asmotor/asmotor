@@ -549,6 +549,9 @@ group_SetupHC8XXCom(void) {
 
     //	Create DATA group
 
+    group = group_Create("DATA", 1);
+    group->pools[0] = codepool;
+
     //	Create BSS_S (shared) group
 
     group = group_Create("BSS_S", 1);
