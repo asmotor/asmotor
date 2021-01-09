@@ -248,5 +248,4 @@ lex_ConstantsExit(void) {
 	}
 
 	g_maxWordLength = 0;
-	
 }
