@@ -1,6 +1,6 @@
 # ASMotor
 
-ASMotor is a portable and generic assembler engine and development system written in ANSI C11 and licensed under the GNU Public License v3. The package consists of the assembler, the librarian and the linker. It can be used as either a cross or native development system.
+ASMotor is a portable and generic assembler engine and development system written in ANSI C99 and licensed under the GNU Public License v3. The package consists of the assembler, the librarian and the linker. It can be used as either a cross or native development system.
 
 The assembler syntax is based on the Motorola style macro language.
 
