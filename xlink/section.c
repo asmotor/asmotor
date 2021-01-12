@@ -50,7 +50,7 @@ resolveSymbol(SSection* section, SSymbol* symbol, bool allowImports) {
 
             for (definingSection = sect_Sections;
                  definingSection != NULL; definingSection = definingSection->nextSection) {
-                if (definingSection->used) {
+                if (definingSection->used || definingSection->group == NULL) {
                     uint32_t i;
                     SSymbol* exportedSymbol = definingSection->symbols;
 

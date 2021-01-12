@@ -39,9 +39,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-sEntry", "-mascii.sym", "-oascii.com", "-thc8c", "ascii.obj", "../stdlib/std.lib"],
+            "args": ["-sVectors", "-mdemo.sym", "-odemo.com", "-thc8c", "core.obj", "demo.obj", "libs/stdlib/std.lib", "libs/lowlevel/lowlevel.lib"],
             "stopAtEntry": true,
-            "cwd": "/home/quorum/dev/hc800/firmware/ascii",
+            "cwd": "/mnt/d/Dev/hc800-scrolldemo",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

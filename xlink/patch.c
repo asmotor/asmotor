@@ -552,7 +552,7 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
                 symbolId |= (*expression++) << 24u;
 
                 symbol = sect_GetSymbol(section, symbolId, allowImports);
-                if (symbol->section != NULL && symbol->section->cpuLocation != -1)
+                if (symbol->section != NULL && (symbol->section->cpuLocation != -1 || symbol->section->group == NULL))
                     pushSymbolInt(NULL, symbol->value);
                 else
                     pushSymbolInt(symbol, 0);
