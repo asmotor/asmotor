@@ -109,7 +109,8 @@ printUsage(void) {
            "\t    -tms48\tSega Master System (48 KiB)\n"
            "\t    -tmsb\tSega Master System banked (64+ KiB)\n"
            "\t    -thc8b\tHC800 16 KiB ROM\n"
-           "\t    -thc8c\tHC800 COM executable (64 KiB text, 48 KiB BSS)\n"
+           "\t    -thc8c\tHC800 COM executable (64 KiB text + BSS)\n"
+           "\t    -thc8x\tHC800 EXE executable (64 KiB text, 64 KiB BSS)\n"
 //			"\t    -tm<mach>\tUse file <mach>\n"
     );
     exit(EXIT_SUCCESS);
@@ -277,8 +278,15 @@ main(int argc, char* argv[]) {
                         targetType = TARGET_BINARY;
                         binaryPad = 0;
                         ++argn;
+                    } else if (str_EqualConst(target, "hc8x")) {
+                        /* HC800 EXE, 64 KiB code, 48 KiB BSS_S, 16 KiB BSS */
+                        group_SetupHC8XXExe();
+                        targetDefined = true;
+                        targetType = TARGET_BINARY;
+                        binaryPad = -1;
+                        ++argn;
                     } else if (str_EqualConst(target, "hc8c")) {
-                        /* HC800 COM, 64 KiB code, 48 KiB BSS*/
+                        /* HC800 COM, 64 KiB code and BSS */
                         group_SetupHC8XXCom();
                         targetDefined = true;
                         targetType = TARGET_BINARY;

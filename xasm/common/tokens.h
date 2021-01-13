@@ -58,6 +58,7 @@ typedef enum {
 	T_FUNC_DEF,
 
 	T_FUNC_BANK,
+	T_FUNC_ALIGN,
 
 	T_OP_FDIV,
 	T_OP_FMUL,

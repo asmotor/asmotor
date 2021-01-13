@@ -20,7 +20,7 @@
  * xLink - OBJECT.C
  * Copyright 1996-1998 Carsten Sorensen (csorensen@ea.com)
  *
- *	char	ID[4]="XOB\2";
+ *	char	ID[4]="XOB\3";
  *	[>=v1] char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
@@ -43,7 +43,8 @@
  *			ASCIIZ	Name
  *			int32_t	Bank	; -1 = not bankfixed
  *			int32_t	Position; -1 = not fixed
- *			[>=v1] int32_t	BasePC	; -1 = not fixed
+ *			[>=v1] int32_t BasePC	; -1 = not fixed
+ *			[>=v3] int32_t ByteAlign ; -1 = not aligned
  *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
@@ -248,6 +249,11 @@ readSection(FILE* fileHandle, SSection* section, Groups* groups, int version, ui
     else
         section->cpuLocation = section->cpuByteLocation;
 
+    if (version >= 3)
+        section->byteAlign = fgetll(fileHandle);
+    else
+        section->byteAlign = -1;
+
     section->totalSymbols = readSymbols(fileHandle, &section->symbols);
 
     if (version >= 2) {
@@ -351,6 +357,14 @@ readXOB2(FILE* fileHandle) {
 }
 
 static void
+readXOB3(FILE* fileHandle) {
+    g_minimumWordSize = fgetc(fileHandle);
+    uint32_t fileInfoIndex = readFileInfo(fileHandle);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 3, fileInfoIndex);
+    mem_Free(sections);
+}
+
+static void
 readChunk(FILE* fileHandle);
 
 static void
@@ -383,6 +397,11 @@ readChunk(FILE* fileHandle) {
 
         case MAKE_ID('X', 'O', 'B', 2): {
             readXOB2(fileHandle);
+            break;
+        }
+
+        case MAKE_ID('X', 'O', 'B', 3): {
+            readXOB3(fileHandle);
             break;
         }
 

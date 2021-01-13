@@ -52,6 +52,7 @@ typedef struct Section {
     int32_t cpuLocation;
     int32_t imageLocation;
     int32_t minimumWordSize;
+    int32_t byteAlign;
 
     char name[MAX_SYMBOL_NAME_LENGTH];
 

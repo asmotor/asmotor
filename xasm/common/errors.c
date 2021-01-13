@@ -106,6 +106,8 @@ static char* g_errors[] = {
     "Too many files specified on command line",
     "Extended precision floating point not supported",
     "Unterminated IF block (started at %s, line %d)",
+    "SECTION already exists but it's not ALIGN'ed to the same alignment",
+    "SECTION already exists but it's not BANK fixed and ALIGN'ed to the same bank/alignment",
 };
 
 static const char*

@@ -44,7 +44,7 @@ This will switch to the section ```A_Code_Section``` if it is already known (and
 
 ### <a name="alignment"></a> Alignment
 
-Sections are naturally aligned to a CPU specific byte alignment:
+When writing a bonary file using the assembler, sections are naturally aligned to a CPU specific byte alignment:
 
 | 6502 | Z80 | M68K | MIPS | 0x10C | SCHIP |
 |---|---|---|---|---|---|
@@ -119,6 +119,18 @@ BlockEntry:                  ; BlockEntry = $1000
           ld  hl,BlockEntry  ; placed at $2001, load $1000 into hl
 BlockSize EQU *-BlockEntry
 ```
+
+### Aligning a section
+
+A section may optionally be aligned to a multiple of bytes.
+
+```
+		SECTION "Example",CODE,ALIGN[$100]
+		; This section is aligned to a multiple of $100 bytes
+```
+
+Not all output formats support this option.
+
 
 ## <a name="section_stack"></a> The section stack
 

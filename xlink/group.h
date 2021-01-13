@@ -63,10 +63,16 @@ group_SetupHC8XXROM(void);
 void
 group_SetupHC8XXCom(void);
 
+void
+group_SetupHC8XXExe(void);
+
 extern bool
 group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 
 extern bool
 group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
+
+extern bool
+group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 
 #endif

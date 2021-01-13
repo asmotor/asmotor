@@ -87,24 +87,17 @@ purgeSymbol(intptr_t intModification) {
 	return result;
 }
 
-static uint32_t
-expectBankFixed(void) {
-	assert(xasm_Configuration->supportBanks);
-
-	if (lex_Context->token.id == T_FUNC_BANK) {
+static bool
+parseBracketedConstant(uint32_t* result) {
+	if (lex_Context->token.id == '[') {
 		parse_GetToken();
-		if (parse_ExpectChar('[')) {
-			parse_GetToken();
 
-			int32_t bank = parse_ConstantExpression();
-			if (parse_ExpectChar(']'))
-				return (uint32_t)bank;
-		}
-	} else {
-		err_Error(ERROR_EXPECT_BANK);
+		*result = parse_ConstantExpression();
+		return parse_ExpectChar(']');
 	}
 
-	return UINT32_MAX;
+	*result = UINT32_MAX;
+	return true;
 }
 
 static bool
@@ -161,43 +154,65 @@ handleSection() {
 		return false;
 	}
 
-	string *pGroup = lex_TokenString();
-	SSymbol *sym = sym_GetSymbol(pGroup);
-	str_Free(pGroup);
+	string *groupName = lex_TokenString();
+	SSymbol *groupSymbol = sym_GetSymbol(groupName);
+	str_Free(groupName);
 
-	if (sym->type != SYM_GROUP) {
+	if (groupSymbol->type != SYM_GROUP) {
 		err_Error(ERROR_IDENTIFIER_GROUP);
 		str_Free(name);
 		return true;
 	}
 	parse_GetToken();
 
-	if (xasm_Configuration->supportBanks && lex_Context->token.id == ',') {
-		parse_GetToken();
+	uint32_t loadAddress;
+	if (!parseBracketedConstant(&loadAddress))
+		return false;
 
-		uint32_t bank = expectBankFixed();
-		if (bank != UINT32_MAX) {
-			sect_SwitchTo_BANK(name, sym, bank);
-		}
-		true;
-	} else if (lex_Context->token.id != '[') {
-		sect_SwitchTo(name, sym);
-	} else {
-		parse_GetToken();
+	uint32_t bank = UINT32_MAX;
+	uint32_t align = UINT32_MAX;
 
-		uint32_t loadAddress = (uint32_t) parse_ConstantExpression();
-		if (parse_ExpectChar(']')) {
-			if (xasm_Configuration->supportBanks && lex_Context->token.id == ',') {
+	while (lex_Context->token.id == ',') {
+		parse_GetToken();
+		switch (lex_Context->token.id) {
+			case T_FUNC_BANK: {
 				parse_GetToken();
-
-				uint32_t bank = expectBankFixed();
-				if (bank != UINT32_MAX) {
-					sect_SwitchTo_LOAD_BANK(name, sym, loadAddress, bank);
-				}
-			} else {
-				sect_SwitchTo_LOAD(name, sym, loadAddress);
+				if (!xasm_Configuration->supportBanks || bank != UINT32_MAX || !parseBracketedConstant(&bank))
+					return false;
+				break;
 			}
+			case T_FUNC_ALIGN: {
+				parse_GetToken();
+				if (align != UINT32_MAX || !parseBracketedConstant(&align))
+					return false;
+				break;
+			}
+			default:
+				return false;
 		}
+	}
+
+	if (align != UINT32_MAX && loadAddress != UINT32_MAX) {
+		if (loadAddress % align != 0)
+			return false;
+
+		align = UINT32_MAX;
+	}
+
+	if (loadAddress == UINT32_MAX && align == UINT32_MAX && bank == UINT32_MAX) {
+		sect_SwitchTo(name, groupSymbol);
+	} else if (loadAddress != UINT32_MAX && bank != UINT32_MAX) {
+		sect_SwitchTo_LOAD_BANK(name, groupSymbol, loadAddress, bank);
+	} else if (loadAddress == UINT32_MAX && bank != UINT32_MAX) {
+		sect_SwitchTo_BANK(name, groupSymbol, bank);
+	} else if (loadAddress != UINT32_MAX && bank == UINT32_MAX) {
+		sect_SwitchTo_LOAD(name, groupSymbol, loadAddress);
+	} else if (align != UINT32_MAX && bank != UINT32_MAX) {
+		sect_SwitchTo_ALIGN_BANK(name, groupSymbol, align, bank);
+	} else if (align != UINT32_MAX && bank == UINT32_MAX) {
+		sect_SwitchTo_ALIGN(name, groupSymbol, align);
+	} else {
+		internalerror("Section flags not handled");
 	}
 
 	str_Free(name);

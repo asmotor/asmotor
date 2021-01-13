@@ -47,6 +47,7 @@ struct Section {
     uint32_t cpuAdjust;
 
     uint32_t bank;
+	uint32_t align;
 
     struct LineMapSection* lineMap;
 
@@ -60,6 +61,7 @@ typedef struct Section SSection;
 #define SECTF_LOADFIXED 0x01u
 #define SECTF_BANKFIXED 0x02u
 #define SECTF_ORGFIXED  0x04u
+#define SECTF_ALIGNED   0x08u
 
 extern SSection* sect_Current;
 extern SSection* sect_Sections;
@@ -69,6 +71,12 @@ sect_TotalSections(void);
 
 extern bool
 sect_SwitchTo(const string* sectname, struct Symbol* group);
+
+extern bool
+sect_SwitchTo_ALIGN(const string* sectname, struct Symbol* group, uint32_t align);
+
+extern bool
+sect_SwitchTo_ALIGN_BANK(const string* sectname, struct Symbol* group, uint32_t align, uint32_t bank);
 
 extern bool
 sect_SwitchTo_LOAD(const string* sectname, struct Symbol* group, uint32_t load);

@@ -46,7 +46,6 @@ useSectionWithGlobalExport(const char* name) {
     } else {
         error("Symbol \"%s\" not found (it must be exported)", name);
     }
-    
 }
 
 static void

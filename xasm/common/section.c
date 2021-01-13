@@ -572,6 +572,57 @@ sect_SwitchTo(const string* sectname, SSymbol* group) {
 }
 
 bool
+sect_SwitchTo_ALIGN(const string* sectname, SSymbol* group, uint32_t align) {
+	SSection* newSection;
+
+	if ((newSection = findSection(sectname, group)) != NULL) {
+		if (newSection->flags == SECTF_ALIGNED && newSection->align == align) {
+			sect_Current = newSection;
+			return true;
+		} else {
+            err_Error(ERROR_SECT_EXISTS_LOAD);
+			return false;
+		}
+	} else {
+		if ((newSection = createSection(sectname)) != NULL) {
+			newSection->group = group;
+			newSection->flags = SECTF_ALIGNED;
+			newSection->align = align;
+		}
+		sect_Current = newSection;
+		return newSection != NULL;
+	}
+}
+
+bool
+sect_SwitchTo_ALIGN_BANK(const string* sectname, SSymbol* group, uint32_t align, uint32_t bank) {
+	SSection* newSection;
+
+	if (!xasm_Configuration->supportBanks)
+		internalerror("Banks not supported");
+
+	if ((newSection = findSection(sectname, group)) != NULL) {
+		if (newSection->flags == (SECTF_BANKFIXED | SECTF_ALIGNED) && newSection->bank == bank && newSection->align == align) {
+			sect_Current = newSection;
+			return true;
+		}
+
+        err_Error(ERROR_SECT_EXISTS_BANK_ALIGN);
+		return false;
+	}
+
+	if ((newSection = createSection(sectname)) != NULL) {
+		newSection->group = group;
+		newSection->flags = SECTF_BANKFIXED | SECTF_ALIGNED;
+		newSection->bank = bank;
+		newSection->align = align;
+	}
+
+	sect_Current = newSection;
+	return newSection != NULL;
+}
+
+bool
 sect_SwitchTo_LOAD(const string* sectname, SSymbol* group, uint32_t load) {
 	SSection* newSection;
 

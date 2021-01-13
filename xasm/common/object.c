@@ -16,7 +16,7 @@
 	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*	char	ID[4]="XOB\2";
+/*	char	ID[4]="XOB\3";
  *	char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
@@ -39,7 +39,8 @@
  *			ASCIIZ	Name
  *			int32_t	Bank	; -1 = not bankfixed
  *			int32_t	Position; -1 = not fixed
- *			int32_t	BasePC	; -1 = not fixed
+ *			[>=v1] int32_t BasePC	; -1 = not fixed
+ *			[>=v3] int32_t ByteAlign ; -1 = not aligned
  *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
@@ -361,6 +362,7 @@ writeExportedConstantsSection(FILE* fileHandle) {
 	fputll(UINT32_MAX, fileHandle);  //	Bank
 	fputll(UINT32_MAX, fileHandle);  //	Org
 	fputll(UINT32_MAX, fileHandle);  //	BasePC
+	fputll(UINT32_MAX, fileHandle);  //	Align
 
 	off_t symbolCountPos = ftell(fileHandle);
 	fputll(0, fileHandle);        //	Number of symbols
@@ -452,6 +454,7 @@ writeSection(FILE* fileHandle, SSection* section) {
 
 	fputll(section->flags & SECTF_LOADFIXED ? section->imagePosition : UINT32_MAX, fileHandle);
 	fputll(section->flags & SECTF_LOADFIXED ? section->cpuOrigin : UINT32_MAX, fileHandle);
+	fputll(section->flags & SECTF_ALIGNED ? section->align : UINT32_MAX, fileHandle);
 
 	writeSectionSymbols(fileHandle, section);
 
@@ -482,7 +485,7 @@ obj_Write(string* fileName) {
 	if ((fileHandle = fopen(str_String(fileName), "wb")) == NULL)
 		return false;
 
-	fwrite("XOB\2", 1, 4, fileHandle);
+	fwrite("XOB\3", 1, 4, fileHandle);
 	fputc(xasm_Configuration->minimumWordSize, fileHandle);
 
 	if (opt_Current->enableDebugInfo) {

@@ -64,8 +64,9 @@ commonPatch() {
                 }
                 imagePos = section->imagePosition + section->usedSpace;
             } else {
-                uint32_t alignment = opt_Current->sectionAlignment - 1u;
-                imagePos = (imagePos + alignment) & ~alignment;
+                uint32_t alignment = (section->flags & SECTF_ALIGNED) ? section->align : (uint32_t) opt_Current->sectionAlignment;
+                imagePos += alignment - 1;
+				imagePos -= imagePos % alignment;
 
                 section->flags |= SECTF_LOADFIXED;
                 section->imagePosition = imagePos;
