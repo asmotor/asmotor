@@ -93,7 +93,7 @@ static char* g_errors[] = {
     "DEF() needs a symbol",
     "BANK() needs a symbol",
     "Unterminated MACRO block (started at %s, line %d)",
-    "Unterminated REPT block",
+    "Unterminated REPT block at end of file",
     "Unexpected end of file reached",
     "Unterminated string",
     "Malformed identifier",

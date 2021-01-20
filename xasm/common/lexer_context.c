@@ -243,6 +243,9 @@ lexctx_EndReptBlock(void) {
 
 extern bool
 lexctx_EndCurrentBuffer(void) {
+	if (lex_Context->type == CONTEXT_REPT) {
+		err_Fail(ERROR_NEED_ENDR);
+	}
 	assert (lex_Context->type != CONTEXT_REPT);
 
 	if (list_IsLast(lex_Context)) {

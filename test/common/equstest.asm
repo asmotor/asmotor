@@ -10,3 +10,4 @@ Print	EQUS	"\tPRINTT \"First\\n\"\n\tPRINTT \"Second\\n\"\n"
 	ENDR
 	ENDR
 
+	REPT	3
