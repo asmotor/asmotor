@@ -28,8 +28,8 @@ typedef enum {
     GROUP_BSS = 1
 } GroupType;
 
-#define GROUP_FLAG_CHIP 0x20000000u
-#define GROUP_FLAG_DATA 0x40000000u
+#define GROUP_FLAG_SHARED 0x20000000u
+#define GROUP_FLAG_DATA   0x40000000u
 
 typedef struct {
     char name[MAX_SYMBOL_NAME_LENGTH];

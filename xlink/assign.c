@@ -19,9 +19,12 @@
 #include "section.h"
 #include "xlink.h"
 
+typedef bool (*sectionPredicate)(SSection*);
+
 static void
 assignOrgAndBankFixedSection(SSection* section, intptr_t data) {
-    if (!section->assigned && !sect_IsEquSection(section) && section->cpuByteLocation != -1 && section->cpuBank != -1) {
+	sectionPredicate predicate = (sectionPredicate) data;
+    if (predicate(section) && section->cpuByteLocation != -1 && section->cpuBank != -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
                                     &section->cpuBank, &section->imageLocation))
             error("No space for section \"%s\"", section->name);
@@ -32,7 +35,8 @@ assignOrgAndBankFixedSection(SSection* section, intptr_t data) {
 
 static void
 assignOrgFixedSection(SSection* section, intptr_t data) {
-    if (!section->assigned && !sect_IsEquSection(section) && section->cpuByteLocation != -1 && section->cpuBank == -1) {
+	sectionPredicate predicate = (sectionPredicate) data;
+    if (predicate(section) && section->cpuByteLocation != -1 && section->cpuBank == -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
                                     &section->cpuBank, &section->imageLocation))
             error("No space for section \"%s\"", section->name);
@@ -43,7 +47,8 @@ assignOrgFixedSection(SSection* section, intptr_t data) {
 
 static void
 assignBankFixedSection(SSection* section, intptr_t data) {
-    if (!section->assigned && !sect_IsEquSection(section) && section->cpuByteLocation == -1 && section->cpuBank != -1) {
+	sectionPredicate predicate = (sectionPredicate) data;
+    if (predicate(section) && section->cpuByteLocation == -1 && section->cpuBank != -1) {
         if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
                                   &section->cpuBank, &section->imageLocation))
             error("No space for section \"%s\"", section->name);
@@ -55,7 +60,8 @@ assignBankFixedSection(SSection* section, intptr_t data) {
 
 static void
 assignAlignedSection(SSection* section, intptr_t data) {
-    if (!section->assigned && !sect_IsEquSection(section) && section->byteAlign != -1) {
+	sectionPredicate predicate = (sectionPredicate) data;
+    if (predicate(section) && section->byteAlign != -1) {
         if (!group_AllocateAligned(section->group->name, section->size, section->cpuBank, section->byteAlign,
                                    &section->cpuByteLocation, &section->cpuBank, &section->imageLocation))
             error("No space for section \"%s\"", section->name);
@@ -66,45 +72,83 @@ assignAlignedSection(SSection* section, intptr_t data) {
 }
 
 static void
-assignTextSection(SSection* section, intptr_t data) {
-    if (!section->assigned && !sect_IsEquSection(section) && section->group->type == GROUP_TEXT) {
-        if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
-                                  &section->cpuBank, &section->imageLocation))
-            error("No space for section \"%s\"", section->name);
-
-        section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
-        section->assigned = true;
-    }
-}
-
-static void
 assignSection(SSection* section, intptr_t data) {
-    if (sect_IsEquSection(section)) {
-        //	This is a special exported EQU symbol section
+	if (!section->assigned) {
+		sectionPredicate predicate = (sectionPredicate) data;
 
-        section->cpuByteLocation = 0;
-        section->cpuLocation = 0;
-        section->cpuBank = 0;
-        section->imageLocation = -1;
-        section->assigned = true;
-    } else if (!section->assigned) {
-        if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
-                                  &section->cpuBank, &section->imageLocation))
-            error("No space for section \"%s\"", section->name);
+		if (sect_IsEquSection(section)) {
+			//	This is a special exported EQU symbol section
 
-        section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
-        section->assigned = true;
-    }
+			section->cpuByteLocation = 0;
+			section->cpuLocation = 0;
+			section->cpuBank = 0;
+			section->imageLocation = -1;
+			section->assigned = true;
+		} else if (predicate(section)) {
+			if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
+									&section->cpuBank, &section->imageLocation))
+				error("No space for section \"%s\"", section->name);
+
+			section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
+			section->assigned = true;
+		}
+	}
 }
+
+static bool
+isCode(SSection* section) {
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT && section->group->flags == 0;
+}
+
+static bool
+isCodeShared(SSection* section) {
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT && section->group->flags == GROUP_FLAG_SHARED;
+}
+
+static bool
+isData(SSection* section) {
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT && section->group->flags == GROUP_FLAG_DATA;
+}
+
+static bool
+isDataShared(SSection* section) {
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT && section->group->flags == (GROUP_FLAG_DATA | GROUP_FLAG_SHARED);
+}
+
+static bool
+isBSS(SSection* section) {
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_BSS && section->group->flags == 0;
+}
+
+static bool
+isBSSShared(SSection* section) {
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_BSS && section->group->flags == GROUP_FLAG_SHARED;
+}
+
+static bool
+truePredicate(SSection* section) {
+	return true;
+}
+
+#define TOTAL_PREDICATES 6
+static sectionPredicate sectionPredicates[TOTAL_PREDICATES] = {
+	isCodeShared, isCode,
+	isDataShared, isData,
+	isBSSShared, isBSS,
+};
 
 void
 assign_Process(void) {
-    sect_ForEachUsedSection(assignOrgAndBankFixedSection, 0);
-    sect_ForEachUsedSection(assignOrgFixedSection, 0);
-    sect_ForEachUsedSection(assignBankFixedSection, 0);
-    sect_ForEachUsedSection(assignAlignedSection, 0);
-    sect_ForEachUsedSection(assignTextSection, 0);
-    sect_ForEachUsedSection(assignSection, 0);
+	for (int i = 0; i < TOTAL_PREDICATES; ++i) {
+		intptr_t pred = (intptr_t) sectionPredicates[i];
+
+		sect_ForEachUsedSection(assignOrgAndBankFixedSection, pred);
+		sect_ForEachUsedSection(assignOrgFixedSection, pred);
+		sect_ForEachUsedSection(assignBankFixedSection, pred);
+		sect_ForEachUsedSection(assignAlignedSection, pred);
+		sect_ForEachUsedSection(assignSection, pred);
+	}
+	sect_ForEachUsedSection(assignSection, (intptr_t) truePredicate);
 
     sect_SortSections();
 }

@@ -21,17 +21,18 @@
 
 
 static void
-createGroup(const char* name, EGroupType type) {
+createGroup(const char* name, EGroupType type, uint32_t flags) {
     string* nameStr = str_Create(name);
-    sym_CreateGroup(nameStr, type);
+    sym_CreateGroup(nameStr, type)->flags |= flags;
     str_Free(nameStr);
 }
 
 
 void 
 rc8_DefineSymbols(void) {
-	createGroup("CODE", GROUP_TEXT);
-	createGroup("DATA", GROUP_TEXT);
-	createGroup("BSS", GROUP_BSS);
-    createGroup("BSS_S", GROUP_BSS);
+	createGroup("CODE", GROUP_TEXT, 0);
+	createGroup("DATA", GROUP_TEXT, SYMF_DATA);
+	createGroup("DATA_S", GROUP_TEXT, SYMF_DATA|SYMF_SHARED);
+	createGroup("BSS", GROUP_BSS, 0);
+    createGroup("BSS_S", GROUP_BSS, SYMF_SHARED);
 }

@@ -31,7 +31,7 @@ m68k_DefineSymbols(void) {
     createGroup("CODE", GROUP_TEXT, 0);
     createGroup("DATA", GROUP_TEXT, SYMF_DATA);
     createGroup("BSS", GROUP_BSS, 0);
-    createGroup("CODE_C", GROUP_TEXT, SYMF_CHIP);
-    createGroup("DATA_C", GROUP_TEXT, SYMF_DATA | SYMF_CHIP);
-    createGroup("BSS_C", GROUP_BSS, SYMF_CHIP);
+    createGroup("CODE_C", GROUP_TEXT, SYMF_SHARED);
+    createGroup("DATA_C", GROUP_TEXT, SYMF_DATA | SYMF_SHARED);
+    createGroup("BSS_C", GROUP_BSS, SYMF_SHARED);
 }

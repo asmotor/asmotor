@@ -55,7 +55,7 @@ typedef enum {
 #define SYMF_HAS_DATA       0x080u      // symbol has data attached (Macro.pData)
 #define SYMF_FILE_EXPORT    0x100u      // symbol should be exported to sections local to this file
 #define SYMF_DATA           0x40000000u
-#define SYMF_CHIP           0x20000000u
+#define SYMF_SHARED         0x20000000u // Means CHIP on Amiga
 #define SYMF_USED           0x10000000u
 
 typedef struct Symbol {

@@ -66,7 +66,7 @@ writeString(FILE* fileHandle, char* string, uint32_t extFlags) {
 static uint32_t
 sectionSize(SSection* section) {
     uint32_t size = longSize(section->size);
-    if (section->group->flags & GROUP_FLAG_CHIP)
+    if (section->group->flags & GROUP_FLAG_SHARED)
         size |= HUNKF_CHIP;
 
     return size;

@@ -361,7 +361,7 @@ ami_WriteExecutable(string* destFilename) {
 
     for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         uint32_t size = (section->usedSpace + 3) / 4;
-        if (xasm_Configuration->supportAmiga && (section->group->flags & SYMF_CHIP))
+        if (xasm_Configuration->supportAmiga && (section->group->flags & SYMF_SHARED))
             size |= HUNKF_CHIP;
         fputbl(size, fileHandle);
     }

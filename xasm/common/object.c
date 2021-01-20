@@ -344,7 +344,7 @@ writeGroups(FILE* fileHandle) {
 			if (sym->type == SYM_GROUP) {
 				sym->id = groupCount++;
 				fputsz(str_String(sym->name), fileHandle);
-				fputll(sym->value.groupType | (sym->flags & (SYMF_CHIP | SYMF_DATA)), fileHandle);
+				fputll(sym->value.groupType | (sym->flags & (SYMF_SHARED | SYMF_DATA)), fileHandle);
 			}
 		}
 	}

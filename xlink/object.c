@@ -108,7 +108,7 @@ readGroup(FILE* fileHandle, Group* group) {
     fgetsz(group->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
 
     type = fgetll(fileHandle);
-    flags = type & (GROUP_FLAG_DATA | GROUP_FLAG_CHIP);
+    flags = type & (GROUP_FLAG_DATA | GROUP_FLAG_SHARED);
     type &= ~flags;
 
     group->flags = flags;
