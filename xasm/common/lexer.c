@@ -570,13 +570,13 @@ skipToNextLine(void) {
 	return true;
 }
 
-static void
+static bool
 skipToNextLineIndexed(size_t* index) {
 	for (;;) {
 		char ch = getUnexpandedChar(*index);
 		*index += 1;
 		if (isLineEnd(ch) || ch == 0)
-			return;
+			return ch != 0;
 	}
 }
 
@@ -637,7 +637,7 @@ skipWhiteSpaceIndexed(size_t* index) {
 			return true;
 		}
 	}
-	return ch == ';';
+	return (ch == ';') || (ch == 0);
 }
 
 /*	Public functions */
@@ -725,7 +725,9 @@ lex_GetNextDirective(void) {
 bool
 lex_GetNextDirectiveUnexpanded(size_t* index) {
 	for (;;) {
-		skipToNextLineIndexed(index);
+		if (!skipToNextLineIndexed(index))
+			return false;
+			
 		if (charIsIndexed(index, ";*"))
 			continue;
 		skipLabelIndexed(index);

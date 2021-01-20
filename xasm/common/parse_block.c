@@ -158,7 +158,8 @@ extern string*
 parse_CopyMacroBlock(void) {
 	getNextDirectiveIndex = 0;
 	lex_Context->token.id = T_NONE;
-	skipToEndm();
+	if (!skipToEndm())
+		return NULL;
 
 	string* str = str_CreateLength(NULL, getNextDirectiveIndex);
     lex_CopyUnexpandedContent((char*) str_String(str), getNextDirectiveIndex);

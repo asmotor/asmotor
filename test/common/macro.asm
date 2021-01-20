@@ -7,3 +7,7 @@ Function:	MACRO	;funcname
 	ENDM
 
 	Function	Start
+
+Second:	MACRO
+	PRINTT	"No ending"
+	
