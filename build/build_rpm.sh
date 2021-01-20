@@ -47,12 +47,13 @@ scons
 scons install --prefix=\$RPM_BUILD_ROOT/usr
 
 %files
-/usr/bin/motor0x10c
 /usr/bin/motor6502
 /usr/bin/motor68k
-/usr/bin/motorgb
+/usr/bin/motordcpu16
 /usr/bin/motormips
-/usr/bin/xgbfix
+/usr/bin/motorrc8
+/usr/bin/motorschip
+/usr/bin/motorz80
 /usr/bin/xlib
 /usr/bin/xlink
 
