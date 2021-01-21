@@ -234,7 +234,7 @@ createSymbolOfType(string* name, ESymbolType type) {
         return symbol;
     }
 
-    err_Error(ERROR_MODIFY_SYMBOL);
+    err_Error(ERROR_MODIFY_SYMBOL, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
     return NULL;
 }
 
@@ -314,7 +314,7 @@ sym_CreateEqu(string* name, int32_t value) {
         return symbol;
     }
 
-    err_Error(ERROR_MODIFY_SYMBOL);
+    err_Error(ERROR_MODIFY_SYMBOL, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
     return NULL;
 }
 
@@ -353,7 +353,7 @@ sym_CreateLabel(string* name) {
             err_Error(ERROR_LABEL_SECTION);
         }
     } else {
-        err_Error(ERROR_MODIFY_SYMBOL);
+	    err_Error(ERROR_MODIFY_SYMBOL, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
     }
 
     return NULL;
@@ -390,7 +390,7 @@ sym_Export(string* name) {
     if (symbol->flags & SYMF_EXPORTABLE) {
         symbol->flags |= SYMF_EXPORT;
     } else {
-        err_Error(ERROR_SYMBOL_EXPORT);
+	    err_Error(ERROR_SYMBOL_EXPORT, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
     }
 
     return symbol;
@@ -414,6 +414,11 @@ extern SSymbol*
 sym_Global(string* name) {
     SSymbol* symbol = findOrCreateSymbol(name);
 
+	if (symbol->type == SYM_GLOBAL || symbol->type == SYM_IMPORT) {
+		err_Error(ERROR_MODIFY_SYMBOL, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+		return NULL;
+	}
+
     if (symbol->type == SYM_UNDEFINED) {
         // symbol has not yet been defined, we'll leave this for later
         SET_TYPE_AND_FLAGS(symbol, SYM_GLOBAL);
@@ -426,8 +431,8 @@ sym_Global(string* name) {
         return symbol;
     }
 
-    err_Error(ERROR_SYMBOL_EXPORT);
-    return NULL;
+	err_Error(ERROR_SYMBOL_EXPORT, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+	return NULL;
 }
 
 extern bool

@@ -92,7 +92,7 @@ parse_SymbolDefinition(void) {
 
 		if (lex_Context->token.id == T_SYM_MACRO) {
 			if (totalColons != 1) {
-				err_Error(ERROR_SYMBOL_EXPORT);
+			    err_Error(ERROR_SYMBOL_EXPORT, str_String(lex_Context->buffer.name), lex_Context->lineNumber);
 				return false;
 			} else {
 				uint32_t lineNumber = lex_Context->lineNumber;

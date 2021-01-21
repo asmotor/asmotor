@@ -37,3 +37,6 @@ TestMacro:	MACRO
 	TestMacro
 	TestMacro
 	PRINTT	"\n"
+
+	GLOBAL	Missing
+	GLOBAL	Missing

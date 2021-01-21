@@ -80,13 +80,15 @@ commonPatch() {
 
     for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
         for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
-            if (symbol->type == SYM_IMPORT) {
-                err_Fail(ERROR_SYMBOL_UNDEFINED, str_String(symbol->name));
-            } else if (symbol->flags & SYMF_RELOC) {
-                symbol->flags &= ~SYMF_RELOC;
-                symbol->flags |= SYMF_CONSTANT;
-                symbol->value.integer += symbol->section->cpuOrigin;
-            }
+			if (symbol->flags & SYMF_USED) {
+				if (symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL) {
+					err_Fail(ERROR_SYMBOL_UNDEFINED, str_String(symbol->name));
+				} else if (symbol->flags & SYMF_RELOC) {
+					symbol->flags &= ~SYMF_RELOC;
+					symbol->flags |= SYMF_CONSTANT;
+					symbol->value.integer += symbol->section->cpuOrigin;
+				}
+			}
         }
     }
 
