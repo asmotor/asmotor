@@ -572,131 +572,32 @@ sect_SwitchTo(const string* sectname, SSymbol* group) {
 }
 
 bool
-sect_SwitchTo_ALIGN(const string* sectname, SSymbol* group, uint32_t align) {
+sect_SwitchTo_KIND(const string* sectname, SSymbol* group, uint32_t flags, uint32_t origin, uint32_t bank, uint32_t align) {
 	SSection* newSection;
 
-	if ((newSection = findSection(sectname, group)) != NULL) {
-		if (newSection->flags == SECTF_ALIGNED && newSection->align == align) {
-			sect_Current = newSection;
-			return true;
-		} else {
-            err_Error(ERROR_SECT_EXISTS_LOAD);
-			return false;
-		}
-	} else {
-		if ((newSection = createSection(sectname)) != NULL) {
-			newSection->group = group;
-			newSection->flags = SECTF_ALIGNED;
-			newSection->align = align;
-		}
-		sect_Current = newSection;
-		return newSection != NULL;
-	}
-}
-
-bool
-sect_SwitchTo_ALIGN_BANK(const string* sectname, SSymbol* group, uint32_t align, uint32_t bank) {
-	SSection* newSection;
-
-	if (!xasm_Configuration->supportBanks)
+	if ((flags & SECTF_BANKFIXED) && !xasm_Configuration->supportBanks)
 		internalerror("Banks not supported");
 
 	if ((newSection = findSection(sectname, group)) != NULL) {
-		if (newSection->flags == (SECTF_BANKFIXED | SECTF_ALIGNED) && newSection->bank == bank && newSection->align == align) {
+		if (newSection->flags == flags 
+		&& ((flags & SECTF_BANKFIXED) == 0 || newSection->bank == bank)
+		&& ((flags & SECTF_LOADFIXED) == 0 || newSection->cpuOrigin == origin)
+		&& ((flags & SECTF_ALIGNED) == 0 || newSection->align == align)) {
 			sect_Current = newSection;
 			return true;
 		}
 
-        err_Error(ERROR_SECT_EXISTS_BANK_ALIGN);
+        err_Error(ERROR_SECT_EXISTS_DIFFERENT_KIND);
 		return false;
 	}
 
 	if ((newSection = createSection(sectname)) != NULL) {
 		newSection->group = group;
-		newSection->flags = SECTF_BANKFIXED | SECTF_ALIGNED;
-		newSection->bank = bank;
-		newSection->align = align;
-	}
-
-	sect_Current = newSection;
-	return newSection != NULL;
-}
-
-bool
-sect_SwitchTo_LOAD(const string* sectname, SSymbol* group, uint32_t load) {
-	SSection* newSection;
-
-	if ((newSection = findSection(sectname, group)) != NULL) {
-		if (newSection->flags == SECTF_LOADFIXED && newSection->cpuOrigin == load) {
-			sect_Current = newSection;
-			return true;
-		} else {
-            err_Error(ERROR_SECT_EXISTS_LOAD);
-			return false;
-		}
-	} else {
-		if ((newSection = createSection(sectname)) != NULL) {
-			newSection->group = group;
-			newSection->flags = SECTF_LOADFIXED;
-			newSection->cpuOrigin = load;
-			newSection->imagePosition = load * xasm_Configuration->minimumWordSize;
-		}
-		sect_Current = newSection;
-		return newSection != NULL;
-	}
-}
-
-bool
-sect_SwitchTo_BANK(const string* sectname, SSymbol* group, uint32_t bank) {
-	SSection* newSection;
-
-	if (!xasm_Configuration->supportBanks)
-		internalerror("Banks not supported");
-
-	newSection = findSection(sectname, group);
-	if (newSection) {
-		if (newSection->flags == SECTF_BANKFIXED && newSection->bank == bank) {
-			sect_Current = newSection;
-			return true;
-		}
-
-        err_Error(ERROR_SECT_EXISTS_BANK);
-		return false;
-	}
-
-	newSection = createSection(sectname);
-	if (newSection) {
-		newSection->group = group;
-		newSection->flags = SECTF_BANKFIXED;
-		newSection->bank = bank;
-	}
-	sect_Current = newSection;
-	return newSection != NULL;
-}
-
-bool
-sect_SwitchTo_LOAD_BANK(const string* sectname, SSymbol* group, uint32_t origin, uint32_t bank) {
-	SSection* newSection;
-
-	if (!xasm_Configuration->supportBanks)
-		internalerror("Banks not supported");
-
-	if ((newSection = findSection(sectname, group)) != NULL) {
-		if (newSection->flags == (SECTF_BANKFIXED | SECTF_LOADFIXED) && newSection->bank == bank && newSection->cpuOrigin == origin) {
-			sect_Current = newSection;
-			return true;
-		}
-
-        err_Error(ERROR_SECT_EXISTS_BANK_LOAD);
-		return false;
-	}
-
-	if ((newSection = createSection(sectname)) != NULL) {
-		newSection->group = group;
-		newSection->flags = SECTF_BANKFIXED | SECTF_LOADFIXED;
-		newSection->bank = bank;
-		newSection->cpuOrigin = origin;
-		newSection->imagePosition = origin * xasm_Configuration->minimumWordSize;
+		newSection->flags = flags;
+		newSection->bank = (flags & SECTF_BANKFIXED) ? bank : 0;
+		newSection->align = (flags & SECTF_ALIGNED) ? align : 0;
+		newSection->cpuOrigin = (flags & SECTF_LOADFIXED) ? origin : 0;
+		newSection->imagePosition = newSection->cpuOrigin * xasm_Configuration->minimumWordSize;
 	}
 
 	sect_Current = newSection;

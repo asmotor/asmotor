@@ -57,12 +57,22 @@ useSectionWithLocalExport(const char* name, uint32_t fileId) {
 }
 
 
+static void
+useRootedSections(void) {
+	for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
+		if (section->root) {
+			markReferencedSectionsUsed(section);
+		}
+	}
+}
+
 /* Exported functions */
 
 extern void
 smart_Process(const char* name) {
     if (name != NULL) {
         useSectionWithGlobalExport(name);
+        useRootedSections();
     } else {
         // Link in all sections
         SSection* section = sect_Sections;

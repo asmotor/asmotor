@@ -132,6 +132,18 @@ A section may optionally be aligned to a multiple of bytes.
 Not all output formats support this option.
 
 
+### "Rooting" a section
+
+The linker supports stripping unused code through its "-s" option. This could lead to undesired behaviour, if a critical piece of data or code is omitted, if nothing references it. This would typically be headers and interrupt vectors. By specifying the ROOT flag, the section is never stripped by the linked.
+
+```
+		SECTION "Example",CODE,ROOT
+		; This section is never removed the linker
+```
+
+Not all output formats support this option.
+
+
 ## <a name="section_stack"></a> The section stack
 
 A section stack is available, which is particularly useful when defining sections in included files (or macros) and it's necessary to preserve the section context for the program that included the file or called the macro. 

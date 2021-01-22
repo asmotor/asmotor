@@ -363,6 +363,7 @@ writeExportedConstantsSection(FILE* fileHandle) {
 	fputll(UINT32_MAX, fileHandle);  //	Org
 	fputll(UINT32_MAX, fileHandle);  //	BasePC
 	fputll(UINT32_MAX, fileHandle);  //	Align
+	fputc(0, fileHandle);            //	Root
 
 	off_t symbolCountPos = ftell(fileHandle);
 	fputll(0, fileHandle);        //	Number of symbols
@@ -455,6 +456,7 @@ writeSection(FILE* fileHandle, SSection* section) {
 	fputll(section->flags & SECTF_LOADFIXED ? section->imagePosition : UINT32_MAX, fileHandle);
 	fputll(section->flags & SECTF_LOADFIXED ? section->cpuOrigin : UINT32_MAX, fileHandle);
 	fputll(section->flags & SECTF_ALIGNED ? section->align : UINT32_MAX, fileHandle);
+	fputc(section->flags & SECTF_ROOT ? 1 : 0, fileHandle);
 
 	writeSectionSymbols(fileHandle, section);
 
@@ -485,7 +487,7 @@ obj_Write(string* fileName) {
 	if ((fileHandle = fopen(str_String(fileName), "wb")) == NULL)
 		return false;
 
-	fwrite("XOB\3", 1, 4, fileHandle);
+	fwrite("XOB\4", 1, 4, fileHandle);
 	fputc(xasm_Configuration->minimumWordSize, fileHandle);
 
 	if (opt_Current->enableDebugInfo) {

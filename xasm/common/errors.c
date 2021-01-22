@@ -84,9 +84,9 @@ static char* g_errors[] = {
     "SECTION already exist in a different GROUP",
     "Read error",
     "File not found",
-    "SECTION already exists but it's not LOAD fixed to the same address",
-    "SECTION already exists but it's not BANK fixed to the same bank",
-    "SECTION already exists but it's not LOAD/BANK fixed to the same address/bank",
+    "[unused]",
+    "[unused]",
+    "[unused]",
     "SECTION does not exist",
     "Divide by zero",
     "Symbol cannot be used in an expression",
@@ -106,8 +106,8 @@ static char* g_errors[] = {
     "Too many files specified on command line",
     "Extended precision floating point not supported",
     "Unterminated IF block (started at %s:%d)",
-    "SECTION already exists but it's not ALIGN'ed to the same alignment",
-    "SECTION already exists but it's not BANK fixed and ALIGN'ed to the same bank/alignment",
+    "SECTION already exists but it has a different combination of options",
+    "Invalid SECTION options combination",
 };
 
 static const char*

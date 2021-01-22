@@ -165,9 +165,13 @@ handleSection() {
 	}
 	parse_GetToken();
 
+	uint32_t flags = 0;
 	uint32_t loadAddress;
 	if (!parseBracketedConstant(&loadAddress))
 		return false;
+
+	if (loadAddress != UINT32_MAX)
+		flags |= SECTF_LOADFIXED;
 
 	uint32_t bank = UINT32_MAX;
 	uint32_t align = UINT32_MAX;
@@ -179,12 +183,19 @@ handleSection() {
 				parse_GetToken();
 				if (!xasm_Configuration->supportBanks || bank != UINT32_MAX || !parseBracketedConstant(&bank))
 					return false;
+				flags |= SECTF_BANKFIXED;
 				break;
 			}
 			case T_FUNC_ALIGN: {
 				parse_GetToken();
 				if (align != UINT32_MAX || !parseBracketedConstant(&align))
 					return false;
+				flags |= SECTF_ALIGNED;
+				break;
+			}
+			case T_FUNC_ROOT: {
+				parse_GetToken();
+				flags |= SECTF_ROOT;
 				break;
 			}
 			default:
@@ -192,27 +203,20 @@ handleSection() {
 		}
 	}
 
-	if (align != UINT32_MAX && loadAddress != UINT32_MAX) {
-		if (loadAddress % align != 0)
+	if ((flags & SECTF_ALIGNED) && (flags & SECTF_LOADFIXED)) {
+		if (loadAddress % align != 0) {
+			err_Error(ERROR_SECT_FLAGS_COMBINATION);
 			return false;
+		}
 
 		align = UINT32_MAX;
+		flags &= ~SECTF_ALIGNED;
 	}
 
-	if (loadAddress == UINT32_MAX && align == UINT32_MAX && bank == UINT32_MAX) {
+	if (flags == 0) {
 		sect_SwitchTo(name, groupSymbol);
-	} else if (loadAddress != UINT32_MAX && bank != UINT32_MAX) {
-		sect_SwitchTo_LOAD_BANK(name, groupSymbol, loadAddress, bank);
-	} else if (loadAddress == UINT32_MAX && bank != UINT32_MAX) {
-		sect_SwitchTo_BANK(name, groupSymbol, bank);
-	} else if (loadAddress != UINT32_MAX && bank == UINT32_MAX) {
-		sect_SwitchTo_LOAD(name, groupSymbol, loadAddress);
-	} else if (align != UINT32_MAX && bank != UINT32_MAX) {
-		sect_SwitchTo_ALIGN_BANK(name, groupSymbol, align, bank);
-	} else if (align != UINT32_MAX && bank == UINT32_MAX) {
-		sect_SwitchTo_ALIGN(name, groupSymbol, align);
 	} else {
-		internalerror("Section flags not handled");
+		sect_SwitchTo_KIND(name, groupSymbol, flags, loadAddress, bank, align);
 	}
 
 	str_Free(name);

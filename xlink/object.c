@@ -45,6 +45,7 @@
  *			int32_t	Position; -1 = not fixed
  *			[>=v1] int32_t BasePC	; -1 = not fixed
  *			[>=v3] int32_t ByteAlign ; -1 = not aligned
+ *			[>=v4] uint8_t Rooted ; != 0 is rooted
  *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
@@ -254,6 +255,11 @@ readSection(FILE* fileHandle, SSection* section, Groups* groups, int version, ui
     else
         section->byteAlign = -1;
 
+    if (version >= 4)
+        section->root = fgetc(fileHandle) != 0;
+	else
+		section->root = false;
+
     section->totalSymbols = readSymbols(fileHandle, &section->symbols);
 
     if (version >= 2) {
@@ -349,18 +355,10 @@ readXOB1(FILE* fileHandle) {
 }
 
 static void
-readXOB2(FILE* fileHandle) {
+readXOBn(FILE* fileHandle, int32_t version) {
     g_minimumWordSize = fgetc(fileHandle);
     uint32_t fileInfoIndex = readFileInfo(fileHandle);
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 2, fileInfoIndex);
-    mem_Free(sections);
-}
-
-static void
-readXOB3(FILE* fileHandle) {
-    g_minimumWordSize = fgetc(fileHandle);
-    uint32_t fileInfoIndex = readFileInfo(fileHandle);
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 3, fileInfoIndex);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, version, fileInfoIndex);
     mem_Free(sections);
 }
 
@@ -396,12 +394,17 @@ readChunk(FILE* fileHandle) {
         }
 
         case MAKE_ID('X', 'O', 'B', 2): {
-            readXOB2(fileHandle);
+            readXOBn(fileHandle, 2);
             break;
         }
 
         case MAKE_ID('X', 'O', 'B', 3): {
-            readXOB3(fileHandle);
+            readXOBn(fileHandle, 3);
+            break;
+        }
+
+        case MAKE_ID('X', 'O', 'B', 4): {
+            readXOBn(fileHandle, 4);
             break;
         }
 
