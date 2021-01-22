@@ -1,13 +1,17 @@
 #!/bin/sh
+DIR=asmotor-`cat version`-src
+
 CopyDirectory()
 {
-	mkdir -p source/$1
-	cp ../$1/*.[ch] source/$1
-	cp ../$1/CMake* source/$1
+	mkdir -p $DIR/$1
+	cp ../$1/*.[ch] $DIR/$1
+	cp ../$1/CMake* $DIR/$1
 }
 
-rm -rf source
-mkdir source
+rm *-src.tar.bz2
+rm *-src.tgz
+rm -rf $DIR
+mkdir $DIR
 
 CopyDirectory util
 CopyDirectory xasm/6502
@@ -21,25 +25,26 @@ CopyDirectory xasm/z80
 CopyDirectory xlink
 CopyDirectory xlib
 
-cp ../CMakeLists.txt source
-cp ../xasm/CMakeLists.txt source/xasm
-cp ../README.md source
-cp ../ucm.cmake source
-cp ../*.sh source
-cp ../*.ps1 source
+cp ../CMakeLists.txt $DIR
+cp ../xasm/CMakeLists.txt $DIR/xasm
+cp ../CHANGELOG.md $DIR
+cp ../LICENSE.md $DIR
+cp ../README.md $DIR
+cp ../ucm.cmake $DIR
+cp ../*.sh $DIR
+cp ../*.ps1 $DIR
 
-mkdir -p source/build
-cp *.cmake source/build
-cp version source/build
-cp -rf Modules source/build
+mkdir -p $DIR/build
+cp *.cmake $DIR/build
+cp version $DIR/build
+cp -rf Modules $DIR/build
 
 TAR=tar
 if [ -x /opt/local/bin/gnutar ]; then
 	TAR=/opt/local/bin/gnutar
 fi
 
-DIR=asmotor-`cat version`-src
-mv source $DIR
+mv $DIR $DIR
 $TAR -cvjf $DIR.tar.bz2 $DIR
 $TAR -cvzf $DIR.tgz $DIR
 rm -rf $DIR
