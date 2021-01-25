@@ -1,5 +1,7 @@
 	SECTION "Test",CODE
 
+	exg	bc,de
+	exg	f,h
 	sub	bc,$1234
 	add	bc,$12AB
 	add	bc,$1234

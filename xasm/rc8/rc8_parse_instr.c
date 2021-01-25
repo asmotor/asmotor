@@ -256,14 +256,29 @@ static bool
 handle_EXG(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	ensureSource(&destination, &source);
 
-	if ((destination->mode & MODE_REG_8BIT_FBCDEHL) && (source->mode & MODE_REG_T))
+	if ((destination->mode & MODE_REG_8BIT_FBCDEHL) && (source->mode & MODE_REG_T)) {
 		return handle_OpcodeRegister(baseOpcode, destination);
-	else if ((source->mode & MODE_REG_8BIT_FBCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_T)))
+	} else if ((source->mode & MODE_REG_8BIT_FBCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_T))) {
 		return handle_OpcodeRegister(baseOpcode, source);
-	else if ((destination->mode & MODE_REG_16BIT_BCDEHL) && (source->mode & MODE_REG_FT))
+	} else if ((source->mode & MODE_REG_8BIT_FBCDEHL) && (destination->mode & MODE_REG_8BIT_FBCDEHL)) {
+		if (!opt_Current->machineOptions->enableSynthInstructions)
+			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+
+		return handle_OpcodeRegister(baseOpcode, source)
+			&& handle_OpcodeRegister(baseOpcode, destination)
+			&& handle_OpcodeRegister(baseOpcode, source);
+	} else if ((destination->mode & MODE_REG_16BIT_BCDEHL) && (source->mode & MODE_REG_FT)) {
 		return handle_OpcodeRegister(0xC8, destination);
-	else if ((source->mode & MODE_REG_16BIT_BCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_FT)))
+	} else if ((source->mode & MODE_REG_16BIT_BCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_FT))) {
 		return handle_OpcodeRegister(0xC8, source);
+	} else if ((source->mode & MODE_REG_16BIT_BCDEHL) && (destination->mode & MODE_REG_16BIT_BCDEHL)) {
+		if (!opt_Current->machineOptions->enableSynthInstructions)
+			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+
+		return handle_OpcodeRegister(0xC8, source)
+			&& handle_OpcodeRegister(0xC8, destination)
+			&& handle_OpcodeRegister(0xC8, source);
+	}
 
 	return false;
 }
