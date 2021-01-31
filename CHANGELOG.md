@@ -3,5 +3,7 @@
 
 # 1.2.0
 ROOT section flag added
+
 Unterminated REPT/IF/MACRO block fixes
+
 Error message improvements

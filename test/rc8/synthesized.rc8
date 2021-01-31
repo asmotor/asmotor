@@ -1,5 +1,6 @@
 	SECTION "Test",CODE
 
+	add/c	hl,1
 	exg	bc,de
 	exg	f,h
 	sub	bc,$1234

@@ -814,7 +814,9 @@ rc8_ParseIntegerInstruction(void) {
 		if (lex_Context->token.id == T_OP_DIVIDE) {
 			parse_GetToken();
 
-			if (lex_Context->token.id >= T_RC8_CC_LE && lex_Context->token.id <= T_RC8_CC_NE) {
+			if (lex_Context->token.id == T_RC8_REG_C) {
+				cc = CC_LTU;
+			} else if (lex_Context->token.id >= T_RC8_CC_LE && lex_Context->token.id <= T_RC8_CC_NE) {
 				cc = lex_Context->token.id - T_RC8_CC_LE;
 			} else {
 				err_Error(MERROR_EXPECTED_CONDITION_CODE);

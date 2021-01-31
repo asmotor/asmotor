@@ -86,6 +86,8 @@ g_tokens[] = {
 	{ "Z",		T_RC8_CC_EQ },
 	{ "NZ",		T_RC8_CC_NE },
 
+	{ "NC",		T_RC8_CC_GEU},
+
 	{ NULL, 0 }
 };
 
