@@ -28,6 +28,7 @@
 #include "commodore.h"
 #include "gameboy.h"
 #include "group.h"
+#include "hc800.h"
 #include "image.h"
 #include "mapfile.h"
 #include "object.h"
@@ -47,7 +48,32 @@ typedef enum {
     TARGET_COMMODORE264_PRG,
     TARGET_MEGA_DRIVE,
     TARGET_MASTER_SYSTEM,
+    TARGET_HC800,
 } TargetType;
+
+#define HC800_HARVARD 0x01
+#define HC800_32K_BANKS 0x14
+
+static uint8_t
+hc800ConfigSmall[9] = { 0x00,            
+	0x81, 0x82, 0x83, 0x84, 0x81, 0x82, 0x83, 0x84 };
+
+static uint8_t
+hc800ConfigSmallHarvard[9] = { HC800_HARVARD,
+	0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88 };
+
+static uint8_t
+hc800ConfigMedium[9] =	{ HC800_32K_BANKS,
+	0x81, 0x82, 0x83, 0x84, 0x81, 0x82, 0x83, 0x84 };
+
+static uint8_t
+hc800ConfigMediumHarvard[9] = { HC800_HARVARD | HC800_32K_BANKS,
+	0x81, 0x82, 0x87, 0x88, 0x83, 0x84, 0x85, 0x86 };
+
+static uint8_t
+hc800ConfigLarge[9] = { HC800_32K_BANKS,
+	0x81, 0x82, 0x83, 0x84, 0x81, 0x82, 0x83, 0x84 };
+
 
 bool
 target_SupportsReloc(TargetType type) {
@@ -109,8 +135,14 @@ printUsage(void) {
            "\t    -tms48\tSega Master System (48 KiB)\n"
            "\t    -tmsb\tSega Master System banked (64+ KiB)\n"
            "\t    -thc8b\tHC800 16 KiB ROM\n"
-           "\t    -thc8c\tHC800 COM executable (64 KiB text + BSS)\n"
-           "\t    -thc8x\tHC800 EXE executable (64 KiB text, 64 KiB BSS)\n"
+           "\t    -thc8s\tHC800 small mode (64 KiB text + data + bss)\n"
+           "\t    -thc8sh\tHC800 small Harvard mode (64 KiB text, 64 KiB data + bss)\n"
+           "\t    -thc8m\tHC800 medium mode (32 KiB text + data + bss, 32 KiB sized\n"
+		   "\t          \tbanks text)\n"
+           "\t    -thc8mh\tHC800 medium Harvard executable (32 KiB text + 32 KiB\n"
+		   "\t           \tsized text banks, 64 KiB data + bss)\n"
+           "\t    -thc8l\tHC800 large mode (32 KiB text + data + bss, 32 KiB sized\n"
+		   "\t          \tbanks text + data + bss)\n"
 //			"\t    -tm<mach>\tUse file <mach>\n"
     );
     exit(EXIT_SUCCESS);
@@ -121,6 +153,7 @@ main(int argc, char* argv[]) {
     int argn = 1;
     bool targetDefined = false;
     TargetType targetType = TARGET_BINARY;
+	uint8_t* hc800Config = NULL;
     int binaryPad = -1;
 
     const char* outputFilename = NULL;
@@ -272,29 +305,56 @@ main(int argc, char* argv[]) {
                         binaryPad = 0;
                         ++argn;
                     } else if (str_EqualConst(target, "hc8b")) {
-                        /* HC800 16 KiB */
+                        /* HC800 16 KiB text + data, 16 KiB bss */
                         group_SetupHC8XXROM();
                         targetDefined = true;
                         targetType = TARGET_BINARY;
                         binaryPad = 0;
                         ++argn;
-                    } else if (str_EqualConst(target, "hc8x")) {
-                        /* HC800 EXE, 64 KiB code, 48 KiB BSS_S, 16 KiB BSS */
-                        group_SetupHC8XXExe();
+                    } else if (str_EqualConst(target, "hc8s")) {
+                        /* HC800, CODE: 64 KiB text + data + bss */
+                        group_SetupHC8XXSmall();
                         targetDefined = true;
-                        targetType = TARGET_BINARY;
+                        targetType = TARGET_HC800;
+						hc800Config = hc800ConfigSmall;
                         binaryPad = -1;
                         ++argn;
-                    } else if (str_EqualConst(target, "hc8c")) {
-                        /* HC800 COM, 64 KiB code and BSS */
-                        group_SetupHC8XXCom();
+                    } else if (str_EqualConst(target, "hc8sh")) {
+                        /* HC800 CODE: 64 KiB text, DATA: 64 KiB data + bss */
+                        group_SetupHC8XXSmallHarvard();
                         targetDefined = true;
-                        targetType = TARGET_BINARY;
+                        targetType = TARGET_HC800;
+						hc800Config = hc800ConfigSmallHarvard;
+                        binaryPad = -1;
+                        ++argn;
+                    } else if (str_EqualConst(target, "hc8m")) {
+                        /* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text */
+                        group_SetupHC8XXMedium();
+                        targetDefined = true;
+                        targetType = TARGET_HC800;
+						hc800Config = hc800ConfigMedium;
+                        binaryPad = -1;
+                        ++argn;
+                    } else if (str_EqualConst(target, "hc8mh")) {
+                        /* HC800, CODE: 32 KiB text, CODE: 32 KiB sized text banks, DATA: 64 KiB data + bss */
+                        group_SetupHC8XXMediumHarvard();
+                        targetDefined = true;
+                        targetType = TARGET_HC800;
+						hc800Config = hc800ConfigMediumHarvard;
+                        binaryPad = -1;
+                        ++argn;
+                    } else if (str_EqualConst(target, "hc8l")) {
+                        /* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text + data + bss */
+                        group_SetupHC8XXLarge();
+                        targetDefined = true;
+                        targetType = TARGET_HC800;
+						hc800Config = hc800ConfigLarge;
                         binaryPad = -1;
                         ++argn;
                     } else {
                         error("Unknown target \"%s\"", str_String(target));
                     }
+
 #if 0
                     case 'm':
                     {
@@ -362,6 +422,9 @@ main(int argc, char* argv[]) {
                 break;
             case TARGET_AMIGA_LINK_OBJECT:
                 amiga_WriteLinkObject(outputFilename, false);
+                break;
+            case TARGET_HC800:
+                hc800_WriteExecutable(outputFilename, hc800Config);
                 break;
         }
     }

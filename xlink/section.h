@@ -74,7 +74,8 @@ typedef struct Section {
     struct Section* nextSection;
 } SSection;
 
-extern SSection* sect_Sections;
+extern SSection*
+sect_Sections;
 
 extern SSection*
 sect_CreateNew(void);

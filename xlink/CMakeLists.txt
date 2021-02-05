@@ -9,6 +9,8 @@ add_executable (xlink
     gameboy.h
     group.c
     group.h
+    hc800.c
+    hc800.h
     image.c
     image.h
     main.c

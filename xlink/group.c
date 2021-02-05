@@ -581,32 +581,334 @@ group_SetupHC8XXROM(void) {
 
 
 void
-group_SetupHC8XXExe(void) {
+group_SetupHC8XXSmall(void) {
+	/* HC800, CODE: 64 KiB text + data + bss */
     MemoryGroup* group;
 
-    MemoryPool* codepool = pool_Create(0, 0, 0, 0x10000);
-	MemoryPool* sharedBssPool = pool_Create(-1, 0x4000, 0, 0xC000);
-	MemoryPool* bssPool = pool_Create(-1, 0x0000, 0, 0x4000);
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
+    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0xC000);
 
     //	Create HOME group
 
     group = group_Create("HOME", 1);
-    group->pools[0] = codepool;
+    group->pools[0] = home;
 
     //	Create CODE group
 
-    group = group_Create("CODE", 1);
-    group->pools[0] = codepool;
+    group = group_Create("CODE", 2);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 2);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 2);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+
+    //	Create CODE_S group
+
+    group = group_Create("CODE_S", 1);
+    group->pools[0] = shared;
+
+    //	Create DATA_S group
+
+    group = group_Create("DATA_S", 1);
+    group->pools[0] = shared;
+
+    //	Create BSS_S group
+
+    group = group_Create("BSS_S", 1);
+    group->pools[0] = shared;
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+
+
+void
+group_SetupHC8XXSmallHarvard(void) {
+	/* HC800 CODE: 64 KiB text, DATA: 64 KiB data + bss */
+    MemoryGroup* group;
+
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
+    MemoryPool* codeShared = pool_Create(0, 0x4000, 0x82, 0xC000);
+    MemoryPool* data = pool_Create(0, 0, 0x85, 0x4000);
+    MemoryPool* dataShared = pool_Create(0, 0x4000, 0x86, 0xC000);
+
+    //	Create HOME group
+
+    group = group_Create("HOME", 1);
+    group->pools[0] = home;
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 2);
+    group->pools[0] = home;
+    group->pools[1] = codeShared;
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 2);
+    group->pools[0] = data;
+    group->pools[1] = dataShared;
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 2);
+    group->pools[0] = data;
+    group->pools[1] = dataShared;
+
+    //	Create CODE_S group
+
+    group = group_Create("CODE_S", 1);
+    group->pools[0] = codeShared;
+
+    //	Create DATA_S group
+
+    group = group_Create("DATA_S", 1);
+    group->pools[0] = dataShared;
+
+    //	Create BSS_S (home) group
+
+    group = group_Create("BSS_S", 1);
+    group->pools[0] = dataShared;
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+
+
+void
+group_SetupHC8XXMedium(void) {
+	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text */
+    MemoryGroup* group;
+
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
+    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x8000);
+	int firstCodeBank = 0x83;
+	int codeBanks = (0x100 - firstCodeBank) / 2;
+	MemoryPool* banks[codeBanks];
+	for (int i = 0; i < codeBanks; ++i) {
+		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000);
+	}
+
+    //	Create HOME group
+
+    group = group_Create("HOME", 2);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 2 + codeBanks);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+	for (int i = 0; i < codeBanks; ++i) {
+		group->pools[i + 2] = banks[i];
+	}
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 2);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 2);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+
+    //	Create CODE_S (shared) group
+
+    group = group_Create("CODE_S", 1);
+    group->pools[0] = shared;
 
     //	Create DATA_S (shared) group
 
     group = group_Create("DATA_S", 1);
-    group->pools[0] = sharedBssPool;
+    group->pools[0] = shared;
 
     //	Create BSS_S (shared) group
 
     group = group_Create("BSS_S", 1);
-    group->pools[0] = sharedBssPool;
+    group->pools[0] = shared;
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+
+
+void
+group_SetupHC8XXMediumHarvard(void) {
+	/* HC800, CODE: 32 KiB text, CODE: 32 KiB sized text banks, DATA: 64 KiB data + bss */
+    MemoryGroup* group;
+
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
+    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x4000);
+    MemoryPool* data = pool_Create(0, 0, 0x83, 0x4000);
+    MemoryPool* dataShared = pool_Create(0, 0x4000, 0x84, 0xC000);
+
+	int firstCodeBank = 0x87;
+	int codeBanks = (0x100 - firstCodeBank) / 2;
+	MemoryPool* banks[codeBanks];
+	for (int i = 0; i < codeBanks; ++i) {
+		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000);
+	}
+
+    //	Create HOME group
+
+    group = group_Create("HOME", 2);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 2 + codeBanks);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+	for (int i = 0; i < codeBanks; ++i) {
+		group->pools[i + 2] = banks[i];
+	}
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 2);
+    group->pools[0] = data;
+    group->pools[1] = dataShared;
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 2);
+    group->pools[0] = data;
+    group->pools[1] = dataShared;
+
+    //	Create CODE_S (shared) group
+
+    group = group_Create("CODE_S", 1);
+    group->pools[0] = shared;
+
+    //	Create DATA_S (shared) group
+
+    group = group_Create("DATA_S", 1);
+    group->pools[0] = dataShared;
+
+    //	Create BSS_S (shared) group
+
+    group = group_Create("BSS_S", 1);
+    group->pools[0] = dataShared;
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+
+
+void
+group_SetupHC8XXLarge(void) {
+	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text + data + bss */
+
+    MemoryGroup* group;
+
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
+    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x4000);
+	int firstCodeBank = 0x83;
+	int codeBanks = (0x100 - firstCodeBank) / 2;
+	MemoryPool* banks[codeBanks];
+	for (int i = 0; i < codeBanks; ++i) {
+		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000);
+	}
+
+    //	Create HOME group
+
+    group = group_Create("HOME", 2);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 2 + codeBanks);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+	for (int i = 0; i < codeBanks; ++i) {
+		group->pools[i + 2] = banks[i];
+	}
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 2 + codeBanks);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+	for (int i = 0; i < codeBanks; ++i) {
+		group->pools[i + 2] = banks[i];
+	}
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 2 + codeBanks);
+    group->pools[0] = home;
+    group->pools[1] = shared;
+	for (int i = 0; i < codeBanks; ++i) {
+		group->pools[i + 2] = banks[i];
+	}
+
+    //	Create CODE_S (shared) group
+
+    group = group_Create("CODE_S", 1);
+    group->pools[0] = shared;
+
+    //	Create DATA_S (shared) group
+
+    group = group_Create("DATA_S", 1);
+    group->pools[0] = shared;
+
+    //	Create BSS_S (shared) group
+
+    group = group_Create("BSS_S", 1);
+    group->pools[0] = shared;
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+
+
+void
+group_SetupHC8XXLargeHarvard(void) {
+	/* HC800, CODE: 32 KiB text, CODE: 32 KiB sized text banks, DATA: 64 KiB data + bss */
+
+    MemoryGroup* group;
+
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
+    MemoryPool* sharedCode = pool_Create(0, 0x4000, 0x82, 0x4000);
+	MemoryPool* bssPool = pool_Create(0, 0x0000, 0x83, 0x4000);
+	MemoryPool* sharedBssPool = pool_Create(0, 0x4000, 0x84, 0xC000);
+	int firstCodeBank = 0x87;
+	int codeBanks = (0x100 - firstCodeBank) / 2;
+
+    //	Create HOME group
+
+    group = group_Create("HOME", 2);
+    group->pools[0] = home;
+    group->pools[1] = sharedCode;
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 2 + codeBanks);
+    group->pools[0] = home;
+    group->pools[1] = sharedCode;
+	for (int i = 0; i < codeBanks; ++i) {
+		group->pools[i + 2] = pool_Create(0, 0x8000, firstCodeBank + i * 2, 0x8000);
+	}
 
     //	Create DATA group
 
@@ -620,45 +922,24 @@ group_SetupHC8XXExe(void) {
     group->pools[0] = bssPool;
     group->pools[1] = sharedBssPool;
 
-    //	initialise memory chunks
+    //	Create CODE_S (shared) group
 
-    group_InitMemoryChunks();
-}
+    group = group_Create("CODE_S", 1);
+    group->pools[0] = sharedCode;
 
+    //	Create DATA_S (shared) group
 
-void
-group_SetupHC8XXCom(void) {
-    MemoryGroup* group;
-
-    MemoryPool* pool = pool_Create(0, 0, 0, 0x10000);
-
-    //	Create HOME group
-
-    group = group_Create("HOME", 1);
-    group->pools[0] = pool;
-
-    //	Create CODE group
-
-    group = group_Create("CODE", 1);
-    group->pools[0] = pool;
-
-    //	Create DATA group
-
-    group = group_Create("DATA", 1);
-    group->pools[0] = pool;
+    group = group_Create("DATA_S", 1);
+    group->pools[0] = sharedBssPool;
 
     //	Create BSS_S (shared) group
 
     group = group_Create("BSS_S", 1);
-    group->pools[0] = pool;
-
-    //	Create BSS group
-
-    group = group_Create("BSS", 1);
-    group->pools[0] = pool;
+    group->pools[0] = sharedBssPool;
 
     //	initialise memory chunks
 
     group_InitMemoryChunks();
 }
+
 

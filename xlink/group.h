@@ -61,10 +61,19 @@ void
 group_SetupHC8XXROM(void);
 
 void
-group_SetupHC8XXCom(void);
+group_SetupHC8XXSmall(void);
 
 void
-group_SetupHC8XXExe(void);
+group_SetupHC8XXSmallHarvard(void);
+
+void
+group_SetupHC8XXMedium(void);
+
+void
+group_SetupHC8XXMediumHarvard(void);
+
+void
+group_SetupHC8XXLarge(void);
 
 extern bool
 group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
