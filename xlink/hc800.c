@@ -46,7 +46,7 @@ static void
 writeHunkEnd(FILE* fileHandle, off_t dataPos) {
 	off_t length = ftello(fileHandle) - dataPos;
 	fseeko(fileHandle, dataPos - 2, SEEK_SET);
-	fputlw(length, fileHandle);
+	fputlw((uint16_t) length, fileHandle);
 
 	fseek(fileHandle, 0, SEEK_END);
 }
@@ -74,7 +74,7 @@ writeBank(FILE* fileHandle, SSection* section) {
 					++written;
 				}
 
-				fseek(fileHandle, dataPos + section->imageLocation, SEEK_SET);
+				fseeko(fileHandle, dataPos + section->imageLocation, SEEK_SET);
 				fwrite(section->data, 1, section->size, fileHandle);
 
 				off_t sectionEnd = section->imageLocation + section->size;

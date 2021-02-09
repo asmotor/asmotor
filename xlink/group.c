@@ -25,6 +25,8 @@
 
 #include <string.h>
 
+#define HC800_MAX_BANKS 128
+
 typedef struct MemoryChunk_ {
     struct MemoryChunk_* nextChunk;
 
@@ -695,7 +697,7 @@ group_SetupHC8XXMedium(void) {
     MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x8000);
 	int firstCodeBank = 0x83;
 	int codeBanks = (0x100 - firstCodeBank) / 2;
-	MemoryPool* banks[codeBanks];
+	MemoryPool* banks[HC800_MAX_BANKS];
 	for (int i = 0; i < codeBanks; ++i) {
 		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000);
 	}
@@ -760,7 +762,7 @@ group_SetupHC8XXMediumHarvard(void) {
 
 	int firstCodeBank = 0x87;
 	int codeBanks = (0x100 - firstCodeBank) / 2;
-	MemoryPool* banks[codeBanks];
+	MemoryPool* banks[HC800_MAX_BANKS];
 	for (int i = 0; i < codeBanks; ++i) {
 		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000);
 	}
@@ -823,7 +825,7 @@ group_SetupHC8XXLarge(void) {
     MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x4000);
 	int firstCodeBank = 0x83;
 	int codeBanks = (0x100 - firstCodeBank) / 2;
-	MemoryPool* banks[codeBanks];
+	MemoryPool* banks[HC800_MAX_BANKS];
 	for (int i = 0; i < codeBanks; ++i) {
 		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000);
 	}
