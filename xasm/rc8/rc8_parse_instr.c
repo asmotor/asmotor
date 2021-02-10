@@ -59,7 +59,6 @@
 #define MODE_REG_16BIT_BCDEHL (MODE_REG_BC | MODE_REG_DE | MODE_REG_HL)
 #define MODE_IND_16BIT (MODE_IND_FT | MODE_IND_BC | MODE_IND_DE | MODE_IND_HL)
 #define MODE_IND_16BIT_BCDEHL (MODE_IND_BC | MODE_IND_DE | MODE_IND_HL)
-#define MODE_IND_16BIT (MODE_IND_FT | MODE_IND_BC | MODE_IND_DE | MODE_IND_HL)
 
 typedef enum {
 	// These must be in the same order as the tokens and end with CC_ALWAYS
@@ -470,10 +469,10 @@ handle_JAL(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 
 static bool
 handle_LoadIndirect(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	if (destination->mode == MODE_IND_BC && source->mode == MODE_REG_T)
-		return handle_Implicit(baseOpcode, cc, destination, source);
-	else if (destination->mode == MODE_REG_T && source->mode == MODE_IND_BC)
-		return handle_Implicit(baseOpcode + 0x01, cc, destination, source);
+	if ((destination->mode & MODE_IND_16BIT_BCDEHL) && source->mode == MODE_REG_T)
+		return handle_OpcodeRegister(baseOpcode, destination);
+	else if (destination->mode == MODE_REG_T && (source->mode & MODE_IND_16BIT))
+		return handle_OpcodeRegister(baseOpcode + 0x04, source);
 
 	return false;
 }
@@ -657,7 +656,7 @@ g_Parsers[T_RC8_XOR - T_RC8_ADD + 1] = {
 	{ 0x0C, CONDITION_AUTO, MODE_REG_T, MODE_IND_16BIT, handle_LCO },								/* LCO */
 	{ 0x0A, CONDITION_AUTO, MODE_IND_C | MODE_REG_T, MODE_IND_C | MODE_REG_T, handle_LCR },			/* LCR */
 	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT | MODE_IND_16BIT, MODE_IMM | MODE_REG_8BIT | MODE_REG_16BIT | MODE_IND_16BIT, handle_LD },		/* LD */
-	{ 0x08, CONDITION_AUTO, MODE_IND_BC | MODE_REG_T, MODE_IND_BC | MODE_REG_T, handle_LoadIndirect },	/* LIO */
+	{ 0x30, CONDITION_AUTO, MODE_IND_16BIT_BCDEHL | MODE_REG_T, MODE_IND_16BIT | MODE_REG_T, handle_LoadIndirect },	/* LIO */
 	{ 0xE0, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL | MODE_IMM, MODE_REG_8BIT_BCDEHL | MODE_IMM | MODE_NONE, handle_Shift },	/* LS */
 	{ 0x51, CONDITION_AUTO, MODE_REG_T | MODE_REG_FT, MODE_NONE, handle_NEG },						/* NEG */
 	{ 0x00, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* NOP */

@@ -10,8 +10,8 @@
 		ld	t,(de)
 		ld	t,(hl)
 
-		lio	(bc),t
-		lio	t,(bc)
+		DB	$08
+		DB	$09
 		lcr	(c),t
 		lcr	t,(c)
 		lco	t,(ft)
@@ -56,13 +56,13 @@
 		ld	l,(ft)
 
 		DB	$30
-		DB	$31
-		DB	$32
-		DB	$33
-		DB	$34
-		DB	$35
-		DB	$36
-		DB	$37
+		lio	(bc),t
+		lio	(de),t
+		lio	(hl),t
+		lio	t,(ft)
+		lio	t,(bc)
+		lio	t,(de)
+		lio	t,(hl)
 
 		jal	(ft)
 		jal	(bc)
