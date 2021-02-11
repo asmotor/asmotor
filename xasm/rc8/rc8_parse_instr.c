@@ -244,7 +244,7 @@ handle_Bitwise(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destinati
 		return handle_OpcodeRegister(baseOpcode, source);
 	else if ((source->mode & MODE_IMM) && (destination->mode & (MODE_NONE | MODE_REG_T))) {
 		baseOpcode = 0xB0 + ((baseOpcode >> 3) & 0x03);
-		return handle_Op_Reg_UnsignedImm(baseOpcode, NULL, source->expression);
+		return handle_Op_Reg_SignedOrUnsignedImm(baseOpcode, NULL, source->expression);
 	}
 
 	return false;
