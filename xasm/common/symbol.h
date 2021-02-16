@@ -86,6 +86,9 @@ typedef struct Symbol {
     uint32_t id;    // used by object output routines
 } SSymbol;
 
+extern SSymbol*
+sym_CurrentScope;
+
 extern bool
 sym_Init(void);
 

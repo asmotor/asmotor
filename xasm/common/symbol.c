@@ -46,7 +46,7 @@ static uint32_t g_defaultSymbolFlags[] = {
     SYMF_MODIFIABLE | SYMF_EXPRESSION | SYMF_EXPORTABLE // SYM_UNDEFINED
 };
 
-static SSymbol* g_currentScope;
+SSymbol* sym_CurrentScope = NULL;
 
 SSymbol* sym_hashedSymbols[SYMBOL_HASH_SIZE];
 
@@ -196,7 +196,7 @@ isLocalName(const string *name) {
 
 static SSymbol*
 assumedScopeOf(const string* name) {
-    return isLocalName(name) ? g_currentScope : NULL;
+    return isLocalName(name) ? sym_CurrentScope : NULL;
 }
 
 static SSymbol*
@@ -337,7 +337,7 @@ sym_CreateLabel(string* name) {
 
         if (sect_Current) {
             if (!isLocalName(name))
-                g_currentScope = symbol;
+                sym_CurrentScope = symbol;
 
             if ((sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) == 0) {
                 SET_TYPE_AND_FLAGS(symbol, SYM_LABEL);
@@ -532,7 +532,7 @@ sym_ErrorOnUndefined(void) {
 
 extern bool
 sym_Init(void) {
-    g_currentScope = NULL;
+    sym_CurrentScope = NULL;
 
     xasm_Configuration->defineSymbols();
 

@@ -47,6 +47,7 @@ SSection* sect_Sections;
 
 typedef struct SectionStackEntry {
 	SSection* section;
+	SSymbol* scope;
 	struct SectionStackEntry* next;
 } SSectionStackEntry;
 
@@ -655,6 +656,7 @@ sect_Push(void) {
 	SSectionStackEntry* entry = (SSectionStackEntry*) mem_Alloc(sizeof(SSectionStackEntry));
 	if (entry != NULL) {
 		entry->section = sect_Current;
+		entry->scope = sym_CurrentScope;
 		entry->next = g_sectionStack;
 		g_sectionStack = entry;
 		return true;
@@ -668,6 +670,7 @@ sect_Pop(void) {
 	SSectionStackEntry* entry = g_sectionStack;
 	if (entry != NULL) {
 		sect_Current = entry->section;
+		sym_CurrentScope = entry->scope;
 		g_sectionStack = entry->next;
 		mem_Free(entry);
 		return true;
