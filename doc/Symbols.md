@@ -120,10 +120,10 @@ String symbols can also be used to define small macros:
 PUSHA    EQUS "push af\npush bc\npush de\npush hl\n"
 ```
 
-Note that string symbols cannot be used in place of a string literal directly - their value is parsed by the assembler. To insert a string symbol as a string, enclose it in curly brackets:
+Note that string symbols cannot be used in place of a string literal directly - their value is parsed by the assembler. To insert a string symbol as a string, enclose it in pipe symbols:
 
 ```
-    DC.B {StringSymbol},0
+    DC.B |StringSymbol|,0
 ```
 
 ## <a name="group_symbols"></a> Group symbols
