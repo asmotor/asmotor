@@ -265,10 +265,10 @@ expr_PcRelative(SExpression* expression, int adjustment) {
     if (!assertExpression(expression))
         return NULL;
 
-    if (expr_IsConstant(expression) && (sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
+    if (expr_IsConstant(expression) && sect_Current != NULL && (sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
         expression->value.integer -= (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin + sect_Current->cpuAdjust - adjustment);
         return expression;
-    } else if (sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
+    } else if (sect_Current != NULL && sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
         return expr_Add(
             expression,
             expr_Const(adjustment - (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin + sect_Current->cpuAdjust))
