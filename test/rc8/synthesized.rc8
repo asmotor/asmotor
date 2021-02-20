@@ -1,5 +1,8 @@
 	SECTION "Test",CODE
 
+	swap	bc-hl
+	push	bc/de
+	pop	bc-hl
 	add/c	hl,1
 	exg	bc,de
 	exg	f,h

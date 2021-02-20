@@ -50,6 +50,8 @@ g_tokens[] = {
 	{ "RS",     T_RC8_RS     },
 	{ "RSA",    T_RC8_RSA    },
 	{ "SUB",    T_RC8_SUB    },
+	{ "SWAP",   T_RC8_SWAP   },
+	{ "SWAPA",  T_RC8_SWAPA  },
 	{ "SYS",    T_RC8_SYS    },
 	{ "TST",    T_RC8_TST    },
 	{ "XOR",    T_RC8_XOR    },

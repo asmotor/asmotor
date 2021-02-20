@@ -511,9 +511,10 @@ handle_RegisterStack(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* des
 		if (!opt_Current->machineOptions->enableSynthInstructions)
 			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
 			
-		bool isPop = (baseOpcode & 0x04) != 0;
-		uint8_t all = isPop ? 0xF9 : 0xF8;
-		uint8_t oppositeOne = baseOpcode ^ 0x04;
+		bool isPop = baseOpcode == 0xC4;
+		bool isSwap = baseOpcode == 0xDC;
+		uint8_t all = isSwap ? 0xCC : isPop ? 0xF9 : 0xF8;
+		uint8_t oppositeOne = isSwap ? baseOpcode : baseOpcode ^ 0x04;
 
 		uint8_t registerCount = bitsSet4(destination->registerIndex);
 		assert (registerCount >= 2 && registerCount <= 4);
@@ -670,6 +671,8 @@ g_Parsers[T_RC8_XOR - T_RC8_ADD + 1] = {
 	{ 0xE8, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL | MODE_IMM, MODE_REG_8BIT_BCDEHL | MODE_IMM | MODE_NONE, handle_Shift },	/* RS */
 	{ 0xF8, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL | MODE_IMM, MODE_REG_8BIT_BCDEHL | MODE_IMM | MODE_NONE, handle_Shift },	/* RSA */
 	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT, MODE_NONE | MODE_REG_8BIT | MODE_REG_16BIT | MODE_IMM, handle_SUB },	/* SUB */
+	{ 0xDC, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK, MODE_NONE, handle_RegisterStack },	/* SWAP */
+	{ 0xCC, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* SWAPA */
 	{ 0x9B, CONDITION_AUTO, MODE_IMM, MODE_NONE, handle_SYS },										/* SYS */
 	{ 0xD4, CONDITION_AUTO, MODE_REG_16BIT, MODE_NONE, handle_TST },								/* TST */
 	{ 0x70, CONDITION_AUTO, MODE_REG_8BIT | MODE_IMM, MODE_NONE | MODE_REG_8BIT | MODE_IMM, handle_Bitwise },	/* XOR */

@@ -231,7 +231,7 @@
 		exg	bc		
 		exg	ft,de		
 		exg	hl,ft		
-		DB	$CC
+		swapa
 		cmp	bc
 		cmp	ft,de
 		cmp	hl
@@ -249,10 +249,10 @@
 		ld	ft,bc
 		ld	ft,de
 		ld	ft,hl
-		DB	$DC
-		DB	$DD
-		DB	$DE
-		DB	$DF
+		swap	ft
+		swap	bc
+		swap	de
+		swap	hl
 
 		DB	$E0
 		DB	$E1
