@@ -129,9 +129,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/rc8/motorrc8",
-            "args": [ "-d.d/stream.Td", "-g", "-el", "-z0", "-i../kernal", "-ostream.obj", "stream.asm"],
+            "args": [ "-d.d/sd.Td", "-g", "-el", "-z0", "-DBOOT", "-i../", "-osd.obj", "sd.asm" ],
             "stopAtEntry": true,
-            "cwd": "/home/quorum/dev/hc800/firmware/stdlib",
+            "cwd": "/mnt/d/Dev/hc800/firmware/sdtest",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

@@ -372,7 +372,7 @@ handle_LD_R16_3bytes(SAddressingMode* registerHigh, SAddressingMode* registerLow
 			return true;
 		} else if (high == low) {
 			handle_LD_R8_const(registerLow, low);	/* LD r8,n8 */
-			sect_OutputConst8(0x60);				/* LD F,T */
+			sect_OutputConst8(0x78);				/* LD F,T */
 			return true;
 		}
 	}

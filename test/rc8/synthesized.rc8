@@ -1,5 +1,6 @@
 	SECTION "Test",CODE
 
+	ld	ft,514
 	swap	bc-hl
 	push	bc/de
 	pop	bc-hl
