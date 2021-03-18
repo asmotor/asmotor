@@ -99,7 +99,7 @@ static void
 writeDataHunks(FILE* fileHandle) {
 	for (int bankNumber = 0x81; bankNumber <= 0xFF; ++bankNumber) {
 		for (SSection* section = sect_Sections; section != NULL;) {
-			if (section->cpuBank == bankNumber) {
+			if (section->cpuBank == bankNumber && section->data != NULL) {
 				section = writeBank(fileHandle, section);
 			} else {
 				section = section->nextSection;
