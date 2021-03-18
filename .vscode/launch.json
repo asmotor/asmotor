@@ -39,9 +39,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-sEntry", "-mascii.sym", "-oascii.exe", "-thc8s", "ascii.obj", "../stdlib/std.lib"],
+            "args": ["-sEntry", "-mdir.sym", "-odir.exe", "-thc8s", "dir.obj", "../stdlib/std.lib", "../lowlevel/lowlevel.lib" ],
             "stopAtEntry": true,
-            "cwd": "/mnt/d/Dev/hc800/firmware/ascii",
+            "cwd": "/mnt/d/Dev/hc800/firmware/dir",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

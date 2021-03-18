@@ -551,10 +551,10 @@ group_SetupSegaMasterSystemBanked(void) {
 
 void
 group_SetupHC8XXROM(void) {
-    MemoryPool* codepool;
     MemoryGroup* group;
 
-    codepool = pool_Create(0, 0, 0, 0x4000);
+    MemoryPool* codepool = pool_Create(0, 0, 0, 0x4000);
+	MemoryPool* bss = pool_Create(-1, 0x0000, 0, 0x4000);
 
     //	Create HOME group
 
@@ -574,7 +574,22 @@ group_SetupHC8XXROM(void) {
     //	Create BSS group
 
     group = group_Create("BSS", 1);
-    group->pools[0] = pool_Create(-1, 0x0000, 0, 0x4000);
+    group->pools[0] = bss;
+
+    //	Create CODE_S (shared) group
+
+    group = group_Create("CODE_S", 1);
+    group->pools[0] = codepool;
+
+    //	Create DATA_S (shared) group
+
+    group = group_Create("DATA_S", 1);
+    group->pools[0] = codepool;
+
+    //	Create BSS_S (shared) group
+
+    group = group_Create("BSS_S", 1);
+    group->pools[0] = bss;
 
     //	initialise memory chunks
 

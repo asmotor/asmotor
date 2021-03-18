@@ -48,6 +48,7 @@ typedef enum {
     TARGET_COMMODORE264_PRG,
     TARGET_MEGA_DRIVE,
     TARGET_MASTER_SYSTEM,
+    TARGET_HC800_KERNAL,
     TARGET_HC800,
 } TargetType;
 
@@ -308,7 +309,7 @@ main(int argc, char* argv[]) {
                         /* HC800 16 KiB text + data, 16 KiB bss */
                         group_SetupHC8XXROM();
                         targetDefined = true;
-                        targetType = TARGET_BINARY;
+                        targetType = TARGET_HC800_KERNAL;
                         binaryPad = 0;
                         ++argn;
                     } else if (str_EqualConst(target, "hc8s")) {
@@ -422,6 +423,9 @@ main(int argc, char* argv[]) {
                 break;
             case TARGET_AMIGA_LINK_OBJECT:
                 amiga_WriteLinkObject(outputFilename, false);
+                break;
+            case TARGET_HC800_KERNAL:
+                hc800_WriteKernal(outputFilename);
                 break;
             case TARGET_HC800:
                 hc800_WriteExecutable(outputFilename, hc800Config);

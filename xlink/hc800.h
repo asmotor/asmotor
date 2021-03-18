@@ -24,4 +24,7 @@
 extern void
 hc800_WriteExecutable(const char* name, uint8_t* configuration);
 
+extern void
+hc800_WriteKernal(const char* outputFilename);
+
 #endif

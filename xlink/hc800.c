@@ -1,19 +1,19 @@
 /*  Copyright 2008-2021 Carsten Elton Sorensen and contributors
 
-    This file is part of ASMotor.
+	This file is part of ASMotor.
 
-    ASMotor is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	ASMotor is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    ASMotor is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	ASMotor is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
@@ -24,6 +24,7 @@
 
 #include "xlink.h"
 #include "hc800.h"
+#include "image.h"
 #include "section.h"
 
 #define HUNK_MMU 0
@@ -96,13 +97,13 @@ writeBank(FILE* fileHandle, SSection* section) {
 
 static void
 writeDataHunks(FILE* fileHandle) {
-	uint8_t bankNumber = 0x81;
-
-	for (SSection* section = sect_Sections; section != NULL;) {
-		if (section->cpuBank == bankNumber) {
-			section = writeBank(fileHandle, section);
-		} else {
-			section = section->nextSection;
+	for (int bankNumber = 0x81; bankNumber <= 0xFF; ++bankNumber) {
+		for (SSection* section = sect_Sections; section != NULL;) {
+			if (section->cpuBank == bankNumber) {
+				section = writeBank(fileHandle, section);
+			} else {
+				section = section->nextSection;
+			}
 		}
 	}
 }
@@ -139,6 +140,40 @@ hc800_WriteExecutable(const char* outputFilename, uint8_t* configuration) {
 	writeMmuHunk(fileHandle, configuration);
 	writeDataHunks(fileHandle);
 	writeEndHunk(fileHandle);
+
+	fclose(fileHandle);
+}
+
+static void
+updateKernalHeader(FILE* f) {
+	// Zero checksum byte
+	fseek(f, 7, SEEK_SET);
+	fputc(0, f);
+
+	// Calculate checksum
+
+	fseek(f, 0, SEEK_SET);
+	int c;
+	int8_t checksum = 0;
+	while ((c = fgetc(f)) != EOF) {
+		checksum += c;
+	}
+	checksum = -checksum;
+
+	// Update checksum in image
+	fseek(f, 7, SEEK_SET);
+	fputc(checksum, f);
+}
+
+extern void
+hc800_WriteKernal(const char* outputFilename) {
+	FILE* fileHandle = fopen(outputFilename, "w+b");
+	if (fileHandle == NULL)
+		error("Unable to open \"%s\" for writing", outputFilename);
+
+	image_WriteBinaryToFile(fileHandle, 0);
+
+	updateKernalHeader(fileHandle);
 
 	fclose(fileHandle);
 }
