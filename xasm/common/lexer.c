@@ -594,7 +594,7 @@ lex_GetNextToken(void) {
             if (stateMacroArgument0())
                 return true;
 
-            // fall through
+            __attribute__((fallthrough));
         }
         case LEX_STATE_MACRO_ARGUMENT: {
             return stateMacroArguments();

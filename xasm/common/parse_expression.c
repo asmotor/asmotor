@@ -132,7 +132,7 @@ expressionPriority9(size_t maxStringConstLength) {
 
                 return expr;
             }
-            // fall through to @
+            __attribute__((fallthrough));
         }
         case T_OP_MULTIPLY:
         case T_AT: {

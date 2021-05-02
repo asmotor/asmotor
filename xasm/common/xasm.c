@@ -151,6 +151,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
                                 format = argv[argn][2];
                                 break;
                             }
+                            __attribute__ ((fallthrough));
                         default:
                             err_Warn(WARN_OPTION, argv[argn]);
                             break;
