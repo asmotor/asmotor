@@ -454,7 +454,7 @@ void
 sect_OutputFloat32(long double value) {
 	float floatValue = (float) value;
 	uint32_t intValue;
-	assert(sizeof(floatValue) == sizeof(uint32_t));
+	assert(sizeof(floatValue) == sizeof(intValue));
 	memcpy(&intValue, &floatValue, sizeof(uint32_t));
 	sect_OutputConst32(intValue);
 }
@@ -463,9 +463,11 @@ sect_OutputFloat32(long double value) {
 void
 sect_OutputFloat64(long double value) {
 	double floatValue = (double) value;
-	uint32_t* intValue = (uint32_t *) &floatValue;
-	sect_OutputConst32(intValue[0]);
-	sect_OutputConst32(intValue[1]);
+	uint64_t intValue;
+	assert(sizeof(floatValue) == sizeof(intValue));
+	memcpy(&intValue, &floatValue, sizeof(uint64_t));
+	sect_OutputConst32((uint32_t) intValue);
+	sect_OutputConst32((uint32_t) (intValue >> 32));
 }
 
 
