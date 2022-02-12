@@ -1,3 +1,4 @@
 [submodule "util"]
 	path = util
 	url = https://github.com/asmotor/asmotor-util
+	branch = master
