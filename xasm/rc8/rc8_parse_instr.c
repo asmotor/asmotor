@@ -772,6 +772,24 @@ parseAddressingMode(SAddressingMode* addrMode, int allowedModes) {
 		}
 	}
 	
+	if (lex_Context->token.id == '(' && (allowedModes & MODE_IND_16BIT)) {
+		parse_GetToken();
+		if (lex_Context->token.id >= T_RC8_REG_FT && lex_Context->token.id <= T_RC8_REG_HL) {
+			int ind_token = lex_Context->token.id - T_RC8_REG_FT + T_RC8_REG_FT_IND;
+			parse_GetToken();
+			if (lex_Context->token.id == ')') {
+				parse_GetToken();
+				SRegisterMode* mode = &g_RegisterModes[ind_token - T_RC8_REG_F];
+				if (allowedModes & mode->modeFlag) {
+					addrMode->mode = mode->modeFlag;
+					addrMode->registerIndex = mode->opcodeRegister;
+					return true;
+				}
+			}
+		}
+		lex_Goto(&bm);
+	}
+	
 	if (allowedModes & MODE_ADDR) {
 		addrMode->mode = MODE_ADDR;
 		addrMode->expression = parse_Expression(1);

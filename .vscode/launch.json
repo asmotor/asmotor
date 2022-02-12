@@ -129,9 +129,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/rc8/motorrc8",
-            "args": [ "-d.d/sd.Td", "-g", "-el", "-z0", "-DBOOT", "-i../", "-osd.obj", "sd.asm" ],
+            "args": [ "equs.rc8" ],
             "stopAtEntry": true,
-            "cwd": "/mnt/d/Dev/hc800/firmware/sdtest",
+            "cwd": "/home/ces/dev/asmotor/test/rc8",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

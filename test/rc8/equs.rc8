@@ -1,0 +1,9 @@
+MCopy:	MACRO	;dreg, sreg, count
+__d\@		EQUS "bc"
+__s\@		EQUS "de"
+		ld	t,(__s\@)
+		ld	(__d\@),t
+	ENDM
+
+		SECTION "Code",CODE
+Start:	MCopy
