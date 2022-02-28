@@ -347,6 +347,9 @@ handleDb() {
 		string *str;
 
 		if ((expr = parse_Expression(1)) != NULL) {
+			if (expr == NULL && lex_Context->token.id != ',')
+				err_Error(ERROR_EXPECT_EXPR);
+
 			expr = expr_CheckRange(expr, -128, 255);
 			if (expr != NULL) {
 				sect_OutputExpr8(expr);
@@ -374,6 +377,9 @@ handleDw() {
 		parse_GetToken();
 
 		SExpression *expr = parse_Expression(2);
+		if (expr == NULL && lex_Context->token.id != ',')
+			err_Error(ERROR_EXPECT_EXPR);
+
 		if (expr != NULL) {
 			expr = expr_CheckRange(expr, -32768, 65535);
 			if (expr != NULL) {
@@ -395,6 +401,9 @@ handleDl() {
 		parse_GetToken();
 
 		SExpression *expr = parse_Expression(4);
+		if (expr == NULL && lex_Context->token.id != ',')
+			err_Error(ERROR_EXPECT_EXPR);
+
 		if (expr != NULL) {
 			sect_OutputExpr32(expr);
 		} else {
