@@ -39,9 +39,17 @@
 
 #define FPUF_ALL 0x07
 
+typedef enum Platform68k {
+	PLATFORM_GENERIC,
+	PLATFORM_AMIGA,
+	PLATFORM_GENESIS,
+	PLATFORM_A2650K
+} EPlatform68k;
+
 typedef struct MachineOptions {
     uint8_t cpu;
     uint8_t fpu;
+	EPlatform68k platform;
 } SMachineOptions;
 
 extern SMachineOptions*

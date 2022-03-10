@@ -26,9 +26,11 @@
 #include "xasm.h"
 #include "errors.h"
 #include "options.h"
+#include "symbol.h"
 
 #include "m68k_errors.h"
 #include "m68k_options.h"
+#include "m68k_symbols.h"
 
 void
 m68k_CopyOptions(SMachineOptions* dest, SMachineOptions* src) {
@@ -44,6 +46,7 @@ void
 m68k_SetDefaults(SMachineOptions* options) {
     options->cpu = CPUF_68000;
     options->fpu = 0;
+	options->platform = PLATFORM_GENERIC;
 }
 
 void
@@ -57,6 +60,8 @@ m68k_OptionsUpdated(SMachineOptions* options) {
     if ((options->fpu & FPUF_68060) != 0 && (options->cpu & CPUF_68060) == 0) {
         err_Error(MERROR_FPU_NEEDS_060);
     }
+
+	m68k_DefineMachineGroups(options->platform);
 }
 
 bool
@@ -118,6 +123,27 @@ m68k_ParseOption(const char* option) {
             }
             err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
             return false;
+        case 'g':
+            if (strlen(&option[1]) == 1) {
+                switch (option[1]) {
+                    case 'a':
+                        opt_Current->machineOptions->platform = PLATFORM_AMIGA;
+                        return true;
+                    case 'f':
+                        opt_Current->machineOptions->platform = PLATFORM_A2650K;
+                        return true;
+                    case 'g':
+                        opt_Current->machineOptions->platform = PLATFORM_GENERIC;
+                        return true;
+                    case 's':
+                        opt_Current->machineOptions->platform = PLATFORM_GENESIS;
+                        return true;
+                    default:
+                        break;
+                }
+            }
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+            return false;
         default:
             err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
             return false;
@@ -126,6 +152,13 @@ m68k_ParseOption(const char* option) {
 
 void
 m68k_PrintOptions(void) {
-    printf("    -mc<X>  Enable CPU 680X0\n");
-    printf("    -mf<X>  Enable FPU 6888x (1, 2), 68040 (4), 68060 (6), 68080 (8)\n");
+    printf(
+		"    -mc<X>  Enable CPU 680X0\n"
+		"    -mf<X>  Enable FPU 6888x (1, 2), 68040 (4), 68060 (6), 68080 (8)\n"
+		"    -mg<X>  Enable platform specific groups\n"
+		"                a - Amiga\n"
+		"                f - Foenix A2650K/X\n"
+		"                g - Generic (default)\n"
+		"                s - Sega Genesis/Mega Drive\n"
+	);
 }

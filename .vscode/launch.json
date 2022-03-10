@@ -142,7 +142,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/motor68k",
-            "args": ["-fh", "-otest.r", "odd-instr.68k"],
+            "args": ["-mga", "-fh", "-otest.r", "fpu.68k"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/680x0",
             "environment": [],

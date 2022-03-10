@@ -19,10 +19,14 @@
 #include "xasm.h"
 #include "symbol.h"
 
+#include "m68k_symbols.h"
+
 static void
 createGroup(const char* name, EGroupType type, uint32_t flags) {
     string* nameString = str_Create(name);
-    sym_CreateGroup(nameString, type)->flags |= flags;
+    SSymbol* symbol = sym_CreateGroup(nameString, type);
+	if (symbol != NULL)
+		symbol->flags |= flags;
     str_Free(nameString);
 }
 
@@ -31,7 +35,27 @@ m68k_DefineSymbols(void) {
     createGroup("CODE", GROUP_TEXT, 0);
     createGroup("DATA", GROUP_TEXT, SYMF_DATA);
     createGroup("BSS", GROUP_BSS, 0);
-    createGroup("CODE_C", GROUP_TEXT, SYMF_SHARED);
-    createGroup("DATA_C", GROUP_TEXT, SYMF_DATA | SYMF_SHARED);
-    createGroup("BSS_C", GROUP_BSS, SYMF_SHARED);
 }
+
+void
+m68k_DefineMachineGroups(EPlatform68k platform) {
+	switch (platform) {
+		case PLATFORM_AMIGA:
+			createGroup("CODE_C", GROUP_TEXT, SYMF_SHARED);
+			createGroup("DATA_C", GROUP_TEXT, SYMF_DATA | SYMF_SHARED);
+			createGroup("BSS_C", GROUP_BSS, SYMF_SHARED);
+			break;
+		case PLATFORM_A2650K:
+			createGroup("DATA_VA", GROUP_TEXT, SYMF_DATA);
+			createGroup("BSS_VA", GROUP_BSS, 0);
+			createGroup("DATA_VB", GROUP_TEXT, SYMF_DATA);
+			createGroup("BSS_VB", GROUP_BSS, 0);
+			createGroup("DATA_D", GROUP_TEXT, SYMF_DATA);
+			createGroup("BSS_D", GROUP_BSS, 0);
+			break;
+		default:
+			break;
+	}
+
+}
+

@@ -19,7 +19,12 @@
 #ifndef XASM_M68K_SYMBOLS_H_INCLUDED_
 #define XASM_M68K_SYMBOLS_H_INCLUDED_
 
+#include "m68k_options.h"
+
 extern void
 m68k_DefineSymbols(void);
+
+extern void
+m68k_DefineMachineGroups(EPlatform68k platform);
 
 #endif

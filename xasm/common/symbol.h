@@ -122,6 +122,9 @@ sym_GetSymbolInScope(SSymbol* scope, string* name);
 extern bool
 sym_Purge(string* name);
 
+extern void
+sym_PurgeWhere(bool (*predicate)(SSymbol* symbol));
+
 extern SSymbol*
 sym_Export(string* name);
 
