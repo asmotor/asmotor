@@ -41,7 +41,7 @@ writeSection(FILE* fileHandle, int32_t cpuByteLocation, uint32_t size, void* dat
 static void
 writeSections(FILE* fileHandle) {
 	for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
-		if (section->data != NULL) {
+		if (section->data != NULL && section->used) {
 			writeSection(fileHandle, section->cpuByteLocation, section->size, section->data);
 		}
 	}
