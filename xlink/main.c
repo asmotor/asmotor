@@ -26,6 +26,7 @@
 #include "amiga.h"
 #include "assign.h"
 #include "commodore.h"
+#include "foenix.h"
 #include "gameboy.h"
 #include "group.h"
 #include "hc800.h"
@@ -50,6 +51,7 @@ typedef enum {
     TARGET_MASTER_SYSTEM,
     TARGET_HC800_KERNAL,
     TARGET_HC800,
+    TARGET_FOENIX_TGZ,
 } TargetType;
 
 #define HC800_HARVARD 0x01
@@ -91,23 +93,6 @@ target_SupportsImports(TargetType type) {
     return type == TARGET_AMIGA_LINK_OBJECT;
 }
 
-NORETURN (void error(const char* fmt, ...));
-
-void
-error(const char* fmt, ...) {
-    va_list list;
-
-    va_start(list, fmt);
-
-    printf("ERROR: ");
-    vprintf(fmt, list);
-    printf("\n");
-
-    va_end(list);
-
-    exit(EXIT_FAILURE);
-}
-
 static void
 printUsage(void) {
     printf("xlink (ASMotor v" ASMOTOR_VERSION ")\n"
@@ -144,6 +129,7 @@ printUsage(void) {
 		   "\t           \tsized text banks, 64 KiB data + bss)\n"
            "\t    -thc8l\tHC800 large mode (32 KiB text + data + bss, 32 KiB sized\n"
 		   "\t          \tbanks text + data + bss)\n"
+           "\t    -tfxa2560x\tFoenix A2560X/K TGZ\n"
 //			"\t    -tm<mach>\tUse file <mach>\n"
     );
     exit(EXIT_SUCCESS);
@@ -352,6 +338,13 @@ main(int argc, char* argv[]) {
 						hc800Config = hc800ConfigLarge;
                         binaryPad = -1;
                         ++argn;
+                    } else if (str_EqualConst(target, "fxa2560x")) {
+                        /* Foenix A2560X/K */
+                        group_SetupFoenixA2560X();
+                        targetDefined = true;
+                        targetType = TARGET_FOENIX_TGZ;
+                        binaryPad = -1;
+                        ++argn;
                     } else {
                         error("Unknown target \"%s\"", str_String(target));
                     }
@@ -429,6 +422,9 @@ main(int argc, char* argv[]) {
                 break;
             case TARGET_HC800:
                 hc800_WriteExecutable(outputFilename, hc800Config);
+                break;
+            case TARGET_FOENIX_TGZ:
+                foenix_WriteExecutable(outputFilename);
                 break;
         }
     }

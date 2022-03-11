@@ -32,20 +32,9 @@ static uint8_t basicSys[] = {
     0x0B, 0x08, 0x0A, 0x00, 0x9E, 0x37, 0x31, 0x38, 0x31, 0x00, 0x00, 0x00, 0x00
 };
 
-static int
-startAddressOfFirstCodeSection(void) {
-    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
-        if (section->used && !sect_IsEquSection(section) && (section->group->type == GROUP_TEXT)) {
-            return section->cpuLocation;
-        }
-    }
-
-    error("No start address found because no CODE sections found");
-}
-
 static void
 writeHeader(FILE* fileHandle, uint32_t baseAddress) {
-    int startAddress = startAddressOfFirstCodeSection();
+    int startAddress = sect_StartAddressOfFirstCodeSection();
 
     fputc(baseAddress & 0xFFu, fileHandle);
     fputc((baseAddress >> 8u) & 0xFFu, fileHandle);

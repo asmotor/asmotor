@@ -110,4 +110,8 @@ sect_IsEquSection(SSection* section);
 extern void
 sect_ResolveUnresolved(void);
 
+extern int
+sect_StartAddressOfFirstCodeSection(void);
+
+
 #endif

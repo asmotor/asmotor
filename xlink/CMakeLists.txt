@@ -5,6 +5,10 @@ add_executable (xlink
     assign.h
     commodore.c
     commodore.h
+	error.c
+	error.h
+	foenix.c
+	foenix.h
     gameboy.c
     gameboy.h
     group.c

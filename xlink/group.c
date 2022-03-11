@@ -960,3 +960,64 @@ group_SetupHC8XXLargeHarvard(void) {
 }
 
 
+void
+group_SetupFoenixA2560X(void) {
+    MemoryGroup* group;
+
+    MemoryPool* system_ram = pool_Create(0x10000, 0x10000, 0, 0x400000 - 0x10000);
+    MemoryPool* vicky_a_ram = pool_Create(0x800000, 0x800000, 0, 0x400000);
+    MemoryPool* vicky_b_ram = pool_Create(0xC00000, 0xC00000, 0, 0x400000);
+    MemoryPool* sdram = pool_Create(0x02000000, 0x02000000, 0, 0x04000000);
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 1);
+    group->pools[0] = system_ram;
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 2);
+    group->pools[0] = system_ram;
+    group->pools[1] = sdram;
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 2);
+    group->pools[0] = system_ram;
+    group->pools[1] = sdram;
+
+    //	Create DATA_VA group
+
+    group = group_Create("DATA_VA", 1);
+    group->pools[0] = vicky_a_ram;
+
+    //	Create BSS_VA group
+
+    group = group_Create("BSS_VA", 1);
+    group->pools[0] = vicky_a_ram;
+
+    //	Create DATA_VB group
+
+    group = group_Create("DATA_VB", 1);
+    group->pools[0] = vicky_b_ram;
+
+    //	Create BSS_VB group
+
+    group = group_Create("BSS_VB", 1);
+    group->pools[0] = vicky_b_ram;
+
+    //	Create DATA_D group
+
+    group = group_Create("DATA_D", 1);
+    group->pools[0] = sdram;
+
+    //	Create BSS_D group
+
+    group = group_Create("BSS_D", 1);
+    group->pools[0] = sdram;
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+
+}

@@ -295,3 +295,15 @@ sect_FindSectionWithLocallyExportedSymbol(const char* symbolName, uint32_t fileI
     }
     return sect_FindSectionWithExportedSymbol(symbolName);
 }
+
+extern int
+sect_StartAddressOfFirstCodeSection(void) {
+    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
+        if (section->used && !sect_IsEquSection(section) && (section->group->type == GROUP_TEXT)) {
+            return section->cpuLocation;
+        }
+    }
+
+    error("No start address found because no CODE sections found");
+}
+
