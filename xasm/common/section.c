@@ -170,6 +170,9 @@ checkAvailableSpace(uint32_t count) {
 
 uint32_t
 sect_CurrentSize(void) {
+	if (sect_Current == NULL)
+		return 0;
+		
 	return sect_Current->usedSpace;
 }
 
