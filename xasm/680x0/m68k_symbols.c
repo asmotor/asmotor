@@ -39,7 +39,7 @@ m68k_DefineSymbols(void) {
     createGroup("DATA", GROUP_TEXT, SYMF_DATA);
     createGroup("BSS", GROUP_BSS, 0);
 
-	string* regmask = str_Create("__USED_REGISTERS");
+	string* regmask = str_Create("__USED_REGMASK");
     g_usedRegisters = sym_CreateEqu(regmask, 0);
 	str_Free(regmask);
 }
@@ -63,7 +63,6 @@ m68k_DefineMachineGroups(EPlatform68k platform) {
 		default:
 			break;
 	}
-
 }
 
 void

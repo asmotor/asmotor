@@ -21,8 +21,10 @@
 #include "lexer.h"
 #include "options.h"
 #include "parse.h"
+#include "parse_expression.h"
 
 #include "m68k_options.h"
+#include "m68k_parse.h"
 #include "m68k_symbols.h"
 #include "m68k_tokens.h"
 
@@ -72,6 +74,10 @@ m68k_ParseDirective() {
         case T_68K_FPU68080:
             opt_Current->machineOptions->fpu = FPUF_68080;
             parse_GetToken();
+            return true;
+        case T_68K_REGMASKADD:
+            parse_GetToken();
+            m68k_AddRegmask(parse_ConstantExpression());
             return true;
         case T_68K_REGMASKRESET:
             m68k_ResetRegmask();
