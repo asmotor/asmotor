@@ -91,6 +91,9 @@ acceptQuotedStringUntil(char terminator) {
 				}
 				break;
 			}
+			case '\n':
+				err_Error(ERROR_STRING_TERM);
+				return false;
 			default:
 				break;
 		}

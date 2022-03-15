@@ -40,7 +40,7 @@ m68k_DefineSymbols(void) {
     createGroup("BSS", GROUP_BSS, 0);
 
 	string* regmask = str_Create("__USED_REGISTERS");
-    g_usedRegisters = sym_CreateSet(regmask, 0);
+    g_usedRegisters = sym_CreateEqu(regmask, 0);
 	str_Free(regmask);
 }
 
