@@ -21,6 +21,9 @@
 
 #include "m68k_symbols.h"
 
+static SSymbol*
+g_usedRegisters = NULL;
+
 static void
 createGroup(const char* name, EGroupType type, uint32_t flags) {
     string* nameString = str_Create(name);
@@ -35,6 +38,10 @@ m68k_DefineSymbols(void) {
     createGroup("CODE", GROUP_TEXT, 0);
     createGroup("DATA", GROUP_TEXT, SYMF_DATA);
     createGroup("BSS", GROUP_BSS, 0);
+
+	string* regmask = str_Create("__USED_REGISTERS");
+    g_usedRegisters = sym_CreateSet(regmask, 0);
+	str_Free(regmask);
 }
 
 void
@@ -57,5 +64,15 @@ m68k_DefineMachineGroups(EPlatform68k platform) {
 			break;
 	}
 
+}
+
+void
+m68k_AddRegmask(uint16_t regmask) {
+	g_usedRegisters->value.integer |= regmask;
+}
+
+void
+m68k_ResetRegmask(void) {
+	g_usedRegisters->value.integer = 0;
 }
 

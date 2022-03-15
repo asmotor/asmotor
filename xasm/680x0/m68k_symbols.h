@@ -27,4 +27,10 @@ m68k_DefineSymbols(void);
 extern void
 m68k_DefineMachineGroups(EPlatform68k platform);
 
+extern void
+m68k_AddRegmask(uint16_t registers);
+
+extern void
+m68k_ResetRegmask(void);
+
 #endif

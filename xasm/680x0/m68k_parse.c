@@ -33,6 +33,7 @@
 #include "m68k_errors.h"
 #include "m68k_options.h"
 #include "m68k_parse.h"
+#include "m68k_symbols.h"
 #include "m68k_tokens.h"
 
 static uint32_t
@@ -657,6 +658,9 @@ m68k_ParseOpCore(SInstruction* instruction, ESize inssz, SAddressingMode* src, S
     if ((!disablePrefix) && !parse_MaybePrefixStart(&prefix, instruction, src, dest)) {
         return false;
     }
+
+	m68k_AddRegmask(m68k_SourceUpdatedRegisters(src));
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(dest));
 
     bool result = instruction->handler(inssz, src, dest, instruction->data);
 

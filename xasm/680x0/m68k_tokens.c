@@ -368,7 +368,8 @@ static SLexConstantsWord g_tokens[] = {
 	{ "FPU68060",	T_68K_FPU68060	},
 	{ "FPU68080",	T_68K_FPU68080	},
 
-	{ "REGMASK",	T_68K_REGMASK	},
+	{ "REGMASK",	  T_68K_REGMASK	     },
+	{ "REGMASKRESET", T_68K_REGMASKRESET },
 
 	{ "FABS",	T_FPU_FABS		},
 	{ "FSABS",	T_FPU_FSABS		},

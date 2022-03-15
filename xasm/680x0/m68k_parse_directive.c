@@ -23,6 +23,7 @@
 #include "parse.h"
 
 #include "m68k_options.h"
+#include "m68k_symbols.h"
 #include "m68k_tokens.h"
 
 bool
@@ -70,6 +71,10 @@ m68k_ParseDirective() {
             return true;
         case T_68K_FPU68080:
             opt_Current->machineOptions->fpu = FPUF_68080;
+            parse_GetToken();
+            return true;
+        case T_68K_REGMASKRESET:
+            m68k_ResetRegmask();
             parse_GetToken();
             return true;
         default:

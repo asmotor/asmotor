@@ -27,6 +27,7 @@
 #include "m68k_errors.h"
 #include "m68k_options.h"
 #include "m68k_parse.h"
+#include "m68k_symbols.h"
 #include "m68k_tokens.h"
 
 static SInstruction
@@ -341,6 +342,7 @@ handleAND(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t data
 
 static bool
 handleCLR(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     return outputOpcodeSize(0x4200, size, src);
 }
 
@@ -378,6 +380,8 @@ handleShift(uint16_t opcode, uint16_t memoryOpcode, ESize size, SAddressingMode*
         err_Error(ERROR_DEST_OPERAND);
         return true;
     }
+
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     if (src->mode & (AM_AIND | AM_AINC | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_POSTINDAXD020 | AM_PREINDAXD020)) {
         if (size != SIZE_WORD) {
             err_Error(MERROR_INSTRUCTION_SIZE);
@@ -534,7 +538,7 @@ handleBitfieldInstruction(uint16_t opcode, uint16_t extension, SAddressingMode* 
 }
 
 static bool
-handleUnaryBitfieldInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+handleUnaryModifyingBitfieldInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
     return handleBitfieldInstruction(data, 0, src);
 }
 
@@ -547,6 +551,12 @@ static bool
 handleBFINS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
     return handleBitfieldInstruction(data, (uint16_t) (src->directRegister << 12), dest);
 }
+
+static bool
+handleBFTST(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+    return handleBitfieldInstruction(data, 0, src);
+}
+
 
 static bool
 handleBKPT(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
@@ -592,6 +602,8 @@ handleCAS(ESize sz, SAddressingMode* dc, SAddressingMode* du, uint16_t data) {
         err_Error(ERROR_OPERAND);
         return true;
     }
+
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(&ea));
 
     uint16_t opcode;
 
@@ -829,6 +841,8 @@ handleEXG(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) 
 
 static bool
 handleEXT(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
+
     uint16_t ins = (uint16_t) (0x4800 | src->directRegister);
     if (sz == SIZE_WORD)
         ins |= 0x2 << 6;
@@ -841,6 +855,8 @@ handleEXT(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) 
 
 static bool
 handleEXTB(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
+
     sect_OutputConst16((uint16_t) (0x4800 | src->directRegister | 0x7 << 6));
     return true;
 }
@@ -872,6 +888,8 @@ handleLINK(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data)
         err_Error(MERROR_INSTRUCTION_SIZE);
         return true;
     }
+
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
 
     if (sz == SIZE_WORD) {
         sect_OutputConst16((uint16_t) (0x4E50 | src->directRegister));
@@ -1105,6 +1123,8 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2, uint16
 
     uint32_t registerMask = m68k_ParseRegisterList();
     if (registerMask != REGLIST_FAIL) {
+		// registers to destination
+
         EAddrMode allowedModes = AM_AIND | AM_ADEC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG;
 
         if (!parse_ExpectComma())
@@ -1120,6 +1140,9 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2, uint16
             err_Error(ERROR_DEST_OPERAND);
             return true;
         }
+
+		m68k_AddRegmask(m68k_DestinationUpdatedRegisters(&mode));
+		
         direction = 0;
     } else {
         EAddrMode allowedModes = AM_AIND | AM_AINC | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_PCDISP | AM_PCXDISP;
@@ -1138,10 +1161,14 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2, uint16
         if (!parse_ExpectComma())
             return false;
 
+		// move source to registers
         registerMask = m68k_ParseRegisterList();
         if (registerMask == REGLIST_FAIL)
             return false;
 
+		m68k_AddRegmask(m68k_SourceUpdatedRegisters(&mode));
+		m68k_AddRegmask(registerMask);
+		
         direction = 1;
     }
 
@@ -1277,16 +1304,19 @@ handleMULU(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data)
 
 static bool
 handleNBCD(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     return outputOpcode((uint16_t) 0x4800, src);
 }
 
 static bool
 handleNEG(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     return outputOpcodeSize((uint16_t) 0x4400, sz, src);
 }
 
 static bool
 handleNEGX(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     return outputOpcodeSize((uint16_t) 0x4000, sz, src);
 }
 
@@ -1298,6 +1328,7 @@ handleNOP(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) 
 
 static bool
 handleNOT(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     return outputOpcodeSize((uint16_t) 0x4600, sz, src);
 }
 
@@ -1353,11 +1384,13 @@ handleUNPACK(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t dat
 
 static bool
 handlePEA(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(REG_A7);
     return outputOpcode((uint16_t) 0x4840, src);
 }
 
 static bool
 handleRTD(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(REG_A7);
     sect_OutputConst16(0x4E74);
     sect_OutputExpr16(src->immediateInteger);
     return true;
@@ -1365,8 +1398,9 @@ handleRTD(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) 
 
 static bool
 handleRTM(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-    uint16_t reg;
+	m68k_AddRegmask(REG_A7);
 
+    uint16_t reg;
     if (src->mode == AM_DREG)
         reg = (uint16_t) src->directRegister;
     else /* if(src->eMode == AM_AREG) */
@@ -1378,29 +1412,34 @@ handleRTM(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) 
 
 static bool
 handleRTR(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(REG_A7);
     sect_OutputConst16(0x4E77);
     return true;
 }
 
 static bool
 handleRTS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(REG_A7);
     sect_OutputConst16(0x4E75);
     return true;
 }
 
 static bool
 handleScc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t code) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     return outputOpcode((uint16_t) (0x50C0 | code << 8), src);
 }
 
 static bool
 handleSWAP(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     sect_OutputConst16((uint16_t) (0x4840 | src->directRegister));
     return true;
 }
 
 static bool
 handleTAS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     return outputOpcode(0x4AC0, src);
 }
 
@@ -1448,6 +1487,7 @@ handleTRAPV(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data
 
 static bool
 handleUNLK(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(src));
     sect_OutputConst16((uint16_t) (0x4E58 | src->directRegister));
     return true;
 }
@@ -1461,6 +1501,7 @@ handleRESET(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data
 
 static bool
 handleRTE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
+	m68k_AddRegmask(REG_A7);
     err_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(0x4E73);
     return true;
@@ -1961,7 +2002,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, 
         AM_NONE,
         false,
-        handleUnaryBitfieldInstruction
+        handleUnaryModifyingBitfieldInstruction
     },
     {	// BFCLR
         CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
@@ -1970,7 +2011,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD,
         AM_NONE,
         false,
-        handleUnaryBitfieldInstruction
+        handleUnaryModifyingBitfieldInstruction
     },
     {	// BFEXTS
         CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
@@ -2015,7 +2056,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_BITFIELD, 
         AM_NONE,
         false,
-        handleUnaryBitfieldInstruction
+        handleUnaryModifyingBitfieldInstruction
     },
     {	// BFTST
         CPUF_68020 | CPUF_68030 | CPUF_68040 | CPUF_68060 | CPUF_68080,
@@ -2024,7 +2065,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         AM_DREG | AM_AIND | AM_ADISP | AM_AXDISP | AM_PCDISP | AM_PCXDISP | AM_WORD | AM_LONG | AM_AXDISP020 | AM_PREINDAXD020 | AM_POSTINDAXD020 | AM_PCXDISP020 | AM_PREINDPCXD020 | AM_POSTINDPCXD020 | AM_BITFIELD, 
         AM_NONE,
         false,
-        handleUnaryBitfieldInstruction
+        handleBFTST
     },
     {	// BKPT
         CPUF_ALL,

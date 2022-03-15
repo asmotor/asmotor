@@ -144,6 +144,12 @@ typedef struct {
     uint32_t offset;
 } SPrefix;
 
+extern uint16_t
+m68k_DestinationUpdatedRegisters(SAddressingMode* addrMode);
+
+extern uint16_t
+m68k_SourceUpdatedRegisters(SAddressingMode* addrMode);
+
 extern SExpression*
 m68k_ExpressionCheck8Bit(SExpression* expression);
 

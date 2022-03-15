@@ -447,6 +447,25 @@ optimizeMode(SAddressingMode* mode) {
     }
 }
 
+uint16_t
+m68k_SourceUpdatedRegisters(SAddressingMode* addrMode) {
+	if (addrMode->mode & (AM_AINC | AM_ADEC)) {
+		return 0x100 << addrMode->directRegister;
+	}
+	return 0;
+}
+
+uint16_t
+m68k_DestinationUpdatedRegisters(SAddressingMode* addrMode) {
+	if (addrMode->mode == AM_DREG) {
+		return 1 << addrMode->directRegister;
+	}
+	if (addrMode->mode & (AM_AREG | AM_AINC | AM_ADEC)) {
+		return 0x100 << addrMode->directRegister;
+	}
+	return 0;
+}
+
 void
 m68k_OptimizeDisplacement(SModeRegisters* pRegs) {
     if (pRegs->displacement != NULL && pRegs->displacementSize == SIZE_DEFAULT) {
