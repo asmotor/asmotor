@@ -121,6 +121,19 @@ This option is used to select the CPU type. The default is MIPS32 R2
 | Reserve symbol | RB | RH | RW |
 
 # M68K
+
+## Register tracking
+
+The M68K assembler will keep track of the registers that operations have modified. This is tracked in a variable named `__USED_REGMASK` where each bit corresponds to a register (bit 15 is A7 down to bit 0 which is D0). The current register mask can be reset with the `REGMASKRESET`. Additional registers can be added to `__USED_REGMASK` using the `REGMASKADD` directive.
+
+## Instruction extensions
+
+The `MOVEM` instruction may receive a bitmask literal instead of a register list
+
+```
+	movem.l	(sp)+,#$000F	; pop d0-d3
+```
+
 ## Section alignment
 Sections are aligned to a multiple of 8 bytes. 
 
@@ -154,6 +167,20 @@ The M68K assembler supports an additional function that may be used in expressio
 | Function | Meaning |
 |---|---|
 | regmask | [Bit mask](Expressions.md#m68k) of register list |
+
+## Directives
+
+| Directive | Meaning |
+|---|---|
+| mc68000 | Enable only 68000 instructions |
+| mc68010 | Enable only 68010 instructions |
+| mc68020 | Enable only 68020 instructions |
+| mc68030 | Enable only 68030 instructions |
+| mc68040 | Enable only 68040 instructions |
+| mc68060 | Enable only 68060 instructions |
+| regmaskreset | Reset the currently tracked registers in `__USED_REGMASK` |
+| regmaskadd | Add a register bitmask to the tracked registers in `__USED_REGMASK` |
+
 
 # SCHIP
 CHIP-8 and SCHIP have no officially defined mnemonics. ASMotor uses a set of mnemonics that is similar to other ISA's and should be easy to learn.

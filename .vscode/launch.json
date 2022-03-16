@@ -162,6 +162,19 @@
             "MIMode": "gdb"
         },
         {
+            "name": "Assemble equstest.asm",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/rc8/motorrc8",
+            "args": ["equstest.asm"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/test/common",
+            "environment": [],
+            "externalConsole": false,
+            "preLaunchTask": "make",
+            "MIMode": "gdb"
+        },
+        {
             "name": "Assemble mandelbrot.rc8",
             "type": "cppdbg",
             "request": "launch",

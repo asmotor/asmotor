@@ -1,4 +1,4 @@
-First
+$2AFirst
 Second
 	2nd REPT
 	2nd REPT
@@ -10,5 +10,5 @@ First
 Second
 	2nd REPT
 	2nd REPT
-equstest.asm:13 -> equstest.asm:14: F0147 Unterminated REPT block at end of file
+equstest.asm:19 -> equstest.asm:20: F0147 Unterminated REPT block at end of file
 Bailing out.

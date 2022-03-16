@@ -174,7 +174,7 @@ isStartSymbolCharacter(char ch) {
 
 static bool
 isSymbolCharacter(char ch) {
-	return isStartSymbolCharacter(ch) || isdigit(ch) || ch == '#';
+	return isStartSymbolCharacter(ch) || isdigit(ch);
 }
 
 static bool
@@ -224,6 +224,20 @@ acceptLabel(EToken token) {
 	lex_Context->token.value.string[lex_Context->token.length++] = ch;
 	if (isStartSymbolCharacter(ch)) {
 		if (acceptSymbolTail()) {
+			ch = lex_GetChar();
+			if (ch == '#') {
+				// unput string symbol value, if found
+				string* name = lex_TokenString();
+				str_Free(name);
+				string* value = sym_GetStringSymbolValueByName(name);
+				if (value != NULL) {
+					lex_UnputStringLength(str_String(value), str_Length(value));
+					str_Free(value);
+					lex_Context->token.length = 0;
+					return acceptLabel(token);
+				}
+			}
+			lex_UnputChar(ch);
 			lex_Context->token.id = token;
 			return true;
 		}

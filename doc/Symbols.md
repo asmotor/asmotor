@@ -126,6 +126,23 @@ Note that string symbols cannot be used in place of a string literal directly - 
     DC.B |StringSymbol|,0
 ```
 
+When using a string symbol, the symbol must be a stand-alone token. That is, it must be surrounded by whitespace or other delimiting non-symbol characters, such as other operators.
+
+This will produce two symbols called `symbol` and `symbol0`, where one might expect `symbol` and `content0`.
+
+```
+symbol	EQUS	"content"
+symbol0	EQUS	"..."
+```
+
+To force parse a preceding string symbol as its contents, the postfix concatenating operator `#` can be used. This example will produce the symbols `symbol` and `content0`:
+
+```
+symbol		EQUS	"content"
+symbol#0	EQUS	"..."
+```
+
+
 ## <a name="group_symbols"></a> Group symbols
 Though rarely used, it is however possible to define new groups for use with the ```SECTION``` directive.
 These groups are also present in the object file for later consumption by a linker. Two different kinds can be defined, ```TEXT``` and ```RAM```.
@@ -153,7 +170,7 @@ The assembler declares several symbols:
 | ```__TIME``` | The current time | EQUS |
 | ```__AMIGADATE``` | The current date in Amiga version format (dd.mm.yyyy) | EQUS |
 
-## <a name=purge"></a> Removing symbols
+## <a name="purge"></a> Removing symbols
 
 Symbols may be removed from the symbol table by use of the ```PURGE``` directive. This is seldom necessary,
 but it can be very useful in macros, especially with temporary string symbols. Often you can simply postfix
