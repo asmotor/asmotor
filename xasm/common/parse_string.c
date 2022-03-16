@@ -196,7 +196,7 @@ parseSubstring(void) {
 
 static const char*
 parseEmbeddedExpression(string_buffer* resultBuffer, const char* literal) {
-    const char* codeEnd = determineCodeEnd(literal);
+    const char* codeEnd = determineCodeEnd(literal) + 1;
     lex_UnputStringLength(literal, codeEnd - literal);
 
     parse_GetToken();
@@ -206,7 +206,7 @@ parseEmbeddedExpression(string_buffer* resultBuffer, const char* literal) {
         strbuf_AppendString(resultBuffer, substr);
     str_Free(substr);
 
-    return codeEnd + 1;
+    return codeEnd;
 }
 
 static char
@@ -220,7 +220,6 @@ unescapeCharacter(char ch) {
 
 static string*
 interpolateString(const char* literal) {
-    bool advancedToken = false;
     string_buffer* resultBuffer = strbuf_Create();
     char ch;
 
@@ -233,7 +232,6 @@ interpolateString(const char* literal) {
             strbuf_AppendChar(resultBuffer, unescapeCharacter(ch));
         } else if (ch == '{') {
             literal = parseEmbeddedExpression(resultBuffer, literal);
-            advancedToken = true;
         } else {
             strbuf_AppendChar(resultBuffer, ch);
         }
@@ -242,8 +240,7 @@ interpolateString(const char* literal) {
     string* result = strbuf_String(resultBuffer);
     strbuf_Free(resultBuffer);
 
-    if (!advancedToken)
-        parse_GetToken();
+    parse_GetToken();
 
     return result;
 }
@@ -272,8 +269,8 @@ stringExpressionPri2(void) {
                 string* symbol = lex_TokenString();
                 parse_GetToken();
                 if (lex_Context->token.id == T_OP_BITWISE_OR) {
-                    parse_GetToken();
                     result = sym_GetSymbolValueAsStringByName(symbol);
+                    parse_GetToken();
                 }
                 str_Free(symbol);
                 return result;

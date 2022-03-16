@@ -636,6 +636,7 @@ handleOpt() {
 	lex_SetMode(LEXER_MODE_MACRO_ARGUMENT);
 	parse_GetToken();
 	if (lex_Context->token.id == T_STRING) {
+		lex_Context->token.value.string[lex_Context->token.length] = 0;
 		opt_Parse(lex_Context->token.value.string);
 		parse_GetToken();
 		while (lex_Context->token.id == ',') {

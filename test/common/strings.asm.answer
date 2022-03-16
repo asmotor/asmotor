@@ -1,3 +1,5 @@
+Twent_y EQU $00000014
+00000014
 "long"'s position in "A reasonably long string": $D
 "two"'s position in "Another one": $FFFFFFFF
 "abc" compared to "abc": $0

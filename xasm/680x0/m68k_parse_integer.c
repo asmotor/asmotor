@@ -1141,7 +1141,8 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2, uint16
             return true;
         }
 
-		m68k_AddRegmask(m68k_DestinationUpdatedRegisters(&mode));
+        if (opt_Current->machineOptions->trackMovem)
+			m68k_AddRegmask(m68k_DestinationUpdatedRegisters(&mode));
 		
         direction = 0;
     } else {
@@ -1166,8 +1167,10 @@ handleMOVEM(ESize sz, SAddressingMode* unused1, SAddressingMode* unused2, uint16
         if (registerMask == REGLIST_FAIL)
             return false;
 
-		m68k_AddRegmask(m68k_SourceUpdatedRegisters(&mode));
-		m68k_AddRegmask(registerMask);
+        if (opt_Current->machineOptions->trackMovem) {
+			m68k_AddRegmask(m68k_SourceUpdatedRegisters(&mode));
+			m68k_AddRegmask(registerMask);
+		}
 		
         direction = 1;
     }

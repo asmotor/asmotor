@@ -1,11 +1,6 @@
 
 	SECTION	"Test",CODE
 
-__equs	EQUS	"label"
-__equs#1	EQU	42
-
-	PRINTV	label1
-
 
 Print	EQUS	"\tPRINTT \"First\\n\"\n\tPRINTT \"Second\\n\"\n"
 

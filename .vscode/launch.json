@@ -142,9 +142,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/motor68k",
-            "args": ["-mc3", "-mgf", "print.asm"],
+            "args": ["68080.68k"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/../a2560k-lib",
+            "cwd": "${workspaceFolder}/test/680x0",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
@@ -162,11 +162,11 @@
             "MIMode": "gdb"
         },
         {
-            "name": "Assemble equstest.asm",
+            "name": "Assemble strings.asm",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/rc8/motorrc8",
-            "args": ["equstest.asm"],
+            "args": ["strings.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/common",
             "environment": [],

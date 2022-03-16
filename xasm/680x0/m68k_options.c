@@ -47,6 +47,7 @@ m68k_SetDefaults(SMachineOptions* options) {
     options->cpu = CPUF_68000;
     options->fpu = 0;
 	options->platform = PLATFORM_GENERIC;
+	options->trackMovem = false;
 }
 
 void
@@ -144,6 +145,23 @@ m68k_ParseOption(const char* option) {
             }
             err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
             return false;
+        case 'm':
+            if (strlen(&option[1]) == 1) {
+                switch (option[1]) {
+                    case 'y':
+                    case 'Y':
+                        opt_Current->machineOptions->trackMovem = true;
+                        return true;
+                    case 'n':
+                    case 'N':
+                        opt_Current->machineOptions->trackMovem = false;
+                        return true;
+                    default:
+                        break;
+                }
+            }
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+            return false;
         default:
             err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
             return false;
@@ -160,5 +178,6 @@ m68k_PrintOptions(void) {
 		"                f - Foenix A2650K/X\n"
 		"                g - Generic (default)\n"
 		"                s - Sega Genesis/Mega Drive\n"
+		"    -mm<X>  MOVEM updates regmask, <X> is y(es) or n(o) (default)\n"
 	);
 }

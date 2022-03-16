@@ -1,3 +1,8 @@
+Twent_y	EQUS	"20"
+TwentString	EQUS	"Twent"
+	PRINTT	"{|TwentString|}_y EQU ${TwentString#_y:X}\n"
+	PRINTT	"{TwentString#_y:X}\n"
+
 	PRINTT	"\"long\"'s position in \"A reasonably long string\": "
 	PRINTV	"A reasonably long string".indexof("long")
 

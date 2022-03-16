@@ -50,6 +50,7 @@ typedef struct MachineOptions {
     uint8_t cpu;
     uint8_t fpu;
 	EPlatform68k platform;
+	bool trackMovem;
 } SMachineOptions;
 
 extern SMachineOptions*

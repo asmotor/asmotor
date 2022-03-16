@@ -249,29 +249,6 @@ acceptLabel(EToken token) {
 	return false;
 }
 
-static bool
-acceptSymbolIfLonger(void) {
-	size_t tokenLength = lex_Context->token.length;
-
-	size_t index = 0;
-	if (tokenLength >= 2 && lex_Context->token.value.string[index] == '.')
-		++index;
-
-	while (index < tokenLength && isSymbolCharacter(lex_Context->token.value.string[index])) {
-		++index;
-	}
-
-	if (index == tokenLength) {
-		if (acceptSymbolTail() && lex_Context->token.length > tokenLength) {
-			lex_Context->token.id = T_ID;
-			return true;
-		}
-	}
-
-	lex_Context->token.length = tokenLength;
-	return false;
-}
-
 static int
 asciiToBinary(char ch) {
 	if (isdigit(ch)) {
@@ -420,14 +397,25 @@ acceptNext(bool lineStart) {
 		return true;
 	}
 
+	SLexerContext start;
+	lex_Bookmark(&start);
+
 	const SLexConstantsWord* constantWord = lex_ConstantsMatchWord();
-	if (constantWord != NULL) {
-		acceptSymbolIfLonger();
+	size_t constantLength = constantWord != NULL ? lex_Context->token.length : 0;
+	SLexerContext afterConstant;
+	lex_Bookmark(&afterConstant);
+
+	lex_Goto(&start);
+	size_t labelLength = acceptLabel(T_ID) ? lex_Context->token.length : 0;
+
+	if (labelLength != 0 && labelLength > constantLength)
 		return true;
-	} else if (acceptLabel(T_ID)) {
+
+	if (constantLength != 0) {
+		lex_Goto(&afterConstant);
 		return true;
 	}
-	
+
 	return acceptString() || acceptChar();
 }
 
