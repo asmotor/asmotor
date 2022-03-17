@@ -681,7 +681,8 @@ void
 lex_UnputStringLength(const char* str, size_t length) {
 	str += length;
 	for (size_t i = 0; i < length; ++i) {
-		lex_UnputChar(*(--str));
+		char ch = *(--str);
+		lex_UnputChar(ch);
 	}
 }
 
