@@ -1387,13 +1387,13 @@ handleUNPACK(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t dat
 
 static bool
 handlePEA(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-	m68k_AddRegmask(REG_A7);
+	m68k_AddRegmask(1 << REG_A7);
     return outputOpcode((uint16_t) 0x4840, src);
 }
 
 static bool
 handleRTD(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-	m68k_AddRegmask(REG_A7);
+	m68k_AddRegmask(1 << REG_A7);
     sect_OutputConst16(0x4E74);
     sect_OutputExpr16(src->immediateInteger);
     return true;
@@ -1401,7 +1401,7 @@ handleRTD(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) 
 
 static bool
 handleRTM(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-	m68k_AddRegmask(REG_A7);
+	m68k_AddRegmask(1 << REG_A7);
 
     uint16_t reg;
     if (src->mode == AM_DREG)
@@ -1415,14 +1415,14 @@ handleRTM(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) 
 
 static bool
 handleRTR(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-	m68k_AddRegmask(REG_A7);
+	m68k_AddRegmask(1 << REG_A7);
     sect_OutputConst16(0x4E77);
     return true;
 }
 
 static bool
 handleRTS(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-	m68k_AddRegmask(REG_A7);
+	m68k_AddRegmask(1 << REG_A7);
     sect_OutputConst16(0x4E75);
     return true;
 }
@@ -1504,7 +1504,7 @@ handleRESET(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data
 
 static bool
 handleRTE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data) {
-	m68k_AddRegmask(REG_A7);
+	m68k_AddRegmask(1 << REG_A7);
     err_Warn(MERROR_INSTRUCTION_PRIV);
     sect_OutputConst16(0x4E73);
     return true;
