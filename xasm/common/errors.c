@@ -356,7 +356,7 @@ err_PrintAll(void) {
     for (uint32_t i = 0; i < g_allMessages.totalMessages; ++i) {
         string* str = g_allMessages.messages[i];
         if (!matchesLastMessage(str)) {
-            printf("%s\n", str_String(str));
+            fprintf(stderr, "%s\n", str_String(str));
         }
     }
 	freeMessages(&g_allMessages);
