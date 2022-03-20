@@ -39,6 +39,7 @@
 #include "amigaobject.h"
 #include "binaryobject.h"
 #include "dependency.h"
+#include "elf.h"
 #include "errors.h"
 #include "lexer.h"
 #include "lexer_context.h"
@@ -72,6 +73,7 @@ printUsage(void) {
 		   "    -e(l|b)  Change endianness\n"
 		   "    -fF      Output format, one of\n"
 		   "                 x - xobj (default)\n"
+		   "                 e - ELF object file\n"
 		   "                 b - binary file\n"
 		   "                 v - verilog readmemh file\n", xasm_Configuration->executableName,
 		   xasm_Configuration->backendVersion, xasm_Configuration->executableName, xasm_Configuration->sectionAlignment);
@@ -100,6 +102,8 @@ writeOutput(char format, string* outputFilename, string* sourceFilename) {
 	switch (format) {
 		case 'x':
 			return obj_Write(outputFilename);
+		case 'e':
+			return elf_Write(outputFilename);
 		case 'b':
 			return bin_Write(outputFilename);
 		case 'v':
@@ -159,6 +163,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 				if (strlen(argv[argn]) > 2) {
 					switch (argv[argn][2]) {
 						case 'x':
+						case 'e':
 						case 'b':
 						case 'v':
 							format = argv[argn][2];
