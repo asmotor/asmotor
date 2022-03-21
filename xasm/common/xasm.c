@@ -103,7 +103,7 @@ writeOutput(char format, string* outputFilename, string* sourceFilename) {
 		case 'x':
 			return obj_Write(outputFilename);
 		case 'e':
-			return elf_Write(outputFilename);
+			return elf_Write(outputFilename, xasm_Configuration->defaultEndianness == ASM_BIG_ENDIAN);
 		case 'b':
 			return bin_Write(outputFilename);
 		case 'v':

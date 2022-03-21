@@ -22,7 +22,12 @@
 #include <str.h>
 #include <types.h>
 
+typedef enum {
+	ET_NONE = 0,
+	EM_68K = 4,
+} EElfArch;
+
 extern bool
-elf_Write(const string* filename);
+elf_Write(const string* filename, bool bigEndian, EElfArch arch);
 
 #endif
