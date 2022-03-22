@@ -16,11 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// from xasm
 #include "elf.h"
+#include "section.h"
+#include "xasm.h"
 
 // from util
+#include "errors.h"
 #include "file.h"
 #include "strbuf.h"
+#include "symbol.h"
 
 #define EI_MAG0 0
 #define EI_MAG1 1
@@ -68,6 +73,11 @@
 #define SHT_LOUSER 0x80000000
 #define SHT_HIUSER 0xffffffff
 
+#define SHF_WRITE 0x1
+#define SHF_ALLOC 0x2
+#define SHF_EXECINSTR 0x4
+#define SHF_MASKPROC 0xf0000000
+
 #define SHN_UNDEF 0
 #define SHN_LORESERVE 0xff00
 #define SHN_LOPROC 0xff00
@@ -79,7 +89,7 @@
 #define ELF_HDSIZE 52
 
 static void (*fput_word)(uint32_t, FILE*);
-static void (*fput_half)(uint32_t, FILE*);
+static void (*fput_half)(uint16_t, FILE*);
 
 #define fput_addr fput_word
 #define fput_off fput_word
@@ -108,10 +118,10 @@ static e_shdr* g_sectionHeaders = NULL;
 static uint32_t g_totalSectionHeaders = 0;
 
 
-static void
+static uint32_t
 addSectionHeader(const e_shdr* header) {
 	uint32_t index = g_totalSectionHeaders;
-	g_totalSectionHeaders = realloc(g_sectionHeaders + 1, index * sizeof(e_shdr));
+	g_sectionHeaders = realloc(g_sectionHeaders, (g_totalSectionHeaders + 1) * sizeof(e_shdr));
 	g_sectionHeaders[g_totalSectionHeaders++] = *header;
 	return index;
 }
@@ -158,11 +168,59 @@ writeElfHeader(FILE* fileHandle, bool bigEndian, EElfArch arch) {
 }
 
 
+static void
+writeSection(SSection* section, FILE* fileHandle) {
+	if (section->flags & SECTF_LOADFIXED && section->imagePosition == 0) {
+		err_Error(ERROR_ELF_LOAD_ZERO);
+		return;
+	}
 
+	e_word_t sh_type = 0;
+	e_word_t sh_flags = 0;
+
+	if (section->group->value.groupType == GROUP_TEXT) {
+		sh_type = SHT_PROGBITS;
+		sh_flags = section->group->flags & SYMF_DATA
+			? SHF_ALLOC | SHF_WRITE
+			: SHF_ALLOC | SHF_EXECINSTR;
+	} else {
+		sh_type = SHT_NOBITS;
+		sh_flags = SHF_ALLOC | SHF_WRITE;
+	}
+
+	uint32_t align = section->flags & SECTF_ALIGNED ? section->align : xasm_Configuration->sectionAlignment;
+	uint32_t pad = ftell(fileHandle) % align;
+	while (pad > 0 && pad < align) {
+		fputc(0, fileHandle);
+		pad += 1;
+	}
+
+
+	e_shdr header = {
+		addString(section->name),
+		sh_type,
+		sh_flags,
+		section->flags & SECTF_LOADFIXED ? section->imagePosition : 0,
+		sh_type & SHT_PROGBITS ? ftell(fileHandle) : 0,
+		section->usedSpace,
+		SHN_UNDEF,
+		0,
+		align,
+		0
+	};
+
+	addSectionHeader(&header);
+	if (sh_type & SHT_PROGBITS) {
+		fwrite(section->data, 1, section->usedSpace, fileHandle);
+	}
+}
 
 static void
 writeSections(FILE* fileHandle) {
-
+	addSectionHeaderZero();
+    for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
+		writeSection(section, fileHandle);
+	}
 }
 
 bool

@@ -108,7 +108,8 @@ static char* g_errors[] = {
     "Unterminated IF block (started at %s:%d)",
     "SECTION already exists but it has a different combination of options",
     "Invalid SECTION options combination",
-	"GROUP symbol cannot be redefined"
+	"GROUP symbol cannot be redefined",
+	"An ELF section cannot be loaded at 0",
 };
 
 static const char*
