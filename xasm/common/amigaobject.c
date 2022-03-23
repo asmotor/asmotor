@@ -199,10 +199,6 @@ writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSection
 static bool
 writeSection(FILE* fileHandle, SSection* section, bool enableDebugInfo, uint32_t totalSections, bool isLinkObject) {
     if (section->group->value.groupType == GROUP_TEXT) {
-        SPatch** patchesPerSection = mem_Alloc(sizeof(SPatch*) * totalSections);
-        for (uint32_t i = 0; i < totalSections; ++i)
-            patchesPerSection[i] = NULL;
-
         uint32_t hunkType =
                 (xasm_Configuration->supportAmiga && (section->group->flags & SYMF_DATA)) ? HUNK_DATA : HUNK_CODE;
 
@@ -212,6 +208,10 @@ writeSection(FILE* fileHandle, SSection* section, bool enableDebugInfo, uint32_t
         fputbuf(section->data, section->usedSpace, fileHandle);
 
         // Move the patches into the patchesPerSection array according the section to which their value is relative
+        SPatch** patchesPerSection = mem_Alloc(sizeof(SPatch*) * totalSections);
+        for (uint32_t i = 0; i < totalSections; ++i)
+            patchesPerSection[i] = NULL;
+
         SPatch* patch = section->patches;
         SPatch* importPatches = NULL;
         bool hasReloc32 = false;

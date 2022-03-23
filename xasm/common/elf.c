@@ -88,6 +88,26 @@
 
 #define ELF_HDSIZE 52
 
+#define SYM_SIZE 16
+
+#define STB_LOCAL 0
+#define STB_GLOBAL 1
+#define STB_WEAK 2
+#define STB_LOPROC 13
+#define STB_HIPROC 15
+
+#define STT_NOTYPE 0
+#define STT_OBJECT 1
+#define STT_FUNC 2
+#define STT_SECTION 3
+#define STT_FILE 4
+#define STT_LOPROC 13
+#define STT_HIPROC 15
+
+#define ELF32_ST_BIND(i) ((i)>>4)
+#define ELF32_ST_TYPE(i) ((i)&0xf)
+#define ELF32_ST_INFO(b,t) (((b)<<4)+((t)&0xf))
+
 static void (*fput_word)(uint32_t, FILE*);
 static void (*fput_half)(uint16_t, FILE*);
 
@@ -135,10 +155,16 @@ addSectionHeaderZero(void) {
 }
 
 static uint32_t
+addStringChars(const char* str) {
+	uint32_t offset = g_stringTable->size;
+	strbuf_AppendChars(g_stringTable, str, strlen(str) + 1); // include terminating zero
+	return offset;
+}
+
+static uint32_t
 addString(const string* str) {
-	uint32_t offset = str->length;
-	strbuf_AppendString(g_stringTable, str);
-	strbuf_AppendChar(g_stringTable, 0);
+	uint32_t offset = g_stringTable->size;
+	strbuf_AppendChars(g_stringTable, str_String(str), str_Length(str) + 1);  // include terminating zero
 	return offset;
 }
 
@@ -169,6 +195,63 @@ writeElfHeader(FILE* fileHandle, bool bigEndian, EElfArch arch) {
 
 
 static void
+writeSymbolRaw(e_word_t name, e_addr_t value, uint8_t info, e_half_t sectionIndex, FILE* fileHandle) {
+	fput_word(name, fileHandle);
+	fput_addr(value, fileHandle);
+	fput_word(0, fileHandle);
+	fputc(info, fileHandle);
+	fputc(0, fileHandle);
+	fput_half(sectionIndex, fileHandle);
+}
+
+static void
+writeSymbol(const string* name, e_addr_t value, uint8_t bind, uint8_t type, e_half_t sectionIndex, FILE* fileHandle) {
+	writeSymbolRaw(addString(name), value, ELF32_ST_INFO(bind, type), sectionIndex, fileHandle);
+}
+
+static void
+writeSymbolSection(FILE* fileHandle) {
+	off_t symbolTableLocation = ftello(fileHandle);
+	uint32_t symbolIndex = 1;
+
+	writeSymbolRaw(0, 0, 0, SHN_UNDEF, fileHandle);	// symbol #0
+
+	for (uint16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+			uint8_t bind = 0;
+			if (symbol->flags & SYMF_EXPORT)
+				bind = STB_GLOBAL;
+			else if (symbol->flags & SYMF_FILE_EXPORT)
+				bind = STB_LOCAL;
+			else
+				continue;
+
+			uint8_t sectionIndex = symbol->flags & SYMF_CONSTANT
+				? SHN_ABS
+				: symbol->section->id;
+
+			writeSymbol(symbol->name, symbol->value.integer, bind, STT_NOTYPE, sectionIndex, fileHandle);
+			symbol->id = symbolIndex++;
+		}
+	}
+
+	e_shdr header = {
+		addStringChars(".symtab"),
+		SHT_SYMTAB,
+		0,
+		0,
+		symbolTableLocation,
+		ftello(fileHandle) - symbolTableLocation,
+		0,
+		0,
+		0,
+		SYM_SIZE
+	};
+	addSectionHeader(&header);
+}
+
+
+static void
 writeSection(SSection* section, FILE* fileHandle) {
 	if (section->flags & SECTF_LOADFIXED && section->imagePosition == 0) {
 		err_Error(ERROR_ELF_LOAD_ZERO);
@@ -195,7 +278,6 @@ writeSection(SSection* section, FILE* fileHandle) {
 		pad += 1;
 	}
 
-
 	e_shdr header = {
 		addString(section->name),
 		sh_type,
@@ -209,18 +291,22 @@ writeSection(SSection* section, FILE* fileHandle) {
 		0
 	};
 
+	section->id = g_totalSectionHeaders;
+
 	addSectionHeader(&header);
 	if (sh_type & SHT_PROGBITS) {
 		fwrite(section->data, 1, section->usedSpace, fileHandle);
 	}
 }
 
+
 static void
 writeSections(FILE* fileHandle) {
-	addSectionHeaderZero();
     for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
 		writeSection(section, fileHandle);
 	}
+
+	writeSymbolSection(fileHandle);
 }
 
 bool
@@ -229,6 +315,8 @@ elf_Write(const string* filename, bool bigEndian, EElfArch arch) {
 	fput_word = bigEndian ? fputbl : fputll;
 	g_stringTable = strbuf_Create();
 	
+	addSectionHeaderZero();
+
     FILE* fileHandle;
     if ((fileHandle = fopen(str_String(filename), "wb")) != NULL) {
 		writeElfHeader(fileHandle, bigEndian, arch);
