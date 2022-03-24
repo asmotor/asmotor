@@ -108,6 +108,12 @@
 #define ELF32_ST_TYPE(i) ((i)&0xf)
 #define ELF32_ST_INFO(b,t) (((b)<<4)+((t)&0xf))
 
+#define RELA_SIZE 12
+
+#define ELF32_R_SYM(i) ((i)>>8)
+#define ELF32_R_TYPE(i) ((unsigned char)(i))
+#define ELF32_R_INFO(s,t) (((s)<<8)+(unsigned char)(t))
+
 static void (*fput_word)(uint32_t, FILE*);
 static void (*fput_half)(uint16_t, FILE*);
 
@@ -209,7 +215,7 @@ writeSymbol(const string* name, e_addr_t value, uint8_t bind, uint8_t type, e_ha
 	writeSymbolRaw(addString(name), value, ELF32_ST_INFO(bind, type), sectionIndex, fileHandle);
 }
 
-static void
+static uint32_t
 writeSymbolSection(FILE* fileHandle) {
 	off_t symbolTableLocation = ftello(fileHandle);
 	uint32_t symbolIndex = 1;
@@ -247,12 +253,14 @@ writeSymbolSection(FILE* fileHandle) {
 		0,
 		SYM_SIZE
 	};
-	addSectionHeader(&header);
+	return addSectionHeader(&header);
 }
 
 
 static void
 writeSection(SSection* section, FILE* fileHandle) {
+	section->id = UINT32_MAX;
+
 	if (section->flags & SECTF_LOADFIXED && section->imagePosition == 0) {
 		err_Error(ERROR_ELF_LOAD_ZERO);
 		return;
@@ -300,13 +308,64 @@ writeSection(SSection* section, FILE* fileHandle) {
 }
 
 
-static void
+static bool
+writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
+	if (section->id == UINT32_MAX)
+		return true;
+
+	off_t sectionLocation = ftello(fileHandle);
+
+	for (SPatch* patch = section->patches; patch != NULL; patch = list_GetNext(patch)) {
+		SSymbol* symbol;
+		uint32_t addend;
+		if (expr_GetSymbolOffset(&addend, &symbol, patch->expression)) {
+			fput_addr(patch->offset, fileHandle);
+			fput_word(ELF32_R_INFO(symbol->id, 0), fileHandle);
+			fput_word(addend, fileHandle);
+		} else {
+            err_Error(ERROR_OBJECTFILE_PATCH);
+			return false;
+		}
+	}
+
+	string* reloc = str_Create(".reloc");
+	string* sectionName = str_Concat(section->name, reloc);
+
+	e_shdr header = {
+		addString(sectionName),
+		SHT_RELA,
+		0,
+		0,
+		sectionLocation,
+		ftello(fileHandle) - sectionLocation,
+		symbolSection,
+		section->id,
+		0,
+		RELA_SIZE
+	};
+
+	str_Free(reloc);
+	str_Free(sectionName);
+
+	addSectionHeader(&header);
+	return true;
+}
+
+
+static bool
 writeSections(FILE* fileHandle) {
     for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
 		writeSection(section, fileHandle);
 	}
 
-	writeSymbolSection(fileHandle);
+	uint32_t symbolSection = writeSymbolSection(fileHandle);
+
+    for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
+		if (!writeReloc(section, symbolSection, fileHandle))
+			return false;
+	}
+
+	return true;
 }
 
 bool
@@ -320,9 +379,12 @@ elf_Write(const string* filename, bool bigEndian, EElfArch arch) {
     FILE* fileHandle;
     if ((fileHandle = fopen(str_String(filename), "wb")) != NULL) {
 		writeElfHeader(fileHandle, bigEndian, arch);
-		writeSections(fileHandle);
-
+		bool success = writeSections(fileHandle);
 		fclose(fileHandle);
+
+		if (!success) {
+			
+		}
 		return true;
 	}
 	return false;
