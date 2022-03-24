@@ -86,7 +86,10 @@
 #define SHN_COMMON 0xfff2
 #define SHN_HIRESERVE 0xffff
 
-#define ELF_HDSIZE 52
+#define ELF_HD_SHOFF 32
+#define ELF_HD_SHNUM 48
+#define ELF_HD_SHSTRNDX 50
+#define ELF_HD_SIZE 52
 
 #define SYM_SIZE 16
 
@@ -143,6 +146,21 @@ static string_buffer* g_stringTable = NULL;
 static e_shdr* g_sectionHeaders = NULL;
 static uint32_t g_totalSectionHeaders = 0;
 
+static void
+alignFile(FILE* fileHandle, uint32_t alignment) {
+	uint32_t pad = ftell(fileHandle) % alignment;
+	while (pad > 0 && pad < alignment) {
+		fputc(0, fileHandle);
+		pad += 1;
+	}
+}
+
+
+static void
+align4(FILE* fileHandle) {
+	alignFile(fileHandle, 4);
+}
+
 
 static uint32_t
 addSectionHeader(const e_shdr* header) {
@@ -151,6 +169,7 @@ addSectionHeader(const e_shdr* header) {
 	g_sectionHeaders[g_totalSectionHeaders++] = *header;
 	return index;
 }
+
 
 static void
 addSectionHeaderZero(void) {
@@ -191,7 +210,7 @@ writeElfHeader(FILE* fileHandle, bool bigEndian, EElfArch arch) {
 	fput_off(0, fileHandle);			// e_phoff
 	fput_off(0, fileHandle);			// e_shoff
 	fput_word(0, fileHandle);			// e_flags
-	fput_half(ELF_HDSIZE, fileHandle);	// e_ehsize
+	fput_half(ELF_HD_SIZE, fileHandle);	// e_ehsize
 	fput_half(0, fileHandle);			// e_phentsize
 	fput_half(0, fileHandle);			// e_phnum
 	fput_half(0, fileHandle);			// e_shentsize
@@ -217,6 +236,8 @@ writeSymbol(const string* name, e_addr_t value, uint8_t bind, uint8_t type, e_ha
 
 static uint32_t
 writeSymbolSection(FILE* fileHandle) {
+	align4(fileHandle);
+
 	off_t symbolTableLocation = ftello(fileHandle);
 	uint32_t symbolIndex = 1;
 
@@ -280,12 +301,8 @@ writeSection(SSection* section, FILE* fileHandle) {
 	}
 
 	uint32_t align = section->flags & SECTF_ALIGNED ? section->align : xasm_Configuration->sectionAlignment;
-	uint32_t pad = ftell(fileHandle) % align;
-	while (pad > 0 && pad < align) {
-		fputc(0, fileHandle);
-		pad += 1;
-	}
-
+	alignFile(fileHandle, align);
+	
 	e_shdr header = {
 		addString(section->name),
 		sh_type,
@@ -313,6 +330,7 @@ writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
 	if (section->id == UINT32_MAX)
 		return true;
 
+	align4(fileHandle);
 	off_t sectionLocation = ftello(fileHandle);
 
 	for (SPatch* patch = section->patches; patch != NULL; patch = list_GetNext(patch)) {
@@ -352,6 +370,48 @@ writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
 }
 
 
+static void
+writeStrings(FILE* fileHandle) {
+	e_addr_t name = addStringChars(".strtab");
+
+	align4(fileHandle);
+	off_t stringsLocation = ftello(fileHandle);
+	fwrite(g_stringTable->data, 1, g_stringTable->size, fileHandle);
+
+	e_shdr header = {
+		name,
+		SHT_STRTAB,
+		0,
+		0,
+		stringsLocation,
+		g_stringTable->size,
+		0,
+		0,
+		0,
+		0
+	};
+
+	uint32_t stringSection = addSectionHeader(&header);
+	fseek(fileHandle, ELF_HD_SHSTRNDX, SEEK_SET);
+	fput_half(stringSection, fileHandle);
+	fseek(fileHandle, 0, SEEK_END);
+}
+
+
+static void
+writeSectionHeaders(FILE* fileHandle) {
+	align4(fileHandle);
+	off_t headersLocation = ftello(fileHandle);
+	fwrite(g_sectionHeaders, sizeof(e_shdr), g_totalSectionHeaders, fileHandle);
+
+	fseek(fileHandle, ELF_HD_SHOFF, SEEK_SET);
+	fput_off(headersLocation, fileHandle);
+	fseek(fileHandle, ELF_HD_SHNUM, SEEK_SET);
+	fput_half(g_totalSectionHeaders, fileHandle);
+	fseek(fileHandle, 0, SEEK_END);
+}
+
+
 static bool
 writeSections(FILE* fileHandle) {
     for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
@@ -364,6 +424,9 @@ writeSections(FILE* fileHandle) {
 		if (!writeReloc(section, symbolSection, fileHandle))
 			return false;
 	}
+
+	writeStrings(fileHandle);
+	writeSectionHeaders(fileHandle);
 
 	return true;
 }
@@ -382,10 +445,10 @@ elf_Write(const string* filename, bool bigEndian, EElfArch arch) {
 		bool success = writeSections(fileHandle);
 		fclose(fileHandle);
 
-		if (!success) {
-			
-		}
-		return true;
+		if (!success)
+			remove(str_String(filename));
+
+		return success;
 	}
 	return false;
 }
