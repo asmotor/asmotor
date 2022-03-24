@@ -141,6 +141,17 @@ typedef struct {
 	e_word_t sh_entsize;
 } e_shdr;
 
+#define SHDR_NAME 0
+#define SHDR_TYPE 4
+#define SHDR_FLAGS 8
+#define SHDR_ADDR 12
+#define SHDR_OFFSET 16
+#define SHDR_SIZE 20
+#define SHDR_LINK 24
+#define SHDR_INFO 28
+#define SHDR_ADDRALIGN 32
+#define SHDR_ENTSIZE 36
+#define SHDR_SIZEOF 40
 
 static string_buffer* g_stringTable = NULL;
 static e_shdr* g_sectionHeaders = NULL;
@@ -213,7 +224,7 @@ writeElfHeader(FILE* fileHandle, bool bigEndian, EElfArch arch) {
 	fput_half(ELF_HD_SIZE, fileHandle);	// e_ehsize
 	fput_half(0, fileHandle);			// e_phentsize
 	fput_half(0, fileHandle);			// e_phnum
-	fput_half(0, fileHandle);			// e_shentsize
+	fput_half(SHDR_SIZEOF, fileHandle);	// e_shentsize
 	fput_half(0, fileHandle);			// e_shnum
 	fput_half(0, fileHandle);			// e_shstrndx
 }
@@ -341,7 +352,7 @@ writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
 			fput_word(ELF32_R_INFO(symbol->id, 0), fileHandle);
 			fput_word(addend, fileHandle);
 		} else {
-            err_Error(ERROR_OBJECTFILE_PATCH);
+            err_PatchError(patch, ERROR_OBJECTFILE_PATCH);
 			return false;
 		}
 	}
@@ -402,7 +413,20 @@ static void
 writeSectionHeaders(FILE* fileHandle) {
 	align4(fileHandle);
 	off_t headersLocation = ftello(fileHandle);
-	fwrite(g_sectionHeaders, sizeof(e_shdr), g_totalSectionHeaders, fileHandle);
+
+	for (uint32_t i = 0; i < g_totalSectionHeaders; ++i) {
+		e_shdr* header = &g_sectionHeaders[i];
+		fput_word(header->sh_name, fileHandle);
+		fput_word(header->sh_type, fileHandle);
+		fput_word(header->sh_flags, fileHandle);
+		fput_addr(header->sh_addr, fileHandle);
+		fput_off(header->sh_offset, fileHandle);
+		fput_word(header->sh_size, fileHandle);
+		fput_word(header->sh_link, fileHandle);
+		fput_word(header->sh_info, fileHandle);
+		fput_word(header->sh_addralign, fileHandle);
+		fput_word(header->sh_entsize, fileHandle);
+	}
 
 	fseek(fileHandle, ELF_HD_SHOFF, SEEK_SET);
 	fput_off(headersLocation, fileHandle);

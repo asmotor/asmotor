@@ -628,10 +628,12 @@ getSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* exp
 
 extern bool
 expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
+	*resultSymbol = NULL;
 	return getSymbolOffset(resultOffset, resultSymbol, expression, isImport);
 }
 
 extern bool
 expr_GetSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
+	*resultSymbol = NULL;
 	return getSymbolOffset(resultOffset, resultSymbol, expression, isSymbolic);
 }

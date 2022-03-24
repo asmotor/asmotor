@@ -99,7 +99,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, SPatch* importPatches, o
 
     while (importPatches != NULL) {
         uint32_t offset;
-        SSymbol* patchSymbol = NULL;
+        SSymbol* patchSymbol;
         if (expr_GetImportOffset(&offset, &patchSymbol, importPatches->expression)) {
             uint32_t patchCount = 0;
 
@@ -121,7 +121,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, SPatch* importPatches, o
                 dataWritten = true;
 
                 for (patch = list_GetNext(patch); patch != NULL; patch = list_GetNext(patch)) {
-                    SSymbol* symbol = NULL;
+                    SSymbol* symbol;
                     if (expr_GetImportOffset(&offset, &symbol, patch->expression) && symbol == patchSymbol) {
                         assert (patch->pPrev != NULL);
 
@@ -247,7 +247,7 @@ writeSection(FILE* fileHandle, SSection* section, bool enableDebugInfo, uint32_t
 
                 if ((!foundSection) && isLinkObject) {
                     uint32_t offset;
-                    SSymbol* symbol = NULL;
+                    SSymbol* symbol;
                     if (expr_GetImportOffset(&offset, &symbol, patch->expression)) {
                         if (patch->pPrev)
                             patch->pPrev->pNext = patch->pNext;
