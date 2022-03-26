@@ -153,6 +153,14 @@ typedef struct {
 #define SHDR_ENTSIZE 36
 #define SHDR_SIZEOF 40
 
+#define R_68K_NONE 0	/* No reloc */
+#define R_68K_32 1		/* Direct 32 bit  */
+#define R_68K_16 2		/* Direct 16 bit  */
+#define R_68K_8 3		/* Direct 8 bit  */
+#define R_68K_PC32 4	/* PC relative 32 bit */
+#define R_68K_PC16 5	/* PC relative 16 bit */
+#define R_68K_PC8 6		/* PC relative 8 bit */
+
 static string_buffer* g_stringTable = NULL;
 static e_shdr* g_sectionHeaders = NULL;
 static uint32_t g_totalSectionHeaders = 0;
@@ -256,17 +264,23 @@ writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSect
 
 	for (uint16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
 		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+			symbol->id = 0;
+
+			if (symbol->type != SYM_LABEL && symbol->type != SYM_EQU && symbol->type != SYM_IMPORT && symbol->type != SYM_GLOBAL)
+				continue;
+
 			uint8_t bind = 0;
 			if (symbol->flags & SYMF_EXPORT)
 				bind = STB_GLOBAL;
-			else if (symbol->flags & SYMF_FILE_EXPORT)
+			else if (symbol->flags & (SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT))
 				bind = STB_LOCAL;
 			else
 				continue;
 
-			uint8_t sectionIndex = symbol->flags & SYMF_CONSTANT
-				? SHN_ABS
-				: symbol->section->id;
+			uint8_t sectionIndex =
+				symbol->flags & SYMF_CONSTANT ? SHN_ABS :
+				symbol->type == SYM_GLOBAL || symbol->type == SYM_IMPORT ? SHN_UNDEF :
+				symbol->section->id;
 
 			writeSymbol(symbol->name, symbol->value.integer, bind, STT_NOTYPE, sectionIndex, fileHandle);
 			symbol->id = symbolIndex++;
@@ -276,6 +290,7 @@ writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSect
 	g_sectionHeaders[symbolSection].sh_offset = symbolTableLocation;
 	g_sectionHeaders[symbolSection].sh_size = ftello(fileHandle) - symbolTableLocation;
 	g_sectionHeaders[symbolSection].sh_link = stringSection;
+	g_sectionHeaders[symbolSection].sh_info = symbolIndex;
 }
 
 
@@ -339,7 +354,7 @@ writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
 		uint32_t addend;
 		if (expr_GetSymbolOffset(&addend, &symbol, patch->expression)) {
 			fput_addr(patch->offset, fileHandle);
-			fput_word(ELF32_R_INFO(symbol->id, 0), fileHandle);
+			fput_word(ELF32_R_INFO(symbol->id, R_68K_32), fileHandle);
 			fput_word(addend, fileHandle);
 		} else {
             err_PatchError(patch, ERROR_OBJECTFILE_PATCH);
