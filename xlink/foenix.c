@@ -30,8 +30,8 @@
 
 static void
 writeSection(FILE* fileHandle, int32_t cpuByteLocation, uint32_t size, void* data) {
-	fputbl(cpuByteLocation, fileHandle);
-	fputbl(size, fileHandle);
+	fputll(cpuByteLocation, fileHandle);
+	fputll(size, fileHandle);
 	if (size != 0) {
 		assert(data != NULL);
 		fwrite(data, 1, size, fileHandle);
