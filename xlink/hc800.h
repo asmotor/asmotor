@@ -21,6 +21,12 @@
 
 #include "types.h"
 
+extern uint8_t hc800_ConfigSmall[];
+extern uint8_t hc800_ConfigSmallHarvard[];
+extern uint8_t hc800_ConfigMedium[];
+extern uint8_t hc800_ConfigMediumHarvard[];
+extern uint8_t hc800_ConfigLarge[];
+
 extern void
 hc800_WriteExecutable(const char* name, uint8_t* configuration);
 
