@@ -91,49 +91,195 @@ printUsage(void) {
     printf("xlink (ASMotor v" ASMOTOR_VERSION ")\n"
            "\n"
            "Usage: xlink [options] file1 [file2 [... filen]]\n"
+		   "\n"
            "Options: (a forward slash (/) can be used instead of the dash (-))\n"
-           "\t-h\t\tThis text\n"
-           "\t-c\t\tMemory configuration\n"
-           "\t    -cami\t\tAmiga\n"
-           "\t    -ccbm64\tCommodore 64\n"
-           "\t    -ccbm128\tCommodore 128 unbanked\n"
-           "\t    -ccbm128f\tCommodore 128 Function ROM (32 KiB)\n"
-           "\t    -ccbm128fl\tCommodore 128 Function ROM Low (16 KiB)\n"
-           "\t    -ccbm128fh\tCommodore 128 Function ROM High (16 KiB)\n"
-           "\t    -ccbm264\tCommodore 264/TED series\n"
-           "\t    -cgb\t\tGame Boy ROM image\n"
-           "\t    -cgbs\t\tGame Boy small mode (32 KiB)\n"
-           "\t    -csmd\tSega Mega Drive\n"
-           "\t    -csms8\tSega Master System (8 KiB)\n"
-           "\t    -csms16\tSega Master System (16 KiB)\n"
-           "\t    -csms32\tSega Master System (32 KiB)\n"
-           "\t    -csms48\tSega Master System (48 KiB)\n"
-           "\t    -csmsb\tSega Master System banked (64+ KiB)\n"
-           "\t    -chc800b\tHC800 16 KiB ROM\n"
-           "\t    -chc800s\tHC800 small mode (64 KiB text + data + bss)\n"
-           "\t    -chc800sh\tHC800 small Harvard mode (64 KiB text, 64 KiB data + bss)\n"
-           "\t    -chc800m\tHC800 medium mode (32 KiB text + data + bss, 32 KiB sized\n"
-		   "\t          \tbanks text)\n"
-           "\t    -chc800mh\tHC800 medium Harvard executable (32 KiB text + 32 KiB\n"
-		   "\t           \tsized text banks, 64 KiB data + bss)\n"
-           "\t    -chc800l\tHC800 large mode (32 KiB text + data + bss, 32 KiB sized\n"
-		   "\t          \tbanks text + data + bss)\n"
-           "\t    -cfxa2560x\tFoenix A2560X/K\n"
-           "\t-f\t\tFile format\n"
-           "\t    -famiexe\t\tAmiga executable\n"
-           "\t    -familnk\t\tAmiga link object\n"
-           "\t    -tbin\tBinary\n"
-           "\t    -tcbm\tCommodore .PRG\n"
-           "\t    -tgb\t\tGame Boy ROM image\n"
-           "\t    -tsmd\tSega Mega Drive\n"
-           "\t    -tsms\tSega Master System\n"
-           "\t    -thc800\tHC800 executable\n"
-           "\t    -tfxpgz\tFoenix PGZ\n"
-           "\t-m<mapfile>\tWrite a mapfile to <mapfile>\n"
-           "\t-o<output>\tWrite output to file <output>\n"
-           "\t-s<symbol>\tPerform smart linking starting with <symbol>\n"
+		   "\n"
+           "    -h  This text\n"
+		   "\n"
+           "    -c<config>  Memory configuration\n"
+           "          -camiga     Amiga\n"
+           "          -ccbm64     Commodore 64\n"
+           "          -ccbm128    Commodore 128 unbanked\n"
+           "          -ccbm128f   Commodore 128 Function ROM (32 KiB)\n"
+           "          -ccbm128fl  Commodore 128 Function ROM Low (16 KiB)\n"
+           "          -ccbm128fh  Commodore 128 Function ROM High (16 KiB)\n"
+           "          -ccbm264    Commodore 264/TED series\n"
+           "          -cngb       Game Boy ROM image\n"
+           "          -cngbs      Game Boy small mode (32 KiB)\n"
+           "          -csmd       Sega Mega Drive\n"
+           "          -csms8      Sega Master System (8 KiB)\n"
+           "          -csms16     Sega Master System (16 KiB)\n"
+           "          -csms32     Sega Master System (32 KiB)\n"
+           "          -csms48     Sega Master System (48 KiB)\n"
+           "          -csmsb      Sega Master System banked (64+ KiB)\n"
+           "          -chc800b    HC800 16 KiB ROM\n"
+           "          -chc800s    HC800 small mode (64 KiB text + data + bss)\n"
+           "          -chc800sh   HC800 small Harvard mode (64 KiB text, 64 KiB data + bss)\n"
+           "          -chc800m    HC800 medium mode (32 KiB text + data + bss, 32 KiB sized\n"
+		   "                      banks text)\n"
+           "          -chc800mh   HC800 medium Harvard executable (32 KiB text + 32 KiB\n"
+		   "                      sized text banks, 64 KiB data + bss)\n"
+           "          -chc800l    HC800 large mode (32 KiB text + data + bss, 32 KiB sized\n"
+		   "                      banks text + data + bss)\n"
+           "          -cfxa2560x  Foenix A2560X/K\n"
+		   "\n"
+           "    -f<format>  File format\n"
+           "          -famigaexe  Amiga executable\n"
+           "          -famigalink Amiga link object\n"
+           "          -tbin       Binary\n"
+           "          -tcbm       Commodore .PRG\n"
+           "          -tngb       Game Boy ROM\n"
+           "          -tsmd       Sega Mega Drive ROM\n"
+           "          -tsms       Sega Master System ROM\n"
+           "          -thc800     HC800 executable\n"
+           "          -thc800k    HC800 kernal\n"
+           "          -tfxpgz     Foenix PGZ\n"
+		   "\n"
+           "    -m<mapfile>  Write a mapfile to <mapfile>\n"
+		   "\n"
+           "    -o<output>  Write output to file <output>\n"
+		   "\n"
+           "    -s<symbol>  Strip unused sections, rooting the section containing <symbol>\n"
     );
     exit(EXIT_SUCCESS);
+}
+
+static void
+handleFileFormatOption(const string* target) {
+	if (str_EqualConst(target, "amigaexe")) {	/* Amiga executable */
+		g_outputFormat = FILE_FORMAT_AMIGA_EXECUTABLE;
+	} else if (str_EqualConst(target, "amigalink")) {	/* Amiga executable */
+		g_outputFormat = FILE_FORMAT_AMIGA_LINK_OBJECT;
+	} else if (str_EqualConst(target, "bin")) {	/* Binary */
+		g_outputFormat = FILE_FORMAT_BINARY;
+	} else if (str_EqualConst(target, "cbm")) {	/* Commodore .prg */
+		g_outputFormat = FILE_FORMAT_CBM_PRG;
+	} else if (str_EqualConst(target, "ngb")) {	/* Gameboy ROM image */
+		g_outputFormat = FILE_FORMAT_GAME_BOY;
+	} else if (str_EqualConst(target, "smd")) {	/* Sega Mega Drive/Genesis */
+		g_outputFormat = FILE_FORMAT_MEGA_DRIVE;
+	} else if (str_EqualConst(target, "sms")) {	/* Sega Master System 8 KiB */
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+	} else if (str_EqualConst(target, "hc800k")) {	/* HC800 16 KiB text + data, 16 KiB bss */
+		g_outputFormat = FILE_FORMAT_HC800_KERNAL;
+	} else if (str_EqualConst(target, "hc800")) {	/* HC800, CODE: 64 KiB text + data + bss */
+		g_outputFormat = FILE_FORMAT_HC800;
+	} else if (str_EqualConst(target, "fxpgz")) {	/* Foenix PKZ */
+		g_outputFormat = FILE_FORMAT_PGZ;
+	} else {
+		error("Unknown format \"%s\"", str_String(target));
+	}
+}
+
+static void
+handleMemoryConfigurationOption(const string* target) {
+	if (str_EqualConst(target, "amiga")) {			/* Amiga executable */
+		group_SetupAmiga();
+		g_outputFormat = FILE_FORMAT_AMIGA_EXECUTABLE;
+		g_allowedFormats = FF_AMIGA;
+	} else if (str_EqualConst(target, "cbm64")) {	/* Commodore 64 .prg */
+		group_SetupCommodore64();
+		g_cbmBaseAddress = 0x0801;
+		g_outputFormat = FILE_FORMAT_CBM_PRG;
+		g_allowedFormats = FF_CBM;
+	} else if (str_EqualConst(target, "cbm128")) {	/* Commodore 128 .prg */
+		group_SetupUnbankedCommodore128();
+		g_cbmBaseAddress = 0x1C01;
+		g_outputFormat = FILE_FORMAT_CBM_PRG;
+		g_allowedFormats = FF_CBM;
+	} else if (str_EqualConst(target, "cbm128f")) {	/* Commodore 128 Function ROM */
+		group_SetupCommodore128FunctionROM();
+		g_outputFormat = FILE_FORMAT_BINARY;
+		g_allowedFormats = FILE_FORMAT_BINARY;
+		g_binaryPad = 0x8000;
+	} else if (str_EqualConst(target, "cbm128fl")) {	/* Commodore 128 Function ROM Low */
+		group_SetupCommodore128FunctionROMLow();
+		g_outputFormat = FILE_FORMAT_BINARY;
+		g_allowedFormats = FILE_FORMAT_BINARY;
+		g_binaryPad = 0x4000;
+	} else if (str_EqualConst(target, "cbm128fh")) {	/* Commodore 128 Function ROM High */
+		group_SetupCommodore128FunctionROMHigh();
+		g_allowedFormats = FILE_FORMAT_BINARY;
+		g_binaryPad = 0x4000;
+	} else if (str_EqualConst(target, "cbm264")) {	/* Commodore 264 series .prg */
+		group_SetupCommodore264();
+		g_cbmBaseAddress = 0x1001;
+		g_outputFormat = FILE_FORMAT_CBM_PRG;
+		g_allowedFormats = FF_CBM;
+	} else if (str_EqualConst(target, "ngb")) {	/* Gameboy ROM image */
+		group_SetupGameboy();
+		g_outputFormat = FILE_FORMAT_GAME_BOY;
+		g_allowedFormats = FF_GAME_BOY;
+	} else if (str_EqualConst(target, "ngbs")) {	/* Gameboy small mode ROM image */
+		group_SetupSmallGameboy();
+		g_outputFormat = FILE_FORMAT_GAME_BOY;
+		g_allowedFormats = FF_GAME_BOY;
+	} else if (str_EqualConst(target, "smd")) {	/* Sega Mega Drive/Genesis */
+		group_SetupSegaMegaDrive();
+		g_outputFormat = FILE_FORMAT_MEGA_DRIVE;
+		g_allowedFormats = FF_MEGA_DRIVE;
+	} else if (str_EqualConst(target, "sms8")) {	/* Sega Master System 8 KiB */
+		group_SetupSegaMasterSystem(0x2000);
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0x2000;
+	} else if (str_EqualConst(target, "sms16")) {	/* Sega Master System 16 KiB */
+		group_SetupSegaMasterSystem(0x4000);
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0x4000;
+	} else if (str_EqualConst(target, "sms32")) {	/* Sega Master System 32 KiB */
+		group_SetupSegaMasterSystem(0x8000);
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0x8000;
+	} else if (str_EqualConst(target, "sms48")) {	/* Sega Master System 48 KiB */
+		group_SetupSegaMasterSystem(0xC000);
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0xC000;
+	} else if (str_EqualConst(target, "smsb")) {		/* Sega Master System 64+ KiB */
+		group_SetupSegaMasterSystemBanked();
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0;
+	} else if (str_EqualConst(target, "hc800b")) {	/* HC800 16 KiB text + data, 16 KiB bss */
+		group_SetupHC8XXROM();
+		g_outputFormat = FILE_FORMAT_HC800_KERNAL;
+		g_allowedFormats = FF_HC800_KERNAL;
+		g_binaryPad = 0;
+	} else if (str_EqualConst(target, "hc800s")) {	/* HC800, CODE: 64 KiB text + data + bss */
+		group_SetupHC8XXSmall();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigSmall;
+	} else if (str_EqualConst(target, "hc800sh")) {	/* HC800 CODE: 64 KiB text, DATA: 64 KiB data + bss */
+		group_SetupHC8XXSmallHarvard();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigSmallHarvard;
+	} else if (str_EqualConst(target, "hc800m")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text */
+		group_SetupHC8XXMedium();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigMedium;
+	} else if (str_EqualConst(target, "hc800mh")) {	/* HC800, CODE: 32 KiB text, CODE: 32 KiB sized text banks, DATA: 64 KiB data + bss */
+		group_SetupHC8XXMediumHarvard();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigMediumHarvard;
+	} else if (str_EqualConst(target, "hc800l")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text + data + bss */
+		group_SetupHC8XXLarge();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigLarge;
+	} else if (str_EqualConst(target, "fxa2560x")) {	/* Foenix A2560X/K */
+		group_SetupFoenixA2560X();
+		g_outputFormat = FILE_FORMAT_PGZ;
+		g_allowedFormats = FF_FOENIX;
+	} else {
+		error("Unknown target \"%s\"", str_String(target));
+	}
 }
 
 static void
@@ -320,7 +466,6 @@ handleOption(const char* option) {
 			str_Free(target);
 			return true;
 		}
-#if 0		
 		case 'c': {	/* Memory configuration */
 			if (g_targetDefined) error("more than one target (option \"t\", \"c\") defined");
 
@@ -330,7 +475,12 @@ handleOption(const char* option) {
 			str_Free(target);
 			return true;
 		}
-#endif
+		case 'f': {	/* File format */
+			string* target = str_ToLower(str_Create(&option[1]));
+			handleFileFormatOption(target);
+			str_Free(target);
+			return true;
+		}
 		default:
 			break;
 	}
