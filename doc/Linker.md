@@ -47,7 +47,7 @@ This option select the target machine's memory configuration. Various sections t
 | hc800l   | HC800 large mode (32 KiB text + data + bss, 32 KiB sized banks text + data + bss) |
 | fxa2560x | Foenix A2560X/K |
 
-#### **Commodore 128 Function ROM (-tc128f, -tc128fl, -tc128fh)**
+#### **Commodore 128 Function ROM (-ccbm128f, -ccbm128fl, -ccbm128fh)**
 
 The Commodore 128 Function ROM is a binary format that can be burned onto an EPROM and placed internally in the C128 (or externally on a cartridge). The images must start with a particular header. XLink doesn't produce this header automatically.
 
