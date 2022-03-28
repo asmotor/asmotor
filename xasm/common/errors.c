@@ -325,8 +325,6 @@ err_Fail(uint32_t n, ...) {
     va_end(args);
 
     err_PrintAll();
-
-    printf("Bailing out.\n");
     exit(EXIT_FAILURE);
 }
 
@@ -339,8 +337,6 @@ err_PatchFail(const SPatch* patch, uint32_t n, ...) {
     va_end(args);
 
     err_PrintAll();
-
-    printf("Bailing out.\n");
     exit(EXIT_FAILURE);
 }
 

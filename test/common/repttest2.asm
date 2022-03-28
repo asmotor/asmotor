@@ -67,6 +67,7 @@ SetTest		SET	1
 		PRINTV	SetTest
 SetTest = SetTest+1
 		PRINTV	SetTest*2
+		PRINTT	"\n"
 
 		SECTION	"Code",CODE
 

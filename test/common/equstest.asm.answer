@@ -1,16 +1,15 @@
+First
+Second
+	2nd REPT
+	2nd REPT
+First
+Second
+	2nd REPT
+	2nd REPT
+First
+Second
+	2nd REPT
+	2nd REPT
 equstest.asm:16 -> equstest.asm:17: F0147 Unterminated REPT block at end of file
 equstest.asm:7: W0003 Line 7
 
-First
-Second
-	2nd REPT
-	2nd REPT
-First
-Second
-	2nd REPT
-	2nd REPT
-First
-Second
-	2nd REPT
-	2nd REPT
-Bailing out.

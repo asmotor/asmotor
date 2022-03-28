@@ -7,7 +7,8 @@
 FF
 FF
 repttest2.asm repttest2.asm 11
-$1$4repttest2.asm:19: W0003 Line 19
+$1$4
+repttest2.asm:19: W0003 Line 19
 repttest2.asm:20 -> repttest2.asm:13: W0003 Line 13
 repttest2.asm:20 -> repttest2.asm:17: W0003 Line 17
 repttest2.asm:20 -> repttest2.asm:5: W0003 Line 5
