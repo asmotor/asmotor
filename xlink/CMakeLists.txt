@@ -5,6 +5,8 @@ add_executable (xlink
     assign.h
     commodore.c
     commodore.h
+	elf.c
+	elf.h
 	error.c
 	error.h
 	foenix.c

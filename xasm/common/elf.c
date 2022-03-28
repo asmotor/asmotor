@@ -36,6 +36,10 @@
 #define EI_VERSION 6
 #define EI_PAD 7
 #define EI_NIDENT 16
+#define ELF_HD_SHOFF 32
+#define ELF_HD_SHNUM 48
+#define ELF_HD_SHSTRNDX 50
+#define ELF_HD_SIZE 52
 
 #define ELFCLASSNONE 0
 #define ELFCLASS32 1
@@ -85,11 +89,6 @@
 #define SHN_ABS 0xfff1
 #define SHN_COMMON 0xfff2
 #define SHN_HIRESERVE 0xffff
-
-#define ELF_HD_SHOFF 32
-#define ELF_HD_SHNUM 48
-#define ELF_HD_SHSTRNDX 50
-#define ELF_HD_SIZE 52
 
 #define SYM_SIZE 16
 

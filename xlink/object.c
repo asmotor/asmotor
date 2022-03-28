@@ -20,7 +20,7 @@
  * xLink - OBJECT.C
  * Copyright 1996-1998 Carsten Sorensen (csorensen@ea.com)
  *
- *	char	ID[4]="XOB\3";
+ *	char	ID[4]="XOB\4";
  *	[>=v1] char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
@@ -82,10 +82,13 @@
 
 #include <string.h>
 
+// from util
 #include "file.h"
 #include "mem.h"
 #include "str.h"
 
+// from xlink
+#include "elf.h"
 #include "group.h"
 #include "object.h"
 #include "patch.h"
@@ -304,7 +307,8 @@ readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoInd
     return sections;
 }
 
-static SFileInfo* findFileInfo(string* filename, uint32_t crc32) {
+static SFileInfo* 
+findFileInfo(string* filename, uint32_t crc32) {
     for (uint32_t i = 0; i < g_fileInfoCount; ++i) {
         if (str_Equal(g_fileInfo[i].fileName, filename) && g_fileInfo[i].crc32 == crc32) {
             return &g_fileInfo[i];
@@ -332,7 +336,6 @@ readFileInfo(FILE* fileHandle) {
                 g_fileInfo[index].index = fileInfo->index;
             } else {
                 g_fileInfo[index].index = index;
-
             }
         } 
     }
@@ -410,6 +413,11 @@ readChunk(FILE* fileHandle) {
 
         case MAKE_ID('X', 'L', 'B', 0): {
             readXLB0(fileHandle);
+            break;
+        }
+
+        case MAKE_ID(0x7F, 'E', 'L', 'F'): {
+            elf_Read(fileHandle);
             break;
         }
 
