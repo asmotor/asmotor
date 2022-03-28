@@ -39,30 +39,49 @@
 #include "smart.h"
 #include "xlink.h"
 
-typedef enum {
-    FILE_FORMAT_BINARY,
-    FILE_FORMAT_GAMEBOY,
-    FILE_FORMAT_AMIGA_EXECUTABLE,
-    FILE_FORMAT_AMIGA_LINK_OBJECT,
-    FILE_FORMAT_CBM_PRG,
-    FILE_FORMAT_MEGA_DRIVE,
-    FILE_FORMAT_MASTER_SYSTEM,
-    FILE_FORMAT_HC800_KERNAL,
-    FILE_FORMAT_HC800,
-    FILE_FORMAT_TGZ,
-} FileFormat;
+#define FILE_FORMAT_BINARY				0x0001
+#define FILE_FORMAT_GAME_BOY			0x0002
+#define FILE_FORMAT_AMIGA_EXECUTABLE	0x0004
+#define FILE_FORMAT_AMIGA_LINK_OBJECT	0x0008
+#define FILE_FORMAT_CBM_PRG				0x0010
+#define FILE_FORMAT_MEGA_DRIVE			0x0020
+#define FILE_FORMAT_MASTER_SYSTEM		0x0040
+#define FILE_FORMAT_HC800_KERNAL		0x0080
+#define FILE_FORMAT_HC800				0x0100
+#define FILE_FORMAT_PGZ					0x0200
 
-bool
+#define FF_GAME_BOY			(FILE_FORMAT_BINARY | FILE_FORMAT_GAME_BOY)
+#define FF_AMIGA			(FILE_FORMAT_BINARY | FILE_FORMAT_AMIGA_EXECUTABLE | FILE_FORMAT_AMIGA_LINK_OBJECT)
+#define FF_CBM				(FILE_FORMAT_BINARY | FILE_FORMAT_CBM_PRG)
+#define FF_MEGA_DRIVE		(FILE_FORMAT_BINARY | FILE_FORMAT_MEGA_DRIVE)
+#define FF_MASTER_SYSTEM	(FILE_FORMAT_BINARY | FILE_FORMAT_MASTER_SYSTEM)
+#define FF_HC800_KERNAL		(FILE_FORMAT_BINARY | FILE_FORMAT_HC800)
+#define FF_HC800			(FILE_FORMAT_BINARY | FILE_FORMAT_HC800)
+#define FF_FOENIX			(FILE_FORMAT_BINARY | FILE_FORMAT_PGZ)
+
+typedef uint32_t FileFormat;
+
+static FileFormat g_outputFormat = FILE_FORMAT_BINARY;
+static FileFormat g_allowedFormats = 0;
+static uint8_t* g_hc800Config = NULL;
+static uint16_t g_cbmBaseAddress = 0;
+static int g_binaryPad = -1;
+static const char* g_outputFilename = NULL;
+static const char* g_smartlink = NULL;
+static const char* g_mapFilename = NULL;
+static bool g_targetDefined = false;
+
+static bool
 format_SupportsReloc(FileFormat type) {
     return type == FILE_FORMAT_AMIGA_EXECUTABLE || type == FILE_FORMAT_AMIGA_LINK_OBJECT;
 }
 
-bool
+static bool
 format_SupportsOnlySectionRelativeReloc(FileFormat type) {
     return type == FILE_FORMAT_AMIGA_EXECUTABLE;
 }
 
-bool
+static bool
 format_SupportsImports(FileFormat type) {
     return type == FILE_FORMAT_AMIGA_LINK_OBJECT;
 }
@@ -109,7 +128,7 @@ printUsage(void) {
            "\t    -tsmd\tSega Mega Drive\n"
            "\t    -tsms\tSega Master System\n"
            "\t    -thc800\tHC800 executable\n"
-           "\t    -tfxtgz\tFoenix TGZ\n"
+           "\t    -tfxpgz\tFoenix PGZ\n"
            "\t-m<mapfile>\tWrite a mapfile to <mapfile>\n"
            "\t-o<output>\tWrite output to file <output>\n"
            "\t-s<symbol>\tPerform smart linking starting with <symbol>\n"
@@ -117,228 +136,251 @@ printUsage(void) {
     exit(EXIT_SUCCESS);
 }
 
+static void
+handleTargetOption(const string* target) {
+	if (str_EqualConst(target, "a")) {			/* Amiga executable */
+		group_SetupAmiga();
+		g_outputFormat = FILE_FORMAT_AMIGA_EXECUTABLE;
+		g_allowedFormats = FF_AMIGA;
+	} else if (str_EqualConst(target, "b")) {	/* Amiga link object */
+		group_SetupAmiga();
+		g_outputFormat = FILE_FORMAT_AMIGA_LINK_OBJECT;
+		g_allowedFormats = FF_AMIGA;
+	} else if (str_EqualConst(target, "g")) {	/* Gameboy ROM image */
+		group_SetupGameboy();
+		g_outputFormat = FILE_FORMAT_GAME_BOY;
+		g_allowedFormats = FF_GAME_BOY;
+	} else if (str_EqualConst(target, "s")) {	/* Gameboy small mode ROM image */
+		group_SetupSmallGameboy();
+		g_outputFormat = FILE_FORMAT_GAME_BOY;
+		g_allowedFormats = FF_GAME_BOY;
+	} else if (str_EqualConst(target, "c64")) {	/* Commodore 64 .prg */
+		group_SetupCommodore64();
+		g_cbmBaseAddress = 0x0801;
+		g_outputFormat = FILE_FORMAT_CBM_PRG;
+		g_allowedFormats = FF_CBM;
+	} else if (str_EqualConst(target, "c128")) {	/* Commodore 128 .prg */
+		group_SetupUnbankedCommodore128();
+		g_cbmBaseAddress = 0x1C01;
+		g_outputFormat = FILE_FORMAT_CBM_PRG;
+		g_allowedFormats = FF_CBM;
+	} else if (str_EqualConst(target, "c128f")) {	/* Commodore 128 Function ROM */
+		group_SetupCommodore128FunctionROM();
+		g_outputFormat = FILE_FORMAT_BINARY;
+		g_allowedFormats = FILE_FORMAT_BINARY;
+		g_binaryPad = 0x8000;
+	} else if (str_EqualConst(target, "c128fl")) {	/* Commodore 128 Function ROM Low */
+		group_SetupCommodore128FunctionROMLow();
+		g_outputFormat = FILE_FORMAT_BINARY;
+		g_allowedFormats = FILE_FORMAT_BINARY;
+		g_binaryPad = 0x4000;
+	} else if (str_EqualConst(target, "c128fh")) {	/* Commodore 128 Function ROM High */
+		group_SetupCommodore128FunctionROMHigh();
+		g_allowedFormats = FILE_FORMAT_BINARY;
+		g_binaryPad = 0x4000;
+	} else if (str_EqualConst(target, "c264")) {	/* Commodore 264 series .prg */
+		group_SetupCommodore264();
+		g_cbmBaseAddress = 0x1001;
+		g_outputFormat = FILE_FORMAT_CBM_PRG;
+		g_allowedFormats = FF_CBM;
+	} else if (str_EqualConst(target, "md")) {	/* Sega Mega Drive/Genesis */
+		group_SetupSegaMegaDrive();
+		g_outputFormat = FILE_FORMAT_MEGA_DRIVE;
+		g_allowedFormats = FF_MEGA_DRIVE;
+	} else if (str_EqualConst(target, "ms8")) {	/* Sega Master System 8 KiB */
+		group_SetupSegaMasterSystem(0x2000);
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0x2000;
+	} else if (str_EqualConst(target, "ms16")) {	/* Sega Master System 16 KiB */
+		group_SetupSegaMasterSystem(0x4000);
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0x4000;
+	} else if (str_EqualConst(target, "ms32")) {	/* Sega Master System 32 KiB */
+		group_SetupSegaMasterSystem(0x8000);
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0x8000;
+	} else if (str_EqualConst(target, "ms48")) {	/* Sega Master System 48 KiB */
+		group_SetupSegaMasterSystem(0xC000);
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0xC000;
+	} else if (str_EqualConst(target, "msb")) {		/* Sega Master System 64+ KiB */
+		group_SetupSegaMasterSystemBanked();
+		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0;
+	} else if (str_EqualConst(target, "hc8b")) {	/* HC800 16 KiB text + data, 16 KiB bss */
+		group_SetupHC8XXROM();
+		g_outputFormat = FILE_FORMAT_HC800_KERNAL;
+		g_allowedFormats = FF_HC800_KERNAL;
+		g_binaryPad = 0;
+	} else if (str_EqualConst(target, "hc8s")) {	/* HC800, CODE: 64 KiB text + data + bss */
+		group_SetupHC8XXSmall();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigSmall;
+	} else if (str_EqualConst(target, "hc8sh")) {	/* HC800 CODE: 64 KiB text, DATA: 64 KiB data + bss */
+		group_SetupHC8XXSmallHarvard();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigSmallHarvard;
+	} else if (str_EqualConst(target, "hc8m")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text */
+		group_SetupHC8XXMedium();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigMedium;
+	} else if (str_EqualConst(target, "hc8mh")) {	/* HC800, CODE: 32 KiB text, CODE: 32 KiB sized text banks, DATA: 64 KiB data + bss */
+		group_SetupHC8XXMediumHarvard();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigMediumHarvard;
+	} else if (str_EqualConst(target, "hc8l")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text + data + bss */
+		group_SetupHC8XXLarge();
+		g_outputFormat = FILE_FORMAT_HC800;
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigLarge;
+	} else if (str_EqualConst(target, "fxa2560x")) {	/* Foenix A2560X/K */
+		group_SetupFoenixA2560X();
+		g_outputFormat = FILE_FORMAT_PGZ;
+		g_allowedFormats = FF_FOENIX;
+	} else {
+		error("Unknown target \"%s\"", str_String(target));
+	}
+}
+
+static void
+writeOutput(const char* g_outputFilename) {
+	switch (g_outputFormat) {
+		case FILE_FORMAT_MEGA_DRIVE:
+			sega_WriteMegaDriveImage(g_outputFilename);
+			break;
+		case FILE_FORMAT_MASTER_SYSTEM:
+			sega_WriteMasterSystemImage(g_outputFilename, g_binaryPad);
+			break;
+		case FILE_FORMAT_GAME_BOY:
+			gameboy_WriteImage(g_outputFilename);
+			break;
+		case FILE_FORMAT_BINARY:
+			image_WriteBinary(g_outputFilename, g_binaryPad);
+			break;
+		case FILE_FORMAT_CBM_PRG:
+			commodore_WritePrg(g_outputFilename, g_cbmBaseAddress);
+			break;
+		case FILE_FORMAT_AMIGA_EXECUTABLE:
+			amiga_WriteExecutable(g_outputFilename, false);
+			break;
+		case FILE_FORMAT_AMIGA_LINK_OBJECT:
+			amiga_WriteLinkObject(g_outputFilename, false);
+			break;
+		case FILE_FORMAT_HC800_KERNAL:
+			hc800_WriteKernal(g_outputFilename);
+			break;
+		case FILE_FORMAT_HC800:
+			hc800_WriteExecutable(g_outputFilename, g_hc800Config);
+			break;
+		case FILE_FORMAT_PGZ:
+			foenix_WriteExecutable(g_outputFilename);
+			break;
+	}
+}
+
+static bool
+handleOption(const char* option) {
+	switch (tolower(option[0])) {
+		case '?':
+		case 'h':
+			printUsage();
+			break;
+		case 'm':	/* MapFile */
+			if (option[1] == 0) error("option \"m\" needs an argument");
+
+			g_mapFilename = &option[1];
+			return true;
+		case 'o':	/* Output filename */
+			if (option[1] == 0) error("option \"o\" needs an argument");
+
+			g_outputFilename = &option[1];
+			return true;
+		case 's':	/* Smart linking */
+			if (option[1] == 0) error("option \"s\" needs an argument");
+
+			g_smartlink = &option[1];
+			return true;
+		case 't': {	/* Target */
+			if (g_targetDefined) error("more than one target (option \"t\", \"c\") defined");
+
+			fprintf(stderr, "Warning: option -t is deprecated and has been replaced with -f and -c\n");
+			g_targetDefined = true;
+
+			string* target = str_ToLower(str_Create(&option[1]));
+			handleTargetOption(target);
+			str_Free(target);
+			return true;
+		}
+#if 0		
+		case 'c': {	/* Memory configuration */
+			if (g_targetDefined) error("more than one target (option \"t\", \"c\") defined");
+
+			g_targetDefined = true;
+			string* target = str_ToLower(str_Create(&option[1]));
+			handleMemoryConfigurationOption(target);
+			str_Free(target);
+			return true;
+		}
+#endif
+		default:
+			break;
+	}
+	return false;
+}
+
 int
 main(int argc, char* argv[]) {
     int argn = 1;
-    bool targetDefined = false;
-    FileFormat outputFormat = FILE_FORMAT_BINARY;
-	uint8_t* hc800Config = NULL;
-	uint16_t cbmBaseAddress = 0;
-    int binaryPad = -1;
 
-    const char* outputFilename = NULL;
-    const char* smartlink = NULL;
-    const char* mapFilename = NULL;
-
-    if (argc == 1)
+    if (argc == 1) {
         printUsage();
+	}
 
     while (argn < argc && (argv[argn][0] == '-' || argv[argn][0] == '/')) {
-        switch (tolower((unsigned char) argv[argn][1])) {
-            case '?':
-            case 'h':
-                ++argn;
-                printUsage();
-                break;
-            case 'm':
-                /* MapFile */
-                if (argv[argn][2] != 0) {
-                    mapFilename = &argv[argn++][2];
-                } else {
-                    error("option \"m\" needs an argument");
-                }
-                break;
-            case 'o':
-                /* Output filename */
-                if (argv[argn][2] != 0) {
-                    outputFilename = &argv[argn][2];
-                    ++argn;
-                } else {
-                    error("option \"o\" needs an argument");
-                }
-                break;
-            case 's':
-                /* Smart linking */
-                if (argv[argn][2] != 0) {
-                    smartlink = &argv[argn][2];
-                    ++argn;
-                } else {
-                    error("option \"s\" needs an argument");
-                }
-                break;
-            case 't':
-                /* Target */
-                if (targetDefined)
-                    error("more than one target (option \"t\") defined");
-
-				fprintf(stderr, "Warning: option -t is deprecated and has been replaced with -f and -c\n");
-				targetDefined = true;
-
-				string* target = str_ToLower(str_Create(&argv[argn++][2]));
-				if (str_EqualConst(target, "a")) {			/* Amiga executable */
-					group_SetupAmiga();
-					outputFormat = FILE_FORMAT_AMIGA_EXECUTABLE;
-				} else if (str_EqualConst(target, "b")) {	/* Amiga link object */
-					group_SetupAmiga();
-					outputFormat = FILE_FORMAT_AMIGA_LINK_OBJECT;
-				} else if (str_EqualConst(target, "g")) {	/* Gameboy ROM image */
-					group_SetupGameboy();
-					outputFormat = FILE_FORMAT_GAMEBOY;
-				} else if (str_EqualConst(target, "s")) {	/* Gameboy small mode ROM image */
-					group_SetupSmallGameboy();
-					outputFormat = FILE_FORMAT_GAMEBOY;
-				} else if (str_EqualConst(target, "c64")) {	/* Commodore 64 .prg */
-					group_SetupCommodore64();
-					cbmBaseAddress = 0x0801;
-					outputFormat = FILE_FORMAT_CBM_PRG;
-				} else if (str_EqualConst(target, "c128")) {	/* Commodore 128 .prg */
-					group_SetupUnbankedCommodore128();
-					cbmBaseAddress = 0x1C01;
-					outputFormat = FILE_FORMAT_CBM_PRG;
-				} else if (str_EqualConst(target, "c128f")) {	/* Commodore 128 Function ROM */
-					group_SetupCommodore128FunctionROM();
-					outputFormat = FILE_FORMAT_BINARY;
-					binaryPad = 0x8000;
-				} else if (str_EqualConst(target, "c128fl")) {	/* Commodore 128 Function ROM Low */
-					group_SetupCommodore128FunctionROMLow();
-					outputFormat = FILE_FORMAT_BINARY;
-					binaryPad = 0x4000;
-				} else if (str_EqualConst(target, "c128fh")) {	/* Commodore 128 Function ROM High */
-					group_SetupCommodore128FunctionROMHigh();
-					outputFormat = FILE_FORMAT_BINARY;
-					binaryPad = 0x4000;
-				} else if (str_EqualConst(target, "c264")) {	/* Commodore 264 series .prg */
-					group_SetupCommodore264();
-					cbmBaseAddress = 0x1001;
-					outputFormat = FILE_FORMAT_CBM_PRG;
-				} else if (str_EqualConst(target, "md")) {	/* Sega Mega Drive/Genesis */
-					group_SetupSegaMegaDrive();
-					outputFormat = FILE_FORMAT_MEGA_DRIVE;
-				} else if (str_EqualConst(target, "ms8")) {	/* Sega Master System 8 KiB */
-					group_SetupSegaMasterSystem(0x2000);
-					outputFormat = FILE_FORMAT_MASTER_SYSTEM;
-					binaryPad = 0x2000;
-				} else if (str_EqualConst(target, "ms16")) {	/* Sega Master System 16 KiB */
-					group_SetupSegaMasterSystem(0x4000);
-					outputFormat = FILE_FORMAT_MASTER_SYSTEM;
-					binaryPad = 0x4000;
-				} else if (str_EqualConst(target, "ms32")) {	/* Sega Master System 32 KiB */
-					group_SetupSegaMasterSystem(0x8000);
-					outputFormat = FILE_FORMAT_MASTER_SYSTEM;
-					binaryPad = 0x8000;
-				} else if (str_EqualConst(target, "ms48")) {	/* Sega Master System 48 KiB */
-					group_SetupSegaMasterSystem(0xC000);
-					outputFormat = FILE_FORMAT_MASTER_SYSTEM;
-					binaryPad = 0xC000;
-				} else if (str_EqualConst(target, "msb")) {	/* Sega Master System 64+ KiB */
-					group_SetupSegaMasterSystemBanked();
-					outputFormat = FILE_FORMAT_MASTER_SYSTEM;
-					binaryPad = 0;
-				} else if (str_EqualConst(target, "hc8b")) {	/* HC800 16 KiB text + data, 16 KiB bss */
-					group_SetupHC8XXROM();
-					outputFormat = FILE_FORMAT_HC800_KERNAL;
-					binaryPad = 0;
-				} else if (str_EqualConst(target, "hc8s")) {	/* HC800, CODE: 64 KiB text + data + bss */
-					group_SetupHC8XXSmall();
-					outputFormat = FILE_FORMAT_HC800;
-					hc800Config = hc800_ConfigSmall;
-				} else if (str_EqualConst(target, "hc8sh")) {	/* HC800 CODE: 64 KiB text, DATA: 64 KiB data + bss */
-					group_SetupHC8XXSmallHarvard();
-					outputFormat = FILE_FORMAT_HC800;
-					hc800Config = hc800_ConfigSmallHarvard;
-				} else if (str_EqualConst(target, "hc8m")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text */
-					group_SetupHC8XXMedium();
-					outputFormat = FILE_FORMAT_HC800;
-					hc800Config = hc800_ConfigMedium;
-				} else if (str_EqualConst(target, "hc8mh")) {	/* HC800, CODE: 32 KiB text, CODE: 32 KiB sized text banks, DATA: 64 KiB data + bss */
-					group_SetupHC8XXMediumHarvard();
-					outputFormat = FILE_FORMAT_HC800;
-					hc800Config = hc800_ConfigMediumHarvard;
-				} else if (str_EqualConst(target, "hc8l")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text + data + bss */
-					group_SetupHC8XXLarge();
-					outputFormat = FILE_FORMAT_HC800;
-					hc800Config = hc800_ConfigLarge;
-				} else if (str_EqualConst(target, "fxa2560x")) {	/* Foenix A2560X/K */
-					group_SetupFoenixA2560X();
-					outputFormat = FILE_FORMAT_TGZ;
-				} else {
-					error("Unknown target \"%s\"", str_String(target));
-				}
-                str_Free(target);
-				break;
-
-#if 0
-				case 'm':
-				{
-					/* Use machine def file */
-					targetDefined = 1;
-					Error("option \"tm\" not implemented yet");
-					++argn;
-					break;
-				}
-#endif
-            default:
-                error("Unknown option \"%s\"", argv[argn]);
-                break;
-        }
+		if (!handleOption(&argv[argn][1]))
+			error("Unknown option \"%s\"", argv[argn]);
     }
 
-    if (!targetDefined) {
+    if (!g_targetDefined) {
         error("No target format defined");
-    }
+	}
+
+	if ((g_outputFormat & g_allowedFormats) == 0) {
+		error("Memory/machine configuration does not support output format");
+	}
 
     while (argn < argc && argv[argn]) {
         obj_Read(argv[argn++]);
     }
 
-    smart_Process(smartlink);
+    smart_Process(g_smartlink);
 
-    if (!format_SupportsReloc(outputFormat))
+    if (!format_SupportsReloc(g_outputFormat))
         assign_Process();
 
-    patch_Process(format_SupportsReloc(outputFormat), format_SupportsOnlySectionRelativeReloc(outputFormat),
-                  format_SupportsImports(outputFormat));
+    patch_Process(
+		format_SupportsReloc(g_outputFormat),
+		format_SupportsOnlySectionRelativeReloc(g_outputFormat),
+        format_SupportsImports(g_outputFormat));
 
-    if (outputFilename != NULL) {
-        switch (outputFormat) {
-            case FILE_FORMAT_MEGA_DRIVE:
-                sega_WriteMegaDriveImage(outputFilename);
-                break;
-            case FILE_FORMAT_MASTER_SYSTEM:
-                sega_WriteMasterSystemImage(outputFilename, binaryPad);
-                break;
-            case FILE_FORMAT_GAMEBOY:
-                gameboy_WriteImage(outputFilename);
-                break;
-            case FILE_FORMAT_BINARY:
-                image_WriteBinary(outputFilename, binaryPad);
-                break;
-            case FILE_FORMAT_CBM_PRG:
-                commodore_WritePrg(outputFilename, cbmBaseAddress);
-                break;
-            case FILE_FORMAT_AMIGA_EXECUTABLE:
-                amiga_WriteExecutable(outputFilename, false);
-                break;
-            case FILE_FORMAT_AMIGA_LINK_OBJECT:
-                amiga_WriteLinkObject(outputFilename, false);
-                break;
-            case FILE_FORMAT_HC800_KERNAL:
-                hc800_WriteKernal(outputFilename);
-                break;
-            case FILE_FORMAT_HC800:
-                hc800_WriteExecutable(outputFilename, hc800Config);
-                break;
-            case FILE_FORMAT_TGZ:
-                foenix_WriteExecutable(outputFilename);
-                break;
-        }
-    }
+	if (g_outputFilename != NULL) {
+		writeOutput(g_outputFilename);
+	}
 
-    if (mapFilename != NULL) {
-        if (!format_SupportsReloc(outputFormat)) {
+    if (g_mapFilename != NULL) {
+        if (!format_SupportsReloc(g_outputFormat)) {
             sect_ResolveUnresolved();
             sect_SortSections();
-            map_Write(mapFilename);
+            map_Write(g_mapFilename);
         } else {
             error("Output format does not support producing a mapfile");
         }
