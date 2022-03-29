@@ -30,30 +30,72 @@ typedef uint32_t e_off_t;
 typedef uint32_t e_addr_t;
 typedef uint16_t e_half_t;
 
+struct StringTable;
+struct SectionHeader;
+
 
 typedef struct {
-	e_word_t name;
+	const char* name;
+	const struct SectionHeader* section;
+
+	e_word_t nameindex;
 	e_addr_t value;
 	uint8_t bind;
 	uint8_t type;
-	e_half_t symtable;
+	e_half_t sectionindex;
 } Symbol;
 
-
-
 typedef struct {
-	size_t length;
-	uint8_t data[];
-} StringTable;
+	const struct StringTable* stringSection;
 
+	size_t totalSymbols;
+	Symbol data[];
+} SymbolTable;
+
+typedef struct StringTable {
+	size_t length;
+	char data[];
+} StringTable;
 
 typedef struct {
 	size_t length;
 	uint8_t data[];
 } ProgBits;
 
+typedef struct {
+	Symbol* symbol;
+
+	e_addr_t offset;
+	e_word_t symbolIndex;
+	e_word_t type;
+} Reloc;
 
 typedef struct {
+	SymbolTable* symbols;
+	struct SectionHeader* section;
+
+	size_t totalRelocations;
+	Reloc data[];
+} RelocTable;
+
+typedef struct {
+	const Symbol* symbol;
+
+	e_addr_t offset;
+	int32_t addend;
+	e_word_t symbolIndex;
+	e_word_t type;
+} RelocAddend;
+
+typedef struct {
+	const SymbolTable* symbols;
+	const struct SectionHeader* section;
+
+	size_t totalRelocations;
+	RelocAddend data[];
+} RelocAddendTable;
+
+typedef struct SectionHeader {
 	e_word_t sh_name;
 	e_word_t sh_type;
 	e_word_t sh_flags;
@@ -65,14 +107,78 @@ typedef struct {
 	e_word_t sh_addralign;
 	e_word_t sh_entsize;
 
+	const char* name;
+
 	union {
 		StringTable* strings;
 		ProgBits* progbits;
+		SymbolTable* symbols;
+		RelocTable* relocations;
+		RelocAddendTable* relocationAddends;
 	} sh_data;
 } SectionHeader;
 
+typedef struct {
+	uint32_t totalSectionHeaders;
+	e_half_t stringSectionHeaderIndex;
+	SectionHeader* headers;
+} ElfHeader;
+
+
+static uint32_t
+read_word_b(const uint8_t* mem, size_t offset) {
+	uint32_t r;
+
+	mem += offset;
+	r  = *mem++ << 24u;
+	r |= *mem++ << 16u;
+	r |= *mem++ << 8u;
+	r |= *mem++;
+
+	return r;
+}
+
+static uint32_t
+read_word_l(const uint8_t* mem, size_t offset) {
+	uint32_t r;
+
+	mem += offset;
+	r  = *mem++;
+	r |= *mem++ << 8u;
+	r |= *mem++ << 16u;
+	r |= *mem++ << 24u;
+
+	return r;
+}
+
+static uint16_t
+read_half_b(const uint8_t* mem, size_t offset) {
+	uint16_t r;
+
+	mem += offset;
+	r  = *mem++ << 8u;
+	r |= *mem++;
+
+	return r;
+}
+
+static uint16_t
+read_half_l(const uint8_t* mem, size_t offset) {
+	uint16_t r;
+
+	mem += offset;
+	r  = *mem++;
+	r |= *mem++ << 8u;
+
+	return r;
+}
+
+
 static uint32_t (*fget_word)(FILE*);
 static uint16_t (*fget_half)(FILE*);
+
+static uint32_t (*read_word)(const uint8_t*, size_t);
+static uint16_t (*read_half)(const uint8_t*, size_t);
 
 #define fget_addr fget_word
 #define fget_off fget_word
@@ -134,6 +240,22 @@ static uint16_t (*fget_half)(FILE*);
 #define SHF_EXECINSTR 0x4
 #define SHF_MASKPROC 0xf0000000
 
+#define ELF32_ST_BIND(i) ((i)>>4)
+#define ELF32_ST_TYPE(i) ((i)&0xf)
+#define ELF32_ST_INFO(b,t) (((b)<<4)+((t)&0xf))
+
+#define ELF32_R_SYM(i) ((i)>>8)
+#define ELF32_R_TYPE(i) ((unsigned char)(i))
+#define ELF32_R_INFO(s,t) (((s)<<8)+(unsigned char)(t))
+
+#define R_68K_NONE 0	/* No reloc */
+#define R_68K_32 1		/* Direct 32 bit  */
+#define R_68K_16 2		/* Direct 16 bit  */
+#define R_68K_8 3		/* Direct 8 bit  */
+#define R_68K_PC32 4	/* PC relative 32 bit */
+#define R_68K_PC16 5	/* PC relative 16 bit */
+#define R_68K_PC8 6		/* PC relative 8 bit */
+
 
 static bool
 readHeader(FILE* fileHandle, e_off_t* sectionHeadersOffset, e_half_t* sectionHeaderEntrySize, e_half_t* totalSectionHeaders, e_half_t* stringSectionHeaderIndex) {
@@ -148,9 +270,13 @@ readHeader(FILE* fileHandle, e_off_t* sectionHeadersOffset, e_half_t* sectionHea
 	if (id_endian == ELFDATA2LSB) {
 		fget_half = fgetlw;
 		fget_word = fgetll;
+		read_half = read_half_l;
+		read_word = read_word_l;
 	} else if (id_endian == ELFDATA2MSB) {
 		fget_half = fgetbw;
 		fget_word = fgetbl;
+		read_half = read_half_b;
+		read_word = read_word_b;
 	} else {
 		return false;
 	}
@@ -198,43 +324,270 @@ readSectionHeaders(FILE* fileHandle, e_off_t sectionHeadersOffset, e_half_t sect
 }
 
 
-static bool
+static void
+readProgBits(FILE* fileHandle, SectionHeader* header) {
+	ProgBits* progbits = malloc(sizeof(ProgBits) + header->sh_size);
+
+	if (header->sh_flags & SHF_ALLOC) {
+		fseek(fileHandle, header->sh_offset, SEEK_SET);
+		progbits->length = header->sh_size;
+		if (progbits->length != fread(progbits->data, 1, progbits->length, fileHandle))
+			error("readProgBits short file");
+	} else {
+		progbits->length = 0;
+	}
+	header->sh_data.progbits = progbits;
+}
+
+
+static void
+readStrTab(FILE* fileHandle, SectionHeader* header) {
+	StringTable* table = malloc(sizeof(StringTable) + header->sh_size);
+
+	fseek(fileHandle, header->sh_offset, SEEK_SET);
+	table->length = header->sh_size;
+	if (table->length != fread(table->data, 1, table->length, fileHandle))
+		error("readStrTab short file");
+	header->sh_data.strings = table;
+}
+
+
+static void
+readSymTab(FILE* fileHandle, SectionHeader* header) {
+	/* e_word_t stringSection = header->sh_link; */
+	e_word_t totalSymbols = header->sh_info;
+
+	SymbolTable* table = malloc(sizeof(SymbolTable) + totalSymbols * sizeof(Symbol));
+	table->totalSymbols = totalSymbols;
+
+	for (e_word_t i = 0; i < totalSymbols; ++i) {
+		Symbol* symbol = &table->data[i];
+		fseek(fileHandle, header->sh_offset + i * header->sh_entsize, SEEK_SET);
+		symbol->nameindex = fget_word(fileHandle);
+		symbol->value = fget_addr(fileHandle);
+		/* size = */ fget_word(fileHandle);
+		uint8_t info = fgetc(fileHandle);
+		symbol->bind = ELF32_ST_BIND(info);
+		symbol->type = ELF32_ST_TYPE(info);
+		/* other = */ fgetc(fileHandle);
+		symbol->sectionindex = fget_half(fileHandle);
+	}
+
+	header->sh_data.symbols = table;
+}
+
+
+static void
+readRelA(FILE* fileHandle, SectionHeader* header) {
+	/* e_word_t stringSection = header->sh_link; */
+	e_word_t totalRelocs = header->sh_info;
+
+	RelocAddendTable* table = malloc(sizeof(RelocAddendTable) + totalRelocs * sizeof(RelocAddend));
+	table->totalRelocations = totalRelocs;
+
+	for (e_word_t i = 0; i < totalRelocs; ++i) {
+		RelocAddend* reloc = &table->data[i];
+		fseek(fileHandle, header->sh_offset + i * header->sh_entsize, SEEK_SET);
+		reloc->offset = fget_addr(fileHandle);
+		e_word_t info = fget_word(fileHandle);
+		reloc->symbolIndex = ELF32_R_SYM(info);
+		reloc->type = ELF32_R_TYPE(info);
+		reloc->addend = fget_word(fileHandle);
+	}
+
+	header->sh_data.relocationAddends = table;
+}
+
+
+static void
+readRel(FILE* fileHandle, SectionHeader* header) {
+	/* e_word_t stringSection = header->sh_link; */
+	e_word_t totalRelocs = header->sh_info;
+
+	RelocTable* table = malloc(sizeof(RelocTable) + totalRelocs * sizeof(Reloc));
+	table->totalRelocations = totalRelocs;
+
+	for (e_word_t i = 0; i < totalRelocs; ++i) {
+		Reloc* reloc = &table->data[i];
+		fseek(fileHandle, header->sh_offset + i * header->sh_entsize, SEEK_SET);
+		reloc->offset = fget_addr(fileHandle);
+		e_word_t info = fget_word(fileHandle);
+		reloc->symbolIndex = ELF32_R_SYM(info);
+		reloc->type = ELF32_R_TYPE(info);
+	}
+
+	header->sh_data.relocations = table;
+}
+
+
+static void
 readSections(FILE* fileHandle, SectionHeader* headers, uint_fast16_t totalSections) {
 	for (uint_fast16_t i = 0; i < totalSections; ++totalSections) {
 		SectionHeader* header = &headers[i];
 		switch (header->sh_type) {
-			case SHT_NULL: {
+			case SHT_PROGBITS:
+				readProgBits(fileHandle, header);
 				break;
-			}
-			case SHT_PROGBITS: {
-				ProgBits* progbits = malloc(sizeof(ProgBits) + header->sh_size);
-
-				if (header->sh_flags & SHF_ALLOC) {
-					fseek(fileHandle, header->sh_offset, SEEK_SET);
-					progbits->length = header->sh_size;
-					fread(progbits->data, 1, progbits->length, fileHandle);
-				} else {
-					progbits->length = 0;
-				}
-				header->sh_data.progbits = progbits;
+			case SHT_STRTAB:
+				readStrTab(fileHandle, header);
 				break;
-			}
-			case SHT_STRTAB: {
-				StringTable* table = malloc(sizeof(StringTable) + header->sh_size);
-
-				fseek(fileHandle, header->sh_offset, SEEK_SET);
-				table->length = header->sh_size;
-				fread(table->data, 1, table->length, fileHandle);
-				header->sh_data.strings = table;
+			case SHT_SYMTAB:
+				readSymTab(fileHandle, header);
 				break;
-			}
-			case SHT_SYMTAB: {
+			case SHT_RELA:
+				readRelA(fileHandle, header);
 				break;
-			}
+			case SHT_REL:
+				readRel(fileHandle, header);
+				break;
+			default:
+				break;
 		}
 	}
+}
 
-	return true;
+
+static const SectionHeader*
+getSectionHeader(const ElfHeader* elf, uint32_t index) {
+	if (index >= elf->totalSectionHeaders)
+		error("getSectionHeader read outside range (%d)", index);
+
+	return &elf->headers[index];
+}
+
+
+static const StringTable*
+getStringTable(const ElfHeader* elf, uint32_t index) {
+	const SectionHeader* header = getSectionHeader(elf, index);
+
+	if (header->sh_type != SHT_STRTAB)
+		error("getStringTable expected string section (%d)", index);
+	
+	return header->sh_data.strings;
+}
+
+
+static const SymbolTable*
+getSymbolTable(const ElfHeader* elf, uint32_t index) {
+	const SectionHeader* header = getSectionHeader(elf, index);
+	if (header->sh_type != SHT_SYMTAB)
+		error("getSymbolTable expected symbol section (%d)", index);
+
+	return header->sh_data.symbols;
+}
+
+
+static const Symbol*
+getSymbol(const SymbolTable* symbols, uint32_t index) {
+	if (index >= symbols->totalSymbols)
+		error("getSymbol read outside range (%d)", index);
+
+	return &symbols->data[index];
+}
+
+
+static const char*
+getString(const StringTable* table, uint32_t index) {
+	if (index >= table->length)
+		error("getString read outside range (%d)", index);
+
+	return &table->data[index];
+}
+
+static void
+resolveSectionNames(ElfHeader* elf) {
+	const StringTable* names = getStringTable(elf, elf->stringSectionHeaderIndex);
+	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
+		SectionHeader* header = &elf->headers[i];
+		header->name = getString(names, header->sh_name);
+	}
+}
+
+
+static void
+resolveSymTab(const ElfHeader* elf, SectionHeader* header) {
+	SymbolTable* symbols = header->sh_data.symbols;
+	symbols->stringSection = getStringTable(elf, header->sh_link);
+
+	for (uint32_t i = 0; i < symbols->totalSymbols; ++i) {
+		Symbol* symbol = &symbols->data[i];
+		symbol->name = getString(symbols->stringSection, symbol->nameindex);
+		symbol->section = getSectionHeader(elf, symbol->sectionindex);
+	}
+}
+
+
+static void
+resolveRelA(ElfHeader* elf, SectionHeader* header) {
+	RelocAddendTable* relocs = header->sh_data.relocationAddends;
+	relocs->section = getSectionHeader(elf, header->sh_info);
+	relocs->symbols = getSymbolTable(elf, header->sh_link);
+
+	for (uint32_t i = 0; i < relocs->totalRelocations; ++i) {
+		RelocAddend* reloc = &relocs->data[i];
+		reloc->symbol = getSymbol(relocs->symbols, reloc->symbolIndex);
+	}
+}
+
+
+static int32_t
+readData(const SectionHeader* text, uint32_t offset, uint32_t type) {
+	switch (type) {
+		case R_68K_32:
+		case R_68K_PC32:
+			return read_word(text->sh_data.progbits->data, offset);
+		case R_68K_16:
+		case R_68K_PC16:
+			return read_half(text->sh_data.progbits->data, offset);
+		default:
+			error("readData unsupported type (%d)", type);
+	}
+}
+
+
+static void
+resolveRel(ElfHeader* elf, SectionHeader* header) {
+	const SectionHeader* textSection = getSectionHeader(elf, header->sh_info);
+
+	RelocTable* sourceTable = header->sh_data.relocations;
+	RelocAddendTable* destTable = malloc(sizeof(RelocAddendTable) + sourceTable->totalRelocations * sizeof(RelocAddend));
+
+	for (uint32_t i = 0; i < sourceTable->totalRelocations; ++i) {
+		Reloc* source = &sourceTable->data[i];
+		RelocAddend* dest = &destTable->data[i];
+
+		dest->offset = source->offset;
+		dest->symbolIndex = source->symbolIndex;
+		dest->type = source->type;
+		dest->addend = readData(textSection, source->offset, source->type);
+	}
+
+	header->sh_type = SHT_RELA;
+	header->sh_data.relocationAddends = destTable;
+	resolveRelA(elf, header);
+}
+
+
+static void
+resolveNamesAndIndices(ElfHeader* elf) {
+	resolveSectionNames(elf);
+
+	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
+		SectionHeader* header = &elf->headers[i];
+		switch (header->sh_type) {
+			case SHT_SYMTAB:
+				resolveSymTab(elf, header);
+				break;
+			case SHT_RELA:
+				resolveRelA(elf, header);
+				break;
+			case SHT_REL:
+				resolveRel(elf, header);
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 
@@ -246,11 +599,18 @@ elf_Read(FILE* fileHandle) {
 	e_half_t stringSectionHeaderIndex;
 
 	if (!readHeader(fileHandle, &sectionHeadersOffset, &sectionHeaderEntrySize, &totalSectionHeaders, &stringSectionHeaderIndex))
-		return false;
+		error("Unsupported ELF file");
 
 	SectionHeader* sectionHeaders = readSectionHeaders(fileHandle, sectionHeadersOffset, sectionHeaderEntrySize, totalSectionHeaders);
-	if (!readSections(fileHandle, sectionHeaders, totalSectionHeaders))
-		return false;
+
+	ElfHeader elf = {
+		totalSectionHeaders,
+		stringSectionHeaderIndex,
+		sectionHeaders
+	};
+
+	readSections(fileHandle, sectionHeaders, totalSectionHeaders);
+	resolveNamesAndIndices(&elf);
 
 	return false;
 }
