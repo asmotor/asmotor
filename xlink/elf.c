@@ -355,7 +355,7 @@ readStrTab(FILE* fileHandle, SectionHeader* header) {
 static void
 readSymTab(FILE* fileHandle, SectionHeader* header) {
 	/* e_word_t stringSection = header->sh_link; */
-	e_word_t totalSymbols = header->sh_info;
+	e_word_t totalSymbols = header->sh_size / header->sh_entsize;
 
 	SymbolTable* table = malloc(sizeof(SymbolTable) + totalSymbols * sizeof(Symbol));
 	table->totalSymbols = totalSymbols;
@@ -380,7 +380,7 @@ readSymTab(FILE* fileHandle, SectionHeader* header) {
 static void
 readRelA(FILE* fileHandle, SectionHeader* header) {
 	/* e_word_t stringSection = header->sh_link; */
-	e_word_t totalRelocs = header->sh_info;
+	e_word_t totalRelocs = header->sh_size / header->sh_entsize;
 
 	RelocAddendTable* table = malloc(sizeof(RelocAddendTable) + totalRelocs * sizeof(RelocAddend));
 	table->totalRelocations = totalRelocs;
@@ -422,7 +422,7 @@ readRel(FILE* fileHandle, SectionHeader* header) {
 
 static void
 readSections(FILE* fileHandle, SectionHeader* headers, uint_fast16_t totalSections) {
-	for (uint_fast16_t i = 0; i < totalSections; ++totalSections) {
+	for (uint_fast16_t i = 0; i < totalSections; ++i) {
 		SectionHeader* header = &headers[i];
 		switch (header->sh_type) {
 			case SHT_PROGBITS:

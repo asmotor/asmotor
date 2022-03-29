@@ -498,6 +498,7 @@ main(int argc, char* argv[]) {
     while (argn < argc && (argv[argn][0] == '-' || argv[argn][0] == '/')) {
 		if (!handleOption(&argv[argn][1]))
 			error("Unknown option \"%s\"", argv[argn]);
+		++argn;
     }
 
     if (!g_targetDefined) {
