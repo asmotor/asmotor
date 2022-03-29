@@ -32,9 +32,25 @@ typedef uint16_t e_half_t;
 
 
 typedef struct {
+	e_word_t name;
+	e_addr_t value;
+	uint8_t bind;
+	uint8_t type;
+	e_half_t symtable;
+} Symbol;
+
+
+
+typedef struct {
 	size_t length;
 	uint8_t data[];
 } StringTable;
+
+
+typedef struct {
+	size_t length;
+	uint8_t data[];
+} ProgBits;
 
 
 typedef struct {
@@ -51,6 +67,7 @@ typedef struct {
 
 	union {
 		StringTable* strings;
+		ProgBits* progbits;
 	} sh_data;
 } SectionHeader;
 
@@ -94,6 +111,28 @@ static uint16_t (*fget_half)(FILE*);
 
 #define EV_NONE 0
 #define EV_CURRENT 1
+
+#define SHT_NULL 0
+#define SHT_PROGBITS 1
+#define SHT_SYMTAB 2
+#define SHT_STRTAB 3
+#define SHT_RELA 4
+#define SHT_HASH 5
+#define SHT_DYNAMIC 6
+#define SHT_NOTE 7
+#define SHT_NOBITS 8
+#define SHT_REL 9
+#define SHT_SHLIB 10
+#define SHT_DYNSYM 11
+#define SHT_LOPROC 0x70000000
+#define SHT_HIPROC 0x7fffffff
+#define SHT_LOUSER 0x80000000
+#define SHT_HIUSER 0xffffffff
+
+#define SHF_WRITE 0x1
+#define SHF_ALLOC 0x2
+#define SHF_EXECINSTR 0x4
+#define SHF_MASKPROC 0xf0000000
 
 
 static bool
@@ -159,6 +198,46 @@ readSectionHeaders(FILE* fileHandle, e_off_t sectionHeadersOffset, e_half_t sect
 }
 
 
+static bool
+readSections(FILE* fileHandle, SectionHeader* headers, uint_fast16_t totalSections) {
+	for (uint_fast16_t i = 0; i < totalSections; ++totalSections) {
+		SectionHeader* header = &headers[i];
+		switch (header->sh_type) {
+			case SHT_NULL: {
+				break;
+			}
+			case SHT_PROGBITS: {
+				ProgBits* progbits = malloc(sizeof(ProgBits) + header->sh_size);
+
+				if (header->sh_flags & SHF_ALLOC) {
+					fseek(fileHandle, header->sh_offset, SEEK_SET);
+					progbits->length = header->sh_size;
+					fread(progbits->data, 1, progbits->length, fileHandle);
+				} else {
+					progbits->length = 0;
+				}
+				header->sh_data.progbits = progbits;
+				break;
+			}
+			case SHT_STRTAB: {
+				StringTable* table = malloc(sizeof(StringTable) + header->sh_size);
+
+				fseek(fileHandle, header->sh_offset, SEEK_SET);
+				table->length = header->sh_size;
+				fread(table->data, 1, table->length, fileHandle);
+				header->sh_data.strings = table;
+				break;
+			}
+			case SHT_SYMTAB: {
+				break;
+			}
+		}
+	}
+
+	return true;
+}
+
+
 bool
 elf_Read(FILE* fileHandle) {
 	e_off_t sectionHeadersOffset;
@@ -170,6 +249,8 @@ elf_Read(FILE* fileHandle) {
 		return false;
 
 	SectionHeader* sectionHeaders = readSectionHeaders(fileHandle, sectionHeadersOffset, sectionHeaderEntrySize, totalSectionHeaders);
+	if (!readSections(fileHandle, sectionHeaders, totalSectionHeaders))
+		return false;
 
 	return false;
 }
