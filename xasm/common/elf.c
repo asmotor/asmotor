@@ -252,15 +252,8 @@ writeSymbol(const string* name, e_addr_t value, uint8_t bind, uint8_t type, e_ha
 	writeSymbolRaw(addString(name), value, ELF32_ST_INFO(bind, type), sectionIndex, fileHandle);
 }
 
-static void
-writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSection) {
-	align4(fileHandle);
-
-	off_t symbolTableLocation = ftello(fileHandle);
-	uint32_t symbolIndex = 1;
-
-	writeSymbolRaw(0, 0, 0, SHN_UNDEF, fileHandle);	// symbol #0
-
+static uint32_t
+writeSymbolsWithFlags(FILE* fileHandle, uint8_t bind, uint32_t flags, uint32_t symbolIndex) {
 	for (uint16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
 		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
 			symbol->id = 0;
@@ -268,12 +261,7 @@ writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSect
 			if (symbol->type != SYM_LABEL && symbol->type != SYM_EQU && symbol->type != SYM_IMPORT && symbol->type != SYM_GLOBAL)
 				continue;
 
-			uint8_t bind = 0;
-			if (symbol->flags & SYMF_EXPORT)
-				bind = STB_GLOBAL;
-			else if (symbol->flags & (SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT))
-				bind = STB_LOCAL;
-			else
+			if ((symbol->flags & flags) == 0)
 				continue;
 
 			uint8_t sectionIndex =
@@ -285,11 +273,25 @@ writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSect
 			symbol->id = symbolIndex++;
 		}
 	}
+	return symbolIndex;
+}
+
+static void
+writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSection) {
+	align4(fileHandle);
+
+	off_t symbolTableLocation = ftello(fileHandle);
+
+	writeSymbolRaw(0, 0, 0, SHN_UNDEF, fileHandle);	// symbol #0
+	uint32_t symbolIndex = 1;
+	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_LOCAL, SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT, symbolIndex);
+	uint32_t totalLocals = symbolIndex;
+	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_GLOBAL, SYMF_EXPORT, symbolIndex);
 
 	g_sectionHeaders[symbolSection].sh_offset = symbolTableLocation;
 	g_sectionHeaders[symbolSection].sh_size = ftello(fileHandle) - symbolTableLocation;
 	g_sectionHeaders[symbolSection].sh_link = stringSection;
-	g_sectionHeaders[symbolSection].sh_info = symbolIndex;
+	g_sectionHeaders[symbolSection].sh_info = totalLocals;
 }
 
 

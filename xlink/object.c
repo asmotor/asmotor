@@ -365,7 +365,7 @@ readXOBn(FILE* fileHandle, int32_t version) {
     mem_Free(sections);
 }
 
-static void
+static bool
 readChunk(FILE* fileHandle);
 
 static void
@@ -381,44 +381,44 @@ readXLB0(FILE* fileHandle) {
     }
 }
 
-static void
+static bool
 readChunk(FILE* fileHandle) {
     uint32_t id = fgetll(fileHandle);
 
     switch (id) {
         case MAKE_ID('X', 'O', 'B', 0): {
             readXOB0(fileHandle);
-            break;
+            return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 1): {
             readXOB1(fileHandle);
-            break;
+            return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 2): {
             readXOBn(fileHandle, 2);
-            break;
+            return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 3): {
             readXOBn(fileHandle, 3);
-            break;
+            return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 4): {
             readXOBn(fileHandle, 4);
-            break;
+            return true;
         }
 
         case MAKE_ID('X', 'L', 'B', 0): {
             readXLB0(fileHandle);
-            break;
+            return true;
         }
 
         case MAKE_ID(0x7F, 'E', 'L', 'F'): {
             elf_Read(fileHandle);
-            break;
+            return false;
         }
 
         default: {
@@ -434,8 +434,9 @@ obj_Read(char* fileName) {
     if ((fileHandle = fopen(fileName, "rb")) != NULL) {
         size_t size = fsize(fileHandle);
 
-        while ((size_t) ftell(fileHandle) < size)
-            readChunk(fileHandle);
+        while ((size_t) ftell(fileHandle) < size
+		     && readChunk(fileHandle))
+		{}
 
         fclose(fileHandle);
     } else {
