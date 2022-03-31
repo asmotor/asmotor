@@ -22,6 +22,6 @@
 #include <stdio.h>
 
 extern bool
-elf_Read(FILE* fileHandle);
+elf_Read(FILE* fileHandle, uint32_t fileId);
 
 #endif

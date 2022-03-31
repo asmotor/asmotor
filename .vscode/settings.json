@@ -2,9 +2,9 @@
   "editor.tabSize": 4,
   "editor.insertSpaces": false,
   "files.associations": {
+	"*.c": "c",
 	"*.rc8": "asm.z80",
 	"*.h": "c",
-	"*.c": "c",
 	"__bit_reference": "c",
 	"__mutex_base": "c",
 	"__threading_support": "c",
@@ -47,7 +47,8 @@
 	"ostream": "c",
 	"sstream": "c",
 	"streambuf": "c",
-	"tuple": "c"
+	"tuple": "c",
+	"iostream": "c"
 },
   "files.exclude": {
     "**/.git": true,

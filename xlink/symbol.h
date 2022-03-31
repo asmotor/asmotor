@@ -41,7 +41,7 @@ typedef struct Symbol {
     struct Section* section;
 } SSymbol;
 
-static inline bool
+INLINE bool
 symbol_IsLocal(SSymbol* symbol) {
     switch (symbol->type) {
         case SYM_LOCAL:

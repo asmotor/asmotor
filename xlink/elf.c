@@ -22,8 +22,10 @@
 #include "file.h"
 
 // from xlink
-#include "xlink.h"
 #include "elf.h"
+#include "group.h"
+#include "section.h"
+#include "xlink.h"
 
 typedef uint32_t e_word_t;
 typedef uint32_t e_off_t;
@@ -239,6 +241,20 @@ static uint16_t (*read_half)(const uint8_t*, size_t);
 #define SHF_ALLOC 0x2
 #define SHF_EXECINSTR 0x4
 #define SHF_MASKPROC 0xf0000000
+
+#define STB_LOCAL 0
+#define STB_GLOBAL 1
+#define STB_WEAK 2
+#define STB_LOPROC 13
+#define STB_HIPROC 15
+
+#define SHN_UNDEF 0
+#define SHN_LORESERVE 0xff00
+#define SHN_LOPROC 0xff00
+#define SHN_HIPROC 0xff1f
+#define SHN_ABS 0xfff1
+#define SHN_COMMON 0xfff2
+#define SHN_HIRESERVE 0xffff
 
 #define ELF32_ST_BIND(i) ((i)>>4)
 #define ELF32_ST_TYPE(i) ((i)&0xf)
@@ -591,8 +607,91 @@ resolveNamesAndIndices(ElfHeader* elf) {
 }
 
 
-bool
-elf_Read(FILE* fileHandle) {
+static void
+progBitsToXlink(const ElfHeader* elf, const SectionHeader* header, uint32_t sectionId, uint32_t fileId)  {
+	SSection* section = sect_CreateNew();
+	section->fileId = fileId;
+
+	if ((header->sh_flags & (SHF_ALLOC | SHF_WRITE)) == (SHF_ALLOC | SHF_WRITE))
+		section->group = group_FindByName("DATA");
+	else if ((header->sh_flags & (SHF_ALLOC | SHF_EXECINSTR)) == (SHF_ALLOC | SHF_EXECINSTR))
+		section->group = group_FindByName("CODE");
+	else
+		error("progBitsToXlink unknown group type (%08X)", header->sh_flags);
+
+	section->cpuByteLocation = header->sh_addr == 0 ? -1 : header->sh_addr;
+	section->cpuBank = -1;
+	section->cpuLocation = section->cpuByteLocation;
+	section->imageLocation = section->cpuByteLocation;
+	section->minimumWordSize = 1;
+	section->byteAlign = header->sh_addralign >= 2 ? header->sh_addralign : -1;
+	section->root = false;
+	strcpy(section->name, header->name);
+
+	uint32_t allocatedSymbols = 16;
+	section->symbols = malloc(sizeof(SSymbol) * allocatedSymbols);
+	section->totalSymbols = 0;
+	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
+		SectionHeader* symbols = &elf->headers[i];
+		if (symbols->sh_type == SHT_SYMTAB) {
+			for (uint32_t i = 0; i < symbols->sh_data.symbols->totalSymbols; ++i) {
+				Symbol* elfSymbol = &symbols->sh_data.symbols->data[i];
+				if (elfSymbol->section == header) {
+					if (section->totalSymbols == allocatedSymbols) {
+						allocatedSymbols += allocatedSymbols >> 1;
+						section->symbols = realloc(section->symbols, sizeof(SSymbol) * allocatedSymbols);
+					}
+					SSymbol* xlinkSymbol = &section->symbols[section->totalSymbols++];
+					strcpy(xlinkSymbol->name, elfSymbol->name);
+					xlinkSymbol->resolved = false;
+					xlinkSymbol->section = section;
+					xlinkSymbol->value = 0;
+
+					if (i < symbols->sh_info) {
+						// local symbols
+						if (elfSymbol->sectionindex == SHN_UNDEF) {
+							xlinkSymbol->type = SYM_LOCALIMPORT;
+						} else if (elfSymbol->sectionindex == SHN_ABS) {
+							xlinkSymbol->type = SYM_LOCALEXPORT;
+							xlinkSymbol->resolved = true;
+						} else {
+							xlinkSymbol->type = SYM_LOCAL;
+						}
+					} else {
+						if (elfSymbol->sectionindex == SHN_UNDEF) {
+							xlinkSymbol->type = SYM_IMPORT;
+						} else if (elfSymbol->sectionindex == SHN_ABS) {
+							xlinkSymbol->type = SYM_EXPORT;
+							xlinkSymbol->resolved = true;
+						} else {
+							xlinkSymbol->type = SYM_EXPORT;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+static void
+elfToXlink(const ElfHeader* elf, uint32_t fileId) {
+	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
+		SectionHeader* header = &elf->headers[i];
+		switch (header->sh_type) {
+			case SHT_PROGBITS:
+				progBitsToXlink(elf, header, i, fileId);
+				break;
+			default:
+				break;
+		}
+	}
+
+}
+
+
+void
+elf_Read(FILE* fileHandle, uint32_t fileId) {
 	e_off_t sectionHeadersOffset;
 	e_half_t sectionHeaderEntrySize;
 	e_half_t totalSectionHeaders;
@@ -612,5 +711,5 @@ elf_Read(FILE* fileHandle) {
 	readSections(fileHandle, sectionHeaders, totalSectionHeaders);
 	resolveNamesAndIndices(&elf);
 
-	return false;
+	elfToXlink(&elf);
 }

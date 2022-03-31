@@ -110,8 +110,8 @@ readGroup(FILE* fileHandle, Group* group) {
     uint32_t type;
 
     fgetsz(group->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
-
     type = fgetll(fileHandle);
+
     flags = type & (GROUP_FLAG_DATA | GROUP_FLAG_SHARED);
     type &= ~flags;
 
@@ -283,7 +283,7 @@ readSection(FILE* fileHandle, SSection* section, Groups* groups, int version, ui
 }
 
 static SSection**
-readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoIndex) {
+readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoIndex, uint32_t fileId) {
     uint32_t totalSections = fgetll(fileHandle);
     SSection** sections = mem_Alloc(sizeof(SSection*) * totalSections);
 
@@ -292,7 +292,7 @@ readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoInd
         sections[i] = section;
 
         section->minimumWordSize = g_minimumWordSize;
-        section->fileId = g_fileId;
+        section->fileId = fileId;
 
         readSection(fileHandle, section, groups, version, fileInfoIndex);
 
@@ -301,8 +301,6 @@ readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoInd
         }
 
     }
-
-    g_fileId += 1;
 
     return sections;
 }
@@ -344,24 +342,24 @@ readFileInfo(FILE* fileHandle) {
 }
 
 static void
-readXOB0(FILE* fileHandle) {
+readXOB0(FILE* fileHandle, uint32_t fileId) {
     g_minimumWordSize = 1;
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 0, 0);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 0, 0, fileId);
     mem_Free(sections);
 }
 
 static void
-readXOB1(FILE* fileHandle) {
+readXOB1(FILE* fileHandle, uint32_t fileId) {
     g_minimumWordSize = fgetc(fileHandle);
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 1, 0);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 1, 0, fileId);
     mem_Free(sections);
 }
 
 static void
-readXOBn(FILE* fileHandle, int32_t version) {
+readXOBn(FILE* fileHandle, int32_t version, uint32_t fileId) {
     g_minimumWordSize = fgetc(fileHandle);
     uint32_t fileInfoIndex = readFileInfo(fileHandle);
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, version, fileInfoIndex);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, version, fileInfoIndex, fileId);
     mem_Free(sections);
 }
 
@@ -387,27 +385,27 @@ readChunk(FILE* fileHandle) {
 
     switch (id) {
         case MAKE_ID('X', 'O', 'B', 0): {
-            readXOB0(fileHandle);
+            readXOB0(fileHandle, g_fileId++);
             return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 1): {
-            readXOB1(fileHandle);
+            readXOB1(fileHandle, g_fileId++);
             return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 2): {
-            readXOBn(fileHandle, 2);
+            readXOBn(fileHandle, 2, g_fileId++);
             return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 3): {
-            readXOBn(fileHandle, 3);
+            readXOBn(fileHandle, 3, g_fileId++);
             return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 4): {
-            readXOBn(fileHandle, 4);
+            readXOBn(fileHandle, 4, g_fileId++);
             return true;
         }
 
@@ -417,7 +415,7 @@ readChunk(FILE* fileHandle) {
         }
 
         case MAKE_ID(0x7F, 'E', 'L', 'F'): {
-            elf_Read(fileHandle);
+            elf_Read(fileHandle, g_fileId++);
             return false;
         }
 
