@@ -27,6 +27,10 @@
 #include "section.h"
 #include "xlink.h"
 
+static Group g_codeGroup = { "CODE", GROUP_TEXT, 0 };
+static Group g_dataGroup = { "DATA", GROUP_TEXT, GROUP_FLAG_DATA };
+static Group g_bssGroup = { "BSS", GROUP_BSS, 0 };
+
 typedef uint32_t e_word_t;
 typedef uint32_t e_off_t;
 typedef uint32_t e_addr_t;
@@ -39,6 +43,7 @@ struct SectionHeader;
 typedef struct {
 	const char* name;
 	const struct SectionHeader* section;
+	SSymbol* xlinkSymbol;
 
 	e_word_t nameindex;
 	e_addr_t value;
@@ -608,40 +613,28 @@ resolveNamesAndIndices(ElfHeader* elf) {
 
 
 static void
-progBitsToXlink(const ElfHeader* elf, const SectionHeader* header, uint32_t sectionId, uint32_t fileId)  {
-	SSection* section = sect_CreateNew();
-	section->fileId = fileId;
-
-	if ((header->sh_flags & (SHF_ALLOC | SHF_WRITE)) == (SHF_ALLOC | SHF_WRITE))
-		section->group = group_FindByName("DATA");
-	else if ((header->sh_flags & (SHF_ALLOC | SHF_EXECINSTR)) == (SHF_ALLOC | SHF_EXECINSTR))
-		section->group = group_FindByName("CODE");
-	else
-		error("progBitsToXlink unknown group type (%08X)", header->sh_flags);
-
-	section->cpuByteLocation = header->sh_addr == 0 ? -1 : header->sh_addr;
-	section->cpuBank = -1;
-	section->cpuLocation = section->cpuByteLocation;
-	section->imageLocation = section->cpuByteLocation;
-	section->minimumWordSize = 1;
-	section->byteAlign = header->sh_addralign >= 2 ? header->sh_addralign : -1;
-	section->root = false;
-	strcpy(section->name, header->name);
-
+symbolsToXlink(const ElfHeader* elf, const SectionHeader* header, SSection* section) {
 	uint32_t allocatedSymbols = 16;
+
 	section->symbols = malloc(sizeof(SSymbol) * allocatedSymbols);
 	section->totalSymbols = 0;
+
 	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
 		SectionHeader* symbols = &elf->headers[i];
+
 		if (symbols->sh_type == SHT_SYMTAB) {
 			for (uint32_t i = 0; i < symbols->sh_data.symbols->totalSymbols; ++i) {
 				Symbol* elfSymbol = &symbols->sh_data.symbols->data[i];
+
 				if (elfSymbol->section == header) {
 					if (section->totalSymbols == allocatedSymbols) {
 						allocatedSymbols += allocatedSymbols >> 1;
 						section->symbols = realloc(section->symbols, sizeof(SSymbol) * allocatedSymbols);
 					}
+
 					SSymbol* xlinkSymbol = &section->symbols[section->totalSymbols++];
+					elfSymbol->xlinkSymbol = xlinkSymbol;
+
 					strcpy(xlinkSymbol->name, elfSymbol->name);
 					xlinkSymbol->resolved = false;
 					xlinkSymbol->section = section;
@@ -674,17 +667,119 @@ progBitsToXlink(const ElfHeader* elf, const SectionHeader* header, uint32_t sect
 }
 
 
+static uint8_t
+g_relocExpr[] = {
+	OBJ_OP_ADD,
+		OBJ_SYMBOL, 0, 0, 0, 0,
+		OBJ_CONSTANT, 0, 0, 0, 0
+};
+
+#define EXPR_SYMBOL_OFFSET 2
+#define EXPR_CONSTANT_OFFSET 7
+
+static void
+relocsToXlink(const ElfHeader* elf, const SectionHeader* header, SSection* section) {
+	section->patches = NULL;
+
+	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
+		SectionHeader* relocs = &elf->headers[i];
+		if (relocs->sh_type == SHT_RELA) {
+			RelocAddendTable* relas = relocs->sh_data.relocationAddends;
+			if (relas->section == header) {
+				section->patches = patch_Alloc(relas->totalRelocations);
+				for (uint32_t i = 0; i < relas->totalRelocations; ++i) {
+					RelocAddend* rela = &relas->data[i];
+					SSymbol* xlinkSymbol = rela->symbol->xlinkSymbol;
+					SPatch* patch = &section->patches->patches[i];
+
+					switch (rela->type) {
+						case R_68K_32:
+							patch->type = PATCH_BE_32;
+							break;
+						default:
+							error("relocsToXlink unknown relocation type (%d", rela->type);
+					}
+
+					uint32_t xlinkSymbolIndex = (xlinkSymbol - section->symbols) / sizeof(SSymbol);
+					if (xlinkSymbolIndex > section->totalSymbols)
+						error("relocsToXlink error illegal symbol index (%d", xlinkSymbolIndex);
+
+					patch->valueSection = NULL;
+					patch->valueSymbol = NULL;
+
+					patch->offset = rela->offset;
+					patch->expressionSize = sizeof(g_relocExpr);
+					patch->expression = malloc(patch->expressionSize);
+					memcpy(patch->expression, g_relocExpr, sizeof(g_relocExpr));
+					patch->expression[EXPR_SYMBOL_OFFSET + 0] = xlinkSymbolIndex & 0xFF;
+					patch->expression[EXPR_SYMBOL_OFFSET + 1] = (xlinkSymbolIndex >> 8) & 0xFF;
+					patch->expression[EXPR_SYMBOL_OFFSET + 2] = (xlinkSymbolIndex >> 16) & 0xFF;
+					patch->expression[EXPR_SYMBOL_OFFSET + 3] = (xlinkSymbolIndex >> 24) & 0xFF;
+					patch->expression[EXPR_CONSTANT_OFFSET + 0] = rela->addend & 0xFF;
+					patch->expression[EXPR_CONSTANT_OFFSET + 1] = (rela->addend >> 8) & 0xFF;
+					patch->expression[EXPR_CONSTANT_OFFSET + 2] = (rela->addend >> 16) & 0xFF;
+					patch->expression[EXPR_CONSTANT_OFFSET + 3] = (rela->addend >> 24) & 0xFF;
+				}
+			}
+		}
+	}
+}
+
+
+static void
+sectionToXlink(const ElfHeader* elf, const SectionHeader* header, uint32_t sectionId, uint32_t fileId)  {
+	Group* group = NULL;
+
+	if (header->sh_type == SHT_PROGBITS) {
+		if ((header->sh_flags & (SHF_ALLOC | SHF_WRITE)) == (SHF_ALLOC | SHF_WRITE))
+			group = &g_dataGroup;
+		else if ((header->sh_flags & (SHF_ALLOC | SHF_EXECINSTR)) == (SHF_ALLOC | SHF_EXECINSTR))
+			group = &g_codeGroup;
+		else
+			error("sectionToXlink unknown group type (%08X)", header->sh_flags);
+	} else if (header->sh_type == SHT_NOBITS) {
+		if ((header->sh_flags & (SHF_ALLOC | SHF_WRITE)) == (SHF_ALLOC | SHF_WRITE))
+			group = &g_bssGroup;
+		else
+			error("sectionToXlink unknown group type (%08X)", header->sh_flags);
+	} else {
+		return;
+	}
+
+	SSection* section = sect_CreateNew();
+	section->group = group;
+	section->fileId = fileId;
+	section->data = NULL;
+
+	section->cpuByteLocation = header->sh_addr == 0 ? -1 : (int32_t)header->sh_addr;
+	section->cpuBank = -1;
+	section->cpuLocation = section->cpuByteLocation;
+	section->imageLocation = section->cpuByteLocation;
+	section->minimumWordSize = 1;
+	section->byteAlign = header->sh_addralign >= 2 ? (int32_t) header->sh_addralign : -1;
+	section->root = false;
+	strcpy(section->name, header->name);
+
+	symbolsToXlink(elf, header, section);
+
+	section->totalLineMappings = 0;
+	section->lineMappings = NULL;
+
+	section->size = header->sh_size;
+	if (header->sh_type == SHT_PROGBITS) {
+		section->data = malloc(section->size);
+		memcpy(section->data, header->sh_data.progbits->data, section->size);
+	}
+
+	relocsToXlink(elf, header, section);
+}
+
+
 static void
 elfToXlink(const ElfHeader* elf, uint32_t fileId) {
 	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
 		SectionHeader* header = &elf->headers[i];
-		switch (header->sh_type) {
-			case SHT_PROGBITS:
-				progBitsToXlink(elf, header, i, fileId);
-				break;
-			default:
-				break;
-		}
+		sectionToXlink(elf, header, i, fileId);
 	}
 
 }
@@ -711,5 +806,5 @@ elf_Read(FILE* fileHandle, uint32_t fileId) {
 	readSections(fileHandle, sectionHeaders, totalSectionHeaders);
 	resolveNamesAndIndices(&elf);
 
-	elfToXlink(&elf);
+	elfToXlink(&elf, fileId);
 }

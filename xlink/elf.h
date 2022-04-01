@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 
-extern bool
+extern void
 elf_Read(FILE* fileHandle, uint32_t fileId);
 
 #endif
