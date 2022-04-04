@@ -76,8 +76,8 @@ publish version: (source version) && (set-version (version + "next"))
 	#!/usr/bin/env bash
 	set -euo pipefail
 	git commit -am "Tagged {{version}}"
-	git tag {{version}}
-	gh release create "{{version}}" build/asmotor-{{version}}-src.* -d -n "Version {{version}}" -p -t "Version {{version}}"
+	git tag -f {{version}}
+	gh release create "{{version}}" {{source_base_name}}.* -d -n "Version {{version}}" -p -t "Version {{version}}"
 
 
 _copy_dir_to_src +DIRS:
