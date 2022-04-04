@@ -697,12 +697,12 @@ relocsToXlink(const ElfHeader* elf, const SectionHeader* header, SSection* secti
 							patch->type = PATCH_BE_32;
 							break;
 						default:
-							error("relocsToXlink unknown relocation type (%d", rela->type);
+							error("relocsToXlink unknown relocation type (%d)", rela->type);
 					}
 
 					uint32_t xlinkSymbolIndex = (xlinkSymbol - section->symbols) / sizeof(SSymbol);
 					if (xlinkSymbolIndex > section->totalSymbols)
-						error("relocsToXlink error illegal symbol index (%d", xlinkSymbolIndex);
+						error("relocsToXlink error illegal symbol index (%d)", xlinkSymbolIndex);
 
 					patch->valueSection = NULL;
 					patch->valueSymbol = NULL;
