@@ -63,4 +63,4 @@ gcc-predef.h
 build/.cmake/
 build/amiga/
 build/windows/
-build/asmotor*-src*
+build/asmotor-*-src.*
