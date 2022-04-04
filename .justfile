@@ -23,6 +23,7 @@ clean:
 init:
 	#!/usr/bin/env bash
 	set -euo pipefail
+
 	if ! {{initialized}}; then
 		mkdir -p build/cmake/debug
 		cd build/cmake/debug
@@ -41,6 +42,7 @@ build: init
 install directory="$HOME/.local":
 	#!/usr/bin/env bash
 	set -euo pipefail
+
 	rm -rf build/cmake/release
 	mkdir -p build/cmake/release
 	cd build/cmake/release
@@ -75,6 +77,7 @@ source version: (set-version version) _clean_src_dir (_copy_dir_to_src "util" "x
 publish version: (source version) && (set-version (version + "-next"))
 	#!/usr/bin/env bash
 	set -euo pipefail
+
 	git tag -f {{version}} -m "Tagged {{version}}"
 	git push
 	git push --tags
@@ -87,15 +90,13 @@ _copy_dir_to_src +DIRS:
 
 	for dir in {{DIRS}}; do
 		mkdir -p {{source_pkg_dir}}/$dir
-		cp $dir/*.[ch] {{source_pkg_dir}}/$dir
-		cp $dir/CMake* {{source_pkg_dir}}/$dir
+		cp $dir/*.[ch] $dir/CMake* {{source_pkg_dir}}/$dir
 	done
 
 
 _clean_src_dir:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	rm -f build/*-src.tar.bz2
-	rm -f build/*-src.tgz
-	rm -rf {{source_pkg_dir}}
+
+	rm -rf build/*-src.tar.bz2 build/*-src.tgz {{source_pkg_dir}}
 	mkdir {{source_pkg_dir}}
