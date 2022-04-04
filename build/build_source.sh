@@ -44,7 +44,6 @@ if [ -x /opt/local/bin/gnutar ]; then
 	TAR=/opt/local/bin/gnutar
 fi
 
-mv $DIR $DIR
 $TAR -cvjf $DIR.tar.bz2 $DIR
 $TAR -cvzf $DIR.tgz $DIR
 rm -rf $DIR

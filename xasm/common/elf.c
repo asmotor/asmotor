@@ -36,10 +36,6 @@
 #define EI_VERSION 6
 #define EI_PAD 7
 #define EI_NIDENT 16
-#define ELF_HD_SHOFF 32
-#define ELF_HD_SHNUM 48
-#define ELF_HD_SHSTRNDX 50
-#define ELF_HD_SIZE 52
 
 #define ELFCLASSNONE 0
 #define ELFCLASS32 1
@@ -89,6 +85,11 @@
 #define SHN_ABS 0xfff1
 #define SHN_COMMON 0xfff2
 #define SHN_HIRESERVE 0xffff
+
+#define ELF_HD_SHOFF 32
+#define ELF_HD_SHNUM 48
+#define ELF_HD_SHSTRNDX 50
+#define ELF_HD_SIZE 52
 
 #define SYM_SIZE 16
 
@@ -151,14 +152,6 @@ typedef struct {
 #define SHDR_ADDRALIGN 32
 #define SHDR_ENTSIZE 36
 #define SHDR_SIZEOF 40
-
-#define R_68K_NONE 0	/* No reloc */
-#define R_68K_32 1		/* Direct 32 bit  */
-#define R_68K_16 2		/* Direct 16 bit  */
-#define R_68K_8 3		/* Direct 8 bit  */
-#define R_68K_PC32 4	/* PC relative 32 bit */
-#define R_68K_PC16 5	/* PC relative 16 bit */
-#define R_68K_PC8 6		/* PC relative 8 bit */
 
 static string_buffer* g_stringTable = NULL;
 static e_shdr* g_sectionHeaders = NULL;
@@ -252,46 +245,37 @@ writeSymbol(const string* name, e_addr_t value, uint8_t bind, uint8_t type, e_ha
 	writeSymbolRaw(addString(name), value, ELF32_ST_INFO(bind, type), sectionIndex, fileHandle);
 }
 
-static uint32_t
-writeSymbolsWithFlags(FILE* fileHandle, uint8_t bind, uint32_t flags, uint32_t symbolIndex) {
-	for (uint16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
-		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
-			symbol->id = 0;
-
-			if (symbol->type != SYM_LABEL && symbol->type != SYM_EQU && symbol->type != SYM_IMPORT && symbol->type != SYM_GLOBAL)
-				continue;
-
-			if ((symbol->flags & flags) == 0)
-				continue;
-
-			uint8_t sectionIndex =
-				symbol->flags & SYMF_CONSTANT ? SHN_ABS :
-				symbol->type == SYM_GLOBAL || symbol->type == SYM_IMPORT ? SHN_UNDEF :
-				symbol->section->id;
-
-			writeSymbol(symbol->name, symbol->value.integer, bind, STT_NOTYPE, sectionIndex, fileHandle);
-			symbol->id = symbolIndex++;
-		}
-	}
-	return symbolIndex;
-}
-
 static void
 writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSection) {
 	align4(fileHandle);
 
 	off_t symbolTableLocation = ftello(fileHandle);
+	uint32_t symbolIndex = 1;
 
 	writeSymbolRaw(0, 0, 0, SHN_UNDEF, fileHandle);	// symbol #0
-	uint32_t symbolIndex = 1;
-	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_LOCAL, SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT, symbolIndex);
-	uint32_t totalLocals = symbolIndex;
-	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_GLOBAL, SYMF_EXPORT, symbolIndex);
+
+	for (uint16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+			uint8_t bind = 0;
+			if (symbol->flags & SYMF_EXPORT)
+				bind = STB_GLOBAL;
+			else if (symbol->flags & SYMF_FILE_EXPORT)
+				bind = STB_LOCAL;
+			else
+				continue;
+
+			uint8_t sectionIndex = symbol->flags & SYMF_CONSTANT
+				? SHN_ABS
+				: symbol->section->id;
+
+			writeSymbol(symbol->name, symbol->value.integer, bind, STT_NOTYPE, sectionIndex, fileHandle);
+			symbol->id = symbolIndex++;
+		}
+	}
 
 	g_sectionHeaders[symbolSection].sh_offset = symbolTableLocation;
 	g_sectionHeaders[symbolSection].sh_size = ftello(fileHandle) - symbolTableLocation;
 	g_sectionHeaders[symbolSection].sh_link = stringSection;
-	g_sectionHeaders[symbolSection].sh_info = totalLocals;
 }
 
 
@@ -355,7 +339,7 @@ writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
 		uint32_t addend;
 		if (expr_GetSymbolOffset(&addend, &symbol, patch->expression)) {
 			fput_addr(patch->offset, fileHandle);
-			fput_word(ELF32_R_INFO(symbol->id, R_68K_32), fileHandle);
+			fput_word(ELF32_R_INFO(symbol->id, 0), fileHandle);
 			fput_word(addend, fileHandle);
 		} else {
             err_PatchError(patch, ERROR_OBJECTFILE_PATCH);

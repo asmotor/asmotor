@@ -8,6 +8,7 @@
 *.xcscheme
 *.output
 *.a
+.initialized
 build/Visual Studio 2012/Win32/
 build/Visual Studio 2012/Windows.sdf
 build/Visual Studio 2012/Windows.opensdf
