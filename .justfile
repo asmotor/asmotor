@@ -72,12 +72,12 @@ source version: (set-version version) _clean_src_dir (_copy_dir_to_src "util" "x
 
 
 # Tag, build and release a source package to github
-publish version: (source version) && (set-version (version + "next"))
+publish version: (source version) && (set-version (version + "-next"))
 	#!/usr/bin/env bash
 	set -euo pipefail
-	git commit -am "Tagged {{version}}"
-	git tag -f {{version}}
-	git push --all
+	git tag -f {{version}} -m "Tagged {{version}}"
+	git push
+	git push --tags
 	gh release create "{{version}}" {{source_base_name}}.* -d -n "Version {{version}}" -p -t "Version {{version}}"
 
 
