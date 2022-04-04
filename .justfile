@@ -77,7 +77,7 @@ publish version: (source version) && (set-version (version + "next"))
 	set -euo pipefail
 	git commit -am "Tagged {{version}}"
 	git tag -f {{version}}
-	git push
+	git push --all
 	gh release create "{{version}}" {{source_base_name}}.* -d -n "Version {{version}}" -p -t "Version {{version}}"
 
 
