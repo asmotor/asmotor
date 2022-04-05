@@ -2,8 +2,8 @@
 
 initialized_marker := ".initialized"
 version_file := "build/version"
-current_version := "`cat build/version`" # put in double quotes for lazy evaluation
-source_base_name := ("asmotor-" + current_version)
+current_version := `cat build/version`
+source_base_name := "asmotor-`cat build/version`"
 source_pkg_dir := join("build", source_base_name)
 initialized := path_exists(initialized_marker)
 
