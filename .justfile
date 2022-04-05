@@ -70,6 +70,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	gh release create "{{version}}" {{source_base_name}}.* -d -n "Version {{version}}" -p -t "Version {{version}}"
 
 
+# Build a .deb distribution package
 deb: (source current_version)
 	#!/bin/sh
 	mkdir -p makedeb
@@ -96,6 +97,7 @@ deb: (source current_version)
 	mv *.deb ..
 	cd ..
 	rm -rf makedeb
+	ls -1 *.deb
 
 
 @_copy_dir_to_src +DIRS:
