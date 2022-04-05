@@ -32,7 +32,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 # Build the project in Debug mode
 @build: init
-	cmake --build build/cmake/debug -- -j $(nproc)
+	cmake --build build/cmake/debug
 
 
 # Build and install the project in Release mode, defaulting to $HOME/.local
