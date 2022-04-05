@@ -15,8 +15,8 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 
 # Clean directory forcing a new build
-@clean:
-	rm -rf build/cmake {{initialized_marker}}
+@clean: _clean_src_dir
+	rm -rf build/cmake {{initialized_marker}} makedeb
 
 
 # Initialize repository for use
@@ -52,7 +52,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 # Build source package
 @source version: (set-version version) _clean_src_dir (_copy_dir_to_src "util" "xasm/6502" "xasm/680x0" "xasm/common" "xasm/dcpu-16" "xasm/mips" "xasm/rc8" "xasm/schip" "xasm/z80" "xlink" "xlib")
 	cp xasm/CMakeLists.txt {{source_pkg_dir}}/xasm
-	cp CMakeLists.txt CHANGELOG.md LICENSE.md README.md ucm.cmake *.sh *.ps1 {{source_pkg_dir}}
+	cp .justfile CMakeLists.txt CHANGELOG.md LICENSE.md README.md ucm.cmake *.sh *.ps1 {{source_pkg_dir}}
 
 	mkdir -p {{source_pkg_dir}}/build
 	cp -rf build/*.cmake build/version build/Modules {{source_pkg_dir}}/build
@@ -73,6 +73,8 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 # Build a .deb distribution package
 deb: (source current_version)
 	#!/bin/sh
+	set -eu
+
 	mkdir -p makedeb
 	cp "{{source_base_name}}.tar.bz2" makedeb
 	cat >makedeb/PKGBUILD <<EOF
@@ -84,9 +86,13 @@ deb: (source current_version)
 	arch=("{{arch()}}")
 	url="https://github.com/asmotor/asmotor"
 	license=("GPL-3")
-	makedepends=("just" "cmake")
+	makedepends=("cmake" "build-essential")
 	source=("{{source_base_name}}.tar.bz2")
 	md5sums=("SKIP")
+	prepare() {
+		echo "Checking if \"just\" installed"
+		command -v just >/dev/null
+	}
 	package() {
 		cd "\${pkgname}-\${pkgver}"
 		just install "\${pkgdir}/"
@@ -108,5 +114,5 @@ deb: (source current_version)
 
 
 @_clean_src_dir:
-	rm -rf build/*-src.tar.bz2 build/*-src.tgz {{source_pkg_dir}}
+	rm -rf asmotor-*.tar.bz2 asmotor-*.tgz {{source_pkg_dir}}
 	mkdir {{source_pkg_dir}}
