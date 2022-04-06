@@ -87,6 +87,8 @@ deb: (source current_version)
 	url="https://github.com/asmotor/asmotor"
 	license=("GPL-3")
 	makedepends=("cmake" "build-essential")
+	minimum_libc=2.14
+	depends=("libc6>=\${minimum_libc}")
 	source=("{{source_base_name}}.tar.bz2")
 	md5sums=("SKIP")
 	prepare() {
@@ -96,6 +98,12 @@ deb: (source current_version)
 	package() {
 		cd "\${pkgname}-\${pkgver}"
 		just install "\${pkgdir}/"
+		cd "\${pkgdir}/bin"
+		_used_libc=\$(ldd -v * 2>/dev/null | grep GLIBC | sed 's/.*GLIBC_//' | sed 's/).*//' | sort -t "." -k1,1n -k2,2n -k3,3n | tail -n 1)
+		if [ \${minimum_libc} != \${_used_libc} ]; then
+			echo "Compiled tools will require libc6>=\${_used_libc} which is not equal to \${minimum_libc}"
+			exit 1
+		fi
 	}
 	EOF
 	cd makedeb
