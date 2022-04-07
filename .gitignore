@@ -64,6 +64,6 @@ build/.cmake/
 build/amiga/
 build/windows/
 asmotor-*.tar.bz2
-asmotor-*.tgz
+asmotor-*.tar.gz
 asmotor_*.deb
 makedeb/

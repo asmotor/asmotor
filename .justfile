@@ -1,10 +1,12 @@
 # "just" scripts
 
 initialized_marker := ".initialized"
-version_file := "build/version"
-current_version := `cat build/version`
-source_base_name := "asmotor-`cat build/version`"
-source_pkg_dir := join("build", source_base_name)
+version_file := join(invocation_directory(), "build/version")
+version := `cat build/version`
+package_base_name := ("asmotor-" + version)
+source_name := (package_base_name + "-src.tar.gz")
+binary_name := (package_base_name + "-bin-" + os() + ".tar.gz")
+source_pkg_dir := join("build", package_base_name)
 initialized := path_exists(initialized_marker)
 
 tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnutar" } else { "tar" }
@@ -24,7 +26,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	if ! {{initialized}}; then \
 		mkdir -p build/cmake/debug; \
 		cd build/cmake/debug; \
-		cmake -DASMOTOR_VERSION={{current_version}}.next -DCMAKE_BUILD_TYPE=Debug ../../..; \
+		cmake -DASMOTOR_VERSION={{version}}.next -DCMAKE_BUILD_TYPE=Debug ../../..; \
 		cd ../../..; \
 		touch {{initialized_marker}}; \
 	fi
@@ -39,48 +41,54 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 @install directory="$HOME/.local":
 	rm -rf build/cmake/release
 	mkdir -p build/cmake/release
-	cd build/cmake/release; cmake -DASMOTOR_VERSION={{current_version}} -DCMAKE_INSTALL_PREFIX={{directory}} -DCMAKE_BUILD_TYPE=Release ../../..; cd ../../..
+	cd build/cmake/release; cmake -DASMOTOR_VERSION={{version}} -DCMAKE_INSTALL_PREFIX={{directory}} -DCMAKE_BUILD_TYPE=Release ../../..; cd ../../..
 	cmake --build build/cmake/release --target install -- -j $(nproc)
 
 
 # Set the ASMotor version number to use when building
-@set-version version:
-	echo -n {{version}} >{{version_file}}
+@set-version new_version:
+	echo -n {{new_version}} >{{version_file}}
 	rm -f {{initialized_marker}}
 
 
+@binary: (install join(invocation_directory(), "_binary"))
+	cd _binary/bin; {{tar}} -cvzf "../../{{binary_name}}" *
+	rm -rf _binary
+
+
 # Build source package
-@source version: (set-version version) _clean_src_dir (_copy_dir_to_src "util" "xasm/6502" "xasm/680x0" "xasm/common" "xasm/dcpu-16" "xasm/mips" "xasm/rc8" "xasm/schip" "xasm/z80" "xlink" "xlib")
+@source: _clean_src_dir (_copy_dir_to_src "util" "xasm/6502" "xasm/680x0" "xasm/common" "xasm/dcpu-16" "xasm/mips" "xasm/rc8" "xasm/schip" "xasm/z80" "xlink" "xlib")
 	cp xasm/CMakeLists.txt {{source_pkg_dir}}/xasm
 	cp .justfile CMakeLists.txt CHANGELOG.md LICENSE.md README.md ucm.cmake *.sh *.ps1 {{source_pkg_dir}}
 
 	mkdir -p {{source_pkg_dir}}/build
 	cp -rf build/*.cmake build/version build/Modules {{source_pkg_dir}}/build
 
-	{{tar}} -C build -cvjf {{source_base_name}}.tar.bz2 {{source_base_name}}
-	{{tar}} -C build -cvzf {{source_base_name}}.tgz {{source_base_name}}
+	{{tar}} -C build -cvzf {{source_name}} {{package_base_name}}
 	rm -rf {{source_pkg_dir}}
 
 
 # Tag, build and release a source package to github
-@publish version: (source version) && (set-version (version + ".next"))
+@publish: source binary deb
 	git tag -f {{version}} -m "Tagged {{version}}"
 	git push
-	git push --tags
-	gh release create "{{version}}" {{source_base_name}}.* -d -n "Version {{version}}" -p -t "Version {{version}}"
+	git push --force --tags
+	gh release create "{{version}}" {{binary_name}} {{source_name}} *.deb -d -n "Version {{version}}" -p -t "Version {{version}}"
 
 
 # Build a .deb distribution package
-deb: (source current_version)
+deb: source
 	#!/bin/sh
 	set -eu
 
-	mkdir -p makedeb
-	cp "{{source_base_name}}.tar.bz2" makedeb
-	cat >makedeb/PKGBUILD <<EOF
+	rm -f *.deb
+	rm -rf _makedeb
+	mkdir -p _makedeb
+	cp {{source_name}} _makedeb
+	cat >_makedeb/PKGBUILD <<EOF
 	# Maintainer: Carsten Elton Sorensen <cso@rift.dk>
 	pkgname=asmotor
-	pkgver={{current_version}}
+	pkgver={{version}}
 	pkgrel=1
 	pkgdesc="Cross assembler package for several CPU's"
 	arch=("{{arch()}}")
@@ -89,7 +97,7 @@ deb: (source current_version)
 	makedepends=("cmake" "build-essential")
 	minimum_libc=2.14
 	depends=("libc6>=\${minimum_libc}")
-	source=("{{source_base_name}}.tar.bz2")
+	source=("{{source_name}}")
 	md5sums=("SKIP")
 	prepare() {
 		echo "Checking if \"just\" installed"
@@ -106,11 +114,11 @@ deb: (source current_version)
 		fi
 	}
 	EOF
-	cd makedeb
+	cd _makedeb
 	makedeb
 	mv *.deb ..
 	cd ..
-	rm -rf makedeb
+	rm -rf _makedeb
 	ls -1 *.deb
 
 
