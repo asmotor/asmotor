@@ -253,15 +253,13 @@ writeSymbol(const string* name, e_addr_t value, uint8_t bind, uint8_t type, e_ha
 }
 
 static uint32_t
-writeSymbolsWithFlags(FILE* fileHandle, uint8_t bind, uint32_t flags, uint32_t symbolIndex) {
+writeSymbolsWithFlags(FILE* fileHandle, uint8_t bind, uint32_t includeFlags, uint32_t excludeFlags, uint32_t symbolIndex) {
 	for (uint16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
 		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
-			symbol->id = 0;
-
-			if (symbol->type != SYM_LABEL && symbol->type != SYM_EQU && symbol->type != SYM_IMPORT && symbol->type != SYM_GLOBAL)
-				continue;
-
-			if ((symbol->flags & flags) == 0)
+			if ((symbol->id != 0)
+			||  (symbol->type != SYM_LABEL && symbol->type != SYM_EQU && symbol->type != SYM_IMPORT && symbol->type != SYM_GLOBAL)
+			||  ((symbol->flags & includeFlags) == 0)
+			||  ((symbol->flags & excludeFlags) != 0))
 				continue;
 
 			uint8_t sectionIndex =
@@ -284,9 +282,9 @@ writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSect
 
 	writeSymbolRaw(0, 0, 0, SHN_UNDEF, fileHandle);	// symbol #0
 	uint32_t symbolIndex = 1;
-	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_LOCAL, SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT, symbolIndex);
+	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_LOCAL, SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT, SYMF_EXPORT, symbolIndex);
 	uint32_t totalLocals = symbolIndex;
-	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_GLOBAL, SYMF_EXPORT, symbolIndex);
+	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_GLOBAL, SYMF_EXPORT, 0, symbolIndex);
 
 	g_sectionHeaders[symbolSection].sh_offset = symbolTableLocation;
 	g_sectionHeaders[symbolSection].sh_size = ftello(fileHandle) - symbolTableLocation;
@@ -455,8 +453,22 @@ writeSections(FILE* fileHandle) {
 	return true;
 }
 
+
+static void
+prepareSymbols(void) {
+	// Reset all symbols id's
+	for (uint16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+			symbol->id = 0;
+		}
+	}
+}
+
+
 bool
 elf_Write(const string* filename, bool bigEndian, EElfArch arch) {
+	prepareSymbols();
+
 	fput_half = bigEndian ? fputbw : fputlw;
 	fput_word = bigEndian ? fputbl : fputll;
 	g_stringTable = strbuf_Create();
