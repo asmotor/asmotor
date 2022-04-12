@@ -17,9 +17,11 @@ If you have ever used a Motorola syntax based assembler you will feel right at h
 * MIPS32
 * CHIP-8/SCHIP
 * DCPU-16
+* RC811
 
 ## Assembler output formats
 * xobj (ASMotor generic format)
+* ELF
 * flat binary
 * Amiga linker object
 * Amiga executable
@@ -36,3 +38,23 @@ If you have ever used a Motorola syntax based assembler you will feel right at h
 * Game Boy (32 KiB ROM or banked ROM)
 * Sega Mega Drive/Genesis
 * Sega Master System (8 KiB/16 KiB/32 KiB/48 KiB/banked)
+* Foenix PGZ
+* HC800 executable
+* HC800 kernel ROM
+
+# Further reading
+* [Introduction](doc/Introduction.md), goals and background
+* [Invoking the assembler](doc/Assembler.md) and basic syntax
+* [Symbols](doc/Symbols.md) and labels
+* [Control structures](doc/ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Expressions](doc/Expressions.md) and how they're built
+* [Printing diagnostic messages](doc/Diagnostics.md), warnings and errors
+* [Organising code](doc/OrganisingCode.md) into sections. How to define data.
+* [The linker](doc/Linker.md)
+
+# Index and reference
+* [CPU specific](doc/CpuSpecifics.md) details
+* [Index of all directives](doc/IndexDirectives.md)
+* [Index of all functions](doc/IndexFunctions.md)
+* [Operator reference](doc/ReferenceOperators.md)
+* [String member reference](doc/ReferenceStringMembers.md)

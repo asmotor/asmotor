@@ -23,3 +23,21 @@
 | ```OPT``` | Set [options](Assembler.md#setting_options) |
 | ```PUSHO```, ```POPO``` | [Push or pop options](Assembler.md#setting_options) on the option stack |
 | ```IFC```, ```IFNC```, ```IFD```, ```IFND```, ```IF```, ```IFEQ```, ```IFGT```, ```IFGE```, ```IFLT```, ```IFLE```, ```ELSE```, ```ENDC``` | Used to form [conditional assembling](ControlStructures.md#if) blocks |
+
+
+# Further reading
+* [Introduction](doc/Introduction.md), goals and background
+* [Invoking the assembler](doc/Assembler.md) and basic syntax
+* [Symbols](doc/Symbols.md) and labels
+* [Control structures](doc/ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Expressions](doc/Expressions.md) and how they're built
+* [Printing diagnostic messages](doc/Diagnostics.md), warnings and errors
+* [Organising code](doc/OrganisingCode.md) into sections. How to define data.
+* [The linker](doc/Linker.md)
+
+# Index and reference
+* [CPU specific](doc/CpuSpecifics.md) details
+* [Index of all directives](doc/IndexDirectives.md)
+* [Index of all functions](doc/IndexFunctions.md)
+* [Operator reference](doc/ReferenceOperators.md)
+* [String member reference](doc/ReferenceStringMembers.md)

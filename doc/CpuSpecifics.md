@@ -282,3 +282,21 @@ This option controls the level of optimization. 0 means no optimization, while 1
 | Define data | | DW | DL |
 | Define space | | DSW | |
 | Reserve symbol | | RW | RL |
+
+
+# Further reading
+* [Introduction](doc/Introduction.md), goals and background
+* [Invoking the assembler](doc/Assembler.md) and basic syntax
+* [Symbols](doc/Symbols.md) and labels
+* [Control structures](doc/ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Expressions](doc/Expressions.md) and how they're built
+* [Printing diagnostic messages](doc/Diagnostics.md), warnings and errors
+* [Organising code](doc/OrganisingCode.md) into sections. How to define data.
+* [The linker](doc/Linker.md)
+
+# Index and reference
+* [CPU specific](doc/CpuSpecifics.md) details
+* [Index of all directives](doc/IndexDirectives.md)
+* [Index of all functions](doc/IndexFunctions.md)
+* [Operator reference](doc/ReferenceOperators.md)
+* [String member reference](doc/ReferenceStringMembers.md)

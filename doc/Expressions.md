@@ -180,3 +180,21 @@ Format specifiers support an optional precision argument:
 Several functions that work on string expressions are available. Some of these return strings and some return integers. Functions that return an integer can be used as part of integer expressions. When a string is returned the function can be used in a string expression.
 
 Many useful functions are available, such as returning a substring, finding a substring within another string, case conversion etc. Refer to [string members reference](ReferenceStringMembers.md) for details
+
+
+# Further reading
+* [Introduction](doc/Introduction.md), goals and background
+* [Invoking the assembler](doc/Assembler.md) and basic syntax
+* [Symbols](doc/Symbols.md) and labels
+* [Control structures](doc/ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Expressions](doc/Expressions.md) and how they're built
+* [Printing diagnostic messages](doc/Diagnostics.md), warnings and errors
+* [Organising code](doc/OrganisingCode.md) into sections. How to define data.
+* [The linker](doc/Linker.md)
+
+# Index and reference
+* [CPU specific](doc/CpuSpecifics.md) details
+* [Index of all directives](doc/IndexDirectives.md)
+* [Index of all functions](doc/IndexFunctions.md)
+* [Operator reference](doc/ReferenceOperators.md)
+* [String member reference](doc/ReferenceStringMembers.md)

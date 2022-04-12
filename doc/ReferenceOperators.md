@@ -26,3 +26,21 @@ There are only a couple of operators available that return new strings. One is t
 concatenation operator, ```+```. The other is the ["to string"](Expressions.md#to_string) operator - ```|expression|```.
 
 The string comparision operators (```~= == <= >= < >```) all return an integer, the result comparison operators is zero if when *false* and non-zero when *true*.
+
+
+# Further reading
+* [Introduction](doc/Introduction.md), goals and background
+* [Invoking the assembler](doc/Assembler.md) and basic syntax
+* [Symbols](doc/Symbols.md) and labels
+* [Control structures](doc/ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Expressions](doc/Expressions.md) and how they're built
+* [Printing diagnostic messages](doc/Diagnostics.md), warnings and errors
+* [Organising code](doc/OrganisingCode.md) into sections. How to define data.
+* [The linker](doc/Linker.md)
+
+# Index and reference
+* [CPU specific](doc/CpuSpecifics.md) details
+* [Index of all directives](doc/IndexDirectives.md)
+* [Index of all functions](doc/IndexFunctions.md)
+* [Operator reference](doc/ReferenceOperators.md)
+* [String member reference](doc/ReferenceStringMembers.md)

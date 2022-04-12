@@ -155,7 +155,7 @@ PrintString: MACRO
              ENDM
 
              PrintString <"Hello,"," world",0>
-````
+```
 
 ### The special argument \0
 
@@ -167,7 +167,24 @@ push: MACRO
       ENDM
 
       push.l   d0-a6
-````
+```
 
 ### SHIFT
 ```SHIFT``` is a command only available in macros and particularly useful in ```REPT```-blocks. It shifts the macro arguments one position "to the left" - ```\1``` will get ```\2```'s value, ```\2``` will get ```\3```'s value and so forth.
+
+# Further reading
+* [Introduction](doc/Introduction.md), goals and background
+* [Invoking the assembler](doc/Assembler.md) and basic syntax
+* [Symbols](doc/Symbols.md) and labels
+* [Control structures](doc/ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Expressions](doc/Expressions.md) and how they're built
+* [Printing diagnostic messages](doc/Diagnostics.md), warnings and errors
+* [Organising code](doc/OrganisingCode.md) into sections. How to define data.
+* [The linker](doc/Linker.md)
+
+# Index and reference
+* [CPU specific](doc/CpuSpecifics.md) details
+* [Index of all directives](doc/IndexDirectives.md)
+* [Index of all functions](doc/IndexFunctions.md)
+* [Operator reference](doc/ReferenceOperators.md)
+* [String member reference](doc/ReferenceStringMembers.md)
