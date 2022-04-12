@@ -7,6 +7,8 @@ add_library (xasm
 	charstack.h
     dependency.c
     dependency.h
+    elf.c
+    elf.h
     errors.c
     errors.h
     expression.c

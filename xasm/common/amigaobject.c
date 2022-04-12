@@ -99,7 +99,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, SPatch* importPatches, o
 
     while (importPatches != NULL) {
         uint32_t offset;
-        SSymbol* patchSymbol = NULL;
+        SSymbol* patchSymbol;
         if (expr_GetImportOffset(&offset, &patchSymbol, importPatches->expression)) {
             uint32_t patchCount = 0;
 
@@ -121,7 +121,7 @@ writeExtHunk(FILE* fileHandle, const SSection* section, SPatch* importPatches, o
                 dataWritten = true;
 
                 for (patch = list_GetNext(patch); patch != NULL; patch = list_GetNext(patch)) {
-                    SSymbol* symbol = NULL;
+                    SSymbol* symbol;
                     if (expr_GetImportOffset(&offset, &symbol, patch->expression) && symbol == patchSymbol) {
                         assert (patch->pPrev != NULL);
 
@@ -199,10 +199,6 @@ writeReloc32(FILE* fileHandle, SPatch** patchesPerSection, uint32_t totalSection
 static bool
 writeSection(FILE* fileHandle, SSection* section, bool enableDebugInfo, uint32_t totalSections, bool isLinkObject) {
     if (section->group->value.groupType == GROUP_TEXT) {
-        SPatch** patchesPerSection = mem_Alloc(sizeof(SPatch*) * totalSections);
-        for (uint32_t i = 0; i < totalSections; ++i)
-            patchesPerSection[i] = NULL;
-
         uint32_t hunkType =
                 (xasm_Configuration->supportAmiga && (section->group->flags & SYMF_DATA)) ? HUNK_DATA : HUNK_CODE;
 
@@ -212,6 +208,10 @@ writeSection(FILE* fileHandle, SSection* section, bool enableDebugInfo, uint32_t
         fputbuf(section->data, section->usedSpace, fileHandle);
 
         // Move the patches into the patchesPerSection array according the section to which their value is relative
+        SPatch** patchesPerSection = mem_Alloc(sizeof(SPatch*) * totalSections);
+        for (uint32_t i = 0; i < totalSections; ++i)
+            patchesPerSection[i] = NULL;
+
         SPatch* patch = section->patches;
         SPatch* importPatches = NULL;
         bool hasReloc32 = false;
@@ -247,7 +247,7 @@ writeSection(FILE* fileHandle, SSection* section, bool enableDebugInfo, uint32_t
 
                 if ((!foundSection) && isLinkObject) {
                     uint32_t offset;
-                    SSymbol* symbol = NULL;
+                    SSymbol* symbol;
                     if (expr_GetImportOffset(&offset, &symbol, patch->expression)) {
                         if (patch->pPrev)
                             patch->pPrev->pNext = patch->pNext;

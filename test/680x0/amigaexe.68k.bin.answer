@@ -9,3 +9,4 @@
 0000200 6d 65 64 20 64 69 67 00 00 00 03 f2 00 00 03 eb
 0000220 00 00 00 02 00 00 03 f2
 0000230
+Warning: option -t is deprecated and has been replaced with -f and -c

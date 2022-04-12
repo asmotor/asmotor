@@ -575,14 +575,24 @@ expr_Optimize(SExpression* expression) {
     }
 }
 
-bool
-expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
+static bool
+isImport(const SSymbol* symbol) {
+	return symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL;
+}
+
+static bool
+isSymbolic(const SSymbol* symbol) {
+	return symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL || symbol->type == SYM_LABEL;
+}
+
+static bool
+getSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression, bool (*predicate)(const SSymbol*)) {
     if (expression == NULL)
         return false;
 
     if (expr_Type(expression) == EXPR_SYMBOL) {
         SSymbol* symbol = expression->value.symbol;
-        if (symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL) {
+        if (predicate(symbol)) {
             if (*resultSymbol != NULL)
                 return false;
 
@@ -613,4 +623,17 @@ expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression
         }
     }
     return false;
+}
+
+
+extern bool
+expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
+	*resultSymbol = NULL;
+	return getSymbolOffset(resultOffset, resultSymbol, expression, isImport);
+}
+
+extern bool
+expr_GetSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
+	*resultSymbol = NULL;
+	return getSymbolOffset(resultOffset, resultSymbol, expression, isSymbolic);
 }

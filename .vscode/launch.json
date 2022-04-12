@@ -39,9 +39,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-sEntry", "-mdir.sym", "-odir.exe", "-thc8s", "dir.obj", "../stdlib/std.lib", "../lowlevel/lowlevel.lib" ],
+            "args": ["-sEntry", "-tfxa2560x", "-mhello.pgz.sym", "-ohello.pgz", "hello.obj", "strings.obj" ],
             "stopAtEntry": true,
-            "cwd": "/mnt/d/Dev/hc800/firmware/dir",
+            "cwd": "/home/ces/dev/a2560k-hello",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

@@ -204,5 +204,8 @@ expr_Optimize(SExpression* expression);
 extern bool
 expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression);
 
+extern bool
+expr_GetSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression);
+
 
 #endif /* XASM_COMMON_EXPRESSION_H_INCLUDED_ */

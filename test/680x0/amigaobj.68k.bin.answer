@@ -4,3 +4,4 @@
 0000060 72 ff b3 80 4e b9 00 00 00 10 4e b9 00 00 00 00
 0000100 4e b9 00 00 00 00 4e 75 00 00 03 f2
 0000114
+Warning: option -t is deprecated and has been replaced with -f and -c

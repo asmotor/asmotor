@@ -20,7 +20,7 @@
  * xLink - OBJECT.C
  * Copyright 1996-1998 Carsten Sorensen (csorensen@ea.com)
  *
- *	char	ID[4]="XOB\3";
+ *	char	ID[4]="XOB\4";
  *	[>=v1] char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
@@ -82,10 +82,13 @@
 
 #include <string.h>
 
+// from util
 #include "file.h"
 #include "mem.h"
 #include "str.h"
 
+// from xlink
+#include "elf.h"
 #include "group.h"
 #include "object.h"
 #include "patch.h"
@@ -107,8 +110,8 @@ readGroup(FILE* fileHandle, Group* group) {
     uint32_t type;
 
     fgetsz(group->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
-
     type = fgetll(fileHandle);
+
     flags = type & (GROUP_FLAG_DATA | GROUP_FLAG_SHARED);
     type &= ~flags;
 
@@ -280,7 +283,7 @@ readSection(FILE* fileHandle, SSection* section, Groups* groups, int version, ui
 }
 
 static SSection**
-readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoIndex) {
+readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoIndex, uint32_t fileId) {
     uint32_t totalSections = fgetll(fileHandle);
     SSection** sections = mem_Alloc(sizeof(SSection*) * totalSections);
 
@@ -289,7 +292,7 @@ readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoInd
         sections[i] = section;
 
         section->minimumWordSize = g_minimumWordSize;
-        section->fileId = g_fileId;
+        section->fileId = fileId;
 
         readSection(fileHandle, section, groups, version, fileInfoIndex);
 
@@ -299,12 +302,11 @@ readSections(Groups* groups, FILE* fileHandle, int version, uint32_t fileInfoInd
 
     }
 
-    g_fileId += 1;
-
     return sections;
 }
 
-static SFileInfo* findFileInfo(string* filename, uint32_t crc32) {
+static SFileInfo* 
+findFileInfo(string* filename, uint32_t crc32) {
     for (uint32_t i = 0; i < g_fileInfoCount; ++i) {
         if (str_Equal(g_fileInfo[i].fileName, filename) && g_fileInfo[i].crc32 == crc32) {
             return &g_fileInfo[i];
@@ -332,7 +334,6 @@ readFileInfo(FILE* fileHandle) {
                 g_fileInfo[index].index = fileInfo->index;
             } else {
                 g_fileInfo[index].index = index;
-
             }
         } 
     }
@@ -341,28 +342,28 @@ readFileInfo(FILE* fileHandle) {
 }
 
 static void
-readXOB0(FILE* fileHandle) {
+readXOB0(FILE* fileHandle, uint32_t fileId) {
     g_minimumWordSize = 1;
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 0, 0);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 0, 0, fileId);
     mem_Free(sections);
 }
 
 static void
-readXOB1(FILE* fileHandle) {
+readXOB1(FILE* fileHandle, uint32_t fileId) {
     g_minimumWordSize = fgetc(fileHandle);
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 1, 0);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, 1, 0, fileId);
     mem_Free(sections);
 }
 
 static void
-readXOBn(FILE* fileHandle, int32_t version) {
+readXOBn(FILE* fileHandle, int32_t version, uint32_t fileId) {
     g_minimumWordSize = fgetc(fileHandle);
     uint32_t fileInfoIndex = readFileInfo(fileHandle);
-    SSection** sections = readSections(readGroups(fileHandle), fileHandle, version, fileInfoIndex);
+    SSection** sections = readSections(readGroups(fileHandle), fileHandle, version, fileInfoIndex, fileId);
     mem_Free(sections);
 }
 
-static void
+static bool
 readChunk(FILE* fileHandle);
 
 static void
@@ -378,39 +379,44 @@ readXLB0(FILE* fileHandle) {
     }
 }
 
-static void
+static bool
 readChunk(FILE* fileHandle) {
     uint32_t id = fgetll(fileHandle);
 
     switch (id) {
         case MAKE_ID('X', 'O', 'B', 0): {
-            readXOB0(fileHandle);
-            break;
+            readXOB0(fileHandle, g_fileId++);
+            return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 1): {
-            readXOB1(fileHandle);
-            break;
+            readXOB1(fileHandle, g_fileId++);
+            return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 2): {
-            readXOBn(fileHandle, 2);
-            break;
+            readXOBn(fileHandle, 2, g_fileId++);
+            return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 3): {
-            readXOBn(fileHandle, 3);
-            break;
+            readXOBn(fileHandle, 3, g_fileId++);
+            return true;
         }
 
         case MAKE_ID('X', 'O', 'B', 4): {
-            readXOBn(fileHandle, 4);
-            break;
+            readXOBn(fileHandle, 4, g_fileId++);
+            return true;
         }
 
         case MAKE_ID('X', 'L', 'B', 0): {
             readXLB0(fileHandle);
-            break;
+            return true;
+        }
+
+        case MAKE_ID(0x7F, 'E', 'L', 'F'): {
+            elf_Read(fileHandle, g_fileId++);
+            return false;
         }
 
         default: {
@@ -426,8 +432,9 @@ obj_Read(char* fileName) {
     if ((fileHandle = fopen(fileName, "rb")) != NULL) {
         size_t size = fsize(fileHandle);
 
-        while ((size_t) ftell(fileHandle) < size)
-            readChunk(fileHandle);
+        while ((size_t) ftell(fileHandle) < size
+		     && readChunk(fileHandle))
+		{}
 
         fclose(fileHandle);
     } else {

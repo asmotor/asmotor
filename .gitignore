@@ -8,6 +8,7 @@
 *.xcscheme
 *.output
 *.a
+.initialized
 build/Visual Studio 2012/Win32/
 build/Visual Studio 2012/Windows.sdf
 build/Visual Studio 2012/Windows.opensdf
@@ -62,4 +63,7 @@ gcc-predef.h
 build/.cmake/
 build/amiga/
 build/windows/
-build/asmotor*-src*
+asmotor-*.tar.bz2
+asmotor-*.tar.gz
+asmotor_*.deb
+makedeb/

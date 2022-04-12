@@ -34,9 +34,9 @@
 0001020 01 be 99 43 59 48 5b 45 04 b8 00 00 01 be 02 22
 0001040 92 70 55 20 01 be 93 50 48 45 4a c5 4e 47 56 fc
 0001060 50 fa 01 00 52 fb 00 00 00 57 4e 76 87 4a 20 20
-0001100 87 8a 20 20 32 00 4e 75 54 65 73 74 00 
+0001100 87 8a 20 20 32 00 4e 75 54 65 73 74 00
 0001115
-$5test.68k:25: W1008 Instruction is privileged
+test.68k:25: W1008 Instruction is privileged
 test.68k:26: W1008 Instruction is privileged
 test.68k:27: W1008 Instruction is privileged
 test.68k:28: W1008 Instruction is privileged
@@ -51,3 +51,4 @@ test.68k:37: W1008 Instruction is privileged
 test.68k:38: W1008 Instruction is privileged
 test.68k:42: W1008 Instruction is privileged
 test.68k:59: W1000 Result of operation is undefined
+$5
