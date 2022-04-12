@@ -1,9 +1,9 @@
 #!/bin/bash
-for command in just git cmake john; do
+for command in just git cmake; do
 	if ! command -v $command >/dev/null; then
 		echo "Required commands: cmake, git, just"
 		if command -v apt-get >/dev/null; then
-			echo -n "You have apt-get installed, would you like to install these packages (Y/n)? "
+			echo -n "You have apt-get installed, would you like to install these packages [Y/n]? "
 			read choice
 			if [ "${choice:-Y}" == "Y" ]; then
 				sudo apt-get -y install cmake git just build-essential
@@ -13,7 +13,7 @@ for command in just git cmake john; do
 	fi
 done
 
-DIR=asmotor_bootstrap
+DIR=_asmotor_bootstrap
 git clone --recursive https://github.com/asmotor/asmotor.git $DIR
-cd $DIR && ./install.sh $1 && cd ..
+cd $DIR && just install $1 && cd ..
 rm -rf $DIR
