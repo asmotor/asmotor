@@ -1,5 +1,5 @@
 
-/*  Copyright 2008-2021 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 

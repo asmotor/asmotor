@@ -1,4 +1,4 @@
-/*  Copyright 2008-2021 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -18,7 +18,6 @@
 
 /*
  * xLink - OBJECT.C
- * Copyright 1996-1998 Carsten Sorensen (csorensen@ea.com)
  *
  *	char	ID[4]="XOB\4";
  *	[>=v1] char	MinimumWordSize ; Used for address calculations.
