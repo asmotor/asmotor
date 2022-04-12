@@ -2,6 +2,7 @@
   "editor.tabSize": 4,
   "editor.insertSpaces": false,
   "files.associations": {
+	"*.c": "c",
 	".justfile": "just",
 	"__bit_reference": "c",
 	"__config": "c",
@@ -11,7 +12,6 @@
 	"__mutex_base": "c",
 	"__string": "c",
 	"__threading_support": "c",
-	"*.c": "c",
 	"*.h": "c",
 	"*.rc8": "asm.z80",
 	"*.tcc": "c",
@@ -49,7 +49,9 @@
 	"type_traits": "c",
 	"typeinfo": "c",
 	"unordered_map": "c",
-	"utility": "c"
+	"utility": "c",
+	"cerrno": "c",
+	"cstdarg": "c"
 },
   "files.exclude": {
     "**/.git": true,

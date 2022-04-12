@@ -20,6 +20,7 @@
 
 // from util
 #include "file.h"
+#include "mem.h"
 
 // from xlink
 #include "elf.h"
@@ -36,73 +37,77 @@ typedef uint32_t e_off_t;
 typedef uint32_t e_addr_t;
 typedef uint16_t e_half_t;
 
-struct StringTable;
-struct SectionHeader;
+struct ElfSectionHeader;
 
 
 typedef struct {
 	const char* name;
-	const struct SectionHeader* section;
+	const struct ElfSectionHeader* section;
 	SSymbol* xlinkSymbol;
 
-	e_word_t nameindex;
-	e_addr_t value;
+	e_word_t st_nameindex;
+	e_addr_t st_value;
+	e_half_t st_shndx;
+
 	uint8_t bind;
 	uint8_t type;
-	e_half_t sectionindex;
-} Symbol;
+} ElfSymbol;
 
-typedef struct {
-	const struct StringTable* stringSection;
-
-	size_t totalSymbols;
-	Symbol data[];
-} SymbolTable;
-
-typedef struct StringTable {
+typedef struct ElfStringSection {
 	size_t length;
 	char data[];
-} StringTable;
+} ElfStringSection;
 
 typedef struct {
+	const ElfStringSection* stringSection;
+
+	size_t totalSymbols;
+	ElfSymbol data[];
+} ElfSymbolSection;
+
+typedef struct {
+	SSection* xlinkSection;
+	uint32_t allocatedSymbols;
 	size_t length;
 	uint8_t data[];
-} ProgBits;
+} ElfProgBitsSection;
 
 typedef struct {
-	Symbol* symbol;
+	ElfSymbol* symbol;
 
-	e_addr_t offset;
+	e_addr_t r_offset;
+
 	e_word_t symbolIndex;
 	e_word_t type;
-} Reloc;
+} ElfRelocEntry;
 
 typedef struct {
-	SymbolTable* symbols;
-	struct SectionHeader* section;
+	ElfSymbolSection* symbols;
+	struct ElfSectionHeader* section;
 
 	size_t totalRelocations;
-	Reloc data[];
-} RelocTable;
+	ElfRelocEntry data[];
+} ElfRelocSection;
 
 typedef struct {
-	const Symbol* symbol;
+	const ElfSymbol* symbol;
 
-	e_addr_t offset;
-	int32_t addend;
+	e_addr_t r_offset;
+	int32_t r_addend;
+
 	e_word_t symbolIndex;
 	e_word_t type;
-} RelocAddend;
+} ElfRelocAddendEntry;
 
 typedef struct {
-	const SymbolTable* symbols;
-	const struct SectionHeader* section;
+	const ElfSymbolSection* symbols;
+	const struct ElfSectionHeader* section;
 
 	size_t totalRelocations;
-	RelocAddend data[];
-} RelocAddendTable;
+	ElfRelocAddendEntry data[];
+} ElfRelocAddendSection;
 
-typedef struct SectionHeader {
+typedef struct ElfSectionHeader {
 	e_word_t sh_name;
 	e_word_t sh_type;
 	e_word_t sh_flags;
@@ -117,18 +122,18 @@ typedef struct SectionHeader {
 	const char* name;
 
 	union {
-		StringTable* strings;
-		ProgBits* progbits;
-		SymbolTable* symbols;
-		RelocTable* relocations;
-		RelocAddendTable* relocationAddends;
-	} sh_data;
-} SectionHeader;
+		ElfStringSection* strings;
+		ElfProgBitsSection* progbits;
+		ElfSymbolSection* symbols;
+		ElfRelocSection* relocations;
+		ElfRelocAddendSection* relocationAddends;
+	} data;
+} ElfSectionHeader;
 
 typedef struct {
 	uint32_t totalSectionHeaders;
 	e_half_t stringSectionHeaderIndex;
-	SectionHeader* headers;
+	ElfSectionHeader* headers;
 } ElfHeader;
 
 
@@ -322,13 +327,13 @@ readHeader(FILE* fileHandle, e_off_t* sectionHeadersOffset, e_half_t* sectionHea
 }
 
 
-static SectionHeader*
+static ElfSectionHeader*
 readSectionHeaders(FILE* fileHandle, e_off_t sectionHeadersOffset, e_half_t sectionHeaderEntrySize, e_half_t totalSectionHeaders) {
-	SectionHeader* headers = malloc(sizeof(SectionHeader) * totalSectionHeaders);
+	ElfSectionHeader* headers = mem_Alloc(sizeof(ElfSectionHeader) * totalSectionHeaders);
 	for (uint16_t i = 0; i < totalSectionHeaders; ++i) {
 		fseek(fileHandle, sectionHeadersOffset + i * sectionHeaderEntrySize, SEEK_SET);
 
-		SectionHeader* header = &headers[i];
+		ElfSectionHeader* header = &headers[i];
 		header->sh_name = fget_word(fileHandle);
 		header->sh_type = fget_word(fileHandle);
 		header->sh_flags = fget_word(fileHandle);
@@ -346,120 +351,143 @@ readSectionHeaders(FILE* fileHandle, e_off_t sectionHeadersOffset, e_half_t sect
 
 
 static void
-readProgBits(FILE* fileHandle, SectionHeader* header) {
-	ProgBits* progbits = malloc(sizeof(ProgBits) + header->sh_size);
+readProgBitsSection(FILE* fileHandle, ElfSectionHeader* header) {
+	ElfProgBitsSection* progbits = mem_Alloc(sizeof(ElfProgBitsSection) + header->sh_size);
+	progbits->allocatedSymbols = 0;
+	progbits->xlinkSection = NULL;
 
 	if (header->sh_flags & SHF_ALLOC) {
 		fseek(fileHandle, header->sh_offset, SEEK_SET);
 		progbits->length = header->sh_size;
 		if (progbits->length != fread(progbits->data, 1, progbits->length, fileHandle))
-			error("readProgBits short file");
+			error("readProgBitsSection short file");
 	} else {
 		progbits->length = 0;
 	}
-	header->sh_data.progbits = progbits;
+	header->data.progbits = progbits;
 }
 
 
 static void
-readStrTab(FILE* fileHandle, SectionHeader* header) {
-	StringTable* table = malloc(sizeof(StringTable) + header->sh_size);
+readNoBitsSection(FILE* fileHandle, ElfSectionHeader* header) {
+	ElfProgBitsSection* bits = mem_Alloc(sizeof(ElfProgBitsSection));
+	bits->allocatedSymbols = 0;
+	bits->xlinkSection = NULL;
+	bits->length = 0;
+	bits->xlinkSection = NULL;
+
+	header->data.progbits = bits;
+}
+
+
+static void
+readStrTabSection(FILE* fileHandle, ElfSectionHeader* header) {
+	ElfStringSection* table = mem_Alloc(sizeof(ElfStringSection) + header->sh_size);
 
 	fseek(fileHandle, header->sh_offset, SEEK_SET);
 	table->length = header->sh_size;
 	if (table->length != fread(table->data, 1, table->length, fileHandle))
-		error("readStrTab short file");
-	header->sh_data.strings = table;
+		error("readStrTabSection short file");
+	header->data.strings = table;
 }
 
 
 static void
-readSymTab(FILE* fileHandle, SectionHeader* header) {
+readSymTabSection(FILE* fileHandle, ElfSectionHeader* header) {
 	/* e_word_t stringSection = header->sh_link; */
 	e_word_t totalSymbols = header->sh_size / header->sh_entsize;
 
-	SymbolTable* table = malloc(sizeof(SymbolTable) + totalSymbols * sizeof(Symbol));
+	ElfSymbolSection* table = mem_Alloc(sizeof(ElfSymbolSection) + totalSymbols * sizeof(ElfSymbol));
 	table->totalSymbols = totalSymbols;
 
 	for (e_word_t i = 0; i < totalSymbols; ++i) {
-		Symbol* symbol = &table->data[i];
+		ElfSymbol* symbol = &table->data[i];
 		fseek(fileHandle, header->sh_offset + i * header->sh_entsize, SEEK_SET);
-		symbol->nameindex = fget_word(fileHandle);
-		symbol->value = fget_addr(fileHandle);
+		symbol->st_nameindex = fget_word(fileHandle);
+		symbol->st_value = fget_addr(fileHandle);
 		/* size = */ fget_word(fileHandle);
 		uint8_t info = fgetc(fileHandle);
 		symbol->bind = ELF32_ST_BIND(info);
 		symbol->type = ELF32_ST_TYPE(info);
 		/* other = */ fgetc(fileHandle);
-		symbol->sectionindex = fget_half(fileHandle);
+		symbol->st_shndx = fget_half(fileHandle);
+
+		symbol->name = NULL;
+		symbol->section = NULL;
+		symbol->xlinkSymbol = NULL;
 	}
 
-	header->sh_data.symbols = table;
+	header->data.symbols = table;
 }
 
 
 static void
-readRelA(FILE* fileHandle, SectionHeader* header) {
+readRelASection(FILE* fileHandle, ElfSectionHeader* header) {
 	/* e_word_t stringSection = header->sh_link; */
 	e_word_t totalRelocs = header->sh_size / header->sh_entsize;
 
-	RelocAddendTable* table = malloc(sizeof(RelocAddendTable) + totalRelocs * sizeof(RelocAddend));
+	ElfRelocAddendSection* table = mem_Alloc(sizeof(ElfRelocAddendSection) + totalRelocs * sizeof(ElfRelocAddendEntry));
 	table->totalRelocations = totalRelocs;
 
 	for (e_word_t i = 0; i < totalRelocs; ++i) {
-		RelocAddend* reloc = &table->data[i];
+		ElfRelocAddendEntry* reloc = &table->data[i];
 		fseek(fileHandle, header->sh_offset + i * header->sh_entsize, SEEK_SET);
-		reloc->offset = fget_addr(fileHandle);
+		reloc->r_offset = fget_addr(fileHandle);
 		e_word_t info = fget_word(fileHandle);
 		reloc->symbolIndex = ELF32_R_SYM(info);
+		reloc->symbol = NULL;
 		reloc->type = ELF32_R_TYPE(info);
-		reloc->addend = fget_word(fileHandle);
+		reloc->r_addend = fget_word(fileHandle);
 	}
 
-	header->sh_data.relocationAddends = table;
+	header->data.relocationAddends = table;
 }
 
 
 static void
-readRel(FILE* fileHandle, SectionHeader* header) {
+readRelSection(FILE* fileHandle, ElfSectionHeader* header) {
 	/* e_word_t stringSection = header->sh_link; */
 	e_word_t totalRelocs = header->sh_info;
 
-	RelocTable* table = malloc(sizeof(RelocTable) + totalRelocs * sizeof(Reloc));
+	ElfRelocSection* table = mem_Alloc(sizeof(ElfRelocSection) + totalRelocs * sizeof(ElfRelocEntry));
 	table->totalRelocations = totalRelocs;
 
 	for (e_word_t i = 0; i < totalRelocs; ++i) {
-		Reloc* reloc = &table->data[i];
+		ElfRelocEntry* reloc = &table->data[i];
 		fseek(fileHandle, header->sh_offset + i * header->sh_entsize, SEEK_SET);
-		reloc->offset = fget_addr(fileHandle);
+		reloc->r_offset = fget_addr(fileHandle);
 		e_word_t info = fget_word(fileHandle);
 		reloc->symbolIndex = ELF32_R_SYM(info);
+		reloc->symbol = NULL;
 		reloc->type = ELF32_R_TYPE(info);
 	}
 
-	header->sh_data.relocations = table;
+	header->data.relocations = table;
 }
 
 
 static void
-readSections(FILE* fileHandle, SectionHeader* headers, uint_fast16_t totalSections) {
+readSections(FILE* fileHandle, ElfSectionHeader* headers, uint_fast16_t totalSections) {
 	for (uint_fast16_t i = 0; i < totalSections; ++i) {
-		SectionHeader* header = &headers[i];
+		ElfSectionHeader* header = &headers[i];
 		switch (header->sh_type) {
 			case SHT_PROGBITS:
-				readProgBits(fileHandle, header);
+				readProgBitsSection(fileHandle, header);
+				break;
+			case SHT_NOBITS:
+				readNoBitsSection(fileHandle, header);
 				break;
 			case SHT_STRTAB:
-				readStrTab(fileHandle, header);
+				readStrTabSection(fileHandle, header);
 				break;
 			case SHT_SYMTAB:
-				readSymTab(fileHandle, header);
+				readSymTabSection(fileHandle, header);
 				break;
 			case SHT_RELA:
-				readRelA(fileHandle, header);
+				readRelASection(fileHandle, header);
 				break;
 			case SHT_REL:
-				readRel(fileHandle, header);
+				readRelSection(fileHandle, header);
 				break;
 			default:
 				break;
@@ -468,47 +496,47 @@ readSections(FILE* fileHandle, SectionHeader* headers, uint_fast16_t totalSectio
 }
 
 
-static const SectionHeader*
+static const ElfSectionHeader*
 getSectionHeader(const ElfHeader* elf, uint32_t index) {
 	if (index >= elf->totalSectionHeaders)
 		error("getSectionHeader read outside range (%d)", index);
 
-	return &elf->headers[index];
+	return index == 0 ? NULL : &elf->headers[index];
 }
 
 
-static const StringTable*
+static const ElfStringSection*
 getStringTable(const ElfHeader* elf, uint32_t index) {
-	const SectionHeader* header = getSectionHeader(elf, index);
+	const ElfSectionHeader* header = getSectionHeader(elf, index);
 
 	if (header->sh_type != SHT_STRTAB)
 		error("getStringTable expected string section (%d)", index);
 	
-	return header->sh_data.strings;
+	return header->data.strings;
 }
 
 
-static const SymbolTable*
+static const ElfSymbolSection*
 getSymbolTable(const ElfHeader* elf, uint32_t index) {
-	const SectionHeader* header = getSectionHeader(elf, index);
+	const ElfSectionHeader* header = getSectionHeader(elf, index);
 	if (header->sh_type != SHT_SYMTAB)
 		error("getSymbolTable expected symbol section (%d)", index);
 
-	return header->sh_data.symbols;
+	return header->data.symbols;
 }
 
 
-static const Symbol*
-getSymbol(const SymbolTable* symbols, uint32_t index) {
+static const ElfSymbol*
+getSymbol(const ElfSymbolSection* symbols, uint32_t index) {
 	if (index >= symbols->totalSymbols)
 		error("getSymbol read outside range (%d)", index);
 
-	return &symbols->data[index];
+	return index == 0 ? NULL : &symbols->data[index];
 }
 
 
 static const char*
-getString(const StringTable* table, uint32_t index) {
+getString(const ElfStringSection* table, uint32_t index) {
 	if (index >= table->length)
 		error("getString read outside range (%d)", index);
 
@@ -517,49 +545,49 @@ getString(const StringTable* table, uint32_t index) {
 
 static void
 resolveSectionNames(ElfHeader* elf) {
-	const StringTable* names = getStringTable(elf, elf->stringSectionHeaderIndex);
+	const ElfStringSection* names = getStringTable(elf, elf->stringSectionHeaderIndex);
 	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
-		SectionHeader* header = &elf->headers[i];
+		ElfSectionHeader* header = &elf->headers[i];
 		header->name = getString(names, header->sh_name);
 	}
 }
 
 
 static void
-resolveSymTab(const ElfHeader* elf, SectionHeader* header) {
-	SymbolTable* symbols = header->sh_data.symbols;
+resolveSymTabSection(const ElfHeader* elf, ElfSectionHeader* header) {
+	ElfSymbolSection* symbols = header->data.symbols;
 	symbols->stringSection = getStringTable(elf, header->sh_link);
 
 	for (uint32_t i = 0; i < symbols->totalSymbols; ++i) {
-		Symbol* symbol = &symbols->data[i];
-		symbol->name = getString(symbols->stringSection, symbol->nameindex);
-		symbol->section = getSectionHeader(elf, symbol->sectionindex);
+		ElfSymbol* symbol = &symbols->data[i];
+		symbol->name = getString(symbols->stringSection, symbol->st_nameindex);
+		symbol->section = getSectionHeader(elf, symbol->st_shndx);
 	}
 }
 
 
 static void
-resolveRelA(ElfHeader* elf, SectionHeader* header) {
-	RelocAddendTable* relocs = header->sh_data.relocationAddends;
+resolveRelASection(ElfHeader* elf, ElfSectionHeader* header) {
+	ElfRelocAddendSection* relocs = header->data.relocationAddends;
 	relocs->section = getSectionHeader(elf, header->sh_info);
 	relocs->symbols = getSymbolTable(elf, header->sh_link);
 
 	for (uint32_t i = 0; i < relocs->totalRelocations; ++i) {
-		RelocAddend* reloc = &relocs->data[i];
+		ElfRelocAddendEntry* reloc = &relocs->data[i];
 		reloc->symbol = getSymbol(relocs->symbols, reloc->symbolIndex);
 	}
 }
 
 
 static int32_t
-readData(const SectionHeader* text, uint32_t offset, uint32_t type) {
+readData(const ElfSectionHeader* text, uint32_t offset, uint32_t type) {
 	switch (type) {
 		case R_68K_32:
 		case R_68K_PC32:
-			return read_word(text->sh_data.progbits->data, offset);
+			return read_word(text->data.progbits->data, offset);
 		case R_68K_16:
 		case R_68K_PC16:
-			return read_half(text->sh_data.progbits->data, offset);
+			return read_half(text->data.progbits->data, offset);
 		default:
 			error("readData unsupported type (%d)", type);
 	}
@@ -567,25 +595,25 @@ readData(const SectionHeader* text, uint32_t offset, uint32_t type) {
 
 
 static void
-resolveRel(ElfHeader* elf, SectionHeader* header) {
-	const SectionHeader* textSection = getSectionHeader(elf, header->sh_info);
+resolveRelSection(ElfHeader* elf, ElfSectionHeader* header) {
+	const ElfSectionHeader* textSection = getSectionHeader(elf, header->sh_info);
 
-	RelocTable* sourceTable = header->sh_data.relocations;
-	RelocAddendTable* destTable = malloc(sizeof(RelocAddendTable) + sourceTable->totalRelocations * sizeof(RelocAddend));
+	ElfRelocSection* sourceTable = header->data.relocations;
+	ElfRelocAddendSection* destTable = mem_Alloc(sizeof(ElfRelocAddendSection) + sourceTable->totalRelocations * sizeof(ElfRelocAddendEntry));
 
 	for (uint32_t i = 0; i < sourceTable->totalRelocations; ++i) {
-		Reloc* source = &sourceTable->data[i];
-		RelocAddend* dest = &destTable->data[i];
+		ElfRelocEntry* source = &sourceTable->data[i];
+		ElfRelocAddendEntry* dest = &destTable->data[i];
 
-		dest->offset = source->offset;
+		dest->r_offset = source->r_offset;
 		dest->symbolIndex = source->symbolIndex;
 		dest->type = source->type;
-		dest->addend = readData(textSection, source->offset, source->type);
+		dest->r_addend = readData(textSection, source->r_offset, source->type);
 	}
 
 	header->sh_type = SHT_RELA;
-	header->sh_data.relocationAddends = destTable;
-	resolveRelA(elf, header);
+	header->data.relocationAddends = destTable;
+	resolveRelASection(elf, header);
 }
 
 
@@ -594,16 +622,16 @@ resolveNamesAndIndices(ElfHeader* elf) {
 	resolveSectionNames(elf);
 
 	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
-		SectionHeader* header = &elf->headers[i];
+		ElfSectionHeader* header = &elf->headers[i];
 		switch (header->sh_type) {
 			case SHT_SYMTAB:
-				resolveSymTab(elf, header);
+				resolveSymTabSection(elf, header);
 				break;
 			case SHT_RELA:
-				resolveRelA(elf, header);
+				resolveRelASection(elf, header);
 				break;
 			case SHT_REL:
-				resolveRel(elf, header);
+				resolveRelSection(elf, header);
 				break;
 			default:
 				break;
@@ -612,55 +640,68 @@ resolveNamesAndIndices(ElfHeader* elf) {
 }
 
 
+static SSymbol*
+addElfSymbolToProgbits(ElfProgBitsSection* symbolSectionProgBits, const ElfSymbol* elfSymbol) {
+	SSection* xlinkSymbolSection = symbolSectionProgBits->xlinkSection;
+	if (xlinkSymbolSection->totalSymbols == symbolSectionProgBits->allocatedSymbols) {
+		if (symbolSectionProgBits->allocatedSymbols == 0) {
+			symbolSectionProgBits->allocatedSymbols = 16;
+		} else {
+			symbolSectionProgBits->allocatedSymbols += symbolSectionProgBits->allocatedSymbols >> 1;
+		}
+		xlinkSymbolSection->symbols = realloc(xlinkSymbolSection->symbols, sizeof(SSymbol) * symbolSectionProgBits->allocatedSymbols);
+	}
+
+	SSymbol* xlinkSymbol = &xlinkSymbolSection->symbols[xlinkSymbolSection->totalSymbols++];
+	strcpy(xlinkSymbol->name, elfSymbol->name);
+	xlinkSymbol->resolved = false;
+	xlinkSymbol->section = xlinkSymbolSection;
+	xlinkSymbol->value = 0;
+
+	return xlinkSymbol;
+}
+
+
 static void
-symbolsToXlink(const ElfHeader* elf, const SectionHeader* header, SSection* section) {
-	uint32_t allocatedSymbols = 16;
+symbolsToXlink(const ElfHeader* elf, const ElfSectionHeader* header) {
+	ElfSymbolSection* symbols = header->data.symbols;
 
-	section->symbols = malloc(sizeof(SSymbol) * allocatedSymbols);
-	section->totalSymbols = 0;
+	// Local symbols
+	for (uint32_t i = 1; i < header->sh_info; ++i) {
+		ElfSymbol* elfSymbol = &symbols->data[i];
+		if (elfSymbol->st_nameindex == 0) continue;
 
-	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
-		SectionHeader* symbols = &elf->headers[i];
+		const ElfSectionHeader* elfSymbolSection = elfSymbol->section;
+		SSymbol* xlinkSymbol = addElfSymbolToProgbits(elfSymbolSection->data.progbits, elfSymbol);
+		elfSymbol->xlinkSymbol = xlinkSymbol;
 
-		if (symbols->sh_type == SHT_SYMTAB) {
-			for (uint32_t i = 0; i < symbols->sh_data.symbols->totalSymbols; ++i) {
-				Symbol* elfSymbol = &symbols->sh_data.symbols->data[i];
+		if (elfSymbol->st_shndx == SHN_UNDEF) {
+			xlinkSymbol->type = SYM_LOCALIMPORT;
+		} else if (elfSymbol->st_shndx == SHN_ABS) {
+			xlinkSymbol->type = SYM_LOCALEXPORT;
+			xlinkSymbol->resolved = true;
+		} else {
+			xlinkSymbol->type = SYM_LOCALEXPORT;
+		}
+	}
 
-				if (elfSymbol->section == header) {
-					if (section->totalSymbols == allocatedSymbols) {
-						allocatedSymbols += allocatedSymbols >> 1;
-						section->symbols = realloc(section->symbols, sizeof(SSymbol) * allocatedSymbols);
-					}
+	// Global symbols
+	for (uint32_t i = header->sh_info; i < symbols->totalSymbols; ++i) {
+		ElfSymbol* elfSymbol = &symbols->data[i];
+		if (elfSymbol->st_nameindex == 0) continue;
 
-					SSymbol* xlinkSymbol = &section->symbols[section->totalSymbols++];
-					elfSymbol->xlinkSymbol = xlinkSymbol;
+		if (elfSymbol->st_shndx == SHN_UNDEF) {
+			// Ignore imported symbols for now. They will be added when processing relocs
+		} else {
+			const ElfSectionHeader* elfSymbolSection = elfSymbol->section;
+			SSymbol* xlinkSymbol = addElfSymbolToProgbits(elfSymbolSection->data.progbits, elfSymbol);
+			elfSymbol->xlinkSymbol = xlinkSymbol;
 
-					strcpy(xlinkSymbol->name, elfSymbol->name);
-					xlinkSymbol->resolved = false;
-					xlinkSymbol->section = section;
-					xlinkSymbol->value = 0;
-
-					if (i < symbols->sh_info) {
-						// local symbols
-						if (elfSymbol->sectionindex == SHN_UNDEF) {
-							xlinkSymbol->type = SYM_LOCALIMPORT;
-						} else if (elfSymbol->sectionindex == SHN_ABS) {
-							xlinkSymbol->type = SYM_LOCALEXPORT;
-							xlinkSymbol->resolved = true;
-						} else {
-							xlinkSymbol->type = SYM_LOCAL;
-						}
-					} else {
-						if (elfSymbol->sectionindex == SHN_UNDEF) {
-							xlinkSymbol->type = SYM_IMPORT;
-						} else if (elfSymbol->sectionindex == SHN_ABS) {
-							xlinkSymbol->type = SYM_EXPORT;
-							xlinkSymbol->resolved = true;
-						} else {
-							xlinkSymbol->type = SYM_EXPORT;
-						}
-					}
-				}
+			if (elfSymbol->st_shndx == SHN_ABS) {
+				xlinkSymbol->type = SYM_EXPORT;
+				xlinkSymbol->resolved = true;
+			} else {
+				xlinkSymbol->type = SYM_EXPORT;
 			}
 		}
 	}
@@ -669,84 +710,90 @@ symbolsToXlink(const ElfHeader* elf, const SectionHeader* header, SSection* sect
 
 static uint8_t
 g_relocExpr[] = {
-	OBJ_OP_ADD,
-		OBJ_SYMBOL, 0, 0, 0, 0,
-		OBJ_CONSTANT, 0, 0, 0, 0
+	OBJ_SYMBOL, 0, 0, 0, 0,
+	OBJ_CONSTANT, 0, 0, 0, 0,
+	OBJ_OP_ADD
 };
 
-#define EXPR_SYMBOL_OFFSET 2
-#define EXPR_CONSTANT_OFFSET 7
+#define EXPR_SYMBOL_OFFSET 1
+#define EXPR_CONSTANT_OFFSET 6
 
 static void
-relocsToXlink(const ElfHeader* elf, const SectionHeader* header, SSection* section) {
-	section->patches = NULL;
+relocsToXlink(const ElfHeader* elf, const ElfSectionHeader* relocs) {
+	ElfRelocAddendSection* relas = relocs->data.relocationAddends;
+	ElfProgBitsSection* progbits = relas->section->data.progbits;
+	SSection* xlinkSection = relas->section->data.progbits->xlinkSection;
+	xlinkSection->patches = patch_Alloc(relas->totalRelocations);
+	for (uint32_t i = 0; i < relas->totalRelocations; ++i) {
+		ElfRelocAddendEntry* rela = &relas->data[i];
+		SPatch* patch = &xlinkSection->patches->patches[i];
 
-	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
-		SectionHeader* relocs = &elf->headers[i];
-		if (relocs->sh_type == SHT_RELA) {
-			RelocAddendTable* relas = relocs->sh_data.relocationAddends;
-			if (relas->section == header) {
-				section->patches = patch_Alloc(relas->totalRelocations);
-				for (uint32_t i = 0; i < relas->totalRelocations; ++i) {
-					RelocAddend* rela = &relas->data[i];
-					SSymbol* xlinkSymbol = rela->symbol->xlinkSymbol;
-					SPatch* patch = &section->patches->patches[i];
-
-					switch (rela->type) {
-						case R_68K_32:
-							patch->type = PATCH_BE_32;
-							break;
-						default:
-							error("relocsToXlink unknown relocation type (%d)", rela->type);
-					}
-
-					uint32_t xlinkSymbolIndex = (xlinkSymbol - section->symbols) / sizeof(SSymbol);
-					if (xlinkSymbolIndex > section->totalSymbols)
-						error("relocsToXlink error illegal symbol index (%d)", xlinkSymbolIndex);
-
-					patch->valueSection = NULL;
-					patch->valueSymbol = NULL;
-
-					patch->offset = rela->offset;
-					patch->expressionSize = sizeof(g_relocExpr);
-					patch->expression = malloc(patch->expressionSize);
-					memcpy(patch->expression, g_relocExpr, sizeof(g_relocExpr));
-					patch->expression[EXPR_SYMBOL_OFFSET + 0] = xlinkSymbolIndex & 0xFF;
-					patch->expression[EXPR_SYMBOL_OFFSET + 1] = (xlinkSymbolIndex >> 8) & 0xFF;
-					patch->expression[EXPR_SYMBOL_OFFSET + 2] = (xlinkSymbolIndex >> 16) & 0xFF;
-					patch->expression[EXPR_SYMBOL_OFFSET + 3] = (xlinkSymbolIndex >> 24) & 0xFF;
-					patch->expression[EXPR_CONSTANT_OFFSET + 0] = rela->addend & 0xFF;
-					patch->expression[EXPR_CONSTANT_OFFSET + 1] = (rela->addend >> 8) & 0xFF;
-					patch->expression[EXPR_CONSTANT_OFFSET + 2] = (rela->addend >> 16) & 0xFF;
-					patch->expression[EXPR_CONSTANT_OFFSET + 3] = (rela->addend >> 24) & 0xFF;
-				}
-			}
+		switch (rela->type) {
+			case R_68K_32:
+				patch->type = PATCH_BE_32;
+				break;
+			default:
+				error("relocsToXlink unknown relocation type (%d)", rela->type);
 		}
+
+		SSymbol* xlinkSymbol = rela->symbol->xlinkSymbol;
+		if (xlinkSymbol == NULL && rela->symbol->st_shndx == SHN_UNDEF) {
+			xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
+			xlinkSymbol->type = SYM_IMPORT;
+		} else if (rela->symbol->section != relas->section) {
+			xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
+			xlinkSymbol->type = SYM_LOCALIMPORT;
+		}
+
+		uint32_t xlinkSymbolIndex = xlinkSymbol - xlinkSection->symbols;
+		if (xlinkSymbolIndex >= xlinkSection->totalSymbols)
+			error("relocsToXlink error illegal symbol index (%d)", xlinkSymbolIndex);
+
+		patch->valueSection = NULL;
+		patch->valueSymbol = NULL;
+
+		patch->offset = rela->r_offset;
+		patch->expressionSize = sizeof(g_relocExpr);
+		patch->expression = mem_Alloc(patch->expressionSize);
+		memcpy(patch->expression, g_relocExpr, sizeof(g_relocExpr));
+		patch->expression[EXPR_SYMBOL_OFFSET + 0] = xlinkSymbolIndex & 0xFF;
+		patch->expression[EXPR_SYMBOL_OFFSET + 1] = (xlinkSymbolIndex >> 8) & 0xFF;
+		patch->expression[EXPR_SYMBOL_OFFSET + 2] = (xlinkSymbolIndex >> 16) & 0xFF;
+		patch->expression[EXPR_SYMBOL_OFFSET + 3] = (xlinkSymbolIndex >> 24) & 0xFF;
+		patch->expression[EXPR_CONSTANT_OFFSET + 0] = rela->r_addend & 0xFF;
+		patch->expression[EXPR_CONSTANT_OFFSET + 1] = (rela->r_addend >> 8) & 0xFF;
+		patch->expression[EXPR_CONSTANT_OFFSET + 2] = (rela->r_addend >> 16) & 0xFF;
+		patch->expression[EXPR_CONSTANT_OFFSET + 3] = (rela->r_addend >> 24) & 0xFF;
 	}
 }
 
 
 static void
-sectionToXlink(const ElfHeader* elf, const SectionHeader* header, uint32_t sectionId, uint32_t fileId)  {
+sectionToXlink(const ElfHeader* elf, const ElfSectionHeader* header, uint32_t sectionId, uint32_t fileId)  {
 	Group* group = NULL;
 
 	if (header->sh_type == SHT_PROGBITS) {
-		if ((header->sh_flags & (SHF_ALLOC | SHF_WRITE)) == (SHF_ALLOC | SHF_WRITE))
-			group = &g_dataGroup;
-		else if ((header->sh_flags & (SHF_ALLOC | SHF_EXECINSTR)) == (SHF_ALLOC | SHF_EXECINSTR))
+		if ((header->sh_flags & (SHF_ALLOC | SHF_EXECINSTR)) == (SHF_ALLOC | SHF_EXECINSTR))
 			group = &g_codeGroup;
+		else if ((header->sh_flags & SHF_ALLOC) == SHF_ALLOC)
+			group = &g_dataGroup;
+		else if (header->sh_flags == 0)
+			return;
 		else
-			error("sectionToXlink unknown group type (%08X)", header->sh_flags);
+			error("sectionToXlink unknown group type (\"%s\" %08X)", header->name, header->sh_flags);
 	} else if (header->sh_type == SHT_NOBITS) {
 		if ((header->sh_flags & (SHF_ALLOC | SHF_WRITE)) == (SHF_ALLOC | SHF_WRITE))
 			group = &g_bssGroup;
 		else
-			error("sectionToXlink unknown group type (%08X)", header->sh_flags);
+			error("sectionToXlink unknown group type (\"%s\" %08X)", header->name, header->sh_flags);
 	} else {
 		return;
 	}
 
 	SSection* section = sect_CreateNew();
+
+	header->data.progbits->xlinkSection = section;
+
 	section->group = group;
 	section->fileId = fileId;
 	section->data = NULL;
@@ -760,28 +807,44 @@ sectionToXlink(const ElfHeader* elf, const SectionHeader* header, uint32_t secti
 	section->root = false;
 	strcpy(section->name, header->name);
 
-	symbolsToXlink(elf, header, section);
+	section->totalSymbols = 0;
+	section->symbols = NULL;
 
 	section->totalLineMappings = 0;
 	section->lineMappings = NULL;
 
 	section->size = header->sh_size;
 	if (header->sh_type == SHT_PROGBITS) {
-		section->data = malloc(section->size);
-		memcpy(section->data, header->sh_data.progbits->data, section->size);
+		section->data = mem_Alloc(section->size);
+		memcpy(section->data, header->data.progbits->data, section->size);
 	}
 
-	relocsToXlink(elf, header, section);
+	section->patches = NULL;
 }
 
 
 static void
 elfToXlink(const ElfHeader* elf, uint32_t fileId) {
 	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
-		SectionHeader* header = &elf->headers[i];
+		const ElfSectionHeader* header = &elf->headers[i];
 		sectionToXlink(elf, header, i, fileId);
 	}
 
+	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
+		const ElfSectionHeader* header = &elf->headers[i];
+		if (header->sh_type == SHT_SYMTAB) {
+			symbolsToXlink(elf, header);
+		}
+	}
+
+	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
+		const ElfSectionHeader* header = &elf->headers[i];
+		if (header->sh_type == SHT_RELA) {
+			const ElfSectionHeader* patchSection = header->data.relocationAddends->section;
+			if ((patchSection->sh_type == SHT_PROGBITS || patchSection->sh_type == SHT_NOBITS) && (patchSection->sh_flags & SHF_ALLOC))
+				relocsToXlink(elf, header);
+		}
+	}
 }
 
 
@@ -795,7 +858,7 @@ elf_Read(FILE* fileHandle, uint32_t fileId) {
 	if (!readHeader(fileHandle, &sectionHeadersOffset, &sectionHeaderEntrySize, &totalSectionHeaders, &stringSectionHeaderIndex))
 		error("Unsupported ELF file");
 
-	SectionHeader* sectionHeaders = readSectionHeaders(fileHandle, sectionHeadersOffset, sectionHeaderEntrySize, totalSectionHeaders);
+	ElfSectionHeader* sectionHeaders = readSectionHeaders(fileHandle, sectionHeadersOffset, sectionHeaderEntrySize, totalSectionHeaders);
 
 	ElfHeader elf = {
 		totalSectionHeaders,

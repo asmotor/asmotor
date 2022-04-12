@@ -253,22 +253,41 @@ writeSymbol(const string* name, e_addr_t value, uint8_t bind, uint8_t type, e_ha
 }
 
 static uint32_t
-writeSymbolsWithFlags(FILE* fileHandle, uint8_t bind, uint32_t includeFlags, uint32_t excludeFlags, uint32_t symbolIndex) {
+writeGlobalSymbols(FILE* fileHandle, uint32_t symbolIndex) {
 	for (uint16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
 		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
-			if ((symbol->id != 0)
-			||  (symbol->type != SYM_LABEL && symbol->type != SYM_EQU && symbol->type != SYM_IMPORT && symbol->type != SYM_GLOBAL)
-			||  ((symbol->flags & includeFlags) == 0)
-			||  ((symbol->flags & excludeFlags) != 0))
-				continue;
+			if ((symbol->id == 0)
+			&&  (symbol->type == SYM_LABEL || symbol->type == SYM_EQU || symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL)
+			&&  ((symbol->flags & (SYMF_RELOC | SYMF_USED | SYMF_EXPORT)) != 0)) {
 
-			uint8_t sectionIndex =
-				symbol->flags & SYMF_CONSTANT ? SHN_ABS :
-				symbol->type == SYM_GLOBAL || symbol->type == SYM_IMPORT ? SHN_UNDEF :
-				symbol->section->id;
+				uint8_t sectionIndex =
+					symbol->flags & SYMF_CONSTANT ? SHN_ABS :
+					symbol->type == SYM_GLOBAL || symbol->type == SYM_IMPORT ? SHN_UNDEF :
+					symbol->section->id;
 
-			writeSymbol(symbol->name, symbol->value.integer, bind, STT_NOTYPE, sectionIndex, fileHandle);
-			symbol->id = symbolIndex++;
+				writeSymbol(symbol->name, symbol->value.integer, STB_GLOBAL, STT_NOTYPE, sectionIndex, fileHandle);
+				symbol->id = symbolIndex++;
+			}
+		}
+	}
+	return symbolIndex;
+}
+
+static uint32_t
+writeLocalSymbols(FILE* fileHandle, uint32_t symbolIndex) {
+	for (uint16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
+		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
+			if ((symbol->id == 0)
+			&&  (symbol->type == SYM_LABEL || symbol->type == SYM_EQU)
+			&&  ((symbol->flags & (SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT)) != 0)
+			&&  ((symbol->flags & SYMF_EXPORT) == 0)) {
+
+				uint8_t sectionIndex =
+					symbol->flags & SYMF_CONSTANT ? SHN_ABS : symbol->section->id;
+
+				writeSymbol(symbol->name, symbol->value.integer, STB_LOCAL, STT_NOTYPE, sectionIndex, fileHandle);
+				symbol->id = symbolIndex++;
+			}
 		}
 	}
 	return symbolIndex;
@@ -282,9 +301,9 @@ writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSect
 
 	writeSymbolRaw(0, 0, 0, SHN_UNDEF, fileHandle);	// symbol #0
 	uint32_t symbolIndex = 1;
-	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_LOCAL, SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT, SYMF_EXPORT, symbolIndex);
+	symbolIndex = writeLocalSymbols(fileHandle, symbolIndex);
 	uint32_t totalLocals = symbolIndex;
-	symbolIndex = writeSymbolsWithFlags(fileHandle, STB_GLOBAL, SYMF_EXPORT, 0, symbolIndex);
+	symbolIndex = writeGlobalSymbols(fileHandle, symbolIndex);
 
 	g_sectionHeaders[symbolSection].sh_offset = symbolTableLocation;
 	g_sectionHeaders[symbolSection].sh_size = ftello(fileHandle) - symbolTableLocation;
