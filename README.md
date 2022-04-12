@@ -55,7 +55,7 @@ jsr {
 A script (```install.ps1```) is included that will install the compiled binaries into the %USERPROFILE%\\bin directory. This path should be added to your $PATH for easier use. This script will also accept the
 destination root (for instance ```%USERPROFILE\\bin```). The installation directory should be added to your path variable.
 
-To build from source, cmake must be installed. Installing cmake with [Chocolatey](https://chocolatey.org/) using command ```choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'``` is suggested. A C compiler that cmake can find must also be installed. Visual Studio Community edition is suggested.
+To build from source, cmake must be installed. Installing cmake with [Chocolatey](https://chocolatey.org/) using the command ```choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'``` is suggested. A C compiler that cmake can find must also be installed. Visual Studio Community edition is suggested.
 
 Then, using PowerShell, run the following commands:
 ```
@@ -64,10 +64,9 @@ Then, using PowerShell, run the following commands:
 ```
 
 ### Linux and macOS
-A script (```install.sh```) is included that will install the compiled binaries into the $HOME/bin directory. This path should be added to your $PATH for easier use. This script will also accept the
-destination root (for instance ```/usr/local```).
+The project uses the [just](https://github.com/casey/just) command runner for project operations. An `install` recipe is available that will compile and install the compiled binaries into the $HOME/.local/bin directory. This path should be added to your $PATH for easier use. This recipe will also accept the destination root as an argument (for instance ```/usr/local```).
 
-For even easier installation, provided you have the necessary prerequisites, ```git``` and ```cmake```, installed, the latest version of ASMotor can be installed using
+For even easier installation on a supported platform, the latest version of ASMotor can be installed using the `bootstrap.sh` script. Currently supported platforms are ones with `apt-get` installed. If the platform is not currently supported by `bootstrap.sh` it will complain and prompt you to install the necessary prerequisites `just`, `git` and `cmake` yourself.
 
 ```
     curl https://raw.githubusercontent.com/asmotor/asmotor/master/bootstrap.sh | sh
@@ -79,7 +78,7 @@ If you want to install it globally, you can supply the installation prefix as a 
     curl https://raw.githubusercontent.com/asmotor/asmotor/master/bootstrap.sh | sh -s /usr/local
 ```
 
-To install ```git``` and ```cmake```, it is suggested you use your distribution's package manager. For macOS, use [brew](https://brew.sh) or [MacPorts](https://www.macports.org).
+To install ```just```, ```git``` and ```cmake```, it is suggested you use your distribution's package manager. For macOS, use [brew](https://brew.sh) or [MacPorts](https://www.macports.org).
 
 # Editing code
 A VSCode extension that enables syntax highlighting is also available at https://marketplace.visualstudio.com/items?itemName=ASMotor.asmotor-syntax
