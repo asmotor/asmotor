@@ -2,7 +2,7 @@
 
 for command in just git cmake; do
 	if ! command -v $command >/dev/null; then
-		packages="$command $packages"
+		PACKAGES="$command $PACKAGES"
 	fi
 done
 
@@ -24,18 +24,19 @@ exit_error() {
 	exit 1
 }
 
-if [ "$packages" != "" ]; then
-	echo "Required packages: $packages"
-	install_packages "brew" "brew install $packages" || \
-	install_packages "port" "sudo port -N install $packages" || \
-	install_packages "apt-get" "sudo apt-get -y install $packages build-essential" || \
-	install_packages "dnf" "sudo dnf -y install $packages" || \
+if [ "$PACKAGES" != "" ]; then
+	echo "Required packages: $PACKAGES"
+	install_packages "brew" "brew install $PACKAGES" || \
+	install_packages "port" "sudo port -N install $PACKAGES" || \
+	install_packages "apt-get" "sudo apt-get -y install $PACKAGES build-essential" || \
+	install_packages "dnf" "sudo dnf -y install $PACKAGES" || \
+	install_packages "pacman" "sudo pacman -Syu --noconfirm --needed $PACKAGES base-devel" || \
 	exit_error "Please install missing commands before proceeding"
 fi
 
-just_version=`just -V | echo -e 1.0.1\\\\n$(grep -o -P "(\\d\.)+\\d") | sort -t "." -k1,1n -k2,2n -k3,3n | head -1`
-if [ "$just_version" != "1.0.1" ]; then
-	echo "\"just\" version 1.0.1 or later required, installed version is $just_version"
+JUST_VERSION=`just -V | echo -e 1.0.1\\\\n$(grep -o -P "(\\d\.)+\\d") | sort -t "." -k1,1n -k2,2n -k3,3n | head -1`
+if [ "$JUST_VERSION" != "1.0.1" ]; then
+	echo "\"just\" $JUST_VERSION installed, version 1.0.1 or later required"
 	exit 1
 fi
 
