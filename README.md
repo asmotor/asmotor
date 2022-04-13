@@ -65,12 +65,17 @@ The latest in-development version can easily be installed from source by followi
 A script (```install.ps1```) is included that will install the compiled binaries into the `%USERPROFILE%\\bin` directory. This path should be added to your `%PATH%` for easier use. This script will also accept the
 destination root (for instance ```%USERPROFILE%\\bin```). The installation directory should be added to your path variable.
 
-To build from source, cmake must be installed. Installing cmake with [Chocolatey](https://chocolatey.org/) using the command ```choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'``` is suggested. A C compiler that cmake can find must also be installed. Visual Studio Community edition is suggested.
+To build from source, **cmake** must be installed. Installing cmake with [Chocolatey](https://chocolatey.org/) using the command
+
+```
+choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+```
+
+is suggested. A C compiler that cmake can find must also be installed. Visual Studio Community edition is suggested.
 
 Then, using PowerShell, run the following commands:
 ```
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-install.ps1
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/asmotor/asmotor/master/install.ps1'))
 ```
 
 ### Linux and macOS

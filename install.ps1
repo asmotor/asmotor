@@ -1,14 +1,13 @@
 #!/bin/sh
 $DESTDIR="$home"
 
-mkdir "$DESTDIR\bin"
+New-Item -Path "$DESTDIR\bin" -Force -ItemType "directory"
+Remove-Item 'build\windows\release' -Recurse
+New-Item -Path 'build\windows\release' -Force -ItemType "directory"
 
-Remove-Item 'build/windows/release' -Recurse
-mkdir 'build/windows/release'
-
-Set-Location 'build/windows/release'
+Set-Location -Path 'build\windows\release'
 cmake -D ASMOTOR_VERSION=$(Get-Content ..\..\..\build\version) -D CMAKE_INSTALL_PREFIX=$DESTDIR --config Release ..\..\..
-Set-Location '..\..\..'
+Set-Location -Path '..\..\..'
 
 cmake --build build\windows\release --config Release
 cmake --install build\windows\release --config Release
