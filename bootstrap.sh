@@ -27,6 +27,7 @@ if [ "$packages" != "" ]; then
 	echo "Required packages: $packages"
 	install_packages "apt-get" "sudo apt-get -y install $packages build-essential" || \
 	install_packages "port" "sudo port -N install $packages" || \
+	install_packages "brew" "brew install $packages" || \
 	exit_error "Please install missing commands before proceeding"
 fi
 
