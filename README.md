@@ -69,7 +69,7 @@ The project uses the [just](https://github.com/casey/just) command runner for pr
 For even easier installation on a supported platform, the latest version of ASMotor can be installed using the `bootstrap.sh` script. Currently supported platforms are ones with `apt-get` installed. If the platform is not currently supported by `bootstrap.sh` it will complain and prompt you to install the necessary prerequisites `just`, `git` and `cmake` yourself.
 
 ```
-    curl https://raw.githubusercontent.com/asmotor/asmotor/master/bootstrap.sh | sh
+    curl https://raw.githubusercontent.com/asmotor/asmotor/master/bootstrap.sh | bash
 ```
 
 If you want to install it globally, you can supply the installation prefix as a parameter:
