@@ -260,7 +260,7 @@ writeGlobalSymbols(FILE* fileHandle, uint32_t symbolIndex) {
 			&&  (symbol->type == SYM_LABEL || symbol->type == SYM_EQU || symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL)
 			&&  ((symbol->flags & (SYMF_RELOC | SYMF_USED | SYMF_EXPORT)) != 0)) {
 
-				uint8_t sectionIndex =
+				e_half_t sectionIndex =
 					symbol->flags & SYMF_CONSTANT ? SHN_ABS :
 					symbol->type == SYM_GLOBAL || symbol->type == SYM_IMPORT ? SHN_UNDEF :
 					symbol->section->id;
@@ -282,7 +282,7 @@ writeLocalSymbols(FILE* fileHandle, uint32_t symbolIndex) {
 			&&  ((symbol->flags & (SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT)) != 0)
 			&&  ((symbol->flags & SYMF_EXPORT) == 0)) {
 
-				uint8_t sectionIndex =
+				e_half_t sectionIndex =
 					symbol->flags & SYMF_CONSTANT ? SHN_ABS : symbol->section->id;
 
 				writeSymbol(symbol->name, symbol->value.integer, STB_LOCAL, STT_NOTYPE, sectionIndex, fileHandle);

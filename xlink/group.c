@@ -1019,5 +1019,4 @@ group_SetupFoenixA2560X(void) {
     //	initialise memory chunks
 
     group_InitMemoryChunks();
-
 }
