@@ -5,22 +5,33 @@ for command in just git cmake; do
 	fi
 done
 
+install_packages() {
+	if command -v $1 >/dev/null; then
+		echo -n "You have the package manager \"$1\" installed, would you like to install these packages [Y/n]? "
+		read choice
+		if [[ "${choice:-Y}" =~ ^[Yy]$ ]]; then
+			$2 || exit 1
+			echo "Packages installed successfully"
+			return 0
+		fi
+	fi
+	return 1
+}
+
+exit_error() {
+	echo $1
+	exit 1
+}
+
 if [ "$packages" != "" ]; then
 	echo "Required packages: $packages"
-	if command -v apt-get >/dev/null; then
-		echo -n "You have apt-get installed, would you like to install these packages [Y/n]? "
-		read choice
-		if [ "${choice:-Y}" == "Y" ]; then
-			sudo apt-get -y install $packages build-essential || exit 1
-		else
-			exit 1
-		fi
-	else
-		echo "Please install commands $packages."
-	fi
+	install_packages "apt-get" "sudo apt-get -y install $packages build-essential" || \
+	install_packages "port" "sudo port -N install $packages" || \
+	exit_error "Please install missing commands before proceeding"
 fi
 
-DIR=_asmotor_bootstrap
+DIR=/tmp/_asmotor_bootstrap
+rm -rf $DIR
 git clone --recursive https://github.com/asmotor/asmotor.git $DIR
 cd $DIR && just install $1 && cd ..
 rm -rf $DIR

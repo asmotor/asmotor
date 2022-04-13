@@ -42,7 +42,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	rm -rf build/cmake/release
 	mkdir -p build/cmake/release
 	cd build/cmake/release; cmake -DASMOTOR_VERSION={{version}} -DCMAKE_INSTALL_PREFIX={{directory}} -DCMAKE_BUILD_TYPE=Release ../../..; cd ../../..
-	cmake --build build/cmake/release --target install -- -j $(nproc)
+	cmake --build build/cmake/release --target install -- -j
 
 
 # Set the ASMotor version number to use when building
