@@ -122,6 +122,16 @@ deb: source
 	ls -1 *.deb
 
 
+test: build
+	#!/bin/sh
+	cd test
+	for i in *; do
+		cd $i
+		./run.sh
+		cd ..
+	done
+
+
 @_copy_dir_to_src +DIRS:
 	for dir in {{DIRS}}; do \
 		mkdir -p {{source_pkg_dir}}/$dir; \
@@ -132,3 +142,4 @@ deb: source
 @_clean_src_dir:
 	rm -rf asmotor-*.tar.bz2 asmotor-*.tgz {{source_pkg_dir}}
 	mkdir {{source_pkg_dir}}
+
