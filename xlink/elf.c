@@ -653,7 +653,7 @@ addElfSymbolToProgbits(ElfProgBitsSection* symbolSectionProgBits, const ElfSymbo
 	}
 
 	SSymbol* xlinkSymbol = &xlinkSymbolSection->symbols[xlinkSymbolSection->totalSymbols++];
-	strcpy(xlinkSymbol->name, elfSymbol->name);
+	strncpy(xlinkSymbol->name, elfSymbol->name, MAX_SYMBOL_NAME_LENGTH);
 	xlinkSymbol->resolved = false;
 	xlinkSymbol->section = xlinkSymbolSection;
 	xlinkSymbol->value = 0;
@@ -723,7 +723,7 @@ relocsToXlink(const ElfHeader* elf, const ElfSectionHeader* relocs) {
 	ElfRelocAddendSection* relas = relocs->data.relocationAddends;
 	ElfProgBitsSection* progbits = relas->section->data.progbits;
 	SSection* xlinkSection = relas->section->data.progbits->xlinkSection;
-	xlinkSection->patches = patch_Alloc(relas->totalRelocations);
+	xlinkSection->patches = patch_Alloc((uint32_t) relas->totalRelocations);
 	for (uint32_t i = 0; i < relas->totalRelocations; ++i) {
 		ElfRelocAddendEntry* rela = &relas->data[i];
 		SPatch* patch = &xlinkSection->patches->patches[i];
@@ -745,7 +745,7 @@ relocsToXlink(const ElfHeader* elf, const ElfSectionHeader* relocs) {
 			xlinkSymbol->type = SYM_LOCALIMPORT;
 		}
 
-		uint32_t xlinkSymbolIndex = xlinkSymbol - xlinkSection->symbols;
+		size_t xlinkSymbolIndex = xlinkSymbol - xlinkSection->symbols;
 		if (xlinkSymbolIndex >= xlinkSection->totalSymbols)
 			error("relocsToXlink error illegal symbol index (%d)", xlinkSymbolIndex);
 
@@ -805,7 +805,7 @@ sectionToXlink(const ElfHeader* elf, const ElfSectionHeader* header, uint32_t se
 	section->minimumWordSize = 1;
 	section->byteAlign = header->sh_addralign >= 2 ? (int32_t) header->sh_addralign : -1;
 	section->root = false;
-	strcpy(section->name, header->name);
+	strncpy(section->name, header->name, MAX_SYMBOL_NAME_LENGTH);
 
 	section->totalSymbols = 0;
 	section->symbols = NULL;

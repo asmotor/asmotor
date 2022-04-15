@@ -199,14 +199,14 @@ addSectionHeaderZero(void) {
 
 static uint32_t
 addStringChars(const char* str) {
-	uint32_t offset = g_stringTable->size;
+	uint32_t offset = (uint32_t) g_stringTable->size;
 	strbuf_AppendChars(g_stringTable, str, strlen(str) + 1); // include terminating zero
 	return offset;
 }
 
 static uint32_t
 addString(const string* str) {
-	uint32_t offset = g_stringTable->size;
+	uint32_t offset = (uint32_t) g_stringTable->size;
 	strbuf_AppendChars(g_stringTable, str_String(str), str_Length(str) + 1);  // include terminating zero
 	return offset;
 }
@@ -305,8 +305,8 @@ writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSect
 	uint32_t totalLocals = symbolIndex;
 	symbolIndex = writeGlobalSymbols(fileHandle, symbolIndex);
 
-	g_sectionHeaders[symbolSection].sh_offset = symbolTableLocation;
-	g_sectionHeaders[symbolSection].sh_size = ftello(fileHandle) - symbolTableLocation;
+	g_sectionHeaders[symbolSection].sh_offset = (e_off_t) symbolTableLocation;
+	g_sectionHeaders[symbolSection].sh_size = (e_off_t) (ftello(fileHandle) - symbolTableLocation);
 	g_sectionHeaders[symbolSection].sh_link = stringSection;
 	g_sectionHeaders[symbolSection].sh_info = totalLocals;
 }
@@ -388,8 +388,8 @@ writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
 		SHT_RELA,
 		0,
 		0,
-		sectionLocation,
-		ftello(fileHandle) - sectionLocation,
+		(e_off_t) sectionLocation,
+		(e_off_t) (ftello(fileHandle) - sectionLocation),
 		symbolSection,
 		section->id,
 		0,
@@ -410,8 +410,8 @@ writeStrings(FILE* fileHandle, uint32_t stringSection) {
 	off_t stringsLocation = ftello(fileHandle);
 	fwrite(g_stringTable->data, 1, g_stringTable->size, fileHandle);
 
-	g_sectionHeaders[stringSection].sh_offset = stringsLocation;
-	g_sectionHeaders[stringSection].sh_size = g_stringTable->size;
+	g_sectionHeaders[stringSection].sh_offset = (e_off_t) stringsLocation;
+	g_sectionHeaders[stringSection].sh_size = (e_word_t) g_stringTable->size;
 
 	fseek(fileHandle, ELF_HD_SHSTRNDX, SEEK_SET);
 	fput_half(stringSection, fileHandle);
@@ -439,7 +439,7 @@ writeSectionHeaders(FILE* fileHandle, uint32_t stringsSection) {
 	}
 
 	fseek(fileHandle, ELF_HD_SHOFF, SEEK_SET);
-	fput_off(headersLocation, fileHandle);
+	fput_off((e_off_t) headersLocation, fileHandle);
 	fseek(fileHandle, ELF_HD_SHNUM, SEEK_SET);
 	fput_half(g_totalSectionHeaders, fileHandle);
 	fseek(fileHandle, 0, SEEK_END);
