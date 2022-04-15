@@ -68,6 +68,7 @@ static uint16_t g_cbmBaseAddress = 0;
 static int g_binaryPad = -1;
 static const char* g_outputFilename = NULL;
 static const char* g_smartlink = NULL;
+static const char* g_entry = NULL;
 static const char* g_mapFilename = NULL;
 static bool g_targetDefined = false;
 
@@ -123,6 +124,9 @@ printUsage(void) {
 		   "                      banks text + data + bss)\n"
            "          -cfxa2560x  Foenix A2560X/K\n"
 		   "\n"
+           "    -e<symbol>  Code entry point when supported by output format.\n"
+		   "                Will override \"-s\" option\n"
+		   "\n"
            "    -f<format>  File format\n"
            "          -famigaexe  Amiga executable\n"
            "          -famigalink Amiga link object\n"
@@ -140,6 +144,7 @@ printUsage(void) {
            "    -o<output>  Write output to file <output>\n"
 		   "\n"
            "    -s<symbol>  Strip unused sections, rooting the section containing <symbol>\n"
+           "                <symbol> is used as entry point when support by output format\n"
     );
     exit(EXIT_SUCCESS);
 }
@@ -413,10 +418,10 @@ writeOutput(const char* g_outputFilename) {
 			image_WriteBinary(g_outputFilename, g_binaryPad);
 			break;
 		case FILE_FORMAT_CBM_PRG:
-			commodore_WritePrg(g_outputFilename, g_cbmBaseAddress);
+			commodore_WritePrg(g_outputFilename, g_entry, g_cbmBaseAddress);
 			break;
 		case FILE_FORMAT_AMIGA_EXECUTABLE:
-			amiga_WriteExecutable(g_outputFilename, false);
+			amiga_WriteExecutable(g_outputFilename, g_entry, false);
 			break;
 		case FILE_FORMAT_AMIGA_LINK_OBJECT:
 			amiga_WriteLinkObject(g_outputFilename, false);
@@ -428,7 +433,7 @@ writeOutput(const char* g_outputFilename) {
 			hc800_WriteExecutable(g_outputFilename, g_hc800Config);
 			break;
 		case FILE_FORMAT_PGZ:
-			foenix_WriteExecutable(g_outputFilename);
+			foenix_WriteExecutable(g_outputFilename, g_entry);
 			break;
 	}
 }
@@ -440,7 +445,7 @@ handleOption(const char* option) {
 		case 'h':
 			printUsage();
 			break;
-		case 'm':	/* MapFile */
+		case 'm':	/* Map file */
 			if (option[1] == 0) error("option \"m\" needs an argument");
 
 			g_mapFilename = &option[1];
@@ -450,10 +455,18 @@ handleOption(const char* option) {
 
 			g_outputFilename = &option[1];
 			return true;
+		case 'e':	/* Entry point */
+			if (option[1] == 0) error("option \"e\" needs an argument");
+			g_entry = &option[1];
+
+			return true;
 		case 's':	/* Smart linking */
 			if (option[1] == 0) error("option \"s\" needs an argument");
 
 			g_smartlink = &option[1];
+			if (g_entry == NULL)
+				g_entry = g_smartlink;
+
 			return true;
 		case 't': {	/* Target */
 			if (g_targetDefined) error("more than one target (option \"t\", \"c\") defined");
@@ -515,8 +528,10 @@ main(int argc, char* argv[]) {
 
     smart_Process(g_smartlink);
 
-    if (!format_SupportsReloc(g_outputFormat))
+    if (!format_SupportsReloc(g_outputFormat)) {
         assign_Process();
+		sect_ResolveUnresolved();
+	}
 
     patch_Process(
 		format_SupportsReloc(g_outputFormat),
@@ -529,7 +544,6 @@ main(int argc, char* argv[]) {
 
     if (g_mapFilename != NULL) {
         if (!format_SupportsReloc(g_outputFormat)) {
-            sect_ResolveUnresolved();
             sect_SortSections();
             map_Write(g_mapFilename);
         } else {

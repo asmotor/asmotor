@@ -20,6 +20,6 @@
 #define XLINK_COMMODORE_H_INCLUDED_
 
 extern void
-commodore_WritePrg(const char* outputFilename, uint32_t baseAddress);
+commodore_WritePrg(const char* outputFilename, const char* entry, uint32_t baseAddress);
 
 #endif

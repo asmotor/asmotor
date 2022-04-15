@@ -266,6 +266,17 @@ sect_IsEquSection(SSection* section) {
     return section->group == NULL;
 }
 
+extern SSymbol*
+sect_FindExportedSymbol(const char* symbolName) {
+    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
+        SSymbol* symbol = sectionHasSymbol(section, symbolName, SYM_EXPORT);
+        if (symbol != NULL) {
+			return symbol;
+        }
+    }
+    return NULL;
+}
+
 extern SSection*
 sect_FindSectionWithExportedSymbol(const char* symbolName) {
     for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {

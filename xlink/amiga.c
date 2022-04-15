@@ -272,7 +272,15 @@ updateSectionIds() {
 }
 
 static void
-writeExecutable(FILE* fileHandle, bool debugInfo) {
+writeExecutable(FILE* fileHandle, const char* entry, bool debugInfo) {
+	if (entry != NULL) {
+		SSymbol* entrySymbol = sect_FindExportedSymbol(entry);
+		if (entrySymbol == NULL)
+			error("Entry symbol \"%s\" not found (it must be exported)", entry);
+		if (entrySymbol->section != sect_Sections || entrySymbol->value != 0)
+			error("The entry symbol must be the first location of the first section in this file format");
+	}
+
     uint32_t totalSections = updateSectionIds();
 
     writeHunkHeader(fileHandle, debugInfo, totalSections);
@@ -280,7 +288,7 @@ writeExecutable(FILE* fileHandle, bool debugInfo) {
 }
 
 static void
-writeLinkObject(FILE* fileHandle, bool debugInfo) {
+writeLinkObject(FILE* fileHandle, const char* entry, bool debugInfo) {
     uint32_t totalSections = updateSectionIds();
 
     writeHunkUnit(fileHandle, NULL);
@@ -288,11 +296,11 @@ writeLinkObject(FILE* fileHandle, bool debugInfo) {
 }
 
 static void
-openAndWriteFile(const char* filename, void (* function)(FILE*, bool), bool debugInfo) {
+openAndWriteFile(const char* filename, void (* function)(FILE*, const char*, bool), const char* entry, bool debugInfo) {
     FILE* fileHandle;
 
     if ((fileHandle = fopen(filename, "wb")) != NULL) {
-        function(fileHandle, debugInfo);
+        function(fileHandle, entry, debugInfo);
         fclose(fileHandle);
     } else {
         error("Unable to open file \"%s\" for writing", filename);
@@ -300,11 +308,11 @@ openAndWriteFile(const char* filename, void (* function)(FILE*, bool), bool debu
 }
 
 void
-amiga_WriteExecutable(const char* filename, bool debugInfo) {
-    openAndWriteFile(filename, writeExecutable, debugInfo);
+amiga_WriteExecutable(const char* filename, const char* entry, bool debugInfo) {
+    openAndWriteFile(filename, writeExecutable, entry, debugInfo);
 }
 
 void
 amiga_WriteLinkObject(const char* filename, bool debugInfo) {
-    openAndWriteFile(filename, writeLinkObject, debugInfo);
+    openAndWriteFile(filename, writeLinkObject, NULL, debugInfo);
 }

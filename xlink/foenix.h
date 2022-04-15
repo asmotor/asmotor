@@ -20,6 +20,6 @@
 #define XLINK_FOENIX_H_INCLUDED_
 
 extern void
-foenix_WriteExecutable(const char* filename);
+foenix_WriteExecutable(const char* filename, const char* entry);
 
 #endif

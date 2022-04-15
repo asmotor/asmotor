@@ -653,7 +653,7 @@ addElfSymbolToProgbits(ElfProgBitsSection* symbolSectionProgBits, const ElfSymbo
 	}
 
 	SSymbol* xlinkSymbol = &xlinkSymbolSection->symbols[xlinkSymbolSection->totalSymbols++];
-	strncpy(xlinkSymbol->name, elfSymbol->name, MAX_SYMBOL_NAME_LENGTH);
+	strncpy(xlinkSymbol->name, elfSymbol->name, MAX_SYMBOL_NAME_LENGTH - 1);
 	xlinkSymbol->resolved = false;
 	xlinkSymbol->section = xlinkSymbolSection;
 	xlinkSymbol->value = 0;
@@ -805,7 +805,7 @@ sectionToXlink(const ElfHeader* elf, const ElfSectionHeader* header, uint32_t se
 	section->minimumWordSize = 1;
 	section->byteAlign = header->sh_addralign >= 2 ? (int32_t) header->sh_addralign : -1;
 	section->root = false;
-	strncpy(section->name, header->name, MAX_SYMBOL_NAME_LENGTH);
+	strncpy(section->name, header->name, MAX_SYMBOL_NAME_LENGTH - 1);
 
 	section->totalSymbols = 0;
 	section->symbols = NULL;

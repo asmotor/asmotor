@@ -33,8 +33,16 @@ static uint8_t basicSys[] = {
 };
 
 static void
-writeHeader(FILE* fileHandle, uint32_t baseAddress) {
-    int startAddress = sect_StartAddressOfFirstCodeSection();
+writeHeader(FILE* fileHandle, const char* entry, uint32_t baseAddress) {
+    int startAddress = 0;
+    if (entry != NULL) {
+        SSymbol* entrySymbol = sect_FindExportedSymbol(entry);
+        if (entrySymbol == NULL)
+            error("Entry symbol \"%s\" not found (it must be exported)", entry);
+        startAddress = entrySymbol->value;
+    } else {
+        startAddress = sect_StartAddressOfFirstCodeSection();
+    }
 
     fputc(baseAddress & 0xFFu, fileHandle);
     fputc((baseAddress >> 8u) & 0xFFu, fileHandle);
@@ -45,12 +53,12 @@ writeHeader(FILE* fileHandle, uint32_t baseAddress) {
 }
 
 extern void
-commodore_WritePrg(const char* outputFilename, uint32_t baseAddress) {
+commodore_WritePrg(const char* outputFilename, const char* entry, uint32_t baseAddress) {
     FILE* fileHandle = fopen(outputFilename, "wb");
     if (fileHandle == NULL)
         error("Unable to open \"%s\" for writing", outputFilename);
 
-    writeHeader(fileHandle, baseAddress);
+    writeHeader(fileHandle, entry, baseAddress);
 
     image_WriteBinaryToFile(fileHandle, -1);
 

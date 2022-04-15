@@ -98,6 +98,9 @@ sect_TotalSections(void);
 extern void
 sect_SortSections(void);
 
+extern SSymbol*
+sect_FindExportedSymbol(const char* symbol);
+
 extern SSection*
 sect_FindSectionWithExportedSymbol(const char* symbol);
 

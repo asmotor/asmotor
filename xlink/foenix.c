@@ -48,7 +48,7 @@ writeSections(FILE* fileHandle) {
 }
 
 extern void
-foenix_WriteExecutable(const char* outputFilename) {
+foenix_WriteExecutable(const char* outputFilename, const char* entry) {
 	FILE* fileHandle = fopen(outputFilename, "wb");
 	if (fileHandle == NULL) {
 		error("Unable to open \"%s\" for writing", outputFilename);
@@ -58,7 +58,15 @@ foenix_WriteExecutable(const char* outputFilename) {
 	fputc(PGZ_32BIT, fileHandle);
 
 	// Start address section
-    int startAddress = sect_StartAddressOfFirstCodeSection();
+    int startAddress = 0;
+    if (entry != NULL) {
+        SSymbol* entrySymbol = sect_FindExportedSymbol(entry);
+        if (entrySymbol == NULL)
+            error("Entry symbol \"%s\" not found (it must be exported)", entry);
+        startAddress = entrySymbol->value;
+    } else {
+        startAddress = sect_StartAddressOfFirstCodeSection();
+    }
 	writeSection(fileHandle, startAddress, 0, NULL);
 
 	// The rest of the sections

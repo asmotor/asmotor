@@ -20,7 +20,7 @@
 #define XLINK_AMIGA_H_INCLUDED_
 
 extern void
-amiga_WriteExecutable(const char* filename, bool debugInfo);
+amiga_WriteExecutable(const char* filename, const char* entry, bool debugInfo);
 
 extern void
 amiga_WriteLinkObject(const char* filename, bool debugInfo);
