@@ -1,5 +1,5 @@
 	section "ROM0", CODE[$0]
-	bra.b label0
+	bra.b label0+2
 label0:
 	bra label0
 	

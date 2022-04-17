@@ -445,6 +445,8 @@ handleBcc(ESize size, SAddressingMode* _src, SAddressingMode* _dest, uint16_t op
     opcode = (uint16_t) 0x6000 | (opcode << 8);
     if (size == SIZE_BYTE) {
         SExpression* expr = expr_CheckRange(expr_PcRelative(target, -2), -128, 127);
+		SExpression* assertion = expr_NotEqual(expr_Copy(expr), expr_Const(0));
+		expr = expr_Assert(expr, assertion);
         if (expr != NULL) {
             expr = expr_And(expr, expr_Const(0xFF));
             expr = expr_Or(expr, expr_Const(opcode));
