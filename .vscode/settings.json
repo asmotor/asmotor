@@ -1,6 +1,6 @@
 {
   "editor.tabSize": 4,
-  "editor.insertSpaces": false,
+  "editor.insertSpaces": true,
   "files.associations": {
 	"*.c": "c",
 	".justfile": "just",
@@ -63,9 +63,13 @@
     "**/cmake_install.cmake": true,
     "**/*.a": true
   },
-  "cmake.configureOnOpen": true,
+  "cmake.configureOnOpen": false,
   "[asm.z80]": {
       "editor.tabSize": 8,
+      "editor.insertSpaces": false
+  },
+  "[c]": {
+      "editor.tabSize": 4,
       "editor.insertSpaces": false
   },
   "C_Cpp.errorSquiggles": "Enabled",

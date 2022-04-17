@@ -1,0 +1,14 @@
+	section "ROM0", CODE[$0]
+	bra.b label0+2
+label0:
+	bra label0
+	
+	section "ROM4", CODE[$8]
+label4:
+	nop
+	bra.b label4
+	
+	section "ROM10", CODE[$10]
+	bra.b label10
+	nop
+label10:

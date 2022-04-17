@@ -67,6 +67,9 @@ extern SExpression*
 expr_CheckRange(SExpression* expression, int32_t low, int32_t high);
 
 extern SExpression*
+expr_Assert(SExpression* expression, SExpression* assertion);
+
+extern SExpression*
 expr_Equal(SExpression* left, SExpression* right);
 
 extern SExpression*

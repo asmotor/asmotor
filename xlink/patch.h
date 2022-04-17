@@ -64,6 +64,7 @@ typedef enum {
     OBJ_SYMBOL,
     OBJ_PC_REL,
     OBJ_FUNC_BANK,
+    OBJ_FUNC_ASSERT,
 } EExpressionOperator;
 
 typedef struct {

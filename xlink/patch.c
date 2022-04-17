@@ -587,6 +587,16 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
                           makePatchString(patch, section), patch->offset, section->name);
                 break;
             }
+            case OBJ_FUNC_ASSERT: {
+                popIntPair(&left, &right);
+
+                if (left.symbol == NULL && right.symbol == NULL && right.value != 0)
+                    pushInt(left.value);
+                else
+                    error("Expression \"%s\" (=%d) at offset %d in section \"%s\" out of range",
+                          makePatchString(patch, section), left.value, patch->offset, section->name);
+                break;
+            }
             default: {
                 error("Unknown patch operator");
                 break;

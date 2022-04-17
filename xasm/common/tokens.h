@@ -161,8 +161,11 @@ typedef enum {
 
 	T_DIRECTIVE_LAST = T_DIRECTIVE_POPS,
 
+	// Dummy tokens not produced by the lexer follow:
+	
 	T_FUNC_LOWLIMIT,
 	T_FUNC_HIGHLIMIT,
+	T_FUNC_ASSERT,
 
 	T_MACROARG0,
 
