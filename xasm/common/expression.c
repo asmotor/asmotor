@@ -368,6 +368,24 @@ expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
     return NULL;
 }
 
+
+SExpression*
+expr_Assert(SExpression* expression, SExpression* assertion) {
+    if (!assertExpressions(expression, assertion))
+        return NULL;
+
+    if (expr_IsConstant(assertion)) {
+         if (assertion->value.integer != 0)
+            return expression;
+        
+        err_Error(ERROR_OPERAND_RANGE);
+        return NULL;
+    }
+
+    return mergeExpressions(expression, assertion, T_FUNC_ASSERT);
+}
+
+
 SExpression*
 expr_Bank(string* symbolName) {
     assert(xasm_Configuration->supportBanks);
@@ -534,10 +552,10 @@ expr_Clone(SExpression* expression) {
         return NULL;
 
     SExpression* result = (SExpression *) mem_Alloc(sizeof(SExpression));
-	result->isConstant = expression->isConstant;
-	result->operation = expression->operation;
-	result->type = expression->type;
-	result->value = expression->value;
+    result->isConstant = expression->isConstant;
+    result->operation = expression->operation;
+    result->type = expression->type;
+    result->value = expression->value;
 
     result->left = expr_Clone(expression->left);
     result->right = expr_Clone(expression->right);
@@ -577,12 +595,12 @@ expr_Optimize(SExpression* expression) {
 
 static bool
 isImport(const SSymbol* symbol) {
-	return symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL;
+    return symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL;
 }
 
 static bool
 isSymbolic(const SSymbol* symbol) {
-	return symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL || symbol->type == SYM_LABEL;
+    return symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL || symbol->type == SYM_LABEL;
 }
 
 static bool
@@ -628,12 +646,12 @@ getSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* exp
 
 extern bool
 expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
-	*resultSymbol = NULL;
-	return getSymbolOffset(resultOffset, resultSymbol, expression, isImport);
+    *resultSymbol = NULL;
+    return getSymbolOffset(resultOffset, resultSymbol, expression, isImport);
 }
 
 extern bool
 expr_GetSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
-	*resultSymbol = NULL;
-	return getSymbolOffset(resultOffset, resultSymbol, expression, isSymbolic);
+    *resultSymbol = NULL;
+    return getSymbolOffset(resultOffset, resultSymbol, expression, isSymbolic);
 }

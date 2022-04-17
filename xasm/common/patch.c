@@ -134,6 +134,7 @@ booleanNot(int32_t value) {
     return value ? 0 : 1;
 }
 
+
 static bool
 reduceBinary(const SPatch* patch, SExpression* expression, int32_t* result, binaryOperation operation) {
     int32_t lhs;
@@ -250,6 +251,22 @@ reduceHighLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
 }
 
 static bool
+reduceAssert(const SPatch* patch, SExpression* expression, int32_t* result) {
+    int32_t lhs, rhs;
+
+    if (reduceExpression(patch, expression->right, &rhs) && reduceExpression(patch, expression->left, &lhs)) {
+        if (rhs != 0) {
+            expr_Clear(expression);
+            expr_SetConst(expression, *result = lhs);
+
+            return true;
+        }
+        err_PatchFail(patch, ERROR_OPERAND_RANGE);
+    }
+    return false;
+}
+
+static bool
 reduceOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
     switch (expression->operation) {
         case T_OP_SUBTRACT:
@@ -310,10 +327,12 @@ reduceOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
             return reduceUnary(patch, expression, result, fatan);
         case T_OP_BIT:
             return reduceBit(patch, expression, result);
-       case T_FUNC_LOWLIMIT:
+        case T_FUNC_LOWLIMIT:
             return reduceLowLimit(patch, expression, result);
         case T_FUNC_HIGHLIMIT:
             return reduceHighLimit(patch, expression, result);
+        case T_FUNC_ASSERT:
+            return reduceAssert(patch, expression, result);
 
         case T_FUNC_BANK: {
             if (!xasm_Configuration->supportBanks)

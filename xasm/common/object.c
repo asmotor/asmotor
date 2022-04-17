@@ -291,6 +291,9 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
 						fputll(expression->value.symbol->id, fileHandle);
 						break;
 					}
+					case T_FUNC_ASSERT:
+						fputc(OBJ_FUNC_ASSERT, fileHandle);
+						break;
 				}
 
 				break;

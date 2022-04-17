@@ -59,6 +59,7 @@ enum {
     OBJ_SYMBOL,
     OBJ_PC_REL,
     OBJ_FUNC_BANK,
+    OBJ_FUNC_ASSERT,
 };
 
 #endif /* XASM_COMMON_OBJECT_H_INCLUDED_ */
