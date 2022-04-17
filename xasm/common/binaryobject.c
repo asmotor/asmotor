@@ -59,7 +59,7 @@ commonPatch() {
         if (section != NULL) {
             if (section->flags & SECTF_LOADFIXED) {
                 if (section->imagePosition < imagePos) {
-                    err_Error(ERROR_SECTION_LOAD, section->name, section->cpuOrigin);
+                    err_Error(ERROR_SECTION_LOAD, str_String(section->name), section->cpuOrigin);
                     return false;
                 }
                 imagePos = section->imagePosition + section->usedSpace;

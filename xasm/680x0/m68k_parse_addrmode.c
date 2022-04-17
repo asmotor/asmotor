@@ -474,8 +474,9 @@ m68k_OptimizeDisplacement(SModeRegisters* pRegs) {
                 pRegs->displacementSize = SIZE_WORD;
             else
                 pRegs->displacementSize = SIZE_LONG;
-        } else
+        } else {
             pRegs->displacementSize = SIZE_LONG;
+		}
     }
 }
 
@@ -581,6 +582,7 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
         return true;
     }
 
+	// assume an expression is next, and that it will be the outer displacement
     addrMode->outer.displacement = parse_Expression(4);
     if (addrMode->outer.displacement != NULL)
         addrMode->outer.displacementSize = m68k_GetSizeSpecifier(SIZE_DEFAULT);
@@ -610,20 +612,23 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
                 parse_GetToken();
                 return true;
             }
-        }
-    }
+		}
 
-    m68k_OptimizeDisplacement(&addrMode->outer);
+		// the outer displacement is an absolute address instead
+	    m68k_OptimizeDisplacement(&addrMode->outer);
 
-    if (addrMode->outer.displacement != NULL) {
-        if (addrMode->outer.displacementSize == SIZE_WORD) {
-            addrMode->mode = AM_WORD;
-            return true;
-        } else if (addrMode->outer.displacementSize == SIZE_LONG) {
-            addrMode->mode = AM_LONG;
-            return true;
-        } else
-            err_Error(MERROR_DISP_SIZE);
+		switch (addrMode->outer.displacementSize) {
+			case SIZE_WORD:
+				addrMode->mode = AM_WORD;
+				break;
+			case SIZE_LONG:
+				addrMode->mode = AM_LONG;
+				break;
+			default:
+				err_Error(MERROR_DISP_SIZE);
+				return false;
+		}
+		return true;
     }
 
     return false;

@@ -435,10 +435,16 @@ handleROXR(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t dat
 }
 
 static bool
-handleBcc(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t opcode) {
+handleBcc(ESize size, SAddressingMode* _src, SAddressingMode* _dest, uint16_t opcode) {
+	SExpression* target = parse_Expression(4);
+	if (target == NULL) {
+		err_Error(ERROR_EXPECT_EXPR);
+		return true;
+	}
+
     opcode = (uint16_t) 0x6000 | (opcode << 8);
     if (size == SIZE_BYTE) {
-        SExpression* expr = expr_CheckRange(expr_PcRelative(src->outer.displacement, -2), -128, 127);
+        SExpression* expr = expr_CheckRange(expr_PcRelative(target, -2), -128, 127);
         if (expr != NULL) {
             expr = expr_And(expr, expr_Const(0xFF));
             expr = expr_Or(expr, expr_Const(opcode));
@@ -449,7 +455,7 @@ handleBcc(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t opco
         err_Error(ERROR_OPERAND_RANGE);
         return true;
     } else if (size == SIZE_WORD) {
-        SExpression* expr = expr_CheckRange(expr_PcRelative(src->outer.displacement, 0), -32768, 32767);
+        SExpression* expr = expr_CheckRange(expr_PcRelative(target, 0), -32768, 32767);
         if (expr != NULL) {
             sect_OutputConst16(opcode);
             sect_OutputExpr16(expr);
@@ -466,7 +472,7 @@ handleBcc(ESize size, SAddressingMode* src, SAddressingMode* dest, uint16_t opco
             return true;
         }
 
-        expr = expr_PcRelative(src->outer.displacement, 0);
+        expr = expr_PcRelative(target, 0);
         sect_OutputConst16(opcode | 0xFFu);
         sect_OutputExpr32(expr);
         return true;
@@ -742,10 +748,19 @@ handleCMP2(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t data)
 }
 
 static bool
-handleDBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t code) {
+handleDBcc(ESize sz, SAddressingMode* src, SAddressingMode* _dest, uint16_t code) {
+	if (!parse_ExpectComma())
+		return false;
+
+	SExpression* target = parse_Expression(4);
+	if (target == NULL) {
+		err_Error(ERROR_EXPECT_EXPR);
+		return false;
+	}
+
     code = (uint16_t) (0x50C8 | code << 8 | src->directRegister);
     sect_OutputConst16(code);
-    sect_OutputExpr16(expr_PcRelative(dest->outer.displacement, 0));
+    sect_OutputExpr16(expr_PcRelative(target, 0));
     return true;
 }
 
@@ -1858,7 +1873,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0004,
-        AM_LONG,
+        AM_NONE,
         AM_NONE,
         false,
         handleBcc
@@ -1867,7 +1882,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0005,
-        AM_LONG,
+        AM_NONE,
         AM_NONE,
         false,
         handleBcc
@@ -1876,7 +1891,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0007,
-        AM_LONG,
+        AM_NONE,
         AM_NONE,
         false,
         handleBcc
@@ -1885,7 +1900,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x000C,
-        AM_LONG,
+        AM_NONE,
         AM_NONE,
         false,
         handleBcc
@@ -1894,7 +1909,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x000E,
-        AM_LONG,
+        AM_NONE,
         AM_NONE,
         false,
         handleBcc
@@ -1903,7 +1918,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0002,
-        AM_LONG,
+        AM_NONE,
         AM_NONE,
         false,
         handleBcc
@@ -1912,7 +1927,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x000F,
-        AM_LONG, 
+        AM_NONE, 
         AM_NONE,
         false,
         handleBcc
@@ -1921,7 +1936,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0003,
-        AM_LONG,
+        AM_NONE,
         AM_NONE,
         false,
         handleBcc
@@ -1930,7 +1945,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x000D,
-        AM_LONG,
+        AM_NONE,
         AM_NONE,
         false,
         handleBcc
@@ -1939,7 +1954,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x000B,
-        AM_LONG,
+        AM_NONE,
         AM_NONE,
         false,
         handleBcc
@@ -1948,7 +1963,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0006,
-        AM_LONG, 
+        AM_NONE, 
         AM_NONE,
         false,
         handleBcc
@@ -1957,7 +1972,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x000A,
-        AM_LONG, 
+        AM_NONE, 
         AM_NONE,
         false,
         handleBcc
@@ -1966,7 +1981,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0008,
-        AM_LONG, 
+        AM_NONE, 
         AM_NONE,
         false,
         handleBcc
@@ -1975,7 +1990,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0009,
-        AM_LONG, 
+        AM_NONE, 
         AM_NONE,
         false,
         handleBcc
@@ -2083,7 +2098,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0000,
-        AM_LONG, 
+        AM_NONE, 
         AM_NONE,
         false,
         handleBcc
@@ -2101,7 +2116,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_ALL,
         SIZE_BYTE | SIZE_WORD | SIZE_LONG, SIZE_WORD,
         0x0001,
-        AM_LONG, 
+        AM_NONE, 
         AM_NONE,
         false,
         handleBcc
@@ -2273,7 +2288,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0004,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2282,7 +2297,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0005,
         AM_DREG,
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2291,7 +2306,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0007,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2300,7 +2315,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0001,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2309,7 +2324,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x000C,
         AM_DREG,
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2318,7 +2333,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x000E,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2327,7 +2342,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0002,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2336,7 +2351,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x000F,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2345,7 +2360,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0003,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2354,7 +2369,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x000D,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2363,7 +2378,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x000B,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2372,7 +2387,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0006,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2381,7 +2396,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x000A,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2390,7 +2405,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0000,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2399,7 +2414,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0008,
         AM_DREG, 
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
@@ -2408,7 +2423,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0009,
         AM_DREG,
-        AM_WORD | AM_LONG,
+        AM_NONE,
         false,
         handleDBcc
     },
