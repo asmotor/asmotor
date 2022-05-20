@@ -8,8 +8,9 @@ done
 
 install_packages() {
 	if command -v $1 >/dev/null; then
-		echo -n "You have the package manager \"$1\" installed, would you like to install these packages [Y/n]? "
-		read choice
+        echo -n "You have the package manager \"$1\" installed, would you like to install these packages [Y/n]? "
+		read -e choice
+        echo $choice
 		if [[ "${choice:-Y}" =~ ^[Yy]$ ]]; then
 			$2 || exit 1
 			echo "Packages installed successfully"
