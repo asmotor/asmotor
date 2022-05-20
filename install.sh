@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# create TTY file descriptor #3 for "read"
+exec 3<>/dev/tty
+
 for command in just git cmake; do
 	if ! command -v $command >/dev/null; then
 		PACKAGES="$command $PACKAGES"
@@ -8,9 +11,7 @@ done
 
 install_packages() {
 	if command -v $1 >/dev/null; then
-        echo -n "You have the package manager \"$1\" installed, would you like to install these packages [Y/n]? "
-		read -e choice
-        echo $choice
+        read -u 3 -p "You have the package manager \"$1\" installed, would you like to install these packages [Y/n]? " choice
 		if [[ "${choice:-Y}" =~ ^[Yy]$ ]]; then
 			$2 || exit 1
 			echo "Packages installed successfully"
