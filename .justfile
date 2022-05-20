@@ -38,11 +38,12 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 
 # Build and install the project in Release mode, defaulting to $HOME/.local
-@install directory="$HOME/.local":
+@install directory="$HOME/.local" sudo="":
 	rm -rf build/cmake/release
 	mkdir -p build/cmake/release
 	cd build/cmake/release; cmake -DASMOTOR_VERSION={{version}} -DCMAKE_INSTALL_PREFIX={{directory}} -DCMAKE_BUILD_TYPE=Release ../../..; cd ../../..
-	cmake --build build/cmake/release --target install -- -j
+	cmake --build build/cmake/release -- -j
+	{{sudo}} cmake --install build/cmake/release
 
 
 # Set the ASMotor version number to use when building

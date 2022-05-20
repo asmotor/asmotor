@@ -90,7 +90,7 @@ curl https://raw.githubusercontent.com/asmotor/asmotor/master/install.sh | bash
 If you want to install it globally, you can supply the installation prefix as a parameter:
 
 ```
-curl https://raw.githubusercontent.com/asmotor/asmotor/master/install.sh | bash -s /usr/local
+curl https://raw.githubusercontent.com/asmotor/asmotor/master/install.sh | bash -s /usr/local "sudo"
 ```
 
 # Editing code
