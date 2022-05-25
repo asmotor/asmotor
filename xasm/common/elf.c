@@ -358,6 +358,16 @@ writeSection(SSection* section, FILE* fileHandle) {
 	}
 }
 
+typedef struct {
+	e_addr_t offset;
+	e_word_t info;
+	e_word_t addend;
+} e_rela;
+
+static int
+compare_rela(const void* lhs, const void* rhs) {
+	return ((const e_rela*)lhs)->offset - ((const e_rela*)rhs)->offset;
+}
 
 static bool
 writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
@@ -367,18 +377,30 @@ writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
 	align4(fileHandle);
 	off_t sectionLocation = ftello(fileHandle);
 
+	e_rela* relocs = NULL;
+	int32_t total_relocs = 0;
 	for (SPatch* patch = section->patches; patch != NULL; patch = list_GetNext(patch)) {
 		SSymbol* symbol;
 		uint32_t addend;
 		if (expr_GetSymbolOffset(&addend, &symbol, patch->expression)) {
-			fput_addr(patch->offset, fileHandle);
-			fput_word(ELF32_R_INFO(symbol->id, R_68K_32), fileHandle);
-			fput_word(addend, fileHandle);
+			relocs = realloc(relocs, sizeof(e_rela) * (total_relocs + 1));
+			relocs[total_relocs].offset = patch->offset;
+			relocs[total_relocs].info = ELF32_R_INFO(symbol->id, R_68K_32);
+			relocs[total_relocs].addend = addend;
+			total_relocs += 1;
 		} else {
             err_PatchError(patch, ERROR_OBJECTFILE_PATCH);
 			return false;
 		}
 	}
+
+	qsort(relocs, total_relocs, sizeof(e_rela), compare_rela);
+	for (int i = 0; i < total_relocs; ++i) {
+		fput_addr(relocs[i].offset, fileHandle);
+		fput_word(relocs[i].info, fileHandle);
+		fput_word(relocs[i].addend, fileHandle);
+	}
+	free(relocs);
 
 	string* reloc = str_Create(".reloc");
 	string* sectionName = str_Concat(section->name, reloc);
