@@ -354,6 +354,10 @@ writeSection(SSection* section, FILE* fileHandle) {
 
 	addSectionHeader(&header);
 	if (sh_type & SHT_PROGBITS) {
+		for (SPatch* patch = section->patches; patch != NULL; patch = patch->pNext) {
+			for (int i = 0; i < 4; ++i) 
+				section->data[patch->offset + i] = 0;
+		}
 		fwrite(section->data, 1, section->usedSpace, fileHandle);
 	}
 }
