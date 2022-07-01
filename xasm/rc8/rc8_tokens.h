@@ -39,6 +39,7 @@ typedef	enum {
 	T_RC8_NOP,
 	T_RC8_NOT,
 	T_RC8_OR,
+	T_RC8_PICK,
 	T_RC8_POP,
 	T_RC8_POPA,
 	T_RC8_PUSH,

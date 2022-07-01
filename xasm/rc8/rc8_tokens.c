@@ -42,6 +42,7 @@ g_tokens[] = {
 	{ "NOP",    T_RC8_NOP    },
 	{ "NOT",    T_RC8_NOT    },
 	{ "OR",     T_RC8_OR     },
+	{ "PICK",   T_RC8_PICK   },
 	{ "POP",    T_RC8_POP    },
 	{ "POPA",   T_RC8_POPA   },
 	{ "PUSH",   T_RC8_PUSH   },

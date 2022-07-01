@@ -31,3 +31,4 @@
 	ld	(-ft),bc
 	ld	(ft+),hl
 	ld	t,(bc+)
+	pick	bc,4

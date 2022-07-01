@@ -32,10 +32,10 @@
 		DB	$19
 		ei
 		di
-		DB	$1C
-		DB	$1D
-		DB	$1E
-		DB	$1F
+		pick	ft
+		pick	bc
+		pick	de
+		pick	hl
 
 		DB	$20
 		DB	$21

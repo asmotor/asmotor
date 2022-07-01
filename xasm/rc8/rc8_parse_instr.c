@@ -713,6 +713,22 @@ handle_RegisterStack(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* des
 
 
 static bool
+handle_PICK(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
+	if (source->mode == MODE_IMM) {
+		SExpression* masked = expr_CheckRange(source->expression, 0, 255);
+
+		SAddressingMode high, low;
+		registerPair(&high, &low, destination);
+		handle_OpcodeRegister(0x80, &low);	// LD l,
+		sect_OutputExpr8(masked);			//      x
+	}
+
+	handle_OpcodeRegister(baseOpcode, destination);
+	return true;
+}
+
+
+static bool
 handle_Shift(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	ensureSource(&destination, &source);
 
@@ -833,6 +849,7 @@ g_Parsers[T_RC8_XOR - T_RC8_ADD + 1] = {
 	{ 0x00, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* NOP */
 	{ 0x18, CONDITION_AUTO, MODE_REG_F | MODE_REG_T | MODE_REG_FT, MODE_NONE, handle_NOT },						/* NOT */
 	{ 0x60, CONDITION_AUTO, MODE_REG_8BIT | MODE_IMM, MODE_NONE | MODE_REG_8BIT | MODE_IMM, handle_Bitwise },	/* OR */
+	{ 0x1C, CONDITION_AUTO, MODE_REG_16BIT, MODE_NONE | MODE_IMM, handle_PICK },					/* PICK */
 	{ 0xC4, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK, MODE_NONE, handle_RegisterStack },	/* POP */
 	{ 0xF9, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* POPA */
 	{ 0xC0, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK, MODE_NONE, handle_RegisterStack },	/* PUSH */
