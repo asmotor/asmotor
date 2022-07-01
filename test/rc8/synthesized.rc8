@@ -26,4 +26,8 @@
 	ld	ft,$007F
 	ld	de,-32768
 	j/z	(bc)
-
+	ld	ft,(bc+)
+	ld	(-de),ft
+	ld	(-ft),bc
+	ld	(ft+),hl
+	ld	t,(bc+)
