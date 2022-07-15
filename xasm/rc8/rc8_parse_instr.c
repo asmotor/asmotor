@@ -514,9 +514,9 @@ handle_LD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, S
 		return true;
 	} else if (destination->mode == MODE_REG_T && (source->mode & MODE_IND_BCDEHL_PRE_DEC) && opt_Current->machineOptions->enableSynthInstructions) {
 		// LD T,(-hl)
-		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
 		handle_OpcodeRegister(0xBC, source);	// ADD hl,
 		sect_OutputConst8(-1);					//        -1
+		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
 		return true;
 	} else if ((destination->mode & MODE_IND_BCDEHL_PRE_DEC) && source->mode == MODE_REG_FT && opt_Current->machineOptions->enableSynthInstructions) {
 		// LD (-hl),FT
