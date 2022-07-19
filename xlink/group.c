@@ -553,8 +553,8 @@ void
 group_SetupHC8XXROM(void) {
     MemoryGroup* group;
 
-    MemoryPool* codepool = pool_Create(0, 0, 0, 0x4000);
-	MemoryPool* bss = pool_Create(-1, 0x0000, 0, 0x4000);
+    MemoryPool* codepool = pool_Create(0, 0, 1, 0x4000);
+	MemoryPool* bss = pool_Create(-1, 0x0000, 0x80, 0x4000);
 
     //	Create HOME group
 
