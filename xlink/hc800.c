@@ -182,7 +182,7 @@ updateKernalHeader(FILE* f) {
 	while ((c = fgetc(f)) != EOF) {
 		checksum += c;
 	}
-	checksum = -checksum;
+	checksum = 0xA5 - checksum;
 
 	// Update checksum in image
 	fseek(f, 7, SEEK_SET);
