@@ -183,18 +183,18 @@ Many useful functions are available, such as returning a substring, finding a su
 
 
 # Further reading
-* [Introduction](doc/Introduction.md), goals and background
-* [Invoking the assembler](doc/Assembler.md) and basic syntax
-* [Symbols](doc/Symbols.md) and labels
-* [Control structures](doc/ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
-* [Expressions](doc/Expressions.md) and how they're built
-* [Printing diagnostic messages](doc/Diagnostics.md), warnings and errors
-* [Organising code](doc/OrganisingCode.md) into sections. How to define data.
-* [The linker](doc/Linker.md)
+* [Introduction](Introduction.md), goals and background
+* [Invoking the assembler](Assembler.md) and basic syntax
+* [Symbols](Symbols.md) and labels
+* [Control structures](ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Expressions](Expressions.md) and how they're built
+* [Printing diagnostic messages](Diagnostics.md), warnings and errors
+* [Organising code](OrganisingCode.md) into sections. How to define data.
+* [The linker](Linker.md)
 
 # Index and reference
-* [CPU specific](doc/CpuSpecifics.md) details
-* [Index of all directives](doc/IndexDirectives.md)
-* [Index of all functions](doc/IndexFunctions.md)
-* [Operator reference](doc/ReferenceOperators.md)
-* [String member reference](doc/ReferenceStringMembers.md)
+* [CPU specific](CpuSpecifics.md) details
+* [Index of all directives](IndexDirectives.md)
+* [Index of all functions](IndexFunctions.md)
+* [Operator reference](ReferenceOperators.md)
+* [String member reference](ReferenceStringMembers.md)
