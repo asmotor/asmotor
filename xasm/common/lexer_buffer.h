@@ -28,7 +28,7 @@ typedef struct LexerBuffer {
     string* name;
 	string* uniqueValue;
     string* text;
-	ssize_t index;
+	size_t index;
     vec_t* arguments;
 } SLexerBuffer;
 
