@@ -367,7 +367,10 @@ optimizeMode(SAddressingMode* mode) {
             mode->mode = AM_AXDISP020;
             return true;
         case O_BASE | O_INDEX:
-            mode->mode = AM_AXDISP;
+			if (mode->outer.baseRegister == REG_PC)
+				mode->mode = AM_PCXDISP;
+			else
+	            mode->mode = AM_AXDISP;
             return true;
         case O_DISP:
             if (mode->outer.displacementSize == SIZE_BYTE) {
