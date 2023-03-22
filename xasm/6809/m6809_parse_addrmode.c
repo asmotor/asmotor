@@ -199,13 +199,13 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 					}
 					return true;
 				}
-				if ((allowedModes & MODE_INDEXED_R_8BIT) && force_8bit) {
+				if ((allowedModes & MODE_INDEXED_R_8BIT) && (force_8bit || force_5bit)) {
 					parse_GetToken();
 					addrMode->mode = MODE_INDEXED_R_8BIT;
 					addrMode->indexed_post_byte = 0x88;
 					return true;
 				}
-				if ((allowedModes & MODE_INDEXED_R_16BIT) && force_16bit) {
+				if ((allowedModes & MODE_INDEXED_R_16BIT) && (force_16bit || force_8bit || force_5bit)) {
 					parse_GetToken();
 					addrMode->mode = MODE_INDEXED_R_16BIT;
 					addrMode->indexed_post_byte = 0x89;

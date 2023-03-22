@@ -28,7 +28,11 @@
 #include "m6809_parse.h"
 #include "m6809_tokens.h"
 
+#define PAGE1 0x10
+#define PAGE2 0x11
+
 #define MODE_P	(MODE_IMMEDIATE | MODE_ADDRESS | MODE_DIRECT | MODE_EXTENDED | MODE_ALL_INDEXED)
+#define MODE_Q	(MODE_ADDRESS | MODE_DIRECT | MODE_EXTENDED | MODE_ALL_INDEXED)
 
 uint16_t g_dp_base = 0x0000;
 
@@ -38,18 +42,19 @@ typedef struct Parser {
     bool (*handler)(uint8_t baseOpcode, SAddressingMode* addrMode);
 } SParser;
 
+
 static bool
-emitOpcodeP(uint8_t baseOpcode, SAddressingMode* addrMode) {
+emitOpcode(uint8_t baseOpcode, SAddressingMode* addrMode, uint8_t directCode, uint8_t extendedCode, uint8_t indexedCode) {
 	if (addrMode->mode == MODE_DIRECT) {
-		sect_OutputConst8(baseOpcode | 0x10);
+		sect_OutputConst8(baseOpcode | directCode);
 		sect_OutputExpr8(addrMode->expr);
 		return true;
 	} else if (addrMode->mode == MODE_EXTENDED) {
-		sect_OutputConst8(baseOpcode | 0x30);
+		sect_OutputConst8(baseOpcode | extendedCode);
 		sect_OutputExpr16(addrMode->expr);
 		return true;
 	} else if (addrMode->mode & MODE_ALL_INDEXED) {
-		sect_OutputConst8(baseOpcode | 0x20);
+		sect_OutputConst8(baseOpcode | indexedCode);
 		sect_OutputConst8(addrMode->indexed_post_byte);
 		if (addrMode->mode & MODE_INDEXED_R_8BIT) {
 			sect_OutputExpr8(addrMode->expr);
@@ -68,6 +73,13 @@ emitOpcodeP(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	return false;
 }
 
+
+static bool
+handleOpcodeQ(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	return emitOpcode(baseOpcode, addrMode, 0x00, 0x70, 0x60);
+}
+
+
 static bool
 handleOpcodeP8(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	if (addrMode->mode == MODE_IMMEDIATE) {
@@ -76,7 +88,7 @@ handleOpcodeP8(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		return true;
 	}
 	
-	return emitOpcodeP(baseOpcode, addrMode);
+	return emitOpcode(baseOpcode, addrMode, 0x10, 0x30, 0x20);
 }
 
 static bool
@@ -87,7 +99,7 @@ handleOpcodeP16(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		return true;
 	}
 	
-	return emitOpcodeP(baseOpcode, addrMode);
+	return emitOpcode(baseOpcode, addrMode, 0x10, 0x30, 0x20);
 }
 
 static bool
@@ -103,6 +115,28 @@ handleANDCC(uint8_t baseOpcode, SAddressingMode* addrMode) {
     return true;
 }
 
+static bool
+handleBcc(uint8_t baseOpcode, SAddressingMode* addrMode) {
+    sect_OutputConst8(baseOpcode);
+	sect_OutputExpr8(expr_PcRelative(addrMode->expr, -1));
+    return true;
+}
+
+static bool
+handleLBcc(uint8_t baseOpcode, SAddressingMode* addrMode) {
+    sect_OutputConst8(PAGE1);
+    sect_OutputConst8(baseOpcode);
+	sect_OutputExpr16(expr_PcRelative(addrMode->expr, -2));
+    return true;
+}
+
+static bool
+handleLBRA(uint8_t baseOpcode, SAddressingMode* addrMode) {
+    sect_OutputConst8(baseOpcode);
+	sect_OutputExpr16(expr_PcRelative(addrMode->expr, -2));
+    return true;
+}
+
 static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x3A, MODE_NONE, handleImplied },	/* ABX */
     { 0x89, MODE_P, handleOpcodeP8 },	/* ADCA */
@@ -113,6 +147,52 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x84, MODE_P, handleOpcodeP8 },	/* ANDA */
     { 0xC4, MODE_P, handleOpcodeP8 },	/* ANDB */
     { 0x1C, MODE_IMMEDIATE, handleANDCC },	/* ANDCC */
+    { 0x08, MODE_Q, handleOpcodeQ },	/* ASL */
+    { 0x48, MODE_NONE, handleImplied },	/* ASLA */
+    { 0x58, MODE_NONE, handleImplied },	/* ASLB */
+    { 0x07, MODE_Q, handleOpcodeQ },	/* ASR */
+    { 0x47, MODE_NONE, handleImplied },	/* ASRA */
+    { 0x57, MODE_NONE, handleImplied },	/* ASRB */
+
+	{ 0x20, MODE_ADDRESS, handleBcc }, 	/* BRA */
+	{ 0x21, MODE_ADDRESS, handleBcc }, 	/* BRN */
+	{ 0x22, MODE_ADDRESS, handleBcc }, 	/* BHI */
+	{ 0x23, MODE_ADDRESS, handleBcc }, 	/* BLS */
+	{ 0x24, MODE_ADDRESS, handleBcc }, 	/* BHS */
+	{ 0x25, MODE_ADDRESS, handleBcc }, 	/* BLO */
+	{ 0x26, MODE_ADDRESS, handleBcc }, 	/* BNE */
+	{ 0x27, MODE_ADDRESS, handleBcc }, 	/* BEQ */
+	{ 0x28, MODE_ADDRESS, handleBcc }, 	/* BVC */
+	{ 0x29, MODE_ADDRESS, handleBcc }, 	/* BVS */
+	{ 0x2A, MODE_ADDRESS, handleBcc }, 	/* BPL */
+	{ 0x2B, MODE_ADDRESS, handleBcc }, 	/* BMI */
+	{ 0x2C, MODE_ADDRESS, handleBcc }, 	/* BGE */
+	{ 0x2D, MODE_ADDRESS, handleBcc }, 	/* BLT */
+	{ 0x2E, MODE_ADDRESS, handleBcc }, 	/* BGT */
+	{ 0x2F, MODE_ADDRESS, handleBcc }, 	/* BLE */
+	{ 0x8D, MODE_ADDRESS, handleBcc }, 	/* BSR */
+
+	{ 0x16, MODE_ADDRESS, handleLBRA }, 	/* LBRA */
+	{ 0x21, MODE_ADDRESS, handleLBcc }, 	/* LBRN */
+	{ 0x22, MODE_ADDRESS, handleLBcc }, 	/* LBHI */
+	{ 0x23, MODE_ADDRESS, handleLBcc }, 	/* LBLS */
+	{ 0x24, MODE_ADDRESS, handleLBcc }, 	/* LBHS */
+	{ 0x25, MODE_ADDRESS, handleLBcc }, 	/* LBLO */
+	{ 0x26, MODE_ADDRESS, handleLBcc }, 	/* LBNE */
+	{ 0x27, MODE_ADDRESS, handleLBcc }, 	/* LBEQ */
+	{ 0x28, MODE_ADDRESS, handleLBcc }, 	/* LBVC */
+	{ 0x29, MODE_ADDRESS, handleLBcc }, 	/* LBVS */
+	{ 0x2A, MODE_ADDRESS, handleLBcc }, 	/* LBPL */
+	{ 0x2B, MODE_ADDRESS, handleLBcc }, 	/* LBMI */
+	{ 0x2C, MODE_ADDRESS, handleLBcc }, 	/* LBGE */
+	{ 0x2D, MODE_ADDRESS, handleLBcc }, 	/* LBLT */
+	{ 0x2E, MODE_ADDRESS, handleLBcc }, 	/* LBGT */
+	{ 0x2F, MODE_ADDRESS, handleLBcc }, 	/* LBLE */
+	{ 0x17, MODE_ADDRESS, handleLBRA }, 	/* LBSR */
+
+    { 0x85, MODE_P, handleOpcodeP8 },	/* BITA */
+    { 0xC5, MODE_P, handleOpcodeP8 },	/* BITB */
+
     { 0x12, MODE_NONE, handleImplied }, /* NOP */
 };
 

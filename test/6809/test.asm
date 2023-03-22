@@ -38,5 +38,24 @@ Start:
 	anda	#$01
 	andb	$3987
 	andcc	#$42
+
+	asla
+	aslb
+	asl	$1234
+	lsl	[1,s]
+
+.loop	asra
+	asrb
+	asr	$1234
+
+	bra	.loop
+	lbcc	.loop
+	lbra	.loop
+	bsr	.loop
+	lbsr	.loop
+
+	bita	3,y
+	bitb	#2
+
 	nop
 	
