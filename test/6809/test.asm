@@ -57,5 +57,16 @@ Start:
 	bita	3,y
 	bitb	#2
 
+	clr	6,s
+	clra
+	clrb
+
+	cmpa	#4
+	cmpb	,s+
+	cmpd	#4
+	cmpx	4
+	cmpy	a,x
+	cmpu	,y
+	cmps	,s
+
 	nop
-	

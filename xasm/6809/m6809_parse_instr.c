@@ -103,6 +103,18 @@ handleOpcodeP16(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
+handleOpcodeP16Page1(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	sect_OutputConst8(PAGE1);
+	return handleOpcodeP16(baseOpcode, addrMode);
+}
+
+static bool
+handleOpcodeP16Page2(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	sect_OutputConst8(PAGE2);
+	return handleOpcodeP16(baseOpcode, addrMode);
+}
+
+static bool
 handleImplied(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
     return true;
@@ -192,6 +204,20 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
 
     { 0x85, MODE_P, handleOpcodeP8 },	/* BITA */
     { 0xC5, MODE_P, handleOpcodeP8 },	/* BITB */
+
+    { 0x0F, MODE_Q, handleOpcodeQ },	/* CLR */
+    { 0x4F, MODE_NONE, handleImplied },	/* CLRA */
+    { 0x5F, MODE_NONE, handleImplied },	/* CLRB */
+
+
+	{ 0x81, MODE_P, handleOpcodeP8 },		/* CMPA */
+	{ 0xC1, MODE_P, handleOpcodeP8 },		/* CMPB */
+	{ 0x83, MODE_P, handleOpcodeP16Page1 },	/* CMPD */
+	{ 0x8C, MODE_P, handleOpcodeP16 },		/* CMPX */
+	{ 0x8C, MODE_P, handleOpcodeP16Page1 },	/* CMPY */
+	{ 0x83, MODE_P, handleOpcodeP16Page2 },	/* CMPU */
+	{ 0x8C, MODE_P, handleOpcodeP16Page2 },	/* CMPS */
+
 
     { 0x12, MODE_NONE, handleImplied }, /* NOP */
 };

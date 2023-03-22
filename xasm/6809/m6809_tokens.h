@@ -77,6 +77,18 @@ typedef enum {
 	T_6809_BITA,
 	T_6809_BITB,
 
+	T_6809_CLR,
+	T_6809_CLRA,
+	T_6809_CLRB,
+
+	T_6809_CMPA,
+	T_6809_CMPB,
+	T_6809_CMPD,
+	T_6809_CMPX,
+	T_6809_CMPY,
+	T_6809_CMPU,
+	T_6809_CMPS,
+
     T_6809_NOP,
 
     /* Registers */

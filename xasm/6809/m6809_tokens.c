@@ -86,6 +86,18 @@ static SLexConstantsWord g_tokens[] = {
 	{ "BITA",	T_6809_BITA },
 	{ "BITB",	T_6809_BITB },
 
+	{ "CLR",	T_6809_CLR },
+	{ "CLRA",	T_6809_CLRA },
+	{ "CLRB",	T_6809_CLRB },
+
+	{ "CMPA",	T_6809_CMPA },
+	{ "CMPB",	T_6809_CMPB },
+	{ "CMPD",	T_6809_CMPD },
+	{ "CMPX",	T_6809_CMPX },
+	{ "CMPY",	T_6809_CMPY },
+	{ "CMPU",	T_6809_CMPU },
+	{ "CMPS",	T_6809_CMPS },
+
 	{ "A",		T_6809_REG_A },
 	{ "B",		T_6809_REG_B },
 	{ "D",		T_6809_REG_D },
