@@ -25,6 +25,12 @@ typedef enum {
     T_6809_ABX = 6000,
     T_6809_ADCA,
     T_6809_ADCB,
+    T_6809_ADDA,
+    T_6809_ADDB,
+    T_6809_ADDD,
+    T_6809_ANDA,
+    T_6809_ANDB,
+    T_6809_ANDCC,
     T_6809_NOP,
 
     /* Registers */
@@ -32,7 +38,7 @@ typedef enum {
     T_6809_REG_A,
     T_6809_REG_B,
     T_6809_REG_D,
-    T_6809_REG_PC,
+    T_6809_REG_PCR,
 
 	// These four must be in order
     T_6809_REG_X,

@@ -153,6 +153,22 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 		if (lex_Context->token.id == ',') {
 			parse_GetToken();
 
+			if (lex_Context->token.id == T_6809_REG_PCR) {
+				if ((allowedModes & MODE_INDEXED_PC_8BIT) && force_direct) {
+					parse_GetToken();
+					addrMode->mode = MODE_INDEXED_PC_8BIT;
+					addrMode->indexed_post_byte = 0x8C;
+					return true;
+				}
+				if (allowedModes & MODE_INDEXED_PC_16BIT) {
+					parse_GetToken();
+					addrMode->mode = MODE_INDEXED_PC_16BIT;
+					addrMode->indexed_post_byte = 0x8D;
+					return true;
+				}
+				return false;
+			}
+
 			bool force_5bit = false;
 			bool force_8bit = force_direct;
 			bool force_16bit = force_extended;
@@ -164,21 +180,6 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 					force_8bit = true;
 				} else if (addrMode->expr->value.integer >= -32768 && addrMode->expr->value.integer <= 32767) {
 					force_16bit = true;
-				}
-			}
-
-			if (lex_Context->token.id == T_6809_REG_PC) {
-				if ((allowedModes & MODE_INDEXED_PC_8BIT) && (force_8bit || force_5bit)) {
-					parse_GetToken();
-					addrMode->mode = MODE_INDEXED_PC_8BIT;
-					addrMode->indexed_post_byte = 0x8C;
-					return true;
-				}
-				if ((allowedModes & MODE_INDEXED_PC_16BIT) && force_16bit) {
-					parse_GetToken();
-					addrMode->mode = MODE_INDEXED_PC_16BIT;
-					addrMode->indexed_post_byte = 0x8D;
-					return true;
 				}
 			}
 
