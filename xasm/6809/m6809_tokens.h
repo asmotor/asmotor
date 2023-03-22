@@ -23,13 +23,22 @@
 
 typedef enum {
     T_6809_ABX = 6000,
+    T_6809_ADCA,
+    T_6809_ADCB,
     T_6809_NOP,
 
     /* Registers */
 
     T_6809_REG_A,
+    T_6809_REG_B,
+    T_6809_REG_D,
+    T_6809_REG_PC,
+
+	// These four must be in order
     T_6809_REG_X,
     T_6809_REG_Y,
+   	T_6809_REG_U,
+    T_6809_REG_S
 
 } ETargetToken;
 

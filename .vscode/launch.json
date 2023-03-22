@@ -150,6 +150,19 @@
             "MIMode": "gdb"
         },
         {
+            "name": "Debug motor6809",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "make",
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/6809/motor6809",
+            "args": ["test.asm"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/test/6809",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
             "name": "Assemble synthesized.rc8",
             "type": "cppdbg",
             "request": "launch",

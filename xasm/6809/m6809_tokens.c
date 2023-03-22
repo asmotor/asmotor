@@ -24,7 +24,18 @@
 
 static SLexConstantsWord g_tokens[] = {
 	{ "ABX",	T_6809_ABX },
+	{ "ADCA",	T_6809_ADCA },
+	{ "ADCB",	T_6809_ADCB },
 	{ "NOP",	T_6809_NOP },
+
+	{ "A",	T_6809_REG_A },
+	{ "B",	T_6809_REG_B },
+	{ "D",	T_6809_REG_D },
+	{ "PC",	T_6809_REG_PC },
+	{ "X",	T_6809_REG_X },
+	{ "Y",	T_6809_REG_Y },
+	{ "U",	T_6809_REG_U },
+	{ "S",	T_6809_REG_S },
 
 	{ NULL, 0 }
 };
