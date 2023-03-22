@@ -23,6 +23,7 @@
 #include "m6809_tokens.h"
 
 static SLexConstantsWord g_tokens[] = {
+	{ "ABX",	T_6809_ABX },
 	{ "NOP",	T_6809_NOP },
 
 	{ NULL, 0 }

@@ -22,7 +22,8 @@
 #include "lexer_constants.h"
 
 typedef enum {
-    T_6809_NOP = 6000,
+    T_6809_ABX = 6000,
+    T_6809_NOP,
 
     /* Registers */
 
