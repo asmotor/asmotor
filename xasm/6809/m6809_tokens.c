@@ -98,6 +98,12 @@ static SLexConstantsWord g_tokens[] = {
 	{ "CMPU",	T_6809_CMPU },
 	{ "CMPS",	T_6809_CMPS },
 
+	{ "COM",	T_6809_COM },
+	{ "COMA",	T_6809_COMA },
+	{ "COMB",	T_6809_COMB },
+	{ "CWAI",	T_6809_CWAI },
+	{ "DAA",	T_6809_DAA },
+
 	{ "A",		T_6809_REG_A },
 	{ "B",		T_6809_REG_B },
 	{ "D",		T_6809_REG_D },

@@ -89,6 +89,12 @@ typedef enum {
 	T_6809_CMPU,
 	T_6809_CMPS,
 
+	T_6809_COM,
+	T_6809_COMA,
+	T_6809_COMB,
+	T_6809_CWAI,
+	T_6809_DAA,
+
     T_6809_NOP,
 
     /* Registers */

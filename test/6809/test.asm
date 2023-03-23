@@ -69,4 +69,10 @@ Start:
 	cmpu	,y
 	cmps	,s
 
+	com	[,y]
+	coma
+	comb
+	cwai	#15
+	daa
+
 	nop

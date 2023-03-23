@@ -121,7 +121,7 @@ handleImplied(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
-handleANDCC(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleImm8(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
 	sect_OutputExpr8(addrMode->expr);
     return true;
@@ -158,7 +158,7 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0xC3, MODE_P, handleOpcodeP16 },	/* ADDD */
     { 0x84, MODE_P, handleOpcodeP8 },	/* ANDA */
     { 0xC4, MODE_P, handleOpcodeP8 },	/* ANDB */
-    { 0x1C, MODE_IMMEDIATE, handleANDCC },	/* ANDCC */
+    { 0x1C, MODE_IMMEDIATE, handleImm8 },	/* ANDCC */
     { 0x08, MODE_Q, handleOpcodeQ },	/* ASL */
     { 0x48, MODE_NONE, handleImplied },	/* ASLA */
     { 0x58, MODE_NONE, handleImplied },	/* ASLB */
@@ -209,7 +209,6 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x4F, MODE_NONE, handleImplied },	/* CLRA */
     { 0x5F, MODE_NONE, handleImplied },	/* CLRB */
 
-
 	{ 0x81, MODE_P, handleOpcodeP8 },		/* CMPA */
 	{ 0xC1, MODE_P, handleOpcodeP8 },		/* CMPB */
 	{ 0x83, MODE_P, handleOpcodeP16Page1 },	/* CMPD */
@@ -218,6 +217,11 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
 	{ 0x83, MODE_P, handleOpcodeP16Page2 },	/* CMPU */
 	{ 0x8C, MODE_P, handleOpcodeP16Page2 },	/* CMPS */
 
+	{ 0x03, MODE_Q, handleOpcodeQ },	/* COM */
+    { 0x43, MODE_NONE, handleImplied },	/* COMA */
+    { 0x53, MODE_NONE, handleImplied },	/* COMB */
+    { 0x3C, MODE_IMMEDIATE, handleImm8 },	/* CWAI */
+    { 0x19, MODE_NONE, handleImplied }, /* DAA */
 
     { 0x12, MODE_NONE, handleImplied }, /* NOP */
 };
