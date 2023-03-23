@@ -90,5 +90,25 @@ Start:
 	jsr	$1234
 	jsr	<$1234
 	jsr	[$1234]
+	lda	#1
+	ldb	,y
+	ldd	#25
+	ldx	5,s
+	ldy	[,u]
+	ldu	,y
+	lds	[a,s]
+	leax	,y
+	leay	,s
+	leau	a,u
+	leas	[a,u]
+	lsr	4,s
+	mul
+	neg	[,y++]
+	nega
+	negb
+	ora	#$01
+	orb	$3987
+	orcc	#$7
+
 
 	nop

@@ -33,6 +33,7 @@
 
 #define MODE_P	(MODE_IMMEDIATE | MODE_ADDRESS | MODE_DIRECT | MODE_EXTENDED | MODE_ALL_INDEXED)
 #define MODE_Q	(MODE_ADDRESS | MODE_DIRECT | MODE_EXTENDED | MODE_ALL_INDEXED)
+#define MODE_T	(MODE_ALL_INDEXED)
 
 uint16_t g_dp_base = 0x0000;
 
@@ -41,6 +42,26 @@ typedef struct Parser {
     uint32_t allowedModes;
     bool (*handler)(uint8_t baseOpcode, SAddressingMode* addrMode);
 } SParser;
+
+
+static bool
+emitIndexed(SAddressingMode* addrMode) {
+	sect_OutputConst8(addrMode->indexed_post_byte);
+	if (addrMode->mode & MODE_INDEXED_R_8BIT) {
+		sect_OutputExpr8(addrMode->expr);
+		return true;
+	} else if (addrMode->mode & (MODE_INDEXED_R_16BIT | MODE_EXTENDED_INDIRECT)) {
+		sect_OutputExpr16(addrMode->expr);
+		return true;
+	} else if (addrMode->mode & MODE_INDEXED_PC_8BIT) {
+		sect_OutputExpr8(expr_PcRelative(addrMode->expr, -1));
+		return true;
+	} else if (addrMode->mode & MODE_INDEXED_PC_16BIT) {
+		sect_OutputExpr16(expr_PcRelative(addrMode->expr, -2));
+		return true;
+	}
+	return false;
+}
 
 
 static bool
@@ -55,20 +76,7 @@ emitOpcode(uint8_t baseOpcode, SAddressingMode* addrMode, uint8_t directCode, ui
 		return true;
 	} else if (addrMode->mode & MODE_ALL_INDEXED) {
 		sect_OutputConst8(baseOpcode | indexedCode);
-		sect_OutputConst8(addrMode->indexed_post_byte);
-		if (addrMode->mode & MODE_INDEXED_R_8BIT) {
-			sect_OutputExpr8(addrMode->expr);
-			return true;
-		} else if (addrMode->mode & (MODE_INDEXED_R_16BIT | MODE_EXTENDED_INDIRECT)) {
-			sect_OutputExpr16(addrMode->expr);
-			return true;
-		} else if (addrMode->mode & MODE_INDEXED_PC_8BIT) {
-			sect_OutputExpr8(expr_PcRelative(addrMode->expr, -1));
-			return true;
-		} else if (addrMode->mode & MODE_INDEXED_PC_16BIT) {
-			sect_OutputExpr16(expr_PcRelative(addrMode->expr, -2));
-			return true;
-		}
+		emitIndexed(addrMode);
 	}
 	return false;
 }
@@ -89,6 +97,12 @@ handleOpcodeP8(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 	
 	return emitOpcode(baseOpcode, addrMode, 0x10, 0x30, 0x20);
+}
+
+static bool
+handleOpcodeT16(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	sect_OutputConst8(baseOpcode);
+	return emitIndexed(addrMode);
 }
 
 static bool
@@ -286,6 +300,28 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x5C, MODE_NONE, handleImplied }, 	/* INCB */
     { 0x0E, MODE_ADDRESS | MODE_DIRECT | MODE_EXTENDED | MODE_ALL_INDEXED, handleOpcodeQ },	/* JMP */
     { 0x8D, MODE_ADDRESS | MODE_DIRECT | MODE_EXTENDED | MODE_ALL_INDEXED, handleOpcodeP16 },	/* JSR */
+
+    { 0x86, MODE_P, handleOpcodeP8 }, 		/* LDA */
+    { 0xC6, MODE_P, handleOpcodeP8 }, 		/* LDB */
+    { 0xCC, MODE_P, handleOpcodeP16 }, 		/* LDD */
+    { 0x8E, MODE_P, handleOpcodeP16 }, 		/* LDX */
+    { 0x8E, MODE_P, handleOpcodeP16Page1 }, /* LDY */
+    { 0xCE, MODE_P, handleOpcodeP16 }, 		/* LDU */
+    { 0xCE, MODE_P, handleOpcodeP16Page1 }, /* LDS */
+
+    { 0x30, MODE_T, handleOpcodeT16 }, 		/* LEAX */
+    { 0x31, MODE_T, handleOpcodeT16 }, 		/* LEAY */
+    { 0x33, MODE_T, handleOpcodeT16 }, 		/* LEAU */
+    { 0x32, MODE_T, handleOpcodeT16 }, 		/* LEAS */
+
+    { 0x04, MODE_Q, handleOpcodeQ },		/* LSR */
+    { 0x3D, MODE_NONE, handleImplied }, 	/* MUL */
+    { 0x00, MODE_Q, handleOpcodeQ }, 		/* NEG */
+    { 0x40, MODE_NONE, handleImplied }, 	/* NEGA */
+    { 0x50, MODE_NONE, handleImplied }, 	/* NEGB */
+    { 0x8A, MODE_P, handleOpcodeP8 },		/* ORA */
+    { 0xCA, MODE_P, handleOpcodeP8 },		/* ORB */
+    { 0x1A, MODE_IMMEDIATE, handleImm8 },	/* ORCC */
 
     { 0x12, MODE_NONE, handleImplied }, /* NOP */
 };

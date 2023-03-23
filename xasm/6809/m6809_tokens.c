@@ -115,6 +115,28 @@ static SLexConstantsWord g_tokens[] = {
 	{ "JMP",	T_6809_JMP },
 	{ "JSR",	T_6809_JSR },
 
+	{ "LDA",	T_6809_LDA },
+	{ "LDB",	T_6809_LDB },
+	{ "LDD",	T_6809_LDD },
+	{ "LDX",	T_6809_LDX },
+	{ "LDY",	T_6809_LDY },
+	{ "LDU",	T_6809_LDU },
+	{ "LDS",	T_6809_LDS },
+
+	{ "LEAX",	T_6809_LEAX },
+	{ "LEAY",	T_6809_LEAY },
+	{ "LEAU",	T_6809_LEAU },
+	{ "LEAS",	T_6809_LEAS },
+
+	{ "LSR",	T_6809_LSR },
+	{ "MUL",	T_6809_MUL },
+	{ "NEG",	T_6809_NEG },
+	{ "NEGA",	T_6809_NEGA },
+	{ "NEGB",	T_6809_NEGB },
+	{ "ORA",	T_6809_ORA },
+	{ "ORB",	T_6809_ORB },
+	{ "ORCC",	T_6809_ORCC },
+
 	{ "A",		T_6809_REG_A },
 	{ "B",		T_6809_REG_B },
 	{ "D",		T_6809_REG_D },
