@@ -149,6 +149,59 @@ handleLBRA(uint8_t baseOpcode, SAddressingMode* addrMode) {
     return true;
 }
 
+static uint8_t
+parseExgRegister() {
+	switch (lex_Context->token.id) {
+		case T_6809_REG_D:
+			return 0x0;
+		case T_6809_REG_X:
+			return 0x1;
+		case T_6809_REG_Y:
+			return 0x2;
+		case T_6809_REG_U:
+			return 0x3;
+		case T_6809_REG_S:
+			return 0x4;
+		case T_6809_REG_PCR:
+			return 0x5;
+		case T_6809_REG_A:
+			return 0x8;
+		case T_6809_REG_B:
+			return 0x9;
+		case T_6809_REG_CCR:
+			return 0xA;
+		case T_6809_REG_DPR:
+			return 0xB;
+	}
+	return 0xF;
+}
+
+static bool
+handleEXG(uint8_t baseOpcode, SAddressingMode* addrMode) {
+    sect_OutputConst8(baseOpcode);
+
+	uint8_t r1;
+	if ((r1 = parseExgRegister()) != 0xF) {
+		parse_GetToken();
+		if (parse_ExpectComma()) {
+			uint8_t r2;
+			if ((r2 = parseExgRegister()) != 0xF) {
+				parse_GetToken();
+				if ((r1 & 0x8) == (r2 & 0x8)) {
+					sect_OutputConst8((r1 << 4) | r2);
+					return true;
+				}
+				err_Error(MERROR_SAME_SIZE_REGISTER);
+			} else {
+				err_Error(ERROR_SECOND_OPERAND);
+			}
+		}
+	} else {
+		err_Error(ERROR_FIRST_OPERAND);
+	}
+    return true;
+}
+
 static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x3A, MODE_NONE, handleImplied },	/* ABX */
     { 0x89, MODE_P, handleOpcodeP8 },	/* ADCA */
@@ -217,11 +270,22 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
 	{ 0x83, MODE_P, handleOpcodeP16Page2 },	/* CMPU */
 	{ 0x8C, MODE_P, handleOpcodeP16Page2 },	/* CMPS */
 
-	{ 0x03, MODE_Q, handleOpcodeQ },	/* COM */
-    { 0x43, MODE_NONE, handleImplied },	/* COMA */
-    { 0x53, MODE_NONE, handleImplied },	/* COMB */
+	{ 0x03, MODE_Q, handleOpcodeQ },		/* COM */
+    { 0x43, MODE_NONE, handleImplied },		/* COMA */
+    { 0x53, MODE_NONE, handleImplied },		/* COMB */
     { 0x3C, MODE_IMMEDIATE, handleImm8 },	/* CWAI */
-    { 0x19, MODE_NONE, handleImplied }, /* DAA */
+    { 0x19, MODE_NONE, handleImplied }, 	/* DAA */
+    { 0x0A, MODE_Q, handleOpcodeQ }, 		/* DEC */
+    { 0x4A, MODE_NONE, handleImplied }, 	/* DECA */
+    { 0x5A, MODE_NONE, handleImplied }, 	/* DECB */
+    { 0x88, MODE_P, handleOpcodeP8 }, 		/* EORA */
+    { 0xC8, MODE_P, handleOpcodeP8 }, 		/* EORB */
+    { 0x1E, MODE_NONE, handleEXG }, 		/* EXG */
+    { 0x0C, MODE_Q, handleOpcodeQ }, 		/* INC */
+    { 0x4C, MODE_NONE, handleImplied }, 	/* INCA */
+    { 0x5C, MODE_NONE, handleImplied }, 	/* INCB */
+    { 0x0E, MODE_ADDRESS | MODE_DIRECT | MODE_EXTENDED | MODE_ALL_INDEXED, handleOpcodeQ },	/* JMP */
+    { 0x8D, MODE_ADDRESS | MODE_DIRECT | MODE_EXTENDED | MODE_ALL_INDEXED, handleOpcodeP16 },	/* JSR */
 
     { 0x12, MODE_NONE, handleImplied }, /* NOP */
 };

@@ -19,7 +19,8 @@
 #include "xasm.h"
 
 static char* g_errors[] = {
-	"Illegal addressing mode"
+	"Illegal addressing mode",
+	"Registers must have same size"
 };
 
 const char*

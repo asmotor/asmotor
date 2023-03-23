@@ -74,5 +74,21 @@ Start:
 	comb
 	cwai	#15
 	daa
+	dec	[5,u]
+	deca
+	decb
+	eora	,s
+	eorb	<$45
+	exg	a,b
+	exg	d,u
+	inc	[5,u]
+	inca
+	incb
+	jmp	$1234
+	jmp	<$1234
+	jmp	[$1234]
+	jsr	$1234
+	jsr	<$1234
+	jsr	[$1234]
 
 	nop

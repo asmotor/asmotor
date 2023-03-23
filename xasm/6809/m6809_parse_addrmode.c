@@ -57,6 +57,9 @@ parseRegisterIndexed(SAddressingMode* addrMode, uint32_t mode, uint8_t postbyte)
 
 bool
 m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
+	SLexerContext bm;
+	lex_Bookmark(&bm);
+
 	if ((allowedModes & MODE_IMMEDIATE) && lex_Context->token.id == '#')
 		return parseExpressionMode(addrMode, MODE_IMMEDIATE);
 
@@ -229,6 +232,8 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 		addrMode->mode = MODE_ADDRESS;
 		return true;
 	}
+
+	lex_Goto(&bm);
 
     return (allowedModes & MODE_NONE);
 }

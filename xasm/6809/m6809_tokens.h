@@ -94,6 +94,17 @@ typedef enum {
 	T_6809_COMB,
 	T_6809_CWAI,
 	T_6809_DAA,
+	T_6809_DEC,
+	T_6809_DECA,
+	T_6809_DECB,
+	T_6809_EORA,
+	T_6809_EORB,
+	T_6809_EXG,
+	T_6809_INC,
+	T_6809_INCA,
+	T_6809_INCB,
+	T_6809_JMP,
+	T_6809_JSR,
 
     T_6809_NOP,
 
@@ -103,6 +114,8 @@ typedef enum {
     T_6809_REG_B,
     T_6809_REG_D,
     T_6809_REG_PCR,
+    T_6809_REG_CCR,
+    T_6809_REG_DPR,
 
 	// These four must be in order
     T_6809_REG_X,

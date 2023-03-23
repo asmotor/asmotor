@@ -22,7 +22,8 @@
 #include "xasm.h"
 
 typedef enum {
-    MERROR_ILLEGAL_ADDRMODE = 1000
+    MERROR_ILLEGAL_ADDRMODE = 1000,
+	MERROR_SAME_SIZE_REGISTER
 } EMachineError;
 
 extern const char*
