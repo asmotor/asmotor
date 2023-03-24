@@ -90,13 +90,15 @@ Start:
 	jsr	$1234
 	jsr	<$1234
 	jsr	[$1234]
+
 	lda	#1
-	ldb	,y
+	ldb	256
 	ldd	#25
 	ldx	5,s
 	ldy	[,u]
 	ldu	,y
 	lds	[a,s]
+
 	leax	,y
 	leay	,s
 	leau	a,u
@@ -114,5 +116,28 @@ Start:
 	pshu	b,x,s
 	puls	b,y,u
 	pulu	b
+
+	rol	5
+	rola
+	rolb
+	ror	5,x
+	rora
+	rorb
+
+	rti
+	rts
+
+	sbca	#12
+	sbcb	12,y
+
+	sta	,x
+	stb	,y
+	std	25
+	std	256
+	std	[1]
+	stx	5,s
+	sty	[,u]
+	stu	,y
+	sts	[a,s]
 
 	nop

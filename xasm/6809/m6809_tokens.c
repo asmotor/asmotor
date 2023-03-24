@@ -142,6 +142,27 @@ static SLexConstantsWord g_tokens[] = {
 	{ "PULS",	T_6809_PULS },
 	{ "PULU",	T_6809_PULU },
 
+	{ "ROL",	T_6809_ROL },
+	{ "ROLA",	T_6809_ROLA },
+	{ "ROLB",	T_6809_ROLB },
+	{ "ROR",	T_6809_ROR },
+	{ "RORA",	T_6809_RORA },
+	{ "RORB",	T_6809_RORB },
+
+	{ "RTI",	T_6809_RTI },
+	{ "RTS",	T_6809_RTS },
+
+	{ "SBCA",	T_6809_SBCA },
+	{ "SBCB",	T_6809_SBCB },
+
+	{ "STA",	T_6809_STA },
+	{ "STB",	T_6809_STB },
+	{ "STD",	T_6809_STD },
+	{ "STX",	T_6809_STX },
+	{ "STY",	T_6809_STY },
+	{ "STU",	T_6809_STU },
+	{ "STS",	T_6809_STS },
+
 	{ "A",		T_6809_REG_A },
 	{ "B",		T_6809_REG_B },
 	{ "D",		T_6809_REG_D },

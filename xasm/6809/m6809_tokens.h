@@ -133,6 +133,27 @@ typedef enum {
 	T_6809_PULS,
 	T_6809_PULU,
 
+	T_6809_ROL,
+	T_6809_ROLA,
+	T_6809_ROLB,
+	T_6809_ROR,
+	T_6809_RORA,
+	T_6809_RORB,
+
+	T_6809_RTI,
+	T_6809_RTS,
+
+    T_6809_SBCA,
+    T_6809_SBCB,
+
+	T_6809_STA,
+	T_6809_STB,
+	T_6809_STD,
+	T_6809_STX,
+	T_6809_STY,
+	T_6809_STU,
+	T_6809_STS,
+
     T_6809_NOP,
 
     /* Registers */

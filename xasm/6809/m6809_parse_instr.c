@@ -335,7 +335,28 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x35, MODE_IMMEDIATE | MODE_REGISTER_LIST_U, handleStack },		/* PULS */
     { 0x37, MODE_IMMEDIATE | MODE_REGISTER_LIST_S, handleStack },		/* PULU */
 
-    { 0x12, MODE_NONE, handleImplied }, /* NOP */
+    { 0x09, MODE_P, handleOpcodeQ },		/* ROL */
+    { 0x49, MODE_NONE, handleImplied },		/* ROLA */
+    { 0x59, MODE_NONE, handleImplied },		/* ROLB */
+    { 0x06, MODE_P, handleOpcodeQ },		/* ROR */
+    { 0x46, MODE_NONE, handleImplied },		/* RORA */
+    { 0x56, MODE_NONE, handleImplied },		/* RORB */
+
+    { 0x3B, MODE_NONE, handleImplied },		/* RTI */
+    { 0x39, MODE_NONE, handleImplied },		/* RTS */
+
+    { 0x82, MODE_P, handleOpcodeP8 },		/* SBCA */
+    { 0xC2, MODE_P, handleOpcodeP8 },		/* SBCB */
+
+    { 0x87, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP8 }, 		/* STA */
+    { 0xC7, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP8 }, 		/* STB */
+    { 0xCD, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP16 }, 		/* STD */
+    { 0x8F, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP16 }, 		/* STX */
+    { 0x8F, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP16Page1 }, /* STY */
+    { 0xCF, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP16 }, 		/* STU */
+    { 0xCF, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP16Page1 }, /* STS */
+
+    { 0x12, MODE_NONE, handleImplied },		/* NOP */
 };
 
 bool
