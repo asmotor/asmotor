@@ -155,6 +155,8 @@ static SLexConstantsWord g_tokens[] = {
 	{ "SBCA",	T_6809_SBCA },
 	{ "SBCB",	T_6809_SBCB },
 
+	{ "SEX",	T_6809_SEX },
+
 	{ "STA",	T_6809_STA },
 	{ "STB",	T_6809_STB },
 	{ "STD",	T_6809_STD },
@@ -162,6 +164,15 @@ static SLexConstantsWord g_tokens[] = {
 	{ "STY",	T_6809_STY },
 	{ "STU",	T_6809_STU },
 	{ "STS",	T_6809_STS },
+
+	{ "SUBA",	T_6809_SUBA },
+	{ "SUBB",	T_6809_SUBB },
+	{ "SUBD",	T_6809_SUBD },
+
+	{ "SWI",	T_6809_SWI },
+	{ "SWI2",	T_6809_SWI2 },
+	{ "SWI3",	T_6809_SWI3 },
+	{ "SYNC",	T_6809_SYNC },
 
 	{ "A",		T_6809_REG_A },
 	{ "B",		T_6809_REG_B },

@@ -135,6 +135,20 @@ handleImplied(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static bool
+handleImpliedPage1(uint8_t baseOpcode, SAddressingMode* addrMode) {
+    sect_OutputConst8(PAGE1);
+    sect_OutputConst8(baseOpcode);
+    return true;
+}
+
+static bool
+handleImpliedPage2(uint8_t baseOpcode, SAddressingMode* addrMode) {
+    sect_OutputConst8(PAGE2);
+    sect_OutputConst8(baseOpcode);
+    return true;
+}
+
+static bool
 handleImm8(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
 	sect_OutputExpr8(addrMode->expr);
@@ -348,6 +362,8 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x82, MODE_P, handleOpcodeP8 },		/* SBCA */
     { 0xC2, MODE_P, handleOpcodeP8 },		/* SBCB */
 
+    { 0x1D, MODE_NONE, handleImplied },		/* SEX */
+
     { 0x87, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP8 }, 		/* STA */
     { 0xC7, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP8 }, 		/* STB */
     { 0xCD, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP16 }, 		/* STD */
@@ -355,6 +371,15 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x8F, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP16Page1 }, /* STY */
     { 0xCF, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP16 }, 		/* STU */
     { 0xCF, MODE_ADDRESS | MODE_EXTENDED | MODE_DIRECT | MODE_ALL_INDEXED, handleOpcodeP16Page1 }, /* STS */
+
+    { 0x80, MODE_P, handleOpcodeP8 },	/* SUBA */
+    { 0xC0, MODE_P, handleOpcodeP8 },	/* SUBB */
+    { 0x83, MODE_P, handleOpcodeP16 },	/* SUBD */
+
+    { 0x3F, MODE_NONE, handleImplied },			/* SWI */
+    { 0x3F, MODE_NONE, handleImpliedPage1 },	/* SWI2 */
+    { 0x3F, MODE_NONE, handleImpliedPage2 },	/* SWI3 */
+    { 0x13, MODE_NONE, handleImplied },			/* SYNC */
 
     { 0x12, MODE_NONE, handleImplied },		/* NOP */
 };

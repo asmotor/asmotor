@@ -130,6 +130,8 @@ Start:
 	sbca	#12
 	sbcb	12,y
 
+	sex
+
 	sta	,x
 	stb	,y
 	std	25
@@ -139,5 +141,14 @@ Start:
 	sty	[,u]
 	stu	,y
 	sts	[a,s]
+
+	suba	3,x
+	subb	[5,x]
+	subd	[123]
+
+	swi
+	swi2
+	swi3
+	sync
 
 	nop

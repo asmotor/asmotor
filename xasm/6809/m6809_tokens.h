@@ -146,6 +146,8 @@ typedef enum {
     T_6809_SBCA,
     T_6809_SBCB,
 
+	T_6809_SEX,
+
 	T_6809_STA,
 	T_6809_STB,
 	T_6809_STD,
@@ -153,6 +155,15 @@ typedef enum {
 	T_6809_STY,
 	T_6809_STU,
 	T_6809_STS,
+
+	T_6809_SUBA,
+	T_6809_SUBB,
+	T_6809_SUBD,
+
+    T_6809_SWI,
+    T_6809_SWI2,
+    T_6809_SWI3,
+    T_6809_SYNC,
 
     T_6809_NOP,
 
