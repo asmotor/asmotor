@@ -137,6 +137,11 @@ static SLexConstantsWord g_tokens[] = {
 	{ "ORB",	T_6809_ORB },
 	{ "ORCC",	T_6809_ORCC },
 
+	{ "PSHS",	T_6809_PSHS },
+	{ "PSHU",	T_6809_PSHU },
+	{ "PULS",	T_6809_PULS },
+	{ "PULU",	T_6809_PULU },
+
 	{ "A",		T_6809_REG_A },
 	{ "B",		T_6809_REG_B },
 	{ "D",		T_6809_REG_D },

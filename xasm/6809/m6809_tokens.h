@@ -128,6 +128,11 @@ typedef enum {
 	T_6809_ORB,
 	T_6809_ORCC,
 
+	T_6809_PSHS,
+	T_6809_PSHU,
+	T_6809_PULS,
+	T_6809_PULU,
+
     T_6809_NOP,
 
     /* Registers */

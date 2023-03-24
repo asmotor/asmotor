@@ -55,6 +55,35 @@ parseRegisterIndexed(SAddressingMode* addrMode, uint32_t mode, uint8_t postbyte)
 	return false;
 }
 
+uint8_t parseRegisterListBit(ETargetToken allowedStack, ETargetToken disallowedStack) {
+	ETargetToken t = lex_Context->token.id;
+	switch (t) {
+		case T_6809_REG_CCR:
+			return 0x01;
+		case T_6809_REG_A:
+			return 0x02;
+		case T_6809_REG_B:
+			return 0x04;
+		case T_6809_REG_DPR:
+			return 0x08;
+		case T_6809_REG_X:
+			return 0x10;
+		case T_6809_REG_Y:
+			return 0x20;
+		default:
+			if (t == allowedStack) {
+				return 0x40;
+			} else if (t == disallowedStack) {
+				err_Error(ERROR_OPERAND);
+			}
+			break;
+		case T_6809_REG_PCR:
+			return 0x80;
+	}
+
+	return 0;
+}
+
 bool
 m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 	SLexerContext bm;
@@ -78,6 +107,24 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 			}
 		}
 		return false;
+	}
+
+	if (allowedModes & (MODE_REGISTER_LIST_S | MODE_REGISTER_LIST_U)) {
+		ETargetToken allowedStack = allowedModes & MODE_REGISTER_LIST_S ? T_6809_REG_S : T_6809_REG_U;
+		ETargetToken disallowedStack = allowedModes & MODE_REGISTER_LIST_S ? T_6809_REG_U : T_6809_REG_S;
+		uint8_t bits = 0;
+		uint8_t bit;
+		while ((bit = parseRegisterListBit(allowedStack, disallowedStack)) != 0) {
+			parse_GetToken();
+			bits |= bit;
+			if (lex_Context->token.id != T_COMMA) {
+				break;
+			}
+			parse_GetToken();
+		}
+		addrMode->indexed_post_byte = bits;
+		addrMode->mode = allowedModes & (MODE_REGISTER_LIST_S | MODE_REGISTER_LIST_U);
+		return true;
 	}
 
 	if ((allowedModes & (MODE_INDEXED_R_INC1 | MODE_INDEXED_R_INC2 | MODE_INDEXED_R_DEC1 | MODE_INDEXED_R_DEC2 | MODE_INDEXED_R)) && lex_Context->token.id == ',') {

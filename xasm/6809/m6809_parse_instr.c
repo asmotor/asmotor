@@ -216,6 +216,13 @@ handleEXG(uint8_t baseOpcode, SAddressingMode* addrMode) {
     return true;
 }
 
+static bool
+handleStack(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	sect_OutputConst8(baseOpcode);
+	sect_OutputConst8(addrMode->indexed_post_byte);
+	return true;
+}
+
 static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x3A, MODE_NONE, handleImplied },	/* ABX */
     { 0x89, MODE_P, handleOpcodeP8 },	/* ADCA */
@@ -322,6 +329,11 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x8A, MODE_P, handleOpcodeP8 },		/* ORA */
     { 0xCA, MODE_P, handleOpcodeP8 },		/* ORB */
     { 0x1A, MODE_IMMEDIATE, handleImm8 },	/* ORCC */
+
+    { 0x34, MODE_IMMEDIATE | MODE_REGISTER_LIST_U, handleStack },		/* PSHS */
+    { 0x36, MODE_IMMEDIATE | MODE_REGISTER_LIST_S, handleStack },		/* PSHU */
+    { 0x35, MODE_IMMEDIATE | MODE_REGISTER_LIST_U, handleStack },		/* PULS */
+    { 0x37, MODE_IMMEDIATE | MODE_REGISTER_LIST_S, handleStack },		/* PULU */
 
     { 0x12, MODE_NONE, handleImplied }, /* NOP */
 };

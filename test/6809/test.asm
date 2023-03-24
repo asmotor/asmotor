@@ -110,5 +110,9 @@ Start:
 	orb	$3987
 	orcc	#$7
 
+	pshs	a
+	pshu	b,x,s
+	puls	b,y,u
+	pulu	b
 
 	nop
