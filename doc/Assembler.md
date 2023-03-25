@@ -1,5 +1,5 @@
 # Invoking the assembler
-Depending on the target ISA, the executable to invoke will be named motor, followed by the CPU architecture name. motorz80 (for Z80 and Game Boy), motor68k (for Motorola 680x0), motor6502 (6502 and derivatives), motormips (for MIPS), motorschip (for CHIP-8/SCHIP) or motordcpu16 (for DCPU-16).
+Depending on the target ISA, the executable to invoke will be named motor, followed by the CPU architecture name. motorz80 (for Z80 and Game Boy), motor6809 (for Motorola 6809), motor68k (for Motorola 680x0), motor6502 (6502 and derivatives), motormips (for MIPS), motorschip (for CHIP-8/SCHIP) or motordcpu16 (for DCPU-16).
 
 ## Command line options
 ```

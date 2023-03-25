@@ -88,6 +88,8 @@ typedef struct Configuration {
 	SExpression* (*parseFunction)(void);
     bool (*parseInstruction)(void);
 
+	void (*assignSection)(SSection* section);
+
 } SConfiguration;
 
 extern const SConfiguration*

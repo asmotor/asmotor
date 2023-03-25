@@ -24,6 +24,7 @@
 #include "m6809_errors.h"
 #include "m6809_options.h"
 #include "m6809_parse.h"
+#include "m6809_section.h"
 #include "m6809_symbols.h"
 #include "m6809_tokens.h"
 
@@ -33,7 +34,7 @@ m6809_xasmConfiguration = {
 	"1.0",
 	0x10000,
 	ASM_BIG_ENDIAN,
-	false,
+	true,	// banks
 	false,
 	false,
 	MINSIZE_8BIT,
@@ -57,6 +58,8 @@ m6809_xasmConfiguration = {
 
 	m6809_ParseFunction,
 	m6809_ParseInstruction,
+
+	m6809_AssignSection
 };
 
 extern int

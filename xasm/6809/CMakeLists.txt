@@ -5,6 +5,7 @@ add_executable (motor6809
     m6809_parse_addrmode.c
     m6809_parse_instr.c
     m6809_parse.c
+    m6809_section.c
     m6809_symbols.c
     m6809_tokens.c
     )

@@ -24,6 +24,7 @@
 #include "x65_errors.h"
 #include "x65_options.h"
 #include "x65_parse.h"
+#include "x65_section.h"
 #include "x65_symbols.h"
 #include "x65_tokens.h"
 
@@ -57,6 +58,8 @@ x65_xasmConfiguration = {
 
 	x65_ParseFunction,
 	x65_ParseInstruction,
+
+	x65_AssignSection
 };
 
 extern int

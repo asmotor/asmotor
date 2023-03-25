@@ -24,6 +24,7 @@
 #include "z80_errors.h"
 #include "z80_options.h"
 #include "z80_parse.h"
+#include "z80_section.h"
 #include "z80_symbols.h"
 #include "z80_tokens.h"
 
@@ -57,6 +58,8 @@ z80_XasmConfiguration = {
 
 	z80_ParseFunction,
 	z80_ParseInstruction,
+
+	z80_AssignSection
 };
 
 extern int

@@ -24,6 +24,7 @@
 #include "schip_error.h"
 #include "schip_options.h"
 #include "schip_parse.h"
+#include "schip_section.h"
 #include "schip_symbols.h"
 #include "schip_tokens.h"
 
@@ -56,6 +57,8 @@ static SConfiguration g_xasmConfiguration = {
 
 	schip_ParseFunction,
 	schip_ParseInstruction,
+
+	schip_AssignSection,
 };
 
 extern int

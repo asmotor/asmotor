@@ -24,6 +24,7 @@
 #include "m68k_errors.h"
 #include "m68k_options.h"
 #include "m68k_parse.h"
+#include "m68k_section.h"
 #include "m68k_symbols.h"
 #include "m68k_tokens.h"
 
@@ -56,7 +57,9 @@ g_680x0Configuration = {
 	m68k_PrintOptions,
 
 	m68k_ParseFunction,
-	m68k_ParseInstruction
+	m68k_ParseInstruction,
+
+	m68k_AssignSection
 };
 
 extern int

@@ -99,6 +99,18 @@ readabilility of source code.
 | Define space | DS | | |
 | Reserve symbol | RB | RW | |
 
+# Motorola 6809
+## Section alignment
+Sections are not aligned to any particular multiple.
+
+## __DCB, __RS, __DSB
+
+|| 8 bit | 16 bit | 32 bit |
+|---|---|---|---|
+| Define data | DB | DW | |
+| Define space | DS | | |
+| Reserve symbol | RB | RW | |
+
 # MIPS
 ## Section alignment
 Sections are aligned to a multiple of 8 bytes.

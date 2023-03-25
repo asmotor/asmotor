@@ -1,4 +1,4 @@
-	SECTION	"Test",CODE[$0]
+	SECTION	"Test",CODE,BANK[1]
 
 Start:
 	abx
@@ -29,7 +29,7 @@ Start:
 	adca	d,x
 	adca	[d,x]
 	adca	[$1234,pcr]
-	adca	[<$34,pcr]
+	adca	[<Start,pcr]
 
 	adcb	,u
 	adda	#87
@@ -91,6 +91,7 @@ Start:
 	jsr	<$1234
 	jsr	[$1234]
 
+	lda	#BANK(Start)
 	lda	#1
 	ldb	256
 	ldd	#25

@@ -24,6 +24,7 @@
 #include "mips_errors.h"
 #include "mips_options.h"
 #include "mips_parse.h"
+#include "mips_section.h"
 #include "mips_symbols.h"
 #include "mips_tokens.h"
 
@@ -57,6 +58,7 @@ static SConfiguration g_xasmConfiguration = {
 	mips_ParseFunction,
 	mips_ParseInstruction,
 
+	mips_AssignSection
 };
 
 extern int

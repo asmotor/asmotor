@@ -24,6 +24,7 @@
 #include "dcpu16_errors.h"
 #include "dcpu16_options.h"
 #include "dcpu16_parse.h"
+#include "dcpu16_section.h"
 #include "dcpu16_symbols.h"
 #include "dcpu16_tokens.h"
 
@@ -55,7 +56,9 @@ static SConfiguration x10c_XasmConfiguration = {
 	x10c_PrintOptions,
 
 	x10c_ParseFunction,
-	x10c_ParseInstruction
+	x10c_ParseInstruction,
+
+	x10c_AssignSection
 };
 
 extern int

@@ -48,7 +48,7 @@ commonPatch() {
         return false;
 
     // Check first section
-    if ((firstPatch = needsOrg()) != NULL && (sect_Sections->flags & SECTF_LOADFIXED) == 0) {
+    if ((firstPatch = needsOrg()) != NULL && (sect_Sections->flags & (SECTF_LOADFIXED | SECTF_BANKFIXED)) == 0) {
         err_PatchError(firstPatch, ERROR_SECTION_MUST_LOAD);
         return false;
     }
@@ -57,6 +57,7 @@ commonPatch() {
     SSection* section = sect_Sections;
     do {
         if (section != NULL) {
+			xasm_Configuration->assignSection(section);
             if (section->flags & SECTF_LOADFIXED) {
                 if (section->imagePosition < imagePos) {
                     err_Error(ERROR_SECTION_LOAD, str_String(section->name), section->cpuOrigin);
