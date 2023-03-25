@@ -173,6 +173,10 @@ static SLexConstantsWord g_tokens[] = {
 	{ "SWI2",	T_6809_SWI2 },
 	{ "SWI3",	T_6809_SWI3 },
 	{ "SYNC",	T_6809_SYNC },
+	{ "TFR",	T_6809_TFR },
+	{ "TST",	T_6809_TST },
+	{ "TSTA",	T_6809_TSTA },
+	{ "TSTB",	T_6809_TSTB },
 
 	{ "A",		T_6809_REG_A },
 	{ "B",		T_6809_REG_B },

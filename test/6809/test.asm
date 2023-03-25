@@ -151,4 +151,11 @@ Start:
 	swi3
 	sync
 
+	tfr	a,ccr
+	tfr	pcr,x
+
+	tst	,x
+	tsta
+	tstb
+
 	nop

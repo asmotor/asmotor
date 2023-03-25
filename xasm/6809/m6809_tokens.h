@@ -165,6 +165,12 @@ typedef enum {
     T_6809_SWI3,
     T_6809_SYNC,
 
+	T_6809_TFR,
+
+	T_6809_TST,
+	T_6809_TSTA,
+	T_6809_TSTB,
+
     T_6809_NOP,
 
     /* Registers */

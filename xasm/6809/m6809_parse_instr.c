@@ -205,7 +205,7 @@ parseExgRegister() {
 }
 
 static bool
-handleEXG(uint8_t baseOpcode, SAddressingMode* addrMode) {
+handleRegToReg(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
 
 	uint8_t r1;
@@ -315,7 +315,7 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x5A, MODE_NONE, handleImplied }, 	/* DECB */
     { 0x88, MODE_P, handleOpcodeP8 }, 		/* EORA */
     { 0xC8, MODE_P, handleOpcodeP8 }, 		/* EORB */
-    { 0x1E, MODE_NONE, handleEXG }, 		/* EXG */
+    { 0x1E, MODE_NONE, handleRegToReg }, 	/* EXG */
     { 0x0C, MODE_Q, handleOpcodeQ }, 		/* INC */
     { 0x4C, MODE_NONE, handleImplied }, 	/* INCA */
     { 0x5C, MODE_NONE, handleImplied }, 	/* INCB */
@@ -380,6 +380,11 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     { 0x3F, MODE_NONE, handleImpliedPage1 },	/* SWI2 */
     { 0x3F, MODE_NONE, handleImpliedPage2 },	/* SWI3 */
     { 0x13, MODE_NONE, handleImplied },			/* SYNC */
+
+    { 0x1F, MODE_NONE, handleRegToReg }, 	/* TFR */
+    { 0x0D, MODE_Q, handleOpcodeQ }, 		/* TST */
+    { 0x4D, MODE_NONE, handleImplied }, 	/* TSTA */
+    { 0x5D, MODE_NONE, handleImplied }, 	/* TSTB */
 
     { 0x12, MODE_NONE, handleImplied },		/* NOP */
 };
