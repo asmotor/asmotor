@@ -189,6 +189,8 @@ static SLexConstantsWord g_tokens[] = {
 	{ "U",		T_6809_REG_U },
 	{ "S",		T_6809_REG_S },
 
+	{ "SETDP",	T_6809_SETDP },
+
 	{ NULL, 0 }
 };
 

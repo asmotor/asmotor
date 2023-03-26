@@ -26,18 +26,7 @@
 
 #include "m6809_parse.h"
 
-SExpression*
-m6809_ParseExpressionSU8(void) {
-    SExpression* expression = parse_Expression(1);
-    if (expression == NULL)
-        return NULL;
-
-    expression = expr_CheckRange(expression, -128, 255);
-    if (expression == NULL)
-        err_Error(ERROR_OPERAND_RANGE);
-
-    return expr_And(expression, expr_Const(0xFF));
-}
+uint32_t g_dp_base = DP_BASE_UNKNOWN;
 
 SExpression*
 m6809_ParseFunction(void) {
@@ -51,6 +40,8 @@ bool
 m6809_ParseInstruction(void) {
     if (m6809_ParseIntegerInstruction())
         return true;
+	else if (m6809_ParseDirective())
+		return true;
 
     return false;
 }

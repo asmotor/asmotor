@@ -3,6 +3,7 @@ add_executable (motor6809
     m6809_main.c
     m6809_options.c
     m6809_parse_addrmode.c
+    m6809_parse_directive.c
     m6809_parse_instr.c
     m6809_parse.c
     m6809_section.c

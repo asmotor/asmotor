@@ -360,7 +360,9 @@ SExpression*
 expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
     expression = expr_LowLimit(expression, expr_Const(low));
     if (expression != NULL) {
-        return expr_HighLimit(expression, expr_Const(high));
+        expression = expr_HighLimit(expression, expr_Const(high));
+		if (expression != NULL)
+			return expression;
     }
 
     err_Error(ERROR_OPERAND_RANGE);

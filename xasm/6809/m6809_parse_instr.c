@@ -35,29 +35,36 @@
 #define MODE_Q	(MODE_ADDRESS | MODE_DIRECT | MODE_EXTENDED | MODE_ALL_INDEXED)
 #define MODE_T	(MODE_ALL_INDEXED)
 
-uint16_t g_dp_base = 0x0000;
-
 typedef struct Parser {
     uint8_t baseOpcode;
     uint32_t allowedModes;
     bool (*handler)(uint8_t baseOpcode, SAddressingMode* addrMode);
 } SParser;
 
+static void
+outputExpr8(SExpression* expr) {
+	sect_OutputExpr8(expr_CheckRange(expr, -128, 255));
+}
+
+static void
+outputExpr16(SExpression* expr) {
+	sect_OutputExpr16(expr_CheckRange(expr, -32768, 65535));
+}
 
 static bool
 emitIndexed(SAddressingMode* addrMode) {
 	sect_OutputConst8(addrMode->indexed_post_byte);
 	if (addrMode->mode & MODE_INDEXED_R_8BIT) {
-		sect_OutputExpr8(addrMode->expr);
+		outputExpr8(addrMode->expr);
 		return true;
 	} else if (addrMode->mode & (MODE_INDEXED_R_16BIT | MODE_EXTENDED_INDIRECT)) {
-		sect_OutputExpr16(addrMode->expr);
+		outputExpr16(addrMode->expr);
 		return true;
 	} else if (addrMode->mode & MODE_INDEXED_PC_8BIT) {
-		sect_OutputExpr8(expr_PcRelative(addrMode->expr, -1));
+		outputExpr8(expr_PcRelative(addrMode->expr, -1));
 		return true;
 	} else if (addrMode->mode & MODE_INDEXED_PC_16BIT) {
-		sect_OutputExpr16(expr_PcRelative(addrMode->expr, -2));
+		outputExpr16(expr_PcRelative(addrMode->expr, -2));
 		return true;
 	}
 	return false;
@@ -68,11 +75,11 @@ static bool
 emitOpcode(uint8_t baseOpcode, SAddressingMode* addrMode, uint8_t directCode, uint8_t extendedCode, uint8_t indexedCode) {
 	if (addrMode->mode == MODE_DIRECT) {
 		sect_OutputConst8(baseOpcode | directCode);
-		sect_OutputExpr8(addrMode->expr);
+		outputExpr8(expr_And(addrMode->expr, expr_Const(0xFF)));
 		return true;
 	} else if (addrMode->mode == MODE_EXTENDED) {
 		sect_OutputConst8(baseOpcode | extendedCode);
-		sect_OutputExpr16(addrMode->expr);
+		outputExpr16(addrMode->expr);
 		return true;
 	} else if (addrMode->mode & MODE_ALL_INDEXED) {
 		sect_OutputConst8(baseOpcode | indexedCode);
@@ -92,7 +99,7 @@ static bool
 handleOpcodeP8(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	if (addrMode->mode == MODE_IMMEDIATE) {
 		sect_OutputConst8(baseOpcode);
-		sect_OutputExpr8(addrMode->expr);
+		outputExpr8(addrMode->expr);
 		return true;
 	}
 	
@@ -109,7 +116,7 @@ static bool
 handleOpcodeP16(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	if (addrMode->mode == MODE_IMMEDIATE) {
 		sect_OutputConst8(baseOpcode);
-		sect_OutputExpr16(addrMode->expr);
+		outputExpr16(addrMode->expr);
 		return true;
 	}
 	
@@ -151,14 +158,14 @@ handleImpliedPage2(uint8_t baseOpcode, SAddressingMode* addrMode) {
 static bool
 handleImm8(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
-	sect_OutputExpr8(addrMode->expr);
+	outputExpr8(addrMode->expr);
     return true;
 }
 
 static bool
 handleBcc(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
-	sect_OutputExpr8(expr_PcRelative(addrMode->expr, -1));
+	outputExpr8(expr_PcRelative(addrMode->expr, -1));
     return true;
 }
 
@@ -166,14 +173,14 @@ static bool
 handleLBcc(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(PAGE1);
     sect_OutputConst8(baseOpcode);
-	sect_OutputExpr16(expr_PcRelative(addrMode->expr, -2));
+	outputExpr16(expr_PcRelative(addrMode->expr, -2));
     return true;
 }
 
 static bool
 handleLBRA(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
-	sect_OutputExpr16(expr_PcRelative(addrMode->expr, -2));
+	outputExpr16(expr_PcRelative(addrMode->expr, -2));
     return true;
 }
 
@@ -399,7 +406,7 @@ m6809_ParseIntegerInstruction(void) {
         parse_GetToken();
         if (m6809_ParseAddressingMode(&addrMode, handler->allowedModes)) {
 			if (addrMode.mode == MODE_ADDRESS) {
-				if (expr_IsConstant(addrMode.expr) && (addrMode.expr->value.integer & 0xFF00) == g_dp_base) {
+				if (g_dp_base != DP_BASE_UNKNOWN && expr_IsConstant(addrMode.expr) && (addrMode.expr->value.integer & 0xFF00) == g_dp_base) {
 					addrMode.mode = MODE_DIRECT;
 				} else {
 					addrMode.mode = MODE_EXTENDED;

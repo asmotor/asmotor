@@ -4,7 +4,9 @@ Start:
 	abx
 	adca	#12
 	adca	<$1234
+	SETDP	0
 	adca	$12
+	SETDP
 	adca	$1234
 	adca	[$1234]
 	adca	>$12

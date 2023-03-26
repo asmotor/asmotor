@@ -186,7 +186,10 @@ typedef enum {
     T_6809_REG_X,
     T_6809_REG_Y,
    	T_6809_REG_U,
-    T_6809_REG_S
+    T_6809_REG_S,
+
+	// Directive
+	T_6809_SETDP
 
 } ETargetToken;
 

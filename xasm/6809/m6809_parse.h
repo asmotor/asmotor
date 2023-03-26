@@ -61,14 +61,17 @@ typedef struct {
 	SExpression* expr;
 } SAddressingMode;
 
+#define DP_BASE_UNKNOWN UINT32_MAX
+extern uint32_t g_dp_base;
+
 extern bool
 m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes);
 
 extern bool
 m6809_ParseIntegerInstruction(void);
 
-extern SExpression*
-m6809_ParseExpressionSU8(void);
+extern bool
+m6809_ParseDirective(void);
 
 extern SExpression*
 m6809_ParseFunction(void);
