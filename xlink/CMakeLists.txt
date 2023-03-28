@@ -1,39 +1,22 @@
 add_executable (xlink
     amiga.c
-    amiga.h
     assign.c
-    assign.h
+    coco.c
     commodore.c
-    commodore.h
 	elf.c
-	elf.h
 	error.c
-	error.h
 	foenix.c
-	foenix.h
     gameboy.c
-    gameboy.h
     group.c
-    group.h
     hc800.c
-    hc800.h
     image.c
-    image.h
     main.c
     mapfile.c
-    mapfile.h
     object.c
-    object.h
     patch.c
-    patch.h
     section.c
-    section.h
     sega.c
-    sega.h
-    smart.c
-    smart.h
-    symbol.h
-    xlink.h)
+    smart.c)
 
 target_link_libraries (xlink util)
 

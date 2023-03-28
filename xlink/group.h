@@ -78,6 +78,9 @@ group_SetupHC8XXLarge(void);
 void
 group_SetupFoenixA2560X(void);
 
+extern void
+group_SetupCoCo(void);
+
 extern bool
 group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
 

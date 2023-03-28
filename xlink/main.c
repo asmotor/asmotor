@@ -25,6 +25,7 @@
 
 #include "amiga.h"
 #include "assign.h"
+#include "coco.h"
 #include "commodore.h"
 #include "foenix.h"
 #include "gameboy.h"
@@ -49,6 +50,7 @@
 #define FILE_FORMAT_HC800_KERNAL		0x0080
 #define FILE_FORMAT_HC800				0x0100
 #define FILE_FORMAT_PGZ					0x0200
+#define FILE_FORMAT_COCO_BIN			0x0400
 
 #define FF_GAME_BOY			(FILE_FORMAT_BINARY | FILE_FORMAT_GAME_BOY)
 #define FF_AMIGA			(FILE_FORMAT_BINARY | FILE_FORMAT_AMIGA_EXECUTABLE | FILE_FORMAT_AMIGA_LINK_OBJECT)
@@ -58,6 +60,7 @@
 #define FF_HC800_KERNAL		(FILE_FORMAT_BINARY | FILE_FORMAT_HC800_KERNAL)
 #define FF_HC800			(FILE_FORMAT_BINARY | FILE_FORMAT_HC800)
 #define FF_FOENIX			(FILE_FORMAT_BINARY | FILE_FORMAT_PGZ)
+#define FF_COCO				(FILE_FORMAT_BINARY | FILE_FORMAT_COCO_BIN)
 
 typedef uint32_t FileFormat;
 
@@ -123,6 +126,7 @@ printUsage(void) {
            "          -chc800l    HC800 large mode (32 KiB text + data + bss, 32 KiB sized\n"
 		   "                      banks text + data + bss)\n"
            "          -cfxa2560x  Foenix A2560X/K\n"
+		   "          -ccoco      Tandy TRS-80 Color Computer\n"
 		   "\n"
            "    -e<symbol>  Code entry point when supported by output format.\n"
 		   "                Will override \"-s\" option\n"
@@ -138,8 +142,9 @@ printUsage(void) {
            "          -fhc800     HC800 executable\n"
            "          -fhc800k    HC800 kernal\n"
            "          -ffxpgz     Foenix PGZ\n"
+           "          -fcocobin   TRS-80 Color Computer .bin\n"
 		   "\n"
-           "    -m<mapfile>  Write a mapfile to <mapfile>\n"
+           "    -m<mapfile> Write a mapfile to <mapfile>\n"
 		   "\n"
            "    -o<output>  Write output to file <output>\n"
 		   "\n"
@@ -171,6 +176,8 @@ handleFileFormatOption(const string* target) {
 		g_outputFormat = FILE_FORMAT_HC800;
 	} else if (str_EqualConst(target, "fxpgz")) {	/* Foenix PKZ */
 		g_outputFormat = FILE_FORMAT_PGZ;
+	} else if (str_EqualConst(target, "cocobin")) {	/* CoCo BIN */
+		g_outputFormat = FILE_FORMAT_COCO_BIN;
 	} else {
 		error("Unknown format \"%s\"", str_String(target));
 	}
@@ -282,6 +289,10 @@ handleMemoryConfigurationOption(const string* target) {
 		group_SetupFoenixA2560X();
 		g_outputFormat = FILE_FORMAT_PGZ;
 		g_allowedFormats = FF_FOENIX;
+	} else if (str_EqualConst(target, "coco")) {	/* TRS-80 Color Computer */
+		group_SetupCoCo();
+		g_outputFormat = FILE_FORMAT_COCO_BIN;
+		g_allowedFormats = FF_COCO;
 	} else {
 		error("Unknown target \"%s\"", str_String(target));
 	}
@@ -397,6 +408,10 @@ handleTargetOption(const string* target) {
 		group_SetupFoenixA2560X();
 		g_outputFormat = FILE_FORMAT_PGZ;
 		g_allowedFormats = FF_FOENIX;
+	} else if (str_EqualConst(target, "coco")) {	/* Foenix A2560X/K */
+		group_SetupCoCo();
+		g_outputFormat = FILE_FORMAT_COCO_BIN;
+		g_allowedFormats = FF_COCO;
 	} else {
 		error("Unknown target \"%s\"", str_String(target));
 	}
@@ -434,6 +449,9 @@ writeOutput(const char* g_outputFilename) {
 			break;
 		case FILE_FORMAT_PGZ:
 			foenix_WriteExecutable(g_outputFilename, g_entry);
+			break;
+		case FILE_FORMAT_COCO_BIN:
+			coco_WriteQuickloadBin(g_outputFilename, g_entry);
 			break;
 	}
 }
