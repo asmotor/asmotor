@@ -33,7 +33,7 @@ ASMotor is a portable and generic assembler engine and development system writte
 
 The assembler syntax is based on the A68k style macro language.
 
-Currently supported CPUs are the 680x0 family, 6502, MIPS32, Gameboy, Z80, 0x10c and Chip-8/SuperChip.
+Currently supported CPUs are the 680x0 family, 6809, 6502, MIPS32, Gameboy, Z80, 0x10c, Chip-8/SuperChip and the RC800 CPU core.
 
 ASMotor is the spiritual successor to RGBDS, which was a fairly popular development package for the Gameboy. ASMotor is written by the original RGBDS author.
 

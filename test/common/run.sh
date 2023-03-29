@@ -10,7 +10,7 @@ test() {
 	fi
 }
 
-for asm in dcpu-16/motordcpu16 680x0/motor68k 6502/motor6502 z80/motorz80 mips/motormips schip/motorschip; do
+for asm in dcpu-16/motordcpu16 6809/motor6809 680x0/motor68k 6502/motor6502 z80/motorz80 mips/motormips schip/motorschip rc8/motorrc8; do
 	echo Using assembler $asm
 	for i in *.asm; do
 		test $i $asm
