@@ -28,6 +28,18 @@
 
 #include "coco.h"
 
+// .BIN file format
+//
+// Section:
+//   uint8_t type
+//   uint16_t size
+//   uint16_t address
+//   if type == 0
+//     uint8_t data[size]
+//
+// File contains zero or more sections of type = 0x00
+// File ends with section of type = 0xFF, size = 0 and start address = address. Rest of file ignored.
+
 #define HEADER_SIZE 5
 
 static void
