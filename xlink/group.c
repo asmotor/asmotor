@@ -1025,7 +1025,7 @@ void
 group_SetupCoCo(void) {
     MemoryGroup* group;
 
-    MemoryPool* system_ram = pool_Create(0, 0x600, 0, 0x10000 - 0x600);
+    MemoryPool* system_ram = pool_Create(0, 0x600, 0, 0x8000 - 0x600);
 
     //	Create CODE group
 
