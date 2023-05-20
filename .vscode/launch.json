@@ -39,9 +39,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-sEntry", "-tfxa2560x", "-mhello.pgz.sym", "-ohello.pgz", "hello.obj", "strings.obj" ],
+            "args": ["-ohello.bin", "-fbin", "-cfxf256jrs", "-sEntry", "build-release/main.o"],
             "stopAtEntry": true,
-            "cwd": "/home/ces/dev/a2560k-hello",
+            "cwd": "${workspaceFolder}/../f256jr-test",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
@@ -64,12 +64,12 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/motor6502",
-            "args": ["-fv", "-otest.r", "undoc0.asm"],
+            "args": ["testc02.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/6502",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
         {
             "name": "Debug motorschip",

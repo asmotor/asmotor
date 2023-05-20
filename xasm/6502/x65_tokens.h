@@ -112,13 +112,67 @@ typedef enum {
     T_6502U_XAA,
     T_6502U_XAS,
 
-    /* Registers */
+	/* 65C02 */
+	T_65C02_BRA,
+	T_65C02_PHX,
+	T_65C02_PHY,
+	T_65C02_PLX,
+	T_65C02_PLY,
+	T_65C02_STZ,
+	T_65C02_TRB,
+	T_65C02_TSB,
 
+	/* WDC */
+	T_65C02_STP,
+	T_65C02_WAI,
+
+	/* Rockwell + WDC */
+	T_65C02_BBR,
+	T_65C02_BBR0,
+	T_65C02_BBR1,
+	T_65C02_BBR2,
+	T_65C02_BBR3,
+	T_65C02_BBR4,
+	T_65C02_BBR5,
+	T_65C02_BBR6,
+	T_65C02_BBR7,
+	T_65C02_BBS,
+	T_65C02_BBS0,
+	T_65C02_BBS1,
+	T_65C02_BBS2,
+	T_65C02_BBS3,
+	T_65C02_BBS4,
+	T_65C02_BBS5,
+	T_65C02_BBS6,
+	T_65C02_BBS7,
+	T_65C02_RMB,
+	T_65C02_RMB0,
+	T_65C02_RMB1,
+	T_65C02_RMB2,
+	T_65C02_RMB3,
+	T_65C02_RMB4,
+	T_65C02_RMB5,
+	T_65C02_RMB6,
+	T_65C02_RMB7,
+	T_65C02_SMB,
+	T_65C02_SMB0,
+	T_65C02_SMB1,
+	T_65C02_SMB2,
+	T_65C02_SMB3,
+	T_65C02_SMB4,
+	T_65C02_SMB5,
+	T_65C02_SMB6,
+	T_65C02_SMB7,
+
+    /* Registers */
     T_6502_REG_A,
     T_6502_REG_X,
     T_6502_REG_Y,
 
 } ETargetToken;
+
+extern SLexConstantsWord*
+x65_GetC02Instructions(void);
 
 extern SLexConstantsWord*
 x65_GetUndocumentedInstructions(int n);

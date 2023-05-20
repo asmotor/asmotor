@@ -52,6 +52,7 @@ typedef struct Configuration {
     bool supportBanks;
     bool supportAmiga;
     bool supportFloat;
+	bool supportELF;
 
     EMinimumWordSize minimumWordSize;
 

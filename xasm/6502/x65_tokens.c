@@ -183,6 +183,64 @@ static SLexConstantsWord* g_undocumentedInstructions[] = {
 	&g_undocumentedInstructions2[0]
 };
 
+static SLexConstantsWord g_C02Instructions[] = {
+	{ "BRA", T_65C02_BRA },
+	{ "PHX", T_65C02_PHX },
+	{ "PHY", T_65C02_PHY },
+	{ "PLX", T_65C02_PLX },
+	{ "PLY", T_65C02_PLY },
+	{ "STZ", T_65C02_STZ },
+	{ "TRB", T_65C02_TRB },
+	{ "TSB", T_65C02_TSB },
+
+	/* Rockwell + WDC */
+	{ "BBR", T_65C02_BBR },
+	{ "BBR0", T_65C02_BBR0 },
+	{ "BBR1", T_65C02_BBR1 },
+	{ "BBR2", T_65C02_BBR2 },
+	{ "BBR3", T_65C02_BBR3 },
+	{ "BBR4", T_65C02_BBR4 },
+	{ "BBR5", T_65C02_BBR5 },
+	{ "BBR6", T_65C02_BBR6 },
+	{ "BBR7", T_65C02_BBR7 },
+
+	{ "BBS", T_65C02_BBS },
+	{ "BBS0", T_65C02_BBS0 },
+	{ "BBS1", T_65C02_BBS1 },
+	{ "BBS2", T_65C02_BBS2 },
+	{ "BBS3", T_65C02_BBS3 },
+	{ "BBS4", T_65C02_BBS4 },
+	{ "BBS5", T_65C02_BBS5 },
+	{ "BBS6", T_65C02_BBS6 },
+	{ "BBS7", T_65C02_BBS7 },
+
+	{ "RMB", T_65C02_RMB },
+	{ "RMB0", T_65C02_RMB0 },
+	{ "RMB1", T_65C02_RMB1 },
+	{ "RMB2", T_65C02_RMB2 },
+	{ "RMB3", T_65C02_RMB3 },
+	{ "RMB4", T_65C02_RMB4 },
+	{ "RMB5", T_65C02_RMB5 },
+	{ "RMB6", T_65C02_RMB6 },
+	{ "RMB7", T_65C02_RMB7 },
+
+	{ "SMB", T_65C02_SMB },
+	{ "SMB0", T_65C02_SMB0 },
+	{ "SMB1", T_65C02_SMB1 },
+	{ "SMB2", T_65C02_SMB2 },
+	{ "SMB3", T_65C02_SMB3 },
+	{ "SMB4", T_65C02_SMB4 },
+	{ "SMB5", T_65C02_SMB5 },
+	{ "SMB6", T_65C02_SMB6 },
+	{ "SMB7", T_65C02_SMB7 },
+
+	/* WDC */
+	{ "STP", T_65C02_STP },
+	{ "WAI", T_65C02_WAI },
+
+	{ NULL, 0 }
+};
+
 void
 x65_DefineTokens(void) {
 	lex_ConstantsDefineWords(g_tokens);
@@ -192,3 +250,9 @@ SLexConstantsWord*
 x65_GetUndocumentedInstructions(int n) {
 	return g_undocumentedInstructions[n];
 }
+
+SLexConstantsWord*
+x65_GetC02Instructions(void) {
+	return g_C02Instructions;
+}
+

@@ -162,8 +162,14 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 			case 'f':
 				if (strlen(argv[argn]) > 2) {
 					switch (argv[argn][2]) {
-						case 'x':
 						case 'e':
+							if (xasm_Configuration->supportELF) {
+								format = argv[argn][2];
+								break;
+							}
+							err_Warn(WARN_OPTION, argv[argn]);
+							break;
+						case 'x':
 						case 'b':
 						case 'v':
 							format = argv[argn][2];
@@ -174,7 +180,8 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 								format = argv[argn][2];
 								break;
 							}
-						// fall through
+							err_Warn(WARN_OPTION, argv[argn]);
+							break;
 						default:
 							err_Warn(WARN_OPTION, argv[argn]);
 							break;

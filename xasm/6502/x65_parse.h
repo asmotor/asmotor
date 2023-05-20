@@ -21,22 +21,27 @@
 
 #include "expression.h"
 
-#define MODE_NONE	0x001u
-#define MODE_IMM	0x002u
-#define MODE_ZP		0x004u
-#define MODE_ZP_X	0x008u
-#define MODE_ZP_Y	0x010u
-#define MODE_ABS	0x020u
-#define MODE_ABS_X	0x040u
-#define MODE_ABS_Y	0x080u
-#define MODE_IND_X	0x100u
-#define MODE_IND_Y	0x200u
-#define MODE_A		0x400u
-#define MODE_IND	0x800u
+#define MODE_NONE		0x0001u
+#define MODE_IMM		0x0002u
+#define MODE_ZP			0x0004u
+#define MODE_ZP_X		0x0008u
+#define MODE_ZP_Y		0x0010u
+#define MODE_ABS		0x0020u
+#define MODE_ABS_X		0x0040u
+#define MODE_ABS_Y		0x0080u
+#define MODE_IND_X		0x0100u
+#define MODE_IND_Y		0x0200u
+#define MODE_A			0x0400u
+#define MODE_IND		0x0800u
+#define MODE_ZP_ABS		0x1000u
+#define MODE_BIT_ZP		0x2000u
+#define MODE_BIT_ZP_ABS	0x4000u
 
 typedef struct {
 	uint16_t mode;
 	SExpression* expr;
+	SExpression* expr2;
+	SExpression* expr3;
 } SAddressingMode;
 
 extern bool

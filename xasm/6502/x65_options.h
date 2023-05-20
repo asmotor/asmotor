@@ -21,6 +21,7 @@
 
 typedef struct MachineOptions {
     int undocumentedInstructions;
+	bool c02Instructions;
 } SMachineOptions;
 
 extern SMachineOptions*

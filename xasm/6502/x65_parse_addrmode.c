@@ -30,6 +30,10 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
     SLexerContext bm;
     lex_Bookmark(&bm);
 
+    addrMode->expr = NULL;
+    addrMode->expr2 = NULL;
+    addrMode->expr3 = NULL;
+
     if ((allowedModes & MODE_A) && lex_Context->token.id == T_6502_REG_A) {
         parse_GetToken();
         addrMode->mode = MODE_A;
@@ -87,44 +91,40 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         lex_Goto(&bm);
     }
 
-    if (allowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y)) {
+    if (allowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_ZP_ABS | MODE_BIT_ZP_ABS | MODE_BIT_ZP)) {
         addrMode->expr = parse_Expression(2);
-
         if (addrMode->expr != NULL) {
-            if (expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer
-                && addrMode->expr->value.integer <= 255) {
-                if (lex_Context->token.id == ',') {
-                    parse_GetToken();
-                    if (lex_Context->token.id == T_6502_REG_X) {
-                        parse_GetToken();
-                        addrMode->mode = MODE_ZP_X;
-                        return true;
-                    } else if (lex_Context->token.id == T_6502_REG_Y) {
-                        parse_GetToken();
-                        addrMode->mode = MODE_ZP_Y;
-                        return true;
-                    }
+			bool is_zp = expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer <= 255;
+
+			if (lex_Context->token.id == ',') {
+				parse_GetToken();
+				if (lex_Context->token.id == T_6502_REG_X) {
+					parse_GetToken();
+					addrMode->mode = is_zp ? MODE_ZP_X : MODE_ABS_X;
+					return true;
+				} else if (lex_Context->token.id == T_6502_REG_Y) {
+					parse_GetToken();
+					addrMode->mode = is_zp ? MODE_ZP_Y : MODE_ABS_Y;
+					return true;
+				}
+				addrMode->expr2 = parse_Expression(2);
+				if (addrMode->expr2 != NULL) {
+					if (lex_Context->token.id == ',') {
+						parse_GetToken();
+						addrMode->expr3 = parse_Expression(2);
+						if (addrMode->expr3 != NULL) {
+							addrMode->mode = MODE_BIT_ZP_ABS;
+							return true;
+						}
+					} else {
+						addrMode->mode = allowedModes & (MODE_BIT_ZP | MODE_ZP_ABS);
+						return true;
+					}
                 }
-                addrMode->mode = MODE_ZP;
-                return true;
-            }
-
-            if (lex_Context->token.id == ',') {
-                parse_GetToken();
-
-                if (lex_Context->token.id == T_6502_REG_X) {
-                    parse_GetToken();
-                    addrMode->mode = MODE_ABS_X;
-                    return true;
-                } else if (lex_Context->token.id == T_6502_REG_Y) {
-                    parse_GetToken();
-                    addrMode->mode = MODE_ABS_Y;
-                    return true;
-                }
-            }
-
-            addrMode->mode = MODE_ABS;
-            return true;
+            } else {
+	            addrMode->mode = is_zp ? MODE_ZP : MODE_ABS;
+    	        return true;
+			}
         }
 
         lex_Goto(&bm);

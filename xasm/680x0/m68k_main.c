@@ -37,6 +37,7 @@ g_680x0Configuration = {
 	false,
 	true,
 	true,
+	true,
 	MINSIZE_8BIT,
 	8,
 	"CODE",

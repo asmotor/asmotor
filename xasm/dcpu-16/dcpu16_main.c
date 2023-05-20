@@ -36,6 +36,7 @@ static SConfiguration x10c_XasmConfiguration = {
 	false,
 	false,
 	false,
+	false,
 	MINSIZE_16BIT,
 	2,
 	"CODE",

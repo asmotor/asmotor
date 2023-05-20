@@ -37,6 +37,7 @@ m6809_xasmConfiguration = {
 	true,	// banks
 	false,
 	false,
+	false,
 	MINSIZE_8BIT,
 	1,
 	"CODE",

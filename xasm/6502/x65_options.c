@@ -31,7 +31,8 @@
 #include "x65_options.h"
 #include "x65_tokens.h"
 
-static int g_previousInstructionSet = 0;
+static int g_previousUndocumented = 0;
+static bool g_previousC02 = false;
 
 void
 x65_CopyOptions(struct MachineOptions* dest, struct MachineOptions* pSrc) {
@@ -46,13 +47,14 @@ x65_AllocOptions(void) {
 void
 x65_SetDefault(SMachineOptions* options) {
     options->undocumentedInstructions = 0;
+	options->c02Instructions = false;
 }
 
 void
 x65_OptionsUpdated(SMachineOptions* options) {
     int newSet = options->undocumentedInstructions;
-    if (g_previousInstructionSet != newSet) {
-        SLexConstantsWord* prev = x65_GetUndocumentedInstructions(g_previousInstructionSet);
+    if (g_previousUndocumented != newSet) {
+        SLexConstantsWord* prev = x65_GetUndocumentedInstructions(g_previousUndocumented);
         if (prev)
             lex_ConstantsUndefineWords(prev);
 
@@ -60,8 +62,20 @@ x65_OptionsUpdated(SMachineOptions* options) {
         if (next)
             lex_ConstantsDefineWords(next);
 
-        g_previousInstructionSet = newSet;
+        g_previousUndocumented = newSet;
     }
+
+	if (g_previousC02 != options->c02Instructions) {
+		SLexConstantsWord* tokens = x65_GetC02Instructions();
+
+		if (g_previousC02)
+			lex_ConstantsUndefineWords(tokens);
+
+		if (options->c02Instructions)
+			lex_ConstantsDefineWords(tokens);
+
+		g_previousC02 = options->c02Instructions;
+	}
 }
 
 bool
@@ -81,6 +95,9 @@ x65_ParseOption(const char* s) {
                 return false;
             }
             break;
+        case 'c':
+			opt_Current->machineOptions->c02Instructions = true;
+			return true;
         default:
             break;
     }
@@ -91,5 +108,8 @@ x65_ParseOption(const char* s) {
 
 void
 x65_PrintOptions(void) {
-    printf("    -mu<x>  Enable undocumented opcodes, name set x (0, 1 or 2)\n");
+    printf(
+		"    -mu<x>  Enable undocumented instructions, name set x (0, 1 or 2)\n"
+		"    -mc     Enable 65C02 instructions\n"
+	);
 }
