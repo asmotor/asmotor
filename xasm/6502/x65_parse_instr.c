@@ -335,13 +335,13 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xC0, MODE_IMM | MODE_ZP | MODE_ABS, handleStandardImm0 },	/* CPY */
     { 0xC2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, handleStandardAll },	/* DEC */
     { 0x41, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* EOR */
-    { 0x18, 0, handleImplied },	/* CLC */
-    { 0x38, 0, handleImplied },	/* SEC */
-    { 0x58, 0, handleImplied },	/* CLI */
-    { 0x78, 0, handleImplied },	/* SEI */
-    { 0xB8, 0, handleImplied },	/* CLV */
-    { 0xD8, 0, handleImplied },	/* CLD */
-    { 0xF8, 0, handleImplied },	/* SED */
+    { 0x18, MODE_NONE, handleImplied },	/* CLC */
+    { 0x38, MODE_NONE, handleImplied },	/* SEC */
+    { 0x58, MODE_NONE, handleImplied },	/* CLI */
+    { 0x78, MODE_NONE, handleImplied },	/* SEI */
+    { 0xB8, MODE_NONE, handleImplied },	/* CLV */
+    { 0xD8, MODE_NONE, handleImplied },	/* CLD */
+    { 0xF8, MODE_NONE, handleImplied },	/* SED */
     { 0xE2, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, handleStandardAll },	/* INC */
     { 0x4C, MODE_ABS | MODE_IND, handleJMP },	/* JMP */
     { 0x20, MODE_ABS, handleJMP },	/* JSR */
@@ -349,28 +349,28 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xA2, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_Y | MODE_ABS_Y, handleStandardImm0 },	/* LDX */
     { 0xA0, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, handleStandardImm0 },	/* LDY */
     { 0x42, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* LSR */
-    { 0xEA, 0, handleImplied },	/* NOP */
+    { 0xEA, MODE_NONE, handleImplied },	/* NOP */
     { 0x01, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* ORA */
-    { 0xAA, 0, handleImplied },	/* TAX */
-    { 0x8A, 0, handleImplied },	/* TXA */
-    { 0xCA, 0, handleImplied },	/* DEX */
-    { 0xE8, 0, handleImplied },	/* INX */
-    { 0xA8, 0, handleImplied },	/* TAY */
-    { 0x98, 0, handleImplied },	/* TYA */
-    { 0x88, 0, handleImplied },	/* DEY */
-    { 0xC8, 0, handleImplied },	/* INY */
+    { 0xAA, MODE_NONE, handleImplied },	/* TAX */
+    { 0x8A, MODE_NONE, handleImplied },	/* TXA */
+    { 0xCA, MODE_NONE, handleImplied },	/* DEX */
+    { 0xE8, MODE_NONE, handleImplied },	/* INX */
+    { 0xA8, MODE_NONE, handleImplied },	/* TAY */
+    { 0x98, MODE_NONE, handleImplied },	/* TYA */
+    { 0x88, MODE_NONE, handleImplied },	/* DEY */
+    { 0xC8, MODE_NONE, handleImplied },	/* INY */
     { 0x22, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ROL */
     { 0x62, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ROR */
-    { 0x40, 0, handleImplied },	/* RTI */
-    { 0x60, 0, handleImplied },	/* RTS */
+    { 0x40, MODE_NONE, handleImplied },	/* RTI */
+    { 0x60, MODE_NONE, handleImplied },	/* RTS */
     { 0xE1, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* SBC */
     { 0x81, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* STA */
-    { 0x9A, 0, handleImplied },	/* TXS */
-    { 0xBA, 0, handleImplied },	/* TSX */
-    { 0x48, 0, handleImplied },	/* PHA */
-    { 0x68, 0, handleImplied },	/* PLA */
-    { 0x08, 0, handleImplied },	/* PHP */
-    { 0x28, 0, handleImplied },	/* PLP */
+    { 0x9A, MODE_NONE, handleImplied },	/* TXS */
+    { 0xBA, MODE_NONE, handleImplied },	/* TSX */
+    { 0x48, MODE_NONE, handleImplied },	/* PHA */
+    { 0x68, MODE_NONE, handleImplied },	/* PLA */
+    { 0x08, MODE_NONE, handleImplied },	/* PHP */
+    { 0x28, MODE_NONE, handleImplied },	/* PLP */
     { 0x82, MODE_ZP | MODE_ABS | MODE_ZP_Y, handleStandardImm0 },	/* STX */
     { 0x80, MODE_ZP | MODE_ABS | MODE_ZP_X, handleStandardImm0 },	/* STY */
 
@@ -386,7 +386,7 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xC3, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* DCP */
     { 0x00, MODE_ZP | MODE_ZP_X | MODE_IMM, handleDOP },	/* DOP */
     { 0xE3, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* ISC */
-    { 0x02, 0, handleImplied },	/* KIL */
+    { 0x02, MODE_NONE, handleImplied },	/* KIL */
     { 0xA3, MODE_ABS_Y, handleStandardAll },	/* LAR */
     { 0xA3, MODE_ZP | MODE_ZP_Y | MODE_ABS | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAbsY7 },	/* LAX */
     { 0x43, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* RLA */
@@ -401,17 +401,17 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
 
 	/* 65C02 */
     { 0x80, MODE_ABS, handleBranch },	/* BRA */
-    { 0xDA, 0, handleImplied },			/* PHX */
-    { 0x5A, 0, handleImplied },			/* PHY */
-    { 0xFA, 0, handleImplied },			/* PLX */
-    { 0x7A, 0, handleImplied },			/* PLY */
+    { 0xDA, MODE_NONE, handleImplied },			/* PHX */
+    { 0x5A, MODE_NONE, handleImplied },			/* PHY */
+    { 0xFA, MODE_NONE, handleImplied },			/* PLX */
+    { 0x7A, MODE_NONE, handleImplied },			/* PLY */
     { 0x00, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleSTZ },	/* STZ */
     { 0x50, MODE_ZP | MODE_ABS, handleStandardAll },	/* TRB */
     { 0x00, MODE_ZP | MODE_ABS, handleStandardAll },	/* TSB */
 
 	/* WDC */
-    { 0xDB, 0, handleImplied },			/* STP */
-    { 0xCB, 0, handleImplied },			/* WAI */
+    { 0xDB, MODE_NONE, handleImplied },			/* STP */
+    { 0xCB, MODE_NONE, handleImplied },			/* WAI */
 
 	/* Rockwell + WDC */
     { 0x0F, MODE_BIT_ZP_ABS, handleBITBranch_C02 },	/* BBR */

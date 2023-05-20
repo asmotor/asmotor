@@ -122,7 +122,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 					}
                 }
             } else {
-	            addrMode->mode = is_zp ? MODE_ZP : MODE_ABS;
+	            addrMode->mode = (allowedModes & MODE_ZP) && is_zp ? MODE_ZP : MODE_ABS;
     	        return true;
 			}
         }

@@ -1,11 +1,5 @@
 	SECTION	"Test",CODE[$0]
-
 Start:
-	brk
-	ora	(01,x)
-	DB	$02
-	DB	$03
-
 	adc	#$44
 	adc	$44
 	adc	$44,x
