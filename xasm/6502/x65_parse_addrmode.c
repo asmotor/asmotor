@@ -111,7 +111,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 			bool is_zp = false;
 
 			if (force_zp)
-				addrMode->expr = expr_And(addrMode->expr, expr_Const(0xFF));
+				addrMode->expr = expr_CheckRange(addrMode->expr, 0x00, 0xFF);
 		
 			is_zp = expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer <= 255;
 

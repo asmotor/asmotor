@@ -32,7 +32,7 @@ Loop:
 	sed
 
 	inc	$12,x
-	inc	<$123,x
+	inc	<$23,x
 	
 	jmp	Loop
 	jmp	($1234)
