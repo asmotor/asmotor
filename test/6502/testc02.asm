@@ -2,7 +2,9 @@
 
 	SECTION	"Test",CODE[$0]
 Start:
-	adc	$12
+	adc	($12)
+	bit	#$12
+	bit	$12,x
 	tsb	$87
 	rmb0	$12
 	smb	1,$12
