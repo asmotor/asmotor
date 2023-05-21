@@ -1,4 +1,4 @@
-	OPT	mc
+	OPT	mc2
 
 	SECTION	"Test",CODE[$0]
 Start:

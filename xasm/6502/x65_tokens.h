@@ -172,9 +172,6 @@ typedef enum {
 } ETargetToken;
 
 extern SLexConstantsWord*
-x65_GetC02Instructions(void);
-
-extern SLexConstantsWord*
 x65_GetUndocumentedInstructions(int n);
 
 extern void

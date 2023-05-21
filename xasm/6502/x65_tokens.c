@@ -244,15 +244,10 @@ static SLexConstantsWord g_C02Instructions[] = {
 void
 x65_DefineTokens(void) {
 	lex_ConstantsDefineWords(g_tokens);
+	lex_ConstantsDefineWords(g_C02Instructions);
 }
 
 SLexConstantsWord*
 x65_GetUndocumentedInstructions(int n) {
 	return g_undocumentedInstructions[n];
 }
-
-SLexConstantsWord*
-x65_GetC02Instructions(void) {
-	return g_C02Instructions;
-}
-

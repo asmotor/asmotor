@@ -19,9 +19,17 @@
 #ifndef XASM_6502_OPTIONS_H_INCLUDED_
 #define XASM_6502_OPTIONS_H_INCLUDED_
 
+typedef enum {
+	/* If this enum is changed, parsing must be changed in x65_ParseOption */
+	MOPT_CPU_6502	= 0x01,
+	MOPT_CPU_65C02	= 0x02,
+	MOPT_CPU_65C02S	= 0x04,	/* + bit instructions */
+	MOPT_CPU_65C816S = 0x08
+} ECpu6502;
+
 typedef struct MachineOptions {
     int undocumentedInstructions;
-	bool c02Instructions;
+	ECpu6502 cpu;
 } SMachineOptions;
 
 extern SMachineOptions*

@@ -32,7 +32,6 @@
 #include "x65_tokens.h"
 
 static int g_previousUndocumented = 0;
-static bool g_previousC02 = false;
 
 void
 x65_CopyOptions(struct MachineOptions* dest, struct MachineOptions* pSrc) {
@@ -47,7 +46,7 @@ x65_AllocOptions(void) {
 void
 x65_SetDefault(SMachineOptions* options) {
     options->undocumentedInstructions = 0;
-	options->c02Instructions = false;
+	options->cpu = MOPT_CPU_6502;
 }
 
 void
@@ -64,18 +63,6 @@ x65_OptionsUpdated(SMachineOptions* options) {
 
         g_previousUndocumented = newSet;
     }
-
-	if (g_previousC02 != options->c02Instructions) {
-		SLexConstantsWord* tokens = x65_GetC02Instructions();
-
-		if (g_previousC02)
-			lex_ConstantsUndefineWords(tokens);
-
-		if (options->c02Instructions)
-			lex_ConstantsDefineWords(tokens);
-
-		g_previousC02 = options->c02Instructions;
-	}
 }
 
 bool
@@ -84,32 +71,47 @@ x65_ParseOption(const char* s) {
         return false;
 
     switch (s[0]) {
-        case 'u':
-            if (strlen(&s[0]) >= 2) {
-                int n = atoi(&s[1]);
-                if (n >= 0 && n <= 3) {
-                    opt_Current->machineOptions->undocumentedInstructions = n;
-                    return true;
-                }
-                err_Error(ERROR_MACHINE_OPTION_UNDOCUMENTED_RANGE);
-                return false;
-            }
+        case 'u': {
+			long n = strtol(&s[1], NULL, 10);
+			if (n >= 0 && n <= 3) {
+				opt_Current->machineOptions->undocumentedInstructions = n;
+			} else {
+				err_Error(MERROR_UNDOCUMENTED_RANGE);
+				return false;
+			}
             break;
-        case 'c':
-			opt_Current->machineOptions->c02Instructions = true;
-			return true;
+		}
+        case 'c': {
+			long n = strtol(&s[1], NULL, 10);
+			if (n >= 0 && n <= 3) {
+				ECpu6502 cpu = 1 << n;
+				opt_Current->machineOptions->cpu = cpu;
+			} else {
+				err_Error(MERROR_CPU_RANGE);
+				return false;
+			}
+			break;
+		}
         default:
-            break;
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
     }
 
-    err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-    return false;
+	if (opt_Current->machineOptions->cpu != MOPT_CPU_6502 && opt_Current->machineOptions->undocumentedInstructions != 0) {
+		err_Error(MERROR_UNDOCUMENTED_NOT_SUPPORTED);
+		return false;
+	}
+
+	return true;
 }
 
 void
 x65_PrintOptions(void) {
     printf(
 		"    -mu<x>  Enable undocumented instructions, name set x (0, 1 or 2)\n"
-		"    -mc     Enable 65C02 instructions\n"
+		"    -mc<x>  Enable 6502 instruction set level\n"
+		"              0 - 6502\n"
+		"              1 - 65C02\n"
+		"              2 - 65C02S\n"
 	);
 }

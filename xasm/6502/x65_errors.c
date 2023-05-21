@@ -20,7 +20,10 @@
 
 static char* g_errors[] = {
 	"Illegal addressing mode",
-	"Undocumented instruction set must be 0, 1 or 2"
+	"Undocumented instruction set must be 0, 1, 2 or 3",
+	"CPU type must be 0, 1, 2 or 3",
+	"Selected CPU does not support undocumented instructions",
+	"Selected CPU does not support instruction"
 };
 
 const char*
