@@ -114,7 +114,9 @@ static SLexConstantsWord g_tokens[] = {
 	{ "BVC",	T_6502_BVC },
 	{ "BVS",	T_6502_BVS },
 	{ "BCC",	T_6502_BCC },
+	{ "BLT",	T_6502_BCC },
 	{ "BCS",	T_6502_BCS },
+	{ "BGE",	T_6502_BCS },
 	{ "BNE",	T_6502_BNE },
 	{ "BEQ",	T_6502_BEQ },
 
