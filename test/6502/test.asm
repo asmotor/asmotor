@@ -32,11 +32,13 @@ Loop:
 	sed
 
 	inc	$12,x
+	inc	<$123,x
 	
 	jmp	Loop
 	jmp	($1234)
 	jsr	Loop
 
+	lda	#>$1234
 	lda	Loop
 	ldx	Loop,Y
 	ldx	#$12

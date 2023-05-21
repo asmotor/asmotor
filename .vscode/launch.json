@@ -64,7 +64,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/motor6502",
-            "args": ["testc02.asm"],
+            "args": ["test.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/6502",
             "environment": [],
