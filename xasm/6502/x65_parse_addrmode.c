@@ -76,14 +76,15 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         lex_Goto(&bm);
     }
 
-    if (allowedModes & MODE_IND) {
+    if (allowedModes & (MODE_IND | MODE_IND_ZP)) {
         if (lex_Context->token.id == '(') {
             parse_GetToken();
 
             addrMode->expr = parse_Expression(2);
             if (addrMode->expr != NULL) {
                 if (parse_ExpectChar(')')) {
-                    addrMode->mode = MODE_IND;
+					bool is_zp = expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer <= 255;
+                    addrMode->mode = is_zp && (allowedModes & MODE_IND_ZP) ? MODE_IND_ZP : MODE_IND;
                     return true;
                 }
             }
@@ -122,8 +123,10 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 					}
                 }
             } else {
-	            addrMode->mode = (allowedModes & MODE_ZP) && is_zp ? MODE_ZP : MODE_ABS;
-    	        return true;
+				if (addrMode->expr->type != EXPR_PARENS) {
+		            addrMode->mode = (allowedModes & MODE_ZP) && is_zp ? MODE_ZP : MODE_ABS;
+    		        return true;
+				}
 			}
         }
 

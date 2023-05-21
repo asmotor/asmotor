@@ -2,6 +2,7 @@
 
 	SECTION	"Test",CODE[$0]
 Start:
+	adc	$12
 	tsb	$87
 	rmb0	$12
 	smb	1,$12
