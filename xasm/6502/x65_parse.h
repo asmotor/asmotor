@@ -21,27 +21,28 @@
 
 #include "expression.h"
 
-#define MODE_NONE		0x0001u
-#define MODE_IMM		0x0002u		/* #n8 */
-#define MODE_ZP			0x0004u		/* n8 */
-#define MODE_ZP_X		0x0008u		/* n8,x */
-#define MODE_ZP_Y		0x0010u		/* n8,y */
-#define MODE_ABS		0x0020u		/* n16 */
-#define MODE_ABS_X		0x0040u		/* n16,x */
-#define MODE_ABS_Y		0x0080u		/* n16,y */
-#define MODE_IND_X		0x0100u		/* (n8,x) */
-#define MODE_IND_Y		0x0200u		/* (n8),y */
-#define MODE_A			0x0400u		/* a */
-#define MODE_IND		0x0800u		/* (n16) */
-#define MODE_ZP_ABS		0x1000u		/* n8,n16 */
-#define MODE_BIT_ZP		0x2000u		/* n3,n8 */
-#define MODE_BIT_ZP_ABS	0x4000u		/* n8,n8,n16 */
-#define MODE_IND_ZP		0x8000u		/* (n8) */
+#define MODE_NONE		0x00001u
+#define MODE_IMM		0x00002u		/* #n8 */
+#define MODE_ZP			0x00004u		/* n8 */
+#define MODE_ZP_X		0x00008u		/* n8,x */
+#define MODE_ZP_Y		0x00010u		/* n8,y */
+#define MODE_ABS		0x00020u		/* n16 */
+#define MODE_ABS_X		0x00040u		/* n16,x */
+#define MODE_ABS_Y		0x00080u		/* n16,y */
+#define MODE_IND_ZP_X	0x00100u		/* (n8,x) */
+#define MODE_IND_ZP_Y	0x00200u		/* (n8),y */
+#define MODE_A			0x00400u		/* a */
+#define MODE_IND_ABS	0x00800u		/* (n16) */
+#define MODE_ZP_ABS		0x01000u		/* n8,n16 */
+#define MODE_BIT_ZP		0x02000u		/* n3,n8 */
+#define MODE_BIT_ZP_ABS	0x04000u		/* n8,n8,n16 */
+#define MODE_IND_ZP		0x08000u		/* (n8) */
+#define MODE_IND_ABS_X	0x10000u		/* (n16,x) */
 
-#define MODE_65C02		(MODE_ZP_ABS | MODE_BIT_ZP | MODE_BIT_ZP_ABS | MODE_IND_ZP)
+#define MODE_65C02		(MODE_ZP_ABS | MODE_BIT_ZP | MODE_BIT_ZP_ABS | MODE_IND_ZP | MODE_IND_ABS_X)
 
 typedef struct {
-	uint16_t mode;
+	uint32_t mode;
 	SExpression* expr;
 	SExpression* expr2;
 	SExpression* expr3;

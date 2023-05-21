@@ -50,7 +50,7 @@ outputZPExpression(SExpression* expr) {
 static bool
 handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
-        case MODE_IND_X:
+        case MODE_IND_ZP_X:
             sect_OutputConst8(baseOpcode | (uint8_t) (0 << 2));
             outputZPExpression(addrMode->expr);
             return true;
@@ -66,7 +66,7 @@ handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputConst8(baseOpcode | (uint8_t) (3 << 2));
             sect_OutputExpr16(addrMode->expr);
             return true;
-        case MODE_IND_Y:
+        case MODE_IND_ZP_Y:
             sect_OutputConst8(baseOpcode | (uint8_t) (4 << 2));
             outputZPExpression(addrMode->expr);
             return true;
@@ -97,7 +97,7 @@ handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
 static bool
 handleStandardAbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
-        case MODE_IND_X:
+        case MODE_IND_ZP_X:
             sect_OutputConst8(baseOpcode | (uint8_t) (0 << 2));
             outputZPExpression(addrMode->expr);
             return true;
@@ -105,7 +105,7 @@ handleStandardAbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputConst8(baseOpcode | (uint8_t) (2 << 2));
             sect_OutputExpr8(addrMode->expr);
             return true;
-        case MODE_IND_Y:
+        case MODE_IND_ZP_Y:
             sect_OutputConst8(baseOpcode | (uint8_t) (4 << 2));
             outputZPExpression(addrMode->expr);
             return true;
@@ -248,8 +248,15 @@ handleImplied(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 static bool
 handleJMP(uint8_t baseOpcode, SAddressingMode* addrMode) {
-    if (addrMode->mode == MODE_IND)
+	if (addrMode->mode == MODE_IND_ABS_X) {
+		if (opt_Current->machineOptions->cpu == MOPT_CPU_6502) {
+			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
+			return true;
+		}
+		baseOpcode += 0x30;
+	} else if (addrMode->mode == MODE_IND_ABS) {
         baseOpcode += 0x20;
+	}
 
     sect_OutputConst8(baseOpcode);
     sect_OutputExpr16(addrMode->expr);
@@ -361,8 +368,8 @@ handleBITx_C02(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 
 static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
-    { 0x61, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* ADC */
-    { 0x21, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* AND */
+    { 0x61, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* ADC */
+    { 0x21, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* AND */
     { 0x02, CPU_6502, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ASL */
     { 0x20, CPU_6502, MODE_ZP | MODE_ABS | MODE_IMM | MODE_ZP_X | MODE_ABS_X, handleBIT },	/* BIT */
     { 0x10, CPU_6502, MODE_ABS, handleBranch },	/* BPL */
@@ -374,11 +381,11 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xD0, CPU_6502, MODE_ABS, handleBranch },	/* BNE */
     { 0xF0, CPU_6502, MODE_ABS, handleBranch },	/* BEQ */
     { 0x00, CPU_6502, MODE_NONE | MODE_IMM, handleBRK },	/* BRK */
-    { 0xC1, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* CMP */
+    { 0xC1, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* CMP */
     { 0xE0, CPU_6502, MODE_IMM | MODE_ZP | MODE_ABS, handleStandardImm0 },	/* CPX */
     { 0xC0, CPU_6502, MODE_IMM | MODE_ZP | MODE_ABS, handleStandardImm0 },	/* CPY */
     { 0xC2, CPU_6502, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X | MODE_A, handleINCDEC },	/* DEC */
-    { 0x41, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* EOR */
+    { 0x41, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* EOR */
     { 0x18, CPU_6502, MODE_NONE, handleImplied },	/* CLC */
     { 0x38, CPU_6502, MODE_NONE, handleImplied },	/* SEC */
     { 0x58, CPU_6502, MODE_NONE, handleImplied },	/* CLI */
@@ -387,14 +394,14 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xD8, CPU_6502, MODE_NONE, handleImplied },	/* CLD */
     { 0xF8, CPU_6502, MODE_NONE, handleImplied },	/* SED */
     { 0xE2, CPU_6502, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X | MODE_A, handleINCDEC },	/* INC */
-    { 0x4C, CPU_6502, MODE_ABS | MODE_IND, handleJMP },	/* JMP */
+    { 0x4C, CPU_6502, MODE_ABS | MODE_IND_ABS | MODE_IND_ABS_X, handleJMP },	/* JMP */
     { 0x20, CPU_6502, MODE_ABS, handleJMP },	/* JSR */
-    { 0xA1, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* LDA */
+    { 0xA1, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* LDA */
     { 0xA2, CPU_6502, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_Y | MODE_ABS_Y, handleStandardImm0 },	/* LDX */
     { 0xA0, CPU_6502, MODE_IMM | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, handleStandardImm0 },	/* LDY */
     { 0x42, CPU_6502, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* LSR */
     { 0xEA, CPU_6502, MODE_NONE, handleImplied },	/* NOP */
-    { 0x01, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* ORA */
+    { 0x01, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* ORA */
     { 0xAA, CPU_6502, MODE_NONE, handleImplied },	/* TAX */
     { 0x8A, CPU_6502, MODE_NONE, handleImplied },	/* TXA */
     { 0xCA, CPU_6502, MODE_NONE, handleImplied },	/* DEX */
@@ -407,8 +414,8 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0x62, CPU_6502, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ROR */
     { 0x40, CPU_6502, MODE_NONE, handleImplied },	/* RTI */
     { 0x60, CPU_6502, MODE_NONE, handleImplied },	/* RTS */
-    { 0xE1, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* SBC */
-    { 0x81, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* STA */
+    { 0xE1, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* SBC */
+    { 0x81, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* STA */
     { 0x9A, CPU_6502, MODE_NONE, handleImplied },	/* TXS */
     { 0xBA, CPU_6502, MODE_NONE, handleImplied },	/* TSX */
     { 0x48, CPU_6502, MODE_NONE, handleImplied },	/* PHA */
@@ -421,22 +428,22 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     /* Undocumented instructions */
 
     { 0x0B, CPU_6502, MODE_IMM, handleStandardImm0 },	/* AAC */
-    { 0x83, CPU_6502, MODE_ZP | MODE_ZP_Y | MODE_IND_X | MODE_ABS, handleStandardAll },	/* AAX */
+    { 0x83, CPU_6502, MODE_ZP | MODE_ZP_Y | MODE_IND_ZP_X | MODE_ABS, handleStandardAll },	/* AAX */
     { 0x6B, CPU_6502, MODE_IMM, handleStandardImm0 },	/* ARR */
     { 0x4B, CPU_6502, MODE_IMM, handleStandardImm0 },	/* ASR */
     { 0xAB, CPU_6502, MODE_IMM, handleStandardImm0 },	/* ATX */
-    { 0x83, CPU_6502, MODE_ABS_Y | MODE_IND_Y, handleStandardAbsY7 },	/* AXA */
+    { 0x83, CPU_6502, MODE_ABS_Y | MODE_IND_ZP_Y, handleStandardAbsY7 },	/* AXA */
     { 0xCB, CPU_6502, MODE_IMM, handleStandardImm0 },	/* AXS */
-    { 0xC3, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* DCP */
+    { 0xC3, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y, handleStandardAll },	/* DCP */
     { 0x00, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_IMM, handleDOP },	/* DOP */
-    { 0xE3, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* ISC */
+    { 0xE3, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y, handleStandardAll },	/* ISC */
     { 0x02, CPU_6502, MODE_NONE, handleImplied },	/* KIL */
     { 0xA3, CPU_6502, MODE_ABS_Y, handleStandardAll },	/* LAR */
-    { 0xA3, CPU_6502, MODE_ZP | MODE_ZP_Y | MODE_ABS | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAbsY7 },	/* LAX */
-    { 0x43, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* RLA */
-    { 0x63, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* RRA */
-    { 0x03, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* SLO */
-    { 0x43, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y, handleStandardAll },	/* SRE */
+    { 0xA3, CPU_6502, MODE_ZP | MODE_ZP_Y | MODE_ABS | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y, handleStandardAbsY7 },	/* LAX */
+    { 0x43, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y, handleStandardAll },	/* RLA */
+    { 0x63, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y, handleStandardAll },	/* RRA */
+    { 0x03, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y, handleStandardAll },	/* SLO */
+    { 0x43, CPU_6502, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y, handleStandardAll },	/* SRE */
     { 0x82, CPU_6502, MODE_ABS_Y, handleStandardAbsY7 },	/* SXA */
     { 0x80, CPU_6502, MODE_ABS_X, handleStandardAll },	/* SYA */
     { 0x00, CPU_6502, MODE_ABS | MODE_ABS_X, handleStandardAll },	/* TOP */

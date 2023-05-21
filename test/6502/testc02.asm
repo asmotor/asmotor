@@ -9,6 +9,7 @@ Start:
 	ina
 	dec	a
 	dea
+	jmp	($1234,x)
 	tsb	$87
 	rmb0	$12
 	smb	1,$12

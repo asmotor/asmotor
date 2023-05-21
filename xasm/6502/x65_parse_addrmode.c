@@ -46,9 +46,9 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         return true;
     }
 
-    if ((allowedModes & (MODE_IND_X | MODE_IND_Y)) && lex_Context->token.id == '(') {
+    if ((allowedModes & (MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ABS_X)) && lex_Context->token.id == '(') {
         parse_GetToken();
-        addrMode->expr = x65_ParseExpressionSU8();
+        addrMode->expr = parse_Expression(2);
 
         if (addrMode->expr != NULL) {
             if (lex_Context->token.id == ',') {
@@ -56,7 +56,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
                 if (lex_Context->token.id == T_6502_REG_X) {
                     parse_GetToken();
                     if (parse_ExpectChar(')')) {
-                        addrMode->mode = MODE_IND_X;
+                        addrMode->mode = allowedModes & (MODE_IND_ZP_X | MODE_IND_ABS_X);	/* only one of these can be allowed at the same time */
                         return true;
                     }
                 }
@@ -66,7 +66,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
                     parse_GetToken();
                     if (lex_Context->token.id == T_6502_REG_Y) {
                         parse_GetToken();
-                        addrMode->mode = MODE_IND_Y;
+                        addrMode->mode = MODE_IND_ZP_Y;
                         return true;
                     }
                 }
@@ -76,7 +76,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         lex_Goto(&bm);
     }
 
-    if (allowedModes & (MODE_IND | MODE_IND_ZP)) {
+    if (allowedModes & (MODE_IND_ABS | MODE_IND_ZP)) {
         if (lex_Context->token.id == '(') {
             parse_GetToken();
 
@@ -84,7 +84,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
             if (addrMode->expr != NULL) {
                 if (parse_ExpectChar(')')) {
 					bool is_zp = expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer <= 255;
-                    addrMode->mode = is_zp && (allowedModes & MODE_IND_ZP) ? MODE_IND_ZP : MODE_IND;
+                    addrMode->mode = is_zp && (allowedModes & MODE_IND_ZP) ? MODE_IND_ZP : MODE_IND_ABS;
                     return true;
                 }
             }
