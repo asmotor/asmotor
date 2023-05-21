@@ -209,7 +209,7 @@ handleBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 static bool
 handleBIT(uint8_t baseOpcode, SAddressingMode* addrMode) {
-	if (addrMode->mode & (MODE_IMM | MODE_ZP_X | MODE_ABS_X) && opt_Current->machineOptions->cpu == MOPT_CPU_6502) {
+	if ((addrMode->mode & (MODE_IMM | MODE_ZP_X | MODE_ABS_X)) && opt_Current->machineOptions->cpu == MOPT_CPU_6502) {
 		err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
 		return true;
 	}
@@ -217,6 +217,23 @@ handleBIT(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	if (addrMode->mode == MODE_IMM) {
 		sect_OutputConst8(0x89);
 		sect_OutputExpr8(addrMode->expr);
+		return true;
+	}
+
+	return handleStandardAll(baseOpcode, addrMode);
+}
+
+static bool
+handleINCDEC(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	if ((addrMode->mode & MODE_A) && opt_Current->machineOptions->cpu == MOPT_CPU_6502) {
+		err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
+		return true;
+	}
+
+	if (addrMode->mode == MODE_A) {
+		/* Convert base opcode to INC/DEC A which live in a completely place in the matrix */
+		baseOpcode = (baseOpcode & 0x3F) ^ 0x38;
+		sect_OutputConst8(baseOpcode);
 		return true;
 	}
 
@@ -360,7 +377,7 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xC1, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* CMP */
     { 0xE0, CPU_6502, MODE_IMM | MODE_ZP | MODE_ABS, handleStandardImm0 },	/* CPX */
     { 0xC0, CPU_6502, MODE_IMM | MODE_ZP | MODE_ABS, handleStandardImm0 },	/* CPY */
-    { 0xC2, CPU_6502, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, handleStandardAll },	/* DEC */
+    { 0xC2, CPU_6502, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X | MODE_A, handleINCDEC },	/* DEC */
     { 0x41, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* EOR */
     { 0x18, CPU_6502, MODE_NONE, handleImplied },	/* CLC */
     { 0x38, CPU_6502, MODE_NONE, handleImplied },	/* SEC */
@@ -369,7 +386,7 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xB8, CPU_6502, MODE_NONE, handleImplied },	/* CLV */
     { 0xD8, CPU_6502, MODE_NONE, handleImplied },	/* CLD */
     { 0xF8, CPU_6502, MODE_NONE, handleImplied },	/* SED */
-    { 0xE2, CPU_6502, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, handleStandardAll },	/* INC */
+    { 0xE2, CPU_6502, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X | MODE_A, handleINCDEC },	/* INC */
     { 0x4C, CPU_6502, MODE_ABS | MODE_IND, handleJMP },	/* JMP */
     { 0x20, CPU_6502, MODE_ABS, handleJMP },	/* JSR */
     { 0xA1, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_X | MODE_IND_Y | MODE_IND_ZP, handleStandardAll },	/* LDA */
@@ -428,6 +445,8 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
 
 	/* 65C02 */
     { 0x80, CPU_65C02, MODE_ABS, handleBranch },	/* BRA */
+    { 0x3A, CPU_65C02, MODE_NONE, handleImplied },			/* DEA */
+    { 0x1A, CPU_65C02, MODE_NONE, handleImplied },			/* INA */
     { 0xDA, CPU_65C02, MODE_NONE, handleImplied },			/* PHX */
     { 0x5A, CPU_65C02, MODE_NONE, handleImplied },			/* PHY */
     { 0xFA, CPU_65C02, MODE_NONE, handleImplied },			/* PLX */

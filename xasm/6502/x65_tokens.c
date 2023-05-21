@@ -185,6 +185,8 @@ static SLexConstantsWord* g_undocumentedInstructions[] = {
 
 static SLexConstantsWord g_C02Instructions[] = {
 	{ "BRA", T_65C02_BRA },
+	{ "DEA", T_65C02_DEA },
+	{ "INA", T_65C02_INA },
 	{ "PHX", T_65C02_PHX },
 	{ "PHY", T_65C02_PHY },
 	{ "PLX", T_65C02_PLX },

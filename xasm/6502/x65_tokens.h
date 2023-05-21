@@ -114,6 +114,8 @@ typedef enum {
 
 	/* 65C02 */
 	T_65C02_BRA,
+	T_65C02_DEA,
+	T_65C02_INA,
 	T_65C02_PHX,
 	T_65C02_PHY,
 	T_65C02_PLX,

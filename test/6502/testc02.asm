@@ -5,6 +5,10 @@ Start:
 	adc	($12)
 	bit	#$12
 	bit	$12,x
+	inc	a
+	ina
+	dec	a
+	dea
 	tsb	$87
 	rmb0	$12
 	smb	1,$12
