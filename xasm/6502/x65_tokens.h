@@ -171,6 +171,9 @@ typedef enum {
     T_6502_REG_X,
     T_6502_REG_Y,
 
+	/* Directives */
+	T_65816_BITS,
+	
 } ETargetToken;
 
 extern SLexConstantsWord*

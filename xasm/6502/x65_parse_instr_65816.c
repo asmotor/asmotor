@@ -16,21 +16,16 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_6502_ERRORS_H_INCLUDED_
-#define XASM_6502_ERRORS_H_INCLUDED_
+#include "options.h"
+#include "types.h"
 
-#include "xasm.h"
+#include "x65_options.h"
 
-typedef enum {
-    MERROR_ILLEGAL_ADDRMODE = 1000,
-    MERROR_UNDOCUMENTED_RANGE,
-    MERROR_CPU_RANGE,
-	MERROR_UNDOCUMENTED_NOT_SUPPORTED,
-	MERROR_INSTRUCTION_NOT_SUPPORTED,
-	MERROR_16BIT_REQUIRED,
-} EMachineError;
 
-extern const char*
-x65_GetError(size_t errorNumber);
-
-#endif
+bool
+x65_Parse65816Instruction(void) {
+	if (opt_Current->machineOptions->cpu & MOPT_CPU_65C816S) {
+		
+	}
+	return false;
+}

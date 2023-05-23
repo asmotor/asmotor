@@ -175,6 +175,8 @@ static SLexConstantsWord g_tokens[] = {
 	{ "X",	T_6502_REG_X },
 	{ "Y",	T_6502_REG_Y },
 
+	{ "BITS", T_65816_BITS },
+
 	{ NULL, 0 }
 };
 

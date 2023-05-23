@@ -47,6 +47,7 @@ void
 x65_SetDefault(SMachineOptions* options) {
     options->undocumentedInstructions = 0;
 	options->cpu = MOPT_CPU_6502;
+	options->bits16 = false;
 }
 
 void
@@ -86,6 +87,7 @@ x65_ParseOption(const char* s) {
 			if (n >= 0 && n <= 3) {
 				ECpu6502 cpu = 1 << n;
 				opt_Current->machineOptions->cpu = cpu;
+				opt_Current->machineOptions->bits16 = cpu == MOPT_CPU_65C816S;
 			} else {
 				err_Error(MERROR_CPU_RANGE);
 				return false;

@@ -24,7 +24,10 @@
 #include "errors.h"
 #include "section.h"
 
+#include "x65_errors.h"
+#include "x65_options.h"
 #include "x65_parse.h"
+#include "x65_tokens.h"
 
 SExpression*
 x65_ParseExpressionSU8(void) {
@@ -49,8 +52,19 @@ x65_ParseFunction(void) {
 
 bool
 x65_ParseInstruction(void) {
-    if (x65_ParseIntegerInstruction())
+    if (x65_ParseIntegerInstruction()) {
         return true;
+	} else if (x65_Parse65816Instruction()) {
+        return true;
+	} else if (lex_Context->token.id == T_65816_BITS) {
+		if (opt_Current->machineOptions->cpu & MOPT_CPU_65C816S) {
+			opt_Current->machineOptions->bits16 = !opt_Current->machineOptions->bits16;
+			return true;
+		} else {
+			err_Error(MERROR_16BIT_REQUIRED);
+		}
+	}
 
     return false;
 }
+

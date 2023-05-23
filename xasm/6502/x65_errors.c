@@ -23,7 +23,8 @@ static char* g_errors[] = {
 	"Undocumented instruction set must be 0, 1, 2 or 3",
 	"CPU type must be 0, 1, 2 or 3",
 	"Selected CPU does not support undocumented instructions",
-	"Selected CPU does not support instruction"
+	"Selected CPU does not support instruction",
+	"65816 required"
 };
 
 const char*

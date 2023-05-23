@@ -63,4 +63,7 @@ x65_ParseFunction(void);
 extern bool
 x65_ParseInstruction(void);
 
+extern bool
+x65_Parse65816Instruction(void);
+
 #endif
