@@ -459,7 +459,7 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xFA, CPU_65C02, MODE_NONE, handleImplied },			/* PLX */
     { 0x7A, CPU_65C02, MODE_NONE, handleImplied },			/* PLY */
     { 0x00, CPU_65C02, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleSTZ },	/* STZ */
-    { 0x50, CPU_65C02, MODE_ZP | MODE_ABS, handleStandardAll },	/* TRB */
+    { 0x10, CPU_65C02, MODE_ZP | MODE_ABS, handleStandardAll },	/* TRB */
     { 0x00, CPU_65C02, MODE_ZP | MODE_ABS, handleStandardAll },	/* TSB */
 
 	/* WDC */

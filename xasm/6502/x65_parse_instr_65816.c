@@ -106,10 +106,8 @@ static SParser g_instructionHandlers[T_65816_XCE - T_65816_BRL + 1] = {
 	{ 0x8B, MODE_NONE, handle_Implicit },	/* PHB */
 	{ 0x0B, MODE_NONE, handle_Implicit },	/* PHD */
 	{ 0x4B, MODE_NONE, handle_Implicit },	/* PHK */
-	{ 0x08, MODE_NONE, handle_Implicit },	/* PHP */
 	{ 0xAB, MODE_NONE, handle_Implicit },	/* PLB */
 	{ 0x2B, MODE_NONE, handle_Implicit },	/* PLD */
-	{ 0x28, MODE_NONE, handle_Implicit },	/* PLP */
 	{ 0xC2, MODE_IMM, handle_Standard },	/* REP */
 	{ 0x6B, MODE_NONE, handle_Implicit },	/* RTL */
 	{ 0xE2, MODE_IMM, handle_Standard },	/* SEP */
@@ -117,8 +115,6 @@ static SParser g_instructionHandlers[T_65816_XCE - T_65816_BRL + 1] = {
 	{ 0x1B, MODE_NONE, handle_Implicit },	/* TCS */
 	{ 0x7B, MODE_NONE, handle_Implicit },	/* TDC */
 	{ 0x3B, MODE_NONE, handle_Implicit },	/* TSC */
-	{ 0xBA, MODE_NONE, handle_Implicit },	/* TSX */
-	{ 0x9A, MODE_NONE, handle_Implicit },	/* TXS */
 	{ 0x9B, MODE_NONE, handle_Implicit },	/* TXY */
 	{ 0xBB, MODE_NONE, handle_Implicit },	/* TYX */
 	{ 0x42, MODE_NONE, handle_Implicit },	/* WDM */
@@ -129,8 +125,8 @@ static SParser g_instructionHandlers[T_65816_XCE - T_65816_BRL + 1] = {
 
 bool
 x65_Parse65816Instruction(void) {
-	if (opt_Current->machineOptions->cpu & MOPT_CPU_65C816S) {
-		if (T_65816_BRL <= lex_Context->token.id && lex_Context->token.id <= T_65816_XCE) {
+	if (T_65816_BRL <= lex_Context->token.id && lex_Context->token.id <= T_65816_XCE) {
+		if (opt_Current->machineOptions->cpu & MOPT_CPU_65C816S) {
 			SAddressingMode addrMode;
 			ETargetToken token = (ETargetToken) lex_Context->token.id;
 			SParser* handler = &g_instructionHandlers[token - T_65816_BRL];
@@ -141,9 +137,9 @@ x65_Parse65816Instruction(void) {
 				return handler->handler(handler->baseOpcode, &addrMode);
 			else
 				err_Error(MERROR_ILLEGAL_ADDRMODE);
+		} else {
+			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
 		}
-	} else {
-		err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
 	}
 	return false;
 }
