@@ -18,12 +18,26 @@
 
 #include <stdbool.h>
 
+#include "expression.h"
 #include "lexer.h"
 #include "parse.h"
 #include "parse_expression.h"
 
 #include "x65_parse.h"
 #include "x65_tokens.h"
+
+static SExpression* 
+parseImmExpression() {
+	if (lex_Context->token.id == T_OP_LESS_THAN) {
+		parse_GetToken();
+		return expr_And(parse_Expression(2), expr_Const(0xFF));
+	} else if (lex_Context->token.id == T_OP_GREATER_THAN) {
+		parse_GetToken();
+		return expr_Asr(parse_Expression(2), expr_Const(8));
+	}
+
+	return x65_ParseExpressionSU8();
+}
 
 bool
 x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
@@ -34,24 +48,32 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
     addrMode->expr2 = NULL;
     addrMode->expr3 = NULL;
 
-    if ((allowedModes & MODE_A) && lex_Context->token.id == T_6502_REG_A) {
-        parse_GetToken();
-        addrMode->mode = MODE_A;
-        addrMode->expr = NULL;
-        return true;
-    } else if ((allowedModes & MODE_IMM) && lex_Context->token.id == '#') {
-        parse_GetToken();
-		if (lex_Context->token.id == T_OP_LESS_THAN) {
-			parse_GetToken();
-			addrMode->expr = expr_And(parse_Expression(2), expr_Const(0xFF));
-		} else if (lex_Context->token.id == T_OP_GREATER_THAN) {
-			parse_GetToken();
-			addrMode->expr = expr_Asr(parse_Expression(2), expr_Const(8));
-		} else {
-	        addrMode->expr = x65_ParseExpressionSU8();
+	if ((allowedModes & MODE_A) && lex_Context->token.id == T_6502_REG_A) {
+		parse_GetToken();
+		addrMode->mode = MODE_A;
+		addrMode->expr = NULL;
+		return true;
+	} else if ((allowedModes & (MODE_IMM | MODE_IMM_IMM)) && lex_Context->token.id == '#') {
+		parse_GetToken();
+		addrMode->expr = parseImmExpression();
+		if (addrMode->expr != NULL) {
+			addrMode->mode = MODE_IMM;
+			if ((allowedModes & MODE_IMM_IMM) && lex_Context->token.id == ',') {
+				parse_GetToken();
+				if (lex_Context->token.id == '#') {
+					parse_GetToken();
+					addrMode->expr2 = parseImmExpression();
+					if (addrMode->expr2 != NULL) {
+						addrMode->mode = MODE_IMM_IMM;
+						return true;
+					}
+				}
+			} else {
+				return true;
+			}
 		}
-        addrMode->mode = MODE_IMM;
-        return true;
+
+        return false;
     }
 
     if ((allowedModes & (MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ABS_X)) && lex_Context->token.id == '(') {

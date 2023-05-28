@@ -175,8 +175,6 @@ static SLexConstantsWord g_tokens[] = {
 	{ "X",	T_6502_REG_X },
 	{ "Y",	T_6502_REG_Y },
 
-	{ "BITS", T_65816_BITS },
-
 	{ NULL, 0 }
 };
 
@@ -247,10 +245,47 @@ static SLexConstantsWord g_C02Instructions[] = {
 	{ NULL, 0 }
 };
 
+static SLexConstantsWord g_65816Instructions[] = {
+	{ "BRL",	T_65816_BRL },
+	{ "COP",	T_65816_COP },
+	{ "JML",	T_65816_JML },
+	{ "JSL",	T_65816_JSL },
+	{ "MVN",	T_65816_MVN },
+	{ "MVP",	T_65816_MVP },
+	{ "PEA",	T_65816_PEA },
+	{ "PEI",	T_65816_PEI },
+	{ "PER",	T_65816_PER },
+	{ "PHB",	T_65816_PHB },
+	{ "PHD",	T_65816_PHD },
+	{ "PHK",	T_65816_PHK },
+	{ "PHP",	T_65816_PHP },
+	{ "PLB",	T_65816_PLB },
+	{ "PLD",	T_65816_PLD },
+	{ "PLP",	T_65816_PLP },
+	{ "REP",	T_65816_REP },
+	{ "RTL",	T_65816_RTL },
+	{ "SEP",	T_65816_SEP },
+	{ "TCD",	T_65816_TCD },
+	{ "TCS",	T_65816_TCS },
+	{ "TDC",	T_65816_TDC },
+	{ "TSC",	T_65816_TSC },
+	{ "TSX",	T_65816_TSX },
+	{ "TXS",	T_65816_TXS },
+	{ "TXY",	T_65816_TXY },
+	{ "TYX",	T_65816_TYX },
+	{ "WDM",	T_65816_WDM },
+	{ "XBA",	T_65816_XBA },
+	{ "XCE",	T_65816_XCE },
+
+	{ "BITS", T_65816_BITS },
+};
+
+
 void
 x65_DefineTokens(void) {
 	lex_ConstantsDefineWords(g_tokens);
 	lex_ConstantsDefineWords(g_C02Instructions);
+	lex_ConstantsDefineWords(g_65816Instructions);
 }
 
 SLexConstantsWord*

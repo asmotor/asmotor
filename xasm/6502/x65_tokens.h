@@ -166,6 +166,38 @@ typedef enum {
 	T_65C02_SMB6,
 	T_65C02_SMB7,
 
+	/* 65816 */
+	T_65816_BRL,
+	T_65816_COP,
+	T_65816_JML,
+	T_65816_JSL,
+	T_65816_MVN,
+	T_65816_MVP,
+	T_65816_PEA,
+	T_65816_PEI,
+	T_65816_PER,
+	T_65816_PHB,
+	T_65816_PHD,
+	T_65816_PHK,
+	T_65816_PHP,
+	T_65816_PLB,
+	T_65816_PLD,
+	T_65816_PLP,
+	T_65816_REP,
+	T_65816_RTL,
+	T_65816_SEP,
+	T_65816_TCD,
+	T_65816_TCS,
+	T_65816_TDC,
+	T_65816_TSC,
+	T_65816_TSX,
+	T_65816_TXS,
+	T_65816_TXY,
+	T_65816_TYX,
+	T_65816_WDM,
+	T_65816_XBA,
+	T_65816_XCE,
+
     /* Registers */
     T_6502_REG_A,
     T_6502_REG_X,
@@ -173,7 +205,7 @@ typedef enum {
 
 	/* Directives */
 	T_65816_BITS,
-	
+
 } ETargetToken;
 
 extern SLexConstantsWord*
