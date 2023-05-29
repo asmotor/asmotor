@@ -129,7 +129,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 		}
 
         addrMode->expr = parse_Expression(2);
-        if (addrMode->expr != NULL) {
+        if (addrMode->expr != NULL && addrMode->expr->type != EXPR_PARENS) {
 			bool is_zp = false;
 
 			if (force_zp)
