@@ -18,17 +18,13 @@ repttest2.asm:20 -> repttest2.asm:9: W0003 Macro Line 4 3
 repttest2.asm:21: W0003 Line 21
 repttest2.asm:22 -> repttest2.asm:23: W0003 Line 23
 repttest2.asm:22 -> repttest2.asm:24: W0003 Outer
-repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:25: W0003 Line 26
-repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:26: W0003 Inner
 repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:26: W0003 Line 26
 repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:27: W0003 Inner
-repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:28: W0003 Line 29
 repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:29: W0003 Line 29
-repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:35: W0003 Line 36
 repttest2.asm:22 -> repttest2.asm:25 -> repttest2.asm:36: W0003 Line 36
-repttest2.asm:22 -> repttest2.asm:37: W0003 Line 38
-repttest2.asm:40: W0003 Line 41
-repttest2.asm:42: W0003 Line 43
-repttest2.asm:50: W0003 Line 51
-repttest2.asm:55: W0003 Line 57
-repttest2.asm:62: W0003 Line 64
+repttest2.asm:22 -> repttest2.asm:38: W0003 Line 38
+repttest2.asm:41: W0003 Line 41
+repttest2.asm:43: W0003 Line 43
+repttest2.asm:51: W0003 Line 51
+repttest2.asm:57: W0003 Line 57
+repttest2.asm:64: W0003 Line 64

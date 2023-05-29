@@ -231,7 +231,7 @@ lexctx_EndReptBlock(void) {
 	} else if (lex_Context->block.repeat.remaining-- > 0) {
 		continueFrom(lex_Context->block.repeat.bookmark);
 		lexbuf_RenewUniqueValue(&lex_Context->buffer);
-		return true;
+		return false;
 	} else {
 		SLexerContext* context = lex_Context;
 		list_Remove(lex_Context, lex_Context);

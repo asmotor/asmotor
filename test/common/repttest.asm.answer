@@ -1,72 +1,74 @@
-MACRO: (_2), arg1 3987
-MACROREPT * 2 (_3), arg1 3987, narg 2
-MACROREPT * 2 (_4), arg1 1234, narg 1
-MACROEND: (_2), arg1 
-MACRO: (_5), arg1 3987
-MACROREPT * 2 (_6), arg1 3987, narg 2
-MACROREPT * 2 (_7), arg1 1234, narg 1
-MACROEND: (_5), arg1 
-MACRO: (_8), arg1 3987
-MACROREPT * 2 (_9), arg1 3987, narg 2
-MACROREPT * 2 (_10), arg1 1234, narg 1
-MACROEND: (_8), arg1 
-1st REPT * 3 (start _11)
-	2nd REPT * 4 (_12)
+MACRO: (_3), arg1 3987
+MACROREPT * 2 (_4), arg1 3987, narg 2
+MACROREPT * 2 (_5), arg1 1234, narg 1
+MACROEND: (_3), arg1 
+MACRO: (_6), arg1 3987
+MACROREPT * 2 (_7), arg1 3987, narg 2
+MACROREPT * 2 (_8), arg1 1234, narg 1
+MACROEND: (_6), arg1 
+MACRO: (_9), arg1 3987
+MACROREPT * 2 (_10), arg1 3987, narg 2
+MACROREPT * 2 (_11), arg1 1234, narg 1
+MACROEND: (_9), arg1 
+1st REPT * 3 (start _12)
 	2nd REPT * 4 (_13)
 	2nd REPT * 4 (_14)
 	2nd REPT * 4 (_15)
-1st REPT * 3 (end _11)
-1st REPT * 3 (start _16)
-	2nd REPT * 4 (_17)
+	2nd REPT * 4 (_16)
+1st REPT * 3 (end _12)
+1st REPT * 3 (start _17)
 	2nd REPT * 4 (_18)
 	2nd REPT * 4 (_19)
 	2nd REPT * 4 (_20)
-1st REPT * 3 (end _16)
-1st REPT * 3 (start _21)
-	2nd REPT * 4 (_22)
+	2nd REPT * 4 (_21)
+1st REPT * 3 (end _17)
+1st REPT * 3 (start _22)
 	2nd REPT * 4 (_23)
 	2nd REPT * 4 (_24)
 	2nd REPT * 4 (_25)
-1st REPT * 3 (end _21)
-MACRO: (_27), arg1 3987
-MACROREPT * 2 (_28), arg1 3987, narg 2
-MACROREPT * 2 (_29), arg1 1234, narg 1
-MACROEND: (_27), arg1 
-MACRO: (_30), arg1 3987
-MACROREPT * 2 (_31), arg1 3987, narg 2
-MACROREPT * 2 (_32), arg1 1234, narg 1
-MACROEND: (_30), arg1 
-MACRO: (_33), arg1 3987
-MACROREPT * 2 (_34), arg1 3987, narg 2
-MACROREPT * 2 (_35), arg1 1234, narg 1
-MACROEND: (_33), arg1 
-1st REPT * 3 (start _36)
-	2nd REPT * 4 (_37)
+	2nd REPT * 4 (_26)
+1st REPT * 3 (end _22)
+MACRO: (_28), arg1 3987
+MACROREPT * 2 (_29), arg1 3987, narg 2
+MACROREPT * 2 (_30), arg1 1234, narg 1
+MACROEND: (_28), arg1 
+MACRO: (_31), arg1 3987
+MACROREPT * 2 (_32), arg1 3987, narg 2
+MACROREPT * 2 (_33), arg1 1234, narg 1
+MACROEND: (_31), arg1 
+MACRO: (_34), arg1 3987
+MACROREPT * 2 (_35), arg1 3987, narg 2
+MACROREPT * 2 (_36), arg1 1234, narg 1
+MACROEND: (_34), arg1 
+1st REPT * 3 (start _37)
 	2nd REPT * 4 (_38)
 	2nd REPT * 4 (_39)
 	2nd REPT * 4 (_40)
-1st REPT * 3 (end _36)
-1st REPT * 3 (start _41)
-	2nd REPT * 4 (_42)
+	2nd REPT * 4 (_41)
+1st REPT * 3 (end _37)
+1st REPT * 3 (start _42)
 	2nd REPT * 4 (_43)
 	2nd REPT * 4 (_44)
 	2nd REPT * 4 (_45)
-1st REPT * 3 (end _41)
-1st REPT * 3 (start _46)
-	2nd REPT * 4 (_47)
+	2nd REPT * 4 (_46)
+1st REPT * 3 (end _42)
+1st REPT * 3 (start _47)
 	2nd REPT * 4 (_48)
 	2nd REPT * 4 (_49)
 	2nd REPT * 4 (_50)
-1st REPT * 3 (end _46)
-MACRO: (_51), arg1 3987
-MACROREPT * 2 (_52), arg1 3987, narg 2
-MACROREPT * 2 (_53), arg1 1234, narg 1
-MACROEND: (_51), arg1 
-MACRO: (_54), arg1 3987
-MACROREPT * 2 (_55), arg1 3987, narg 2
-MACROREPT * 2 (_56), arg1 1234, narg 1
-MACROEND: (_54), arg1 
-MACRO: (_57), arg1 3987
-MACROREPT * 2 (_58), arg1 3987, narg 2
-MACROREPT * 2 (_59), arg1 1234, narg 1
-MACROEND: (_57), arg1 
+	2nd REPT * 4 (_51)
+1st REPT * 3 (end _47)
+MACRO: (_52), arg1 3987
+MACROREPT * 2 (_53), arg1 3987, narg 2
+MACROREPT * 2 (_54), arg1 1234, narg 1
+MACROEND: (_52), arg1 
+MACRO: (_55), arg1 3987
+MACROREPT * 2 (_56), arg1 3987, narg 2
+MACROREPT * 2 (_57), arg1 1234, narg 1
+MACROEND: (_55), arg1 
+MACRO: (_58), arg1 3987
+MACROREPT * 2 (_59), arg1 3987, narg 2
+MACROREPT * 2 (_60), arg1 1234, narg 1
+MACROEND: (_58), arg1 
+repttest.asm:30: W0003 Line 30
+repttest.asm:4: W0003 Line 4

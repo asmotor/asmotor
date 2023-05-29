@@ -107,7 +107,10 @@ handleEndr() {
 	} else {
 		err_Warn(WARN_REXIT_OUTSIDE_REPT);
 	}
-	parse_GetToken();
+
+	if (lex_Context->token.id == T_DIRECTIVE_ENDR)
+		parse_GetToken();
+
 	return true;
 }
 
@@ -121,6 +124,7 @@ handleRexit() {
 		err_Warn(WARN_REXIT_OUTSIDE_REPT);
 		parse_GetToken();
 	}
+
 	return true;
 }
 

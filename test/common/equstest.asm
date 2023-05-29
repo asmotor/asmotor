@@ -4,13 +4,9 @@
 
 Print	EQUS	"\tPRINTT \"First\\n\"\n\tPRINTT \"Second\\n\"\n"
 
-	WARN	"Line 7\n"
+	WARN	"Line 7"
 
-	REPT	3
 	Print
-	REPT	2
-	PRINTT	"\t2nd REPT\n"
-	ENDR
-	ENDR
 
+	WARN	"Line 11"
 	REPT	3

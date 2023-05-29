@@ -1,3 +1,7 @@
+	REPT	2
+	REXIT
+	ENDR
+	WARN	"Line 4"
 
 Test:	MACRO
 	PRINTT	"MACRO: (\@), arg1 \1\n"
@@ -23,6 +27,9 @@ Test:	MACRO
 	
 	ENDR
 
+	WARN	"Line 30"
+
 	Test	3987,1234
 	Test	3987,1234
 	Test	3987,1234
+
