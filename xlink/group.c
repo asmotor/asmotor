@@ -1051,12 +1051,15 @@ group_SetupCoCo(void) {
 void
 group_SetupFoenixF256JrSmall(void) {
     MemoryGroup* group;
-    MemoryPool* main_ram = pool_Create(0, 0x200, 0, 0x10000 - 0x200);
+    MemoryPool* main_ram = pool_Create(0, 0x200, 0, 0xC000 - 0x200);
+    MemoryPool* high_ram = pool_Create(0xC000 - 0x200, 0xC000, 0, 0x10000 - 0xC000);
+    MemoryPool* zp = pool_Create(-1, 0x0000, 0, 0x100);
 
     //	Create CODE group
 
-    group = group_Create("CODE", 1);
+    group = group_Create("CODE", 2);
     group->pools[0] = main_ram;
+    group->pools[1] = high_ram;
 
     //	Create DATA group
 
@@ -1067,6 +1070,11 @@ group_SetupFoenixF256JrSmall(void) {
 
     group = group_Create("BSS", 1);
     group->pools[0] = main_ram;
+
+    //	Create ZP group
+
+    group = group_Create("ZP", 1);
+    group->pools[0] = zp;
 
     //	initialise memory chunks
 
