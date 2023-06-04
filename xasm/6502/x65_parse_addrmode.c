@@ -141,11 +141,11 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 				parse_GetToken();
 				if (lex_Context->token.id == T_6502_REG_X) {
 					parse_GetToken();
-					addrMode->mode = is_zp || force_zp ? MODE_ZP_X : MODE_ABS_X;
+					addrMode->mode = (is_zp || force_zp) && (allowedModes & MODE_ZP_X) ? MODE_ZP_X : MODE_ABS_X;
 					return true;
 				} else if (lex_Context->token.id == T_6502_REG_Y) {
 					parse_GetToken();
-					addrMode->mode = is_zp || force_zp ? MODE_ZP_Y : MODE_ABS_Y;
+					addrMode->mode = (is_zp || force_zp) && (allowedModes & MODE_ZP_Y) ? MODE_ZP_Y : MODE_ABS_Y;
 					return true;
 				}
 				addrMode->expr2 = parse_Expression(2);

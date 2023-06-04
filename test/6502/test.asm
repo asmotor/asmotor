@@ -1,5 +1,37 @@
+	RSSET	8
+t0	RB	1
+t1	RB	1
+t2	RB	1
+t3	RB	1
+t4	RB	1
+t5	RB	1
+t6	RB	1
+t7	RB	1
+
+	opt	mc2
+
 	SECTION	"Test",CODE[$0]
 Start:
+		lda	$02,y
+
+		lda	(t5)
+		cmp	#4+1; SPRITES_PER_BUCKET*2+1;
+		beq	.skip
+
+		tay
+		pla
+		sta	(t5),y
+		iny
+		pla
+		sta	(t5),y
+		iny
+		tya
+		lda	#3
+		sta	(t5)
+
+.skip
+
+
 	adc	#$44
 	adc	$44
 	adc	$44,x
