@@ -1053,7 +1053,7 @@ group_SetupFoenixF256JrSmall(void) {
     MemoryGroup* group;
     MemoryPool* main_ram = pool_Create(0, 0x200, 0, 0xC000 - 0x200);
     MemoryPool* high_ram = pool_Create(0xC000 - 0x200, 0xC000, 0, 0x10000 - 0xC000);
-    MemoryPool* zp = pool_Create(-1, 0x0000, 0, 0x100);
+    MemoryPool* zp = pool_Create(-1, 0x0010, 0, 0x100 - 0x10);
 
     //	Create CODE group
 

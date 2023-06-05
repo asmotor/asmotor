@@ -31,4 +31,5 @@ x65_DefineSymbols(void) {
     createGroup("CODE", GROUP_TEXT);
     createGroup("DATA", GROUP_TEXT);
     createGroup("BSS", GROUP_BSS);
+    createGroup("ZP", GROUP_BSS);
 }

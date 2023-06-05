@@ -110,7 +110,7 @@ internalWrite(string* filename, const char* opentype, void (*writeSection)(FILE*
         for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
             if (section->data) {
                 writeSection(fileHandle, section, lastWrittenPosition);
-                lastWrittenPosition += section->usedSpace;
+                lastWrittenPosition = section->imagePosition + section->usedSpace;
             }
         }
 

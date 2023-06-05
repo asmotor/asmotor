@@ -147,6 +147,9 @@ growCurrentSection(uint32_t count) {
 
 static bool
 checkAvailableSpace(uint32_t count) {
+	if (count == 0)
+		return true;
+
 	assert((uint32_t) xasm_Configuration->minimumWordSize <= count);
 
 	if (sect_Current != NULL) {

@@ -361,7 +361,7 @@ sym_CreateLabel(string* name) {
 			err_Error(ERROR_LABEL_SECTION);
 		}
 	} else {
-		err_Error(ERROR_MODIFY_SYMBOL, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+		err_Error(ERROR_MODIFY_SYMBOL, symbol->fileInfo == NULL ? "[UNKNOWN]" : str_String(symbol->fileInfo->fileName), symbol->lineNumber);
 	}
 
 	return NULL;

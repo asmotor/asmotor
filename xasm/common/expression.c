@@ -291,6 +291,9 @@ expr_Pc() {
     SSymbol* symbol = sym_CreateLabel(nameString);
     str_Free(nameString);
 
+	if (symbol == NULL)
+		return NULL;
+
     SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 
     if (symbol->flags & SYMF_CONSTANT) {

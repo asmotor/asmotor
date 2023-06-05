@@ -259,8 +259,8 @@ readSection(FILE* fileHandle, SSection* section, Groups* groups, int version, ui
 
     if (version >= 4)
         section->root = fgetc(fileHandle) != 0;
-	else
-		section->root = false;
+    else
+        section->root = false;
 
     section->totalSymbols = readSymbols(fileHandle, &section->symbols);
 
@@ -432,8 +432,8 @@ obj_Read(char* fileName) {
         size_t size = fsize(fileHandle);
 
         while ((size_t) ftell(fileHandle) < size
-		     && readChunk(fileHandle))
-		{}
+             && readChunk(fileHandle))
+        {}
 
         fclose(fileHandle);
     } else {
