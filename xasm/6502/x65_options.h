@@ -30,7 +30,9 @@ typedef enum {
 typedef struct MachineOptions {
     int undocumentedInstructions;
 	ECpu6502 cpu;
-	bool bits16;
+	bool m16;	/* 16 bit accumulator immediate */
+	bool x16;	/* 16 bit index immediate */
+	uint32_t allowedModes;
 } SMachineOptions;
 
 extern SMachineOptions*

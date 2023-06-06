@@ -29,6 +29,45 @@
 #include "x65_parse.h"
 #include "x65_tokens.h"
 
+static bool
+parseBitsWidth(SExpression* expr) {
+	if (!expr_IsConstant(expr)) {
+		err_Error(ERROR_EXPR_CONST);
+		return false;
+	}
+
+	switch (expr->value.integer) {
+		case 8:
+			return false;
+		case 16:
+			return true;
+		default:
+			err_Error(MERROR_BIT_WIDTH);
+			return false;
+	}
+}
+
+static bool
+parseBITS(void) {
+	SExpression* m = NULL;
+	SExpression* x = NULL;
+	
+	m = parse_Expression(2);
+	if (lex_Context->token.id == ',') {
+		parse_GetToken();
+		x = parse_Expression(2);
+	}
+
+	if (m != NULL) {
+		opt_Current->machineOptions->m16 = parseBitsWidth(m);
+	}
+	if (x != NULL) {
+		opt_Current->machineOptions->x16 = parseBitsWidth(x);
+	}
+
+	return true;
+}
+
 SExpression*
 x65_ParseExpressionSU8(void) {
     SExpression* expression = parse_Expression(1);
@@ -58,8 +97,7 @@ x65_ParseInstruction(void) {
         return true;
 	} else if (lex_Context->token.id == T_65816_BITS) {
 		if (opt_Current->machineOptions->cpu & MOPT_CPU_65C816S) {
-			opt_Current->machineOptions->bits16 = !opt_Current->machineOptions->bits16;
-			return true;
+			return parseBITS();
 		} else {
 			err_Error(MERROR_16BIT_REQUIRED);
 		}

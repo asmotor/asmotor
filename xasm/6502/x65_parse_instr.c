@@ -51,40 +51,44 @@ static bool
 handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IND_ZP_X:
-            sect_OutputConst8(baseOpcode | (uint8_t) (0 << 2));
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x00);
+            outputZPExpression(addrMode->expr);
+            return true;
+        case MODE_816_DISP_S:
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x02);
             outputZPExpression(addrMode->expr);
             return true;
         case MODE_ZP:
-            sect_OutputConst8(baseOpcode | (uint8_t) (1 << 2));
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x04);
             outputZPExpression(addrMode->expr);
             return true;
         case MODE_IMM:
-            sect_OutputConst8(baseOpcode | (uint8_t) (2 << 2));
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x08);
             outputZPExpression(addrMode->expr);
             return true;
         case MODE_ABS:
-            sect_OutputConst8(baseOpcode | (uint8_t) (3 << 2));
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x0C);
             sect_OutputExpr16(addrMode->expr);
             return true;
         case MODE_IND_ZP_Y:
-            sect_OutputConst8(baseOpcode | (uint8_t) (4 << 2));
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x10);
             outputZPExpression(addrMode->expr);
             return true;
         case MODE_IND_ZP:
-            sect_OutputConst8((baseOpcode + 1) | (uint8_t) (4 << 2));
+            sect_OutputConst8((baseOpcode + 1) | (uint8_t) 0x10);
             outputZPExpression(addrMode->expr);
             return true;
         case MODE_ZP_X:
         case MODE_ZP_Y:
-            sect_OutputConst8(baseOpcode | (uint8_t) (5 << 2));
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x14);
             outputZPExpression(addrMode->expr);
             return true;
         case MODE_ABS_Y:
-            sect_OutputConst8(baseOpcode | (uint8_t) (6 << 2));
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x18);
             sect_OutputExpr16(addrMode->expr);
             return true;
         case MODE_ABS_X:
-            sect_OutputConst8(baseOpcode | (uint8_t) (7 << 2));
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x1C);
             sect_OutputExpr16(addrMode->expr);
             return true;
         default:
@@ -368,7 +372,7 @@ handleBITx_C02(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 
 static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
-    { 0x61, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* ADC */
+    { 0x61, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S, handleStandardAll },	/* ADC */
     { 0x21, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* AND */
     { 0x02, CPU_6502, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ASL */
     { 0x20, CPU_6502, MODE_ZP | MODE_ABS | MODE_IMM | MODE_ZP_X | MODE_ABS_X, handleBIT },	/* BIT */
@@ -508,6 +512,7 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xF7, CPU_65C02S, MODE_ZP, handleBITx_C02 },		/* SMB7 */
 };
 
+
 bool
 x65_ParseIntegerInstruction(void) {
     if (T_6502_ADC <= lex_Context->token.id && lex_Context->token.id <= T_65C02_SMB7) {
@@ -516,9 +521,7 @@ x65_ParseIntegerInstruction(void) {
         SParser* handler = &g_instructionHandlers[token - T_6502_ADC];
 
 		if (handler->cpu & opt_Current->machineOptions->cpu) {
-			uint32_t allowedModes = handler->allowedModes;
-			if (opt_Current->machineOptions->cpu == MOPT_CPU_6502)
-				allowedModes &= ~MODE_65C02;
+			uint32_t allowedModes = handler->allowedModes & opt_Current->machineOptions->allowedModes;
 
 			parse_GetToken();
 			if (x65_ParseAddressingMode(&addrMode, allowedModes) && (addrMode.mode & allowedModes))

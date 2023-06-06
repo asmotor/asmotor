@@ -53,7 +53,9 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 		addrMode->mode = MODE_A;
 		addrMode->expr = NULL;
 		return true;
-	} else if ((allowedModes & (MODE_IMM | MODE_IMM_IMM)) && lex_Context->token.id == '#') {
+	}
+	
+	if ((allowedModes & (MODE_IMM | MODE_IMM_IMM)) && lex_Context->token.id == '#') {
 		parse_GetToken();
 		addrMode->expr = parseImmExpression();
 		if (addrMode->expr != NULL) {
@@ -112,7 +114,8 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 
             addrMode->expr = parse_Expression(2);
             if (addrMode->expr != NULL) {
-                if (parse_ExpectChar(')')) {
+                if (lex_Context->token.id == ')') {
+					parse_GetToken();
                     addrMode->mode = allowedModes & (MODE_IND_ZP | MODE_IND_ABS);
                     return true;
                 }
@@ -121,7 +124,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         lex_Goto(&bm);
     }
 
-    if (allowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_ZP_ABS | MODE_BIT_ZP_ABS | MODE_BIT_ZP)) {
+    if (allowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_ZP_ABS | MODE_BIT_ZP_ABS | MODE_BIT_ZP | MODE_816_DISP_S)) {
 		bool force_zp = false;
 		if (lex_Context->token.id == T_OP_LESS_THAN) {
 			force_zp = true;
@@ -146,6 +149,10 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 				} else if (lex_Context->token.id == T_6502_REG_Y) {
 					parse_GetToken();
 					addrMode->mode = (is_zp || force_zp) && (allowedModes & MODE_ZP_Y) ? MODE_ZP_Y : MODE_ABS_Y;
+					return true;
+				} else if (lex_Context->token.id == T_65816_REG_S) {
+					parse_GetToken();
+					addrMode->mode = MODE_816_DISP_S;
 					return true;
 				}
 				addrMode->expr2 = parse_Expression(2);

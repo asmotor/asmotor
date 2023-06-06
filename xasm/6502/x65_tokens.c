@@ -273,7 +273,11 @@ static SLexConstantsWord g_65816Instructions[] = {
 	{ "XBA",	T_65816_XBA },
 	{ "XCE",	T_65816_XCE },
 
+	{ "S",		T_65816_REG_S },
+
 	{ "BITS", T_65816_BITS },
+
+	{ NULL, 0 }
 };
 
 

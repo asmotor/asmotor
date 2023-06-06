@@ -29,9 +29,18 @@
 
 #include "x65_errors.h"
 #include "x65_options.h"
+#include "x65_parse.h"
 #include "x65_tokens.h"
 
 static int g_previousUndocumented = 0;
+
+static uint32_t g_allowedModes[] = {
+	MODE_6502,
+	MODE_65C02,
+	MODE_65C02S,
+	MODE_65816,
+};
+
 
 void
 x65_CopyOptions(struct MachineOptions* dest, struct MachineOptions* pSrc) {
@@ -47,7 +56,9 @@ void
 x65_SetDefault(SMachineOptions* options) {
     options->undocumentedInstructions = 0;
 	options->cpu = MOPT_CPU_6502;
-	options->bits16 = false;
+	options->m16 = false;
+	options->x16 = false;
+	options->allowedModes = MODE_6502;
 }
 
 void
@@ -87,7 +98,9 @@ x65_ParseOption(const char* s) {
 			if (n >= 0 && n <= 3) {
 				ECpu6502 cpu = 1 << n;
 				opt_Current->machineOptions->cpu = cpu;
-				opt_Current->machineOptions->bits16 = cpu == MOPT_CPU_65C816S;
+				opt_Current->machineOptions->m16 = cpu == MOPT_CPU_65C816S;
+				opt_Current->machineOptions->x16 = cpu == MOPT_CPU_65C816S;
+				opt_Current->machineOptions->allowedModes = g_allowedModes[n];
 			} else {
 				err_Error(MERROR_CPU_RANGE);
 				return false;
@@ -115,5 +128,6 @@ x65_PrintOptions(void) {
 		"              0 - 6502\n"
 		"              1 - 65C02\n"
 		"              2 - 65C02S\n"
+		"              3 - 65816\n"
 	);
 }

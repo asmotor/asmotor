@@ -24,7 +24,8 @@ static char* g_errors[] = {
 	"CPU type must be 0, 1, 2 or 3",
 	"Selected CPU does not support undocumented instructions",
 	"Selected CPU does not support instruction",
-	"65816 required"
+	"65816 required",
+	"Illegal bit width (must be 8 or 16)"
 };
 
 const char*
