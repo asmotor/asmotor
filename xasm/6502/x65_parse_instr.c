@@ -43,45 +43,86 @@ typedef struct Parser {
 #define CPU_65C816S (MOPT_CPU_65C816S)
 
 static void
-outputZPExpression(SExpression* expr) {
-	sect_OutputExpr8(expr_CheckRange(expr, 0x00, 0xFF));
+outputSU16Expression(SExpression* expr) {
+    expr = expr_CheckRange(expr, -32768, 65535);
+    if (expr == NULL)
+        err_Error(ERROR_OPERAND_RANGE);
+    expr = expr_And(expr, expr_Const(0xFFFF));
+
+	sect_OutputExpr16(expr);
 }
+
+static void
+outputSU8Expression(SExpression* expr) {
+    expr = expr_CheckRange(expr, -128, 255);
+    if (expr == NULL)
+        err_Error(ERROR_OPERAND_RANGE);
+    expr = expr_And(expr, expr_Const(0xFF));
+
+	sect_OutputExpr8(expr);
+}
+
+static void
+outputU8Expression(SExpression* expr) {
+    expr = expr_CheckRange(expr, 0, 255);
+    if (expr == NULL)
+		err_Error(ERROR_OPERAND_RANGE);
+
+	sect_OutputExpr8(expr);
+}
+
+
+static void
+outputLongInstruction(uint8_t opcode, SExpression* expr) {
+	sect_OutputExpr32(expr_Or(expr_Asl(expr, expr_Const(8)), expr_Const(opcode)));
+}
+
 
 static bool
 handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IND_ZP_X:
             sect_OutputConst8(baseOpcode | (uint8_t) 0x00);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_816_DISP_S:
             sect_OutputConst8(baseOpcode | (uint8_t) 0x02);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ZP:
             sect_OutputConst8(baseOpcode | (uint8_t) 0x04);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
+            return true;
+        case MODE_816_LONG_IND_ZP:
+            sect_OutputConst8(baseOpcode | (uint8_t) 0x06);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_IMM:
             sect_OutputConst8(baseOpcode | (uint8_t) 0x08);
-            outputZPExpression(addrMode->expr);
+			if (opt_Current->machineOptions->m16)
+				outputSU16Expression(addrMode->expr);
+			else
+				outputSU8Expression(addrMode->expr);
             return true;
         case MODE_ABS:
             sect_OutputConst8(baseOpcode | (uint8_t) 0x0C);
             sect_OutputExpr16(addrMode->expr);
             return true;
+        case MODE_816_LONG_ABS:
+			outputLongInstruction(baseOpcode | (uint8_t) 0x0E, addrMode->expr);
+            return true;
         case MODE_IND_ZP_Y:
             sect_OutputConst8(baseOpcode | (uint8_t) 0x10);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_IND_ZP:
             sect_OutputConst8((baseOpcode + 1) | (uint8_t) 0x10);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ZP_X:
         case MODE_ZP_Y:
             sect_OutputConst8(baseOpcode | (uint8_t) 0x14);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ABS_Y:
             sect_OutputConst8(baseOpcode | (uint8_t) 0x18);
@@ -103,15 +144,15 @@ handleStandardAbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IND_ZP_X:
             sect_OutputConst8(baseOpcode | (uint8_t) (0 << 2));
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_IMM:
             sect_OutputConst8(baseOpcode | (uint8_t) (2 << 2));
-            sect_OutputExpr8(addrMode->expr);
+            outputSU8Expression(addrMode->expr);
             return true;
         case MODE_IND_ZP_Y:
             sect_OutputConst8(baseOpcode | (uint8_t) (4 << 2));
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ABS_Y:
             sect_OutputConst8(baseOpcode | (uint8_t) (7 << 2));
@@ -119,7 +160,7 @@ handleStandardAbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
             return true;
         case MODE_ZP:
             sect_OutputConst8(baseOpcode | (uint8_t) (1 << 2));
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ABS:
             sect_OutputConst8(baseOpcode | (uint8_t) (3 << 2));
@@ -128,7 +169,7 @@ handleStandardAbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
         case MODE_ZP_X:
         case MODE_ZP_Y:
             sect_OutputConst8(baseOpcode | (uint8_t) (5 << 2));
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         default:
             err_Error(MERROR_ILLEGAL_ADDRMODE);
@@ -141,11 +182,11 @@ handleStandardImm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IMM:
             sect_OutputConst8(baseOpcode | (uint8_t) (0 << 2));
-            sect_OutputExpr8(addrMode->expr);
+            outputSU8Expression(addrMode->expr);
             return true;
         case MODE_ZP:
             sect_OutputConst8(baseOpcode | (uint8_t) (1 << 2));
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ABS:
             sect_OutputConst8(baseOpcode | (uint8_t) (3 << 2));
@@ -154,7 +195,7 @@ handleStandardImm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
         case MODE_ZP_X:
         case MODE_ZP_Y:
             sect_OutputConst8(baseOpcode | (uint8_t) (5 << 2));
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ABS_X:
         case MODE_ABS_Y:
@@ -175,7 +216,7 @@ handleStandardRotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
             return true;
         case MODE_ZP:
             sect_OutputConst8(baseOpcode | (uint8_t) (1 << 2));
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ABS:
             sect_OutputConst8(baseOpcode | (uint8_t) (3 << 2));
@@ -183,7 +224,7 @@ handleStandardRotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
             return true;
         case MODE_ZP_X:
             sect_OutputConst8(baseOpcode | (uint8_t) (5 << 2));
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ABS_X:
             sect_OutputConst8(baseOpcode | (uint8_t) (7 << 2));
@@ -220,7 +261,7 @@ handleBIT(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 	if (addrMode->mode == MODE_IMM) {
 		sect_OutputConst8(0x89);
-		sect_OutputExpr8(addrMode->expr);
+		outputU8Expression(addrMode->expr);
 		return true;
 	}
 
@@ -271,7 +312,7 @@ static bool
 handleBRK(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
     if (addrMode->mode == MODE_IMM)
-        sect_OutputExpr8(addrMode->expr);
+        outputSU8Expression(addrMode->expr);
     return true;
 }
 
@@ -280,15 +321,15 @@ handleDOP(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IMM:
             sect_OutputConst8(0x80);
-            sect_OutputExpr8(addrMode->expr);
+            outputSU8Expression(addrMode->expr);
             return true;
         case MODE_ZP:
             sect_OutputConst8(0x04);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ZP_X:
             sect_OutputConst8(0x14);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         default:
             return false;
@@ -300,11 +341,11 @@ handleSTZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_ZP:
             sect_OutputConst8(0x64);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ZP_X:
             sect_OutputConst8(0x74);
-            outputZPExpression(addrMode->expr);
+            outputU8Expression(addrMode->expr);
             return true;
         case MODE_ABS:
             sect_OutputConst8(0x9C);
@@ -325,7 +366,7 @@ handleBITBranch_C02(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	opcode = expr_Or(expr_Const(baseOpcode), expr_Asl(expr_CheckRange(addrMode->expr, 0, 7), expr_Const(4)));
 
 	sect_OutputExpr8(opcode);
-	outputZPExpression(addrMode->expr2);
+	outputU8Expression(addrMode->expr2);
 
     SExpression* expression = expr_PcRelative(addrMode->expr3, -1);
     expression = expr_CheckRange(expression, -128, 127);
@@ -341,7 +382,7 @@ handleBITBranch_C02(uint8_t baseOpcode, SAddressingMode* addrMode) {
 static bool
 handleBITxBranch_C02(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
-	outputZPExpression(addrMode->expr);
+	outputU8Expression(addrMode->expr);
     SExpression* expression = expr_PcRelative(addrMode->expr2, -1);
     expression = expr_CheckRange(expression, -128, 127);
     if (expression == NULL) {
@@ -359,20 +400,20 @@ handleBIT_C02(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	opcode = expr_Or(expr_Const(baseOpcode), expr_Asl(expr_CheckRange(addrMode->expr, 0, 7), expr_Const(4)));
 
 	sect_OutputExpr8(opcode);
-	outputZPExpression(addrMode->expr2);
+	outputU8Expression(addrMode->expr2);
 	return true;
 }
 
 static bool
 handleBITx_C02(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
-	outputZPExpression(addrMode->expr);
+	outputU8Expression(addrMode->expr);
 	return true;
 }
 
 
 static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
-    { 0x61, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S, handleStandardAll },	/* ADC */
+    { 0x61, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS, handleStandardAll },	/* ADC */
     { 0x21, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* AND */
     { 0x02, CPU_6502, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ASL */
     { 0x20, CPU_6502, MODE_ZP | MODE_ABS | MODE_IMM | MODE_ZP_X | MODE_ABS_X, handleBIT },	/* BIT */
