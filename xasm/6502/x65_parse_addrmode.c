@@ -79,7 +79,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         return false;
     }
 
-    if ((allowedModes & (MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ABS_X)) && lex_Context->token.id == '(') {
+    if ((allowedModes & (MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ABS_X | MODE_816_IND_DISP_S_Y)) && lex_Context->token.id == '(') {
         parse_GetToken();
         addrMode->expr = parse_Expression(2);
 
@@ -91,6 +91,15 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
                     if (parse_ExpectChar(')')) {
                         addrMode->mode = allowedModes & (MODE_IND_ZP_X | MODE_IND_ABS_X);	/* only one of these can be allowed at the same time */
                         return true;
+                    }
+                } if (lex_Context->token.id == T_65816_REG_S) {
+                    parse_GetToken();
+                    if (parse_ExpectChar(')') && parse_ExpectChar(',')) {
+						if (lex_Context->token.id == T_6502_REG_Y) {
+							parse_GetToken();
+	                        addrMode->mode = MODE_816_IND_DISP_S_Y;
+                        	return true;
+						}
                     }
                 }
             } else if (lex_Context->token.id == ')') {
@@ -109,15 +118,24 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         lex_Goto(&bm);
     }
 
-    if ((allowedModes & (MODE_816_LONG_IND_ZP)) && (lex_Context->token.id == '[')) {
+    if ((allowedModes & (MODE_816_LONG_IND_ZP | MODE_816_LONG_IND_ZP_Y)) && (lex_Context->token.id == '[')) {
 		parse_GetToken();
 
 		addrMode->expr = parse_Expression(2);
 		if (addrMode->expr != NULL) {
 			if (lex_Context->token.id == ']') {
 				parse_GetToken();
-				addrMode->mode = MODE_816_LONG_IND_ZP;
-				return true;
+				if (lex_Context->token.id == ',') {
+					parse_GetToken();
+					if (lex_Context->token.id == T_6502_REG_Y) {
+						parse_GetToken();
+						addrMode->mode = MODE_816_LONG_IND_ZP_Y;
+						return true;
+					}
+				} else {
+					addrMode->mode = MODE_816_LONG_IND_ZP;
+					return true;
+				}
 			}
 		}
         lex_Goto(&bm);
