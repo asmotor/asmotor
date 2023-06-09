@@ -155,7 +155,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         lex_Goto(&bm);
     }
 
-    if (allowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_ZP_ABS | MODE_BIT_ZP_ABS | MODE_BIT_ZP | MODE_816_DISP_S)) {
+    if (allowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_ZP_ABS | MODE_BIT_ZP_ABS | MODE_BIT_ZP | MODE_816_DISP_S | MODE_816_LONG_ABS_X)) {
 		bool force_zp = false;
 		bool force_abs_2 = false;
 		bool force_abs_3 = false;
@@ -173,18 +173,23 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 
         addrMode->expr = parse_Expression(2);
         if (addrMode->expr != NULL && addrMode->expr->type != EXPR_PARENS) {
-			bool is_zp = false;
-
 			if (force_zp)
 				addrMode->expr = expr_CheckRange(addrMode->expr, 0x00, 0xFF);
 		
-			is_zp = expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer <= 255;
+			bool is_zp = expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer <= 255;
+			bool is_abs_3 = !force_zp && !force_abs_2 && expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer < (1 << 24);
 
 			if (lex_Context->token.id == ',') {
 				parse_GetToken();
 				if (lex_Context->token.id == T_6502_REG_X) {
 					parse_GetToken();
-					addrMode->mode = (is_zp || force_zp) && (allowedModes & MODE_ZP_X) ? MODE_ZP_X : MODE_ABS_X;
+					if ((is_zp || force_zp) && (allowedModes & MODE_ZP_X)) {
+						addrMode->mode = MODE_ZP_X;
+					} else if ((is_abs_3 || force_abs_3) && (allowedModes & MODE_816_LONG_ABS_X)) {
+						addrMode->mode = MODE_816_LONG_ABS_X;
+					} else {
+						addrMode->mode = MODE_ABS_X;
+					}
 					return true;
 				} else if (lex_Context->token.id == T_6502_REG_Y) {
 					parse_GetToken();
@@ -211,8 +216,6 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
                 }
             } else {
 				if (addrMode->expr != NULL && addrMode->expr->type != EXPR_PARENS) {
-					bool is_abs_3 = !force_zp && !force_abs_2 && expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer < (1 << 24);
-
 					if ((allowedModes & MODE_ZP) && (is_zp || force_zp)) {
 						addrMode->mode = MODE_ZP;
 	    		        return true;

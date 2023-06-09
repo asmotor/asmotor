@@ -140,6 +140,9 @@ handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
             sect_OutputConst8(baseOpcode | (uint8_t) 0x1C);
             sect_OutputExpr16(addrMode->expr);
             return true;
+        case MODE_816_LONG_ABS_X:
+			outputLongInstruction(baseOpcode | (uint8_t) 0x1E, addrMode->expr);
+            return true;
         default:
             err_Error(MERROR_ILLEGAL_ADDRMODE);
             return true;
@@ -421,7 +424,7 @@ handleBITx_C02(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 
 static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
-    { 0x61, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y, handleStandardAll },	/* ADC */
+    { 0x61, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_ABS_X, handleStandardAll },	/* ADC */
     { 0x21, CPU_6502, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP, handleStandardAll },	/* AND */
     { 0x02, CPU_6502, MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ASL */
     { 0x20, CPU_6502, MODE_ZP | MODE_ABS | MODE_IMM | MODE_ZP_X | MODE_ABS_X, handleBIT },	/* BIT */
