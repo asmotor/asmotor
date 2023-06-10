@@ -118,8 +118,19 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
         lex_Goto(&bm);
     }
 
-    if ((allowedModes & (MODE_816_LONG_IND_ZP | MODE_816_LONG_IND_ZP_Y)) && (lex_Context->token.id == '[')) {
+    if ((allowedModes & (MODE_816_LONG_IND_ZP | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_IND_ABS)) && (lex_Context->token.id == '[')) {
 		parse_GetToken();
+
+		bool force_zp = false;
+		bool force_abs_2 = false;
+
+		if (lex_Context->token.id == T_OP_LESS_THAN) {
+			force_zp = true;
+			parse_GetToken();
+		} else if (lex_Context->token.id == T_OP_BITWISE_OR) {
+			force_abs_2 = true;
+			parse_GetToken();
+		}
 
 		addrMode->expr = parse_Expression(2);
 		if (addrMode->expr != NULL) {
@@ -133,7 +144,8 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 						return true;
 					}
 				} else {
-					addrMode->mode = MODE_816_LONG_IND_ZP;
+					bool is_zp = !force_abs_2 && expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer <= 255;
+					addrMode->mode = (force_zp || is_zp) ? MODE_816_LONG_IND_ZP : MODE_816_LONG_IND_ABS;
 					return true;
 				}
 			}

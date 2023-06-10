@@ -40,17 +40,18 @@
 #define MODE_IND_ABS_X	0x10000u		/* (n16,x) */
 #define MODE_IMM_IMM	0x20000u		/* #n8,#n8 */
 
-#define MODE_816_DISP_S			0x040000u		/* n8,S */
-#define MODE_816_LONG_IND_ZP	0x080000u		/* [n8] */
-#define MODE_816_LONG_ABS		0x100000u		/* $123456 */
-#define MODE_816_IND_DISP_S_Y	0x200000u		/* (n8,S),Y */
-#define MODE_816_LONG_IND_ZP_Y	0x400000u		/* [n8],y */
-#define MODE_816_LONG_ABS_X		0x800000u		/* n24,x */
+#define MODE_816_DISP_S			0x0040000u		/* n8,S */
+#define MODE_816_LONG_IND_ZP	0x0080000u		/* [n8] */
+#define MODE_816_LONG_ABS		0x0100000u		/* $123456 */
+#define MODE_816_IND_DISP_S_Y	0x0200000u		/* (n8,S),Y */
+#define MODE_816_LONG_IND_ZP_Y	0x0400000u		/* [n8],y */
+#define MODE_816_LONG_ABS_X		0x0800000u		/* n24,x */
+#define MODE_816_LONG_IND_ABS	0x1000000u		/* [n16] */
 
 #define MODE_6502	(MODE_NONE | MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_A | MODE_IND_ABS)
 #define MODE_65C02	(MODE_6502 | MODE_IND_ZP | MODE_IND_ABS_X)
 #define MODE_65C02S	(MODE_65C02 | MODE_ZP_ABS | MODE_BIT_ZP | MODE_BIT_ZP_ABS)
-#define MODE_65816	(MODE_65C02 | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_ABS_X)
+#define MODE_65816	(MODE_65C02 | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_ABS_X | MODE_816_LONG_IND_ABS)
 
 typedef struct {
 	uint32_t mode;
@@ -58,6 +59,10 @@ typedef struct {
 	SExpression* expr2;
 	SExpression* expr3;
 } SAddressingMode;
+
+
+extern void
+x65_OutputLongInstruction(uint8_t opcode, SExpression* expr);
 
 extern bool
 x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes);

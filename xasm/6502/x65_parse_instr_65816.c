@@ -53,8 +53,7 @@ handle_COP(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 static bool
 handle_Jump(uint8_t baseOpcode, SAddressingMode* addrMode) {
-	SExpression* addr = expr_CheckRange(addrMode->expr, 0, 0xFFFFFF);
-	sect_OutputExpr32(expr_Or(expr_Const(baseOpcode), expr_Asl(addr, expr_Const(8))));
+	x65_OutputLongInstruction(baseOpcode, addrMode->expr);
 	return true;
 }
 
