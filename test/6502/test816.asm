@@ -60,6 +60,7 @@
 
 	bit	#$1234
 
+	jml	$123456
 	jmp	>$123456
 	jmp	[$1234]
 	jsl	$123456
@@ -67,4 +68,50 @@
 	jsr	($1234,X)
 
 	rtl
+
+	rep	#$12
+	sep	#$12
+
+	lda	12,S
+	lda	[12]
+	lda	#$1234
+	lda	$123456
+	lda	(12,S),Y
+	lda	[$12],Y
+	lda	$123456,X
+	ldx	#$1234
+	ldy	#$1234
+
+	sta	12,S
+	sta	[12]
+	sta	$123456
+	sta	(12,S),Y
+	sta	[$12],Y
+	sta	$123456,X
+
+	mvn	#$12,#$34
+	mvp	#$12,#$34
+	
+label	pea	$1234
+	pei	(12)
+	per	label
+
+	phb
+	phd
+	phk
+	php
+	plb
+	pld
+	plp
+
+	txy
+	tyx
+
+	tcd
+	tcs
+	tdc
+	tsc
+
+	xba
+	xce
 	

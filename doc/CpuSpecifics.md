@@ -1,11 +1,21 @@
 # CPU specific details
 
-# 6502
+# 6502 family
 
 ## Section alignment
 Sections are not aligned to any particular multiple.
 
 ## Command line
+
+### -mc\<x> option
+Selects CPU variant.
+
+| x | CPU type |
+|---|---|
+| 0 | 6502 |
+| 1 | 65C02 |
+| 2 | 65C02S |
+| 3 | 65C816 |
 
 ### -mu\<x> option
 Some versions of the 6502 series have a number of undocumented instructions. As they are undocumented, no official mnemonics exist. Several sets of mnemonics are in use, however. These can be selected with the ```-mu<x>``` option, where x is 0 (no undocumented opcodes), 1, 2 or 3.
@@ -43,6 +53,15 @@ Some versions of the 6502 series have a number of undocumented instructions. As 
 | Define space | DS | | |
 | Reserve symbol | RB | RW | |
 
+## 65C816 register width
+The `BITS` directive is used to control the generation of 8 or 16 bit immediate instructions. `BITS` takes two arguments, the first is the width of the accumulator and the second the width of the X and Y registers. Either argument may be omitted.
+
+```
+    BITS 16,8   ; Set accumulator width to 16 and index registers to 8
+    BITS 8      ; Set accumulator width to 8
+    BITS ,16    ; Set index registers width to 16
+```
+
 # Z80
 ## Section alignment
 Sections are not aligned to any particular multiple.
@@ -76,8 +95,7 @@ This option enables certain synthesized instructions.
 | 0 | Disabled |
 | 1 | Enabled |
 
-Synthesized instructions are safe sequences with no unintended side effects. These can be used to improve
-readabilility of source code.
+Synthesized instructions are safe sequences with no unintended side effects. These can be used to improve readabilility of source code.
 
 | Mnemonic | Notes |
 |---|---|
