@@ -203,7 +203,7 @@ handleStandardImm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
         case MODE_IMM:
             sect_OutputConst8(baseOpcode | (uint8_t) (0 << 2));
-			if (opt_Current->machineOptions->m16)
+			if (opt_Current->machineOptions->x16)
 				outputSU16Expression(addrMode->expr);
 			else
 				outputSU8Expression(addrMode->expr);
