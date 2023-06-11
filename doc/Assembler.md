@@ -45,10 +45,13 @@ The syntax is line based. A valid line consists of an optional [label](Symbols.m
 Label:  INSTR  ; comment
 ```
 
+## Case sensitivity
+Labels and other symbols are case sensitive. Directives, register names and mnemonics are not.
+
 ## Comments
 Comments are ignored during assembling. They are an important part of writing code, this is especially true for assembly where comments are essential for documenting what a function does - it's not as immediately obvious as when code is written in a higher level language.
 
-Comments usually start with a semi-colon and end at the end of the line. A comment may also started with a whitespace character (including a line break) followed by an asterisk.
+Comments usually start with a semi-colon and end at the end of the line. A comment may also begin with a whitespace character (including a line break) followed by an asterisk.
 
 ```
 * These are comment examples

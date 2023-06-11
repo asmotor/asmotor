@@ -7,7 +7,7 @@ Whenever the assembler expects an integer, an integer expression may be used. In
 
 The simplest integer expression is a number.
 
-An expression is said to be constant when it doesn't change its value during linking. This basically means that you can't use labels in those expressions. The instructions in the macro-language all require expressions that are constant
+An expression is said to be constant when it doesn't change its value during linking. This basically means that you can't use labels in those expressions. The instructions in the macro-language all require expressions that are constant.
 
 ### Integer literals
 The assembler supports several numeric formats:
@@ -82,21 +82,20 @@ A couple of functions that deal with symbols are also available:
 
 ### <a name="m68k"></a> Motorola 68K functions
 
-The 68K assembler supports an additional function, ```regmask```, that computes the register mask of a register
-list expressions:
+The 68K assembler supports an additional function, ```regmask```, that computes the register mask of a register list expression:
 
 ```
 Registers EQU regmask(d0-d1/d7/a6)
 ```
 
-These masks are useful with a non-standard extension to the MOVEM instruction. The 68K assembler will allow you to specify a register mask instead of a register list expression like this:
+These masks are useful with a non-standard extension to the ```MOVEM``` instruction. The 68K assembler will allow you to specify a register mask instead of a register list expression like this:
 
 ```
         movem.l #Registers,(sp)+
         movem.l (sp)+,#Registers
 ```
 
-The same mask can be used in both directions, the assemblers reverses it as necessary.
+The same mask can be used in both directions, the assembler reverses it as required by the ISA.
 
 ## String expressions
 
@@ -141,7 +140,7 @@ StringSymbol EQUS "A String"
              DB   "Store this text and the value {|StringSymbol|.upper}",0
 ```
 
-Integer expressions may also be used
+Integer expressions may also be used:
 
 ```
 Count EQU 8

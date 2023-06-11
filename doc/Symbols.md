@@ -4,7 +4,7 @@ The assembler supports many different kinds of symbols. Symbols are used to refe
 ## Labels
 One of the assembler's main tasks is to keep track of addresses so you don't have to remember obscure numbers but can use a meaningful name instead - a label. Labels are always placed at the beginning of a line.
 
-Labels end with zero, one or two colons. If the label ends with two colons it will be automatically exported
+Labels end with zero, one or two colons. If the label ends with two colons it will be automatically exported.
 
 Symbols and labels are always case-sensitive.
 
@@ -24,7 +24,7 @@ The assembler supports local labels. Local labels start with the . character, fo
 
 A local label is considered local to the scope in which it is defined, a scope begins with a global label and ends with the next global label.
 
-Local labels can only be referenced within the scope they are defined.
+Local labels can only be referenced by name within the scope they are defined.
 
 ```
 GlobalLabel:
@@ -32,6 +32,13 @@ GlobalLabel:
 42$                 ; also a local label
 AnotherGlobalLabel:
 ```
+
+It is however also possible to refer to a label from outside its scope, by prefixing it with its scope name and a backslash:
+
+```
+    move.l  Scope\.local,d0
+```
+
 
 ### <a name="import_export"></a> Exporting and importing labels
 
@@ -64,23 +71,23 @@ MyCounter   =   MyCounter+1 ;Increment MyCounter
 ```
 
 ### <a name="rs_symbols"></a> RS symbols
-Integer symbols are often used to define the offsets of structure members. While the ```EQU``` instruction can be used for this it quickly becomes cumbersome when adding, reordering or removing members from the structure. The assembler provides a group of instructions to make this easier, the ```RS``` group of instructions.
+Integer symbols are often used to define the offsets of structure members or enumerations. While the ```EQU``` instruction can be used for this it quickly becomes cumbersome when adding, reordering or removing members from the structure. The assembler provides a group of instructions to make this easier, the ```RS``` group of instructions.
 
 | Command | Meaning |
 |---|---|
 | ```RSRESET``` | Resets the ```__RS``` counter to zero |
 | ```RSSET constexpr``` | Sets the ```__RS``` counter to the value of constexpr |
-| ```Symbol: __RSB constexpr``` | Sets ```Symbol``` to ```__RS``` and adds ```constexpr``` to ```__RS``` |
-| ```Symbol: __RSW constexpr``` | Sets ```Symbol``` to ```__RS``` and adds 2*```constexpr``` to ```__RS``` |
-| ```Symbol: __RSL constexpr``` | Sets Symbol to ```__RS``` and adds 4*```constexpr``` to ```__RS``` |
+| ```Symbol __RSB constexpr``` | Sets ```Symbol``` to ```__RS``` and adds ```constexpr``` to ```__RS``` |
+| ```Symbol __RSW constexpr``` | Sets ```Symbol``` to ```__RS``` and adds 2*```constexpr``` to ```__RS``` |
+| ```Symbol __RSL constexpr``` | Sets Symbol to ```__RS``` and adds 4*```constexpr``` to ```__RS``` |
 
 The ```__RSB```, ```__RSW``` and ```__RSL``` directives are always available as a portable way to define RS symbols. The different CPU's use different conventions and have other, possibly more convenient, aliases available:
 
-| Portable | 6502 | Z80 | M68K | MIPS | DCPU-16 | SCHIP |
-|---|---|---|---|---|---|---|
-| ```__RSB``` | ```RB``` | ```RB``` | ```RS.B``` | ```RB``` | n/a | ```RB``` |
-| ```__RSW``` | ```RW``` | ```RW``` | ```RS.W``` | ```RH``` | ```RW``` | ```RW``` |
-| ```__RSL``` | n/a | n/a | ```RS.L``` | ```RW``` | ```RL``` | n/a |
+| Portable | 6502 | Z80 | M68K | MIPS | DCPU-16 | SCHIP | 6809 |
+|---|---|---|---|---|---|---|---|
+| ```__RSB``` | ```RB``` | ```RB``` | ```RS.B``` | ```RB``` | n/a | ```RB``` | ```RB``` |
+| ```__RSW``` | ```RW``` | ```RW``` | ```RS.W``` | ```RH``` | ```RW``` | ```RW``` | ```RW``` |
+| ```__RSL``` | n/a | n/a | ```RS.L``` | ```RW``` | ```RL``` | n/a | n/a |
 
 Example:
 ```
@@ -172,9 +179,7 @@ The assembler declares several symbols:
 
 ## <a name="purge"></a> Removing symbols
 
-Symbols may be removed from the symbol table by use of the ```PURGE``` directive. This is seldom necessary,
-but it can be very useful in macros, especially with temporary string symbols. Often you can simply postfix
-labels with \@ to keep them local to the macro instead.
+Symbols may be removed from the symbol table by use of the ```PURGE``` directive. This is seldom necessary, but it can be very useful in macros, especially with temporary string symbols. Often you can simply postfix labels with \@ to keep them local to the macro instead.
 
 ```
 Symbol  EQUS "push\n"   ; define Symbol

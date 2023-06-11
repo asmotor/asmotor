@@ -44,11 +44,11 @@ This will switch to the section ```A_Code_Section``` if it is already known (and
 
 ### <a name="alignment"></a> Alignment
 
-When writing a bonary file using the assembler, sections are naturally aligned to a CPU specific byte alignment:
+When writing a binary file using the assembler, sections are naturally aligned to a CPU specific byte alignment:
 
-| 6502 | Z80 | M68K | MIPS | 0x10C | SCHIP |
-|---|---|---|---|---|---|
-| 1 | 1 | 8 | 8 | 2 | 1 |
+| 6502 | Z80 | M68K | MIPS | 0x10C | SCHIP | 6809 |
+|---|---|---|---|---|---|---|
+| 1 | 1 | 8 | 8 | 2 | 1 | 1 |
 
 Fixed sections are not aligned. The section alignment can be changed with the ```-a``` option.
 

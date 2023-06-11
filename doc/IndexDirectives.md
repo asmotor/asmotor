@@ -1,4 +1,4 @@
-# Directives reference
+# Directives index
 
 | Directive | Used for |
 |---|---|
