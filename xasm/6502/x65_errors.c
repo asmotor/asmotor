@@ -25,7 +25,8 @@ static char* g_errors[] = {
 	"Selected CPU does not support undocumented instructions",
 	"Selected CPU does not support instruction",
 	"65C816 required",
-	"Illegal bit width (must be 8 or 16)"
+	"Illegal bit width (must be 8 or 16)",
+	"This instruction requires synthesized instructions enabled"
 };
 
 const char*

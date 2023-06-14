@@ -236,11 +236,15 @@ static bool
 handleStandardRotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
     switch (addrMode->mode) {
 		case MODE_IMM: {
-			if (expr_IsConstant(addrMode->expr)) {
-				for (int i = 0; i < addrMode->expr->value.integer; ++i)
-					sect_OutputConst8(baseOpcode | (uint8_t) (2 << 2));
+			if (opt_Current->machineOptions->synthesized) {
+				if (expr_IsConstant(addrMode->expr)) {
+					for (int i = 0; i < addrMode->expr->value.integer; ++i)
+						sect_OutputConst8(baseOpcode | (uint8_t) (2 << 2));
+				} else {
+					err_Error(ERROR_EXPR_CONST);
+				}
 			} else {
-				err_Error(ERROR_EXPR_CONST);
+				err_Error(MERROR_SYNTHESIZED);
 			}
 			return true;
 		}

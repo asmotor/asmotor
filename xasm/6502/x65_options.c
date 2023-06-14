@@ -56,6 +56,7 @@ void
 x65_SetDefault(SMachineOptions* options) {
     options->undocumentedInstructions = 0;
 	options->cpu = MOPT_CPU_6502;
+	options->synthesized = false;
 	options->m16 = false;
 	options->x16 = false;
 	options->allowedModes = MODE_6502;
@@ -106,6 +107,14 @@ x65_ParseOption(const char* s) {
 				return false;
 			}
 			break;
+		}
+        case 's': {
+            if (strlen(&s[1]) == 1) {
+                opt_Current->machineOptions->synthesized = s[1] == '1';
+                return true;
+            }
+            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+            return false;
 		}
         default:
 			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);

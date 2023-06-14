@@ -94,5 +94,7 @@ Loop:
 	rti
 	rts
 
+	OPT	ms1
+
 	asl	#5
 	

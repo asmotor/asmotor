@@ -29,6 +29,7 @@ typedef enum {
 	MERROR_INSTRUCTION_NOT_SUPPORTED,
 	MERROR_16BIT_REQUIRED,
 	MERROR_BIT_WIDTH,
+	MERROR_SYNTHESIZED,
 } EMachineError;
 
 extern const char*
