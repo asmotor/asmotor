@@ -39,9 +39,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-ohello.bin", "-fbin", "-cfxf256jrs", "-sEntry", "build-release/main.o"],
+            "args": ["-mtedmon.bin.map", "-otedmon.bin", "-fbin", "-cfxf256jrs", "build-release/test.o", "build-release/text.o", "build-release/monitor.o"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/../f256jr-test",
+            "cwd": "/home/ces/dev/tedmonjr",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
@@ -64,9 +64,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/motor6502",
-            "args": ["test.asm"],
+            "args": ["-fb","-mc1","-w0008","-otest.bin","src-test/test.src"],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/test/6502",
+            "cwd": "/home/ces/dev/tedmonjr",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
