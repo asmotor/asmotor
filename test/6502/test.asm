@@ -93,3 +93,6 @@ Loop:
 	ror	a
 	rti
 	rts
+
+	asl	#5
+	
