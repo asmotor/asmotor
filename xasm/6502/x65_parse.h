@@ -42,7 +42,7 @@
 
 #define MODE_816_DISP_S			0x0040000u		/* n8,S */
 #define MODE_816_LONG_IND_ZP	0x0080000u		/* [n8] */
-#define MODE_816_LONG_ABS		0x0100000u		/* $123456 */
+#define MODE_816_LONG_ABS		0x0100000u		/* n24 */
 #define MODE_816_IND_DISP_S_Y	0x0200000u		/* (n8,S),Y */
 #define MODE_816_LONG_IND_ZP_Y	0x0400000u		/* [n8],y */
 #define MODE_816_LONG_ABS_X		0x0800000u		/* n24,x */
