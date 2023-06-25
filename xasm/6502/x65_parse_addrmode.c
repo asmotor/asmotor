@@ -31,10 +31,13 @@ static SExpression*
 parseImmExpression() {
 	if (lex_Context->token.id == T_OP_LESS_THAN) {
 		parse_GetToken();
-		return expr_And(parse_Expression(2), expr_Const(0xFF));
+		return parse_Expression(2);
 	} else if (lex_Context->token.id == T_OP_GREATER_THAN) {
 		parse_GetToken();
 		return expr_Asr(parse_Expression(2), expr_Const(8));
+	} else if (lex_Context->token.id == T_OP_BITWISE_XOR && opt_Current->machineOptions->cpu == MOPT_CPU_65C816S) {
+		parse_GetToken();
+		return expr_Asr(parse_Expression(2), expr_Const(16));
 	}
 
 	return parse_Expression(2);

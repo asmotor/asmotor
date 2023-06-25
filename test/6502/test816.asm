@@ -114,4 +114,5 @@ label	pea	$1234
 
 	xba
 	xce
-	
+
+	lda	#^$123456

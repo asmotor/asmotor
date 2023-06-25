@@ -64,9 +64,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/motor6502",
-            "args": ["-fb","-mc1","-w0008","-otest.bin","src-test/test.src"],
+            "args": ["-fb","-mc1","-w0008","-otest.bin","test816.asm"],
             "stopAtEntry": true,
-            "cwd": "/home/ces/dev/tedmonjr",
+            "cwd": "${workspaceFolder}/test/6502",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
