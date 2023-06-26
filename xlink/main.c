@@ -127,7 +127,7 @@ printUsage(void) {
            "          -chc800l    HC800 large mode (32 KiB text + data + bss, 32 KiB sized\n"
 		   "                      banks text + data + bss)\n"
            "          -cfxa2560x  Foenix A2560X/K\n"
-           "          -cfxf256jrs Foenix F256 Jr. small mode (64 KiB)\n"
+           "          -cfxf256jrs Foenix F256 Jr. small mode (64 KiB, I/O hole)\n"
 		   "          -ccoco      Tandy TRS-80 Color Computer\n"
 		   "\n"
            "    -e<symbol>  Code entry point when supported by output format.\n"
@@ -268,10 +268,10 @@ handleMemoryConfigurationOption(const string* target) {
 		g_allowedFormats = FF_HC800;
 		g_hc800Config = hc800_ConfigLarge;
 	} else if (str_EqualConst(target, "fxa2560x")) {	/* Foenix A2560X/K */
-		group_SetupFoenixA2560X();
+		foenix_SetupFoenixA2560XGroups();
 		g_allowedFormats = FF_FOENIX;
 	} else if (str_EqualConst(target, "fxf256jrs")) {	/* Foenix F256 Jr */
-		group_SetupFoenixF256JrSmall();
+		foenix_SetupFoenixF256JrSmallGroups();
 		g_allowedFormats = FF_FOENIX;
 	} else if (str_EqualConst(target, "coco")) {	/* TRS-80 Color Computer */
 		group_SetupCoCo();
@@ -388,11 +388,11 @@ handleTargetOption(const string* target) {
 		g_allowedFormats = FF_HC800;
 		g_hc800Config = hc800_ConfigLarge;
 	} else if (str_EqualConst(target, "fxa2560x")) {	/* Foenix A2560X/K */
-		group_SetupFoenixA2560X();
+		foenix_SetupFoenixA2560XGroups();
 		g_outputFormat = FILE_FORMAT_PGZ;
 		g_allowedFormats = FF_FOENIX;
 	} else if (str_EqualConst(target, "fxf256jrs")) {	/* Foenix F256 Jr */
-		group_SetupFoenixF256JrSmall();
+		foenix_SetupFoenixF256JrSmallGroups();
 		g_outputFormat = FILE_FORMAT_PGZ;
 		g_allowedFormats = FF_FOENIX;
 	} else if (str_EqualConst(target, "coco")) {	/* TRS Color Computer */
@@ -529,6 +529,8 @@ main(int argc, char* argv[]) {
 	if ((g_outputFormat & g_allowedFormats) == 0) {
 		error("Memory/machine configuration does not support output format");
 	}
+
+	group_InitMemoryChunks();
 
     while (argn < argc && argv[argn]) {
         obj_Read(argv[argn++]);

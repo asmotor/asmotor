@@ -22,4 +22,11 @@
 extern void
 foenix_WriteExecutable(const char* filename, const char* entry);
 
+extern void
+foenix_SetupFoenixF256JrSmallGroups(void);
+
+extern void
+foenix_SetupFoenixA2560XGroups(void);
+
+
 #endif

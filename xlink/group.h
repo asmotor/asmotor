@@ -21,6 +21,38 @@
 
 #include "types.h"
 
+#include "symbol.h"
+
+struct MemoryChunk_;
+
+typedef struct {
+    int32_t imageLocation;      // This pool's position in the ROM image, -1 if not written
+    uint32_t cpuByteLocation;   // Where the CPU sees this pool in its address space
+    int32_t cpuBank;            // What the CPU calls this bank
+    uint32_t size;              // Size of pool seen from the CPU
+
+    struct MemoryChunk_* freeChunks;
+} MemoryPool;
+
+typedef struct MemoryGroup_ {
+    struct MemoryGroup_* nextGroup;
+
+    char name[MAX_SYMBOL_NAME_LENGTH];
+    int32_t totalPools;
+
+    MemoryPool* pools[];
+} MemoryGroup;
+
+
+extern MemoryPool*
+pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size);
+
+extern MemoryGroup*
+group_Create(const char* groupName, uint32_t totalBanks);
+
+extern void
+group_InitMemoryChunks(void);
+
 extern void
 group_SetupGameboy(void);
 
@@ -75,14 +107,8 @@ group_SetupHC8XXMediumHarvard(void);
 void
 group_SetupHC8XXLarge(void);
 
-void
-group_SetupFoenixA2560X(void);
-
 extern void
 group_SetupCoCo(void);
-
-extern void
-group_SetupFoenixF256JrSmall(void);
 
 extern bool
 group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);

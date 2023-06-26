@@ -23,6 +23,7 @@
 #include "str.h"
 
 #include "error.h"
+#include "group.h"
 #include "section.h"
 
 #define PGZ_32BIT 'z'
@@ -75,3 +76,98 @@ foenix_WriteExecutable(const char* outputFilename, const char* entry) {
 	fclose(fileHandle);
 }
 
+
+extern void
+foenix_SetupFoenixA2560XGroups(void) {
+    MemoryGroup* group;
+
+    MemoryPool* system_ram = pool_Create(0x10000, 0x10000, 0, 0x400000 - 0x10000);
+    MemoryPool* vicky_a_ram = pool_Create(0x800000, 0x800000, 0, 0x400000);
+    MemoryPool* vicky_b_ram = pool_Create(0xC00000, 0xC00000, 0, 0x400000);
+    MemoryPool* sdram = pool_Create(0x02000000, 0x02000000, 0, 0x04000000);
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 1);
+    group->pools[0] = system_ram;
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 2);
+    group->pools[0] = system_ram;
+    group->pools[1] = sdram;
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 2);
+    group->pools[0] = system_ram;
+    group->pools[1] = sdram;
+
+    //	Create DATA_VA group
+
+    group = group_Create("DATA_VA", 1);
+    group->pools[0] = vicky_a_ram;
+
+    //	Create BSS_VA group
+
+    group = group_Create("BSS_VA", 1);
+    group->pools[0] = vicky_a_ram;
+
+    //	Create DATA_VB group
+
+    group = group_Create("DATA_VB", 1);
+    group->pools[0] = vicky_b_ram;
+
+    //	Create BSS_VB group
+
+    group = group_Create("BSS_VB", 1);
+    group->pools[0] = vicky_b_ram;
+
+    //	Create DATA_D group
+
+    group = group_Create("DATA_D", 1);
+    group->pools[0] = sdram;
+
+    //	Create BSS_D group
+
+    group = group_Create("BSS_D", 1);
+    group->pools[0] = sdram;
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}
+
+
+void
+foenix_SetupFoenixF256JrSmallGroups(void) {
+    MemoryGroup* group;
+    MemoryPool* main_ram = pool_Create(0, 0x200, 0, 0xC000 - 0x200);
+    MemoryPool* high_ram = pool_Create(0xE000 - 0x200, 0xE000, 0, 0x10000 - 0xE000);
+    MemoryPool* zp = pool_Create(-1, 0x0010, 0, 0x100 - 0x10);
+
+    //	Create CODE group
+
+    group = group_Create("CODE", 2);
+    group->pools[0] = main_ram;
+    group->pools[1] = high_ram;
+
+    //	Create DATA group
+
+    group = group_Create("DATA", 1);
+    group->pools[0] = main_ram;
+
+    //	Create BSS group
+
+    group = group_Create("BSS", 1);
+    group->pools[0] = main_ram;
+
+    //	Create ZP group
+
+    group = group_Create("ZP", 1);
+    group->pools[0] = zp;
+
+    //	initialise memory chunks
+
+    group_InitMemoryChunks();
+}

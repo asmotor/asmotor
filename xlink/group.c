@@ -20,6 +20,7 @@
 #include "str.h"
 #include "types.h"
 
+#include "group.h"
 #include "symbol.h"
 #include "xlink.h"
 
@@ -34,54 +35,7 @@ typedef struct MemoryChunk_ {
     uint32_t size;
 } MemoryChunk;
 
-typedef struct {
-    int32_t imageLocation;      // This pool's position in the ROM image, -1 if not written
-    uint32_t cpuByteLocation;   // Where the CPU sees this pool in its address space
-    int32_t cpuBank;            // What the CPU calls this bank
-    uint32_t size;              // Size of pool seen from the CPU
-
-    MemoryChunk* freeChunks;
-} MemoryPool;
-
-typedef struct MemoryGroup_ {
-    struct MemoryGroup_* nextGroup;
-
-    char name[MAX_SYMBOL_NAME_LENGTH];
-    int32_t totalPools;
-
-    MemoryPool* pools[];
-} MemoryGroup;
-
 static MemoryGroup* s_machineGroups = NULL;
-
-static MemoryGroup*
-group_Create(const char* groupName, uint32_t totalBanks) {
-    MemoryGroup** ppgroup = &s_machineGroups;
-    while (*ppgroup)
-        ppgroup = &(*ppgroup)->nextGroup;
-
-    *ppgroup = (MemoryGroup*) mem_Alloc(sizeof(MemoryGroup) + sizeof(MemoryPool*) * totalBanks);
-
-    strncpy((*ppgroup)->name, groupName, sizeof((*ppgroup)->name) - 1);
-    (*ppgroup)->nextGroup = NULL;
-    (*ppgroup)->totalPools = totalBanks;
-
-    return *ppgroup;
-}
-
-static MemoryPool*
-pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size) {
-    MemoryPool* pool = (MemoryPool*) mem_Alloc(sizeof(MemoryPool));
-
-    pool->imageLocation = imageLocation;
-    pool->cpuByteLocation = cpuByteLocation;
-    pool->cpuBank = cpuBank;
-    pool->size = size;
-
-    pool->freeChunks = NULL;
-
-    return pool;
-}
 
 static bool
 pool_AllocateMemory(MemoryPool* pool, uint32_t size, int32_t* cpuByteLocation) {
@@ -170,21 +124,6 @@ group_InitCommonGameboy(void) {
     group->pools[0] = pool_Create(-1, 0xFF80, 0, 0x7F);
 }
 
-static void
-group_InitMemoryChunks(void) {
-    for (MemoryGroup* group = s_machineGroups; group != NULL; group = group->nextGroup) {
-        for (int32_t i = 0; i < group->totalPools; ++i) {
-            MemoryPool* pool = group->pools[i];
-
-            if ((pool->freeChunks = (MemoryChunk*) mem_Alloc(sizeof(MemoryChunk))) != NULL) {
-                pool->freeChunks->cpuByteLocation = pool->cpuByteLocation;
-                pool->freeChunks->size = pool->size;
-                pool->freeChunks->nextChunk = NULL;
-            }
-        }
-    }
-}
-
 static MemoryGroup*
 group_FindByName(const char* name) {
     for (MemoryGroup* group = s_machineGroups; group != NULL; group = group->nextGroup) {
@@ -247,6 +186,54 @@ group_AllocateAlignedFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId
     return false;
 }
 
+
+extern void
+group_InitMemoryChunks(void) {
+    for (MemoryGroup* group = s_machineGroups; group != NULL; group = group->nextGroup) {
+        for (int32_t i = 0; i < group->totalPools; ++i) {
+            MemoryPool* pool = group->pools[i];
+
+            if ((pool->freeChunks = (MemoryChunk*) mem_Alloc(sizeof(MemoryChunk))) != NULL) {
+                pool->freeChunks->cpuByteLocation = pool->cpuByteLocation;
+                pool->freeChunks->size = pool->size;
+                pool->freeChunks->nextChunk = NULL;
+            }
+        }
+    }
+}
+
+
+extern MemoryGroup*
+group_Create(const char* groupName, uint32_t totalBanks) {
+    MemoryGroup** ppgroup = &s_machineGroups;
+    while (*ppgroup)
+        ppgroup = &(*ppgroup)->nextGroup;
+
+    *ppgroup = (MemoryGroup*) mem_Alloc(sizeof(MemoryGroup) + sizeof(MemoryPool*) * totalBanks);
+
+    strncpy((*ppgroup)->name, groupName, sizeof((*ppgroup)->name) - 1);
+    (*ppgroup)->nextGroup = NULL;
+    (*ppgroup)->totalPools = totalBanks;
+
+    return *ppgroup;
+}
+
+
+extern MemoryPool*
+pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size) {
+    MemoryPool* pool = (MemoryPool*) mem_Alloc(sizeof(MemoryPool));
+
+    pool->imageLocation = imageLocation;
+    pool->cpuByteLocation = cpuByteLocation;
+    pool->cpuBank = cpuBank;
+    pool->size = size;
+
+    pool->freeChunks = NULL;
+
+    return pool;
+}
+
+
 bool
 group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank,
                      int32_t* imageLocation) {
@@ -297,10 +284,6 @@ group_SetupGameboy(void) {
     // Create VRAM, BSS and HRAM
 
     group_InitCommonGameboy();
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 void
@@ -330,10 +313,6 @@ group_SetupSmallGameboy(void) {
     // Create VRAM, BSS and HRAM
 
     group_InitCommonGameboy();
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 void
@@ -368,9 +347,6 @@ group_SetupAmiga(void) {
     //	Create BSS_C group
     group = group_Create("BSS_C", 1);
     group->pools[0] = pool_Create(-1, 0, 0, 0x3FFFFFFF);
-
-    //	initialise memory chunks
-    group_InitMemoryChunks();
 }
 
 static void
@@ -393,9 +369,6 @@ group_SetupUnbankedCommodore(uint32_t baseAddress, uint32_t size) {
     group->pools[0] = codepool;
     group->pools[1] = pool_Create(-1, 0, 0, baseAddress);
     group->pools[2] = pool_Create(-1, baseAddress + size, 0, 0x10000 - baseAddress - size);
-
-    //	initialise memory chunks
-    group_InitMemoryChunks();
 }
 
 void
@@ -432,9 +405,6 @@ setupCommodore128ROM(uint32_t baseAddress, uint32_t size) {
     pool = pool_Create(-1, 0x0000, 0, 0x10000);
     group = group_Create("BSS", 1);
     group->pools[0] = pool;
-
-    //	initialise memory chunks
-    group_InitMemoryChunks();
 }
 
 void
@@ -469,9 +439,6 @@ group_SetupSegaMegaDrive() {
     //	Create BSS group
     group = group_Create("BSS", 1);
     group->pools[0] = rampool;
-
-    //	initialise memory chunks
-    group_InitMemoryChunks();
 }
 
 void
@@ -502,10 +469,6 @@ group_SetupSegaMasterSystem(int size) {
 
     group = group_Create("BSS", 1);
     group->pools[0] = pool_Create(-1, 0xC000, 0, 0x1FF8);
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 void
@@ -542,10 +505,6 @@ group_SetupSegaMasterSystemBanked(void) {
 
     group = group_Create("BSS", 1);
     group->pools[0] = pool_Create(-1, 0xC000, 0, 0x1FF8);
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 
@@ -590,10 +549,6 @@ group_SetupHC8XXROM(void) {
 
     group = group_Create("BSS_S", 1);
     group->pools[0] = bss;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 
@@ -642,10 +597,6 @@ group_SetupHC8XXSmall(void) {
 
     group = group_Create("BSS_S", 1);
     group->pools[0] = shared;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 
@@ -696,10 +647,6 @@ group_SetupHC8XXSmallHarvard(void) {
 
     group = group_Create("BSS_S", 1);
     group->pools[0] = dataShared;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 
@@ -758,10 +705,6 @@ group_SetupHC8XXMedium(void) {
 
     group = group_Create("BSS_S", 1);
     group->pools[0] = shared;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 
@@ -823,10 +766,6 @@ group_SetupHC8XXMediumHarvard(void) {
 
     group = group_Create("BSS_S", 1);
     group->pools[0] = dataShared;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 
@@ -892,10 +831,6 @@ group_SetupHC8XXLarge(void) {
 
     group = group_Create("BSS_S", 1);
     group->pools[0] = shared;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 
@@ -953,73 +888,8 @@ group_SetupHC8XXLargeHarvard(void) {
 
     group = group_Create("BSS_S", 1);
     group->pools[0] = sharedBssPool;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
-
-void
-group_SetupFoenixA2560X(void) {
-    MemoryGroup* group;
-
-    MemoryPool* system_ram = pool_Create(0x10000, 0x10000, 0, 0x400000 - 0x10000);
-    MemoryPool* vicky_a_ram = pool_Create(0x800000, 0x800000, 0, 0x400000);
-    MemoryPool* vicky_b_ram = pool_Create(0xC00000, 0xC00000, 0, 0x400000);
-    MemoryPool* sdram = pool_Create(0x02000000, 0x02000000, 0, 0x04000000);
-
-    //	Create CODE group
-
-    group = group_Create("CODE", 1);
-    group->pools[0] = system_ram;
-
-    //	Create DATA group
-
-    group = group_Create("DATA", 2);
-    group->pools[0] = system_ram;
-    group->pools[1] = sdram;
-
-    //	Create BSS group
-
-    group = group_Create("BSS", 2);
-    group->pools[0] = system_ram;
-    group->pools[1] = sdram;
-
-    //	Create DATA_VA group
-
-    group = group_Create("DATA_VA", 1);
-    group->pools[0] = vicky_a_ram;
-
-    //	Create BSS_VA group
-
-    group = group_Create("BSS_VA", 1);
-    group->pools[0] = vicky_a_ram;
-
-    //	Create DATA_VB group
-
-    group = group_Create("DATA_VB", 1);
-    group->pools[0] = vicky_b_ram;
-
-    //	Create BSS_VB group
-
-    group = group_Create("BSS_VB", 1);
-    group->pools[0] = vicky_b_ram;
-
-    //	Create DATA_D group
-
-    group = group_Create("DATA_D", 1);
-    group->pools[0] = sdram;
-
-    //	Create BSS_D group
-
-    group = group_Create("BSS_D", 1);
-    group->pools[0] = sdram;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
-}
 
 void
 group_SetupCoCo(void) {
@@ -1041,42 +911,6 @@ group_SetupCoCo(void) {
 
     group = group_Create("BSS", 1);
     group->pools[0] = system_ram;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
 }
 
 
-void
-group_SetupFoenixF256JrSmall(void) {
-    MemoryGroup* group;
-    MemoryPool* main_ram = pool_Create(0, 0x200, 0, 0xC000 - 0x200);
-    MemoryPool* high_ram = pool_Create(0xC000 - 0x200, 0xC000, 0, 0x10000 - 0xC000);
-    MemoryPool* zp = pool_Create(-1, 0x0010, 0, 0x100 - 0x10);
-
-    //	Create CODE group
-
-    group = group_Create("CODE", 2);
-    group->pools[0] = main_ram;
-    group->pools[1] = high_ram;
-
-    //	Create DATA group
-
-    group = group_Create("DATA", 1);
-    group->pools[0] = main_ram;
-
-    //	Create BSS group
-
-    group = group_Create("BSS", 1);
-    group->pools[0] = main_ram;
-
-    //	Create ZP group
-
-    group = group_Create("ZP", 1);
-    group->pools[0] = zp;
-
-    //	initialise memory chunks
-
-    group_InitMemoryChunks();
-}
