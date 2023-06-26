@@ -94,6 +94,8 @@ Loop:
 	rti
 	rts
 
+	lda	#<$E000
+
 	OPT	ms1
 
 	asl	#5

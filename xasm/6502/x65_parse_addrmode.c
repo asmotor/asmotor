@@ -27,17 +27,22 @@
 #include "x65_parse.h"
 #include "x65_tokens.h"
 
+static SExpression*
+maskExpression(SExpression* expr) {
+	return expr_And(expr, expr_Const(opt_Current->machineOptions->cpu == MOPT_CPU_65C816S ? 0xFFFF : 0xFF));
+}
+
 static SExpression* 
 parseImmExpression() {
 	if (lex_Context->token.id == T_OP_LESS_THAN) {
 		parse_GetToken();
-		return parse_Expression(2);
+		return maskExpression(parse_Expression(2));
 	} else if (lex_Context->token.id == T_OP_GREATER_THAN) {
 		parse_GetToken();
-		return expr_Asr(parse_Expression(2), expr_Const(8));
+		return maskExpression(expr_Asr(parse_Expression(2), expr_Const(8)));
 	} else if (lex_Context->token.id == T_OP_BITWISE_XOR && opt_Current->machineOptions->cpu == MOPT_CPU_65C816S) {
 		parse_GetToken();
-		return expr_Asr(parse_Expression(2), expr_Const(16));
+		return maskExpression(expr_Asr(parse_Expression(2), expr_Const(16)));
 	}
 
 	return parse_Expression(2);
