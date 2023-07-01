@@ -8,7 +8,7 @@ define other entry points.
 
 ```
 POOL name image_offset cpu_address cpu_bank size
-POOLS name [i : start..end] image_offset_expr cpu_address_expr cpu_bank_expr size_expr
+POOLS name[start:end] image_offset_expr cpu_address_expr cpu_bank_expr size_expr
 GROUP pool_name_1 pool_name_2 ... pool_name_n
 ```
 

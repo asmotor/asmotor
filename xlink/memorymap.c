@@ -29,11 +29,34 @@
 #include "group.h"
 
 
-#define DELIMITERS " \t\n$%%+-*/()"
+typedef struct {
+	int count;
+	MemoryPool** pools;
+} Pools;
+
+static Pools*
+allocPools(int reserve) {
+	Pools* pools = mem_Alloc(sizeof(Pools));
+	pools->count = reserve;
+	pools->pools = reserve == 0 ? NULL : mem_Alloc(sizeof(MemoryPool*) * reserve);
+
+	return pools;
+}
+
+/*
+static void
+addPool(Pools* pools, MemoryPool* pool) {
+	pools->pools = realloc(pools->pools, sizeof(MemoryPool*) * (pools->count + 1));
+	pools->pools[pools->count++] = pool;
+}
+*/
+
+
+#define DELIMITERS " \t\n$%%+-*/()[]:@"
 
 const char* token;
 size_t token_length;
-
+uint32_t pool_index;
 
 static void
 nextToken(const char** in) {
@@ -52,6 +75,10 @@ nextToken(const char** in) {
 		case '/':
 		case '(':
 		case ')':
+		case '[':
+		case ']':
+		case ':':
+		case '@':
 			token = *in;
 			token_length = 1;
 			++*in;
@@ -78,8 +105,22 @@ tokenIs(const char* s) {
 
 
 static void
-freePool(intptr_t userData, intptr_t element) {
-	pool_Free((MemoryPool*) element);
+expectToken(const char** line, const char* s) {
+	if (!tokenIs(s))
+		error("%s expected", s);
+
+	nextToken(line);
+}
+
+
+static void
+freePools(intptr_t userData, intptr_t element) {
+	Pools* pools = (Pools*) element;
+	for (int i = 0; i < pools->count; ++i) {
+		pool_Free(pools->pools[i]);
+	}
+	mem_Free(pools->pools);
+	mem_Free(pools);
 }
 
 
@@ -121,8 +162,32 @@ parseInteger(const char** line, uint32_t* value) {
 static bool parseExpression_1(const char** line, uint32_t* value);
 
 static bool
+parseExpression_4(const char** line, uint32_t* value) {
+	if (tokenIs("@")) {
+		nextToken(line);
+		*value = pool_index;
+		return true;
+	}
+
+	if (parseInteger(line, value)) {
+		return true;
+	}
+
+	return false;
+}
+
+static bool
 parseExpression_3(const char** line, uint32_t* value) {
-	if (tokenIs("(")) {
+	while (tokenIs("+"))
+		nextToken(line);
+
+	if (tokenIs("-")) {
+		nextToken(line);
+		if (parseExpression_3(line, value)) {
+			*value = - *value;
+			return true;
+		}
+	} else if (tokenIs("(")) {
 		nextToken(line);
 		if (parseExpression_1(line, value)) {
 			if (tokenIs(")")) {
@@ -130,21 +195,8 @@ parseExpression_3(const char** line, uint32_t* value) {
 				return true;
 			}
 		}
-		return false;
-	}
-
-	if (tokenIs("+"))
-		nextToken(line);
-
-	bool negate = tokenIs("-");
-	if (negate)
-		nextToken(line);
-
-	if (parseInteger(line, value)) {
-		if (negate)
-			*value = -*value;
-
-		return true;
+	} else {
+		return parseExpression_4(line, value);
 	}
 
 	return false;
@@ -205,26 +257,74 @@ parseExpression_1(const char** line, uint32_t* value) {
 }
 
 
+/*
+static bool
+parseExpression(const char** line, uint32_t* value) {
+	const char* t = *line;
+
+	if (parseExpression_1(line, value))
+		return true;
+
+	error("Expression %s failed", t);		
+}
+*/
+
+
 #define parseExpression parseExpression_1
 
 
-static void
-parsePool(const char** line, strmap_t* pools) {
-	string* name = str_CreateLength(token, token_length);
-	nextToken(line);
+static uint32_t
+expectExpression(const char** line) {
+	uint32_t r;
+	if (!parseExpression(line, &r))
+		error("Error in expression");
 
+	return r;
+}
+
+
+static MemoryPool*
+parsePool(const char** line) {
 	uint32_t image_offset, cpu_address, cpu_bank, size;
 	if (parseExpression(line, &image_offset) && parseExpression(line, &cpu_address) && parseExpression(line, &cpu_bank) && parseExpression(line, &size)) {
-		MemoryPool* pool = pool_Create(image_offset, cpu_address, cpu_bank, size);
-		strmap_Insert(pools, name, (intptr_t) pool);
-	} else {
-		error("Error in pool definition");
+		return pool_Create(image_offset, cpu_address, cpu_bank, size);
 	}
+
+	error("Error in pool definition");
+	return NULL;
 }
 
 
 static void
-parsePools(const char** line, strmap_t* pools) {
+parsePoolDirective(const char** line, strmap_t* pool_map) {
+	string* name = str_CreateLength(token, token_length);
+	nextToken(line);
+
+	Pools* pools = allocPools(1);
+	pools->pools[0] = parsePool(line);
+	strmap_Insert(pool_map, name, (intptr_t) pools);
+}
+
+
+static void
+parsePoolsDirective(const char** line, strmap_t* pool_map) {
+	string* name = str_CreateLength(token, token_length);
+	nextToken(line);
+
+	expectToken(line, "[");
+	uint32_t range_start = expectExpression(line);
+	expectToken(line, ":");
+	uint32_t range_end = expectExpression(line);
+	if (!tokenIs("]"))
+		error("Expected ]");
+
+	Pools* pools = allocPools(range_end - range_start + 1);
+	for (pool_index = range_start; pool_index <= range_end; ++pool_index) {
+		const char* params = *line;
+		nextToken(&params);
+		pools->pools[pool_index - range_start] = parsePool(&params);
+	}	
+	strmap_Insert(pool_map, name, (intptr_t) pools);
 }
 
 
@@ -242,10 +342,10 @@ parseLine(const char* line, strmap_t* pools) {
 
 	if (tokenIs("POOL")) {
 		nextToken(&line);
-		parsePool(&line, pools);
+		parsePoolDirective(&line, pools);
 	} else if (tokenIs("POOLS")) {
 		nextToken(&line);
-		parsePools(&line, pools);
+		parsePoolsDirective(&line, pools);
 	} else if (tokenIs("GROUP")) {
 		nextToken(&line);
 		parseGroup(&line, pools);
@@ -279,7 +379,7 @@ readLine(FILE* file) {
 
 void
 mmap_Read(const string* filename) {
-	strmap_t* pools = strmap_Create(freePool); 
+	strmap_t* pools = strmap_Create(freePools); 
 	FILE* file = fopen(str_String(filename), "rt");
 
 	if (file == NULL)
