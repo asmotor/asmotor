@@ -27,6 +27,7 @@
 
 #include "error.h"
 #include "group.h"
+#include "xlink.h"
 
 
 typedef struct {
@@ -381,6 +382,54 @@ parseGroupDirective(const char** line, strmap_t* pool_map) {
 
 
 static void
+parseFormat(const char** line) {
+	if (tokenIs("CBM_PRG")) {
+		nextToken(line);
+		expectToken(line, "[");
+		g_cbmBaseAddress = expectExpression(line);
+		expectToken(line, "]");
+		g_allowedFormats |= FILE_FORMAT_CBM_PRG;
+
+		return;
+	}
+
+	if (tokenIs("BIN")) {
+		g_allowedFormats |= FILE_FORMAT_BINARY;
+	} else if (tokenIs("GAME_BOY")) {
+		g_allowedFormats |= FILE_FORMAT_GAME_BOY;
+	} else if (tokenIs("HUNK_EXE")) {
+		g_allowedFormats |= FILE_FORMAT_AMIGA_EXECUTABLE;
+	} else if (tokenIs("HUNK_OBJ")) {
+		g_allowedFormats |= FILE_FORMAT_AMIGA_LINK_OBJECT;
+	} else if (tokenIs("MEGA_DRIVE")) {
+		g_allowedFormats |= FILE_FORMAT_MEGA_DRIVE;
+	} else if (tokenIs("MASTER_SYSTEM")) {
+		g_allowedFormats |= FILE_FORMAT_MASTER_SYSTEM;
+	} else if (tokenIs("HC800_KERNEL")) {
+		g_allowedFormats |= FILE_FORMAT_HC800_KERNEL;
+	} else if (tokenIs("HC800")) {
+		g_allowedFormats |= FILE_FORMAT_HC800;
+	} else if (tokenIs("PGZ")) {
+		g_allowedFormats |= FILE_FORMAT_PGZ;
+	} else if (tokenIs("COCO_QL")) {
+		g_allowedFormats |= FILE_FORMAT_COCO_BIN;
+	} else {
+		error("Unknown format %*s", token_length, token);
+	}
+
+	nextToken(line);
+}
+
+
+static void
+parseFormatsDirective(const char** line) {
+	while (token_length != 0) {
+		parseFormat(line);
+	}
+}
+
+
+static void
 parseLine(const char* line, strmap_t* pools) {
 	nextToken(&line);
 
@@ -396,6 +445,9 @@ parseLine(const char* line, strmap_t* pools) {
 	} else if (tokenIs("GROUP")) {
 		nextToken(&line);
 		parseGroupDirective(&line, pools);
+	} else if (tokenIs("FORMATS")) {
+		nextToken(&line);
+		parseFormatsDirective(&line);
 	} else {
 		error("Unknown keyword %s in memory map", token);
 	}

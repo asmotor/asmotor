@@ -4,14 +4,6 @@ The linker is used to combine one or more object files produced by the assembler
 The linker will place sections according to the their placement (bank, offset) defined in the assembly file. If no particular location is defined, the order of objects on the command line matters. The first section of the first object will generally be placed first in the resulting image. This is often the entry point, but some platforms may
 define other entry points.
 
-## Linker map
-
-```
-POOL name cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
-POOLS name[start:end] cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
-GROUP name pool_name_1 pool_name_2 ... pool_name_n
-```
-
 ## Usage
     xlink [options] file1 [file2 [... filen]]
 
@@ -21,6 +13,41 @@ Prints a short summary of all options.
 ```
 -h   Short help text
 ```
+
+### Memory layout (-a)
+A memory layout file can be used to specify memory regions - locations, sizes and types.
+
+To define a memory layout, "groups" and "pools" must be declared.
+
+A group is the same as a section's type. If you have a `SECTION "Name",CODE`, then `CODE` is the name of the group in which the section will be placed. A group may consist of several pools of memory.
+
+A pool is a region in physical memory, for instance the range `$0000` to `$7FFF`. Such a pool does not need to have the same address in the CPU's address space. A pool may also be assigned a "bank" number (discoverable using the `BANK` assembler function), and finally it may be completely omitted from a binary image.
+
+## Layout map
+
+```
+POOL name cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
+POOLS name[start:end] cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
+GROUP name pool_name_1 pool_name_2 ... pool_name_n
+FORMATS format_1 format_2 ... format_n
+```
+
+### Formats
+| Id | Meaning |
+|---|---|
+|BIN|Binary, headerless file|
+|GAME_BOY|Game Boy ROM file|
+|HUNK_EXE|Amiga HUNK executable|
+|HUNK_OBJ|Amiga HUNK linkable object|
+|MEGA_DRIVE|SEGA Mega Drive/Genesis ROM file|
+|MASTER_SYSTEM|SEGA Master System ROM file|
+|HC800_KERNEL|HC800 kernel image|
+|HC800|HC800 executable|
+|PGZ|Foenix PGZ executable|
+|COCO_QL|TRS-80 Color Computer quickload image|
+|CBM_PRG[x]|Commodore .PRG at address x|
+
+
 
 ### Memory configuration (-c)
 
@@ -59,7 +86,7 @@ This option select the target machine's memory configuration. Various sections t
 
 The Commodore 128 Function ROM is a binary format that can be burned onto an EPROM and placed internally in the C128 (or externally on a cartridge). The images must start with a particular header. XLink doesn't produce this header automatically.
 
-The first object's first section must contain this header. Alternatively it's possible to specify a load address for a section and placed it at the right address.
+The first object's first section must contain this header. Alternatively it's possible to specify a load address for a section and place it at the right address.
 
 
 ### Output file format format

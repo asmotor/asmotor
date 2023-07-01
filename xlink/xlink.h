@@ -21,6 +21,24 @@
 
 #include "util.h"
 
+#define FILE_FORMAT_NONE				0x0000
+#define FILE_FORMAT_BINARY				0x0001
+#define FILE_FORMAT_GAME_BOY			0x0002
+#define FILE_FORMAT_AMIGA_EXECUTABLE	0x0004
+#define FILE_FORMAT_AMIGA_LINK_OBJECT	0x0008
+#define FILE_FORMAT_CBM_PRG				0x0010
+#define FILE_FORMAT_MEGA_DRIVE			0x0020
+#define FILE_FORMAT_MASTER_SYSTEM		0x0040
+#define FILE_FORMAT_HC800_KERNEL		0x0080
+#define FILE_FORMAT_HC800				0x0100
+#define FILE_FORMAT_PGZ					0x0200
+#define FILE_FORMAT_COCO_BIN			0x0400
+
+typedef uint32_t FileFormat;
+
+extern FileFormat g_allowedFormats;
+extern uint16_t g_cbmBaseAddress;
+
 NORETURN (extern void error(const char* fmt, ...));
 
 #endif

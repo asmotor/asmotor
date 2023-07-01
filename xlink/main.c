@@ -41,35 +41,21 @@
 #include "smart.h"
 #include "xlink.h"
 
-#define FILE_FORMAT_NONE				0x0000
-#define FILE_FORMAT_BINARY				0x0001
-#define FILE_FORMAT_GAME_BOY			0x0002
-#define FILE_FORMAT_AMIGA_EXECUTABLE	0x0004
-#define FILE_FORMAT_AMIGA_LINK_OBJECT	0x0008
-#define FILE_FORMAT_CBM_PRG				0x0010
-#define FILE_FORMAT_MEGA_DRIVE			0x0020
-#define FILE_FORMAT_MASTER_SYSTEM		0x0040
-#define FILE_FORMAT_HC800_KERNAL		0x0080
-#define FILE_FORMAT_HC800				0x0100
-#define FILE_FORMAT_PGZ					0x0200
-#define FILE_FORMAT_COCO_BIN			0x0400
-
 #define FF_GAME_BOY			(FILE_FORMAT_BINARY | FILE_FORMAT_GAME_BOY)
 #define FF_AMIGA			(FILE_FORMAT_BINARY | FILE_FORMAT_AMIGA_EXECUTABLE | FILE_FORMAT_AMIGA_LINK_OBJECT)
 #define FF_CBM				(FILE_FORMAT_BINARY | FILE_FORMAT_CBM_PRG)
 #define FF_MEGA_DRIVE		(FILE_FORMAT_BINARY | FILE_FORMAT_MEGA_DRIVE)
 #define FF_MASTER_SYSTEM	(FILE_FORMAT_BINARY | FILE_FORMAT_MASTER_SYSTEM)
-#define FF_HC800_KERNAL		(FILE_FORMAT_BINARY | FILE_FORMAT_HC800_KERNAL)
+#define FF_HC800_KERNEL		(FILE_FORMAT_BINARY | FILE_FORMAT_HC800_KERNEL)
 #define FF_HC800			(FILE_FORMAT_BINARY | FILE_FORMAT_HC800)
 #define FF_FOENIX			(FILE_FORMAT_BINARY | FILE_FORMAT_PGZ)
 #define FF_COCO				(FILE_FORMAT_BINARY | FILE_FORMAT_COCO_BIN)
 
-typedef uint32_t FileFormat;
+FileFormat g_allowedFormats = 0;
+uint16_t g_cbmBaseAddress = 0;
 
 static FileFormat g_outputFormat = FILE_FORMAT_NONE;
-static FileFormat g_allowedFormats = 0;
 static uint8_t* g_hc800Config = NULL;
-static uint16_t g_cbmBaseAddress = 0;
 static int g_binaryPad = -1;
 static const char* g_outputFilename = NULL;
 static const char* g_smartlink = NULL;
@@ -143,7 +129,7 @@ printUsage(void) {
            "          -fsmd       Sega Mega Drive ROM\n"
            "          -fsms       Sega Master System ROM\n"
            "          -fhc800     HC800 executable\n"
-           "          -fhc800k    HC800 kernal\n"
+           "          -fhc800k    HC800 kernel\n"
            "          -ffxpgz     Foenix PGZ\n"
            "          -fcocobin   TRS-80 Color Computer .bin\n"
 		   "\n"
@@ -174,10 +160,10 @@ handleFileFormatOption(const string* target) {
 	} else if (str_EqualConst(target, "sms")) {	/* Sega Master System 8 KiB */
 		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
 	} else if (str_EqualConst(target, "hc800k")) {	/* HC800 16 KiB text + data, 16 KiB bss */
-		g_outputFormat = FILE_FORMAT_HC800_KERNAL;
+		g_outputFormat = FILE_FORMAT_HC800_KERNEL;
 	} else if (str_EqualConst(target, "hc800")) {	/* HC800, CODE: 64 KiB text + data + bss */
 		g_outputFormat = FILE_FORMAT_HC800;
-	} else if (str_EqualConst(target, "fxpgz")) {	/* Foenix PKZ */
+	} else if (str_EqualConst(target, "fxpgz")) {	/* Foenix PGZ */
 		g_outputFormat = FILE_FORMAT_PGZ;
 	} else if (str_EqualConst(target, "cocobin")) {	/* CoCo BIN */
 		g_outputFormat = FILE_FORMAT_COCO_BIN;
@@ -265,8 +251,8 @@ handleTargetOption(const string* target) {
 		g_binaryPad = 0;
 	} else if (str_EqualConst(target, "hc8b")) {	/* HC800 16 KiB text + data, 16 KiB bss */
 		group_SetupHC8XXROM();
-		g_outputFormat = FILE_FORMAT_HC800_KERNAL;
-		g_allowedFormats = FF_HC800_KERNAL;
+		g_outputFormat = FILE_FORMAT_HC800_KERNEL;
+		g_allowedFormats = FF_HC800_KERNEL;
 		g_binaryPad = 0;
 	} else if (str_EqualConst(target, "hc8s")) {	/* HC800, CODE: 64 KiB text + data + bss */
 		group_SetupHC8XXSmall();
@@ -345,7 +331,7 @@ writeOutput(const char* g_outputFilename) {
 		case FILE_FORMAT_AMIGA_LINK_OBJECT:
 			amiga_WriteLinkObject(g_outputFilename, false);
 			break;
-		case FILE_FORMAT_HC800_KERNAL:
+		case FILE_FORMAT_HC800_KERNEL:
 			hc800_WriteKernal(g_outputFilename);
 			break;
 		case FILE_FORMAT_HC800:
@@ -359,6 +345,7 @@ writeOutput(const char* g_outputFilename) {
 			break;
 	}
 }
+
 
 static bool
 handleOption(const char* option) {
