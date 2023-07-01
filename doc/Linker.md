@@ -7,9 +7,9 @@ define other entry points.
 ## Linker map
 
 ```
-POOL name image_offset cpu_address cpu_bank size
-POOLS name[start:end] image_offset_expr cpu_address_expr cpu_bank_expr size_expr
-GROUP pool_name_1 pool_name_2 ... pool_name_n
+POOL name cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
+POOLS name[start:end] cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
+GROUP name pool_name_1 pool_name_2 ... pool_name_n
 ```
 
 ## Usage

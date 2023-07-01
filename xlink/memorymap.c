@@ -257,6 +257,9 @@ parseExpression_1(const char** line, uint32_t* value) {
 }
 
 
+#define parseExpression parseExpression_1
+
+
 /*
 static bool
 parseExpression(const char** line, uint32_t* value) {
@@ -270,7 +273,14 @@ parseExpression(const char** line, uint32_t* value) {
 */
 
 
-#define parseExpression parseExpression_1
+static uint32_t
+parseOffsetExpression(const char** line) {
+	uint32_t value;
+	if (parseExpression(line, &value))
+		return value;
+
+	return -1;
+}
 
 
 static uint32_t
@@ -285,8 +295,9 @@ expectExpression(const char** line) {
 
 static MemoryPool*
 parsePool(const char** line) {
-	uint32_t image_offset, cpu_address, cpu_bank, size;
-	if (parseExpression(line, &image_offset) && parseExpression(line, &cpu_address) && parseExpression(line, &cpu_bank) && parseExpression(line, &size)) {
+	uint32_t cpu_address, cpu_bank, size;
+	if (parseExpression(line, &cpu_address) && parseExpression(line, &cpu_bank) && parseExpression(line, &size)) {
+ 		uint32_t image_offset = parseOffsetExpression(line);
 		return pool_Create(image_offset, cpu_address, cpu_bank, size);
 	}
 
@@ -329,7 +340,15 @@ parsePoolsDirective(const char** line, strmap_t* pool_map) {
 
 
 static void
-parseGroup(const char** line, strmap_t* pools) {
+parseGroupDirective(const char** line, strmap_t* pools) {
+	string* name = str_CreateLength(token, token_length);
+	nextToken(line);
+
+	vec_t* pool_names = strvec_Create();
+	while (token_length != 0) {
+		strvec_PushBack(pool_names, str_CreateLength(token, token_length));
+		nextToken(line);
+	}
 }
 
 
@@ -348,7 +367,7 @@ parseLine(const char* line, strmap_t* pools) {
 		parsePoolsDirective(&line, pools);
 	} else if (tokenIs("GROUP")) {
 		nextToken(&line);
-		parseGroup(&line, pools);
+		parseGroupDirective(&line, pools);
 	} else {
 		error("Unknown keyword %s in memory map", token);
 	}
