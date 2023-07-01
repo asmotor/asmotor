@@ -12,6 +12,7 @@ add_executable (xlink
     image.c
     main.c
     mapfile.c
+    memorymap.c
     object.c
     patch.c
     section.c

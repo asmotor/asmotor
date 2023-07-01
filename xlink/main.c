@@ -33,6 +33,7 @@
 #include "hc800.h"
 #include "image.h"
 #include "mapfile.h"
+#include "memorymap.h"
 #include "object.h"
 #include "patch.h"
 #include "section.h"
@@ -185,101 +186,6 @@ handleFileFormatOption(const string* target) {
 	}
 }
 
-static void
-handleMemoryConfigurationOption(const string* target) {
-	if (str_EqualConst(target, "amiga")) {			/* Amiga executable */
-		group_SetupAmiga();
-		g_allowedFormats = FF_AMIGA;
-	} else if (str_EqualConst(target, "cbm64")) {	/* Commodore 64 .prg */
-		group_SetupCommodore64();
-		g_cbmBaseAddress = 0x0801;
-		g_allowedFormats = FF_CBM;
-	} else if (str_EqualConst(target, "cbm128")) {	/* Commodore 128 .prg */
-		group_SetupUnbankedCommodore128();
-		g_cbmBaseAddress = 0x1C01;
-		g_allowedFormats = FF_CBM;
-	} else if (str_EqualConst(target, "cbm128f")) {	/* Commodore 128 Function ROM */
-		group_SetupCommodore128FunctionROM();
-		g_allowedFormats = FILE_FORMAT_BINARY;
-		g_binaryPad = 0x8000;
-	} else if (str_EqualConst(target, "cbm128fl")) {	/* Commodore 128 Function ROM Low */
-		group_SetupCommodore128FunctionROMLow();
-		g_allowedFormats = FILE_FORMAT_BINARY;
-		g_binaryPad = 0x4000;
-	} else if (str_EqualConst(target, "cbm128fh")) {	/* Commodore 128 Function ROM High */
-		group_SetupCommodore128FunctionROMHigh();
-		g_allowedFormats = FILE_FORMAT_BINARY;
-		g_binaryPad = 0x4000;
-	} else if (str_EqualConst(target, "cbm264")) {	/* Commodore 264 series .prg */
-		group_SetupCommodore264();
-		g_cbmBaseAddress = 0x1001;
-		g_allowedFormats = FF_CBM;
-	} else if (str_EqualConst(target, "ngb")) {	/* Gameboy ROM image */
-		group_SetupGameboy();
-		g_allowedFormats = FF_GAME_BOY;
-	} else if (str_EqualConst(target, "ngbs")) {	/* Gameboy small mode ROM image */
-		group_SetupSmallGameboy();
-		g_allowedFormats = FF_GAME_BOY;
-	} else if (str_EqualConst(target, "smd")) {	/* Sega Mega Drive/Genesis */
-		group_SetupSegaMegaDrive();
-		g_allowedFormats = FF_MEGA_DRIVE;
-	} else if (str_EqualConst(target, "sms8")) {	/* Sega Master System 8 KiB */
-		group_SetupSegaMasterSystem(0x2000);
-		g_allowedFormats = FF_MASTER_SYSTEM;
-		g_binaryPad = 0x2000;
-	} else if (str_EqualConst(target, "sms16")) {	/* Sega Master System 16 KiB */
-		group_SetupSegaMasterSystem(0x4000);
-		g_allowedFormats = FF_MASTER_SYSTEM;
-		g_binaryPad = 0x4000;
-	} else if (str_EqualConst(target, "sms32")) {	/* Sega Master System 32 KiB */
-		group_SetupSegaMasterSystem(0x8000);
-		g_allowedFormats = FF_MASTER_SYSTEM;
-		g_binaryPad = 0x8000;
-	} else if (str_EqualConst(target, "sms48")) {	/* Sega Master System 48 KiB */
-		group_SetupSegaMasterSystem(0xC000);
-		g_allowedFormats = FF_MASTER_SYSTEM;
-		g_binaryPad = 0xC000;
-	} else if (str_EqualConst(target, "smsb")) {		/* Sega Master System 64+ KiB */
-		group_SetupSegaMasterSystemBanked();
-		g_allowedFormats = FF_MASTER_SYSTEM;
-		g_binaryPad = 0;
-	} else if (str_EqualConst(target, "hc800b")) {	/* HC800 16 KiB text + data, 16 KiB bss */
-		group_SetupHC8XXROM();
-		g_allowedFormats = FF_HC800_KERNAL;
-		g_binaryPad = 0;
-	} else if (str_EqualConst(target, "hc800s")) {	/* HC800, CODE: 64 KiB text + data + bss */
-		group_SetupHC8XXSmall();
-		g_allowedFormats = FF_HC800;
-		g_hc800Config = hc800_ConfigSmall;
-	} else if (str_EqualConst(target, "hc800sh")) {	/* HC800 CODE: 64 KiB text, DATA: 64 KiB data + bss */
-		group_SetupHC8XXSmallHarvard();
-		g_allowedFormats = FF_HC800;
-		g_hc800Config = hc800_ConfigSmallHarvard;
-	} else if (str_EqualConst(target, "hc800m")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text */
-		group_SetupHC8XXMedium();
-		g_allowedFormats = FF_HC800;
-		g_hc800Config = hc800_ConfigMedium;
-	} else if (str_EqualConst(target, "hc800mh")) {	/* HC800, CODE: 32 KiB text, CODE: 32 KiB sized text banks, DATA: 64 KiB data + bss */
-		group_SetupHC8XXMediumHarvard();
-		g_allowedFormats = FF_HC800;
-		g_hc800Config = hc800_ConfigMediumHarvard;
-	} else if (str_EqualConst(target, "hc800l")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text + data + bss */
-		group_SetupHC8XXLarge();
-		g_allowedFormats = FF_HC800;
-		g_hc800Config = hc800_ConfigLarge;
-	} else if (str_EqualConst(target, "fxa2560x")) {	/* Foenix A2560X/K */
-		foenix_SetupFoenixA2560XGroups();
-		g_allowedFormats = FF_FOENIX;
-	} else if (str_EqualConst(target, "fxf256jrs")) {	/* Foenix F256 Jr */
-		foenix_SetupFoenixF256JrSmallGroups();
-		g_allowedFormats = FF_FOENIX;
-	} else if (str_EqualConst(target, "coco")) {	/* TRS-80 Color Computer */
-		group_SetupCoCo();
-		g_allowedFormats = FF_COCO;
-	} else {
-		error("Unknown target \"%s\"", str_String(target));
-	}
-}
 
 static void
 handleTargetOption(const string* target) {
@@ -404,6 +310,14 @@ handleTargetOption(const string* target) {
 	}
 }
 
+
+static void
+handleMemoryConfigurationOption(const string* target) {
+	handleTargetOption(target);
+	g_outputFormat = FILE_FORMAT_NONE;
+}
+
+
 static void
 writeOutput(const char* g_outputFilename) {
 	switch (g_outputFormat) {
@@ -453,6 +367,35 @@ handleOption(const char* option) {
 		case 'h':
 			printUsage();
 			break;
+		case 'a': {	/* Memory map */
+			if (g_targetDefined) error("more than one target (option \"a\", \"t\", \"c\") defined");
+
+			g_targetDefined = true;
+			string* filename = str_ToLower(str_Create(&option[1]));
+			mmap_Read(filename);
+			str_Free(filename);
+			return true;
+		}
+		case 'c': {	/* Memory configuration */
+			if (g_targetDefined) error("more than one target (option \"a\", \"t\", \"c\") defined");
+
+			g_targetDefined = true;
+			string* target = str_ToLower(str_Create(&option[1]));
+			handleMemoryConfigurationOption(target);
+			str_Free(target);
+			return true;
+		}
+		case 'e':	/* Entry point */
+			if (option[1] == 0) error("option \"e\" needs an argument");
+			g_entry = &option[1];
+
+			return true;
+		case 'f': {	/* File format */
+			string* target = str_ToLower(str_Create(&option[1]));
+			handleFileFormatOption(target);
+			str_Free(target);
+			return true;
+		}
 		case 'm':	/* Map file */
 			if (option[1] == 0) error("option \"m\" needs an argument");
 
@@ -463,11 +406,6 @@ handleOption(const char* option) {
 
 			g_outputFilename = &option[1];
 			return true;
-		case 'e':	/* Entry point */
-			if (option[1] == 0) error("option \"e\" needs an argument");
-			g_entry = &option[1];
-
-			return true;
 		case 's':	/* Smart linking */
 			if (option[1] == 0) error("option \"s\" needs an argument");
 
@@ -477,28 +415,13 @@ handleOption(const char* option) {
 
 			return true;
 		case 't': {	/* Target */
-			if (g_targetDefined) error("more than one target (option \"t\", \"c\") defined");
+			if (g_targetDefined) error("more than one target (option \"a\", \"t\", \"c\") defined");
 
 			fprintf(stderr, "Warning: option -t is deprecated and has been replaced with -f and -c\n");
 			g_targetDefined = true;
 
 			string* target = str_ToLower(str_Create(&option[1]));
 			handleTargetOption(target);
-			str_Free(target);
-			return true;
-		}
-		case 'c': {	/* Memory configuration */
-			if (g_targetDefined) error("more than one target (option \"t\", \"c\") defined");
-
-			g_targetDefined = true;
-			string* target = str_ToLower(str_Create(&option[1]));
-			handleMemoryConfigurationOption(target);
-			str_Free(target);
-			return true;
-		}
-		case 'f': {	/* File format */
-			string* target = str_ToLower(str_Create(&option[1]));
-			handleFileFormatOption(target);
 			str_Free(target);
 			return true;
 		}

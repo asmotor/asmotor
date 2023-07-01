@@ -39,9 +39,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-mtedmon.bin.map", "-otedmon.bin", "-fbin", "-cfxf256jrs", "build-release/test.o", "build-release/text.o", "build-release/monitor.o"],
+            "args": ["-mhello.map", "-ohello.bin", "-fbin", "-alayout.mem", "-sEntry", "build-release/main.o"],
             "stopAtEntry": true,
-            "cwd": "/home/ces/dev/tedmonjr",
+            "cwd": "/home/ces/dev/f256jr-test",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

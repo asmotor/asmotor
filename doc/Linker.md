@@ -4,6 +4,14 @@ The linker is used to combine one or more object files produced by the assembler
 The linker will place sections according to the their placement (bank, offset) defined in the assembly file. If no particular location is defined, the order of objects on the command line matters. The first section of the first object will generally be placed first in the resulting image. This is often the entry point, but some platforms may
 define other entry points.
 
+## Linker map
+
+```
+POOL name image_offset cpu_address cpu_bank size
+POOLS name [i : start..end] image_offset_expr cpu_address_expr cpu_bank_expr size_expr
+GROUP pool_name_1 pool_name_2 ... pool_name_n
+```
+
 ## Usage
     xlink [options] file1 [file2 [... filen]]
 

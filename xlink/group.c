@@ -234,6 +234,19 @@ pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, int32_t cpuBank, ui
 }
 
 
+extern void
+pool_Free(MemoryPool* pool) {
+	MemoryChunk* chunk = pool->freeChunks;
+	while (chunk != NULL) {
+		MemoryChunk* next = chunk->nextChunk;
+		mem_Free(chunk);
+		chunk = next;
+	}
+
+	mem_Free(pool);
+}
+
+
 bool
 group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank,
                      int32_t* imageLocation) {
