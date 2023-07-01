@@ -52,6 +52,11 @@ addPool(Pools* pools, MemoryPool* pool) {
 */
 
 
+static void
+dummyFree(intptr_t userData, intptr_t element) {
+}
+
+
 #define DELIMITERS " \t\n$%%+-*/()[]:@"
 
 const char* token;
@@ -340,15 +345,38 @@ parsePoolsDirective(const char** line, strmap_t* pool_map) {
 
 
 static void
-parseGroupDirective(const char** line, strmap_t* pools) {
+parseGroupDirective(const char** line, strmap_t* pool_map) {
 	string* name = str_CreateLength(token, token_length);
 	nextToken(line);
 
-	vec_t* pool_names = strvec_Create();
+	vec_t* pool_list = vec_Create(dummyFree);
+	int total = 0;
 	while (token_length != 0) {
-		strvec_PushBack(pool_names, str_CreateLength(token, token_length));
+		string* name = str_CreateLength(token, token_length);
+
+		Pools* pools;
+		if (strmap_Value(pool_map, name, (intptr_t*) &pools)) {
+			vec_PushBack(pool_list, (intptr_t) pools);
+			total += pools->count;
+		} else {
+			error("Unknown pool %s", str_String(name));
+		}
+
 		nextToken(line);
+		str_Free(name);
 	}
+
+	MemoryGroup* group = group_Create(str_String(name), total);
+	total = 0;
+	for (size_t i = 0; i < vec_Count(pool_list); ++i) {
+		Pools* pools = (Pools*) vec_ElementAt(pool_list, i);
+		for (int j = 0; j < pools->count; ++j) {
+			group->pools[total++] = pools->pools[j];
+		}
+	}
+
+	vec_Free(pool_list);
+	str_Free(name);
 }
 
 
@@ -406,7 +434,7 @@ mmap_Read(const string* filename) {
 
 	string* line = NULL;
 	while ((line = readLine(file)) != NULL) {
-		str_Free(line);
 		parseLine((char *) str_String(line), pools);
+		str_Free(line);
 	}
 }
