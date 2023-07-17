@@ -1,5 +1,5 @@
 # SCHIP
-CHIP-8 and SCHIP have no officially defined mnemonics. ASMotor uses a set of mnemonics that is similar to other ISA's and should be easy to learn.
+CHIP-8 and SCHIP have no officially defined mnemonics. ASMotor uses a set of mnemonics that is similar to other ISAs and should be easy to learn.
 
 ## Section alignment
 Sections are not aligned to any particular multiple.

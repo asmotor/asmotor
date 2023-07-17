@@ -91,7 +91,7 @@ deb: source
 	pkgname=asmotor
 	pkgver={{version}}
 	pkgrel=1
-	pkgdesc="Cross assembler package for several CPU's"
+	pkgdesc="Cross assembler package for several CPUs"
 	arch=("{{arch()}}")
 	url="https://github.com/asmotor/asmotor"
 	license=("GPL-3")

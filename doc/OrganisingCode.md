@@ -155,7 +155,7 @@ A section stack is available, which is particularly useful when defining section
 * [Introduction](Introduction.md), goals and background
 * [Invoking the assembler](Assembler.md) and basic syntax
 * [Symbols](Symbols.md) and labels
-* [Control structures](ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Control structures](ControlStructures.md) like ```INCLUDE```, ```MACRO```s and conditional assembling.
 * [Expressions](Expressions.md) and how they're built
 * [Printing diagnostic messages](Diagnostics.md), warnings and errors
 * [Organising code](OrganisingCode.md) into sections. How to define data.

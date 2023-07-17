@@ -13,6 +13,9 @@ In order to link object files for a specific platform, it must first be defined.
 A custom machine definition may also defined by the user.
 
 [Amiga](LinkerAmiga.md)
+[Commodore 8-bit](LinkerCommodore.md)
+[Nintendo Game Boy](LinkerGameboy.md)
+[Sega Mega Drive](LinkerMegaDrive.md)
 
 
 ###
@@ -192,7 +195,7 @@ The section containing `<symbol>` will be considered in use, as will any section
 * [Introduction](Introduction.md), goals and background
 * [Invoking the assembler](Assembler.md) and basic syntax
 * [Symbols](Symbols.md) and labels
-* [Control structures](ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Control structures](ControlStructures.md) like ```INCLUDE```, ```MACRO```s and conditional assembling.
 * [Expressions](Expressions.md) and how they're built
 * [Printing diagnostic messages](Diagnostics.md), warnings and errors
 * [Organising code](OrganisingCode.md) into sections. How to define data.

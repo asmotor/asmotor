@@ -99,10 +99,7 @@ printUsage(void) {
            "          -cngb       Game Boy ROM image\n"
            "          -cngbs      Game Boy small mode (32 KiB)\n"
            "          -csmd       Sega Mega Drive\n"
-           "          -csms8      Sega Master System (8 KiB)\n"
-           "          -csms16     Sega Master System (16 KiB)\n"
-           "          -csms32     Sega Master System (32 KiB)\n"
-           "          -csms48     Sega Master System (48 KiB)\n"
+           "          -csms       Sega Master System (32 KiB)\n"
            "          -csmsb      Sega Master System banked (64+ KiB)\n"
            "          -chc800b    HC800 16 KiB ROM\n"
            "          -chc800s    HC800 small mode (64 KiB text + data + bss)\n"
@@ -126,7 +123,7 @@ printUsage(void) {
            "          -fbin       Binary\n"
            "          -fcbm       Commodore .PRG\n"
            "          -fngb       Game Boy ROM\n"
-           "          -fsmd       Sega Mega Drive ROM\n"
+           "          -fsmd       Sega Mega Drive/Genesis ROM\n"
            "          -fsms       Sega Master System ROM\n"
            "          -fhc800     HC800 executable\n"
            "          -fhc800k    HC800 kernel\n"
@@ -157,7 +154,7 @@ handleFileFormatOption(const string* target) {
 		g_outputFormat = FILE_FORMAT_GAME_BOY;
 	} else if (str_EqualConst(target, "smd")) {	/* Sega Mega Drive/Genesis */
 		g_outputFormat = FILE_FORMAT_MEGA_DRIVE;
-	} else if (str_EqualConst(target, "sms")) {	/* Sega Master System 8 KiB */
+	} else if (str_EqualConst(target, "sms")) {	/* Sega Master System */
 		g_outputFormat = FILE_FORMAT_MASTER_SYSTEM;
 	} else if (str_EqualConst(target, "hc800k")) {	/* HC800 16 KiB text + data, 16 KiB bss */
 		g_outputFormat = FILE_FORMAT_HC800_KERNEL;
@@ -349,10 +346,6 @@ handleMemoryConfigurationOption(const string* target) {
 		group_SetupSegaMasterSystem(0x8000);
 		g_allowedFormats = FF_MASTER_SYSTEM;
 		g_binaryPad = 0x8000;
-	} else if (str_EqualConst(target, "sms48")) {	/* Sega Master System 48 KiB */
-		group_SetupSegaMasterSystem(0xC000);
-		g_allowedFormats = FF_MASTER_SYSTEM;
-		g_binaryPad = 0xC000;
 	} else if (str_EqualConst(target, "smsb")) {		/* Sega Master System 64+ KiB */
 		group_SetupSegaMasterSystemBanked();
 		g_allowedFormats = FF_MASTER_SYSTEM;

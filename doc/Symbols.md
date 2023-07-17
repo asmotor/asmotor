@@ -81,7 +81,7 @@ Integer symbols are often used to define the offsets of structure members or enu
 | ```Symbol __RSW constexpr``` | Sets ```Symbol``` to ```__RS``` and adds 2*```constexpr``` to ```__RS``` |
 | ```Symbol __RSL constexpr``` | Sets Symbol to ```__RS``` and adds 4*```constexpr``` to ```__RS``` |
 
-The ```__RSB```, ```__RSW``` and ```__RSL``` directives are always available as a portable way to define RS symbols. The different CPU's use different conventions and have other, possibly more convenient, aliases available:
+The ```__RSB```, ```__RSW``` and ```__RSL``` directives are always available as a portable way to define RS symbols. The different CPUs use different conventions and have other, possibly more convenient, aliases available:
 
 | Portable | 6502 | Z80 | M68K | MIPS | DCPU-16 | SCHIP | 6809 |
 |---|---|---|---|---|---|---|---|
@@ -194,7 +194,7 @@ Symbol  EQUS "push\n"   ; define Symbol
 * [Introduction](Introduction.md), goals and background
 * [Invoking the assembler](Assembler.md) and basic syntax
 * [Symbols](Symbols.md) and labels
-* [Control structures](ControlStructures.md) like ```INCLUDE```, ```MACRO```'s and conditional assembling.
+* [Control structures](ControlStructures.md) like ```INCLUDE```, ```MACRO```s and conditional assembling.
 * [Expressions](Expressions.md) and how they're built
 * [Printing diagnostic messages](Diagnostics.md), warnings and errors
 * [Organising code](OrganisingCode.md) into sections. How to define data.
