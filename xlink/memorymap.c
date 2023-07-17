@@ -304,7 +304,7 @@ parsePool(const char** line) {
 	uint32_t cpu_address, cpu_bank, size;
 	if (parseExpression(line, &cpu_address) && parseExpression(line, &cpu_bank) && parseExpression(line, &size)) {
  		uint32_t image_offset = parseOffsetExpression(line);
-		return pool_Create(image_offset, cpu_address, cpu_bank, size);
+		return pool_Create(image_offset, cpu_address, cpu_bank, size, false);
 	}
 
 	error("Error in pool definition");

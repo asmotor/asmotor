@@ -7,6 +7,16 @@ define other entry points.
 ## Usage
     xlink [options] file1 [file2 [... filen]]
 
+## Machine definitions
+In order to link object files for a specific platform, it must first be defined. Definitions for several platforms are already built in.
+
+A custom machine definition may also defined by the user.
+
+[Amiga](LinkerAmiga.md)
+
+
+###
+
 ## Options
 ### Help (-h)
 Prints a short summary of all options.

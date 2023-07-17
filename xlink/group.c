@@ -111,17 +111,17 @@ group_InitCommonGameboy(void) {
     //	Create VRAM group
 
     group = group_Create("VRAM", 1);
-    group->pools[0] = pool_Create(-1, 0x8000, 0, 0x2000);
+    group->pools[0] = pool_Create(-1, 0x8000, 0, 0x2000, false);
 
     //	Create BSS group
 
     group = group_Create("BSS", 1);
-    group->pools[0] = pool_Create(-1, 0xC000, 0, 0x2000);
+    group->pools[0] = pool_Create(-1, 0xC000, 0, 0x2000, false);
 
     //	Create HRAM group
 
     group = group_Create("HRAM", 1);
-    group->pools[0] = pool_Create(-1, 0xFF80, 0, 0x7F);
+    group->pools[0] = pool_Create(-1, 0xFF80, 0, 0x7F, false);
 }
 
 static MemoryGroup*
@@ -220,13 +220,14 @@ group_Create(const char* groupName, uint32_t totalBanks) {
 
 
 extern MemoryPool*
-pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size) {
+pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size, bool onlyAbs) {
     MemoryPool* pool = (MemoryPool*) mem_Alloc(sizeof(MemoryPool));
 
     pool->imageLocation = imageLocation;
     pool->cpuByteLocation = cpuByteLocation;
     pool->cpuBank = cpuBank;
     pool->size = size;
+	pool->onlyAbs = onlyAbs;
 
     pool->freeChunks = NULL;
 
@@ -275,7 +276,7 @@ group_SetupGameboy(void) {
     MemoryGroup* group;
 
     for (int i = 0; i < 256; ++i)
-        codepools[i] = pool_Create(i * 0x4000, i == 0 ? 0x0000 : 0x4000, i, 0x4000);
+        codepools[i] = pool_Create(i * 0x4000, i == 0 ? 0x0000 : 0x4000, i, 0x4000, false);
 
     //	Create HOME group
 
@@ -304,7 +305,7 @@ group_SetupSmallGameboy(void) {
     MemoryPool* codepool;
     MemoryGroup* group;
 
-    codepool = pool_Create(0, 0x0000, 0, 0x8000);
+    codepool = pool_Create(0, 0x0000, 0, 0x8000, false);
 
     //	Create HOME group
 
@@ -334,8 +335,8 @@ group_SetupAmiga(void) {
     MemoryPool* codepool;
     MemoryPool* chippool;
 
-    codepool = pool_Create(0x00200000, 0, 0, 0x3FFFFFFF);
-    chippool = pool_Create(0x00000000, 0, 0, 0x3FFFFFFF);
+    codepool = pool_Create(0x00200000, 0, 0, 0x3FFFFFFF, false);
+    chippool = pool_Create(0x00000000, 0, 0, 0x001FFFFF, false);
 
     //	Create CODE group
     group = group_Create("CODE", 1);
@@ -355,91 +356,18 @@ group_SetupAmiga(void) {
 
     //	Create BSS group
     group = group_Create("BSS", 1);
-    group->pools[0] = pool_Create(-1, 0, 0, 0x3FFFFFFF);
+    group->pools[0] = pool_Create(-1, 0, 0, 0x3FFFFFFF, false);
 
     //	Create BSS_C group
     group = group_Create("BSS_C", 1);
-    group->pools[0] = pool_Create(-1, 0, 0, 0x3FFFFFFF);
-}
-
-static void
-group_SetupUnbankedCommodore(uint32_t baseAddress, uint32_t size) {
-    MemoryGroup* group;
-    MemoryPool* codepool;
-
-    codepool = pool_Create(0, baseAddress, 0, size);
-
-    //	Create CODE group
-    group = group_Create("CODE", 1);
-    group->pools[0] = codepool;
-
-    //	Create DATA group
-    group = group_Create("DATA", 1);
-    group->pools[0] = codepool;
-
-    //	Create BSS group
-    group = group_Create("BSS", 3);
-    group->pools[0] = codepool;
-    group->pools[1] = pool_Create(-1, 0, 0, baseAddress);
-    group->pools[2] = pool_Create(-1, baseAddress + size, 0, 0x10000 - baseAddress - size);
-}
-
-void
-group_SetupUnbankedCommodore128(void) {
-    group_SetupUnbankedCommodore(0x1C0E, 0xF000 - 0x1C0E);
-}
-
-void
-group_SetupCommodore64(void) {
-    group_SetupUnbankedCommodore(0x080E, 0xA000 - 0x080E);
-}
-
-void
-group_SetupCommodore264(void) {
-    group_SetupUnbankedCommodore(0x100E, 0xFD00 - 0x100E);
-}
-
-static void
-setupCommodore128ROM(uint32_t baseAddress, uint32_t size) {
-    MemoryGroup* group;
-    MemoryPool* pool;
-
-    pool = pool_Create(0, baseAddress, 0, size);
-
-    //	Create CODE group
-    group = group_Create("CODE", 1);
-    group->pools[0] = pool;
-
-    //	Create DATA group
-    group = group_Create("DATA", 1);
-    group->pools[0] = pool;
-
-    //	Create BSS group
-    pool = pool_Create(-1, 0x0000, 0, 0x10000);
-    group = group_Create("BSS", 1);
-    group->pools[0] = pool;
-}
-
-void
-group_SetupCommodore128FunctionROM() {
-    setupCommodore128ROM(0x8000, 0x8000);
-}
-
-void
-group_SetupCommodore128FunctionROMLow() {
-    setupCommodore128ROM(0x8000, 0x4000);
-}
-
-void
-group_SetupCommodore128FunctionROMHigh() {
-    setupCommodore128ROM(0xC000, 0x4000);
+    group->pools[0] = pool_Create(-1, 0, 0, 0x3FFFFFFF, false);
 }
 
 void
 group_SetupSegaMegaDrive() {
     MemoryGroup* group;
-    MemoryPool* rompool = pool_Create(0, 0x000000, 0, 0x400000);
-    MemoryPool* rampool = pool_Create(0, 0xFF0000, 0, 0x10000);
+    MemoryPool* rompool = pool_Create(0, 0x000000, 0, 0x400000, false);
+    MemoryPool* rampool = pool_Create(0, 0xFF0000, 0, 0x10000, false);
 
     //	Create CODE group
     group = group_Create("CODE", 1);
@@ -458,8 +386,8 @@ void
 group_SetupSegaMasterSystem(int size) {
     MemoryGroup* group;
 
-    MemoryPool* homepool = pool_Create(0, 0, 0, 0x400);
-    MemoryPool* codepool = pool_Create(0x400, 0x400, 0, size - 16 - 0x400);
+    MemoryPool* homepool = pool_Create(0, 0, 0, 0x400, false);
+    MemoryPool* codepool = pool_Create(0x400, 0x400, 0, size - 16 - 0x400, false);
 
     //	Create CODE group
 
@@ -481,7 +409,7 @@ group_SetupSegaMasterSystem(int size) {
     //	Create BSS group
 
     group = group_Create("BSS", 1);
-    group->pools[0] = pool_Create(-1, 0xC000, 0, 0x1FF8);
+    group->pools[0] = pool_Create(-1, 0xC000, 0, 0x1FF8, false);
 }
 
 void
@@ -490,10 +418,10 @@ group_SetupSegaMasterSystemBanked(void) {
     MemoryPool* codepools[64];
     MemoryGroup* group;
 
-    codepool = pool_Create(0, 0, 0, 0x400);
-    codepools[0] = pool_Create(0x400, 0x400, 0, 0x4000 - 0x400);
+    codepool = pool_Create(0, 0, 0, 0x400, false);
+    codepools[0] = pool_Create(0x400, 0x400, 0, 0x4000 - 0x400, false);
     for (int i = 1; i < 64; ++i)
-        codepools[i - 1] = pool_Create(i * 0x4000, 0x8000, i, 0x4000);
+        codepools[i - 1] = pool_Create(i * 0x4000, 0x8000, i, 0x4000, false);
 
     //	Create HOME group
 
@@ -517,7 +445,7 @@ group_SetupSegaMasterSystemBanked(void) {
     //	Create BSS group
 
     group = group_Create("BSS", 1);
-    group->pools[0] = pool_Create(-1, 0xC000, 0, 0x1FF8);
+    group->pools[0] = pool_Create(-1, 0xC000, 0, 0x1FF8, false);
 }
 
 
@@ -525,8 +453,8 @@ void
 group_SetupHC8XXROM(void) {
     MemoryGroup* group;
 
-    MemoryPool* codepool = pool_Create(0, 0, 1, 0x4000);
-	MemoryPool* bss = pool_Create(-1, 0x0000, 0x80, 0x4000);
+    MemoryPool* codepool = pool_Create(0, 0, 1, 0x4000, false);
+	MemoryPool* bss = pool_Create(-1, 0x0000, 0x80, 0x4000, false);
 
     //	Create HOME group
 
@@ -570,8 +498,8 @@ group_SetupHC8XXSmall(void) {
 	/* HC800, CODE: 64 KiB text + data + bss */
     MemoryGroup* group;
 
-    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
-    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0xC000);
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000, false);
+    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0xC000, false);
 
     //	Create HOME group
 
@@ -618,10 +546,10 @@ group_SetupHC8XXSmallHarvard(void) {
 	/* HC800 CODE: 64 KiB text, DATA: 64 KiB data + bss */
     MemoryGroup* group;
 
-    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
-    MemoryPool* codeShared = pool_Create(0, 0x4000, 0x82, 0xC000);
-    MemoryPool* data = pool_Create(0, 0, 0x85, 0x4000);
-    MemoryPool* dataShared = pool_Create(0, 0x4000, 0x86, 0xC000);
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000, false);
+    MemoryPool* codeShared = pool_Create(0, 0x4000, 0x82, 0xC000, false);
+    MemoryPool* data = pool_Create(0, 0, 0x85, 0x4000, false);
+    MemoryPool* dataShared = pool_Create(0, 0x4000, 0x86, 0xC000, false);
 
     //	Create HOME group
 
@@ -668,13 +596,13 @@ group_SetupHC8XXMedium(void) {
 	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text */
     MemoryGroup* group;
 
-    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
-    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x8000);
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000, false);
+    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x8000, false);
 	int firstCodeBank = 0x83;
 	int codeBanks = (0x100 - firstCodeBank) / 2;
 	MemoryPool* banks[HC800_MAX_BANKS];
 	for (int i = 0; i < codeBanks; ++i) {
-		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000);
+		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000, false);
 	}
 
     //	Create HOME group
@@ -726,16 +654,16 @@ group_SetupHC8XXMediumHarvard(void) {
 	/* HC800, CODE: 32 KiB text, CODE: 32 KiB sized text banks, DATA: 64 KiB data + bss */
     MemoryGroup* group;
 
-    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
-    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x4000);
-    MemoryPool* data = pool_Create(0, 0, 0x83, 0x4000);
-    MemoryPool* dataShared = pool_Create(0, 0x4000, 0x84, 0xC000);
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000, false);
+    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x4000, false);
+    MemoryPool* data = pool_Create(0, 0, 0x83, 0x4000, false);
+    MemoryPool* dataShared = pool_Create(0, 0x4000, 0x84, 0xC000, false);
 
 	int firstCodeBank = 0x87;
 	int codeBanks = (0x100 - firstCodeBank) / 2;
 	MemoryPool* banks[HC800_MAX_BANKS];
 	for (int i = 0; i < codeBanks; ++i) {
-		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000);
+		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000, false);
 	}
 
     //	Create HOME group
@@ -788,13 +716,13 @@ group_SetupHC8XXLarge(void) {
 
     MemoryGroup* group;
 
-    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
-    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x4000);
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000, false);
+    MemoryPool* shared = pool_Create(0, 0x4000, 0x82, 0x4000, false);
 	int firstCodeBank = 0x83;
 	int codeBanks = (0x100 - firstCodeBank) / 2;
 	MemoryPool* banks[HC800_MAX_BANKS];
 	for (int i = 0; i < codeBanks; ++i) {
-		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000);
+		banks[i] = pool_Create(0, 0x8000, i * 2 + firstCodeBank, 0x8000, false);
 	}
 
     //	Create HOME group
@@ -853,10 +781,10 @@ group_SetupHC8XXLargeHarvard(void) {
 
     MemoryGroup* group;
 
-    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000);
-    MemoryPool* sharedCode = pool_Create(0, 0x4000, 0x82, 0x4000);
-	MemoryPool* bssPool = pool_Create(0, 0x0000, 0x83, 0x4000);
-	MemoryPool* sharedBssPool = pool_Create(0, 0x4000, 0x84, 0xC000);
+    MemoryPool* home = pool_Create(0, 0, 0x81, 0x4000, false);
+    MemoryPool* sharedCode = pool_Create(0, 0x4000, 0x82, 0x4000, false);
+	MemoryPool* bssPool = pool_Create(0, 0x0000, 0x83, 0x4000, false);
+	MemoryPool* sharedBssPool = pool_Create(0, 0x4000, 0x84, 0xC000, false);
 	int firstCodeBank = 0x87;
 	int codeBanks = (0x100 - firstCodeBank) / 2;
 
@@ -872,7 +800,7 @@ group_SetupHC8XXLargeHarvard(void) {
     group->pools[0] = home;
     group->pools[1] = sharedCode;
 	for (int i = 0; i < codeBanks; ++i) {
-		group->pools[i + 2] = pool_Create(0, 0x8000, firstCodeBank + i * 2, 0x8000);
+		group->pools[i + 2] = pool_Create(0, 0x8000, firstCodeBank + i * 2, 0x8000, false);
 	}
 
     //	Create DATA group
@@ -908,7 +836,7 @@ void
 group_SetupCoCo(void) {
     MemoryGroup* group;
 
-    MemoryPool* system_ram = pool_Create(0, 0x600, 0, 0x8000 - 0x600);
+    MemoryPool* system_ram = pool_Create(0, 0x600, 0, 0x8000 - 0x600, false);
 
     //	Create CODE group
 

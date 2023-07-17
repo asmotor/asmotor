@@ -22,4 +22,22 @@
 extern void
 commodore_WritePrg(const char* outputFilename, const char* entry, uint32_t baseAddress);
 
+extern void
+commodore_SetupUnbankedCommodore128(void);
+
+extern void
+commodore_SetupCommodore64(void);
+
+extern void
+commodore_SetupCommodore264(void);
+
+extern void
+commodore_SetupCommodore128FunctionROM(void);
+
+extern void
+commodore_SetupCommodore128FunctionROMLow(void);
+
+extern void
+commodore_SetupCommodore128FunctionROMHigh(void);
+
 #endif

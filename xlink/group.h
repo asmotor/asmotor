@@ -30,6 +30,7 @@ typedef struct {
     uint32_t cpuByteLocation;   // Where the CPU sees this pool in its address space
     int32_t cpuBank;            // What the CPU calls this bank
     uint32_t size;              // Size of pool seen from the CPU
+	bool onlyAbs;				// Only allow absolute placement, never allocate dynamically
 
     struct MemoryChunk_* freeChunks;
 } MemoryPool;
@@ -45,7 +46,7 @@ typedef struct MemoryGroup_ {
 
 
 extern MemoryPool*
-pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size);
+pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size, bool onlyAbs);
 
 extern void
 pool_Free(MemoryPool* pool);
@@ -64,24 +65,6 @@ group_SetupSmallGameboy(void);
 
 extern void
 group_SetupAmiga(void);
-
-extern void
-group_SetupCommodore64(void);
-
-extern void
-group_SetupCommodore264(void);
-
-extern void
-group_SetupUnbankedCommodore128(void);
-
-extern void
-group_SetupCommodore128FunctionROM(void);
-
-extern void
-group_SetupCommodore128FunctionROMHigh(void);
-
-extern void
-group_SetupCommodore128FunctionROMLow(void);
 
 extern void
 group_SetupSegaMegaDrive(void);

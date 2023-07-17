@@ -174,7 +174,7 @@ handleFileFormatOption(const string* target) {
 
 
 static void
-handleTargetOption(const string* target) {
+handleLegacyTargetOption(const string* target) {
 	if (str_EqualConst(target, "a")) {			/* Amiga executable */
 		group_SetupAmiga();
 		g_outputFormat = FILE_FORMAT_AMIGA_EXECUTABLE;
@@ -192,31 +192,31 @@ handleTargetOption(const string* target) {
 		g_outputFormat = FILE_FORMAT_GAME_BOY;
 		g_allowedFormats = FF_GAME_BOY;
 	} else if (str_EqualConst(target, "c64")) {	/* Commodore 64 .prg */
-		group_SetupCommodore64();
+		commodore_SetupCommodore64();
 		g_cbmBaseAddress = 0x0801;
 		g_outputFormat = FILE_FORMAT_CBM_PRG;
 		g_allowedFormats = FF_CBM;
 	} else if (str_EqualConst(target, "c128")) {	/* Commodore 128 .prg */
-		group_SetupUnbankedCommodore128();
+		commodore_SetupUnbankedCommodore128();
 		g_cbmBaseAddress = 0x1C01;
 		g_outputFormat = FILE_FORMAT_CBM_PRG;
 		g_allowedFormats = FF_CBM;
 	} else if (str_EqualConst(target, "c128f")) {	/* Commodore 128 Function ROM */
-		group_SetupCommodore128FunctionROM();
+		commodore_SetupCommodore128FunctionROM();
 		g_outputFormat = FILE_FORMAT_BINARY;
 		g_allowedFormats = FILE_FORMAT_BINARY;
 		g_binaryPad = 0x8000;
 	} else if (str_EqualConst(target, "c128fl")) {	/* Commodore 128 Function ROM Low */
-		group_SetupCommodore128FunctionROMLow();
+		commodore_SetupCommodore128FunctionROMLow();
 		g_outputFormat = FILE_FORMAT_BINARY;
 		g_allowedFormats = FILE_FORMAT_BINARY;
 		g_binaryPad = 0x4000;
 	} else if (str_EqualConst(target, "c128fh")) {	/* Commodore 128 Function ROM High */
-		group_SetupCommodore128FunctionROMHigh();
+		commodore_SetupCommodore128FunctionROMHigh();
 		g_allowedFormats = FILE_FORMAT_BINARY;
 		g_binaryPad = 0x4000;
 	} else if (str_EqualConst(target, "c264")) {	/* Commodore 264 series .prg */
-		group_SetupCommodore264();
+		commodore_SetupCommodore264();
 		g_cbmBaseAddress = 0x1001;
 		g_outputFormat = FILE_FORMAT_CBM_PRG;
 		g_allowedFormats = FF_CBM;
@@ -299,8 +299,100 @@ handleTargetOption(const string* target) {
 
 static void
 handleMemoryConfigurationOption(const string* target) {
-	handleTargetOption(target);
 	g_outputFormat = FILE_FORMAT_NONE;
+
+	if (str_EqualConst(target, "amiga")) {		/* Amiga */
+		group_SetupAmiga();
+		g_allowedFormats = FF_AMIGA;
+	} else if (str_EqualConst(target, "c64")) {	/* Commodore 64 .prg */
+		commodore_SetupCommodore64();
+		g_cbmBaseAddress = 0x0801;
+		g_allowedFormats = FF_CBM;
+	} else if (str_EqualConst(target, "c128")) {	/* Commodore 128 .prg */
+		commodore_SetupUnbankedCommodore128();
+		g_cbmBaseAddress = 0x1C01;
+		g_allowedFormats = FF_CBM;
+	} else if (str_EqualConst(target, "c128f")) {	/* Commodore 128 Function ROM */
+		commodore_SetupCommodore128FunctionROM();
+		g_allowedFormats = FILE_FORMAT_BINARY;
+		g_binaryPad = 0x8000;
+	} else if (str_EqualConst(target, "c128fl")) {	/* Commodore 128 Function ROM Low */
+		commodore_SetupCommodore128FunctionROMLow();
+		g_allowedFormats = FILE_FORMAT_BINARY;
+		g_binaryPad = 0x4000;
+	} else if (str_EqualConst(target, "c128fh")) {	/* Commodore 128 Function ROM High */
+		commodore_SetupCommodore128FunctionROMHigh();
+		g_allowedFormats = FILE_FORMAT_BINARY;
+		g_binaryPad = 0x4000;
+	} else if (str_EqualConst(target, "c264")) {	/* Commodore 264 series .prg */
+		commodore_SetupCommodore264();
+		g_cbmBaseAddress = 0x1001;
+		g_allowedFormats = FF_CBM;
+	} else if (str_EqualConst(target, "ngb")) {	/* Gameboy ROM image */
+		group_SetupGameboy();
+		g_allowedFormats = FF_GAME_BOY;
+	} else if (str_EqualConst(target, "ngbs")) {	/* Gameboy small mode ROM image */
+		group_SetupSmallGameboy();
+		g_allowedFormats = FF_GAME_BOY;
+	} else if (str_EqualConst(target, "smd")) {	/* Sega Mega Drive/Genesis */
+		group_SetupSegaMegaDrive();
+		g_allowedFormats = FF_MEGA_DRIVE;
+	} else if (str_EqualConst(target, "sms8")) {	/* Sega Master System 8 KiB */
+		group_SetupSegaMasterSystem(0x2000);
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0x2000;
+	} else if (str_EqualConst(target, "sms16")) {	/* Sega Master System 16 KiB */
+		group_SetupSegaMasterSystem(0x4000);
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0x4000;
+	} else if (str_EqualConst(target, "sms32")) {	/* Sega Master System 32 KiB */
+		group_SetupSegaMasterSystem(0x8000);
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0x8000;
+	} else if (str_EqualConst(target, "sms48")) {	/* Sega Master System 48 KiB */
+		group_SetupSegaMasterSystem(0xC000);
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0xC000;
+	} else if (str_EqualConst(target, "smsb")) {		/* Sega Master System 64+ KiB */
+		group_SetupSegaMasterSystemBanked();
+		g_allowedFormats = FF_MASTER_SYSTEM;
+		g_binaryPad = 0;
+	} else if (str_EqualConst(target, "hc800b")) {	/* HC800 16 KiB text + data, 16 KiB bss */
+		group_SetupHC8XXROM();
+		g_allowedFormats = FF_HC800_KERNEL;
+		g_binaryPad = 0;
+	} else if (str_EqualConst(target, "hc8s")) {	/* HC800, CODE: 64 KiB text + data + bss */
+		group_SetupHC8XXSmall();
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigSmall;
+	} else if (str_EqualConst(target, "hc8sh")) {	/* HC800 CODE: 64 KiB text, DATA: 64 KiB data + bss */
+		group_SetupHC8XXSmallHarvard();
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigSmallHarvard;
+	} else if (str_EqualConst(target, "hc8m")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text */
+		group_SetupHC8XXMedium();
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigMedium;
+	} else if (str_EqualConst(target, "hc8mh")) {	/* HC800, CODE: 32 KiB text, CODE: 32 KiB sized text banks, DATA: 64 KiB data + bss */
+		group_SetupHC8XXMediumHarvard();
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigMediumHarvard;
+	} else if (str_EqualConst(target, "hc8l")) {	/* HC800, CODE: 32 KiB text + data + bss, CODE: 32 KiB sized banks text + data + bss */
+		group_SetupHC8XXLarge();
+		g_allowedFormats = FF_HC800;
+		g_hc800Config = hc800_ConfigLarge;
+	} else if (str_EqualConst(target, "fxa2560x")) {	/* Foenix A2560X/K */
+		foenix_SetupFoenixA2560XGroups();
+		g_allowedFormats = FF_FOENIX;
+	} else if (str_EqualConst(target, "fxf256jrs")) {	/* Foenix F256 Jr */
+		foenix_SetupFoenixF256JrSmallGroups();
+		g_allowedFormats = FF_FOENIX;
+	} else if (str_EqualConst(target, "coco")) {	/* TRS Color Computer */
+		group_SetupCoCo();
+		g_allowedFormats = FF_COCO;
+	} else {
+		error("Unknown target \"%s\"", str_String(target));
+	}
 }
 
 
@@ -408,7 +500,7 @@ handleOption(const char* option) {
 			g_targetDefined = true;
 
 			string* target = str_ToLower(str_Create(&option[1]));
-			handleTargetOption(target);
+			handleLegacyTargetOption(target);
 			str_Free(target);
 			return true;
 		}
