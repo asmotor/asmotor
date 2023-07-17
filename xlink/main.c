@@ -103,7 +103,7 @@ printUsage(void) {
            "          -csmsb      Sega Master System banked (64+ KiB)\n"
            "          -chc800b    HC800 16 KiB ROM\n"
            "          -chc800s    HC800 small mode (64 KiB text + data + bss)\n"
-           "          -chc800sh   HC800 small Harvard mode (64 KiB text, 64 KiB data + bss)\n"
+           "          -chc800sh   HC800 small Harvard mode (64 KiB text + data, 64 KiB data + bss)\n"
            "          -chc800m    HC800 medium mode (32 KiB text + data + bss, 32 KiB sized\n"
 		   "                      banks text)\n"
            "          -chc800mh   HC800 medium Harvard executable (32 KiB text + 32 KiB\n"

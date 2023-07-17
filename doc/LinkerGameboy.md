@@ -6,6 +6,14 @@
 | Binary | -fbin |
 | Nintendo Game Boy ROM | -fngb |
 
+### Game Boy ROM (-fngb)
+
+The Game Boy format is a binary format. Game Boy images must start with a particular header. The linker does not produce this header automatically, but it does calculate the correct checksum.
+
+The first object's first section must contain this header. Alternatively it's possible to specify a load address for a section and place it at the right address.
+
+The normal mode supports banks. The linker will distribute CODE and DATA sections, filling up the lower banks first. Sections may also specify a particular bank if necessary. 
+
 ## Machine definitions
 These machine definitions declare either an unbanked 32 KiB ROM image or a banked ROM image which can be much larger.
 

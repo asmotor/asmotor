@@ -6,6 +6,12 @@
 | Binary | -fbin |
 | Sega Mega Drive/Genesis ROM | -fsmd |
 
+### Sega Mega Drive/Genesis file format (-smd)
+
+This is a binary format. A Mega Drive image must start with a particular header, the linker does not produce this header automatically, but will update it.
+
+The first object's first section must contain this header, alternatively it's possible to specify a load address for a section and place it at the right address. The linker will update the header's ROM ending address and checksum bytes accordingly.
+
 ## Pools
 This machine definition declares several pools and groups, with an almost one-to-one relationship.
 

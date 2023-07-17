@@ -6,6 +6,11 @@
 | Binary | -fbin |
 | Sega Master System | -fsms |
 
+### Sega Master System file format (-fsms)
+
+This is a binary format. A Master System image must contain a particular header, which the linker will produce automatically.
+
+
 ## Pools
 This machine definition declares several pools and groups. There's a few unbanked definitions, and a banked definition for 64+ KiB images.
 

@@ -6,6 +6,10 @@
 | Binary | -fbin |
 | Commodore .PRG | -fcbm |
 
+### Commodore PRG (-fcbm)
+
+This format's entry point is the first object's first section. XLink will generate the right SYS instruction and address for you. The first section may specify a location. If not, the lowest possible BASIC address is used.
+
 ## Machine definitions
 These machine definitions declares two or three pools, depending on the machine configuration.
 
@@ -21,6 +25,10 @@ The main pool is the free area used for BASIC programs. Room is reserved for an 
 | -cc264 | $100E | FCFF |
 
 ### -cc128f, -c128fl, and -c128fh
+The Commodore 128 Function ROM is a binary format that can be burned onto an EPROM and placed internally in the C128 (or externally on a cartridge). The images must start with a particular header. XLink doesn't produce this header automatically.
+
+The first object's first section must contain this header. Alternatively it's possible to specify a load address for a section and place it at the right address.
+
 The configurations `-cc128f`, `-c128fl`, and `c128fh` are used to define pools suitable for creating C128 function ROMs. These will create a pool in ROM for the `CODE` and `DATA` groups, and a pool for the `BSS` group covering all RAM from $0000 to $FFFF. It is up to the user to place BSS SECTIONs at specific addresses themselves, the linker will not allocate automatically from this pool.
 
 | Configuration | CODE/DATA start | CODE/DATA End |
