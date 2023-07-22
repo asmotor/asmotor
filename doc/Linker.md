@@ -12,10 +12,13 @@ In order to link object files for a specific platform, it must first be defined.
 
 A custom machine definition may also defined by the user.
 
-[Amiga](LinkerAmiga.md)
-[Commodore 8-bit](LinkerCommodore.md)
-[Nintendo Game Boy](LinkerGameboy.md)
-[Sega Mega Drive](LinkerMegaDrive.md)
+* [Amiga](LinkerAmiga.md)
+* [Commodore 8-bit](LinkerCommodore.md)
+* [Nintendo Game Boy](LinkerGameboy.md)
+* [Sega Mega Drive](LinkerMegaDrive.md)
+* [HC800](LinkerHC800.md)
+* [Foenix A2560K/X](LinkerFoenix2560.md)
+* [Foenix F256 line](LinkerFoenix256.md)
 
 
 ###

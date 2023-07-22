@@ -22,7 +22,7 @@ This machine definition declares several new groups. The physical placement is o
 
 There are two pools - `CHIP` and `FAST` memory. `CHIP` is 2 MiB in size, `FAST` is 1 GiB.
 
-| Groups | Pool |
+| Groups | Pools |
 |---|---|
 |`CODE`, `DATA`, `BSS` | `FAST`, `CHIP`
 | `CODE_C`, `DATA_C`, `BSS_C` | `CHIP`

@@ -476,6 +476,9 @@ group_SetupHC8XXROM(void) {
     group = group_Create("BSS", 1);
     group->pools[0] = bss;
 
+	/* Kernel should not use shared sections, it must not put CODE or BSS there */
+#if 0
+
     //	Create CODE_S (shared) group
 
     group = group_Create("CODE_S", 1);
@@ -490,6 +493,8 @@ group_SetupHC8XXROM(void) {
 
     group = group_Create("BSS_S", 1);
     group->pools[0] = bss;
+
+#endif
 }
 
 

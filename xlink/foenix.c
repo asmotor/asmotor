@@ -146,6 +146,11 @@ foenix_SetupFoenixF256JrSmallGroups(void) {
     MemoryPool* high_ram = pool_Create(0xE000 - 0x200, 0xE000, 0, 0x10000 - 0xE000, false);
     MemoryPool* zp = pool_Create(-1, 0x0010, 0, 0x100 - 0x10, false);
 
+    //	Create HOME group
+
+    group = group_Create("HOME", 1);
+    group->pools[0] = high_ram;
+
     //	Create CODE group
 
     group = group_Create("CODE", 2);

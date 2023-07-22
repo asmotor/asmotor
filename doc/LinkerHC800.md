@@ -21,34 +21,28 @@ These machine definitions declare several pools depending on the particular conf
 
 The HC800 system also supports a Harvard architecture with separate address spaces for CODE/DATA and BSS.
 
-| Configuration | Description | CODE/DATA size | BSS size | Shared CODE/DATA | Shared BSS |
-|---|---|---|---|---|
-| -chc800b | 16 KiB kernel ROM | $4000 | $4000 | $4000-$FFFF | $4000-$FFFF |
-| -chc800s | Small | $10000 | $10000 | $4000-$FFFF | $4000-$FFFF |
-| -chc800sh | Small Harvard |  (64 KiB text, 64 KiB data + bss)\n"
-           "          -chc800m    HC800 medium mode (32 KiB text + data + bss, 32 KiB sized\n"
-		   "                      banks text)\n"
-           "          -chc800mh   HC800 medium Harvard executable (32 KiB text + 32 KiB\n"
-		   "                      sized text banks, 64 KiB data + bss)\n"
-           "          -chc800l    HC800 large mode (32 KiB text + data + bss, 32 KiB sized\n"
-		   "                      banks text + data + bss)\n"
+The HC800 kernel and the user program will often need to exchange data, this is done by shared memory pools.
 
+## Groups
 
-All definitions share a HOME pool from $0000 to $03FF, and a BSS pool from $C000 to $DFF7.
+Several groups are used in the HC800:
 
-The unbanked definitions have a CODE/DATA pool covering the HOME pool and from $0400 to the end of the ROM image minus 16 bytes for the header.
-
-The banked definition has a number of CODE/DATA pools, the first is from $0400 to $3FFF. The next pool is $3FF0 in size to accomodate the header, and all the last are $4000 in size and follow this in the ROM image, but they are all configured with a base address of $8000. Thus, bank #1 is unused in this configuration, the subsequent banks must be accessed though bank #2.
-
-## Definitions
-
-| Switch | Kind |
+| Group | Usage |
 |---|---|
-| -csms8 | Small mode 8 KiB |
-| -csms16 | Small mode 16 KiB |
-| -csms32 | Small mode 32 KiB |
-| -csmsb | Banked mode 64+ KiB |
+| HOME | CODE/DATA that must reside in the lower MMU slots for sharing between MMU configurations. |
+| CODE/DATA | CODE/DATA that does not need to be places in the lower slots, but may be. May be banked. |
+| BSS | Uninitialized storage area. May be banked. |
+| CODE_S/DATA_S | Code/data that may be shared or used by the kernel, will never reside in the first MMU slot. |
+| BSS_S | Uninitialized storage area that may be shared or used by the kernel, will never reside in the first MMU slot. |
 
-## Header
-The header will be filled automatically by the linker.
 
+An empty cell in the following table indicates there's no separate BSS configuration in the MMU, CODE/DATA/BSS all reside in the same RAM space.
+
+| Configuration | Description | HOME ($0000-) size | BSS ($0000-) size | CODE_S ($4000-) size | BSS_S ($4000-) size | Bank area | Banked |
+|---|---|---|---|---|---|---|---|
+| -chc800b | 16 KiB kernel ROM | $4000 | $4000 | | | | |
+| -chc800s | Small | $10000 | | $C000 | | | |
+| -chc800sh | Small Harvard (64 KiB text, 64 KiB data + bss) | $10000 | $10000 | $C000 | $C000 | | |
+| -chc800m | Medium mode (32 KiB text + data + bss, 32 KiB sized banks text) | $8000 | | $4000 | | $8000-$FFFF | CODE/DATA |
+| -chc800mh | Medium Harvard (32 KiB text + 32 KiB sized text banks, 64 KiB data + bss) | $8000 | $10000 | $4000 | $4000 |  $8000-$FFFF | CODE/DATA |
+| -chc800l | Large mode (32 KiB text + data + bss, 32 KiB sized banks text + data + bss) | $8000 | | $4000 | | $8000-$FFFF | CODE/DATA/BSS |
