@@ -11,7 +11,7 @@
 This is an executable format which can be loaded and executed by the FoenixMCP kernel.
 
 ## Pools
-This machine definition declares several pools covering different areas of the address space. The IO hole at $C000-$DFFF is excluded in this configuration. More advanced configurations can be defined by the user by providing a linker memory layout file.
+This machine definition declares several pools covering different areas of the address space. The IO hole at $C000-$DFFF is excluded in this configuration. More advanced configurations can be defined by the user by providing a linker machine definition file.
 
 | Pool | Area | Description |
 |---|---|---|

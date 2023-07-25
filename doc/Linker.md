@@ -10,8 +10,6 @@ define other entry points.
 ## Machine definitions
 In order to link object files for a specific platform, it must first be defined. Definitions for several platforms are already built in.
 
-A custom machine definition may also defined by the user.
-
 * [Amiga](LinkerAmiga.md)
 * [Commodore 8-bit](LinkerCommodore.md)
 * [Nintendo Game Boy](LinkerGameboy.md)
@@ -20,8 +18,7 @@ A custom machine definition may also defined by the user.
 * [Foenix A2560K/X](LinkerFoenix2560.md)
 * [Foenix F256 line](LinkerFoenix256.md)
 
-
-###
+A (custom machine definition)[LinkerMemoryLayoutFile.md] may also defined by the user.
 
 ## Options
 ### Help (-h)
@@ -30,44 +27,13 @@ Prints a short summary of all options.
 -h   Short help text
 ```
 
-### Memory layout (-a)
-A memory layout file can be used to specify memory regions - locations, sizes and types.
+### Machine definition (-a)
+A machine definition file can be used to specify memory regions - locations, sizes and types.
 
-To define a memory layout, "groups" and "pools" must be declared.
-
-A group is the same as a section's type. If you have a `SECTION "Name",CODE`, then `CODE` is the name of the group in which the section will be placed. A group may consist of several pools of memory.
-
-A pool is a region in physical memory, for instance the range `$0000` to `$7FFF`. Such a pool does not need to have the same address in the CPU's address space. A pool may also be assigned a "bank" number (discoverable using the `BANK` assembler function), and finally it may be completely omitted from a binary image.
-
-## Layout map
-
-```
-POOL name cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
-POOLS name[start:end] cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
-GROUP name pool_name_1 pool_name_2 ... pool_name_n
-FORMATS format_1 format_2 ... format_n
-```
-
-### Formats
-| Id | Meaning |
-|---|---|
-|BIN|Binary, headerless file|
-|GAME_BOY|Game Boy ROM file|
-|HUNK_EXE|Amiga HUNK executable|
-|HUNK_OBJ|Amiga HUNK linkable object|
-|MEGA_DRIVE|SEGA Mega Drive/Genesis ROM file|
-|MASTER_SYSTEM|SEGA Master System ROM file|
-|HC800_KERNEL|HC800 kernel image|
-|HC800|HC800 executable|
-|PGZ|Foenix PGZ executable|
-|COCO_QL|TRS-80 Color Computer quickload image|
-|CBM_PRG[x]|Commodore .PRG at address x|
-
-
+Please refer to (machine definition file documentation)[LinkerMemoryLayoutFile.md] for documentation on this format.
 
 ### Memory configuration (-c)
-
-This option select the target machine's memory configuration. Various sections types, names, banks and locations will be defined.
+Several machine definitions are built-in. This option selects a particurlar target machine's memory configuration. Various sections types, names, banks and locations will be defined.
 
 ```
 -c<config>  Memory configuration 
