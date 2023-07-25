@@ -6,6 +6,7 @@ version := `cat build/version`
 package_base_name := ("asmotor-" + version)
 source_name := (package_base_name + "-src.tar.gz")
 binary_name := (package_base_name + "-bin-" + os() + ".tar.gz")
+binary_windows_name := (package_base_name + "-bin-windows.zip")
 source_pkg_dir := join("build", package_base_name)
 initialized := path_exists(initialized_marker)
 
@@ -22,11 +23,11 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 
 # Initialize repository for use
-@init:
+@init toolchain="":
 	if ! {{initialized}}; then \
 		mkdir -p build/cmake/debug; \
 		cd build/cmake/debug; \
-		cmake -DASMOTOR_VERSION={{version}}.next -DCMAKE_BUILD_TYPE=Debug ../../..; \
+		cmake -DCMAKE_TOOLCHAIN_FILE={{toolchain}} -DASMOTOR_VERSION={{version}}.next -DCMAKE_BUILD_TYPE=Debug ../../..; \
 		cd ../../..; \
 		touch {{initialized_marker}}; \
 	fi
@@ -38,10 +39,10 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 
 # Build and install the project in Release mode, defaulting to $HOME/.local
-@install directory="$HOME/.local" sudo="":
+@install directory="$HOME/.local" sudo="" toolchain="":
 	rm -rf build/cmake/release
 	mkdir -p build/cmake/release
-	cd build/cmake/release; cmake -DASMOTOR_VERSION={{version}} -DCMAKE_INSTALL_PREFIX={{directory}} -DCMAKE_BUILD_TYPE=Release ../../..; cd ../../..
+	cd build/cmake/release; cmake -DCMAKE_TOOLCHAIN_FILE={{toolchain}} -DASMOTOR_VERSION={{version}} -DCMAKE_INSTALL_PREFIX={{directory}} -DCMAKE_BUILD_TYPE=Release ../../..; cd ../../..
 	cmake --build build/cmake/release -- -j
 	{{sudo}} cmake --install build/cmake/release
 
@@ -54,6 +55,10 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 @binary: (install join(invocation_directory(), "_binary"))
 	cd _binary/bin; {{tar}} -cvzf "../../{{binary_name}}" *
+	rm -rf _binary
+
+@binary_windows: (install join(invocation_directory(), "_binary_windows") "" "build/mingw64.cmake")
+	cd _binary_windows/bin; zip "../../{{binary_windows_name}}" *
 	rm -rf _binary
 
 
@@ -70,7 +75,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 
 # Tag, build and release a source package to github
-@publish: source binary deb
+@publish: source binary binary_windows deb
 	git tag -f {{version}} -m "Tagged {{version}}"
 	git push
 	git push --force --tags

@@ -66,4 +66,5 @@ build/windows/
 asmotor-*.tar.bz2
 asmotor-*.tar.gz
 asmotor_*.deb
+asmotor-*.zip
 makedeb/
