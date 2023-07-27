@@ -298,8 +298,6 @@ handleLegacyTargetOption(const string* target) {
 
 static void
 handleMemoryConfigurationOption(const string* target) {
-	g_outputFormat = FILE_FORMAT_NONE;
-
 	if (str_EqualConst(target, "amiga")) {		/* Amiga */
 		group_SetupAmiga();
 		g_allowedFormats = FF_AMIGA;
