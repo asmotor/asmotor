@@ -138,5 +138,8 @@ x65_PrintOptions(void) {
 		"              1 - 65C02\n"
 		"              2 - 65C02S\n"
 		"              3 - 65C816\n"
+		"    -ms<x>  Synthesized instructions:\n"
+		"              0 - Disabled (default)\n"
+		"              1 - Enabled\n"
 	);
 }
