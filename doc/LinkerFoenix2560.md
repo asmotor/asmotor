@@ -10,23 +10,24 @@
 
 This is an executable format which can be loaded and executed by the FoenixMCP kernel.
 
+
 ## Pools
-This machine definition declares several pools covering different areas of the address space. The IO hole at $C000-$DFFF is excluded in this configuration. More advanced configurations can be defined by the user by providing a linker machine definition file.
+This machine definition declares several pools covering different areas of the address space.
 
 | Pool | Area | Description |
 |---|---|---|
-| ZERO_PAGE | $10-$FF | Zero page. |
-| MAIN_RAM | $200-$BFFF | Main memory area. |
-| HIGH_RAM | $E000-$FFFF | High memory area. |
-
-The HIGH_RAM pool covers vectors and is useful for code common to all MMU configurations.
+| SYSRAM | $10000-$3FFFFF | Main system memory after the kernel |
+| VICKY_A | $800000-$BFFFFF | Memory accessible by VICKY A |
+| VICKY_B | $C00000-$FFFFFF | Memory accessible by VICKY B |
+| SDRAM | $2000000-$5FFFFFF | SDRAM |
 
 ## Groups
 
 | Group | Pools |
 |---|---|
-| HOME | HIGH_RAM |
-| CODE | MAIN_RAM, HIGH_RAM |
-| DATA | MAIN_RAM |
-| BSS | MAIN_RAM |
-| ZP| ZERO_PAGE |
+| CODE | SYSRAM |
+| DATA | SYSRAM, SDRAM |
+| BSS | SYSRAM, SDRAM |
+| DATA_VA, BSS_VA | VICKY_A |
+| DATA_VB, BSS_VB | VICKY_B |
+| DATA_D, BSS_D | SDRAM |
