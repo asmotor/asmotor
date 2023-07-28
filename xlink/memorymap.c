@@ -44,14 +44,6 @@ allocPools(int reserve) {
 	return pools;
 }
 
-/*
-static void
-addPool(Pools* pools, MemoryPool* pool) {
-	pools->pools = realloc(pools->pools, sizeof(MemoryPool*) * (pools->count + 1));
-	pools->pools[pools->count++] = pool;
-}
-*/
-
 
 static void
 dummyFree(intptr_t userData, intptr_t element) {
@@ -60,9 +52,16 @@ dummyFree(intptr_t userData, intptr_t element) {
 
 #define DELIMITERS " \t\n$%%+-*/()[]:@"
 
-const char* token;
-size_t token_length;
-uint32_t pool_index;
+static const char* token;
+static size_t token_length;
+static uint32_t pool_index;
+
+static const char* g_filename;
+static int g_line;
+
+#define FERROR(fmt, ...) error("%s:%d: " fmt, g_filename, g_line, __VA_ARGS__)
+#define ERROR(err) error("%s:%d: %s", g_filename, g_line, err)
+
 
 static void
 nextToken(const char** in) {
@@ -113,7 +112,7 @@ tokenIs(const char* s) {
 static void
 expectToken(const char** line, const char* s) {
 	if (!tokenIs(s))
-		error("%s expected", s);
+		FERROR("%s expected", s);
 
 	nextToken(line);
 }
@@ -133,7 +132,7 @@ freePools(intptr_t userData, intptr_t element) {
 static bool
 parseInteger(const char** line, uint32_t* value) {
 	if (token_length == 0)
-		error("Invalid integer in linker map");
+		return false;
 
 	int base = 10;
 	if (tokenIs("$")) {
@@ -266,19 +265,6 @@ parseExpression_1(const char** line, uint32_t* value) {
 #define parseExpression parseExpression_1
 
 
-/*
-static bool
-parseExpression(const char** line, uint32_t* value) {
-	const char* t = *line;
-
-	if (parseExpression_1(line, value))
-		return true;
-
-	error("Expression %s failed", t);		
-}
-*/
-
-
 static uint32_t
 parseOffsetExpression(const char** line) {
 	uint32_t value;
@@ -293,7 +279,7 @@ static uint32_t
 expectExpression(const char** line) {
 	uint32_t r;
 	if (!parseExpression(line, &r))
-		error("Error in expression");
+		ERROR("Error in expression");
 
 	return r;
 }
@@ -307,7 +293,7 @@ parsePool(const char** line) {
 		return pool_Create(image_offset, cpu_address, cpu_bank, size, false);
 	}
 
-	error("Error in pool definition");
+	ERROR("Error in pool definition");
 	return NULL;
 }
 
@@ -333,7 +319,7 @@ parsePoolsDirective(const char** line, strmap_t* pool_map) {
 	expectToken(line, ":");
 	uint32_t range_end = expectExpression(line);
 	if (!tokenIs("]"))
-		error("Expected ]");
+		ERROR("Expected ]");
 
 	Pools* pools = allocPools(range_end - range_start + 1);
 	for (pool_index = range_start; pool_index <= range_end; ++pool_index) {
@@ -360,7 +346,7 @@ parseGroupDirective(const char** line, strmap_t* pool_map) {
 			vec_PushBack(pool_list, (intptr_t) pools);
 			total += pools->count;
 		} else {
-			error("Unknown pool %s", str_String(name));
+			FERROR("Unknown pool %s", str_String(name));
 		}
 
 		nextToken(line);
@@ -414,7 +400,7 @@ parseFormat(const char** line) {
 	} else if (tokenIs("COCO_QL")) {
 		g_allowedFormats |= FILE_FORMAT_COCO_BIN;
 	} else {
-		error("Unknown format %*s", token_length, token);
+		FERROR("Unknown format %*s", token_length, token);
 	}
 
 	nextToken(line);
@@ -449,7 +435,7 @@ parseLine(const char* line, strmap_t* pools) {
 		nextToken(&line);
 		parseFormatsDirective(&line);
 	} else {
-		error("Unknown keyword %s in memory map", token);
+		FERROR("Unknown keyword %s in memory map", token);
 	}
 }
 
@@ -482,11 +468,14 @@ mmap_Read(const string* filename) {
 	FILE* file = fopen(str_String(filename), "rt");
 
 	if (file == NULL)
-		error("Unable to open file %s", filename);
+		FERROR("Unable to open file %s", filename);
 
+	g_filename = str_String(filename);
+	g_line = 1;
 	string* line = NULL;
 	while ((line = readLine(file)) != NULL) {
 		parseLine((char *) str_String(line), pools);
 		str_Free(line);
+		g_line += 1;
 	}
 }
