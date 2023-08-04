@@ -671,6 +671,7 @@ handlePops() {
 
 static bool
 handleRs(intptr_t multiplier) {
+	parse_GetToken();
 	parse_GetRs(parse_ConstantExpression() * (int32_t)multiplier);
 	return true;
 }

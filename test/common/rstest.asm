@@ -8,6 +8,7 @@ Scope:
 Test1	__RSW	1
 Test2	__RSW	1
 Test3	__RSL	4
+	__RSB	2
 Test_SIZEOF	__RSW	0
 
 	PRINTT	"Test1 (should be $1E): "
@@ -22,7 +23,7 @@ Test_SIZEOF	__RSW	0
 	PRINTV	Test3
 	PRINTT	"\n"
 
-	PRINTT	"Test_SIZEOF (should be $32): "
+	PRINTT	"Test_SIZEOF (should be $34): "
 	PRINTV	Test_SIZEOF
 	PRINTT	"\n"
 

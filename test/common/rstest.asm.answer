@@ -1,6 +1,6 @@
 Test1 (should be $1E): $1E
 Test2 (should be $20): $20
 Test3 (should be $22): $22
-Test_SIZEOF (should be $32): $32
+Test_SIZEOF (should be $34): $34
 _1_2_3_4_5_6
-rstest.asm:42: E0110 Cannot modify symbol defined at rstest.asm:41
+rstest.asm:43: E0110 Cannot modify symbol defined at rstest.asm:42
