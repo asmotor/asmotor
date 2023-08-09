@@ -24,13 +24,19 @@
 
 #include "error.h"
 #include "group.h"
+#include "image.h"
 #include "section.h"
 
 #define PGZ_32BIT 'z'
 
+#define F256_SLOT_SIZE 8192
+#define F256_HEADER_SIZE 10
+
+#define MINIMUM_STRING_SIZE 2
+
 
 static void
-writeSection(FILE* fileHandle, int32_t cpuByteLocation, uint32_t size, void* data) {
+writePGZSection(FILE* fileHandle, int32_t cpuByteLocation, uint32_t size, void* data) {
 	fputll(cpuByteLocation, fileHandle);
 	fputll(size, fileHandle);
 	if (size != 0) {
@@ -39,17 +45,61 @@ writeSection(FILE* fileHandle, int32_t cpuByteLocation, uint32_t size, void* dat
 	}
 }
 
+
 static void
-writeSections(FILE* fileHandle) {
+writePGZSections(FILE* fileHandle) {
 	for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
 		if (section->data != NULL && section->used) {
-			writeSection(fileHandle, section->cpuByteLocation, section->size, section->data);
+			writePGZSection(fileHandle, section->cpuByteLocation, section->size, section->data);
 		}
 	}
 }
 
+
+static void
+writeRepeatedBytes(FILE* fileHandle, uint32_t offset, int bytes) {
+    fseek(fileHandle, offset, SEEK_SET);
+	ffill(0xFF, bytes, fileHandle);
+}
+
+
+static void
+writeKUPSections(FILE* fileHandle, int firstSlot) {
+	int imageStart = firstSlot * 8192;
+    uint32_t currentFileSize = ftell(fileHandle);
+
+    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
+        //	This is a special exported EQU symbol section
+        if (sect_IsEquSection(section))
+            continue;
+
+        if (section->used && section->assigned && section->imageLocation != -1 && section->group->type != GROUP_BSS) {
+			if (section->imageLocation < imageStart + F256_HEADER_SIZE) {
+				error("Section \"%s\" overlaps header", section->name);
+			}
+
+            uint32_t startOffset = section->imageLocation - imageStart;
+            uint32_t endOffset = startOffset + section->size;
+
+            if (startOffset > currentFileSize) {
+                fseek(fileHandle, currentFileSize, SEEK_SET);
+                writeRepeatedBytes(fileHandle, currentFileSize, startOffset - currentFileSize);
+            }
+
+            fseek(fileHandle, startOffset, SEEK_SET);
+            fwrite(section->data, 1, section->size, fileHandle);
+            if (endOffset > currentFileSize)
+                currentFileSize = endOffset;
+        }
+    }
+
+	int bytesToPad = F256_SLOT_SIZE - currentFileSize % F256_SLOT_SIZE;
+	writeRepeatedBytes(fileHandle, currentFileSize, bytesToPad);
+}
+
+
 extern void
-foenix_WriteExecutable(const char* outputFilename, const char* entry) {
+foenix_WriteExecutablePGZ(const char* outputFilename, const char* entry) {
 	FILE* fileHandle = fopen(outputFilename, "wb");
 	if (fileHandle == NULL) {
 		error("Unable to open \"%s\" for writing", outputFilename);
@@ -68,10 +118,56 @@ foenix_WriteExecutable(const char* outputFilename, const char* entry) {
     } else {
         startAddress = sect_StartAddressOfFirstCodeSection();
     }
-	writeSection(fileHandle, startAddress, 0, NULL);
+	writePGZSection(fileHandle, startAddress, 0, NULL);
 
 	// The rest of the sections
-	writeSections(fileHandle);
+	writePGZSections(fileHandle);
+
+	fclose(fileHandle);
+}
+
+
+extern void
+foenix_WriteExecutableKUP(const char* outputFilename, const char* entry) {
+	FILE* fileHandle = fopen(outputFilename, "wb");
+	if (fileHandle == NULL) {
+		error("Unable to open \"%s\" for writing", outputFilename);
+	}
+
+	// Start address section
+    int startAddress = 0;
+    if (entry != NULL) {
+        SSymbol* entrySymbol = sect_FindExportedSymbol(entry);
+        if (entrySymbol == NULL)
+            error("Entry symbol \"%s\" not found (it must be exported)", entry);
+        startAddress = entrySymbol->value;
+    } else {
+		error("Kernel user programs must have an entry address");
+    }
+
+	int firstSlot = sect_StartAddressOfFirstCodeSection() / F256_SLOT_SIZE;
+	int lastSlot =  sect_EndAddressOfLastCodeSection() / F256_SLOT_SIZE;
+	int totalSlots = lastSlot - firstSlot + 1;
+
+	if (startAddress < F256_HEADER_SIZE + MINIMUM_STRING_SIZE) {
+		error("Start address must not be in the header, or the following name");
+	}
+
+	if (firstSlot == 0) {
+		error("Program must not start in slot 0");
+	}
+
+	if (totalSlots > 4) {
+		error("Program must not be larger than 4 slots");
+	}
+
+	fputlw(0x56F2, fileHandle);			// Magic header
+	fputc(totalSlots, fileHandle);		// size in 8KiB blocks
+	fputc(firstSlot, fileHandle);		// first slot to load program into
+	fputlw(startAddress, fileHandle);	// entry address
+	ffill(0, 4, fileHandle);			// reserved area
+
+	writeKUPSections(fileHandle, firstSlot);
 
 	fclose(fileHandle);
 }
@@ -142,8 +238,8 @@ foenix_SetupFoenixA2560XGroups(void) {
 void
 foenix_SetupFoenixF256JrSmallGroups(void) {
     MemoryGroup* group;
-    MemoryPool* main_ram = pool_Create(0, 0x200, 0, 0xC000 - 0x200, false);
-    MemoryPool* high_ram = pool_Create(0xE000 - 0x200, 0xE000, 0, 0x10000 - 0xE000, false);
+    MemoryPool* main_ram = pool_Create(0, 0, 0, 0xC000, false);
+    MemoryPool* high_ram = pool_Create(0xE000, 0xE000, 0, 0x10000 - 0xE000, false);
     MemoryPool* zp = pool_Create(-1, 0x0010, 0, 0x100 - 0x10, false);
 
     //	Create HOME group

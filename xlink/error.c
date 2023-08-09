@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "xlink.h"
 #include "error.h"
 
 NORETURN (void error(const char* fmt, ...));
@@ -36,6 +37,8 @@ error(const char* fmt, ...) {
     printf("\n");
 
     va_end(list);
+
+	remove(g_outputFilename);
 
     exit(EXIT_FAILURE);
 }

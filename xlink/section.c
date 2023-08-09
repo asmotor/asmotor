@@ -318,3 +318,17 @@ sect_StartAddressOfFirstCodeSection(void) {
     error("No start address found because no CODE sections found");
 }
 
+extern int
+sect_EndAddressOfLastCodeSection(void) {
+	int address = 0;
+    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
+        if (section->used && !sect_IsEquSection(section) && (section->group->type == GROUP_TEXT)) {
+            address = section->cpuLocation + section->size - 1;
+        }
+    }
+
+	if (address == 0)
+	    error("No end address found because no CODE sections found");
+
+	return address;
+}

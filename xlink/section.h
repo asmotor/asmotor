@@ -116,5 +116,8 @@ sect_ResolveUnresolved(void);
 extern int
 sect_StartAddressOfFirstCodeSection(void);
 
+extern int
+sect_EndAddressOfLastCodeSection(void);
+
 
 #endif

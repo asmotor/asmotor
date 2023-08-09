@@ -48,7 +48,8 @@
 #define FF_MASTER_SYSTEM	(FILE_FORMAT_BINARY | FILE_FORMAT_MASTER_SYSTEM)
 #define FF_HC800_KERNEL		(FILE_FORMAT_BINARY | FILE_FORMAT_HC800_KERNEL)
 #define FF_HC800			(FILE_FORMAT_BINARY | FILE_FORMAT_HC800)
-#define FF_FOENIX			(FILE_FORMAT_BINARY | FILE_FORMAT_PGZ)
+#define FF_FOENIX_A2560		(FILE_FORMAT_BINARY | FILE_FORMAT_PGZ)
+#define FF_FOENIX_F256		(FILE_FORMAT_BINARY | FILE_FORMAT_F256_KUP | FILE_FORMAT_PGZ)
 #define FF_COCO				(FILE_FORMAT_BINARY | FILE_FORMAT_COCO_BIN)
 
 FileFormat g_allowedFormats = 0;
@@ -57,11 +58,12 @@ uint16_t g_cbmBaseAddress = 0;
 static FileFormat g_outputFormat = FILE_FORMAT_NONE;
 static uint8_t* g_hc800Config = NULL;
 static int g_binaryPad = -1;
-static const char* g_outputFilename = NULL;
 static const char* g_smartlink = NULL;
 static const char* g_entry = NULL;
 static const char* g_mapFilename = NULL;
 static bool g_targetDefined = false;
+
+const char* g_outputFilename = NULL;
 
 static bool
 format_SupportsReloc(FileFormat type) {
@@ -130,6 +132,7 @@ printUsage(void) {
            "          -fhc800     HC800 executable\n"
            "          -fhc800k    HC800 kernel\n"
            "          -ffxpgz     Foenix PGZ\n"
+           "          -ffxkup     Foenix F256 Kernel User Program\n"
            "          -fcocobin   TRS-80 Color Computer .bin\n"
 		   "\n"
            "    -m<mapfile> Write a mapfile to <mapfile>\n"
@@ -164,6 +167,8 @@ handleFileFormatOption(const string* target) {
 		g_outputFormat = FILE_FORMAT_HC800;
 	} else if (str_EqualConst(target, "fxpgz")) {	/* Foenix PGZ */
 		g_outputFormat = FILE_FORMAT_PGZ;
+	} else if (str_EqualConst(target, "fxkup")) {	/* Foenix F256 Kernel User Program */
+		g_outputFormat = FILE_FORMAT_F256_KUP;
 	} else if (str_EqualConst(target, "cocobin")) {	/* CoCo BIN */
 		g_outputFormat = FILE_FORMAT_COCO_BIN;
 	} else {
@@ -281,11 +286,11 @@ handleLegacyTargetOption(const string* target) {
 	} else if (str_EqualConst(target, "fxa2560x")) {	/* Foenix A2560X/K */
 		foenix_SetupFoenixA2560XGroups();
 		g_outputFormat = FILE_FORMAT_PGZ;
-		g_allowedFormats = FF_FOENIX;
+		g_allowedFormats = FF_FOENIX_A2560;
 	} else if (str_EqualConst(target, "fxf256jrs")) {	/* Foenix F256 Jr */
 		foenix_SetupFoenixF256JrSmallGroups();
 		g_outputFormat = FILE_FORMAT_PGZ;
-		g_allowedFormats = FF_FOENIX;
+		g_allowedFormats = FF_FOENIX_F256;
 	} else if (str_EqualConst(target, "coco")) {	/* TRS Color Computer */
 		group_SetupCoCo();
 		g_outputFormat = FILE_FORMAT_COCO_BIN;
@@ -376,10 +381,10 @@ handleMemoryConfigurationOption(const string* target) {
 		g_hc800Config = hc800_ConfigLarge;
 	} else if (str_EqualConst(target, "fxa2560x")) {	/* Foenix A2560X/K */
 		foenix_SetupFoenixA2560XGroups();
-		g_allowedFormats = FF_FOENIX;
+		g_allowedFormats = FF_FOENIX_A2560;
 	} else if (str_EqualConst(target, "fxf256jrs")) {	/* Foenix F256 Jr */
 		foenix_SetupFoenixF256JrSmallGroups();
-		g_allowedFormats = FF_FOENIX;
+		g_allowedFormats = FF_FOENIX_F256;
 	} else if (str_EqualConst(target, "coco")) {	/* TRS Color Computer */
 		group_SetupCoCo();
 		g_allowedFormats = FF_COCO;
@@ -423,7 +428,10 @@ writeOutput(const char* g_outputFilename) {
 			hc800_WriteExecutable(g_outputFilename, g_hc800Config);
 			break;
 		case FILE_FORMAT_PGZ:
-			foenix_WriteExecutable(g_outputFilename, g_entry);
+			foenix_WriteExecutablePGZ(g_outputFilename, g_entry);
+			break;
+		case FILE_FORMAT_F256_KUP:
+			foenix_WriteExecutableKUP(g_outputFilename, g_entry);
 			break;
 		case FILE_FORMAT_COCO_BIN:
 			coco_WriteQuickloadBin(g_outputFilename, g_entry);

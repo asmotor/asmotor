@@ -32,12 +32,14 @@
 #define FILE_FORMAT_HC800_KERNEL		0x0080
 #define FILE_FORMAT_HC800				0x0100
 #define FILE_FORMAT_PGZ					0x0200
-#define FILE_FORMAT_COCO_BIN			0x0400
+#define FILE_FORMAT_F256_KUP			0x0400
+#define FILE_FORMAT_COCO_BIN			0x0800
 
 typedef uint32_t FileFormat;
 
 extern FileFormat g_allowedFormats;
 extern uint16_t g_cbmBaseAddress;
+extern const char* g_outputFilename;
 
 NORETURN (extern void error(const char* fmt, ...));
 

@@ -39,9 +39,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-mhello.map", "-ohello.bin", "-fbin", "-alayout.mem", "-sEntry", "build-release/main.o"],
+            "args": ["-cfxf256jrs", "-ffxkup", "-sEntry", "-ohello.kup", "test.o"],
             "stopAtEntry": true,
-            "cwd": "/home/ces/dev/f256jr-test",
+            "cwd": "/home/ces/dev/f256-flash/extern/hello",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
