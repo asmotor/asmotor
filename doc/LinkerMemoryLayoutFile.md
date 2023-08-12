@@ -94,6 +94,8 @@ The available formats are:
 |HC800_KERNEL|HC800 kernel image|
 |HC800|HC800 executable|
 |PGZ|Foenix PGZ executable|
+|KUP|Foenix F256 Kernel User Program|
+|KUPP|Foenix F256 Kernel User Program, padded to 8 KiB slot size|
 |COCO_QL|TRS-80 Color Computer quickload image|
 |CBM_PRG[x]|Commodore .PRG at address x|
 

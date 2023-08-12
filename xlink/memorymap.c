@@ -399,6 +399,8 @@ parseFormat(const char** line) {
 		g_allowedFormats |= FILE_FORMAT_PGZ;
 	} else if (tokenIs("KUP")) {
 		g_allowedFormats |= FILE_FORMAT_F256_KUP;
+	} else if (tokenIs("KUPP")) {
+		g_allowedFormats |= FILE_FORMAT_F256_KUP_PAD;
 	} else if (tokenIs("COCO_QL")) {
 		g_allowedFormats |= FILE_FORMAT_COCO_BIN;
 	} else {

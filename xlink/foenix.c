@@ -64,7 +64,7 @@ writeRepeatedBytes(FILE* fileHandle, uint32_t offset, int bytes) {
 
 
 static void
-writeKUPSections(FILE* fileHandle, int firstSlot) {
+writeKUPSections(FILE* fileHandle, int firstSlot, bool pad) {
 	int imageStart = firstSlot * 8192;
     uint32_t currentFileSize = ftell(fileHandle);
 
@@ -93,8 +93,10 @@ writeKUPSections(FILE* fileHandle, int firstSlot) {
         }
     }
 
-	int bytesToPad = F256_SLOT_SIZE - currentFileSize % F256_SLOT_SIZE;
-	writeRepeatedBytes(fileHandle, currentFileSize, bytesToPad);
+	if (pad) {
+		int bytesToPad = F256_SLOT_SIZE - currentFileSize % F256_SLOT_SIZE;
+		writeRepeatedBytes(fileHandle, currentFileSize, bytesToPad);
+	}
 }
 
 
@@ -128,7 +130,7 @@ foenix_WriteExecutablePGZ(const char* outputFilename, const char* entry) {
 
 
 extern void
-foenix_WriteExecutableKUP(const char* outputFilename, const char* entry) {
+foenix_WriteExecutableKUP(const char* outputFilename, const char* entry, bool pad) {
 	FILE* fileHandle = fopen(outputFilename, "wb");
 	if (fileHandle == NULL) {
 		error("Unable to open \"%s\" for writing", outputFilename);
@@ -167,7 +169,7 @@ foenix_WriteExecutableKUP(const char* outputFilename, const char* entry) {
 	fputlw(startAddress, fileHandle);	// entry address
 	ffill(0, 4, fileHandle);			// reserved area
 
-	writeKUPSections(fileHandle, firstSlot);
+	writeKUPSections(fileHandle, firstSlot, pad);
 
 	fclose(fileHandle);
 }

@@ -33,7 +33,8 @@
 #define FILE_FORMAT_HC800				0x0100
 #define FILE_FORMAT_PGZ					0x0200
 #define FILE_FORMAT_F256_KUP			0x0400
-#define FILE_FORMAT_COCO_BIN			0x0800
+#define FILE_FORMAT_F256_KUP_PAD		0x0800
+#define FILE_FORMAT_COCO_BIN			0x1000
 
 typedef uint32_t FileFormat;
 

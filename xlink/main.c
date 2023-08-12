@@ -49,7 +49,7 @@
 #define FF_HC800_KERNEL		(FILE_FORMAT_BINARY | FILE_FORMAT_HC800_KERNEL)
 #define FF_HC800			(FILE_FORMAT_BINARY | FILE_FORMAT_HC800)
 #define FF_FOENIX_A2560		(FILE_FORMAT_BINARY | FILE_FORMAT_PGZ)
-#define FF_FOENIX_F256		(FILE_FORMAT_BINARY | FILE_FORMAT_F256_KUP | FILE_FORMAT_PGZ)
+#define FF_FOENIX_F256		(FILE_FORMAT_BINARY | FILE_FORMAT_F256_KUP | FILE_FORMAT_F256_KUP_PAD | FILE_FORMAT_PGZ)
 #define FF_COCO				(FILE_FORMAT_BINARY | FILE_FORMAT_COCO_BIN)
 
 FileFormat g_allowedFormats = 0;
@@ -133,6 +133,7 @@ printUsage(void) {
            "          -fhc800k    HC800 kernel\n"
            "          -ffxpgz     Foenix PGZ\n"
            "          -ffxkup     Foenix F256 Kernel User Program\n"
+           "          -ffxkupp    Foenix F256 Kernel User Program, slot padding\n"
            "          -fcocobin   TRS-80 Color Computer .bin\n"
 		   "\n"
            "    -m<mapfile> Write a mapfile to <mapfile>\n"
@@ -169,6 +170,8 @@ handleFileFormatOption(const string* target) {
 		g_outputFormat = FILE_FORMAT_PGZ;
 	} else if (str_EqualConst(target, "fxkup")) {	/* Foenix F256 Kernel User Program */
 		g_outputFormat = FILE_FORMAT_F256_KUP;
+	} else if (str_EqualConst(target, "fxkupp")) {	/* Foenix F256 Kernel User Program */
+		g_outputFormat = FILE_FORMAT_F256_KUP_PAD;
 	} else if (str_EqualConst(target, "cocobin")) {	/* CoCo BIN */
 		g_outputFormat = FILE_FORMAT_COCO_BIN;
 	} else {
@@ -431,7 +434,10 @@ writeOutput(const char* g_outputFilename) {
 			foenix_WriteExecutablePGZ(g_outputFilename, g_entry);
 			break;
 		case FILE_FORMAT_F256_KUP:
-			foenix_WriteExecutableKUP(g_outputFilename, g_entry);
+			foenix_WriteExecutableKUP(g_outputFilename, g_entry, false);
+			break;
+		case FILE_FORMAT_F256_KUP_PAD:
+			foenix_WriteExecutableKUP(g_outputFilename, g_entry, true);
 			break;
 		case FILE_FORMAT_COCO_BIN:
 			coco_WriteQuickloadBin(g_outputFilename, g_entry);

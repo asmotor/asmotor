@@ -23,7 +23,7 @@ extern void
 foenix_WriteExecutablePGZ(const char* filename, const char* entry);
 
 extern void
-foenix_WriteExecutableKUP(const char* filename, const char* entry);
+foenix_WriteExecutableKUP(const char* filename, const char* entry, bool pad);
 
 extern void
 foenix_SetupFoenixF256JrSmallGroups(void);
