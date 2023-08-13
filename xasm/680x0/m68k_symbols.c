@@ -75,3 +75,15 @@ m68k_ResetRegmask(void) {
 	g_usedRegisters->value.integer = 0;
 }
 
+bool
+m68k_IsValidLocalName(const string* name) {
+	const char* s = str_String(name);
+
+	return _stricmp(s, ".b") != 0
+		&& _stricmp(s, ".w") != 0
+		&& _stricmp(s, ".l") != 0
+		&& _stricmp(s, ".s") != 0
+		&& _stricmp(s, ".d") != 0
+		&& _stricmp(s, ".x") != 0
+		&& _stricmp(s, ".p") != 0;
+}

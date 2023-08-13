@@ -32,3 +32,8 @@ mips_DefineSymbols(void) {
     createGroup("DATA", GROUP_TEXT);
     createGroup("BSS", GROUP_BSS);
 }
+
+bool
+mips_IsValidLocalName(const string* name) {
+	return true;
+}

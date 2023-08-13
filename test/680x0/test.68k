@@ -9,7 +9,7 @@ Start:
 	move.w	Scope\.local+2,d0
 
 	;dc.l	Scope|.local
-	dc.l	Scope\.local
+	dc.l	Scope.local
 
 	moveq	#DataEnd-DataStart,d2
 

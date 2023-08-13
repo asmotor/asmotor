@@ -172,10 +172,10 @@ extern void
 expr_SetConst(SExpression* expression, int32_t value);
 
 extern SExpression*
-expr_Symbol(string* symbolName);
+expr_Symbol(SSymbol* symbol);
 
 extern SExpression*
-expr_ScopedSymbol(SExpression* expr, string* symbolName);
+expr_SymbolByName(string* symbolName);
 
 extern SExpression*
 expr_Bank(string* symbolName);

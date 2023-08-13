@@ -60,6 +60,8 @@ static SConfiguration g_xasmConfiguration = {
 	schip_ParseInstruction,
 
 	schip_AssignSection,
+
+	schip_IsValidLocalName,
 };
 
 extern int

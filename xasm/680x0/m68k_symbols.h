@@ -33,4 +33,8 @@ m68k_AddRegmask(uint16_t registers);
 extern void
 m68k_ResetRegmask(void);
 
+extern bool
+m68k_IsValidLocalName(const string* name);
+
+
 #endif

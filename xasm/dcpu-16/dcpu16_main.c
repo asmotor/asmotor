@@ -59,7 +59,9 @@ static SConfiguration x10c_XasmConfiguration = {
 	x10c_ParseFunction,
 	x10c_ParseInstruction,
 
-	x10c_AssignSection
+	x10c_AssignSection,
+
+	x10c_IsValidLocalName
 };
 
 extern int

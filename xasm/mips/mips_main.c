@@ -59,7 +59,9 @@ static SConfiguration g_xasmConfiguration = {
 	mips_ParseFunction,
 	mips_ParseInstruction,
 
-	mips_AssignSection
+	mips_AssignSection,
+
+	mips_IsValidLocalName
 };
 
 extern int

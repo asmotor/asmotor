@@ -60,7 +60,9 @@ m6809_xasmConfiguration = {
 	m6809_ParseFunction,
 	m6809_ParseInstruction,
 
-	m6809_AssignSection
+	m6809_AssignSection,
+
+	m6809_IsValidLocalName
 };
 
 extern int

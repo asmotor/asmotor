@@ -67,6 +67,12 @@ parse_SetRs(int32_t rsValue) {
 	getRsSymbol()->value.integer = rsValue;
 }
 
+static void
+createRsSetSymbol(string* symbolName, int32_t value) {
+	parse_SetRs(value);
+	sym_CreateSet(symbolName, value);
+}
+
 int32_t
 parse_GetRs(int32_t size) {
 	SSymbol* rsSymbol = getRsSymbol();
@@ -112,6 +118,15 @@ parse_SymbolDefinition(void) {
 			switch (lex_Context->token.id) {
 				default: {
 					sym_CreateLabel(symbolName);
+					break;
+				}
+				case T_DIRECTIVE_RSRESET: {
+					createRsSetSymbol(symbolName, 0);
+					break;
+				}
+				case T_DIRECTIVE_RSSET: {
+					parse_GetToken();
+					createRsSetSymbol(symbolName, parse_ConstantExpression());
 					break;
 				}
 				case T_DIRECTIVE_RB: {

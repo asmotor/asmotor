@@ -33,12 +33,13 @@ GlobalLabel:
 AnotherGlobalLabel:
 ```
 
-It is however also possible to refer to a label from outside its scope, by prefixing it with its scope name and a backslash:
+It is however also possible to refer to a label from outside its scope, by prefixing it with its scope name:
 
 ```
-    move.l  Scope\.local,d0
+    move.l  Scope.local,d0
 ```
 
+There is a slight ambiguity with 68000 assembly code, for instance `move.w (Symbol.w,a0),d0` is a valid construct, but `Symbol.w` is ambiguous. `.w` as size specifier takes precedence, but if `.w` is a local label in the `Symbol` scope, a backslash can be placed before the local label name, such as `move.w (Symbol\.w,a0),d0`. A backslash is always allowed before the local label name, but this practice is discouraged.
 
 ### <a name="import_export"></a> Exporting and importing labels
 
@@ -69,6 +70,8 @@ INTF_MASTER EQU $4000
 MyCounter   SET 0
 MyCounter   =   MyCounter+1 ;Increment MyCounter
 ```
+
+Like labels, constants can also be exported - if the chosen object format supports it.
 
 ### <a name="rs_symbols"></a> RS symbols
 Integer symbols are often used to define the offsets of structure members or enumerations. While the ```EQU``` instruction can be used for this it quickly becomes cumbersome when adding, reordering or removing members from the structure. The assembler provides a group of instructions to make this easier, the ```RS``` group of instructions.
@@ -106,7 +109,17 @@ Result:
 | ```str_bCount``` | 258 |
 | ```str_SIZEOF``` | 259 |
 
-Like labels, constants can also be exported - if the chosen object format supports it.
+A more convenient way of defining structures is also possible with the `RS` directives. `RSRESET` and `RSSET` can also be used with a label that will begin a scope. The structure above might also be defined as:
+
+```
+MyStruct RSRESET
+.pStuff  RW 1
+.tData   RB 256
+.bCount  RB 1
+.SIZEOF  RB 0
+```
+
+This will create a scope and local symbols that may be accessed using the normal local label mechanism, eg. `MyStruct.pStuff`, `MyStruct.SIZEOF` and so forth.
 
 ## <a name="string_symbols"></a> String symbols
 String symbols are used to assign a name to an often used string. These symbols are expanded to their value whenever the assembler encounters the assigned name.

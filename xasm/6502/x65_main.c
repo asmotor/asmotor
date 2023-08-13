@@ -60,7 +60,9 @@ x65_xasmConfiguration = {
 	x65_ParseFunction,
 	x65_ParseInstruction,
 
-	x65_AssignSection
+	x65_AssignSection,
+	
+	x65_IsValidLocalName
 };
 
 extern int

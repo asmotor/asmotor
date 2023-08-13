@@ -1056,7 +1056,7 @@ rc8_ParseIntegerInstruction(void) {
 
 			if (parser->condition == CONDITION_AUTO && cc != CC_ALWAYS) {
 				jumpTarget = createUniqueLabel();
-				handle_JumpRelativeCC(invertCondition(cc), expr_Symbol(jumpTarget));
+				handle_JumpRelativeCC(invertCondition(cc), expr_SymbolByName(jumpTarget));
 			}
 
 			if (!parser->parser(parser->baseOpcode, cc, &addrMode1, &addrMode2))

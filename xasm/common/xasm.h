@@ -91,6 +91,7 @@ typedef struct Configuration {
 
 	void (*assignSection)(SSection* section);
 
+	bool (*isValidLocalName)(const string* name);
 } SConfiguration;
 
 extern const SConfiguration*

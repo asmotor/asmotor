@@ -22,4 +22,7 @@
 extern void
 x10c_DefineSymbols(void);
 
+extern bool
+x10c_IsValidLocalName(const string* name);
+
 #endif

@@ -35,3 +35,8 @@ z80_DefineSymbols(void) {
 	createGroup("HRAM", GROUP_BSS);
 	createGroup("VRAM", GROUP_BSS);
 }
+
+bool
+z80_IsValidLocalName(const string* name) {
+	return true;
+}

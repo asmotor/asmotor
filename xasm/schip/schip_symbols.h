@@ -22,4 +22,7 @@
 extern void
 schip_DefineSymbols(void);
 
+extern bool
+schip_IsValidLocalName(const string* name);
+
 #endif

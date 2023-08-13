@@ -406,8 +406,8 @@ expr_Bank(string* symbolName) {
     return r;
 }
 
-static SExpression*
-symbolExpression(SSymbol* symbol) {
+SExpression*
+expr_Symbol(SSymbol* symbol) {
     if (symbol->flags & SYMF_EXPRESSION) {
         if (symbol->flags & SYMF_CONSTANT) {
             return expr_Const(sym_GetValue(symbol));
@@ -428,20 +428,10 @@ symbolExpression(SSymbol* symbol) {
 }
 
 SExpression*
-expr_Symbol(string* symbolName) {
+expr_SymbolByName(string* symbolName) {
     SSymbol* symbol = sym_GetSymbol(symbolName);
-    return symbolExpression(symbol);
+    return expr_Symbol(symbol);
 }
-
-SExpression*
-expr_ScopedSymbol(SExpression* expr, string* symbolName) {
-    assert(isSymbol(expr));
-
-    SSymbol* symbol = sym_GetSymbolInScope(expr->value.symbol, symbolName);
-    expr_Free(expr);
-    return symbolExpression(symbol);
-}
-
 
 void
 expr_SetConst(SExpression* expression, int32_t nValue) {

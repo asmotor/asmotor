@@ -32,3 +32,8 @@ m6809_DefineSymbols(void) {
     createGroup("DATA", GROUP_TEXT);
     createGroup("BSS", GROUP_BSS);
 }
+
+extern bool
+m6809_IsValidLocalName(const string* name) {
+	return true;
+}

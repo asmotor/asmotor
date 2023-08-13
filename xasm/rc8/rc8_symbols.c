@@ -36,3 +36,9 @@ rc8_DefineSymbols(void) {
 	createGroup("BSS", GROUP_BSS, 0);
     createGroup("BSS_S", GROUP_BSS, SYMF_SHARED);
 }
+
+bool
+rc8_IsValidLocalName(const string* name) {
+	return true;
+}
+

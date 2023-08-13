@@ -23,4 +23,7 @@
 extern void
 m6809_DefineSymbols(void);
 
+extern bool
+m6809_IsValidLocalName(const string* name);
+
 #endif

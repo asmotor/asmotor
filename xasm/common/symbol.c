@@ -319,6 +319,9 @@ sym_CreateEqu(string* name, int32_t value) {
 		SET_TYPE_AND_FLAGS(symbol, SYM_EQU);
 		symbol->value.integer = value;
 
+		if (!isLocalName(name))
+			sym_CurrentScope = symbol;
+
 		return symbol;
 	}
 
@@ -330,6 +333,9 @@ extern SSymbol*
 sym_CreateSet(string* name, int32_t value) {
 	SSymbol* symbol = createSymbolOfType(name, SYM_SET);
 	if (symbol != NULL) {
+		if (!isLocalName(name))
+			sym_CurrentScope = symbol;
+
 		symbol->value.integer = value;
 	}
 	return symbol;

@@ -60,7 +60,9 @@ g_xasmConfiguration = {
 	rc8_ParseFunction,
 	rc8_ParseInstruction,
 
-	rc8_AssignSection
+	rc8_AssignSection,
+
+	rc8_IsValidLocalName
 };
 
 extern int

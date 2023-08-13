@@ -23,4 +23,7 @@
 extern void
 x65_DefineSymbols(void);
 
+extern bool
+x65_IsValidLocalName(const string* name);
+
 #endif

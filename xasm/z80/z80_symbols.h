@@ -22,4 +22,7 @@
 extern void
 z80_DefineSymbols(void);
 
+extern bool
+z80_IsValidLocalName(const string* name);
+
 #endif

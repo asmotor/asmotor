@@ -33,3 +33,8 @@ x65_DefineSymbols(void) {
     createGroup("BSS", GROUP_BSS);
     createGroup("ZP", GROUP_BSS);
 }
+
+bool
+x65_IsValidLocalName(const string* name) {
+	return true;
+}

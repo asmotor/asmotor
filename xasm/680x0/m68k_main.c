@@ -60,7 +60,9 @@ g_680x0Configuration = {
 	m68k_ParseFunction,
 	m68k_ParseInstruction,
 
-	m68k_AssignSection
+	m68k_AssignSection,
+
+	m68k_IsValidLocalName
 };
 
 extern int

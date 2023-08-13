@@ -8,7 +8,7 @@ Scope:
 Test1	__RSW	1
 Test2	__RSW	1
 Test3	__RSL	4
-	__RSB	2
+	__RSW	2
 Test_SIZEOF	__RSW	0
 
 	PRINTT	"Test1 (should be $1E): "
@@ -39,5 +39,17 @@ TestMacro:	MACRO
 	TestMacro
 	PRINTT	"\n"
 
+Struct	RSSET	10
+.member	__RSW	1
+.SIZEOF	__RSW	0
+
+	PRINTV	Struct\.SIZEOF
+	PRINTT	"\n"
+	PRINTV	Struct.member
+	PRINTT	"\n"
+	PRINTT	"Struct = {Struct}\nStruct.SIZEOF = {Struct.SIZEOF}\n"
+	PRINTT	"Struct = {Struct}\nStruct.SIZEOF = {Struct\.SIZEOF}\n"
+
 	GLOBAL	Missing
 	GLOBAL	Missing
+

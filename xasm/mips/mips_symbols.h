@@ -22,4 +22,7 @@
 extern void
 mips_DefineSymbols(void);
 
+extern bool
+mips_IsValidLocalName(const string* name);
+
 #endif

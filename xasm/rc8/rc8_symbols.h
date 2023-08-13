@@ -22,4 +22,7 @@
 extern void
 rc8_DefineSymbols(void);
 
+extern bool
+rc8_IsValidLocalName(const string* name);
+
 #endif

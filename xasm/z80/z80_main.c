@@ -60,7 +60,9 @@ z80_XasmConfiguration = {
 	z80_ParseFunction,
 	z80_ParseInstruction,
 
-	z80_AssignSection
+	z80_AssignSection,
+
+	z80_IsValidLocalName
 };
 
 extern int

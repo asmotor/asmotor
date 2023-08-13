@@ -96,7 +96,7 @@ expressionPriority9(size_t maxStringConstLength) {
             sect_Pop();
             parse_GetToken();
 
-            SExpression* expression = expr_Symbol(symbolName);
+            SExpression* expression = expr_SymbolByName(symbolName);
             str_Free(symbolName);
             return expression;
         }
@@ -121,24 +121,38 @@ expressionPriority9(size_t maxStringConstLength) {
         }
         case T_ID: {
             if (strcmp(lex_Context->token.value.string, "@") != 0) {
-                string* str = lex_TokenString();
-                SExpression* expr = expr_Symbol(str);
-                str_Free(str);
+				string* name = lex_TokenString();
+                SSymbol* symbol = sym_GetSymbol(name);
+				str_Free(name);
 
-                parse_GetToken();
+				parse_GetToken();
 
-                if (lex_Context->token.id == '\\') {
-                    parse_GetToken();
+				while (true) {
+					bool force_local = false;
+
+					// Allow backslash for backwards compatibility
+	                if (lex_Context->token.id == '\\') {
+	                    parse_GetToken();
+						force_local = true;
+					}
+
                     if (lex_Context->token.id == T_ID && lex_Context->token.value.string[0] == '.') {
-                        str = lex_TokenString();
-                        expr = expr_ScopedSymbol(expr, str);
+						name = lex_TokenString();
 
-                        str_Free(str);
-                        parse_GetToken();
-                    }
-                }
+						if (!force_local && !xasm_Configuration->isValidLocalName(name)) {
+							str_Free(name);
+							break;
+						}
 
-                return expr;
+						symbol = sym_GetSymbolInScope(symbol, name);
+						parse_GetToken();
+						str_Free(name);
+					} else {
+						break;
+					}
+				}
+
+				return expr_Symbol(symbol);
             }
         }
         // fall through
@@ -154,7 +168,7 @@ expressionPriority9(size_t maxStringConstLength) {
             if (opt_Current->allowReservedKeywordLabels) {
                 if (lex_Context->token.length > 0 && lex_Context->token.id >= T_FIRST_TOKEN) {
                     string* str = lex_TokenString();
-                    SExpression* expr = expr_Symbol(str);
+                    SExpression* expr = expr_SymbolByName(str);
                     str_Free(str);
                     parse_GetToken();
                     return expr;
