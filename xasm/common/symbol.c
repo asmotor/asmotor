@@ -43,6 +43,7 @@ static uint32_t g_defaultSymbolFlags[] = {
 	SYMF_EXPRESSION | SYMF_RELOC,                       // SYM_IMPORT
 	SYMF_EXPORT,                                        // SYM_GROUP
 	SYMF_EXPRESSION | SYMF_MODIFIABLE | SYMF_RELOC,     // SYM_GLOBAL
+	SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_MODIFIABLE | SYMF_STRUCTURE,  // SYM_STRUCTURE
 	SYMF_MODIFIABLE | SYMF_EXPRESSION | SYMF_EXPORTABLE // SYM_UNDEFINED
 };
 
@@ -342,6 +343,27 @@ sym_CreateSet(string* name, int32_t value) {
 }
 
 extern SSymbol*
+sym_CreateStructure(string* name, int32_t initialCount) {
+	SSymbol* symbol = createSymbolOfType(name, SYM_STRUCTURE);
+	if (symbol != NULL) {
+		if (!isLocalName(name))
+			sym_CurrentScope = symbol;
+
+		symbol->value.integer = initialCount;
+	}
+	return symbol;
+}
+
+extern void
+sym_EndStructure(void) {
+	if (sym_CurrentScope != NULL && sym_CurrentScope->type == SYM_STRUCTURE) {
+		sym_CurrentScope = NULL;
+	} else {
+		err_Error(ERROR_NOT_IN_STRUCTURE_SCOPE);
+	}
+}
+
+extern SSymbol*
 sym_CreateLabel(string* name) {
 	SSymbol* symbol = findOrCreateSymbol(name);
 
@@ -491,6 +513,13 @@ sym_IsMacro(const string* name) {
 	SSymbol* symbol = getSymbol(name, assumedScopeOf(name));
 
 	return symbol != NULL && symbol->type == SYM_MACRO;
+}
+
+extern bool
+sym_IsStructure(const string* name) {
+	SSymbol* symbol = getSymbol(name, assumedScopeOf(name));
+
+	return symbol != NULL && symbol->type == SYM_STRUCTURE;
 }
 
 extern bool

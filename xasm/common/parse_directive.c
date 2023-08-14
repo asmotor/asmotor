@@ -300,6 +300,14 @@ handleRsset() {
 }
 
 static bool
+handleRsend() {
+	parse_GetToken();
+	sym_EndStructure();
+
+	return true;
+}
+
+static bool
 handleUserError(intptr_t intFail) {
 	bool (*fail)(int, ...) = (bool (*)(int, ...))intFail;
 
@@ -672,7 +680,7 @@ handlePops() {
 static bool
 handleRs(intptr_t multiplier) {
 	parse_GetToken();
-	parse_GetRs(parse_ConstantExpression() * (int32_t)multiplier);
+	parse_IncrementRs(parse_ConstantExpression() * (int32_t)multiplier);
 	return true;
 }
 
@@ -690,6 +698,7 @@ static SDirective
 	g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
 		{handleRsreset, 0},
 		{handleRsset, 0},
+		{handleRsend, 0},
 		{handleRs, 1},
 		{handleRs, 2},
 		{handleRs, 4},

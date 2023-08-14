@@ -50,6 +50,11 @@ Struct	RSSET	10
 	PRINTT	"Struct = {Struct}\nStruct.SIZEOF = {Struct.SIZEOF}\n"
 	PRINTT	"Struct = {Struct}\nStruct.SIZEOF = {Struct\.SIZEOF}\n"
 
-	GLOBAL	Missing
-	GLOBAL	Missing
+Struct2	RSRESET
+.member	__RSW	1
+	RSEND
 
+	PRINTV	Struct2
+	PRINTT	"\n"
+	PRINTV	Struct2.member
+	PRINTT	"\n"

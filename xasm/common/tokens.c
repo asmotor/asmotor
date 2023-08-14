@@ -99,6 +99,7 @@ static SLexConstantsWord staticTokens[] = {
 
         {"RSRESET",   T_DIRECTIVE_RSRESET},
         {"RSSET",     T_DIRECTIVE_RSSET},
+        {"RSEND",     T_DIRECTIVE_RSEND},
 
         {"SET",       T_SYM_SET},
         {"=",         T_SYM_SET},

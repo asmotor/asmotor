@@ -20,7 +20,7 @@
 #define XASM_COMMON_PARSE_SYMBOL_H_INCLUDED_
 
 extern int32_t
-parse_GetRs(int32_t size);
+parse_IncrementRs(int32_t size);
 
 extern void
 parse_SetRs(int32_t rsValue);

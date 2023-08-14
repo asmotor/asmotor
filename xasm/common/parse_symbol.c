@@ -34,6 +34,11 @@
 static SSymbol*
 g_rsSymbol = NULL;
 
+static bool
+isDotLocalName(const string* name) {
+	return str_CharAt(name, 0) == '.';
+}
+
 static uint32_t
 colonCount(void) {
 	if (lex_Context->token.id == ':') {
@@ -47,7 +52,7 @@ colonCount(void) {
 }
 
 static SSymbol*
-getRsSymbol() {
+getRsCounter() {
 	if (g_rsSymbol == NULL) {
 		string* rsName = str_Create("__RS");
 		g_rsSymbol = sym_CreateSet(rsName, 0);
@@ -56,29 +61,42 @@ getRsSymbol() {
 	return g_rsSymbol;
 }
 
+int32_t
+parse_IncrementRs(int32_t size) {
+	SSymbol* rsSymbol = getRsCounter();
+	int32_t rsValue = rsSymbol->value.integer;
+	rsSymbol->value.integer += size;
+
+	return rsValue;
+}
+
 static void
 createRsSymbol(string* symbolName, int32_t multiplier) {
 	parse_GetToken();
-	sym_CreateSet(symbolName, parse_GetRs(multiplier * parse_ConstantExpression()));
+
+	int value = multiplier * parse_ConstantExpression();
+	SSymbol* symbol = sym_CreateSet(symbolName, parse_IncrementRs(value));
+	if (isDotLocalName(symbolName)) {
+		SSymbol* scope = symbol->scope;
+		if (scope->type == SYM_STRUCTURE) {
+			scope->value.integer += value;
+		}
+	}
 }
 
 void
 parse_SetRs(int32_t rsValue) {
-	getRsSymbol()->value.integer = rsValue;
+	getRsCounter()->value.integer = rsValue;
 }
 
 static void
 createRsSetSymbol(string* symbolName, int32_t value) {
 	parse_SetRs(value);
-	sym_CreateSet(symbolName, value);
-}
 
-int32_t
-parse_GetRs(int32_t size) {
-	SSymbol* rsSymbol = getRsSymbol();
-	int32_t rsValue = rsSymbol->value.integer;
-	rsSymbol->value.integer += size;
-	return rsValue;
+	if (isDotLocalName(symbolName))
+		sym_CreateSet(symbolName, value);
+	else
+		sym_CreateStructure(symbolName, value);
 }
 
 bool

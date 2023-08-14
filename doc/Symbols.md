@@ -116,10 +116,10 @@ MyStruct RSRESET
 .pStuff  RW 1
 .tData   RB 256
 .bCount  RB 1
-.SIZEOF  RB 0
+         RSEND
 ```
 
-This will create a scope and local symbols that may be accessed using the normal local label mechanism, eg. `MyStruct.pStuff`, `MyStruct.SIZEOF` and so forth.
+This will create a scope and local symbols that may be accessed using the normal local label mechanism, eg. `MyStruct.pStuff`, `MyStruct.SIZEOF` and so forth. The symbol `MyStruct` will contain the last value of the `__RS` symbol, in this case the value after the last `RB` statement, 259.
 
 ## <a name="string_symbols"></a> String symbols
 String symbols are used to assign a name to an often used string. These symbols are expanded to their value whenever the assembler encounters the assigned name.

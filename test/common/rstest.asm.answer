@@ -5,8 +5,9 @@ Test_SIZEOF (should be $34): $36
 _1_2_3_4_5_6
 $C
 $A
-Struct = 10
+Struct = 12
 Struct.SIZEOF = 12
-Struct = 10
+Struct = 12
 Struct.SIZEOF = 12
-rstest.asm:54: E0110 Cannot modify symbol defined at rstest.asm:53
+$2
+$0
