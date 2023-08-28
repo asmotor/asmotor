@@ -34,12 +34,27 @@
 
 #define MINIMUM_STRING_SIZE 2
 
+static off_t g_sectionSizeLocation;
+static int32_t g_sectionSize;
+static int32_t g_nextCpuByteLocation;
 
-static int32_t
-writePGZSection(FILE* fileHandle, int32_t cpuByteLocation, int32_t lastLocation, uint32_t size, void* data) {
-	if (cpuByteLocation != lastLocation) {
+static void
+writePGZSection(FILE* fileHandle, int32_t cpuByteLocation, uint32_t size, void* data) {
+	// Time to start a new section?
+	if (cpuByteLocation != g_nextCpuByteLocation) {
+		// Update current section's size
+		if (g_sectionSizeLocation != -1) {
+			fseeko(fileHandle, g_sectionSizeLocation, SEEK_SET);
+			fputll(g_sectionSize, fileHandle);
+			fseeko(fileHandle, 0, SEEK_END);
+		}
+
+		// Begin a new section
 		fputll(cpuByteLocation, fileHandle);
-		fputll(size, fileHandle);
+		g_sectionSizeLocation = ftello(fileHandle);
+		g_sectionSize = 0;
+		fputll(0, fileHandle);
+
 	}
 
 	if (size != 0) {
@@ -47,17 +62,20 @@ writePGZSection(FILE* fileHandle, int32_t cpuByteLocation, int32_t lastLocation,
 		fwrite(data, 1, size, fileHandle);
 	}
 
-	return cpuByteLocation + size;
+	g_sectionSize += size;
+	g_nextCpuByteLocation = cpuByteLocation + size;
 }
 
 
 static void
 writePGZSections(FILE* fileHandle) {
-	int32_t lastLocation = -1;
+	g_sectionSizeLocation = -1;
+	g_sectionSize = -1;
+	g_nextCpuByteLocation = -1;
 
 	for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
 		if (section->data != NULL && section->used) {
-			lastLocation = writePGZSection(fileHandle, section->cpuByteLocation, lastLocation, section->size, section->data);
+			writePGZSection(fileHandle, section->cpuByteLocation, section->size, section->data);
 		}
 	}
 }
@@ -130,7 +148,7 @@ foenix_WriteExecutablePGZ(const char* outputFilename, const char* entry) {
     } else {
         startAddress = sect_StartAddressOfFirstCodeSection();
     }
-	writePGZSection(fileHandle, startAddress, -1, 0, NULL);
+	writePGZSection(fileHandle, startAddress, 0, NULL);
 
 	fclose(fileHandle);
 }
