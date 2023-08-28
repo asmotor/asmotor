@@ -117,6 +117,9 @@ foenix_WriteExecutablePGZ(const char* outputFilename, const char* entry) {
 	// "Header"
 	fputc(PGZ_32BIT, fileHandle);
 
+	// The rest of the sections
+	writePGZSections(fileHandle);
+
 	// Start address section
     int startAddress = 0;
     if (entry != NULL) {
@@ -128,9 +131,6 @@ foenix_WriteExecutablePGZ(const char* outputFilename, const char* entry) {
         startAddress = sect_StartAddressOfFirstCodeSection();
     }
 	writePGZSection(fileHandle, startAddress, -1, 0, NULL);
-
-	// The rest of the sections
-	writePGZSections(fileHandle);
 
 	fclose(fileHandle);
 }
