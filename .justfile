@@ -63,7 +63,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 
 # Build source package
-@source: _clean_src_dir (_copy_dir_to_src "util" "xasm/6502" "xasm/6809" "xasm/680x0" "xasm/common" "xasm/dcpu-16" "xasm/mips" "xasm/rc8" "xasm/schip" "xasm/z80" "xlink" "xlib")
+@source: _clean_src_dir (_copy_dir_to_src "util" "xasm/6502" "xasm/6809" "xasm/680x0" "xasm/motor" "xasm/dcpu-16" "xasm/mips" "xasm/rc8" "xasm/schip" "xasm/z80" "xlink" "xlib")
 	cp xasm/CMakeLists.txt {{source_pkg_dir}}/xasm
 	cp .justfile CMakeLists.txt CHANGELOG.md LICENSE.md README.md ucm.cmake *.sh *.ps1 {{source_pkg_dir}}
 

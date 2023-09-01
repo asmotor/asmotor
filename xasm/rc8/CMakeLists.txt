@@ -9,7 +9,7 @@ add_executable (motorrc8
     rc8_tokens.c
     )
 
-target_link_libraries (motorrc8 xasm util)
+target_link_libraries (motorrc8 motor util)
 
 if(NOT MSVC)
     target_link_libraries (motorrc8 m)

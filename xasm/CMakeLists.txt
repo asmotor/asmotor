@@ -1,6 +1,6 @@
-include_directories ("${PROJECT_SOURCE_DIR}/xasm/common")
+include_directories ("${PROJECT_SOURCE_DIR}/xasm/motor")
 
-add_subdirectory (common)
+add_subdirectory (motor)
 add_subdirectory (6502)
 add_subdirectory (6809)
 add_subdirectory (680x0)
