@@ -1,7 +1,16 @@
 	OPT	mc3
-	BITS	16,16
 
 	SECTION	"Test",CODE
+
+	BITS	8,16
+
+LAST_LINE	EQU	240*2+44
+	cmp	#<LAST_LINE
+	cmp	#>LAST_LINE
+	cpx	#LAST_LINE
+
+	BITS	16,16
+
 	adc	12,S
 	adc	[12]
 	adc	#$1234
@@ -116,3 +125,4 @@ label	pea	$1234
 	xce
 
 	lda	#^$123456
+

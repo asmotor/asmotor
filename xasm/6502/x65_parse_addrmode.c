@@ -28,28 +28,45 @@
 #include "x65_tokens.h"
 
 static SExpression*
-maskExpression(SExpression* expr) {
-	return expr_And(expr, expr_Const(opt_Current->machineOptions->cpu == MOPT_CPU_65C816S ? 0xFFFF : 0xFF));
+maskExpression(SExpression* expr, bool imm16bit) {
+	return expr_And(expr, expr_Const(imm16bit ? 0xFFFF : 0xFF));
 }
 
 static SExpression* 
-parseImmExpression() {
+parseImmExpression(bool imm16bit) {
 	if (lex_Context->token.id == T_OP_LESS_THAN) {
 		parse_GetToken();
-		return maskExpression(parse_Expression(2));
+		return maskExpression(parse_Expression(2), imm16bit);
 	} else if (lex_Context->token.id == T_OP_GREATER_THAN) {
 		parse_GetToken();
-		return maskExpression(expr_Asr(parse_Expression(2), expr_Const(8)));
+		return maskExpression(expr_Asr(parse_Expression(2), expr_Const(8)), imm16bit);
 	} else if (lex_Context->token.id == T_OP_BITWISE_XOR && opt_Current->machineOptions->cpu == MOPT_CPU_65C816S) {
 		parse_GetToken();
-		return maskExpression(expr_Asr(parse_Expression(2), expr_Const(16)));
+		return maskExpression(expr_Asr(parse_Expression(2), expr_Const(16)), imm16bit);
 	}
 
 	return parse_Expression(2);
 }
 
 bool
-x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
+x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmediateSize immSize) {
+	bool imm16bit = false;
+
+	switch (immSize) {
+		case IMM_16_BIT:
+			imm16bit = true;
+			break;
+		case IMM_ACC:
+			imm16bit = opt_Current->machineOptions->m16;
+			break;
+		case IMM_INDEX:
+			imm16bit = opt_Current->machineOptions->x16;
+			break;
+		default:
+			imm16bit = false;
+			break;
+	}
+
     SLexerContext bm;
     lex_Bookmark(&bm);
 
@@ -66,14 +83,14 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 	
 	if ((allowedModes & (MODE_IMM | MODE_IMM_IMM)) && lex_Context->token.id == '#') {
 		parse_GetToken();
-		addrMode->expr = parseImmExpression();
+		addrMode->expr = parseImmExpression(imm16bit);
 		if (addrMode->expr != NULL) {
 			addrMode->mode = MODE_IMM;
 			if ((allowedModes & MODE_IMM_IMM) && lex_Context->token.id == ',') {
 				parse_GetToken();
 				if (lex_Context->token.id == '#') {
 					parse_GetToken();
-					addrMode->expr2 = parseImmExpression();
+					addrMode->expr2 = parseImmExpression(imm16bit);
 					if (addrMode->expr2 != NULL) {
 						addrMode->mode = MODE_IMM_IMM;
 						return true;
