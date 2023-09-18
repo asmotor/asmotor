@@ -30,7 +30,7 @@
 
 static SConfiguration
 x65_xasmConfiguration = {
-	"motor6502",
+	"6502",
 	"1.0",
 	0x10000,
 	ASM_LITTLE_ENDIAN,

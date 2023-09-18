@@ -63,7 +63,7 @@ const SConfiguration* xasm_Configuration = NULL;
 
 static void
 printUsage(void) {
-	printf("%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
+	printf("motor%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
 		   "Options:\n"
 		   "    -a<n>    Section alignment when writing binary file (default is %d bytes)\n"
 		   "    -b<AS>   Change the two characters used for binary constants\n"

@@ -29,7 +29,7 @@
 #include "dcpu16_tokens.h"
 
 static SConfiguration x10c_XasmConfiguration = {
-	"motordcpu16",
+	"dcpu16",
 	"1.0",
 	0x10000,
 	ASM_BIG_ENDIAN,

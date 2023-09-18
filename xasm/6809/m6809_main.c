@@ -30,7 +30,7 @@
 
 static SConfiguration
 m6809_xasmConfiguration = {
-	"motor6809",
+	"6809",
 	"1.0",
 	0x10000,
 	ASM_BIG_ENDIAN,

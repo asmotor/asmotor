@@ -29,7 +29,7 @@
 #include "mips_tokens.h"
 
 static SConfiguration g_xasmConfiguration = {
-	"motormips",
+	"mips",
 	"1.0",
 	0x7FFFFFFF,
 	ASM_LITTLE_ENDIAN,

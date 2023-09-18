@@ -30,7 +30,7 @@
 
 static SConfiguration
 g_xasmConfiguration = {
-	"motorrc8",
+	"rc8",
 	"1.0",
 	0x10000,
 	ASM_BIG_ENDIAN,

@@ -30,7 +30,7 @@
 
 static SConfiguration
 z80_XasmConfiguration = {
-	"motorz80", "1.0",
+	"z80", "1.0",
 
 	0x4000,
 	ASM_LITTLE_ENDIAN,
