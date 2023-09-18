@@ -72,6 +72,19 @@
             "MIMode": "gdb"
         },
         {
+            "name": "Debug qasm6502",
+            "type": "cppdbg",
+            "request": "launch",
+            "preLaunchTask": "make",
+            "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/qasm6502",
+            "args": ["test.asm"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/test/6502q",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
             "name": "Debug motorschip",
             "type": "cppdbg",
             "request": "launch",

@@ -36,16 +36,13 @@ allocLexBuffer(size_t reserveLines) {
 }
 
 
-static SLexLine*
-allocLexLine(void) {
-	SLexLine* line = (SLexLine*) malloc(sizeof(SLexLine));
+static void
+initializeLexLine(SLexLine* line) {
 	line->label = NULL;
 	line->export = false;
 	line->operation = NULL;
 	line->arguments = NULL;
 	line->line = NULL;
-
-	return line;
 }
 
 
@@ -128,7 +125,7 @@ parseLabel(SLexLine* lexLine, char* source) {
 			return skipWhitespace(end);
 		}
 
-		if (isspace(*end)) {
+		if (*end == 0 || isspace(*end)) {
 			*end++ = 0;
 			lexLine->label = source;
 			return skipWhitespace(end);
@@ -137,8 +134,9 @@ parseLabel(SLexLine* lexLine, char* source) {
 		char* end = source + 1;
 		if (*end == '$') {
 			++end;
-			if (isspace(*end)) {
+			if (*end == 0 || isspace(*end)) {
 				*end++ = 0;
+				lexLine->label = source;
 				return skipWhitespace(end);
 			}
 		}
@@ -151,11 +149,11 @@ parseLabel(SLexLine* lexLine, char* source) {
 
 static bool
 parseLine(SLexLine* lexLine, const string* filename, FILE* file) {
+	initializeLexLine(lexLine);
+
 	char* line = malloc(MAX_LINE_LENGTH);
 	if (readString(line, filename, file)) {
 		char* p = line;
-		SLexLine* lexLine = allocLexLine();
-
 		p = parseLabel(lexLine, p);
 		// p = parseOperation(lexLine, p);
 
