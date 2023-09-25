@@ -6,23 +6,53 @@
 #define MAX_LINE_LENGTH 1024
 
 
-inline char
-peekChar(const char* source) {
-	if (!source || *source == ';') {
-		return *source;
+static char
+peekChar(char** source) {
+	char ch = 0;
+
+	if (source && *source) {
+		ch = **source != ';' ? **source : 0;
+		if (!ch) {
+			**source = 0;
+			*source = NULL;
+		}
 	}
 
-	return 0;
+	return ch;
 }
 
 
-inline char
-nextChar(const char** source) {
-	char ch = peekChar(*source);
-	if (ch)
-		++*source;
+static bool
+nextMatch(char** source, char ch) {
+	if (peekChar(source) == ch) {
+		*source += 1;
+		return true;
+	}
 
-	return ch;
+	return false;
+}
+
+
+static char*
+terminateString(char* end) {
+	if (end)
+		*end++ = 0;
+
+	return end;
+}
+
+static char*
+skipWhile(char* end, bool (*predicate)(char)) {
+	while (end != NULL && predicate(peekChar(&end))) {
+		++end;
+	}
+	return end;
+}
+
+
+static bool
+isWhitespace(char ch) {
+	return isspace(ch) != 0;
 }
 
 
@@ -41,6 +71,7 @@ initializeLexLine(SLexLine* line) {
 	line->label = NULL;
 	line->export = false;
 	line->operation = NULL;
+	line->totalArguments = 0;
 	line->arguments = NULL;
 	line->line = NULL;
 }
@@ -70,18 +101,97 @@ readString(char* line, const string* filename, FILE* file) {
 
 
 static char*
-skipWhitespace(const char* source) {
-	while (*source && isspace(*source))
-		++source;
+skipWhitespace(char* source) {
+	return skipWhile(source, isWhitespace);
+}
 
-	return (char*) source;
+
+// --------------------------------------------------------------------------
+// -- Arguments
+// --------------------------------------------------------------------------
+
+/*
+static char*
+parseArgument(SLexLine* lexLine, char* source) {
+	char* end = source;
+	while (*end && *end != ',') {
+		switch (*end) {
+			case '(':
+				end = skipPast(end + 1, ')');
+				break;
+			case '[':
+				end = skipPast(end + 1, ']');
+				break;
+			case '{':
+				end = skipPast(end + 1, '}');
+				break;
+			default:
+				++end;
+		}
+
+	}
+
+	*end++ = 0;
+
+	size_t i = lexLine->totalArguments++;
+	lexLine->arguments = realloc(lexLine->arguments, sizeof(const char*) * lexLine->totalArguments);
+	lexLine->arguments[i] = source;
+
+	return skipWhitespace(end);
 }
 
 
 static char*
-skipWhitespaceAndComment(const char* source) {
-	source = (const char*) skipWhitespace(source);
-	return *source && *source != ';' ? (char*) source : NULL;
+parseArguments(SLexLine* lexLine, char* source) {
+	if (!source)
+		return NULL;
+
+	do {
+		source = parseArgument(lexLine, source);
+		if (*source != ',')
+			break;
+
+		source = skipWhitespace(source + 1);
+	} while (source);
+
+	return skipWhitespace(source);	
+}
+*/
+
+
+// --------------------------------------------------------------------------
+// -- Operations
+// --------------------------------------------------------------------------
+
+static bool
+isOperationStartChar(char ch) {
+	return ch == '_' || isalpha(ch);
+}
+
+
+static bool
+isOperationChar(char ch) {
+	return ch == '_' || isalnum(ch);
+}
+
+
+static char*
+parseOperation(SLexLine* lexLine, char* source) {
+	if (!source)
+		return NULL;
+
+	char ch = peekChar(&source);
+	if (isOperationStartChar(ch)) {
+		char* end = skipWhile(source + 1, isOperationChar);
+		if (end == NULL || *end == 0 || isWhitespace(*end)) {
+			end = terminateString(end);
+			lexLine->operation = source;
+			return skipWhitespace(end);
+		}	
+	}
+
+	err_Error(ERROR_INVALID_OPERATION);
+	return NULL;
 }
 
 
@@ -106,36 +216,36 @@ parseLabel(SLexLine* lexLine, char* source) {
 	if (!source)
 		return NULL;
 
-	if (isspace(*source)) {
-		return skipWhitespaceAndComment(source);
+	char* end = source;
+	if (isspace(*end)) {
+		return skipWhitespace(end);
 	}
 
-	if (*source && isLabelStartChar(*source)) {
-		char* end = source + 1;
-		while (isLabelChar(*end))
-			++end;
-		
-		if (end[0] == ':') {
-			*end++ = 0;
-			if (*end == ':') {
+	char ch = peekChar(&end);
+	if (isLabelStartChar(ch)) {
+		end = skipWhile(end + 1, isLabelChar);
+
+		if (nextMatch(&end, ':')) {
+			if (nextMatch(&end, ':')) {
 				lexLine->export = true;
-				++end;
+				end = terminateString(end);
 			}
 			lexLine->label = source;
 			return skipWhitespace(end);
 		}
 
-		if (*end == 0 || isspace(*end)) {
-			*end++ = 0;
+		ch = peekChar(&end);
+		if (end == NULL || ch == 0 || isWhitespace(ch)) {
+			end = terminateString(end);
 			lexLine->label = source;
 			return skipWhitespace(end);
 		}
-	} else if (*source && isdigit(*source)) {
-		char* end = source + 1;
-		if (*end == '$') {
-			++end;
-			if (*end == 0 || isspace(*end)) {
-				*end++ = 0;
+	} else if (isdigit(ch)) {
+		++end;
+		if (nextMatch(&end, '$')) {
+			ch = peekChar(&end);
+			if (ch == 0 || isspace(ch)) {
+				end = terminateString(end);
 				lexLine->label = source;
 				return skipWhitespace(end);
 			}
@@ -155,7 +265,8 @@ parseLine(SLexLine* lexLine, const string* filename, FILE* file) {
 	if (readString(line, filename, file)) {
 		char* p = line;
 		p = parseLabel(lexLine, p);
-		// p = parseOperation(lexLine, p);
+		p = parseOperation(lexLine, p);
+		//p = parseArguments(lexLine, p);
 
 		return true;
 	}

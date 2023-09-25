@@ -7,6 +7,7 @@ typedef struct {
 	const char* label;
 	bool export;
 	const char* operation;
+	size_t totalArguments;
 	const char** arguments;
 	char* line;
 } SLexLine;

@@ -25,8 +25,12 @@ printLexLine(const SLexLine* line) {
 		printf("%s:", line->label);
 		if (line->export)
 			putchar(':');
-		putchar('\t');
 	}
+	putchar('\t');
+	if (line->operation) {
+		printf("%s", line->operation);
+	}
+	putchar('\t');
 	putchar('\n');
 }
 
