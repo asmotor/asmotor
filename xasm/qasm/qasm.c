@@ -22,15 +22,21 @@ printUsage(void) {
 static void
 printLexLine(const SLexLine* line) {
 	if (line->label) {
-		printf("%s:", line->label);
+		printf("\"%s\":", line->label);
 		if (line->export)
 			putchar(':');
 	}
 	putchar('\t');
 	if (line->operation) {
-		printf("%s", line->operation);
+		printf("\"%s\"", line->operation);
 	}
 	putchar('\t');
+	for (size_t i = 0; i < line->totalArguments; ++i) {
+		printf("\"%s\"", line->arguments[i]);
+		if (i != line->totalArguments - 1) {
+			putchar(',');
+		}
+	}
 	putchar('\n');
 }
 

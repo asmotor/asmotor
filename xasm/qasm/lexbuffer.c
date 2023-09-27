@@ -4,6 +4,17 @@
 #include "lexbuffer.h"
 
 #define MAX_LINE_LENGTH 1024
+#define INVALID_TYPE -1
+
+typedef enum {
+	BRACKET_PARENS,
+	BRACKET_SQUARE,
+	BRACKET_CURLY,
+	INVALID_BRACKET
+} bracket_t;
+
+static char* s_startBrackets = "([{";
+static char* s_endBrackets = ")]}";
 
 
 static char
@@ -110,34 +121,66 @@ skipWhitespace(char* source) {
 // -- Arguments
 // --------------------------------------------------------------------------
 
-/*
+static bracket_t
+bracketType(const char* brackets, char ch) {
+	char* index = strchr(s_startBrackets, ch);
+	return index != NULL ? index - brackets : INVALID_BRACKET;
+}
+
+
+static bracket_t
+startBracketType(char ch) {
+	return bracketType(s_startBrackets, ch);
+}
+
+
+static bool
+isStartBracket(char ch) {
+	return startBracketType(ch) != INVALID_BRACKET;
+}
+
+
+static void
+skipPastBracket(char** source, bracket_t bracket) {
+	char endBracket = s_endBrackets[bracket];
+
+	char ch = peekChar(source);
+	while (ch != 0 && ch != endBracket) {
+		*source += 1;
+		bracket_t bracket = startBracketType(ch);
+		if (bracket != INVALID_BRACKET) {
+			skipPastBracket(source, s_endBrackets[bracket]);
+		}
+		ch = peekChar(source);
+	}
+}
+
+
 static char*
 parseArgument(SLexLine* lexLine, char* source) {
-	char* end = source;
-	while (*end && *end != ',') {
-		switch (*end) {
-			case '(':
-				end = skipPast(end + 1, ')');
-				break;
-			case '[':
-				end = skipPast(end + 1, ']');
-				break;
-			case '{':
-				end = skipPast(end + 1, '}');
-				break;
-			default:
-				++end;
+	char* next = source;
+	char ch = peekChar(&next);
+	while (ch != 0 && ch != ',') {
+		next += 1;
+		if (isStartBracket(ch)) {
+			skipPastBracket(&next, startBracketType(ch));
 		}
-
+		ch = peekChar(&next);
 	}
-
-	*end++ = 0;
 
 	size_t i = lexLine->totalArguments++;
 	lexLine->arguments = realloc(lexLine->arguments, sizeof(const char*) * lexLine->totalArguments);
 	lexLine->arguments[i] = source;
 
-	return skipWhitespace(end);
+	next = terminateString(next);
+
+	// Erase whitespace at next
+	char *space = source + strlen(source) - 1;
+	while (isWhitespace(*space)) {
+		*space-- = 0;
+	}
+
+	return skipWhitespace(next);
 }
 
 
@@ -148,15 +191,10 @@ parseArguments(SLexLine* lexLine, char* source) {
 
 	do {
 		source = parseArgument(lexLine, source);
-		if (*source != ',')
-			break;
-
-		source = skipWhitespace(source + 1);
 	} while (source);
 
 	return skipWhitespace(source);	
 }
-*/
 
 
 // --------------------------------------------------------------------------
@@ -177,11 +215,10 @@ isOperationChar(char ch) {
 
 static char*
 parseOperation(SLexLine* lexLine, char* source) {
-	if (!source)
+	if (source == NULL || *source == 0)
 		return NULL;
 
-	char ch = peekChar(&source);
-	if (isOperationStartChar(ch)) {
+	if (isOperationStartChar(peekChar(&source))) {
 		char* end = skipWhile(source + 1, isOperationChar);
 		if (end == NULL || *end == 0 || isWhitespace(*end)) {
 			end = terminateString(end);
@@ -224,12 +261,14 @@ parseLabel(SLexLine* lexLine, char* source) {
 	char ch = peekChar(&end);
 	if (isLabelStartChar(ch)) {
 		end = skipWhile(end + 1, isLabelChar);
+		char* labelEnd = end;
 
 		if (nextMatch(&end, ':')) {
 			if (nextMatch(&end, ':')) {
 				lexLine->export = true;
 				end = terminateString(end);
 			}
+			*labelEnd = 0;
 			lexLine->label = source;
 			return skipWhitespace(end);
 		}
@@ -266,7 +305,7 @@ parseLine(SLexLine* lexLine, const string* filename, FILE* file) {
 		char* p = line;
 		p = parseLabel(lexLine, p);
 		p = parseOperation(lexLine, p);
-		//p = parseArguments(lexLine, p);
+		p = parseArguments(lexLine, p);
 
 		return true;
 	}
@@ -295,4 +334,3 @@ buf_CreateFromFile(const string* filename) {
 
 	return buffer;
 }
-
