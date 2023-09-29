@@ -10,6 +10,7 @@ add_executable (motormips
     )
 
 target_link_libraries (motormips motor util)
+target_include_directories (motormips PRIVATE "${PROJECT_SOURCE_DIR}/xasm/motor")
 
 if(NOT MSVC)
     target_link_libraries (motormips m)

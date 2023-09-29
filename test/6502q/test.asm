@@ -1,3 +1,4 @@
+	Op4 (a[0,r ; hej
 	Op3 ([a0,])   ; hej
 	Op3 d0   ; hej
 Label	Op d0,d1

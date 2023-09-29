@@ -10,6 +10,7 @@ add_executable (motorrc8
     )
 
 target_link_libraries (motorrc8 motor util)
+target_include_directories (motorrc8 PRIVATE "${PROJECT_SOURCE_DIR}/xasm/motor")
 
 if(NOT MSVC)
     target_link_libraries (motorrc8 m)

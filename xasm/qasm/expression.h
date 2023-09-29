@@ -1,10 +1,17 @@
 #pragma once
 
 #include "types.h"
+#include "util.h"
+
+typedef enum {
+    EXPR_PARENS
+} EExpressionType;
 
 typedef struct Expression {
     struct Expression* left;
     struct Expression* right;
+	EExpressionType type;
+	bool isConstant;
     union {
         long double floating;
         int32_t integer;
@@ -43,3 +50,7 @@ expr_Asr(SExpression* left, SExpression* right);
 extern SExpression*
 expr_PcRelative(SExpression* expr, int adjustment);
 
+INLINE bool
+expr_IsConstant(const SExpression* expression) {
+    return expression != NULL && expression->isConstant;
+}

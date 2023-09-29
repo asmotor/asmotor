@@ -10,6 +10,7 @@ add_executable (motorschip
     )
 
 target_link_libraries (motorschip motor util)
+target_include_directories (motorschip PRIVATE "${PROJECT_SOURCE_DIR}/xasm/motor")
 
 if(NOT MSVC)
     target_link_libraries (motorschip m)

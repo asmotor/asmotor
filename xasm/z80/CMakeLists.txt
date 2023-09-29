@@ -9,6 +9,7 @@ add_executable(motorz80
         )
 
 target_link_libraries(motorz80 motor util)
+target_include_directories (motorz80 PRIVATE "${PROJECT_SOURCE_DIR}/xasm/motor")
 
 if(NOT MSVC)
     target_link_libraries (motorz80 m)

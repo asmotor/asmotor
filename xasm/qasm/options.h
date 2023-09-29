@@ -8,7 +8,16 @@ typedef enum {
 } EEndianness;
 
 typedef struct Options {
+	struct Options* prev;
+	struct Options* next;
     struct MachineOptions* machineOptions;
 } SOptions;
 
 extern SOptions* opt_Current;
+
+
+extern void
+opt_Init(void);
+
+extern void
+opt_Close(void);

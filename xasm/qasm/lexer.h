@@ -20,25 +20,11 @@ typedef struct LexerContext {
 } SLexerContext;
 
 
-typedef struct {
-    const char* name;
-    uint32_t token;
-} SLexConstantsWord;
-
-
 extern SLexerContext* lex_Context;
 
-
-extern void
-lex_ConstantsDefineWords(const SLexConstantsWord* lex);
 
 extern void
 lex_Bookmark(SLexerContext* bookmark);
 
 extern void
 lex_Goto(SLexerContext* bookmark);
-
-extern void
-lex_ConstantsUndefineWords(const SLexConstantsWord* lex);
-
-

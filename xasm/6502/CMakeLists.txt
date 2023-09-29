@@ -27,6 +27,9 @@ add_executable (qasm6502
 target_link_libraries (motor6502 motor util)
 target_link_libraries (qasm6502 qasm util)
 
+target_include_directories (motor6502 PRIVATE "${PROJECT_SOURCE_DIR}/xasm/motor")
+target_include_directories (qasm6502 PRIVATE "${PROJECT_SOURCE_DIR}/xasm/qasm")
+
 if(NOT MSVC)
     target_link_libraries (motor6502 m)
     target_link_libraries (qasm6502 m)

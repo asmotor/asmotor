@@ -8,6 +8,7 @@ add_executable (motordcpu16
     dcpu16_main.c)
 
 target_link_libraries (motordcpu16 motor util)
+target_include_directories (motordcpu16 PRIVATE "${PROJECT_SOURCE_DIR}/xasm/motor")
 
 if(NOT MSVC)
     target_link_libraries (motordcpu16 m)

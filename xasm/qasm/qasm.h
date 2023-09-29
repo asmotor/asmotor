@@ -65,8 +65,9 @@ typedef struct Configuration {
 	bool (*isValidLocalName)(const string* name);
 } SConfiguration;
 
-extern const SConfiguration*
-xasm_Configuration;
+
+extern SConfiguration*
+qasm_Configuration;
 
 extern int
-xasm_Main(const SConfiguration* configuration, int argc, char* argv[]);
+qasm_Main(SConfiguration* configuration, int argc, char* argv[]);

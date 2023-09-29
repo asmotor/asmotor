@@ -20,6 +20,7 @@
 
 #include "expression.h"
 #include "lexer.h"
+#include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
 

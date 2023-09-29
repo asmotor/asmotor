@@ -1,5 +1,3 @@
-include_directories ("${PROJECT_SOURCE_DIR}/xasm/motor")
-
 add_subdirectory (motor)
 add_subdirectory (qasm)
 add_subdirectory (6502)

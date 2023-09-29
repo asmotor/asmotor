@@ -3,13 +3,14 @@
 #include "str.h"
 #include "util.h"
 
+#include "assemble.h"
 #include "lexbuffer.h"
 #include "options.h"
 #include "qasm.h"
 
 NORETURN(static void printUsage(void));
 
-const SConfiguration* qasm_Configuration = NULL;
+SConfiguration* qasm_Configuration = NULL;
 
 
 static void
@@ -50,20 +51,25 @@ printLexBuffer(const SLexBuffer* buffer) {
 
 
 extern int
-xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
+qasm_Main(SConfiguration* configuration, int argc, char* argv[]) {
 	qasm_Configuration = configuration;
 
 	if (argc < 2) {
 		printUsage();
 	}
 
+	opt_Init();
+
 	string* input = str_Create(argv[1]);
 	SLexBuffer* buffer = buf_CreateFromFile(input);
 	if (buffer) {
 		printf("Lines: %ld\n----\n", buffer->totalLines);
 		printLexBuffer(buffer);
+		assembleBuffer(buffer);
 	}
-
 	str_Free(input);
+
+	opt_Close();
+
 	return 0;
 }

@@ -13,6 +13,7 @@ add_executable (motor68k
     )
 
 target_link_libraries (motor68k motor util)
+target_include_directories (motor68k PRIVATE "${PROJECT_SOURCE_DIR}/xasm/motor")
 
 if(NOT MSVC)
     target_link_libraries (motor68k m)

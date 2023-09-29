@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "lexer_constants.h"
 
 
 SLexerContext* lex_Context = NULL;
