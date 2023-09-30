@@ -241,6 +241,7 @@ sect_CreateNew(void) {
     (*section)->used = false;
     (*section)->assigned = false;
     (*section)->patches = NULL;
+	(*section)->data = NULL;
 
     return *section;
 }
