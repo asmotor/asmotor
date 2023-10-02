@@ -4,4 +4,4 @@
 
 
 extern void
-assembleBuffer(SLexBuffer* buffer);
+assemble(SLexerBuffer* buffer);

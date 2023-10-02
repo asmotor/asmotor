@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include "lexbuffer.h"
+
 #define MAX_TOKEN_LENGTH 256
 
 typedef struct {
@@ -16,15 +18,26 @@ typedef struct {
 
 
 typedef struct LexerContext {
+	struct LexerContext* next;
 	SLexerToken token;
+	SLexerBuffer* buffer;
+	size_t bufferLine;
 } SLexerContext;
 
 
 extern SLexerContext* lex_Context;
 
+extern void
+lex_Init(void);
+
+extern SLexerContext*
+lex_CreateContext(SLexerBuffer* buffer);
 
 extern void
 lex_Bookmark(SLexerContext* bookmark);
 
 extern void
 lex_Goto(SLexerContext* bookmark);
+
+extern const SLexLine*
+lex_NextLine(void);

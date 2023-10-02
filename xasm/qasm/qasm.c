@@ -5,6 +5,7 @@
 
 #include "assemble.h"
 #include "lexbuffer.h"
+#include "lexer.h"
 #include "options.h"
 #include "qasm.h"
 
@@ -43,7 +44,7 @@ printLexLine(const SLexLine* line) {
 
 
 static void
-printLexBuffer(const SLexBuffer* buffer) {
+printLexBuffer(const SLexerBuffer* buffer) {
 	for (size_t i = 0; i < buffer->totalLines; ++i) {
 		printLexLine(&buffer->lines[i]);
 	}
@@ -58,14 +59,15 @@ qasm_Main(SConfiguration* configuration, int argc, char* argv[]) {
 		printUsage();
 	}
 
+	lex_Init();
 	opt_Init();
 
 	string* input = str_Create(argv[1]);
-	SLexBuffer* buffer = buf_CreateFromFile(input);
+	SLexerBuffer* buffer = buf_CreateFromFile(input);
 	if (buffer) {
 		printf("Lines: %ld\n----\n", buffer->totalLines);
 		printLexBuffer(buffer);
-		assembleBuffer(buffer);
+		assemble(buffer);
 	}
 	str_Free(input);
 

@@ -15,9 +15,9 @@ typedef struct {
 typedef struct {
 	size_t totalLines;
 	const SLexLine* lines;
-} SLexBuffer;
+} SLexerBuffer;
 
 
-extern SLexBuffer*
+extern SLexerBuffer*
 buf_CreateFromFile(const string* filename);
 

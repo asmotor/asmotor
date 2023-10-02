@@ -6,6 +6,8 @@ typedef struct Section {
     string* name;
 } SSection;
 
+extern void
+sect_OutputData(const void* data, size_t count);
 
 extern void
 sect_OutputConst8(uint8_t value);
