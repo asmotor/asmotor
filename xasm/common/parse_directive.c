@@ -101,7 +101,7 @@ parseBracketedConstant(uint32_t* result) {
 }
 
 static bool
-handleEndr() {
+handleEndr(intptr_t _) {
 	if (lex_Context->type == CONTEXT_REPT) {
 		lexctx_EndReptBlock();
 	} else {
@@ -115,7 +115,7 @@ handleEndr() {
 }
 
 static bool
-handleRexit() {
+handleRexit(intptr_t _) {
 	if (lex_Context->type == CONTEXT_REPT) {
 		parse_SkipPastEndr();
 		lex_Context->block.repeat.remaining = 0;
@@ -129,7 +129,7 @@ handleRexit() {
 }
 
 static bool
-handleMexit() {
+handleMexit(intptr_t _) {
 	if (lex_Context->type == CONTEXT_MACRO) {
 		lexctx_EndCurrentBuffer();
 	} else {
@@ -139,7 +139,7 @@ handleMexit() {
 }
 
 static bool
-handleSection() {
+handleSection(intptr_t _) {
 	parse_GetToken();
 
 	string *name = parse_ExpectStringExpression();
@@ -228,7 +228,7 @@ handleSection() {
 }
 
 static bool
-handleOrg() {
+handleOrg(intptr_t _) {
 	parse_GetToken();
 	sect_SetOriginAddress((uint32_t)parse_ConstantExpression());
 
@@ -236,7 +236,7 @@ handleOrg() {
 }
 
 static bool
-handlePrintt() {
+handlePrintt(intptr_t _) {
 	parse_GetToken();
 
 	string *result = parse_ExpectStringExpression();
@@ -250,14 +250,14 @@ handlePrintt() {
 }
 
 static bool
-handlePrintv() {
+handlePrintv(intptr_t _) {
 	parse_GetToken();
 	printf("$%X", parse_ConstantExpression());
 	return true;
 }
 
 static bool
-handlePrintf() {
+handlePrintf(intptr_t _) {
 	parse_GetToken();
 
 	int32_t i = parse_ConstantExpression();
@@ -285,14 +285,14 @@ defineSpace(intptr_t multiplier) {
 }
 
 static bool
-handleRsreset() {
+handleRsreset(intptr_t _) {
 	parse_GetToken();
 	parse_SetRs(0);
 	return true;
 }
 
 static bool
-handleRsset() {
+handleRsset(intptr_t _) {
 	parse_GetToken();
 	int32_t val = parse_ConstantExpression();
 	parse_SetRs(val);
@@ -300,7 +300,7 @@ handleRsset() {
 }
 
 static bool
-handleRsend() {
+handleRsend(intptr_t _) {
 	parse_GetToken();
 	sym_EndStructure();
 
@@ -322,14 +322,14 @@ handleUserError(intptr_t intFail) {
 }
 
 static bool
-handleEven() {
+handleEven(intptr_t _) {
 	parse_GetToken();
 	sect_Align(2);
 	return true;
 }
 
 static bool
-handleCnop() {
+handleCnop(intptr_t _) {
 	parse_GetToken();
 
 	int32_t offset = parse_ConstantExpression();
@@ -351,7 +351,7 @@ handleCnop() {
 }
 
 static bool
-handleDb() {
+handleDb(intptr_t _) {
 	do {
 		parse_GetToken();
 
@@ -384,7 +384,7 @@ handleDb() {
 }
 
 static bool
-handleDw() {
+handleDw(intptr_t _) {
 	do {
 		parse_GetToken();
 
@@ -408,7 +408,7 @@ handleDw() {
 }
 
 static bool
-handleDl() {
+handleDl(intptr_t _) {
 	do {
 		parse_GetToken();
 
@@ -432,7 +432,7 @@ handleDl() {
 }
 
 static bool
-handleDd() {
+handleDd(intptr_t _) {
 	do {
 		parse_GetToken();
 
@@ -486,7 +486,7 @@ handleFile(intptr_t intProcess) {
 }
 
 static bool
-handleRept() {
+handleRept(intptr_t _) {
 	parse_GetToken();
 	int32_t reptCount = parse_ConstantExpression();
 
@@ -502,7 +502,7 @@ handleRept() {
 }
 
 static bool
-handleShift() {
+handleShift(intptr_t _) {
 	parse_GetToken();
 
 	SExpression *expr = parse_Expression(4);
@@ -618,33 +618,33 @@ valueLessOrEqualsZero(int32_t value) {
 }
 
 static bool
-handleElse() {
+handleElse(intptr_t _) {
 	parse_SkipPastEndc();
 	return true;
 }
 
 static bool
-handleEndc() {
+handleEndc(intptr_t _) {
 	parse_GetToken();
 	return true;
 }
 
 static bool
-handlePusho() {
+handlePusho(intptr_t _) {
 	opt_Push();
 	parse_GetToken();
 	return true;
 }
 
 static bool
-handlePopo() {
+handlePopo(intptr_t _) {
 	opt_Pop();
 	parse_GetToken();
 	return true;
 }
 
 static bool
-handleOpt() {
+handleOpt(intptr_t _) {
 	lex_SetMode(LEXER_MODE_MACRO_ARGUMENT);
 	parse_GetToken();
 	if (lex_Context->token.id == T_STRING) {
@@ -663,14 +663,14 @@ handleOpt() {
 }
 
 static bool
-handlePushs() {
+handlePushs(intptr_t _) {
 	parse_GetToken();
 	sect_Push();
 	return true;
 }
 
 static bool
-handlePops() {
+handlePops(intptr_t _) {
 	parse_GetToken();
 	if (!sect_Pop())
 		err_Error(ERROR_SECTION_MISSING);

@@ -41,7 +41,7 @@ writeRepeatedBytes(FILE* fileHandle, void* data, uint32_t offset, int bytes) {
 }
 
 static void*
-allocEmptyBytes() {
+allocEmptyBytes(void) {
     void* data = (char*) mem_Alloc(WRITE_BLOCK_SIZE);
     if (data == NULL)
         error("Out of memory");

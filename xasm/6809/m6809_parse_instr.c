@@ -185,7 +185,7 @@ handleLBRA(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 static uint8_t
-parseExgRegister() {
+parseExgRegister(void) {
 	switch (lex_Context->token.id) {
 		case T_6809_REG_D:
 			return 0x0;

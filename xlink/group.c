@@ -362,7 +362,7 @@ group_SetupAmiga(void) {
 }
 
 void
-group_SetupSegaMegaDrive() {
+group_SetupSegaMegaDrive(void) {
     MemoryGroup* group;
     MemoryPool* rompool = pool_Create(0, 0x000000, 0, 0x400000, false);
     MemoryPool* rampool = pool_Create(0, 0xFF0000, 0, 0x10000, false);

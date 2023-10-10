@@ -205,7 +205,7 @@ extern bool
 m68k_ParseCommonCpuFpu(SInstruction* pIns, EToken token, bool allowFloat);
 
 extern bool
-m68k_ParseDirective();
+m68k_ParseDirective(void);
 
 extern SExpression*
 m68k_ParseFunction(void);

@@ -119,10 +119,10 @@ extern void
 lexctx_ShiftMacroArgs(int32_t count);
 
 extern SFileInfo*
-lexctx_TokenFileInfo();
+lexctx_TokenFileInfo(void);
 
 extern uint32_t
-lexctx_TokenLineNumber();
+lexctx_TokenLineNumber(void);
 
 extern void
 lexctx_Copy(SLexerContext* dest, const SLexerContext* source);
