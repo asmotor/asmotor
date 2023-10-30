@@ -8,5 +8,6 @@ add_library (qasm
     parse.c
     section.c
     symbol.c
+    tokens.c
     qasm.c
     qasm.h)

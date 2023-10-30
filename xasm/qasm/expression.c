@@ -2,13 +2,13 @@
 
 
 extern SExpression*
-expr_Const(int32_t value) {
+expr_Const(int64_t value) {
 	return NULL;
 }
 
 
 extern SExpression*
-expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
+expr_CheckRange(SExpression* expression, int64_t low, int64_t high) {
 	return NULL;
 }
 

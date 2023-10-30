@@ -16,3 +16,12 @@ typedef struct Symbol {
 
 extern SSymbol*
 sym_CreateGroup(string* name, EGroupType value);
+
+extern SSymbol*
+sym_CreateConstant(string* name, int64_t value);
+
+extern SSymbol*
+sym_CreateVariable(string* name, int64_t value);
+
+extern SSymbol*
+sym_CreateLabel(string* label);

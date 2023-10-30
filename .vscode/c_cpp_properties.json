@@ -37,13 +37,14 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/usr/include/**"
             ],
             "defines": [
                 "ASMOTOR_VERSION=\"vscode\""
             ],
             "cStandard": "c11",
-            "cppStandard": "gnu++14",
+            "cppStandard": "c++11",
             "intelliSenseMode": "gcc-x64",
             "compilerPath": "/usr/bin/gcc"
         }

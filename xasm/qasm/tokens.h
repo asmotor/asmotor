@@ -38,5 +38,14 @@ typedef enum {
 	T_OP_SUBTRACT,
 	T_OP_MULTIPLY,
 	T_OP_DIVIDE,
-	T_OP_MODULO
+	T_OP_MODULO,
+
+	T_SYM_MACRO,
+	T_SYM_CONSTANT,
+	T_SYM_GROUP,
+
 } token_t;
+
+
+extern void
+tokens_Define(void);

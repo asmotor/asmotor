@@ -1,6 +1,7 @@
 #pragma once
 
 #include "str.h"
+#include "symbol.h"
 
 
 typedef struct {
