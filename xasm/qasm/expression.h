@@ -36,10 +36,37 @@ extern void
 sect_OutputExpr32(struct Expression* expr);
 
 extern SExpression*
-expr_And(SExpression* left, SExpression* right);
+expr_BooleanNot(SExpression* expr);
+
+extern SExpression*
+expr_BooleanOr(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_BooleanAnd(SExpression* left, SExpression* right);
 
 extern SExpression*
 expr_Or(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_And(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Xor(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Add(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Sub(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Mul(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Div(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Mod(SExpression* left, SExpression* right);
 
 extern SExpression*
 expr_Asl(SExpression* left, SExpression* right);
@@ -49,6 +76,9 @@ expr_Asr(SExpression* left, SExpression* right);
 
 extern SExpression*
 expr_PcRelative(SExpression* expr, int adjustment);
+
+extern SExpression*
+expr_Pc(void);
 
 INLINE bool
 expr_IsConstant(const SExpression* expression) {

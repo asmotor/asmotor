@@ -14,6 +14,7 @@ typedef struct {
 } SLexLine;
 
 typedef struct {
+	const string* name;
 	size_t totalLines;
 	const SLexLine* lines;
 } SLexerBuffer;

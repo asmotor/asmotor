@@ -2,20 +2,21 @@
 
 typedef enum {
 	T_NONE = 0,
+
 	/*
 	T_LINEFEED = '\n',
 	T_LEFT_PARENS = '(',
 	T_COMMA = ',',
+	*/
 	T_AT = '@',
+
+	T_FIRST_TOKEN = 300,
 
 	T_STRING = T_FIRST_TOKEN,
 	T_LABEL,
 	T_ID,
 	T_NUMBER,
 	T_FLOAT,
-	*/
-
-	T_FIRST_TOKEN = 300,
 
 	T_OP_EQUAL,
 	T_OP_NOT_EQUAL,

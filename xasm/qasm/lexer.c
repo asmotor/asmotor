@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include "str.h"
 #include "strcoll.h"
 #include "strpmap.h"
 
@@ -52,7 +53,12 @@ parseInteger(int base) {
 		}
 	}
 
-	return lex_Context->token.length != 0;
+	if (lex_Context->token.length != 0) {
+		lex_Context->token.id = T_NUMBER;
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -191,7 +197,7 @@ lex_NextLine(void) {
 
 extern string*
 lex_CurrentFileAndLine(void) {
-	internalerror("lex_CurrentFileAndLine not implemented");
+	return str_CreateFormat("%s:%ld", str_String(lex_Context->buffer->name), lex_Context->bufferLine);
 }
 
 

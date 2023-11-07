@@ -2,6 +2,7 @@
 #include "errors.h"
 #include "lexer.h"
 #include "parse.h"
+#include "parse_expression.h"
 #include "tokens.h"
 #include "qasm.h"
 

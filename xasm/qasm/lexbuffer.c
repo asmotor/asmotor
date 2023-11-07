@@ -68,8 +68,9 @@ isWhitespace(char ch) {
 
 
 static SLexerBuffer*
-allocLexBuffer(size_t reserveLines) {
+allocLexBuffer(const string* name, size_t reserveLines) {
 	SLexerBuffer* buffer = (SLexerBuffer*) malloc(sizeof(SLexerBuffer));
+	buffer->name = str_Copy(name);
 	buffer->totalLines = 0;
 	buffer->lines = (SLexLine*) malloc(reserveLines * sizeof(SLexLine));
 
@@ -318,7 +319,7 @@ parseLine(SLexLine* lexLine, const string* filename, FILE* file) {
 extern SLexerBuffer*
 buf_CreateFromFile(const string* filename) {
 	size_t allocatedLines = 4;
-	SLexerBuffer* buffer = allocLexBuffer(allocatedLines);
+	SLexerBuffer* buffer = allocLexBuffer(filename, allocatedLines);
 
 	FILE* file = fopen(str_String(filename), "rb");
 	do {

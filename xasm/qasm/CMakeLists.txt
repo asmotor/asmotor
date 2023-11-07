@@ -6,6 +6,7 @@ add_library (qasm
     lexer.c
     options.c
     parse.c
+    parse_expression.c
     section.c
     symbol.c
     tokens.c
