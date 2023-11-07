@@ -40,7 +40,7 @@ parseImmExpression(bool imm16bit) {
 	} else if (lex_Context->token.id == T_OP_GREATER_THAN) {
 		parse_GetToken();
 		return maskExpression(expr_Asr(parse_Expression(2), expr_Const(8)), imm16bit);
-	} else if (lex_Context->token.id == T_OP_BITWISE_XOR && opt_Current->machineOptions->cpu == MOPT_CPU_65C816S) {
+	} else if (lex_Context->token.id == T_OP_BITWISE_XOR) {
 		parse_GetToken();
 		return maskExpression(expr_Asr(parse_Expression(2), expr_Const(16)), imm16bit);
 	}
