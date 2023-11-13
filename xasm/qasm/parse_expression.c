@@ -44,12 +44,16 @@ static int s_precedence[] = {
 };
 
 
+static SExpression* parse(int precedence);
+
+
 static SExpression*
 parseInitial(void) {
 	switch (lex_Context->token.id) {
 		case T_NUMBER: {
+			SExpression* expr = expr_Const(lex_Context->token.value.integer);
 			parse_GetToken();
-			return expr_Const(lex_Context->token.value.integer);
+			return expr;
 		}
 		case T_AT: {
 			parse_GetToken();
@@ -92,8 +96,16 @@ parseUnary(void) {
 
 
 static SExpression*
-parseOperator(SExpression* lhs) {
-	return lhs;
+parseBinaryOperator(SExpression* lhs) {
+	switch (lex_Context->token.id) {
+		case T_OP_ADD: {
+			parse_GetToken();
+			return expr_Add(lhs, parse(PRECEDENCE_ADD));
+		}
+		default: {
+			internalerror("Token not implemented in parseBinaryOperator");
+		}
+	}
 }
 
 
@@ -103,12 +115,10 @@ parse(int precedence) {
 	if (left == NULL)
 		return NULL;
 
-	int token = lex_Context->token.id - FIRST_PRECEDENCE_TOKEN;
-	if (token >= TOTAL_PRECEDENCES)
-		return left;
-
-	while (precedence < s_precedence[token]) {
-		left = parseOperator(left);
+	uint32_t token = lex_Context->token.id - FIRST_PRECEDENCE_TOKEN;
+	while (token < TOTAL_PRECEDENCES && precedence < s_precedence[token]) {
+		left = parseBinaryOperator(left);
+		token = lex_Context->token.id - FIRST_PRECEDENCE_TOKEN;
 	}
 
 	return left;

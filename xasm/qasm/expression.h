@@ -3,14 +3,20 @@
 #include "types.h"
 #include "util.h"
 
+#include "tokens.h"
+
+
 typedef enum {
-    EXPR_PARENS
-} EExpressionType;
+    EXPR_PARENS,
+	EXPR_CONSTANT,
+	EXPR_OPERATION
+} exprtype_t;
 
 typedef struct Expression {
     struct Expression* left;
     struct Expression* right;
-	EExpressionType type;
+	exprtype_t type;
+	token_t operation;
 	bool isConstant;
     union {
         long double floating;
@@ -19,6 +25,9 @@ typedef struct Expression {
     } value;
 } SExpression;
 
+
+extern void
+expr_Free(SExpression* expr);
 
 extern SExpression*
 expr_Const(int64_t value);
