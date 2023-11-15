@@ -1,5 +1,6 @@
 #pragma once
 
+#include "str.h"
 #include "types.h"
 #include "util.h"
 
@@ -7,6 +8,7 @@
 
 
 typedef enum {
+    EXPR_SYMBOL,
     EXPR_PARENS,
 	EXPR_CONSTANT,
 	EXPR_OPERATION
@@ -34,15 +36,6 @@ expr_Const(int64_t value);
 
 extern SExpression*
 expr_CheckRange(SExpression* expression, int64_t low, int64_t high);
-
-extern void
-sect_OutputExpr8(struct Expression* expr);
-
-extern void
-sect_OutputExpr16(struct Expression* expr);
-
-extern void
-sect_OutputExpr32(struct Expression* expr);
 
 extern SExpression*
 expr_BooleanNot(SExpression* expr);
@@ -88,6 +81,27 @@ expr_PcRelative(SExpression* expr, int adjustment);
 
 extern SExpression*
 expr_Pc(void);
+
+extern SExpression*
+expr_Equal(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_NotEqual(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_GreaterThan(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_LessThan(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_GreaterEqual(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_LessEqual(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_SymbolByName(const string* name);
 
 INLINE bool
 expr_IsConstant(const SExpression* expression) {

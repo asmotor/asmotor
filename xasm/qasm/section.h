@@ -2,6 +2,8 @@
 
 #include "str.h"
 
+#include "expression.h"
+
 typedef struct Section {
     string* name;
 } SSection;
@@ -26,4 +28,16 @@ sect_OutputFloat32(long double value);
 
 extern void
 sect_OutputFloat64(long double value);
+
+extern void
+sect_OutputExpr8(SExpression* expr);
+
+extern void
+sect_OutputExpr16(SExpression* expr);
+
+extern void
+sect_OutputExpr32(SExpression* expr);
+
+extern void
+sect_Skip(int64_t bytes);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "str.h"
+#include "strcoll.h"
 #include "types.h"
 
 typedef enum {
@@ -9,19 +10,47 @@ typedef enum {
 } EGroupType;
 
 
+typedef enum {
+	SYMBOL_UNKNOWN,
+	SYMBOL_INTEGER_CONSTANT,
+	SYMBOL_INTEGER_VARIABLE,
+	SYMBOL_LABEL
+} symboltype_t;
+
+
 typedef struct Symbol {
 	string* name;
+	symboltype_t type;
+	strmap_t* locals;
+	union {
+		int64_t integer;
+	} value;
 } SSymbol;
 
 
-extern SSymbol*
-sym_CreateGroup(string* name, EGroupType value);
+extern bool
+sym_IsLabelStartChar(char ch);
+
+extern bool
+sym_IsLabelChar(char ch);
 
 extern SSymbol*
-sym_CreateConstant(string* name, int64_t value);
+sym_CreateGroup(const string* name, EGroupType value);
 
 extern SSymbol*
-sym_CreateVariable(string* name, int64_t value);
+sym_CreateConstant(const string* name, int64_t value);
 
 extern SSymbol*
-sym_CreateLabel(string* label);
+sym_CreateVariable(const string* name, int64_t value);
+
+extern SSymbol*
+sym_CreateLabel(const string* label);
+
+extern SSymbol*
+sym_Find(const string* label);
+
+extern void
+sym_Init(void);
+
+extern void
+sym_Close(void);

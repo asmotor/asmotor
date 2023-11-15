@@ -96,7 +96,7 @@ readString(char* line, const string* filename, FILE* file) {
 		size_t len = strlen(line);
 
 		if (len == MAX_LINE_LENGTH - 1) {
-			err_Error(ERROR_LINE_TOO_LONG, str_String(filename), lineNumber);
+			err_ErrorFile(str_String(filename), lineNumber, ERROR_LINE_TOO_LONG);
 		}
 
 		// Trim return characters from end of line
@@ -204,7 +204,7 @@ parseArguments(SLexLine* lexLine, char* source) {
 
 static bool
 isOperationStartChar(char ch) {
-	return ch == '_' || isalpha(ch);
+	return ch == '.' || ch == '_' || isalpha(ch);
 }
 
 
@@ -215,7 +215,7 @@ isOperationChar(char ch) {
 
 
 static char*
-parseOperation(SLexLine* lexLine, char* source) {
+parseOperation(const string* filename, size_t lineNumber, SLexLine* lexLine, char* source) {
 	if (source == NULL || *source == 0)
 		return NULL;
 
@@ -228,7 +228,8 @@ parseOperation(SLexLine* lexLine, char* source) {
 		}	
 	}
 
-	err_Error(ERROR_INVALID_OPERATION);
+	err_ErrorFile(str_String(filename), lineNumber, ERROR_INVALID_OPERATION);
+
 	return NULL;
 }
 
@@ -237,20 +238,8 @@ parseOperation(SLexLine* lexLine, char* source) {
 // -- Labels
 // --------------------------------------------------------------------------
 
-static bool
-isLabelStartChar(char ch) {
-	return ch == '.' || ch == '_' || isalpha(ch);
-}
-
-
-static bool
-isLabelChar(char ch) {
-	return ch == '_' || isalnum(ch);
-}
-
-
 static char*
-parseLabel(SLexLine* lexLine, char* source) {
+parseLabel(const string* filename, size_t lineNumber, SLexLine* lexLine, char* source) {
 	if (!source)
 		return NULL;
 
@@ -260,8 +249,11 @@ parseLabel(SLexLine* lexLine, char* source) {
 	}
 
 	char ch = peekChar(&end);
-	if (isLabelStartChar(ch)) {
-		end = skipWhile(end + 1, isLabelChar);
+	if (ch == 0)
+		return NULL;
+
+	if (sym_IsLabelStartChar(ch)) {
+		end = skipWhile(end + 1, sym_IsLabelChar);
 		char* labelEnd = end;
 
 		if (nextMatch(&end, ':')) {
@@ -292,20 +284,20 @@ parseLabel(SLexLine* lexLine, char* source) {
 		}
 	}
 
-	err_Error(ERROR_INVALID_LABEL);
+	err_ErrorFile(str_String(filename), lineNumber, ERROR_INVALID_LABEL);
 	return NULL;
 }
 
 
 static bool
-parseLine(SLexLine* lexLine, const string* filename, FILE* file) {
+parseLine(SLexLine* lexLine, const string* filename, size_t lineNumber, FILE* file) {
 	initializeLexLine(lexLine);
 
 	char* line = malloc(MAX_LINE_LENGTH);
 	if (readString(line, filename, file)) {
 		char* p = line;
-		p = parseLabel(lexLine, p);
-		p = parseOperation(lexLine, p);
+		p = parseLabel(filename, lineNumber, lexLine, p);
+		p = parseOperation(filename, lineNumber, lexLine, p);
 		p = parseArguments(lexLine, p);
 
 		return true;
@@ -328,7 +320,7 @@ buf_CreateFromFile(const string* filename) {
 			buffer->lines = (SLexLine*) realloc((SLexLine*) buffer->lines, sizeof(SLexLine) * allocatedLines);
 		}
 		buffer->totalLines += 1;
-	} while (parseLine((SLexLine*) &buffer->lines[buffer->totalLines - 1], filename, file));
+	} while (parseLine((SLexLine*) &buffer->lines[buffer->totalLines - 1], filename, buffer->totalLines, file));
 
 	buffer->totalLines -= 1;
 	buffer->lines = realloc((SLexLine*) buffer->lines, sizeof(SLexLine) * buffer->totalLines);

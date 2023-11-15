@@ -24,6 +24,10 @@ s_tokens[] = {
 	{ "/", T_OP_DIVIDE },
 	{ "\\", T_OP_MODULO },
 
+	{ ".MACRO", T_SYM_MACRO },
+	{ ".EQU", T_SYM_CONSTANT },
+	{ ".GROUP", T_SYM_GROUP },
+
 	{ NULL, 0 }
 };
 

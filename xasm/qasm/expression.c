@@ -2,6 +2,7 @@
 
 #include "errors.h"
 #include "expression.h"
+#include "symbol.h"
 
 
 static SExpression*
@@ -37,8 +38,39 @@ combineIntegerOperation(SExpression* left, SExpression* right, token_t operation
 }
 
 
+static SExpression*
+unaryIntegerOperation(SExpression* left, token_t operation, int64_t (*op)(int64_t)) {
+	SExpression* expr = allocExpression(EXPR_OPERATION);
+	expr->operation = operation;
+	expr->left = left;
+	expr->right = NULL;
+	expr->isConstant = left->isConstant;
+	if (left->isConstant)
+		expr->value.integer = op(left->value.integer);
+
+	return expr;
+}
+
+
 static int64_t op_add(int64_t lhs, int64_t rhs) { return lhs + rhs; }
+static int64_t op_sub(int64_t lhs, int64_t rhs) { return lhs - rhs; }
+static int64_t op_mul(int64_t lhs, int64_t rhs) { return lhs * rhs; }
+static int64_t op_div(int64_t lhs, int64_t rhs) { return lhs / rhs; }
+static int64_t op_mod(int64_t lhs, int64_t rhs) { return lhs % rhs; }
+static int64_t op_asl(int64_t lhs, int64_t rhs) { return lhs << rhs; }
+static int64_t op_asr(int64_t lhs, int64_t rhs) { return lhs >> rhs; }
 static int64_t op_bitwise_and(int64_t lhs, int64_t rhs) { return lhs & rhs; }
+static int64_t op_bitwise_or(int64_t lhs, int64_t rhs) { return lhs | rhs; }
+static int64_t op_bitwise_xor(int64_t lhs, int64_t rhs) { return lhs ^ rhs; }
+static int64_t op_boolean_and(int64_t lhs, int64_t rhs) { return lhs && rhs; }
+static int64_t op_boolean_or(int64_t lhs, int64_t rhs) { return lhs || rhs; }
+static int64_t op_boolean_not(int64_t v) { return !v; }
+static int64_t op_equal(int64_t lhs, int64_t rhs) { return lhs == rhs; }
+static int64_t op_not_equal(int64_t lhs, int64_t rhs) { return lhs != rhs; }
+static int64_t op_greater_than(int64_t lhs, int64_t rhs) { return lhs > rhs; }
+static int64_t op_less_than(int64_t lhs, int64_t rhs) { return lhs < rhs; }
+static int64_t op_greater_or_equal(int64_t lhs, int64_t rhs) { return lhs >= rhs; }
+static int64_t op_less_or_equal(int64_t lhs, int64_t rhs) { return lhs <= rhs; }
 
 
 extern void
@@ -71,51 +103,29 @@ expr_CheckRange(SExpression* expression, int64_t low, int64_t high) {
 		if (expression->value.integer >= low && expression->value.integer <= high) {
 			return expression;
 		}
-		err_Error(ERROR_INTEGER_RANGE, expression->value.integer, low, high);
 		expr_Free(expression);
 		return NULL;
 	}
 
-	return NULL;
-}
-
-
-extern void
-sect_OutputExpr8(struct Expression* expr) {
-	printf("%02lX ", expr->value.integer);
-}
-
-
-extern void
-sect_OutputExpr16(struct Expression* expr) {
-	internalerror("sect_OutputExpr16 not implemented");
-}
-
-
-extern void
-sect_OutputExpr32(struct Expression* expr) {
-	internalerror("sect_OutputExpr32 not implemented");
+	return expression;
 }
 
 
 extern SExpression*
 expr_BooleanNot(SExpression* expr) {
-	internalerror("expr_BooleanNot not implemented");
-	return NULL;
+	return unaryIntegerOperation(expr, T_OP_BOOLEAN_NOT, op_boolean_not);
 }
 
 
 extern SExpression*
 expr_BooleanOr(SExpression* left, SExpression* right) {
-	internalerror("expr_BooleanOr not implemented");
-	return NULL;
+	return combineIntegerOperation(left, right, T_OP_BOOLEAN_OR, op_boolean_or);
 }
 
 
 extern SExpression*
 expr_BooleanAnd(SExpression* left, SExpression* right) {
-	internalerror("expr_BooleanAnd not implemented");
-	return NULL;
+	return combineIntegerOperation(left, right, T_OP_BOOLEAN_AND, op_boolean_and);
 }
 
 
@@ -127,15 +137,13 @@ expr_And(SExpression* left, SExpression* right) {
 
 extern SExpression*
 expr_Or(SExpression* left, SExpression* right) {
-	internalerror("expr_Or not implemented");
-	return NULL;
+	return combineIntegerOperation(left, right, T_OP_BITWISE_OR, op_bitwise_or);
 }
 
 
 extern SExpression*
 expr_Xor(SExpression* left, SExpression* right) {
-	internalerror("expr_Xor not implemented");
-	return NULL;
+	return combineIntegerOperation(left, right, T_OP_BITWISE_XOR, op_bitwise_xor);
 }
 
 
@@ -147,22 +155,37 @@ expr_Add(SExpression* left, SExpression* right) {
 
 extern SExpression*
 expr_Sub(SExpression* left, SExpression* right) {
-	internalerror("expr_Sub not implemented");
-	return NULL;
+	return combineIntegerOperation(left, right, T_OP_SUBTRACT, op_sub);
+}
+
+
+extern SExpression*
+expr_Mul(SExpression* left, SExpression* right) {
+	return combineIntegerOperation(left, right, T_OP_MULTIPLY, op_mul);
+}
+
+
+extern SExpression*
+expr_Div(SExpression* left, SExpression* right) {
+	return combineIntegerOperation(left, right, T_OP_DIVIDE, op_div);
+}
+
+
+extern SExpression*
+expr_Mod(SExpression* left, SExpression* right) {
+	return combineIntegerOperation(left, right, T_OP_MODULO, op_mod);
 }
 
 
 extern SExpression*
 expr_Asl(SExpression* left, SExpression* right) {
-	internalerror("expr_Asl not implemented");
-	return NULL;
+	return combineIntegerOperation(left, right, T_OP_BITWISE_ASL, op_asl);
 }
 
 
 extern SExpression*
 expr_Asr(SExpression* left, SExpression* right) {
-	internalerror("expr_Asr not implemented");
-	return NULL;
+	return combineIntegerOperation(left, right, T_OP_BITWISE_ASR, op_asr);
 }
 
 
@@ -174,8 +197,57 @@ expr_PcRelative(SExpression* expr, int adjustment) {
 
 
 extern SExpression*
+expr_Equal(SExpression* left, SExpression* right) {
+	return combineIntegerOperation(left, right, T_OP_EQUAL, op_equal);
+}
+
+
+extern SExpression*
+expr_NotEqual(SExpression* left, SExpression* right) {
+	return combineIntegerOperation(left, right, T_OP_NOT_EQUAL, op_not_equal);
+}
+
+
+extern SExpression*
+expr_GreaterThan(SExpression* left, SExpression* right) {
+	return combineIntegerOperation(left, right, T_OP_GREATER_THAN, op_greater_than);
+}
+
+
+extern SExpression*
+expr_LessThan(SExpression* left, SExpression* right) {
+	return combineIntegerOperation(left, right, T_OP_LESS_THAN, op_less_than);
+}
+
+
+extern SExpression*
+expr_GreaterEqual(SExpression* left, SExpression* right) {
+	return combineIntegerOperation(left, right, T_OP_GREATER_OR_EQUAL, op_greater_or_equal);
+}
+
+
+extern SExpression*
+expr_LessEqual(SExpression* left, SExpression* right) {
+	return combineIntegerOperation(left, right, T_OP_LESS_OR_EQUAL, op_less_or_equal);
+}
+
+
+extern SExpression*
 expr_Pc(void) {
 	internalerror("expr_Pc not implemented");
 	return NULL;
 }
 
+
+extern SExpression*
+expr_SymbolByName(const string* name) {
+	SSymbol* sym = sym_Find(name);
+	if (sym->type == SYMBOL_INTEGER_CONSTANT || sym->type == SYMBOL_INTEGER_VARIABLE) {
+		return expr_Const(sym->value.integer);
+	}
+
+	SExpression* expr = allocExpression(EXPR_SYMBOL);
+	expr->value.symbol = sym;
+
+	return expr;
+}

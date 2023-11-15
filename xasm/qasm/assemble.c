@@ -29,7 +29,7 @@ assembleLanguageSymbol(const SLexLine* line) {
 			}
 			return true;
 		} if (op == T_SYM_MACRO) {
-			err_Error(ERROR_NOT_IMPLEMENTED, "MACRO");
+			internalerror("Macros not implemented");
 		}
 	}
 
@@ -63,8 +63,6 @@ assembleCurrentLine(void) {
 	const SLexLine* line = lex_CurrentLine();
 
 	if (line) {
-		parse_GetToken();
-
 		if (assembleLanguageSymbol(line))
 			return true;
 
@@ -76,11 +74,12 @@ assembleCurrentLine(void) {
 
 		lex_GotoOperation();
 
-		if (assembleLanguageOperation(line))
-			return true;
+		if (assembleLanguageOperation(line) || assembleOperation(line)) {
+			if (lex_Context->token.id == '\n')
+				return true;
 
-		if (assembleOperation(line))
-			return true;
+			err_Error(ERROR_CHARACTERS_AFTER_OPERATION);
+		}
 	}
 
 	return false;
