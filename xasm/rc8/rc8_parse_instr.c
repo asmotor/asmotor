@@ -104,7 +104,7 @@ typedef struct Parser {
 
 
 static string*
-createUniqueLabel() {
+createUniqueLabel(void) {
 	static uint32_t id = 0;
     char sym[32];
 

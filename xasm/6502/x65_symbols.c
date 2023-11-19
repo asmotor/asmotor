@@ -17,7 +17,32 @@
 */
 
 #include "xasm.h"
+#include "options.h"
 #include "symbol.h"
+
+#include "x65_options.h"
+
+
+static int32_t
+getMWidth(SSymbol* symbol) {
+	return opt_Current->machineOptions->m16 ? 16 : 8;
+}
+
+
+static int32_t
+getXWidth(SSymbol* symbol) {
+	return opt_Current->machineOptions->x16 ? 16 : 8;
+}
+
+
+static void
+createEquCallback(const char* name, int32_t (*callback)(SSymbol*)) {
+    string* nameStr = str_Create(name);
+	SSymbol* symbol = sym_CreateEqu(nameStr, 0);
+	symbol->callback.integer = callback;
+    str_Free(nameStr);
+}
+
 
 static void
 createGroup(const char* name, EGroupType type) {
@@ -26,13 +51,17 @@ createGroup(const char* name, EGroupType type) {
     str_Free(nameStr);
 }
 
+
 void
 x65_DefineSymbols(void) {
     createGroup("CODE", GROUP_TEXT);
     createGroup("DATA", GROUP_TEXT);
     createGroup("BSS", GROUP_BSS);
     createGroup("ZP", GROUP_BSS);
+	createEquCallback("__816_M", getMWidth);
+	createEquCallback("__816_X", getXWidth);
 }
+
 
 bool
 x65_IsValidLocalName(const string* name) {

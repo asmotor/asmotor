@@ -318,7 +318,7 @@ handleArityOneFunction(SExpression* (* pFunc)(SExpression*), size_t maxStringCon
 }
 
 static SExpression*
-handleDefFunction() {
+handleDefFunction(void) {
     parse_GetToken();
 
     if (parse_ExpectChar('(')) {
@@ -342,7 +342,7 @@ handleDefFunction() {
 }
 
 SExpression*
-handleBankFunction() {
+handleBankFunction(void) {
     assert(xasm_Configuration->supportBanks);
 
     parse_GetToken();
@@ -619,7 +619,7 @@ parse_Expression(size_t maxStringConstLength) {
 }
 
 int32_t
-parse_ConstantExpression() {
+parse_ConstantExpression(void) {
     SExpression* expr = parse_Expression(4);
 
     if (expr != NULL) {

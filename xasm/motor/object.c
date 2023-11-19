@@ -169,7 +169,7 @@ markLocalExportsInExpression(SSection* section, SExpression* expression) {
 }
 
 static void
-markLocalExports() {
+markLocalExports(void) {
 	for (SSection* section = sect_Sections; section; section = list_GetNext(section)) {
 		for (SPatch* patch = section->patches; patch; patch = list_GetNext(patch)) {
 			if (patch->section == section) {
