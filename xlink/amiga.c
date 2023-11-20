@@ -258,7 +258,7 @@ writeSections(FILE* fileHandle, bool debugInfo, uint32_t totalSections, bool lin
 }
 
 static uint32_t
-updateSectionIds() {
+updateSectionIds(void) {
     uint32_t sectionId = 0;
 
     for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {

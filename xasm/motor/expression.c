@@ -286,7 +286,7 @@ expr_PcRelative(SExpression* expression, int adjustment) {
 }
 
 SExpression*
-expr_Pc() {
+expr_Pc(void) {
     string* nameString = str_CreateFormat("$%s%u", str_String(sect_Current->name), sect_Current->cpuProgramCounter);
     SSymbol* symbol = sym_CreateLabel(nameString);
     str_Free(nameString);

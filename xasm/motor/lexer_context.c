@@ -416,12 +416,12 @@ lexctx_Cleanup(void) {
 }
 
 extern SFileInfo*
-lexctx_TokenFileInfo() {
+lexctx_TokenFileInfo(void) {
 	return getMostRecentFileInfo(lex_Context);
 }
 
 extern uint32_t
-lexctx_TokenLineNumber() {
+lexctx_TokenLineNumber(void) {
 	return getMostRecentLineNumber(lex_Context);
 }
 

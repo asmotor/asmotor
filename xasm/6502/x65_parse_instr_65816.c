@@ -31,6 +31,7 @@
 typedef struct Parser {
     uint8_t baseOpcode;
     uint32_t allowedModes;
+	EImmediateSize immSize;
     bool (* handler)(uint8_t baseOpcode, SAddressingMode* addrMode);
 } SParser;
 
@@ -93,32 +94,32 @@ handle_Implicit(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	
 
 static SParser g_instructionHandlers[T_65816_XCE - T_65816_BRL + 1] = {
-	{ 0x82, MODE_ABS, handle_PcRelative },	/* BRL */
-	{ 0x02, MODE_IMM, handle_COP },	/* COP */
-	{ 0x5C, MODE_ABS, handle_Jump },	/* JML */
-	{ 0x22, MODE_ABS, handle_Jump },	/* JSL */
-	{ 0x54, MODE_IMM_IMM, handle_MOVE },	/* MVN */
-	{ 0x44, MODE_IMM_IMM, handle_MOVE },	/* MVP */
-	{ 0xF4, MODE_ABS, handle_Standard },	/* PEA */
-	{ 0xD4, MODE_IND_ABS, handle_Standard },	/* PEI */
-	{ 0x62, MODE_ABS, handle_PcRelative },	/* PER */
-	{ 0x8B, MODE_NONE, handle_Implicit },	/* PHB */
-	{ 0x0B, MODE_NONE, handle_Implicit },	/* PHD */
-	{ 0x4B, MODE_NONE, handle_Implicit },	/* PHK */
-	{ 0xAB, MODE_NONE, handle_Implicit },	/* PLB */
-	{ 0x2B, MODE_NONE, handle_Implicit },	/* PLD */
-	{ 0xC2, MODE_IMM, handle_Standard },	/* REP */
-	{ 0x6B, MODE_NONE, handle_Implicit },	/* RTL */
-	{ 0xE2, MODE_IMM, handle_Standard },	/* SEP */
-	{ 0x5B, MODE_NONE, handle_Implicit },	/* TCD */
-	{ 0x1B, MODE_NONE, handle_Implicit },	/* TCS */
-	{ 0x7B, MODE_NONE, handle_Implicit },	/* TDC */
-	{ 0x3B, MODE_NONE, handle_Implicit },	/* TSC */
-	{ 0x9B, MODE_NONE, handle_Implicit },	/* TXY */
-	{ 0xBB, MODE_NONE, handle_Implicit },	/* TYX */
-	{ 0x42, MODE_NONE, handle_Implicit },	/* WDM */
-	{ 0xEB, MODE_NONE, handle_Implicit },	/* XBA */
-	{ 0xFB, MODE_NONE, handle_Implicit },	/* XCE */
+	{ 0x82, MODE_ABS, IMM_NONE, handle_PcRelative },	/* BRL */
+	{ 0x02, MODE_IMM, IMM_8_BIT, handle_COP },	/* COP */
+	{ 0x5C, MODE_ABS, IMM_NONE, handle_Jump },	/* JML */
+	{ 0x22, MODE_ABS, IMM_NONE, handle_Jump },	/* JSL */
+	{ 0x54, MODE_IMM_IMM, IMM_8_BIT, handle_MOVE },	/* MVN */
+	{ 0x44, MODE_IMM_IMM, IMM_8_BIT, handle_MOVE },	/* MVP */
+	{ 0xF4, MODE_ABS, IMM_NONE, handle_Standard },	/* PEA */
+	{ 0xD4, MODE_IND_ABS, IMM_NONE, handle_Standard },	/* PEI */
+	{ 0x62, MODE_ABS, IMM_NONE, handle_PcRelative },	/* PER */
+	{ 0x8B, MODE_NONE, IMM_NONE, handle_Implicit },	/* PHB */
+	{ 0x0B, MODE_NONE, IMM_NONE, handle_Implicit },	/* PHD */
+	{ 0x4B, MODE_NONE, IMM_NONE, handle_Implicit },	/* PHK */
+	{ 0xAB, MODE_NONE, IMM_NONE, handle_Implicit },	/* PLB */
+	{ 0x2B, MODE_NONE, IMM_NONE, handle_Implicit },	/* PLD */
+	{ 0xC2, MODE_IMM, IMM_8_BIT, handle_Standard },	/* REP */
+	{ 0x6B, MODE_NONE, IMM_NONE, handle_Implicit },	/* RTL */
+	{ 0xE2, MODE_IMM, IMM_8_BIT, handle_Standard },	/* SEP */
+	{ 0x5B, MODE_NONE, IMM_NONE, handle_Implicit },	/* TCD */
+	{ 0x1B, MODE_NONE, IMM_NONE, handle_Implicit },	/* TCS */
+	{ 0x7B, MODE_NONE, IMM_NONE, handle_Implicit },	/* TDC */
+	{ 0x3B, MODE_NONE, IMM_NONE, handle_Implicit },	/* TSC */
+	{ 0x9B, MODE_NONE, IMM_NONE, handle_Implicit },	/* TXY */
+	{ 0xBB, MODE_NONE, IMM_NONE, handle_Implicit },	/* TYX */
+	{ 0x42, MODE_NONE, IMM_NONE, handle_Implicit },	/* WDM */
+	{ 0xEB, MODE_NONE, IMM_NONE, handle_Implicit },	/* XBA */
+	{ 0xFB, MODE_NONE, IMM_NONE, handle_Implicit },	/* XCE */
 };
 
 
@@ -132,7 +133,7 @@ x65_Parse65816Instruction(void) {
 			uint32_t allowedModes = handler->allowedModes;
 
 			parse_GetToken();
-			if (x65_ParseAddressingMode(&addrMode, allowedModes) && (addrMode.mode & allowedModes))
+			if (x65_ParseAddressingMode(&addrMode, allowedModes, handler->immSize) && (addrMode.mode & allowedModes))
 				return handler->handler(handler->baseOpcode, &addrMode);
 			else
 				err_Error(MERROR_ILLEGAL_ADDRMODE);

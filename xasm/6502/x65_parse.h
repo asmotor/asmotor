@@ -60,12 +60,20 @@ typedef struct {
 	SExpression* expr3;
 } SAddressingMode;
 
+typedef enum {
+	IMM_NONE,
+	IMM_8_BIT,
+	IMM_16_BIT,
+	IMM_ACC,
+	IMM_INDEX
+} EImmediateSize;
+
 
 extern void
 x65_OutputLongInstruction(uint8_t opcode, SExpression* expr);
 
 extern bool
-x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes);
+x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmediateSize immSize);
 
 extern bool
 x65_ParseIntegerInstruction(void);

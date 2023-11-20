@@ -99,7 +99,7 @@ typedef struct {
 } SAddressingMode;
 
 static SExpression*
-expressionNoReservedIdentifiers() {
+expressionNoReservedIdentifiers(void) {
     opt_Push();
     opt_Current->allowReservedKeywordLabels = false;
     SExpression* expression = parse_Expression(4);

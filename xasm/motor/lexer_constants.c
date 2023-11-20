@@ -93,7 +93,7 @@ doesNotExist(const char* name) {
 /* Public functions */
 
 const SLexConstantsWord*
-lex_ConstantsMatchWord() {
+lex_ConstantsMatchWord(void) {
 	const SConstantWord* result = NULL;
 	lex_Context->token.length = 0;
 
@@ -134,7 +134,7 @@ lex_ConstantsMatchWord() {
 
 
 const SLexConstantsWord*
-lex_ConstantsMatchTokenString() {
+lex_ConstantsMatchTokenString(void) {
 	uint32_t hashCode = 0;
 	for (size_t i = 0; i < lex_Context->token.length; ++i) {
 		HASH(hashCode, toupper(lex_Context->token.value.string[i]));

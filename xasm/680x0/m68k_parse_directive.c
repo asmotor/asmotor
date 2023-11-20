@@ -29,7 +29,7 @@
 #include "m68k_tokens.h"
 
 bool
-m68k_ParseDirective() {
+m68k_ParseDirective(void) {
     switch (lex_Context->token.id) {
         case T_68K_MC68000:
             opt_Current->machineOptions->cpu = CPUF_68000;

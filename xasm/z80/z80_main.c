@@ -28,7 +28,7 @@
 #include "z80_symbols.h"
 #include "z80_tokens.h"
 
-static SConfiguration
+SConfiguration
 z80_XasmConfiguration = {
 	"z80", "1.0",
 

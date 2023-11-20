@@ -52,7 +52,7 @@ colonCount(void) {
 }
 
 static SSymbol*
-getRsCounter() {
+getRsCounter(void) {
 	if (g_rsSymbol == NULL) {
 		string* rsName = str_Create("__RS");
 		g_rsSymbol = sym_CreateSet(rsName, 0);
