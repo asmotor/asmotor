@@ -23,20 +23,20 @@
 #include "x65_options.h"
 
 
-static int32_t
+static int64_t
 getMWidth(SSymbol* symbol) {
 	return opt_Current->machineOptions->m16 ? 16 : 8;
 }
 
 
-static int32_t
+static int64_t
 getXWidth(SSymbol* symbol) {
 	return opt_Current->machineOptions->x16 ? 16 : 8;
 }
 
 
 static void
-createEquCallback(const char* name, int32_t (*callback)(SSymbol*)) {
+createEquCallback(const char* name, int64_t (*callback)(SSymbol*)) {
     string* nameStr = str_Create(name);
 	SSymbol* symbol = sym_CreateEqu(nameStr, 0);
 	symbol->callback.integer = callback;

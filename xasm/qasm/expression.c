@@ -20,7 +20,7 @@ allocExpression(exprtype_t type) {
 
 static SExpression*
 combineIntegerOperation(SExpression* left, SExpression* right, token_t operation, int64_t (*op)(int64_t, int64_t)) {
-	if (left == NULL || right == NULL) {
+	if (left == NULL || right == NULL || left->type == EXPR_STRING || right->type == EXPR_STRING) {
 		expr_Free(left);
 		expr_Free(right);
 		return NULL;
@@ -35,6 +35,27 @@ combineIntegerOperation(SExpression* left, SExpression* right, token_t operation
 		expr->value.integer = op(left->value.integer, right->value.integer);
 
 	return expr;
+}
+
+
+static SExpression*
+tryCombineStringOperation(SExpression* left, SExpression* right, int64_t (*op)(string*, string*)) {
+	if (left == NULL || right == NULL || left->type != EXPR_STRING || right->type != EXPR_STRING) {
+		return NULL;
+	}
+
+	SExpression* expr = expr_Const(op(left->value.string, right->value.string));
+	expr_Free(left);
+	expr_Free(right);
+
+	return expr;
+}
+
+
+static SExpression*
+combineStringOrIntegerOperation(SExpression* left, SExpression* right, token_t operation, int64_t (*int_op)(int64_t, int64_t), int64_t (*str_op)(string*, string*)) {
+	SExpression* expr = tryCombineStringOperation(left, right, str_op);
+	return expr != NULL ? expr : combineIntegerOperation(left, right, operation, int_op);
 }
 
 
@@ -71,6 +92,12 @@ static int64_t op_greater_than(int64_t lhs, int64_t rhs) { return lhs > rhs; }
 static int64_t op_less_than(int64_t lhs, int64_t rhs) { return lhs < rhs; }
 static int64_t op_greater_or_equal(int64_t lhs, int64_t rhs) { return lhs >= rhs; }
 static int64_t op_less_or_equal(int64_t lhs, int64_t rhs) { return lhs <= rhs; }
+static int64_t op_string_equal(string* lhs, string* rhs) { return str_Compare(lhs, rhs) == 0; }
+static int64_t op_string_not_equal(string* lhs, string* rhs) { return str_Compare(lhs, rhs) != 0; }
+static int64_t op_string_greater_than(string* lhs, string* rhs) { return str_Compare(lhs, rhs) > 0; }
+static int64_t op_string_less_than(string* lhs, string* rhs) { return str_Compare(lhs, rhs) < 0; }
+static int64_t op_string_greater_or_equal(string* lhs, string* rhs) { return str_Compare(lhs, rhs) >= 0; }
+static int64_t op_string_less_or_equal(string* lhs, string* rhs) { return str_Compare(lhs, rhs) <= 0; }
 
 
 extern void
@@ -78,6 +105,9 @@ expr_Free(SExpression* expr) {
 	if (expr != NULL) {
 		expr_Free(expr->left);
 		expr_Free(expr->right);
+
+		if (expr->type == EXPR_STRING)
+			str_Free(expr->value.string);
 
 		mem_Free(expr);
 	}
@@ -148,7 +178,14 @@ expr_Xor(SExpression* left, SExpression* right) {
 
 
 extern SExpression*
-expr_Add(SExpression* left, SExpression* right) {
+expr_Add(SExpression* left, SExpression* right) {	
+	if (left != NULL && right != NULL && left->type == EXPR_STRING && right->type == EXPR_STRING) {
+		SExpression* expr = expr_String(str_Concat(left->value.string, right->value.string));
+		expr_Free(left);
+		expr_Free(right);
+		return expr;
+	}
+
 	return combineIntegerOperation(left, right, T_OP_ADD, op_add);
 }
 
@@ -198,37 +235,37 @@ expr_PcRelative(SExpression* expr, int adjustment) {
 
 extern SExpression*
 expr_Equal(SExpression* left, SExpression* right) {
-	return combineIntegerOperation(left, right, T_OP_EQUAL, op_equal);
+	return combineStringOrIntegerOperation(left, right, T_OP_EQUAL, op_equal, op_string_equal);
 }
 
 
 extern SExpression*
 expr_NotEqual(SExpression* left, SExpression* right) {
-	return combineIntegerOperation(left, right, T_OP_NOT_EQUAL, op_not_equal);
+	return combineStringOrIntegerOperation(left, right, T_OP_NOT_EQUAL, op_not_equal, op_string_not_equal);
 }
 
 
 extern SExpression*
 expr_GreaterThan(SExpression* left, SExpression* right) {
-	return combineIntegerOperation(left, right, T_OP_GREATER_THAN, op_greater_than);
+	return combineStringOrIntegerOperation(left, right, T_OP_GREATER_THAN, op_greater_than, op_string_greater_than);
 }
 
 
 extern SExpression*
 expr_LessThan(SExpression* left, SExpression* right) {
-	return combineIntegerOperation(left, right, T_OP_LESS_THAN, op_less_than);
+	return combineStringOrIntegerOperation(left, right, T_OP_LESS_THAN, op_less_than, op_string_less_than);
 }
 
 
 extern SExpression*
 expr_GreaterEqual(SExpression* left, SExpression* right) {
-	return combineIntegerOperation(left, right, T_OP_GREATER_OR_EQUAL, op_greater_or_equal);
+	return combineStringOrIntegerOperation(left, right, T_OP_GREATER_OR_EQUAL, op_greater_or_equal, op_string_greater_or_equal);
 }
 
 
 extern SExpression*
 expr_LessEqual(SExpression* left, SExpression* right) {
-	return combineIntegerOperation(left, right, T_OP_LESS_OR_EQUAL, op_less_or_equal);
+	return combineStringOrIntegerOperation(left, right, T_OP_LESS_OR_EQUAL, op_less_or_equal, op_string_less_or_equal);
 }
 
 
@@ -241,13 +278,13 @@ expr_Pc(void) {
 
 extern SExpression*
 expr_SymbolByName(const string* name) {
-	SSymbol* sym = sym_Find(name);
-	if (sym->type == SYMBOL_INTEGER_CONSTANT || sym->type == SYMBOL_INTEGER_VARIABLE) {
-		return expr_Const(sym->value.integer);
-	}
+	return expr_Const(sym_IntegerValueOf(name));
+}
 
-	SExpression* expr = allocExpression(EXPR_SYMBOL);
-	expr->value.symbol = sym;
 
+extern SExpression*
+expr_String(const string* str) {
+	SExpression* expr = allocExpression(EXPR_STRING);
+	expr->value.string = str_Copy(str);
 	return expr;
 }

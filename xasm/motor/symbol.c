@@ -66,12 +66,12 @@ util_localtime(struct tm* const tmDest, time_t const* const sourceTime) {
 }
 
 
-static int32_t
+static int64_t
 callback__NARG(SSymbol* symbol) {
 	return (int32_t) lexctx_GetMacroArgumentCount();
 }
 
-static int32_t
+static int64_t
 callback__LINE(SSymbol* symbol) {
 	return (int32_t) lexctx_TokenLineNumber();
 }
@@ -131,7 +131,7 @@ callback__AMIGADATE(SSymbol* symbol) {
 }
 
 static void
-createEquCallback(const char* name, int32_t (*callback)(struct Symbol*)) {
+createEquCallback(const char* name, int64_t (*callback)(struct Symbol*)) {
 	string* nameString = str_Create(name);
 	SSymbol* symbol = sym_CreateEqu(nameString, 0);
 	symbol->callback.integer = callback;

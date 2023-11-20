@@ -56,6 +56,13 @@ parseInitial(void) {
 			parse_GetToken();
 			return expr;
 		}
+		case T_STRING: {
+			string* str = lex_TokenString();
+			SExpression* expr = expr_String(str);
+			str_Free(str);
+			parse_GetToken();
+			return expr;
+		}
 		case '@': {
 			parse_GetToken();
 			return expr_Pc();

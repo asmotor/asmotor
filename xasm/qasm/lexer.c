@@ -207,6 +207,9 @@ lex_NextLine(void) {
 
 extern string*
 lex_CurrentFileAndLine(void) {
+	if (lex_Context == NULL)
+		return str_Create("[shell]");
+
 	return str_CreateFormat("%s:%ld", str_String(lex_Context->buffer->name), lex_Context->bufferLine + 1);
 }
 
@@ -258,6 +261,47 @@ lex_NextToken(void) {
 			}
 			lex_Context->token.id = *lex_Context->argumentChar++;
 			lex_Context->token.length = 1;
+			return;
+		}
+
+		// Try string literal
+		if (*lex_Context->argumentChar == '"') {
+			int len = 0;
+			lex_Context->argumentChar += 1;
+			while (*lex_Context->argumentChar != '"') {
+				switch (*lex_Context->argumentChar) {
+					case 0: {
+						err_Error(ERROR_UNTERMINATED_STRING);
+						lex_Context->token.id = T_NONE;
+						return;
+					}
+					case '\\': {
+						switch (*++lex_Context->argumentChar) {
+							case 0: {
+								break;
+							}
+							case 'n': {
+								lex_Context->token.value.string[len++] = '\n';
+								++lex_Context->argumentChar;
+								break;
+							}
+							default: {
+								lex_Context->token.value.string[len++] = *lex_Context->argumentChar++;
+								break;
+							}
+						}
+						break;
+					}
+					default: {
+						lex_Context->token.value.string[len++] = *lex_Context->argumentChar++;
+						break;
+					}
+				}
+			}
+			lex_Context->argumentChar += 1;
+			lex_Context->token.value.string[len] = 0;
+			lex_Context->token.length = len;
+			lex_Context->token.id = T_STRING;
 			return;
 		}
 
@@ -315,4 +359,10 @@ lex_NextToken(void) {
 		err_Error(ERROR_INVALID_IDENTIFIER);
 		lex_Context->token.id = T_NONE;
 	}
+}
+
+
+extern string*
+lex_TokenString(void) {
+	return str_CreateLength(lex_Context->token.value.string, lex_Context->token.length);
 }

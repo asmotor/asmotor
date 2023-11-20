@@ -74,7 +74,7 @@ typedef struct Symbol {
     struct Section* section;
 
     union {
-        int32_t (* integer)(struct Symbol*);
+        int64_t (* integer)(struct Symbol*);
         string* (* string)(struct Symbol*);
     } callback;
 

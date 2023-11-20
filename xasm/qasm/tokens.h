@@ -36,6 +36,7 @@ typedef enum {
 
 	T_SYM_MACRO,
 	T_SYM_CONSTANT,
+	T_SYM_VARIABLE,
 	T_SYM_GROUP,
 
 } token_t;

@@ -14,7 +14,7 @@ assembleLanguageSymbol(const SLexLine* line) {
 		int op = lex_TokenOf(line->operation);
 
 		// Is it a constant or variable?
-		if (op == T_SYM_CONSTANT || op == T_OP_EQUAL) {
+		if (op == T_SYM_CONSTANT || op == T_SYM_VARIABLE || op == T_OP_EQUAL) {
 			if (line->totalArguments != 1) {
 				err_Error(ERROR_ARGUMENT_COUNT);
 			} else {
@@ -23,8 +23,10 @@ assembleLanguageSymbol(const SLexLine* line) {
 
 				if (op == T_SYM_CONSTANT) {
 					sym_CreateConstant(name, v);
-				} else if (op == T_OP_EQUAL) {
+				} else if (op == T_SYM_VARIABLE) {
 					sym_CreateVariable(name, v);
+				} else if (op == T_OP_EQUAL) {
+					sym_UpdateVariable(name, v);
 				}
 			}
 			return true;

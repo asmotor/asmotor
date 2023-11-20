@@ -1,10 +1,11 @@
-help .equ 87
-help2 = 42
+;help .equ2 87
 
-	and	#help
+	and	#"a"=="a"
 	
 	txa
-	lda	#1$
+;	lda	#1$
 	and	#2*(3+4)*5/10\5<<2>>1
 	and	#($02+8)^4|$10 & $2
 	rts
+
+;	test	"arg1",arg2,"arg3","a\"rg4"

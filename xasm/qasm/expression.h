@@ -8,6 +8,7 @@
 
 
 typedef enum {
+	EXPR_STRING,
     EXPR_SYMBOL,
     EXPR_PARENS,
 	EXPR_CONSTANT,
@@ -24,6 +25,7 @@ typedef struct Expression {
         long double floating;
         int64_t integer;
         struct Symbol* symbol;
+		string* string;
     } value;
 } SExpression;
 
@@ -33,6 +35,9 @@ expr_Free(SExpression* expr);
 
 extern SExpression*
 expr_Const(int64_t value);
+
+extern SExpression*
+expr_String(const string* str);
 
 extern SExpression*
 expr_CheckRange(SExpression* expression, int64_t low, int64_t high);

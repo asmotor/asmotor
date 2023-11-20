@@ -67,3 +67,6 @@ lex_CurrentFileAndLine(void);
 extern void
 lex_NextToken(void);
 
+extern string*
+lex_TokenString(void);
+

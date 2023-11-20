@@ -25,7 +25,7 @@ allocateSymbolMap(void) {
 
 
 static SSymbol*
-findSymbol(const string* name) {
+findOrAllocateSymbol(const string* name) {
 	SSymbol* sym;
 	if (!strmap_Value(s_symbols, name, (intptr_t*) &sym)) {
 		sym = (SSymbol*) mem_Alloc(sizeof(SSymbol));
@@ -33,6 +33,7 @@ findSymbol(const string* name) {
 		sym->type = SYMBOL_UNKNOWN;
 		sym->locals = NULL;
 		sym->value.integer = 0;
+		sym->callback.integer = NULL;
 		strmap_Insert(s_symbols, name, (intptr_t) sym);
 	}
 
@@ -41,14 +42,19 @@ findSymbol(const string* name) {
 
 
 static SSymbol*
-allocateSymbolOfType(const string* name, symboltype_t type) {
-	SSymbol* sym = findSymbol(name);
-	if (sym->type == SYMBOL_UNKNOWN) {
+defineSymbolOfType(const string* name, symboltype_t type) {
+	SSymbol* sym;
+	if (!strmap_Value(s_symbols, name, (intptr_t*) &sym)) {
+		sym = (SSymbol*) mem_Alloc(sizeof(SSymbol));
+		sym->name = str_Copy(name);
 		sym->type = type;
-		return sym;
+		sym->locals = NULL;
+		sym->value.integer = 0;
+		sym->callback.integer = NULL;
+		strmap_Insert(s_symbols, name, (intptr_t) sym);
 	}
 
-	err_Error(ERROR_SYMBOL_EXISTS);
+	err_Error(ERROR_SYMBOL_EXISTS, str_String(name));
 	return NULL;
 }
 
@@ -85,7 +91,7 @@ sym_CreateGroup(const string* name, EGroupType value) {
 
 extern SSymbol*
 sym_CreateConstant(const string* name, int64_t value) {
-	SSymbol* sym = allocateSymbolOfType(name, SYMBOL_INTEGER_CONSTANT);
+	SSymbol* sym = defineSymbolOfType(name, SYMBOL_INTEGER_CONSTANT);
 	if (sym != NULL)
 		sym->value.integer = value;
 
@@ -95,7 +101,26 @@ sym_CreateConstant(const string* name, int64_t value) {
 
 extern SSymbol*
 sym_CreateVariable(const string* name, int64_t value) {
-	internalerror("sym_CreateVariable not implemented");
+	SSymbol* sym = defineSymbolOfType(name, SYMBOL_INTEGER_CONSTANT);
+	if (sym != NULL)
+		sym->value.integer = value;
+
+	return sym;
+}
+
+
+extern SSymbol*
+sym_UpdateVariable(const string* name, int64_t value) {
+	SSymbol* sym;
+	if (strmap_Value(s_symbols, name, (intptr_t*) &sym)) {
+		if (sym->type == SYMBOL_INTEGER_VARIABLE) {
+			sym->value.integer = value;
+			return sym;
+		}
+		err_Error(ERROR_NOT_A_VARIABLE, str_String(name));
+	}
+
+	return sym;
 }
 
 
@@ -107,6 +132,20 @@ sym_CreateLabel(const string* label) {
 
 extern SSymbol*
 sym_Find(const string* label) {
-	return findSymbol(label);
+	return findOrAllocateSymbol(label);
+}
+
+
+extern int64_t
+sym_IntegerValueOf(const string* name) {
+	SSymbol* sym;
+	if (strmap_Value(s_symbols, name, (intptr_t*) &sym)) {
+		if (sym != NULL && (sym->type == SYMBOL_INTEGER_CONSTANT || sym->type == SYMBOL_INTEGER_VARIABLE)) {
+			return sym->callback.integer(sym);
+		}
+	}
+
+	err_Error(ERROR_SYMBOL_EXISTS, str_String(name));
+	return 0;
 }
 

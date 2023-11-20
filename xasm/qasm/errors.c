@@ -24,7 +24,10 @@ static const char* g_errors[] = {
 	"Expected %c here",					// ERROR_EXPECTED_CHAR,
 	"Invalid expression",				// ERROR_INVALID_EXPRESSION
 	"Characters after operation",		// ERROR_CHARACTERS_AFTER_OPERATION
-	"Symbol already defined",			// ERROR_SYMBOL_EXISTS
+	"\"%s\" already defined",			// ERROR_SYMBOL_EXISTS
+	"\"%s\" is not a variable",			// ERROR_NOT_A_VARIABLE
+	"Unterminated string",				// ERROR_UNTERMINATED_STRING
+	"File \"%s\" not found",			// ERROR_FILE_NOT_FOUND
 };
 
 

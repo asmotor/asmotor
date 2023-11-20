@@ -25,7 +25,8 @@ s_tokens[] = {
 	{ "\\", T_OP_MODULO },
 
 	{ ".MACRO", T_SYM_MACRO },
-	{ ".EQU", T_SYM_CONSTANT },
+	{ ".CONST", T_SYM_CONSTANT },
+	{ ".VAR", T_SYM_VARIABLE },
 	{ ".GROUP", T_SYM_GROUP },
 
 	{ NULL, 0 }

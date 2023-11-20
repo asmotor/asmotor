@@ -22,9 +22,15 @@ typedef struct Symbol {
 	string* name;
 	symboltype_t type;
 	strmap_t* locals;
+
 	union {
 		int64_t integer;
 	} value;
+
+    union {
+        int64_t (* integer)(struct Symbol*);
+        string* (* string)(struct Symbol*);
+    } callback;
 } SSymbol;
 
 
@@ -44,6 +50,9 @@ extern SSymbol*
 sym_CreateVariable(const string* name, int64_t value);
 
 extern SSymbol*
+sym_UpdateVariable(const string* name, int64_t value);
+
+extern SSymbol*
 sym_CreateLabel(const string* label);
 
 extern SSymbol*
@@ -54,3 +63,8 @@ sym_Init(void);
 
 extern void
 sym_Close(void);
+
+extern int64_t
+sym_IntegerValueOf(const string* name);
+
+#define sym_CreateEqu sym_CreateConstant

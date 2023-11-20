@@ -142,6 +142,33 @@ isStartBracket(char ch) {
 
 
 static void
+skipPastString(char** source) {
+	char* end = *source;
+
+	while (*end) {
+		switch (*end) {
+			case '"': {
+				*source = end + 1;
+				return;
+			}
+			case '\\': {
+				++end;
+				if (*end != 0)
+					++end;
+				break;
+			}
+			default: {
+				++end;
+				break;
+			}
+		}
+	}
+
+	*source = NULL;
+}
+
+
+static void
 skipPastBracket(char** source, bracket_t bracket) {
 	char endBracket = s_endBrackets[bracket];
 
@@ -165,6 +192,8 @@ parseArgument(SLexLine* lexLine, char* source) {
 		next += 1;
 		if (isStartBracket(ch)) {
 			skipPastBracket(&next, startBracketType(ch));
+		} else if (ch == '"') {
+			skipPastString(&next);
 		}
 		ch = peekChar(&next);
 	}
@@ -310,10 +339,15 @@ parseLine(SLexLine* lexLine, const string* filename, size_t lineNumber, FILE* fi
 
 extern SLexerBuffer*
 buf_CreateFromFile(const string* filename) {
+	FILE* file = fopen(str_String(filename), "rb");
+	if (file == NULL) {
+		err_Error(ERROR_FILE_NOT_FOUND, str_String(filename));
+		return NULL;
+	}
+
 	size_t allocatedLines = 4;
 	SLexerBuffer* buffer = allocLexBuffer(filename, allocatedLines);
 
-	FILE* file = fopen(str_String(filename), "rb");
 	do {
 		if (allocatedLines <= buffer->totalLines) {
 			allocatedLines += allocatedLines >> 1;
