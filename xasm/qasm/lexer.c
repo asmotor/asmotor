@@ -89,6 +89,11 @@ lex_Init(void) {
 
 
 extern void
+lex_Close(void) {
+}
+
+
+extern void
 lex_ConstantsDefineWords(const SLexConstantsWord* lex) {
 	while (lex->name) {
 		strpmap_Insert(s_operations, lex->name, lex->token);
@@ -351,7 +356,9 @@ lex_NextToken(void) {
 				++len;
 			}
 			lex_Context->token.id = T_ID;
+			lex_Context->token.value.string[len] = 0;
 			lex_Context->token.length = len;
+			lex_Context->argumentChar += len;
 			return;
 		}
 

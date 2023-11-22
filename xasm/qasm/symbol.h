@@ -7,14 +7,17 @@
 typedef enum {
     GROUP_TEXT = 0,
     GROUP_BSS = 1
-} EGroupType;
+} group_type_t;
+
+#define EGroupType group_type_t
 
 
 typedef enum {
 	SYMBOL_UNKNOWN,
 	SYMBOL_INTEGER_CONSTANT,
 	SYMBOL_INTEGER_VARIABLE,
-	SYMBOL_LABEL
+	SYMBOL_LABEL,
+	SYMBOL_GROUP
 } symboltype_t;
 
 
@@ -25,6 +28,7 @@ typedef struct Symbol {
 
 	union {
 		int64_t integer;
+		group_type_t group_type;
 	} value;
 
     union {

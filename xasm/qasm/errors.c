@@ -28,6 +28,12 @@ static const char* g_errors[] = {
 	"\"%s\" is not a variable",			// ERROR_NOT_A_VARIABLE
 	"Unterminated string",				// ERROR_UNTERMINATED_STRING
 	"File \"%s\" not found",			// ERROR_FILE_NOT_FOUND
+	"String required",					// ERROR_EXPR_STRING,
+	"Expected group here",				// ERROR_GROUP_EXPECTED,
+	"Section group mismatch",			// ERROR_SECTION_TYPE_MISMATCH
+	"Symbol \"%s\" not an integer",		// ERROR_UNKNOWN_INTEGER_SYMBOL
+	"Symbol \"%s\" unknown",			// ERROR_UNKNOWN_SYMBOL
+	"Operator does not support different types",	// ERROR_OPERATOR_TYPES
 };
 
 

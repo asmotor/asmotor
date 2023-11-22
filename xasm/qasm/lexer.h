@@ -34,6 +34,9 @@ extern SLexerContext* lex_Context;
 extern void
 lex_Init(void);
 
+extern void
+lex_Close(void);
+
 extern SLexerContext*
 lex_CreateContext(SLexerBuffer* buffer);
 

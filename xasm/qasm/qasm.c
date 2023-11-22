@@ -60,6 +60,7 @@ qasm_Main(SConfiguration* configuration, int argc, char* argv[]) {
 	}
 
 	sym_Init();
+	sect_Init();
 	lex_Init();
 	opt_Init();
 
@@ -73,6 +74,8 @@ qasm_Main(SConfiguration* configuration, int argc, char* argv[]) {
 	str_Free(input);
 
 	opt_Close();
+	lex_Close();
+	sect_Close();
 	sym_Close();
 
 	return 0;

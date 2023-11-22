@@ -234,3 +234,16 @@ parse_ConstantExpression(size_t maxStringConstLength) {
 	err_Error(ERROR_EXPR_CONST);
 	return 0;
 }
+
+
+extern string*
+parse_StringExpression(size_t maxStringConstLength) {
+	SExpression* expr = parse_Expression(maxStringConstLength);
+	if (expr->type == EXPR_STRING) {
+		string* str = str_Copy(expr->value.string);
+		expr_Free(expr);
+		return str;
+	}
+	err_Error(ERROR_EXPR_STRING);
+	return str_Empty();
+} 

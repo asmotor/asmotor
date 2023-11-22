@@ -1,6 +1,6 @@
-;help .equ2 87
+help .const 87
 
-	and	#"a"=="a"
+	and	#("a"=="a")+help
 	
 	txa
 ;	lda	#1$

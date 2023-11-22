@@ -1,4 +1,59 @@
+#include "mem.h"
+#include "strcoll.h"
+
+#include "errors.h"
 #include "section.h"
+#include "symbol.h"
+
+
+strmap_t* s_section_map = NULL;
+
+
+static void sectFree(intptr_t userData, intptr_t element) {
+	SSection* section = (SSection*) element;
+	str_Free(section->name);
+	mem_Free(section);
+}
+
+
+extern SSection*
+allocateSection(const string* name, SSymbol* group) {
+	SSection* section = (SSection*) mem_Alloc(sizeof(SSection));
+
+	section->name = str_Copy(name);
+	section->group = group;
+
+	return section;
+}
+
+extern void
+sect_Init(void) {
+	s_section_map = strmap_Create(sectFree);
+}
+
+
+extern void
+sect_Close(void) {
+	strmap_Free(s_section_map);
+}
+
+
+extern SSection*
+sect_CreateOrSwitchTo(const string* name, SSymbol* group) {
+	intptr_t sect_int;
+
+	if (strmap_Value(s_section_map, name, &sect_int)) {
+		SSection* section = (SSection*) sect_int;
+		if (section->group == group) {
+			return section;
+		}
+		err_Error(ERROR_SECTION_TYPE_MISMATCH);
+		return NULL;
+	} else {
+		SSection* section = allocateSection(name, group);
+		return section;
+	}
+}
 
 
 extern void

@@ -52,6 +52,7 @@ defineSymbolOfType(const string* name, symboltype_t type) {
 		sym->value.integer = 0;
 		sym->callback.integer = NULL;
 		strmap_Insert(s_symbols, name, (intptr_t) sym);
+		return sym;
 	}
 
 	err_Error(ERROR_SYMBOL_EXISTS, str_String(name));
@@ -141,11 +142,15 @@ sym_IntegerValueOf(const string* name) {
 	SSymbol* sym;
 	if (strmap_Value(s_symbols, name, (intptr_t*) &sym)) {
 		if (sym != NULL && (sym->type == SYMBOL_INTEGER_CONSTANT || sym->type == SYMBOL_INTEGER_VARIABLE)) {
-			return sym->callback.integer(sym);
+			if (sym->callback.integer != NULL) {
+				return sym->callback.integer(sym);
+			}
+			return sym->value.integer;
 		}
+		err_Error(ERROR_UNKNOWN_INTEGER_SYMBOL, str_String(name));
+	} else {
+		err_Error(ERROR_UNKNOWN_SYMBOL, str_String(name));
 	}
-
-	err_Error(ERROR_SYMBOL_EXISTS, str_String(name));
 	return 0;
 }
 

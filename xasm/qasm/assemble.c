@@ -30,7 +30,7 @@ assembleLanguageSymbol(const SLexLine* line) {
 				}
 			}
 			return true;
-		} if (op == T_SYM_MACRO) {
+		} else if (op == T_SYM_MACRO) {
 			internalerror("Macros not implemented");
 		}
 	}
@@ -50,6 +50,27 @@ assembleLabel(const SLexLine* line) {
 
 static bool
 assembleLanguageOperation(const SLexLine* line) {
+	if (lex_Context->token.id == T_DIRECTIVE_SECTION) {
+		if (line->totalArguments < 1) {
+			err_Error(ERROR_ARGUMENT_COUNT);
+		} else {
+			lex_GotoArgument(0);
+			string* name = parse_StringExpression(8);
+			if (name != NULL) {
+				SSymbol* group = NULL;
+				if (lex_Context->token.id == ',') {
+					parse_GetToken();
+					group = parse_Symbol();
+					if (group == NULL || group->type != SYMBOL_GROUP) {
+						err_Error(ERROR_GROUP_EXPECTED);
+					}
+				}
+
+				sect_CreateOrSwitchTo(name, group);
+				return true;
+			}
+		}
+	}
 	return false;
 }
 

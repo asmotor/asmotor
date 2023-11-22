@@ -54,8 +54,16 @@ tryCombineStringOperation(SExpression* left, SExpression* right, int64_t (*op)(s
 
 static SExpression*
 combineStringOrIntegerOperation(SExpression* left, SExpression* right, token_t operation, int64_t (*int_op)(int64_t, int64_t), int64_t (*str_op)(string*, string*)) {
-	SExpression* expr = tryCombineStringOperation(left, right, str_op);
-	return expr != NULL ? expr : combineIntegerOperation(left, right, operation, int_op);
+	SExpression* expr;
+	
+	if ((expr = tryCombineStringOperation(left, right, str_op)) != NULL)
+		return expr;
+
+	if ((expr = combineIntegerOperation(left, right, operation, int_op)) != NULL)
+		return expr;
+
+	err_Error(ERROR_OPERATOR_TYPES);
+	return NULL;
 }
 
 

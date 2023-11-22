@@ -39,6 +39,8 @@ typedef enum {
 	T_SYM_VARIABLE,
 	T_SYM_GROUP,
 
+	T_DIRECTIVE_SECTION,
+
 } token_t;
 
 

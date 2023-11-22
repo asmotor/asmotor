@@ -9,6 +9,9 @@
 extern int64_t
 parse_ConstantExpression(size_t maxStringConstLength);
 
+extern string*
+parse_StringExpression(size_t maxStringConstLength);
+
 extern SExpression*
 parse_Expression(size_t maxStringConstLength);
 

@@ -14,3 +14,15 @@ parse_GetToken(void) {
 }
 
 
+extern SSymbol*
+parse_Symbol(void) {
+	if (lex_Context->token.id == T_ID) {
+		string* name = lex_TokenString();
+		SSymbol* symbol = sym_Find(name);
+		str_Free(name);
+
+		return symbol;
+	}
+	return NULL;
+}
+

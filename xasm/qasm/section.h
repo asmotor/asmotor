@@ -3,10 +3,22 @@
 #include "str.h"
 
 #include "expression.h"
+#include "symbol.h"
+
 
 typedef struct Section {
     string* name;
+	SSymbol* group;
 } SSection;
+
+extern void
+sect_Init(void);
+
+extern void
+sect_Close(void);
+
+extern SSection*
+sect_CreateOrSwitchTo(const string* name, SSymbol* group);
 
 extern void
 sect_OutputData(const void* data, size_t count);
