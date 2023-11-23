@@ -472,8 +472,14 @@ sect_OutputFloat64(long double value) {
 	uint64_t intValue;
 	assert(sizeof(floatValue) == sizeof(intValue));
 	memcpy(&intValue, &floatValue, sizeof(uint64_t));
-	sect_OutputConst32((uint32_t) intValue);
-	sect_OutputConst32((uint32_t) (intValue >> 32));
+
+	if (opt_Current->endianness == ASM_BIG_ENDIAN) {
+		sect_OutputConst32((uint32_t) (intValue >> 32));
+		sect_OutputConst32((uint32_t) intValue);
+	} else {
+		sect_OutputConst32((uint32_t) intValue);
+		sect_OutputConst32((uint32_t) (intValue >> 32));
+	}
 }
 
 

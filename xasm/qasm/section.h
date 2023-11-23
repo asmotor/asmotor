@@ -9,6 +9,9 @@
 typedef struct Section {
     string* name;
 	SSymbol* group;
+	size_t size;
+	size_t allocated_bytes;
+	uint8_t* data;
 } SSection;
 
 extern void

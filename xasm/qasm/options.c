@@ -13,9 +13,8 @@ createOptions(void) {
 	SOptions* options = (SOptions*) mem_Alloc(sizeof(SOptions));
 
 	options->next = NULL;
-	options->prev = NULL;
 	options->machineOptions = qasm_Configuration->allocOptions();
-	qasm_Configuration->setDefaultOptions(options->machineOptions);
+	options->endianness = qasm_Configuration->defaultEndianness;
 
 	return options;
 }

@@ -34,6 +34,8 @@ static const char* g_errors[] = {
 	"Symbol \"%s\" not an integer",		// ERROR_UNKNOWN_INTEGER_SYMBOL
 	"Symbol \"%s\" unknown",			// ERROR_UNKNOWN_SYMBOL
 	"Operator does not support different types",	// ERROR_OPERATOR_TYPES
+	"Section \"%s\" not closed",		// ERROR_SECTION_OPEN
+	"Data or code outside section",		// ERROR_NO_SECTION
 };
 
 

@@ -5,12 +5,16 @@ struct MachineOptions;
 typedef enum {
     ASM_LITTLE_ENDIAN,
     ASM_BIG_ENDIAN
-} EEndianness;
+} endianness_t;
+
+#define EEndianness endianness_t
 
 typedef struct Options {
-	struct Options* prev;
 	struct Options* next;
     struct MachineOptions* machineOptions;
+
+	endianness_t endianness;
+
 } SOptions;
 
 extern SOptions* opt_Current;

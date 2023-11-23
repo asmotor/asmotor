@@ -2,16 +2,19 @@
 #include "strcoll.h"
 
 #include "errors.h"
+#include "options.h"
 #include "section.h"
 #include "symbol.h"
 
 
 strmap_t* s_section_map = NULL;
+static SSection* s_current_section = NULL;
 
 
 static void sectFree(intptr_t userData, intptr_t element) {
 	SSection* section = (SSection*) element;
 	str_Free(section->name);
+	mem_Free(section->data);
 	mem_Free(section);
 }
 
@@ -22,9 +25,13 @@ allocateSection(const string* name, SSymbol* group) {
 
 	section->name = str_Copy(name);
 	section->group = group;
+	section->data = NULL;
+	section->size = 0;
+	section->allocated_bytes = 0;
 
 	return section;
 }
+
 
 extern void
 sect_Init(void) {
@@ -40,29 +47,51 @@ sect_Close(void) {
 
 extern SSection*
 sect_CreateOrSwitchTo(const string* name, SSymbol* group) {
+	if (s_current_section != NULL) {
+		err_Error(ERROR_SECTION_OPEN, str_String(s_current_section->name));
+		return NULL;
+	}
+
+	SSection* section = NULL;
 	intptr_t sect_int;
 
 	if (strmap_Value(s_section_map, name, &sect_int)) {
-		SSection* section = (SSection*) sect_int;
-		if (section->group == group) {
-			return section;
+		section = (SSection*) sect_int;
+		if (section->group != group) {
+			err_Error(ERROR_SECTION_TYPE_MISMATCH);
+			return NULL;
 		}
-		err_Error(ERROR_SECTION_TYPE_MISMATCH);
-		return NULL;
 	} else {
-		SSection* section = allocateSection(name, group);
-		return section;
+		section = allocateSection(name, group);
+	}
+
+	s_current_section = section;
+	return section;
+}
+
+
+static void
+reserve(size_t count) {
+	size_t new_size = s_current_section->size + count;
+	if (new_size > s_current_section->allocated_bytes) {
+		size_t growth = s_current_section->allocated_bytes == 0 ? 16 : s_current_section->allocated_bytes >> 1;
+		s_current_section->allocated_bytes += growth;
+		s_current_section->data = realloc(s_current_section->data, s_current_section->allocated_bytes);
 	}
 }
 
 
 extern void
 sect_OutputData(const void* data, size_t count) {
-	const uint8_t* p = data;
-
-	while (count--) {
-		printf("%02X ", *p);
+	if (s_current_section == NULL) {
+		err_Error(ERROR_NO_SECTION);
+		return;
 	}
+
+	reserve(count);
+
+	memcpy(s_current_section->data + s_current_section->size, data, count);
+	s_current_section->size += count;
 }
 
 
@@ -74,31 +103,65 @@ sect_OutputConst8(uint8_t value) {
 
 extern void
 sect_OutputConst16(uint16_t value) {
-	sect_OutputData(&value, sizeof(value));
+	if (opt_Current->endianness == ASM_BIG_ENDIAN) {
+		sect_OutputConst8(value >> 8);
+		sect_OutputConst8(value);
+	} else {
+		sect_OutputConst8(value);
+		sect_OutputConst8(value >> 8);
+	}
 }
 
 
 extern void
 sect_OutputConst16At(uint16_t value, uint32_t offset) {
-	sect_OutputData(&value, sizeof(value));
+	reserve(s_current_section->size - offset + sizeof(uint16_t));
+	if (opt_Current->endianness == ASM_BIG_ENDIAN) {
+		sect_OutputConst8(value >> 8);
+		sect_OutputConst8(value);
+	} else {
+		sect_OutputConst8(value);
+		sect_OutputConst8(value >> 8);
+	}
 }
 
 
 extern void
 sect_OutputConst32(uint32_t value) {
-	sect_OutputData(&value, sizeof(value));
+	if (opt_Current->endianness == ASM_BIG_ENDIAN) {
+		sect_OutputConst16(value >> 16);
+		sect_OutputConst16(value);
+	} else {
+		sect_OutputConst16(value);
+		sect_OutputConst16(value >> 16);
+	}
 }
 
 
-extern void
+void
 sect_OutputFloat32(long double value) {
-	sect_OutputData(&value, sizeof(value));
+	float floatValue = (float) value;
+	uint32_t intValue;
+	assert(sizeof(floatValue) == sizeof(intValue));
+	memcpy(&intValue, &floatValue, sizeof(uint32_t));
+	sect_OutputConst32(intValue);
 }
 
 
-extern void
+void
 sect_OutputFloat64(long double value) {
-	sect_OutputData(&value, sizeof(value));
+	double floatValue = (double) value;
+	uint64_t intValue;
+	assert(sizeof(floatValue) == sizeof(intValue));
+	memcpy(&intValue, &floatValue, sizeof(uint64_t));
+
+	if (opt_Current->endianness == ASM_BIG_ENDIAN) {
+		sect_OutputConst32((uint32_t) (intValue >> 32));
+		sect_OutputConst32((uint32_t) intValue);
+	} else {
+		sect_OutputConst32((uint32_t) intValue);
+		sect_OutputConst32((uint32_t) (intValue >> 32));
+	}
 }
 
 
