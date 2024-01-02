@@ -25,3 +25,7 @@ opt_Init(void);
 
 extern void
 opt_Close(void);
+
+extern void
+opt_Parse(const char* option, const char* argument);
+

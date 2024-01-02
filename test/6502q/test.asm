@@ -1,3 +1,5 @@
+	.section "text",code
+
 help .const 87
 
 	and	#("a"=="a")+help

@@ -36,3 +36,8 @@ opt_Close(void) {
 		options = next;
 	}
 }
+
+
+extern void
+opt_Parse(const char* option, const char* argument) {
+}

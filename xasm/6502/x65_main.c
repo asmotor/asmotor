@@ -69,3 +69,4 @@ extern int
 main(int argc, char* argv[]) {
 	return xasm_Main(&x65_xasmConfiguration, argc, argv);
 }
+

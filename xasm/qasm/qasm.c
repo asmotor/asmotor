@@ -51,6 +51,39 @@ printLexBuffer(const SLexerBuffer* buffer) {
 }
 
 
+static int
+parseArguments(int argc, char* argv[]) {
+	int dest = 0;
+	int argn = 0;
+	bool options_done = false;
+
+	while (argn < argc && !options_done) {
+		if (argv[argn][0] == '-') {
+			switch (argv[argn][1]) {
+				case 0: {
+					options_done = true;
+					break;
+				}
+				default: {
+					const char* option = argv[argn++] + 1;
+					const char* argument = NULL;
+					if (argn < argc)
+						argument = argv[argn++];
+					opt_Parse(option, argument);
+					break;
+				}
+			}
+		} else {
+			argv[dest++] = argv[argn++];
+		}
+	}
+
+	argv[argn] = NULL;
+
+	return argn;
+}
+
+
 extern int
 qasm_Main(SConfiguration* configuration, int argc, char* argv[]) {
 	qasm_Configuration = configuration;
@@ -64,14 +97,17 @@ qasm_Main(SConfiguration* configuration, int argc, char* argv[]) {
 	lex_Init();
 	opt_Init();
 
-	string* input = str_Create(argv[1]);
-	SLexerBuffer* buffer = buf_CreateFromFile(input);
-	if (buffer) {
-		printf("Lines: %ld\n----\n", buffer->totalLines);
-		printLexBuffer(buffer);
-		assemble(buffer);
+	argc = 1 + parseArguments(argc - 1, argv + 1);
+	if (argc >= 2) {
+		string* input = str_Create(argv[1]);
+		SLexerBuffer* buffer = buf_CreateFromFile(input);
+		if (buffer) {
+			printf("Lines: %ld\n----\n", buffer->totalLines);
+			printLexBuffer(buffer);
+			assemble(buffer);
+		}
+		str_Free(input);
 	}
-	str_Free(input);
 
 	opt_Close();
 	lex_Close();

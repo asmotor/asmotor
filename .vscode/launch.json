@@ -77,7 +77,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/qasm6502",
-            "args": ["test.asm"],
+            "args": ["-o", "test.bin", "test.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/6502q",
             "environment": [],
