@@ -138,7 +138,7 @@ getMostRecentLineNumber(SLexerContext* stackEntry) {
 }
 
 static void
-copyFileInfo(intptr_t key, intptr_t value, intptr_t data) {
+copyFileInfo(map_t* map, intptr_t key, intptr_t value, intptr_t data) {
 	SFileInfo* fileInfo = (SFileInfo*) value;
 	SFileInfo** array = (SFileInfo**) data;
 	array[fileInfo->fileId] = fileInfo;

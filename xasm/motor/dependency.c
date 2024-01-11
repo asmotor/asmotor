@@ -33,14 +33,14 @@ static set_t * g_dependencySet = NULL;
 /* Internal functions */
 
 static void
-writeDependency(intptr_t element, intptr_t data) {
+writeDependency(set_t* set, intptr_t element, intptr_t data) {
     FILE* fileHandle = (FILE*) data;
     string* str = (string*) element;
     fprintf(fileHandle, " %s", str_String(str));
 }
 
 static void
-writeTarget(intptr_t element, intptr_t data) {
+writeTarget(set_t* set, intptr_t element, intptr_t data) {
     FILE* fileHandle = (FILE*) data;
     string* str = (string*) element;
     fprintf(fileHandle, "%s:\n\n", str_String(str));
