@@ -9,6 +9,7 @@
 
 strmap_t* s_section_map = NULL;
 static SSection* s_current_section = NULL;
+static SSection* s_first_section = NULL;
 
 
 static void sectFree(intptr_t userData, intptr_t element) {
@@ -46,6 +47,39 @@ sect_Close(void) {
 
 
 extern SSection*
+sect_First(void) {
+	return s_first_section;
+}
+
+
+typedef struct {
+	sect_callback_t callback;
+	intptr_t user_data;
+} sect_foreach_data_t;
+
+
+static void
+foreachCallback(map_t* map, intptr_t key, intptr_t value, intptr_t data) {
+	sect_foreach_data_t* sect_data = (sect_foreach_data_t*) data;
+	sect_data->callback((SSection*) value, sect_data->user_data);
+}
+
+
+extern void
+sect_ForEach(sect_callback_t callback, intptr_t user_data) {
+	sect_foreach_data_t sect_data = {
+		callback,
+		user_data
+	};
+	map_ForEachKeyValue(s_section_map, foreachCallback, (intptr_t) &sect_data);
+}
+
+
+extern SSection*
+sect_Find(sect_predicate_t callback, intptr_t user_data);
+
+
+extern SSection*
 sect_CreateOrSwitchTo(const string* name, SSymbol* group) {
 	if (s_current_section != NULL) {
 		err_Error(ERROR_SECTION_OPEN, str_String(s_current_section->name));
@@ -63,9 +97,13 @@ sect_CreateOrSwitchTo(const string* name, SSymbol* group) {
 		}
 	} else {
 		section = allocateSection(name, group);
+		strmap_Insert(s_section_map, name, (intptr_t) section);
+		if (!s_first_section)
+			s_first_section = section;
 	}
 
 	s_current_section = section;
+		
 	return section;
 }
 

@@ -3,6 +3,7 @@
 #include "str.h"
 
 #include "expression.h"
+#include "patch.h"
 #include "symbol.h"
 
 
@@ -11,14 +12,28 @@ typedef struct Section {
 	SSymbol* group;
 	size_t size;
 	size_t allocated_bytes;
+	uint64_t load_address;
 	uint8_t* data;
+	patch_t* patches;
 } SSection;
+
+typedef void (*sect_callback_t)(SSection* section, intptr_t user_data);
+typedef bool (*sect_predicate_t)(SSection* section, intptr_t user_data);
 
 extern void
 sect_Init(void);
 
 extern void
 sect_Close(void);
+
+extern SSection*
+sect_First(void);
+
+extern void
+sect_ForEach(sect_callback_t callback, intptr_t user_data);
+
+extern SSection*
+sect_Find(sect_predicate_t callback, intptr_t user_data);
 
 extern SSection*
 sect_CreateOrSwitchTo(const string* name, SSymbol* group);

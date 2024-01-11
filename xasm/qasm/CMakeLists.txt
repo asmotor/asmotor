@@ -1,5 +1,6 @@
 add_library (qasm
     assemble.c
+    binaryobject.c
     errors.c
     expression.c
     lexbuffer.c

@@ -36,6 +36,7 @@ static const char* g_errors[] = {
 	"Operator does not support different types",	// ERROR_OPERATOR_TYPES
 	"Section \"%s\" not closed",		// ERROR_SECTION_OPEN
 	"Data or code outside section",		// ERROR_NO_SECTION
+    "When writing binary file only PC relative addressing must be used, or first section must be LOAD fixed.",	// ERROR_NEEDS_LINKER
 };
 
 
