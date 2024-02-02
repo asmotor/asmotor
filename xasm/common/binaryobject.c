@@ -17,10 +17,10 @@
 */
 
 #include <stdio.h>
+#include <stdbool.h>
 
 // From util
-#include "types.h"
-#include "file.h"
+#include "str.h"
 
 // From xasm
 #include "xasm.h"

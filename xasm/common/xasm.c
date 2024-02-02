@@ -17,9 +17,11 @@
 */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 
 #if !defined(__STDC_IEC_559__)
 #	if defined(_M_IX86) || defined(_M_X64) || defined(__x86_64)
@@ -42,7 +44,6 @@
 #include "elf.h"
 #include "errors.h"
 #include "lexer.h"
-#include "lexer_context.h"
 #include "object.h"
 #include "options.h"
 #include "parse.h"
@@ -51,8 +52,9 @@
 #include "symbol.h"
 #include "tokens.h"
 
+#include "str.h"
 #include "util.h"
-#include "amitime.h"
+#include "amitime.h" // IWYU pragma: keep
 
 uint32_t xasm_TotalLines = 0;
 uint32_t xasm_TotalErrors = 0;

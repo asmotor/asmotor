@@ -19,6 +19,8 @@
 #ifndef XASM_COMMON_BINARYOBJECT_H_INCLUDED_
 #define XASM_COMMON_BINARYOBJECT_H_INCLUDED_
 
+#include "str.h"
+
 extern bool
 bin_Write(string* filename);
 

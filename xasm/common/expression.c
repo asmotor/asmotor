@@ -20,9 +20,9 @@
 #include <assert.h>
 
 // From util
-#include "util.h"
 #include "fmath.h"
 #include "mem.h"
+#include "types.h"
 
 // From xasm
 #include "xasm.h"

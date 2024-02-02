@@ -16,11 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "util.h"
-#include "file.h"
-#include "mem.h"
+#include <stdio.h>
+
+#include "set.h"
 #include "str.h"
 #include "strcoll.h"
+#include "types.h"
 
 /* Internal variables */
 
@@ -33,14 +34,14 @@ static set_t * g_dependencySet = NULL;
 /* Internal functions */
 
 static void
-writeDependency(intptr_t element, intptr_t data) {
+writeDependency(set_t* _, intptr_t element, intptr_t data) {
     FILE* fileHandle = (FILE*) data;
     string* str = (string*) element;
     fprintf(fileHandle, " %s", str_String(str));
 }
 
 static void
-writeTarget(intptr_t element, intptr_t data) {
+writeTarget(set_t* _, intptr_t element, intptr_t data) {
     FILE* fileHandle = (FILE*) data;
     string* str = (string*) element;
     fprintf(fileHandle, "%s:\n\n", str_String(str));

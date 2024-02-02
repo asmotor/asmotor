@@ -18,9 +18,13 @@
 
 // From util
 #include "file.h"
+#include "str.h"
+#include "strcoll.h"
+#include "types.h"
+#include "vec.h"
 
 // From xasm
-#include "xasm.h"
+#include "lexer_context.h"
 #include "includes.h"
 
 

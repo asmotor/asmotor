@@ -19,6 +19,8 @@
 #ifndef XASM_COMMON_DEPENDENCY_H_INCLUDED_
 #define XASM_COMMON_DEPENDENCY_H_INCLUDED_
 
+#include "str.h"
+
 extern void
 dep_Initialize(const char* outputFileName);
 

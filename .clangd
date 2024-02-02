@@ -1,0 +1,9 @@
+Diagnostics:
+  UnusedIncludes: Strict
+  MissingIncludes: Strict
+  Includes:
+    IgnoreHeader:
+      - types\.h
+      - bits/.*\.h
+      - stdint\.h
+      - unistd\.h

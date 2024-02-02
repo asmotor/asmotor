@@ -27,7 +27,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	if ! {{initialized}}; then \
 		mkdir -p build/cmake/debug; \
 		cd build/cmake/debug; \
-		cmake -DCMAKE_TOOLCHAIN_FILE={{toolchain}} -DASMOTOR_VERSION={{version}}.next -DCMAKE_BUILD_TYPE=Debug ../../..; \
+		cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_TOOLCHAIN_FILE={{toolchain}} -DASMOTOR_VERSION={{version}}.next -DCMAKE_BUILD_TYPE=Debug ../../..; \
 		cd ../../..; \
 		touch {{initialized_marker}}; \
 	fi

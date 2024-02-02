@@ -17,23 +17,26 @@
 */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // From util
-#include "util.h"
 #include "mem.h"
 #include "file.h"
-#include "types.h"
+#include "lists.h"
+#include "str.h"
 
 // From xasm
-#include "xasm.h"
+#include "amigaobject.h"
+#include "errors.h"
+#include "expression.h"
+#include "options.h"
+#include "patch.h"
 #include "section.h"
 #include "symbol.h"
-#include "patch.h"
-#include "errors.h"
-#include "amigaobject.h"
+#include "xasm.h"
 
 #define HUNK_UNIT    0x3E7u
 #define HUNK_NAME    0x3E8u

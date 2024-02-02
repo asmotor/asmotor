@@ -19,10 +19,12 @@
 #ifndef XASM_COMMON_XASM_H_INCLUDED_
 #define XASM_COMMON_XASM_H_INCLUDED_
 
-#include "util.h"
+#include "types.h"
 
 #include "expression.h"
 #include "options.h"
+#include "section.h"
+#include "str.h"
 
 #define MAX_SYMBOL_NAME_LENGTH 256
 #define MAX_STRING_SYMBOL_SIZE 256

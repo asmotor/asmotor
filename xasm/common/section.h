@@ -19,8 +19,9 @@
 #ifndef XASM_COMMON_SECTION_H_INCLUDED_
 #define XASM_COMMON_SECTION_H_INCLUDED_
 
-#include "str.h"
 #include "lists.h"
+#include "str.h"
+#include "types.h"
 
 struct Expression;
 struct LineMapSection;
