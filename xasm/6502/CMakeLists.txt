@@ -11,7 +11,7 @@ add_executable (motor6502
     x65_tokens.c
     )
 
-target_link_libraries (motor6502 xasm util)
+target_link_libraries (motor6502 motor util)
 
 if(NOT MSVC)
     target_link_libraries (motor6502 m)

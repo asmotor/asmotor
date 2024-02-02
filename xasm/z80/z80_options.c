@@ -28,7 +28,7 @@
 #include "z80_options.h"
 #include "z80_tokens.h"
 
-SConfiguration z80_XasmConfiguration;
+extern SConfiguration z80_XasmConfiguration;
 
 uint32_t z80_gameboyLiteralId;
 

@@ -11,7 +11,7 @@ add_executable (motor6809
     m6809_tokens.c
     )
 
-target_link_libraries (motor6809 xasm util)
+target_link_libraries (motor6809 motor util)
 
 if(NOT MSVC)
     target_link_libraries (motor6809 m)

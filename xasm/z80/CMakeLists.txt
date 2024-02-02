@@ -8,7 +8,7 @@ add_executable(motorz80
         z80_tokens.c
         )
 
-target_link_libraries(motorz80 xasm util)
+target_link_libraries(motorz80 motor util)
 
 if(NOT MSVC)
     target_link_libraries (motorz80 m)

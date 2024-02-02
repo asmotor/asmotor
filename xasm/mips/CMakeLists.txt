@@ -9,7 +9,7 @@ add_executable (motormips
     mips_tokens.c
     )
 
-target_link_libraries (motormips xasm util)
+target_link_libraries (motormips motor util)
 
 if(NOT MSVC)
     target_link_libraries (motormips m)

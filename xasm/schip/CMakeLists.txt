@@ -9,7 +9,7 @@ add_executable (motorschip
     schip_tokens.c
     )
 
-target_link_libraries (motorschip xasm util)
+target_link_libraries (motorschip motor util)
 
 if(NOT MSVC)
     target_link_libraries (motorschip m)
