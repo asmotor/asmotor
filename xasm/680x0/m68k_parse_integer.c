@@ -16,7 +16,6 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
 #include <stdbool.h>
 
 #include "options.h"
@@ -457,9 +456,9 @@ handleBcc(ESize size, SAddressingMode* _src, SAddressingMode* _dest, uint16_t op
         err_Error(ERROR_OPERAND_RANGE);
         return true;
     } else if (size == SIZE_WORD) {
+		sect_OutputConst16(opcode);
         SExpression* expr = expr_CheckRange(expr_PcRelative(target, 0), -32768, 32767);
         if (expr != NULL) {
-            sect_OutputConst16(opcode);
             sect_OutputExpr16(expr);
             return true;
         }
