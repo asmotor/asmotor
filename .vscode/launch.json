@@ -138,11 +138,11 @@
         },
         {
             "name": "Debug motor68k",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/motor68k",
-            "args": ["test.68k"],
+            "args": ["issue17.68k"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/680x0",
             "environment": [],

@@ -1,0 +1,16 @@
+	SECTION "main",CODE
+	ORG $0
+	bra target	; 100
+    bra.b target ; 104
+	nop		; 106
+target:	rts		; 108
+    bra.b    target ; 10a
+    bra target ; 10c
+
+	SECTION "main2",CODE
+	bra target2	; 100
+    bra.b target2 ; 104
+	nop		; 106
+target2:	rts		; 108
+    bra.b    target2 ; 10a
+    bra target2 ; 10c

@@ -20,7 +20,6 @@
 
 // From util
 #include "types.h"
-#include "file.h"
 
 // From xasm
 #include "xasm.h"
@@ -31,7 +30,7 @@
 
 
 static SPatch*
-needsOrg() {
+needsOrg(void) {
     for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
         if (section->patches != NULL)
             return section->patches;
@@ -41,7 +40,7 @@ needsOrg() {
 
 
 static bool
-commonPatch() {
+commonPatch(void) {
     SPatch* firstPatch;
 
     if (sect_Sections == NULL)
