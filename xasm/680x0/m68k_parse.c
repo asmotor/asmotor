@@ -16,14 +16,14 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "util.h"
 
-#include "xasm.h"
 #include "expression.h"
-#include "lexer.h"
+#include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
