@@ -16,41 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lexer_context.h"
-#include "errors.h"
-#include "expression.h"
-#include "parse_expression.h"
+#include "v_section.h"
 
-#include "rc8_parse.h"
-
-
-SExpression*
-rc8_ExpressionSU16(void) {
-	SExpression* expr = parse_Expression(2);
-	if (expr == NULL)
-		return NULL;
-		
-	expr = expr_CheckRange(expr, -32768, 65535);
-	if (expr == NULL)
-		err_Error(ERROR_OPERAND_RANGE);
-
-	return expr;
-}
-
-
-SExpression*
-rc8_ParseFunction(void) {
-	switch (lex_Context->token.id) {
-		default:
-			return NULL;
-	}
-}
-
-
-bool
-rc8_ParseInstruction(void) {
-	if (rc8_ParseIntegerInstruction())
-		return true;
-
-	return false;
+extern void
+v_AssignSection(SSection* section) {
 }

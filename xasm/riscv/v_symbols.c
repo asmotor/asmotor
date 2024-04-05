@@ -16,41 +16,26 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lexer_context.h"
-#include "errors.h"
-#include "expression.h"
-#include "parse_expression.h"
-
-#include "rc8_parse.h"
+#include "symbol.h"
 
 
-SExpression*
-rc8_ExpressionSU16(void) {
-	SExpression* expr = parse_Expression(2);
-	if (expr == NULL)
-		return NULL;
-		
-	expr = expr_CheckRange(expr, -32768, 65535);
-	if (expr == NULL)
-		err_Error(ERROR_OPERAND_RANGE);
-
-	return expr;
+static void
+createGroup(const char* name, EGroupType type, uint32_t flags) {
+    string* nameStr = str_Create(name);
+    sym_CreateGroup(nameStr, type)->flags |= flags;
+    str_Free(nameStr);
 }
 
 
-SExpression*
-rc8_ParseFunction(void) {
-	switch (lex_Context->token.id) {
-		default:
-			return NULL;
-	}
+void 
+v_DefineSymbols(void) {
+	createGroup("CODE", GROUP_TEXT, 0);
+	createGroup("DATA", GROUP_TEXT, SYMF_DATA);
+	createGroup("BSS", GROUP_BSS, 0);
 }
-
 
 bool
-rc8_ParseInstruction(void) {
-	if (rc8_ParseIntegerInstruction())
-		return true;
-
-	return false;
+v_IsValidLocalName(const string* name) {
+	return true;
 }
+

@@ -35,7 +35,11 @@
       "editor.tabSize": 4,
       "editor.insertSpaces": false
   },
-  "C_Cpp.errorSquiggles": "Enabled",
+  "clangd.arguments": [
+    "--compile-commands-dir=build/cmake/debug",
+    "--enable-config"
+    ],
+    "C_Cpp.errorSquiggles": "Enabled",
   "C_Cpp.default.compilerPath": "c:\\Users\\ces\\.vscode\\extensions\\bartmanabyss.amiga-debug-1.0.0\\bin\\opt\\bin\\m68k-amiga-elf-gcc.exe",
   "editor.detectIndentation": false
 }

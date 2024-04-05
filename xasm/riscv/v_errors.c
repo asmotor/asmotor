@@ -16,41 +16,18 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lexer_context.h"
-#include "errors.h"
-#include "expression.h"
-#include "parse_expression.h"
-
-#include "rc8_parse.h"
+#include <stddef.h>
 
 
-SExpression*
-rc8_ExpressionSU16(void) {
-	SExpression* expr = parse_Expression(2);
-	if (expr == NULL)
+static char* 
+g_errors[] = {
+	"Illegal addressing mode",
+};
+
+const char*
+v_GetError(size_t errorNumber) {
+	if (errorNumber < 1000)
 		return NULL;
-		
-	expr = expr_CheckRange(expr, -32768, 65535);
-	if (expr == NULL)
-		err_Error(ERROR_OPERAND_RANGE);
 
-	return expr;
-}
-
-
-SExpression*
-rc8_ParseFunction(void) {
-	switch (lex_Context->token.id) {
-		default:
-			return NULL;
-	}
-}
-
-
-bool
-rc8_ParseInstruction(void) {
-	if (rc8_ParseIntegerInstruction())
-		return true;
-
-	return false;
+	return g_errors[errorNumber - 1000];
 }

@@ -16,41 +16,34 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lexer_context.h"
-#include "errors.h"
-#include "expression.h"
-#include "parse_expression.h"
+#ifndef XASM_V_OPTIONS_H_INCLUDED_
+#define XASM_V_OPTIONS_H_INCLUDED_
 
-#include "rc8_parse.h"
+#include <stdbool.h>
 
 
-SExpression*
-rc8_ExpressionSU16(void) {
-	SExpression* expr = parse_Expression(2);
-	if (expr == NULL)
-		return NULL;
-		
-	expr = expr_CheckRange(expr, -32768, 65535);
-	if (expr == NULL)
-		err_Error(ERROR_OPERAND_RANGE);
-
-	return expr;
-}
+typedef struct MachineOptions {
+	int architecture;
+} SMachineOptions;
 
 
-SExpression*
-rc8_ParseFunction(void) {
-	switch (lex_Context->token.id) {
-		default:
-			return NULL;
-	}
-}
+extern SMachineOptions*
+v_AllocOptions(void);
+
+extern void
+v_SetDefaultOptions(SMachineOptions* options);
+
+extern void
+v_CopyOptions(SMachineOptions* dest, SMachineOptions* src);
+
+extern bool
+v_ParseOption(const char* s);
+
+extern void
+v_OptionsUpdated(SMachineOptions* options);
+
+extern void
+v_PrintOptions(void);
 
 
-bool
-rc8_ParseInstruction(void) {
-	if (rc8_ParseIntegerInstruction())
-		return true;
-
-	return false;
-}
+#endif

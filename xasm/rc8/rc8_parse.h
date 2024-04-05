@@ -19,6 +19,9 @@
 #ifndef XASM_RC8_PARSE_H_INCLUDED_
 #define XASM_RC8_PARSE_H_INCLUDED_
 
+#include "expression.h"
+
+
 extern SExpression* 
 rc8_ExpressionSU16(void);
 

@@ -16,41 +16,44 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "lexer_context.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "errors.h"
-#include "expression.h"
-#include "parse_expression.h"
+#include "mem.h"
+#include "options.h"
 
-#include "rc8_parse.h"
+#include "v_options.h"
 
-
-SExpression*
-rc8_ExpressionSU16(void) {
-	SExpression* expr = parse_Expression(2);
-	if (expr == NULL)
-		return NULL;
-		
-	expr = expr_CheckRange(expr, -32768, 65535);
-	if (expr == NULL)
-		err_Error(ERROR_OPERAND_RANGE);
-
-	return expr;
+struct MachineOptions* 
+v_AllocOptions(void) {
+	return mem_Alloc(sizeof(SMachineOptions));
 }
 
-
-SExpression*
-rc8_ParseFunction(void) {
-	switch (lex_Context->token.id) {
-		default:
-			return NULL;
-	}
+void 
+v_CopyOptions(struct MachineOptions* destination, struct MachineOptions* source) {
+	*destination = *source;
 }
 
+void 
+v_SetDefaultOptions(SMachineOptions* options) {
+    options->architecture = 0;
+}
+
+void
+v_OptionsUpdated(SMachineOptions* options) {
+}
 
 bool
-rc8_ParseInstruction(void) {
-	if (rc8_ParseIntegerInstruction())
-		return true;
+v_ParseOption(const char* s) {
+	if (s == NULL || strlen(s) == 0)
+		return false;
 
+	err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
 	return false;
+}
+
+void
+v_PrintOptions(void) {
 }

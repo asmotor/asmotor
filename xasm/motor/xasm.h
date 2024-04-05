@@ -19,8 +19,6 @@
 #ifndef XASM_MOTOR_XASM_H_INCLUDED_
 #define XASM_MOTOR_XASM_H_INCLUDED_
 
-#include "util.h"
-
 #include "expression.h"
 #include "options.h"
 
