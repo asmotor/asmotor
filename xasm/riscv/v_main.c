@@ -43,7 +43,7 @@ g_xasmConfiguration = {
 	"CODE",
 
 	"RB", "RW", "RL", NULL,
-	"DB", "DW", "RL", NULL,
+	"DB", "DW", "DL", NULL,
 	"DSB", "DSW", "DSL", NULL,
 
 	v_GetError,

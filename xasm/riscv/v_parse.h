@@ -22,9 +22,6 @@
 #include "expression.h"
 
 
-extern SExpression* 
-v_ExpressionSU16(void);
-
 extern bool
 v_ParseIntegerInstruction(void);
 

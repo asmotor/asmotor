@@ -33,5 +33,8 @@ v_ParseFunction(void) {
 
 bool
 v_ParseInstruction(void) {
+	if (v_ParseIntegerInstruction())
+		return true;
+
 	return false;
 }

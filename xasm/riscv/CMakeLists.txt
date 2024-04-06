@@ -3,6 +3,7 @@ add_executable (motorv
     v_main.c
     v_options.c
     v_parse.c
+    v_parse_instr.c
     v_section.c
     v_symbols.c
     v_tokens.c
