@@ -24,6 +24,7 @@
 
 typedef enum {
 	MERROR_ILLEGAL_ADDRMODE = 1000,
+	MERROR_ILLEGAL_FENCE
 } EMachineError;
 
 extern const char*

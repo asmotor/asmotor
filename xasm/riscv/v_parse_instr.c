@@ -16,13 +16,18 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <ctype.h>
+#include <stdbool.h>
+
 #include "errors.h"
 #include "expression.h"
+#include "lexer_context.h"
 #include "parse.h"
 #include "parse_expression.h"
 
 #include "section.h"
 #include "v_tokens.h"
+#include "v_errors.h"
 
 
 typedef enum InstructionFormat {
@@ -240,6 +245,53 @@ handle_R(uint32_t opcode, EInstructionFormat fmt) {
 }
 
 
+static bool
+tokenHasStringContent(void) {
+	int id = lex_Context->token.id;
+	return id != T_NUMBER && id != T_FLOAT && id != T_STRING;
+}
+
+
+static bool
+parse_FenceSpec(uint32_t* spec) {
+	*spec = 0;
+	const char* specString = "wroi";
+	while (tokenHasStringContent() && lex_Context->token.id != T_COMMA && lex_Context->token.id != '\n') {
+		for (uint32_t i = 0; i < lex_Context->token.length; ++i) {
+			char ch = toupper(lex_Context->token.value.string[i]);
+			char* pspec = strchr(specString, ch);
+			if (pspec != NULL) {
+				uint32_t bit = 1 << (pspec - specString);
+				if ((bit & *spec) != 0) {
+					err_Error(MERROR_ILLEGAL_FENCE);
+					return false;
+				}
+				*spec |= bit;
+			} else {
+				err_Error(MERROR_ILLEGAL_FENCE);
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
+static bool
+handle_FENCE(uint32_t opcode, EInstructionFormat fmt) {
+	uint32_t pred, succ;
+	if (parse_FenceSpec(&pred)
+	&&  parse_ExpectComma()
+	&&  parse_FenceSpec(&succ)) {
+
+		sect_OutputConst32(opcode | succ << 24 | pred << 20);
+		return true;
+	}
+
+	return false;
+}
+
+
 #define OP_R(funct7, funct3, opcode) ((funct7) << 25 | (funct3) << 12 | (opcode)),FMT_R
 #define OP_I(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_I
 #define OP_B(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_B
@@ -259,6 +311,7 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_B(      0x04, 0x63), handle_B   },	/* BLT */
 	{ OP_B(      0x06, 0x63), handle_B   },	/* BLTU */
 	{ OP_B(      0x01, 0x63), handle_B   },	/* BNE */
+	{ OP_I(      0x00, 0x0F), handle_FENCE   },	/* FENCE */
 };
 
 

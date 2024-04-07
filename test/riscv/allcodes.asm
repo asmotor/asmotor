@@ -15,3 +15,4 @@ label2:
     blt t0,s6,label
     bltu t0,s6,label
     bne t0,s6,label
+    fence rw,io
