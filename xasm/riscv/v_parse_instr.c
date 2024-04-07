@@ -17,6 +17,7 @@
 */
 
 #include "errors.h"
+#include "expression.h"
 #include "parse.h"
 #include "parse_expression.h"
 
@@ -43,6 +44,45 @@ typedef struct Parser {
 	EInstructionFormat instructionFormat;
 	bool (*parser)(uint32_t opcode, EInstructionFormat fmt);
 } SParser;
+
+
+static SExpression*
+maskAndShift(SExpression* expr, int srcHigh, int srcLow, int destLow) {
+	int mask = ((2 << (srcHigh - srcLow)) - 1) << srcLow;
+	expr = expr_And(expr, expr_Const(mask));
+	if (destLow >= srcLow)
+		expr = expr_Asl(expr, expr_Const(destLow - srcLow));
+	else
+		expr = expr_Asr(expr, expr_Const(srcLow - destLow));
+
+	return expr;
+}
+
+
+static SExpression*
+shufflePcRelative(SExpression* expr) {
+	expr = expr_PcRelative(expr, 0);
+	expr = expr_CheckRange(expr,-0x1000, 0xFFF);
+	expr = expr_And(expr, expr_Const(0x1FFF));
+
+	if (expr != NULL) {
+		SExpression* oldExpr = expr;
+		expr =
+			expr_Or(
+				expr_Or(
+					maskAndShift(expr_Copy(expr), 12, 12, 31),
+					maskAndShift(expr_Copy(expr), 10, 5, 25)
+				),
+				expr_Or(
+					maskAndShift(expr_Copy(expr), 4, 1, 8),
+					maskAndShift(expr_Copy(expr), 11, 11, 7)
+				)
+			);
+		expr_Free(oldExpr);
+	}
+
+	return expr;
+}
 
 
 static bool
@@ -120,6 +160,32 @@ handle_U(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
+handle_B(uint32_t opcode, EInstructionFormat fmt) {
+	int rs1, rs2;
+
+	if (parse_Register(&rs1)
+	&&  parse_ExpectComma()
+	&&  parse_Register(&rs2)
+	&&	parse_ExpectComma()) {
+
+		SExpression* address = parse_Expression(4);
+		if (address != NULL) {
+			SExpression* op = 
+				expr_Or(
+					shufflePcRelative(address),
+					expr_Const(opcode | rs2 << 20 | rs1 << 15)
+				);
+
+			sect_OutputExpr32(op);
+		}
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
 handle_I(uint32_t opcode, EInstructionFormat fmt, SExpression* (*parseImm)(void)) {
 	int rd, rs1;
 
@@ -176,6 +242,7 @@ handle_R(uint32_t opcode, EInstructionFormat fmt) {
 
 #define OP_R(funct7, funct3, opcode) ((funct7) << 25 | (funct3) << 12 | (opcode)),FMT_R
 #define OP_I(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_I
+#define OP_B(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_B
 #define OP_U(opcode)                 (opcode),FMT_U
 
 
@@ -186,6 +253,12 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_R(0x00, 0x07, 0x33), handle_R   },	/* AND */
 	{ OP_I(      0x07, 0x13), handle_I_U },	/* ANDI */
 	{ OP_U(            0x17), handle_U   },	/* AUIPC */
+	{ OP_B(      0x00, 0x63), handle_B   },	/* BEQ */
+	{ OP_B(      0x05, 0x63), handle_B   },	/* BGE */
+	{ OP_B(      0x07, 0x63), handle_B   },	/* BGEU */
+	{ OP_B(      0x04, 0x63), handle_B   },	/* BLT */
+	{ OP_B(      0x06, 0x63), handle_B   },	/* BLTU */
+	{ OP_B(      0x01, 0x63), handle_B   },	/* BNE */
 };
 
 
