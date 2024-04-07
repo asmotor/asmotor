@@ -16,3 +16,4 @@ label2:
     bltu t0,s6,label
     bne t0,s6,label
     fence rw,io
+    jal a2,label2

@@ -65,7 +65,7 @@ maskAndShift(SExpression* expr, int srcHigh, int srcLow, int destLow) {
 
 
 static SExpression*
-shufflePcRelative(SExpression* expr) {
+shufflePcRelative13(SExpression* expr) {
 	expr = expr_PcRelative(expr, 0);
 	expr = expr_CheckRange(expr,-0x1000, 0xFFF);
 	expr = expr_And(expr, expr_Const(0x1FFF));
@@ -81,6 +81,32 @@ shufflePcRelative(SExpression* expr) {
 				expr_Or(
 					maskAndShift(expr_Copy(expr), 4, 1, 8),
 					maskAndShift(expr_Copy(expr), 11, 11, 7)
+				)
+			);
+		expr_Free(oldExpr);
+	}
+
+	return expr;
+}
+
+
+static SExpression*
+shufflePcRelative21(SExpression* expr) {
+	expr = expr_PcRelative(expr, 0);
+	expr = expr_CheckRange(expr, -0x100000, 0xFFFFF);
+	expr = expr_And(expr, expr_Const(0x1FFFFF));
+
+	if (expr != NULL) {
+		SExpression* oldExpr = expr;
+		expr =
+			expr_Or(
+				expr_Or(
+					maskAndShift(expr_Copy(expr), 20, 20, 31),
+					maskAndShift(expr_Copy(expr), 10, 1, 21)
+				),
+				expr_Or(
+					maskAndShift(expr_Copy(expr), 11, 11, 20),
+					maskAndShift(expr_Copy(expr), 19, 12, 12)
 				)
 			);
 		expr_Free(oldExpr);
@@ -177,7 +203,7 @@ handle_B(uint32_t opcode, EInstructionFormat fmt) {
 		if (address != NULL) {
 			SExpression* op = 
 				expr_Or(
-					shufflePcRelative(address),
+					shufflePcRelative13(address),
 					expr_Const(opcode | rs2 << 20 | rs1 << 15)
 				);
 
@@ -255,23 +281,23 @@ tokenHasStringContent(void) {
 static bool
 parse_FenceSpec(uint32_t* spec) {
 	*spec = 0;
-	const char* specString = "wroi";
+	const char* specString = "WROI";
 	while (tokenHasStringContent() && lex_Context->token.id != T_COMMA && lex_Context->token.id != '\n') {
 		for (uint32_t i = 0; i < lex_Context->token.length; ++i) {
 			char ch = toupper(lex_Context->token.value.string[i]);
 			char* pspec = strchr(specString, ch);
 			if (pspec != NULL) {
 				uint32_t bit = 1 << (pspec - specString);
-				if ((bit & *spec) != 0) {
-					err_Error(MERROR_ILLEGAL_FENCE);
-					return false;
+				if ((bit & *spec) == 0) {
+					*spec |= bit;
+					continue;
 				}
-				*spec |= bit;
-			} else {
-				err_Error(MERROR_ILLEGAL_FENCE);
-				return false;
 			}
+			parse_GetToken();
+			err_Error(MERROR_ILLEGAL_FENCE);
+			return false;
 		}
+		parse_GetToken();
 	}
 	return true;
 }
@@ -280,12 +306,35 @@ parse_FenceSpec(uint32_t* spec) {
 static bool
 handle_FENCE(uint32_t opcode, EInstructionFormat fmt) {
 	uint32_t pred, succ;
-	if (parse_FenceSpec(&pred)
+	if (parse_FenceSpec(&succ)
 	&&  parse_ExpectComma()
-	&&  parse_FenceSpec(&succ)) {
+	&&  parse_FenceSpec(&pred)) {
 
 		sect_OutputConst32(opcode | succ << 24 | pred << 20);
 		return true;
+	}
+
+	return false;
+}
+
+
+static bool
+handle_J(uint32_t opcode, EInstructionFormat fmt) {
+	int rd;
+	if (parse_Register(&rd)
+	&&  parse_ExpectComma()) {
+
+		SExpression* address = parse_Expression(4);
+		if (address != NULL) {
+			SExpression* op = 
+				expr_Or(
+					shufflePcRelative21(address),
+					expr_Const(opcode | rd << 7)
+				);
+
+			sect_OutputExpr32(op);
+			return true;
+		}
 	}
 
 	return false;
@@ -296,6 +345,7 @@ handle_FENCE(uint32_t opcode, EInstructionFormat fmt) {
 #define OP_I(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_I
 #define OP_B(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_B
 #define OP_U(opcode)                 (opcode),FMT_U
+#define OP_J(opcode)                 (opcode),FMT_J
 
 
 static SParser
@@ -312,6 +362,7 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_B(      0x06, 0x63), handle_B   },	/* BLTU */
 	{ OP_B(      0x01, 0x63), handle_B   },	/* BNE */
 	{ OP_I(      0x00, 0x0F), handle_FENCE   },	/* FENCE */
+	{ OP_J(            0x6F), handle_J   },	/* JAL */
 };
 
 
