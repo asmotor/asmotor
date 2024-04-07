@@ -37,7 +37,7 @@ g_xasmConfiguration = {
 	false,
 	false,
 	false,
-	false,
+	EM_RISCV,
 	MINSIZE_8BIT,
 	4,
 	"CODE",

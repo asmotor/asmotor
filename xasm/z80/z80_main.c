@@ -37,7 +37,7 @@ z80_XasmConfiguration = {
 	true,
 	false,
 	false,
-	false,
+	EM_NONE,
 	MINSIZE_8BIT,
 	1,
 	"HOME",

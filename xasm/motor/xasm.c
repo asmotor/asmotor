@@ -103,7 +103,7 @@ writeOutput(char format, string* outputFilename, string* sourceFilename) {
 		case 'x':
 			return obj_Write(outputFilename);
 		case 'e':
-			return elf_Write(outputFilename, xasm_Configuration->defaultEndianness == ASM_BIG_ENDIAN, EM_68K);
+			return elf_Write(outputFilename, xasm_Configuration->defaultEndianness == ASM_BIG_ENDIAN, xasm_Configuration->elfArch);
 		case 'b':
 			return bin_Write(outputFilename);
 		case 'v':
@@ -163,7 +163,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 				if (strlen(argv[argn]) > 2) {
 					switch (argv[argn][2]) {
 						case 'e':
-							if (xasm_Configuration->supportELF) {
+							if (xasm_Configuration->elfArch != EM_NONE) {
 								format = argv[argn][2];
 								break;
 							}

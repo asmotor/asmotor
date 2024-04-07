@@ -19,6 +19,7 @@
 #ifndef XASM_MOTOR_XASM_H_INCLUDED_
 #define XASM_MOTOR_XASM_H_INCLUDED_
 
+#include "elf.h"
 #include "expression.h"
 #include "options.h"
 
@@ -50,7 +51,7 @@ typedef struct Configuration {
     bool supportBanks;
     bool supportAmiga;
     bool supportFloat;
-	bool supportELF;
+	EElfArch elfArch;
 
     EMinimumWordSize minimumWordSize;
 
@@ -90,6 +91,8 @@ typedef struct Configuration {
 	void (*assignSection)(SSection* section);
 
 	bool (*isValidLocalName)(const string* name);
+
+
 } SConfiguration;
 
 extern const SConfiguration*
