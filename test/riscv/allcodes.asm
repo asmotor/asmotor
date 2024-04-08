@@ -17,3 +17,23 @@ label2:
     bne t0,s6,label
     fence rw,io
     jal a2,label2
+    jalr s3,s0,label2
+    jalr s3,label2(s0)
+    lb t0,label(sp)
+    lbu s1,87(s0)
+    lh t0,label(sp)
+    lhu s1,87(s0)
+    lui t0,12345
+    lw  t0,t1,-42
+    or t0,t1,t2
+    ori t0,t1,123
+    sb t0,t1,87
+    sb t0,87(t1)
+    sh t0,t1,87
+    sh t0,87(t1)
+    sll t0,t1,t2
+    slli t0,t1,5
+    slt t0,t1,t2
+    slti t0,t1,-12
+    sltiu t0,t1,-1500
+    sltiu t0,t1,$FFFFFF80

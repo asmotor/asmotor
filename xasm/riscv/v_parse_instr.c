@@ -26,6 +26,7 @@
 #include "parse_expression.h"
 
 #include "section.h"
+#include "tokens.h"
 #include "v_tokens.h"
 #include "v_errors.h"
 
@@ -65,7 +66,26 @@ maskAndShift(SExpression* expr, int srcHigh, int srcLow, int destLow) {
 
 
 static SExpression*
-shufflePcRelative13(SExpression* expr) {
+swizzleSFmtImmediate12(SExpression* expr) {
+	expr = expr_CheckRange(expr,-0x800, 0x7FF);
+	expr = expr_And(expr, expr_Const(0xFFF));
+
+	if (expr != NULL) {
+		SExpression* oldExpr = expr;
+		expr =
+			expr_Or(
+				maskAndShift(expr_Copy(expr), 11, 5, 25),
+				maskAndShift(expr_Copy(expr), 4, 0, 7)
+			);
+		expr_Free(oldExpr);
+	}
+
+	return expr;
+}
+
+
+static SExpression*
+swizzleBFmtPcRelative13(SExpression* expr) {
 	expr = expr_PcRelative(expr, 0);
 	expr = expr_CheckRange(expr,-0x1000, 0xFFF);
 	expr = expr_And(expr, expr_Const(0x1FFF));
@@ -91,7 +111,7 @@ shufflePcRelative13(SExpression* expr) {
 
 
 static SExpression*
-shufflePcRelative21(SExpression* expr) {
+swizzleJFmtPcRelative21(SExpression* expr) {
 	expr = expr_PcRelative(expr, 0);
 	expr = expr_CheckRange(expr, -0x100000, 0xFFFFF);
 	expr = expr_And(expr, expr_Const(0x1FFFFF));
@@ -129,13 +149,12 @@ parse_Register(int* reg) {
 
 
 static SExpression*
-parse_Unsigned20(void) {
+parse_Imm20(void) {
 	SExpression* expr = parse_Expression(2);
 	if (expr != NULL) {
-		uint32_t high = (1 << 20) - 1;
-		expr = expr_CheckRange(expr, 0, high);
+		expr = expr_CheckRange(expr, -0x80000, 0xFFFFF);
 		if (expr != NULL)
-			return expr_And(expr, expr_Const(high));
+			return expr_And(expr, expr_Const(0xFFFFF));
 	}
 
 	return NULL;
@@ -148,7 +167,7 @@ parse_Expr12(uint32_t low, uint32_t high) {
 	if (expr != NULL) {
 		expr = expr_CheckRange(expr, low, high);
 		if (expr != NULL)
-			return expr_And(expr, expr_Const(0x3FFF));
+			return expr_And(expr, expr_Const(0xFFF));
 	}
 
 	return NULL;
@@ -157,13 +176,28 @@ parse_Expr12(uint32_t low, uint32_t high) {
 
 static SExpression*
 parse_Signed12(void) {
-	return parse_Expr12(-2048, 2047);
+	return parse_Expr12(-0x800, 0x7FF);
 }
 
 
 static SExpression*
-parse_Unsigned12(void) {
-	return parse_Expr12(0, 4095);
+parse_Unsigned5(void) {
+	SExpression* expr = parse_Expression(1);
+	return expr_CheckRange(expr, 0x00, 0x1F);
+}
+
+
+static SExpression*
+parse_RelativeLocation(void) {
+	SExpression* expr = parse_Expression(4);
+	if (expr != NULL) {
+		expr = expr_PcRelative(expr, 0);
+		expr = expr_CheckRange(expr, -0x800, 0x7FF);
+		if (expr != NULL)
+			return expr_And(expr, expr_Const(0xFFF));
+	}
+
+	return NULL;
 }
 
 
@@ -174,7 +208,7 @@ handle_U(uint32_t opcode, EInstructionFormat fmt) {
 	if (parse_Register(&rd)
 	&&  parse_ExpectComma()) {
 
-		SExpression* imm = parse_Unsigned20();
+		SExpression* imm = parse_Imm20();
 		if (imm != NULL) {
 			SExpression* op = 
 				expr_Or(
@@ -203,7 +237,7 @@ handle_B(uint32_t opcode, EInstructionFormat fmt) {
 		if (address != NULL) {
 			SExpression* op = 
 				expr_Or(
-					shufflePcRelative13(address),
+					swizzleBFmtPcRelative13(address),
 					expr_Const(opcode | rs2 << 20 | rs1 << 15)
 				);
 
@@ -213,6 +247,20 @@ handle_B(uint32_t opcode, EInstructionFormat fmt) {
 	}
 
 	return false;
+}
+
+
+static void
+emit_I(uint32_t opcode, int rd, int rs1, SExpression* imm) {
+	if (imm != NULL) {
+		SExpression* op = 
+			expr_Or(
+				expr_Asl(imm, expr_Const(20)),
+				expr_Const(opcode | rd << 7 | rs1 << 15)
+			);
+
+		sect_OutputExpr32(op);
+	}
 }
 
 
@@ -226,15 +274,7 @@ handle_I(uint32_t opcode, EInstructionFormat fmt, SExpression* (*parseImm)(void)
 	&&	parse_ExpectComma()) {
 
 		SExpression* imm = parseImm();
-		if (imm != NULL) {
-			SExpression* op = 
-				expr_Or(
-					expr_Asl(imm, expr_Const(20)),
-					expr_Const(opcode | rd << 7 | rs1 << 15)
-				);
-
-			sect_OutputExpr32(op);
-		}
+		emit_I(opcode, rd, rs1, imm);
 		return true;
 	}
 
@@ -249,8 +289,82 @@ handle_I_S(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_I_U(uint32_t opcode, EInstructionFormat fmt) {
-	return handle_I(opcode, fmt, parse_Unsigned12);
+handle_I_5(uint32_t opcode, EInstructionFormat fmt) {
+	return handle_I(opcode, fmt, parse_Unsigned5);
+}
+
+
+static bool
+parse_RegistersImmediate(int* reg1, int* reg2, SExpression** imm, SExpression* (*parseImm)(void)) {
+	if (parse_Register(reg1)
+	&&  parse_ExpectComma()) {
+
+		*imm = NULL;
+
+		if (parse_Register(reg2)) {
+			if (!parse_ExpectComma()) {
+				return false;
+			}
+
+			*imm = parseImm();
+		} else {
+			*imm = parseImm();
+			if (imm == NULL
+			||  !parse_ExpectChar('(')
+			||  !parse_Register(reg2)
+			||	!parse_ExpectChar(')')) {
+
+				return false;
+			}
+		}
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
+handle_I_offset_reg(uint32_t opcode, EInstructionFormat fmt, SExpression* (*parseImm)(void)) {
+	int rd, rs1;
+
+	SExpression* imm = NULL;
+	if (parse_RegistersImmediate(&rd, &rs1, &imm, parseImm)) {
+		emit_I(opcode, rd, rs1, imm);
+	}
+
+	return true;
+}
+
+
+static bool
+handle_I_PCREL(uint32_t opcode, EInstructionFormat fmt) {
+	return handle_I_offset_reg(opcode, fmt, parse_RelativeLocation);
+}
+
+
+static bool
+handle_I_OFFSET(uint32_t opcode, EInstructionFormat fmt) {
+	return handle_I_offset_reg(opcode, fmt, parse_Signed12);
+}
+
+
+static bool
+handle_S(uint32_t opcode, EInstructionFormat fmt) {
+	int rs1, rs2;
+
+	SExpression* imm = NULL;
+	if (parse_RegistersImmediate(&rs2, &rs1, &imm, parse_Signed12)) {
+		SExpression* op = 
+			expr_Or(
+				swizzleSFmtImmediate12(imm),
+				expr_Const(opcode | rs2 << 20 | rs1 << 15)
+			);
+
+		sect_OutputExpr32(op);
+	}
+
+	return true;
 }
 
 
@@ -328,7 +442,7 @@ handle_J(uint32_t opcode, EInstructionFormat fmt) {
 		if (address != NULL) {
 			SExpression* op = 
 				expr_Or(
-					shufflePcRelative21(address),
+					swizzleJFmtPcRelative21(address),
 					expr_Const(opcode | rd << 7)
 				);
 
@@ -344,6 +458,7 @@ handle_J(uint32_t opcode, EInstructionFormat fmt) {
 #define OP_R(funct7, funct3, opcode) ((funct7) << 25 | (funct3) << 12 | (opcode)),FMT_R
 #define OP_I(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_I
 #define OP_B(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_B
+#define OP_S(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_S
 #define OP_U(opcode)                 (opcode),FMT_U
 #define OP_J(opcode)                 (opcode),FMT_J
 
@@ -353,7 +468,7 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_R(0x00, 0x00, 0x33), handle_R   },	/* ADD */
 	{ OP_I(      0x00, 0x13), handle_I_S },	/* ADDI */
 	{ OP_R(0x00, 0x07, 0x33), handle_R   },	/* AND */
-	{ OP_I(      0x07, 0x13), handle_I_U },	/* ANDI */
+	{ OP_I(      0x07, 0x13), handle_I_S },	/* ANDI */
 	{ OP_U(            0x17), handle_U   },	/* AUIPC */
 	{ OP_B(      0x00, 0x63), handle_B   },	/* BEQ */
 	{ OP_B(      0x05, 0x63), handle_B   },	/* BGE */
@@ -363,6 +478,22 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_B(      0x01, 0x63), handle_B   },	/* BNE */
 	{ OP_I(      0x00, 0x0F), handle_FENCE   },	/* FENCE */
 	{ OP_J(            0x6F), handle_J   },	/* JAL */
+	{ OP_I(      0x00, 0x67), handle_I_PCREL },	/* JALR */
+	{ OP_I(      0x00, 0x03), handle_I_OFFSET },	/* LB */
+	{ OP_I(      0x04, 0x03), handle_I_OFFSET },	/* LBU */
+	{ OP_I(      0x01, 0x03), handle_I_OFFSET },	/* LH */
+	{ OP_I(      0x05, 0x03), handle_I_OFFSET },	/* LHU */
+	{ OP_U(            0x37), handle_U   },	/* LUI */
+	{ OP_I(      0x02, 0x03), handle_I_OFFSET },	/* LW */
+	{ OP_R(0x00, 0x06, 0x33), handle_R   },	/* OR */
+	{ OP_I(      0x06, 0x13), handle_I_S },	/* ORI */
+	{ OP_S(      0x00, 0x23), handle_S },	/* SB */
+	{ OP_S(      0x01, 0x23), handle_S },	/* SH */
+	{ OP_R(0x00, 0x01, 0x33), handle_R   },	/* SLL */
+	{ OP_I(      0x01, 0x13), handle_I_5 },	/* SLLI */
+	{ OP_R(0x00, 0x02, 0x33), handle_R   },	/* SLT */
+	{ OP_I(      0x02, 0x13), handle_I_S },	/* SLTI */
+	{ OP_I(      0x03, 0x13), handle_I_S },	/* SLTIU */
 };
 
 
