@@ -59,7 +59,38 @@ typedef	enum {
 	T_V_32I_XOR,
 	T_V_32I_XORI,
 
-	T_V_LAST = T_V_32I_XORI,
+	/* Pseudo instructions */
+	T_V_32I_J,		/* JAL x0,offset */
+	T_V_32I_JR,		/* JALR x0,0(rs) */
+	T_V_32I_RET,	/* JALR x0,0(x1) */
+
+	T_V_32I_BEQZ,	/* BEQ rs,x0,offset */
+	T_V_32I_BNEZ,	/* BNE rs,x0,offset */
+	T_V_32I_BLEZ,	/* BGE x0,rs,offset */
+	T_V_32I_BGEZ,	/* BGE rs,x0,offset */
+	T_V_32I_BLTZ,	/* BLT rs,x0,offset */
+	T_V_32I_BGTZ,	/* BLT x0,rs,offset */
+	T_V_32I_BGT,	/* BLT rt,rs,offset */
+	T_V_32I_BLE,	/* BGE rt,rs,offset */
+	T_V_32I_BGTU,	/* BLTU rt,rs,offset */
+	T_V_32I_BLEU,	/* BGEU rt,rs,offset */
+
+	T_V_32I_MV,		/* ADDI rd,rs,0 */
+	T_V_32I_NEG,	/* SUB rd,x0,rs */
+	T_V_32I_NOT,	/* XORI rd,rs,-1 */
+	T_V_32I_NOP,	/* ADDI x0,x0,0 */
+	T_V_32I_SEQZ,	/* SLTUI rd,rs,1 */
+	T_V_32I_SNEZ,	/* SLTU rd,x0,rs */
+	T_V_32I_SLTZ,	/* SLT rd,rs,x0 */
+	T_V_32I_SGTZ,	/* SLT rd,x0,rs */
+
+	T_V_32I_LA,
+	T_V_32I_LLA,
+	T_V_32I_LI,
+	T_V_32I_CALL,
+	T_V_32I_TAIL,
+
+	T_V_LAST = T_V_32I_TAIL,
 
 	/* Registers */
 	

@@ -344,6 +344,18 @@ handle_I_PCREL(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
+handle_I_JR(uint32_t opcode, EInstructionFormat fmt) {
+	int rs;
+	if (parse_Register(&rs)) {
+		emit_I(opcode, 0, rs, expr_Const(0));
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
 handle_I_OFFSET(uint32_t opcode, EInstructionFormat fmt) {
 	return handle_I_offset_reg(opcode, fmt, parse_Signed12);
 }
@@ -433,22 +445,30 @@ handle_FENCE(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
+handle_J_OFFSET(uint32_t opcode, EInstructionFormat fmt) {
+	SExpression* address = parse_Expression(4);
+	if (address != NULL) {
+		SExpression* op = 
+			expr_Or(
+				swizzleJFmtPcRelative21(address),
+				expr_Const(opcode)
+			);
+
+		sect_OutputExpr32(op);
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
 handle_J(uint32_t opcode, EInstructionFormat fmt) {
 	int rd;
 	if (parse_Register(&rd)
 	&&  parse_ExpectComma()) {
 
-		SExpression* address = parse_Expression(4);
-		if (address != NULL) {
-			SExpression* op = 
-				expr_Or(
-					swizzleJFmtPcRelative21(address),
-					expr_Const(opcode | rd << 7)
-				);
-
-			sect_OutputExpr32(op);
-			return true;
-		}
+		return handle_J_OFFSET(opcode | rd << 7, fmt);
 	}
 
 	return false;
@@ -503,6 +523,10 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_S(      0x02, 0x23), handle_S },	/* SW */
 	{ OP_R(0x00, 0x04, 0x33), handle_R   },	/* XOR */
 	{ OP_I(      0x04, 0x13), handle_I_S },	/* XORI */
+
+	/* Pseudo instructions */
+	{ OP_J(            0x6F), handle_J_OFFSET   },	/* J */
+	{ OP_I(      0x00, 0x67), handle_I_JR },	/* JALR */
 };
 
 

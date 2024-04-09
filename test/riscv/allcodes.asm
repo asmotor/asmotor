@@ -47,3 +47,5 @@ label2:
     sw t0,87(t1)
     xor x2,x7,x31
     xor sp,t2,t6
+    j label2
+    jr s1
