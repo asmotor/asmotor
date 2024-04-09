@@ -37,3 +37,13 @@ label2:
     slti t0,t1,-12
     sltiu t0,t1,-1500
     sltiu t0,t1,$FFFFFF80
+    sltu t0,t1,t2
+    sra t0,t1,t2
+    srai t0,t1,5
+    srl t0,t1,t2
+    srli t0,t1,5
+    sub x14,x3,x2
+    sw t0,t1,87
+    sw t0,87(t1)
+    xor x2,x7,x31
+    xor sp,t2,t6

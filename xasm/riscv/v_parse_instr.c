@@ -490,10 +490,19 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_S(      0x00, 0x23), handle_S },	/* SB */
 	{ OP_S(      0x01, 0x23), handle_S },	/* SH */
 	{ OP_R(0x00, 0x01, 0x33), handle_R   },	/* SLL */
-	{ OP_I(      0x01, 0x13), handle_I_5 },	/* SLLI */
+	{ OP_R(0x00, 0x01, 0x13), handle_I_5 },	/* SLLI */
 	{ OP_R(0x00, 0x02, 0x33), handle_R   },	/* SLT */
 	{ OP_I(      0x02, 0x13), handle_I_S },	/* SLTI */
 	{ OP_I(      0x03, 0x13), handle_I_S },	/* SLTIU */
+	{ OP_R(0x00, 0x03, 0x33), handle_R   },	/* SLTU */
+	{ OP_R(0x20, 0x05, 0x33), handle_R   },	/* SRA */
+	{ OP_R(0x20, 0x05, 0x13), handle_I_5 },	/* SRAI */
+	{ OP_R(0x00, 0x05, 0x33), handle_R   },	/* SRL */
+	{ OP_R(0x00, 0x05, 0x13), handle_I_5 },	/* SRLI */
+	{ OP_R(0x20, 0x00, 0x33), handle_R   },	/* SUB */
+	{ OP_S(      0x02, 0x23), handle_S },	/* SW */
+	{ OP_R(0x00, 0x04, 0x33), handle_R   },	/* XOR */
+	{ OP_I(      0x04, 0x13), handle_I_S },	/* XORI */
 };
 
 
