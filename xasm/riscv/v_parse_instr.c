@@ -187,20 +187,6 @@ parse_Unsigned5(void) {
 }
 
 
-static SExpression*
-parse_RelativeLocation(void) {
-	SExpression* expr = parse_Expression(4);
-	if (expr != NULL) {
-		expr = expr_PcRelative(expr, 0);
-		expr = expr_CheckRange(expr, -0x800, 0x7FF);
-		if (expr != NULL)
-			return expr_And(expr, expr_Const(0xFFF));
-	}
-
-	return NULL;
-}
-
-
 static bool
 handle_U(uint32_t opcode, EInstructionFormat fmt) {
 	int rd;
@@ -225,6 +211,22 @@ handle_U(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
+handle_B_offset(uint32_t opcode, int rs1, int rs2) {
+	SExpression* address = parse_Expression(4);
+	if (address != NULL) {
+		SExpression* op = 
+			expr_Or(
+				swizzleBFmtPcRelative13(address),
+				expr_Const(opcode | rs2 << 20 | rs1 << 15)
+			);
+
+		sect_OutputExpr32(op);
+	}
+	return true;
+}
+
+
+static bool
 handle_B(uint32_t opcode, EInstructionFormat fmt) {
 	int rs1, rs2;
 
@@ -233,16 +235,24 @@ handle_B(uint32_t opcode, EInstructionFormat fmt) {
 	&&  parse_Register(&rs2)
 	&&	parse_ExpectComma()) {
 
-		SExpression* address = parse_Expression(4);
-		if (address != NULL) {
-			SExpression* op = 
-				expr_Or(
-					swizzleBFmtPcRelative13(address),
-					expr_Const(opcode | rs2 << 20 | rs1 << 15)
-				);
+		handle_B_offset(opcode, rs1, rs2);
+		return true;
+	}
 
-			sect_OutputExpr32(op);
-		}
+	return false;
+}
+
+
+static bool
+handle_B_r(uint32_t opcode, EInstructionFormat fmt) {
+	int rs1, rs2;
+
+	if (parse_Register(&rs2)
+	&&  parse_ExpectComma()
+	&&  parse_Register(&rs1)
+	&&	parse_ExpectComma()) {
+
+		handle_B_offset(opcode, rs1, rs2);
 		return true;
 	}
 
@@ -252,11 +262,15 @@ handle_B(uint32_t opcode, EInstructionFormat fmt) {
 
 static void
 emit_I(uint32_t opcode, int rd, int rs1, SExpression* imm) {
-	if (imm != NULL) {
+	opcode |= rd << 7 | rs1 << 15;
+
+	if (imm == NULL) {
+		sect_OutputConst32(opcode);
+	} else {
 		SExpression* op = 
 			expr_Or(
 				expr_Asl(imm, expr_Const(20)),
-				expr_Const(opcode | rd << 7 | rs1 << 15)
+				expr_Const(opcode)
 			);
 
 		sect_OutputExpr32(op);
@@ -295,29 +309,35 @@ handle_I_5(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
+parse_RegisterImmediate(int* reg, SExpression** imm, SExpression* (*parseImm)(void)) {
+	*imm = NULL;
+
+	if (parse_Register(reg)) {
+		if (!parse_ExpectComma()) {
+			return false;
+		}
+
+		*imm = parseImm();
+	} else {
+		*imm = parseImm();
+		if (imm == NULL
+		||  !parse_ExpectChar('(')
+		||  !parse_Register(reg)
+		||	!parse_ExpectChar(')')) {
+
+			return false;
+		}
+	}
+	return true;
+}
+
+
+static bool
 parse_RegistersImmediate(int* reg1, int* reg2, SExpression** imm, SExpression* (*parseImm)(void)) {
 	if (parse_Register(reg1)
 	&&  parse_ExpectComma()) {
 
-		*imm = NULL;
-
-		if (parse_Register(reg2)) {
-			if (!parse_ExpectComma()) {
-				return false;
-			}
-
-			*imm = parseImm();
-		} else {
-			*imm = parseImm();
-			if (imm == NULL
-			||  !parse_ExpectChar('(')
-			||  !parse_Register(reg2)
-			||	!parse_ExpectChar(')')) {
-
-				return false;
-			}
-		}
-		return true;
+		return parse_RegisterImmediate(reg2, imm, parseImm);
 	}
 
 	return false;
@@ -338,12 +358,6 @@ handle_I_offset_reg(uint32_t opcode, EInstructionFormat fmt, SExpression* (*pars
 
 
 static bool
-handle_I_PCREL(uint32_t opcode, EInstructionFormat fmt) {
-	return handle_I_offset_reg(opcode, fmt, parse_RelativeLocation);
-}
-
-
-static bool
 handle_I_JR(uint32_t opcode, EInstructionFormat fmt) {
 	int rs;
 	if (parse_Register(&rs)) {
@@ -358,6 +372,33 @@ handle_I_JR(uint32_t opcode, EInstructionFormat fmt) {
 static bool
 handle_I_OFFSET(uint32_t opcode, EInstructionFormat fmt) {
 	return handle_I_offset_reg(opcode, fmt, parse_Signed12);
+}
+
+
+static bool
+handle_JALR(uint32_t opcode, EInstructionFormat fmt) {
+	int rs;
+
+	if (parse_Register(&rs)) {
+		SExpression* imm;
+		int rd = 1;
+
+		if (lex_Context->token.id == T_COMMA) {
+			rd = rs;
+
+			parse_GetToken();
+			if (!parse_RegisterImmediate(&rs, &imm, parse_Signed12)) {
+				return false;
+			}
+		} else {
+			imm = expr_Const(0);
+		}
+
+		emit_I(opcode, rd, rs, imm);
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -463,12 +504,50 @@ handle_J_OFFSET(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_J(uint32_t opcode, EInstructionFormat fmt) {
+handle_JAL(uint32_t opcode, EInstructionFormat fmt) {
 	int rd;
-	if (parse_Register(&rd)
+	if (parse_Register(&rd)) {
+		if (!parse_ExpectComma())
+			return false;
+	} else {
+		rd = 1;
+	} 
+
+	return handle_J_OFFSET(opcode | rd << 7, fmt);
+}
+
+
+static bool
+handle_Implicit(uint32_t opcode, EInstructionFormat fmt) {
+	sect_OutputConst32(opcode);
+	return true;
+}
+
+
+static bool
+handle_BZ(uint32_t opcode, EInstructionFormat fmt) {
+	int rs;
+
+	if (parse_Register(&rs)
 	&&  parse_ExpectComma()) {
 
-		return handle_J_OFFSET(opcode | rd << 7, fmt);
+		handle_B_offset(opcode, rs, 0);
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
+handle_BZ_r(uint32_t opcode, EInstructionFormat fmt) {
+	int rs;
+
+	if (parse_Register(&rs)
+	&&  parse_ExpectComma()) {
+
+		handle_B_offset(opcode, 0, rs);
+		return true;
 	}
 
 	return false;
@@ -477,6 +556,7 @@ handle_J(uint32_t opcode, EInstructionFormat fmt) {
 
 #define OP_R(funct7, funct3, opcode) ((funct7) << 25 | (funct3) << 12 | (opcode)),FMT_R
 #define OP_I(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_I
+#define OP_I_rs(rs, funct3, opcode)  ((rs << 15) | (funct3) << 12 | (opcode)),FMT_I
 #define OP_B(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_B
 #define OP_S(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_S
 #define OP_U(opcode)                 (opcode),FMT_U
@@ -495,10 +575,10 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_B(      0x07, 0x63), handle_B   },	/* BGEU */
 	{ OP_B(      0x04, 0x63), handle_B   },	/* BLT */
 	{ OP_B(      0x06, 0x63), handle_B   },	/* BLTU */
-	{ OP_B(      0x01, 0x63), handle_B   },	/* BNE */
+	{ OP_B(      0x01, 0x63), handle_B    },	/* BNE */
 	{ OP_I(      0x00, 0x0F), handle_FENCE   },	/* FENCE */
-	{ OP_J(            0x6F), handle_J   },	/* JAL */
-	{ OP_I(      0x00, 0x67), handle_I_PCREL },	/* JALR */
+	{ OP_J(            0x6F), handle_JAL  },	/* JAL */
+	{ OP_I(      0x00, 0x67), handle_JALR },	/* JALR */
 	{ OP_I(      0x00, 0x03), handle_I_OFFSET },	/* LB */
 	{ OP_I(      0x04, 0x03), handle_I_OFFSET },	/* LBU */
 	{ OP_I(      0x01, 0x03), handle_I_OFFSET },	/* LH */
@@ -507,8 +587,8 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_I(      0x02, 0x03), handle_I_OFFSET },	/* LW */
 	{ OP_R(0x00, 0x06, 0x33), handle_R   },	/* OR */
 	{ OP_I(      0x06, 0x13), handle_I_S },	/* ORI */
-	{ OP_S(      0x00, 0x23), handle_S },	/* SB */
-	{ OP_S(      0x01, 0x23), handle_S },	/* SH */
+	{ OP_S(      0x00, 0x23), handle_S   },	/* SB */
+	{ OP_S(      0x01, 0x23), handle_S   },	/* SH */
 	{ OP_R(0x00, 0x01, 0x33), handle_R   },	/* SLL */
 	{ OP_R(0x00, 0x01, 0x13), handle_I_5 },	/* SLLI */
 	{ OP_R(0x00, 0x02, 0x33), handle_R   },	/* SLT */
@@ -520,13 +600,27 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_R(0x00, 0x05, 0x33), handle_R   },	/* SRL */
 	{ OP_R(0x00, 0x05, 0x13), handle_I_5 },	/* SRLI */
 	{ OP_R(0x20, 0x00, 0x33), handle_R   },	/* SUB */
-	{ OP_S(      0x02, 0x23), handle_S },	/* SW */
+	{ OP_S(      0x02, 0x23), handle_S   },	/* SW */
 	{ OP_R(0x00, 0x04, 0x33), handle_R   },	/* XOR */
 	{ OP_I(      0x04, 0x13), handle_I_S },	/* XORI */
 
 	/* Pseudo instructions */
-	{ OP_J(            0x6F), handle_J_OFFSET   },	/* J */
-	{ OP_I(      0x00, 0x67), handle_I_JR },	/* JALR */
+	{ OP_J(            0x6F), handle_J_OFFSET    },	/* J */
+	{ OP_I(      0x00, 0x67), handle_I_JR        },	/* JALR */
+	{ OP_I_rs(0x01, 0x00, 0x67), handle_Implicit },	/* RET */
+
+	{ OP_B(      0x00, 0x63), handle_BZ   },	/* BEQZ */
+	{ OP_B(      0x01, 0x63), handle_BZ   },	/* BNEZ */
+	{ OP_B(      0x05, 0x63), handle_BZ_r },	/* BLEZ */
+	{ OP_B(      0x05, 0x63), handle_BZ   },	/* BGEZ */
+	{ OP_B(      0x04, 0x63), handle_BZ   },	/* BLTZ */
+	{ OP_B(      0x04, 0x63), handle_BZ_r },	/* BGTZ */
+
+	{ OP_B(      0x04, 0x63), handle_B_r  },	/* BGT */
+	{ OP_B(      0x05, 0x63), handle_B_r  },	/* BLE */
+	{ OP_B(      0x06, 0x63), handle_B_r  },	/* BLTU */
+	{ OP_B(      0x07, 0x63), handle_B_r  },	/* BLEU */
+
 };
 
 

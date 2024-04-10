@@ -47,5 +47,23 @@ label2:
     sw t0,87(t1)
     xor x2,x7,x31
     xor sp,t2,t6
+
+    ; pseudoinstructions
+
     j label2
+    jal label2
     jr s1
+    jalr s1
+    ret
+
+    beqz s0,label2
+    bnez s0,label2
+    blez s0,label2
+    bgez s0,label2
+    bltz s0,label2
+    bgtz s0,label2
+    bgt t0,s6,label
+    ble t0,s6,label
+    bgtu t0,s6,label
+    bleu t0,s6,label
+
