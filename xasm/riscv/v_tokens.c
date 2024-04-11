@@ -85,9 +85,9 @@ g_tokens[] = {
 	{ "SLTZ",  T_V_32I_SLTZ   },
 	{ "SGTZ",  T_V_32I_SGTZ   },
 
+	{ "LI",    T_V_32I_LI     },
 	{ "LA",    T_V_32I_LA     },
 	{ "LLA",   T_V_32I_LLA    },
-	{ "LI",    T_V_32I_LI     },
 	{ "CALL",  T_V_32I_CALL   },
 	{ "TAIL",  T_V_32I_TAIL   },
 

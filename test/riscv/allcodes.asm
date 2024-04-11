@@ -76,3 +76,10 @@ label2:
     snez s0,s1
     sltz s0,s1
     sgtz s0,s1
+
+    li s0,87
+    li s0,-87
+    li s0,$1000
+    li s0,$FFFF1000
+    li s0,$12345678
+    li s0,$12345FED

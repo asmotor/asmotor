@@ -84,9 +84,9 @@ typedef	enum {
 	T_V_32I_SLTZ,	/* SLT rd,rs,x0 */
 	T_V_32I_SGTZ,	/* SLT rd,x0,rs */
 
+	T_V_32I_LI,
 	T_V_32I_LA,
 	T_V_32I_LLA,
-	T_V_32I_LI,
 	T_V_32I_CALL,
 	T_V_32I_TAIL,
 

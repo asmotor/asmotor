@@ -38,6 +38,7 @@ typedef enum InstructionFormat {
 	FMT_B,
 	FMT_U,
 	FMT_J,
+	FMT_UNKNOWN,
 } EInstructionFormat;
 
 
@@ -50,6 +51,10 @@ typedef struct Parser {
 	EInstructionFormat instructionFormat;
 	bool (*parser)(uint32_t opcode, EInstructionFormat fmt);
 } SParser;
+
+
+static uint32_t
+getOpcode(ETargetToken token);
 
 
 static SExpression*
@@ -187,6 +192,21 @@ parse_Unsigned5(void) {
 }
 
 
+static void
+emit_U(uint32_t opcode, int rd, SExpression* imm) {
+	if (imm != NULL) {
+		SExpression* op = 
+			expr_Or(
+				expr_Asl(imm, expr_Const(12)),
+				expr_Const(opcode | rd << 7));
+
+		sect_OutputExpr32(op);
+	} else {
+		sect_OutputConst32(opcode | rd << 7);
+	}
+}
+
+
 static bool
 handle_U(uint32_t opcode, EInstructionFormat fmt) {
 	int rd;
@@ -195,14 +215,7 @@ handle_U(uint32_t opcode, EInstructionFormat fmt) {
 	&&  parse_ExpectComma()) {
 
 		SExpression* imm = parse_Imm20();
-		if (imm != NULL) {
-			SExpression* op = 
-				expr_Or(
-					expr_Asl(imm, expr_Const(12)),
-					expr_Const(opcode | rd << 7));
-
-			sect_OutputExpr32(op);
-		}
+		emit_U(opcode, rd, imm);
 		return true;
 	}
 
@@ -600,6 +613,50 @@ handle_BZ_r(uint32_t opcode, EInstructionFormat fmt) {
 }
 
 
+static bool
+handle_LI(uint32_t opcode, EInstructionFormat fmt) {
+	int rd;
+
+	if (parse_Register(&rd)
+	&&  parse_ExpectComma()) {
+
+		SExpression* imm = parse_Expression(4);
+		if (imm != NULL) {
+			if (expr_IsConstant(imm)) {
+				if (imm->value.integer >= -2048 && imm->value.integer <= 2047) {
+					emit_I(getOpcode(T_V_32I_ADDI), rd, 0, imm);
+					return true;
+				} else if ((imm->value.integer & 0xFFF) == 0) {
+					opcode = getOpcode(T_V_32I_LUI);
+					opcode |= rd << 7 | imm->value.integer;
+
+					sect_OutputConst32(opcode);
+					return true;
+				}
+			}
+
+			SExpression* upper = 
+				expr_Add(
+					expr_And(
+						expr_Asr(expr_Copy(imm), expr_Const(12)),
+						expr_Const(0xFFFFF)),
+					expr_And(
+						expr_Asr(expr_Copy(imm), expr_Const(11)),
+						expr_Const(1)
+					)
+				);
+
+			emit_U(getOpcode(T_V_32I_LUI), rd, upper);
+			emit_I(getOpcode(T_V_32I_ADDI), rd, rd, imm);
+		}
+		return true;
+	}
+
+	return false;
+
+}
+
+
 #define OP_R(funct7, funct3, opcode) ((funct7) << 25 | (funct3) << 12 | (opcode)),FMT_R
 #define OP_I(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_I
 #define OP_I_rs(rs, funct3, opcode)  ((rs << 15) | (funct3) << 12 | (opcode)),FMT_I
@@ -608,6 +665,7 @@ handle_BZ_r(uint32_t opcode, EInstructionFormat fmt) {
 #define OP_S(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_S
 #define OP_U(opcode)                 (opcode),FMT_U
 #define OP_J(opcode)                 (opcode),FMT_J
+#define OP_UNKNOWN()                 0,FMT_UNKNOWN
 
 
 static SParser
@@ -652,8 +710,8 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_I(      0x04, 0x13), handle_I_S },	/* XORI */
 
 	/* Pseudo instructions */
-	{ OP_J(            0x6F), handle_J_OFFSET    },	/* J */
-	{ OP_I(      0x00, 0x67), handle_I_JR        },	/* JALR */
+	{ OP_J   (            0x6F), handle_J_OFFSET    },	/* J */
+	{ OP_I   (      0x00, 0x67), handle_I_JR        },	/* JALR */
 	{ OP_I_rs(0x01, 0x00, 0x67), handle_Implicit },	/* RET */
 
 	{ OP_B(      0x00, 0x63), handle_BZ   },	/* BEQZ */
@@ -669,17 +727,25 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_B(      0x07, 0x63), handle_B_r  },	/* BLEU */
 
 	{ OP_I_regs(0x000, 0x00, 0x13), handle_I_2r },	/* MV */
-	{ OP_R(0x20, 0x00, 0x33), handle_R_2r   },	/* NEG */
+	{ OP_R     ( 0x20, 0x00, 0x33), handle_R_2r   },	/* NEG */
 	{ OP_I_regs(0xFFF, 0x04, 0x13), handle_I_2r },	/* NOT */
-	{ OP_I(      0x00, 0x13), handle_Implicit },	/* NOP */
+	{ OP_I     (       0x00, 0x13), handle_Implicit },	/* NOP */
 
 	{ OP_I_regs(0x001, 0x03, 0x13), handle_I_2r },	/* SEQZ */
-	{ OP_R(0x00, 0x03, 0x33), handle_R_2r   },	/* SNEZ */
-	{ OP_R(0x00, 0x02, 0x33), handle_R_2r2   },	/* SLTZ */
-	{ OP_R(0x00, 0x02, 0x33), handle_R_2r   },	/* SGTZ */
+	{ OP_R     ( 0x00, 0x03, 0x33), handle_R_2r   },	/* SNEZ */
+	{ OP_R     ( 0x00, 0x02, 0x33), handle_R_2r2   },	/* SLTZ */
+	{ OP_R     ( 0x00, 0x02, 0x33), handle_R_2r   },	/* SGTZ */
+
+	{ OP_UNKNOWN(), handle_LI   },	/* LI */
 
 
 };
+
+
+static uint32_t
+getOpcode(ETargetToken token) {
+	return g_Parsers[token - T_V_32I_ADD].baseOpcode;
+}
 
 
 bool
