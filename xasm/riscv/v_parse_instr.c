@@ -297,6 +297,22 @@ handle_I(uint32_t opcode, EInstructionFormat fmt, SExpression* (*parseImm)(void)
 
 
 static bool
+handle_I_2r(uint32_t opcode, EInstructionFormat fmt) {
+	int rd, rs1;
+
+	if (parse_Register(&rd)
+	&&  parse_ExpectComma()
+	&&  parse_Register(&rs1)) {
+
+		emit_I(opcode, rd, rs1, NULL);
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
 handle_I_S(uint32_t opcode, EInstructionFormat fmt) {
 	return handle_I(opcode, fmt, parse_Signed12);
 }
@@ -439,6 +455,36 @@ handle_R(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
+handle_R_2r(uint32_t opcode, EInstructionFormat fmt) {
+	int rd, rs;
+	if (parse_Register(&rd)
+	&&  parse_ExpectComma()
+	&&  parse_Register(&rs)) {
+
+		sect_OutputConst32(opcode | rd << 7 | rs << 20);
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
+handle_R_2r2(uint32_t opcode, EInstructionFormat fmt) {
+	int rd, rs;
+	if (parse_Register(&rd)
+	&&  parse_ExpectComma()
+	&&  parse_Register(&rs)) {
+
+		sect_OutputConst32(opcode | rd << 7 | rs << 15);
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
 tokenHasStringContent(void) {
 	int id = lex_Context->token.id;
 	return id != T_NUMBER && id != T_FLOAT && id != T_STRING;
@@ -557,6 +603,7 @@ handle_BZ_r(uint32_t opcode, EInstructionFormat fmt) {
 #define OP_R(funct7, funct3, opcode) ((funct7) << 25 | (funct3) << 12 | (opcode)),FMT_R
 #define OP_I(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_I
 #define OP_I_rs(rs, funct3, opcode)  ((rs << 15) | (funct3) << 12 | (opcode)),FMT_I
+#define OP_I_regs(imm, funct3, opcode) ((((uint32_t)(imm) << 20) | (funct3) << 12 | (opcode))),FMT_I
 #define OP_B(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_B
 #define OP_S(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_S
 #define OP_U(opcode)                 (opcode),FMT_U
@@ -620,6 +667,17 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_B(      0x05, 0x63), handle_B_r  },	/* BLE */
 	{ OP_B(      0x06, 0x63), handle_B_r  },	/* BLTU */
 	{ OP_B(      0x07, 0x63), handle_B_r  },	/* BLEU */
+
+	{ OP_I_regs(0x000, 0x00, 0x13), handle_I_2r },	/* MV */
+	{ OP_R(0x20, 0x00, 0x33), handle_R_2r   },	/* NEG */
+	{ OP_I_regs(0xFFF, 0x04, 0x13), handle_I_2r },	/* NOT */
+	{ OP_I(      0x00, 0x13), handle_Implicit },	/* NOP */
+
+	{ OP_I_regs(0x001, 0x03, 0x13), handle_I_2r },	/* SEQZ */
+	{ OP_R(0x00, 0x03, 0x33), handle_R_2r   },	/* SNEZ */
+	{ OP_R(0x00, 0x02, 0x33), handle_R_2r2   },	/* SLTZ */
+	{ OP_R(0x00, 0x02, 0x33), handle_R_2r   },	/* SGTZ */
+
 
 };
 

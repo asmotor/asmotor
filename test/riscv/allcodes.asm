@@ -67,3 +67,12 @@ label2:
     bgtu t0,s6,label
     bleu t0,s6,label
 
+    mv t0,t1
+    neg t0,t1
+    not t0,t1
+    nop
+
+    seqz s0,s1
+    snez s0,s1
+    sltz s0,s1
+    sgtz s0,s1
