@@ -17,19 +17,19 @@ label2:
     bne t0,s6,label
     fence rw,io
     jal a2,label2
-    jalr s3,s0,label2
     jalr s3,label2(s0)
     lb t0,label(sp)
     lbu s1,87(s0)
     lh t0,label(sp)
     lhu s1,87(s0)
+    lhu s1,(s0)
     lui t0,12345
-    lw  t0,t1,-42
+    lw t0,-42(t1)
     or t0,t1,t2
     ori t0,t1,123
-    sb t0,t1,87
     sb t0,87(t1)
-    sh t0,t1,87
+    sb t0,87(t1)
+    sh t0,(t1)
     sh t0,87(t1)
     sll t0,t1,t2
     slli t0,t1,5
@@ -43,8 +43,8 @@ label2:
     srl t0,t1,t2
     srli t0,t1,5
     sub x14,x3,x2
-    sw t0,t1,87
     sw t0,87(t1)
+    sw t0,(t1)
     xor x2,x7,x31
     xor sp,t2,t6
 
@@ -76,6 +76,11 @@ label2:
     snez s0,s1
     sltz s0,s1
     sgtz s0,s1
+
+    lhu s1,@+8
+    lw t0,label2
+    sb s1,label2,t0
+    sw s1,label2,t0
 
     li s0,87
     li s0,-87

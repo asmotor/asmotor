@@ -72,6 +72,9 @@ maskAndShift(SExpression* expr, int srcHigh, int srcLow, int destLow) {
 
 static SExpression*
 swizzleSFmtImmediate12(SExpression* expr) {
+	if (expr == NULL)
+		return expr_Const(0);
+
 	expr = expr_CheckRange(expr,-0x800, 0x7FF);
 	expr = expr_And(expr, expr_Const(0xFFF));
 
@@ -167,15 +170,21 @@ parse_Imm20(void) {
 
 
 static SExpression*
-parse_Expr12(uint32_t low, uint32_t high) {
-	SExpression* expr = parse_Expression(2);
+check_Signed12(SExpression* expr) {
 	if (expr != NULL) {
-		expr = expr_CheckRange(expr, low, high);
+		expr = expr_CheckRange(expr, -0x800, 0x7FF);
 		if (expr != NULL)
 			return expr_And(expr, expr_Const(0xFFF));
 	}
 
 	return NULL;
+}
+
+
+static SExpression*
+parse_Expr12(uint32_t low, uint32_t high) {
+	SExpression* expr = parse_Expression(2);
+	return check_Signed12(expr);
 }
 
 
@@ -216,7 +225,7 @@ handle_U(uint32_t opcode, EInstructionFormat fmt) {
 
 		SExpression* imm = parse_Imm20();
 		emit_U(opcode, rd, imm);
-		return true;
+		return imm != NULL;
 	}
 
 	return false;
@@ -234,8 +243,10 @@ handle_B_offset(uint32_t opcode, int rs1, int rs2) {
 			);
 
 		sect_OutputExpr32(op);
+		return true;
 	}
-	return true;
+
+	return false;
 }
 
 
@@ -248,8 +259,7 @@ handle_B(uint32_t opcode, EInstructionFormat fmt) {
 	&&  parse_Register(&rs2)
 	&&	parse_ExpectComma()) {
 
-		handle_B_offset(opcode, rs1, rs2);
-		return true;
+		return handle_B_offset(opcode, rs1, rs2);
 	}
 
 	return false;
@@ -265,8 +275,7 @@ handle_B_r(uint32_t opcode, EInstructionFormat fmt) {
 	&&  parse_Register(&rs1)
 	&&	parse_ExpectComma()) {
 
-		handle_B_offset(opcode, rs1, rs2);
-		return true;
+		return handle_B_offset(opcode, rs1, rs2);
 	}
 
 	return false;
@@ -291,6 +300,18 @@ emit_I(uint32_t opcode, int rd, int rs1, SExpression* imm) {
 }
 
 
+static void
+emit_S(uint32_t opcode, int rs1, int rs2, SExpression* imm) {
+	SExpression* op = 
+		expr_Or(
+			swizzleSFmtImmediate12(imm),
+			expr_Const(opcode | rs2 << 20 | rs1 << 15)
+		);
+
+	sect_OutputExpr32(op);
+}
+
+
 static bool
 handle_I(uint32_t opcode, EInstructionFormat fmt, SExpression* (*parseImm)(void)) {
 	int rd, rs1;
@@ -301,8 +322,10 @@ handle_I(uint32_t opcode, EInstructionFormat fmt, SExpression* (*parseImm)(void)
 	&&	parse_ExpectComma()) {
 
 		SExpression* imm = parseImm();
-		emit_I(opcode, rd, rs1, imm);
-		return true;
+		if (imm != NULL) {
+			emit_I(opcode, rd, rs1, imm);
+			return true;
+		}
 	}
 
 	return false;
@@ -338,51 +361,73 @@ handle_I_5(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-parse_RegisterImmediate(int* reg, SExpression** imm, SExpression* (*parseImm)(void)) {
+parse_RegisterImmediate(int* reg, SExpression** imm, SExpression* (*checkOffset)(SExpression*)) {
 	*imm = NULL;
 
-	if (parse_Register(reg)) {
-		if (!parse_ExpectComma()) {
-			return false;
-		}
-
-		*imm = parseImm();
-	} else {
-		*imm = parseImm();
-		if (imm == NULL
-		||  !parse_ExpectChar('(')
-		||  !parse_Register(reg)
-		||	!parse_ExpectChar(')')) {
-
-			return false;
+	if (lex_Context->token.id == '(') {
+		parse_GetToken();
+		if (parse_Register(reg)) {
+			return parse_ExpectChar(')');
 		}
 	}
+
+	SExpression* expr = parse_Expression(4);
+	if (lex_Context->token.id == '(') {
+		parse_GetToken();
+		if (parse_Register(reg)) {
+			parse_ExpectChar(')');
+			*imm = checkOffset(expr);
+			return true;
+		}
+		return false;
+	}
+
+	*imm = expr;
+	*reg = -1;
 	return true;
 }
 
 
 static bool
-parse_RegistersImmediate(int* reg1, int* reg2, SExpression** imm, SExpression* (*parseImm)(void)) {
+parse_RegistersImmediate(int* reg1, int* reg2, SExpression** imm, SExpression* (*checkOffset)(SExpression* expr)) {
 	if (parse_Register(reg1)
 	&&  parse_ExpectComma()) {
 
-		return parse_RegisterImmediate(reg2, imm, parseImm);
+		return parse_RegisterImmediate(reg2, imm, checkOffset);
 	}
 
 	return false;
 }
 
 
-static bool
-handle_I_offset_reg(uint32_t opcode, EInstructionFormat fmt, SExpression* (*parseImm)(void)) {
-	int rd, rs1;
+static void
+emit_LoadStore32Upper(uint32_t opcode, SExpression* imm, int rd) {
+	SExpression* upper = 
+		expr_Add(
+			expr_And(
+				expr_Asr(expr_Copy(imm), expr_Const(12)),
+				expr_Const(0xFFFFF)),
+			expr_And(
+				expr_Asr(expr_Copy(imm), expr_Const(11)),
+				expr_Const(1)
+			)
+		);
 
-	SExpression* imm = NULL;
-	if (parse_RegistersImmediate(&rd, &rs1, &imm, parseImm)) {
-		emit_I(opcode, rd, rs1, imm);
-	}
+	emit_U(opcode, rd, upper);
+}
 
-	return true;
+
+static void
+emit_Load32(SExpression* imm, int rd, uint32_t first_opcode, uint32_t second_opcode) {
+	emit_LoadStore32Upper(first_opcode, imm, rd);
+	emit_I(second_opcode, rd, rd, imm);
+}
+
+
+static void
+emit_Store32(SExpression* imm, int rd, int rs, uint32_t first_opcode, uint32_t second_opcode) {
+	emit_LoadStore32Upper(first_opcode, imm, rd);
+	emit_S(second_opcode, rd, rs, imm);
 }
 
 
@@ -399,8 +444,21 @@ handle_I_JR(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_I_OFFSET(uint32_t opcode, EInstructionFormat fmt) {
-	return handle_I_offset_reg(opcode, fmt, parse_Signed12);
+handle_I_Load(uint32_t opcode, EInstructionFormat fmt) {
+	int rd, rs1;
+
+	SExpression* imm = NULL;
+	if (parse_RegistersImmediate(&rd, &rs1, &imm, check_Signed12)) {
+		if (rs1 != -1) {
+			emit_I(opcode, rd, rs1, imm);
+		} else {
+			imm = expr_PcRelative(imm, 0);
+			emit_Load32(imm, rd, getOpcode(T_V_32I_AUIPC), opcode);
+		}
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -416,7 +474,7 @@ handle_JALR(uint32_t opcode, EInstructionFormat fmt) {
 			rd = rs;
 
 			parse_GetToken();
-			if (!parse_RegisterImmediate(&rs, &imm, parse_Signed12)) {
+			if (!parse_RegisterImmediate(&rs, &imm, check_Signed12)) {
 				return false;
 			}
 		} else {
@@ -436,17 +494,20 @@ handle_S(uint32_t opcode, EInstructionFormat fmt) {
 	int rs1, rs2;
 
 	SExpression* imm = NULL;
-	if (parse_RegistersImmediate(&rs2, &rs1, &imm, parse_Signed12)) {
-		SExpression* op = 
-			expr_Or(
-				swizzleSFmtImmediate12(imm),
-				expr_Const(opcode | rs2 << 20 | rs1 << 15)
-			);
-
-		sect_OutputExpr32(op);
+	if (parse_RegistersImmediate(&rs2, &rs1, &imm, check_Signed12)) {
+		if (rs1 != -1) {
+			emit_S(opcode, rs1, rs2, imm);
+			return true;
+		} else {
+			if (parse_ExpectComma() && parse_Register(&rs1)) {
+				imm = expr_PcRelative(imm, 0);
+				emit_Store32(imm, rs1, rs2, getOpcode(T_V_32I_AUIPC), opcode);
+				return true;
+			}
+		}
 	}
 
-	return true;
+	return false;
 }
 
 
@@ -590,8 +651,7 @@ handle_BZ(uint32_t opcode, EInstructionFormat fmt) {
 	if (parse_Register(&rs)
 	&&  parse_ExpectComma()) {
 
-		handle_B_offset(opcode, rs, 0);
-		return true;
+		return handle_B_offset(opcode, rs, 0);
 	}
 
 	return false;
@@ -605,11 +665,29 @@ handle_BZ_r(uint32_t opcode, EInstructionFormat fmt) {
 	if (parse_Register(&rs)
 	&&  parse_ExpectComma()) {
 
-		handle_B_offset(opcode, 0, rs);
-		return true;
+		return handle_B_offset(opcode, 0, rs);
 	}
 
 	return false;
+}
+
+
+static void
+emit_LI(int rd, SExpression* imm) {
+	if (expr_IsConstant(imm)) {
+		if (imm->value.integer >= -2048 && imm->value.integer <= 2047) {
+			emit_I(getOpcode(T_V_32I_ADDI), rd, 0, imm);
+			return;
+		} else if ((imm->value.integer & 0xFFF) == 0) {
+			uint32_t opcode = getOpcode(T_V_32I_LUI);
+			opcode |= rd << 7 | imm->value.integer;
+
+			sect_OutputConst32(opcode);
+			return;
+		}
+	}
+
+	emit_Load32(imm, rd, getOpcode(T_V_32I_LUI), getOpcode(T_V_32I_ADDI));
 }
 
 
@@ -622,38 +700,32 @@ handle_LI(uint32_t opcode, EInstructionFormat fmt) {
 
 		SExpression* imm = parse_Expression(4);
 		if (imm != NULL) {
-			if (expr_IsConstant(imm)) {
-				if (imm->value.integer >= -2048 && imm->value.integer <= 2047) {
-					emit_I(getOpcode(T_V_32I_ADDI), rd, 0, imm);
-					return true;
-				} else if ((imm->value.integer & 0xFFF) == 0) {
-					opcode = getOpcode(T_V_32I_LUI);
-					opcode |= rd << 7 | imm->value.integer;
-
-					sect_OutputConst32(opcode);
-					return true;
-				}
-			}
-
-			SExpression* upper = 
-				expr_Add(
-					expr_And(
-						expr_Asr(expr_Copy(imm), expr_Const(12)),
-						expr_Const(0xFFFFF)),
-					expr_And(
-						expr_Asr(expr_Copy(imm), expr_Const(11)),
-						expr_Const(1)
-					)
-				);
-
-			emit_U(getOpcode(T_V_32I_LUI), rd, upper);
-			emit_I(getOpcode(T_V_32I_ADDI), rd, rd, imm);
+			emit_LI(rd, imm);
+			return true;
 		}
-		return true;
 	}
 
 	return false;
+}
 
+
+static bool
+handle_LA(uint32_t opcode, EInstructionFormat fmt) {
+	int rd;
+
+	if (parse_Register(&rd)
+	&&  parse_ExpectComma()) {
+
+		SExpression* imm = parse_Expression(4);
+		if (imm != NULL) {
+			if (expr_IsConstant(imm)) {
+				emit_LI(rd, imm);
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 
@@ -684,12 +756,12 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_I(      0x00, 0x0F), handle_FENCE   },	/* FENCE */
 	{ OP_J(            0x6F), handle_JAL  },	/* JAL */
 	{ OP_I(      0x00, 0x67), handle_JALR },	/* JALR */
-	{ OP_I(      0x00, 0x03), handle_I_OFFSET },	/* LB */
-	{ OP_I(      0x04, 0x03), handle_I_OFFSET },	/* LBU */
-	{ OP_I(      0x01, 0x03), handle_I_OFFSET },	/* LH */
-	{ OP_I(      0x05, 0x03), handle_I_OFFSET },	/* LHU */
+	{ OP_I(      0x00, 0x03), handle_I_Load },	/* LB */
+	{ OP_I(      0x04, 0x03), handle_I_Load },	/* LBU */
+	{ OP_I(      0x01, 0x03), handle_I_Load },	/* LH */
+	{ OP_I(      0x05, 0x03), handle_I_Load },	/* LHU */
 	{ OP_U(            0x37), handle_U   },	/* LUI */
-	{ OP_I(      0x02, 0x03), handle_I_OFFSET },	/* LW */
+	{ OP_I(      0x02, 0x03), handle_I_Load },	/* LW */
 	{ OP_R(0x00, 0x06, 0x33), handle_R   },	/* OR */
 	{ OP_I(      0x06, 0x13), handle_I_S },	/* ORI */
 	{ OP_S(      0x00, 0x23), handle_S   },	/* SB */
@@ -737,6 +809,7 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_R     ( 0x00, 0x02, 0x33), handle_R_2r   },	/* SGTZ */
 
 	{ OP_UNKNOWN(), handle_LI   },	/* LI */
+	{ OP_UNKNOWN(), handle_LA   },	/* LA */
 
 
 };
