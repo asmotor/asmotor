@@ -85,6 +85,9 @@ g_tokens[] = {
 	{ "SLTZ",  T_V_32I_SLTZ   },
 	{ "SGTZ",  T_V_32I_SGTZ   },
 
+	{ "EBREAK", T_V_32I_EBREAK   },
+	{ "ECALL",  T_V_32I_ECALL   },
+
 	{ "LI",    T_V_32I_LI     },
 	{ "LA",    T_V_32I_LA     },
 	{ "LLA",   T_V_32I_LLA    },

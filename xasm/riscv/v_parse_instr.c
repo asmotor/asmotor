@@ -591,7 +591,7 @@ parse_FenceSpec(uint32_t* spec) {
 		}
 		parse_GetToken();
 	}
-	
+
 	return r;
 }
 
@@ -867,6 +867,9 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 	{ OP_R     ( 0x00, 0x03, 0x33), handle_R_2r   },	/* SNEZ */
 	{ OP_R     ( 0x00, 0x02, 0x33), handle_R_2r2   },	/* SLTZ */
 	{ OP_R     ( 0x00, 0x02, 0x33), handle_R_2r   },	/* SGTZ */
+
+	{ OP_I_regs(0x001, 0x00, 0x73), handle_Implicit },	/* EBREAK */
+	{ OP_I_regs(0x000, 0x00, 0x73), handle_Implicit },	/* ECALL */
 
 	{ OP_UNKNOWN(), handle_LI   },	/* LI */
 	{ OP_UNKNOWN(), handle_LA   },	/* LA */

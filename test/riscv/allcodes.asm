@@ -95,4 +95,7 @@ label2:
     tail label2
 
     fence
+
+    ebreak
+    ecall
     
