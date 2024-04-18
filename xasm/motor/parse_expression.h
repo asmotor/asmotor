@@ -33,4 +33,7 @@ parse_ExpressionS16(void);
 extern SExpression*
 parse_ExpressionU16(void);
 
+extern SExpression*
+parse_SymbolExpression(void);
+
 #endif // XASM_MOTOR_PARSE_EXPRESSION_H_INCLUDED_

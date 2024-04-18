@@ -24,6 +24,7 @@
 
 typedef struct MachineOptions {
 	int architecture;
+	bool pic;
 } SMachineOptions;
 
 

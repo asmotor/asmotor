@@ -39,6 +39,7 @@ v_CopyOptions(struct MachineOptions* destination, struct MachineOptions* source)
 void 
 v_SetDefaultOptions(SMachineOptions* options) {
     options->architecture = 0;
+	options->pic = false;
 }
 
 void
@@ -50,10 +51,20 @@ v_ParseOption(const char* s) {
 	if (s == NULL || strlen(s) == 0)
 		return false;
 
+	if (strcmp(s, "pic") == 0) {
+		opt_Current->machineOptions->pic = true;
+	} else if (strcmp(s, "nopic") == 0) {
+		opt_Current->machineOptions->pic = false;
+	} 
+
 	err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
 	return false;
 }
 
 void
 v_PrintOptions(void) {
+    printf(
+		"    -mpic    Enable PIC mode\n"
+		"    -mnopic  Disable PIC mode (default)\n"
+	);
 }

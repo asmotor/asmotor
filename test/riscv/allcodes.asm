@@ -88,3 +88,11 @@ label2:
     li s0,$FFFF1000
     li s0,$12345678
     li s0,$12345FED
+    la t0,label2
+    lla t0,label2
+
+    call label2
+    tail label2
+
+    fence
+    

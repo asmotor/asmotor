@@ -28,4 +28,5 @@ parse_SetRs(int32_t rsValue);
 extern bool
 parse_SymbolDefinition(void);
 
+
 #endif // XASM_MOTOR_PARSE_SYMBOL_H_INCLUDED_

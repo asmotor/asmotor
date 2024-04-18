@@ -22,7 +22,6 @@
 
 #include "mem.h"
 
-#include "xasm.h"
 #include "lexer_constants.h"
 #include "options.h"
 #include "errors.h"

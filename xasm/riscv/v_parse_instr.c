@@ -22,13 +22,15 @@
 #include "errors.h"
 #include "expression.h"
 #include "lexer_context.h"
+#include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
 
 #include "section.h"
 #include "tokens.h"
-#include "v_tokens.h"
 #include "v_errors.h"
+#include "v_options.h"
+#include "v_tokens.h"
 
 
 typedef enum InstructionFormat {
@@ -567,8 +569,10 @@ tokenHasStringContent(void) {
 
 static bool
 parse_FenceSpec(uint32_t* spec) {
-	*spec = 0;
+	bool r = false;
 	const char* specString = "WROI";
+
+	*spec = 0;
 	while (tokenHasStringContent() && lex_Context->token.id != T_COMMA && lex_Context->token.id != '\n') {
 		for (uint32_t i = 0; i < lex_Context->token.length; ++i) {
 			char ch = toupper(lex_Context->token.value.string[i]);
@@ -576,6 +580,7 @@ parse_FenceSpec(uint32_t* spec) {
 			if (pspec != NULL) {
 				uint32_t bit = 1 << (pspec - specString);
 				if ((bit & *spec) == 0) {
+					r = true;
 					*spec |= bit;
 					continue;
 				}
@@ -586,22 +591,28 @@ parse_FenceSpec(uint32_t* spec) {
 		}
 		parse_GetToken();
 	}
-	return true;
+	
+	return r;
 }
 
 
 static bool
 handle_FENCE(uint32_t opcode, EInstructionFormat fmt) {
 	uint32_t pred, succ;
-	if (parse_FenceSpec(&succ)
-	&&  parse_ExpectComma()
-	&&  parse_FenceSpec(&pred)) {
 
-		sect_OutputConst32(opcode | succ << 24 | pred << 20);
-		return true;
+	if (parse_FenceSpec(&succ)) {
+		if (!parse_ExpectComma()
+		||  !parse_FenceSpec(&pred)) {
+
+			return false;
+		}
+	} else {
+		pred = 0xF;
+		succ = 0xF;
 	}
 
-	return false;
+	sect_OutputConst32(opcode | succ << 24 | pred << 20);
+	return true;
 }
 
 
@@ -710,22 +721,71 @@ handle_LI(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
+emit_LLA(int rd, SExpression* expr) {
+	if (expr->type == EXPR_SYMBOL) {
+		emit_LI(rd, expr);
+		return true;
+	}
+	return false;
+}
+
+
+static bool
 handle_LA(uint32_t opcode, EInstructionFormat fmt) {
 	int rd;
 
 	if (parse_Register(&rd)
 	&&  parse_ExpectComma()) {
 
-		SExpression* imm = parse_Expression(4);
-		if (imm != NULL) {
-			if (expr_IsConstant(imm)) {
-				emit_LI(rd, imm);
-				return true;
+		SExpression* expr = parse_SymbolExpression();
+		if (expr != NULL) {
+			if (opt_Current->machineOptions->pic) {
+				/* PIC mode */
+				err_Error(ERROR_NOT_IMPLEMENTED, "LA (PIC mode)");
+			} else {
+				/* PIC mode disabled */
+				emit_LLA(rd, expr);
 			}
 		}
+		return true;
 	}
 
 	return false;
+}
+
+
+static bool
+handle_LLA(uint32_t opcode, EInstructionFormat fmt) {
+	int rd;
+
+	if (parse_Register(&rd)
+	&&  parse_ExpectComma()) {
+
+		SExpression* expr = parse_SymbolExpression();
+		emit_LLA(rd, expr);
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
+handle_CALL(uint32_t opcode, EInstructionFormat fmt) {
+	SExpression* expr = parse_SymbolExpression();
+	emit_Load32(expr, 1 /* x1 */, getOpcode(T_V_32I_AUIPC), getOpcode(T_V_32I_JALR));
+
+	return true;
+}
+
+
+static bool
+handle_TAIL(uint32_t opcode, EInstructionFormat fmt) {
+	SExpression* expr = parse_SymbolExpression();
+	emit_LoadStore32Upper(getOpcode(T_V_32I_AUIPC), expr, 6 /* x6 */);
+	emit_I(getOpcode(T_V_32I_JALR), 0, 6, expr);
+
+	return true;
 }
 
 
@@ -810,6 +870,9 @@ g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
 
 	{ OP_UNKNOWN(), handle_LI   },	/* LI */
 	{ OP_UNKNOWN(), handle_LA   },	/* LA */
+	{ OP_UNKNOWN(), handle_LLA  },	/* LLA */
+	{ OP_UNKNOWN(), handle_CALL  },	/* CALL */
+	{ OP_UNKNOWN(), handle_TAIL  },	/* TAIL */
 
 
 };

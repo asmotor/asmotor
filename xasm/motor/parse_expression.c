@@ -24,6 +24,7 @@
 #include "parse.h"
 #include "options.h"
 #include "errors.h"
+#include "parse_expression.h"
 #include "parse_string.h"
 
 static int32_t
@@ -120,40 +121,9 @@ expressionPriority9(size_t maxStringConstLength) {
             return NULL;
         }
         case T_ID: {
-            if (strcmp(lex_Context->token.value.string, "@") != 0) {
-				string* name = lex_TokenString();
-                SSymbol* symbol = sym_GetSymbol(name);
-				str_Free(name);
-
-				parse_GetToken();
-
-				while (true) {
-					bool force_local = false;
-
-					// Allow backslash for backwards compatibility
-	                if (lex_Context->token.id == '\\') {
-	                    parse_GetToken();
-						force_local = true;
-					}
-
-                    if (lex_Context->token.id == T_ID && lex_Context->token.value.string[0] == '.') {
-						name = lex_TokenString();
-
-						if (!force_local && !xasm_Configuration->isValidLocalName(name)) {
-							str_Free(name);
-							break;
-						}
-
-						symbol = sym_GetSymbolInScope(symbol, name);
-						parse_GetToken();
-						str_Free(name);
-					} else {
-						break;
-					}
-				}
-
-				return expr_Symbol(symbol);
-            }
+			SExpression* expr = parse_SymbolExpression();
+			if (expr != NULL)
+				return expr;
         }
         // fall through
         case T_OP_MULTIPLY:
@@ -612,6 +582,47 @@ expressionPriority0(size_t maxStringConstLength) {
 
 
 /* Public functions */
+
+SExpression*
+parse_SymbolExpression(void) {
+	if (strcmp(lex_Context->token.value.string, "@") != 0) {
+		string* name = lex_TokenString();
+		SSymbol* symbol = sym_GetSymbol(name);
+		str_Free(name);
+
+		parse_GetToken();
+
+		while (true) {
+			bool force_local = false;
+
+			// Allow backslash for backwards compatibility
+			if (lex_Context->token.id == '\\') {
+				parse_GetToken();
+				force_local = true;
+			}
+
+			if (lex_Context->token.id == T_ID && lex_Context->token.value.string[0] == '.') {
+				name = lex_TokenString();
+
+				if (!force_local && !xasm_Configuration->isValidLocalName(name)) {
+					str_Free(name);
+					break;
+				}
+
+				symbol = sym_GetSymbolInScope(symbol, name);
+				parse_GetToken();
+				str_Free(name);
+			} else {
+				break;
+			}
+		}
+
+		return expr_Symbol(symbol);
+	}
+
+	return NULL;
+}
+
 
 SExpression*
 parse_Expression(size_t maxStringConstLength) {
