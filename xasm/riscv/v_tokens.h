@@ -93,7 +93,13 @@ typedef	enum {
 	T_V_32I_CALL,
 	T_V_32I_TAIL,
 
-	T_V_LAST = T_V_32I_TAIL,
+	/* Privileged instructions */
+
+	T_V_PRIV_SRET,
+	T_V_PRIV_MRET,
+	T_V_PRIV_WFI,
+
+	T_V_LAST = T_V_PRIV_WFI,
 
 	/* Registers */
 	

@@ -40,6 +40,7 @@ void
 v_SetDefaultOptions(SMachineOptions* options) {
     options->architecture = 0;
 	options->pic = false;
+	options->privileged = false;
 }
 
 void
@@ -55,10 +56,16 @@ v_ParseOption(const char* s) {
 		opt_Current->machineOptions->pic = true;
 	} else if (strcmp(s, "nopic") == 0) {
 		opt_Current->machineOptions->pic = false;
-	} 
+	} else if (strcmp(s, "priv") == 0) {
+		opt_Current->machineOptions->privileged = true;
+	} else if (strcmp(s, "nopriv") == 0) {
+		opt_Current->machineOptions->privileged = false;
+	} else {
+		err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+		return false;
+	}
 
-	err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-	return false;
+	return true;
 }
 
 void
@@ -66,5 +73,7 @@ v_PrintOptions(void) {
     printf(
 		"    -mpic    Enable PIC mode\n"
 		"    -mnopic  Disable PIC mode (default)\n"
+		"    -mprive  Enable privileged instructions\n"
+		"    -mnopriv Disable privileged instructions (default)\n"
 	);
 }

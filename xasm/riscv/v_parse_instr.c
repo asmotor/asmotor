@@ -33,25 +33,14 @@
 #include "v_tokens.h"
 
 
-typedef enum InstructionFormat {
-	FMT_R,
-	FMT_I,
-	FMT_S,
-	FMT_B,
-	FMT_U,
-	FMT_J,
-	FMT_UNKNOWN,
-} EInstructionFormat;
-
-
 typedef struct {
 	int rd, rs1, rs2;
 } SAddressingMode;
 
 typedef struct Parser {
 	uint32_t baseOpcode;
-	EInstructionFormat instructionFormat;
-	bool (*parser)(uint32_t opcode, EInstructionFormat fmt);
+	bool privileged;
+	bool (*parser)(uint32_t opcode);
 } SParser;
 
 
@@ -219,7 +208,7 @@ emit_U(uint32_t opcode, int rd, SExpression* imm) {
 
 
 static bool
-handle_U(uint32_t opcode, EInstructionFormat fmt) {
+handle_U(uint32_t opcode) {
 	int rd;
 
 	if (parse_Register(&rd)
@@ -253,7 +242,7 @@ handle_B_offset(uint32_t opcode, int rs1, int rs2) {
 
 
 static bool
-handle_B(uint32_t opcode, EInstructionFormat fmt) {
+handle_B(uint32_t opcode) {
 	int rs1, rs2;
 
 	if (parse_Register(&rs1)
@@ -269,7 +258,7 @@ handle_B(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_B_r(uint32_t opcode, EInstructionFormat fmt) {
+handle_B_r(uint32_t opcode) {
 	int rs1, rs2;
 
 	if (parse_Register(&rs2)
@@ -315,7 +304,7 @@ emit_S(uint32_t opcode, int rs1, int rs2, SExpression* imm) {
 
 
 static bool
-handle_I(uint32_t opcode, EInstructionFormat fmt, SExpression* (*parseImm)(void)) {
+handle_I(uint32_t opcode, SExpression* (*parseImm)(void)) {
 	int rd, rs1;
 
 	if (parse_Register(&rd)
@@ -335,7 +324,7 @@ handle_I(uint32_t opcode, EInstructionFormat fmt, SExpression* (*parseImm)(void)
 
 
 static bool
-handle_I_2r(uint32_t opcode, EInstructionFormat fmt) {
+handle_I_2r(uint32_t opcode) {
 	int rd, rs1;
 
 	if (parse_Register(&rd)
@@ -351,14 +340,14 @@ handle_I_2r(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_I_S(uint32_t opcode, EInstructionFormat fmt) {
-	return handle_I(opcode, fmt, parse_Signed12);
+handle_I_S(uint32_t opcode) {
+	return handle_I(opcode, parse_Signed12);
 }
 
 
 static bool
-handle_I_5(uint32_t opcode, EInstructionFormat fmt) {
-	return handle_I(opcode, fmt, parse_Unsigned5);
+handle_I_5(uint32_t opcode) {
+	return handle_I(opcode, parse_Unsigned5);
 }
 
 
@@ -434,7 +423,7 @@ emit_Store32(SExpression* imm, int rd, int rs, uint32_t first_opcode, uint32_t s
 
 
 static bool
-handle_I_JR(uint32_t opcode, EInstructionFormat fmt) {
+handle_I_JR(uint32_t opcode) {
 	int rs;
 	if (parse_Register(&rs)) {
 		emit_I(opcode, 0, rs, expr_Const(0));
@@ -446,7 +435,7 @@ handle_I_JR(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_I_Load(uint32_t opcode, EInstructionFormat fmt) {
+handle_I_Load(uint32_t opcode) {
 	int rd, rs1;
 
 	SExpression* imm = NULL;
@@ -465,7 +454,7 @@ handle_I_Load(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_JALR(uint32_t opcode, EInstructionFormat fmt) {
+handle_JALR(uint32_t opcode) {
 	int rs;
 
 	if (parse_Register(&rs)) {
@@ -492,7 +481,7 @@ handle_JALR(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_S(uint32_t opcode, EInstructionFormat fmt) {
+handle_S(uint32_t opcode) {
 	int rs1, rs2;
 
 	SExpression* imm = NULL;
@@ -514,7 +503,7 @@ handle_S(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_R(uint32_t opcode, EInstructionFormat fmt) {
+handle_R(uint32_t opcode) {
 	int rd, rs1, rs2;
 	if (parse_Register(&rd)
 	&&  parse_ExpectComma()
@@ -531,7 +520,7 @@ handle_R(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_R_2r(uint32_t opcode, EInstructionFormat fmt) {
+handle_R_2r(uint32_t opcode) {
 	int rd, rs;
 	if (parse_Register(&rd)
 	&&  parse_ExpectComma()
@@ -546,7 +535,7 @@ handle_R_2r(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_R_2r2(uint32_t opcode, EInstructionFormat fmt) {
+handle_R_2r2(uint32_t opcode) {
 	int rd, rs;
 	if (parse_Register(&rd)
 	&&  parse_ExpectComma()
@@ -597,7 +586,7 @@ parse_FenceSpec(uint32_t* spec) {
 
 
 static bool
-handle_FENCE(uint32_t opcode, EInstructionFormat fmt) {
+handle_FENCE(uint32_t opcode) {
 	uint32_t pred, succ;
 
 	if (parse_FenceSpec(&succ)) {
@@ -617,7 +606,7 @@ handle_FENCE(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_J_OFFSET(uint32_t opcode, EInstructionFormat fmt) {
+handle_J_OFFSET(uint32_t opcode) {
 	SExpression* address = parse_Expression(4);
 	if (address != NULL) {
 		SExpression* op = 
@@ -635,7 +624,7 @@ handle_J_OFFSET(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_JAL(uint32_t opcode, EInstructionFormat fmt) {
+handle_JAL(uint32_t opcode) {
 	int rd;
 	if (parse_Register(&rd)) {
 		if (!parse_ExpectComma())
@@ -644,19 +633,19 @@ handle_JAL(uint32_t opcode, EInstructionFormat fmt) {
 		rd = 1;
 	} 
 
-	return handle_J_OFFSET(opcode | rd << 7, fmt);
+	return handle_J_OFFSET(opcode | rd << 7);
 }
 
 
 static bool
-handle_Implicit(uint32_t opcode, EInstructionFormat fmt) {
+handle_Implicit(uint32_t opcode) {
 	sect_OutputConst32(opcode);
 	return true;
 }
 
 
 static bool
-handle_BZ(uint32_t opcode, EInstructionFormat fmt) {
+handle_BZ(uint32_t opcode) {
 	int rs;
 
 	if (parse_Register(&rs)
@@ -670,7 +659,7 @@ handle_BZ(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_BZ_r(uint32_t opcode, EInstructionFormat fmt) {
+handle_BZ_r(uint32_t opcode) {
 	int rs;
 
 	if (parse_Register(&rs)
@@ -703,7 +692,7 @@ emit_LI(int rd, SExpression* imm) {
 
 
 static bool
-handle_LI(uint32_t opcode, EInstructionFormat fmt) {
+handle_LI(uint32_t opcode) {
 	int rd;
 
 	if (parse_Register(&rd)
@@ -731,7 +720,7 @@ emit_LLA(int rd, SExpression* expr) {
 
 
 static bool
-handle_LA(uint32_t opcode, EInstructionFormat fmt) {
+handle_LA(uint32_t opcode) {
 	int rd;
 
 	if (parse_Register(&rd)
@@ -755,7 +744,7 @@ handle_LA(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_LLA(uint32_t opcode, EInstructionFormat fmt) {
+handle_LLA(uint32_t opcode) {
 	int rd;
 
 	if (parse_Register(&rd)
@@ -771,7 +760,7 @@ handle_LLA(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_CALL(uint32_t opcode, EInstructionFormat fmt) {
+handle_CALL(uint32_t opcode) {
 	SExpression* expr = parse_SymbolExpression();
 	emit_Load32(expr, 1 /* x1 */, getOpcode(T_V_32I_AUIPC), getOpcode(T_V_32I_JALR));
 
@@ -780,7 +769,7 @@ handle_CALL(uint32_t opcode, EInstructionFormat fmt) {
 
 
 static bool
-handle_TAIL(uint32_t opcode, EInstructionFormat fmt) {
+handle_TAIL(uint32_t opcode) {
 	SExpression* expr = parse_SymbolExpression();
 	emit_LoadStore32Upper(getOpcode(T_V_32I_AUIPC), expr, 6 /* x6 */);
 	emit_I(getOpcode(T_V_32I_JALR), 0, 6, expr);
@@ -789,93 +778,97 @@ handle_TAIL(uint32_t opcode, EInstructionFormat fmt) {
 }
 
 
-#define OP_R(funct7, funct3, opcode) ((funct7) << 25 | (funct3) << 12 | (opcode)),FMT_R
-#define OP_I(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_I
-#define OP_I_rs(rs, funct3, opcode)  ((rs << 15) | (funct3) << 12 | (opcode)),FMT_I
-#define OP_I_regs(imm, funct3, opcode) ((((uint32_t)(imm) << 20) | (funct3) << 12 | (opcode))),FMT_I
-#define OP_B(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_B
-#define OP_S(funct3, opcode)         ((funct3) << 12 | (opcode)),FMT_S
-#define OP_U(opcode)                 (opcode),FMT_U
-#define OP_J(opcode)                 (opcode),FMT_J
-#define OP_UNKNOWN()                 0,FMT_UNKNOWN
+#define OP_R(funct7, funct3, opcode) ((funct7) << 25 | (funct3) << 12 | (opcode))
+#define OP_I(funct3, opcode)         ((funct3) << 12 | (opcode))
+#define OP_I_rs(rs, funct3, opcode)  ((rs << 15) | (funct3) << 12 | (opcode))
+#define OP_I_regs(imm, funct3, opcode) ((((uint32_t)(imm) << 20) | (funct3) << 12 | (opcode)))
+#define OP_B(funct3, opcode)         ((funct3) << 12 | (opcode))
+#define OP_S(funct3, opcode)         ((funct3) << 12 | (opcode))
+#define OP_U(opcode)                 (opcode)
+#define OP_J(opcode)                 (opcode)
+#define OP_UNKNOWN()                 0
 
 
 static SParser
 g_Parsers[T_V_LAST - T_V_32I_ADD + 1] = {
-	{ OP_R(0x00, 0x00, 0x33), handle_R   },	/* ADD */
-	{ OP_I(      0x00, 0x13), handle_I_S },	/* ADDI */
-	{ OP_R(0x00, 0x07, 0x33), handle_R   },	/* AND */
-	{ OP_I(      0x07, 0x13), handle_I_S },	/* ANDI */
-	{ OP_U(            0x17), handle_U   },	/* AUIPC */
-	{ OP_B(      0x00, 0x63), handle_B   },	/* BEQ */
-	{ OP_B(      0x05, 0x63), handle_B   },	/* BGE */
-	{ OP_B(      0x07, 0x63), handle_B   },	/* BGEU */
-	{ OP_B(      0x04, 0x63), handle_B   },	/* BLT */
-	{ OP_B(      0x06, 0x63), handle_B   },	/* BLTU */
-	{ OP_B(      0x01, 0x63), handle_B    },	/* BNE */
-	{ OP_I(      0x00, 0x0F), handle_FENCE   },	/* FENCE */
-	{ OP_J(            0x6F), handle_JAL  },	/* JAL */
-	{ OP_I(      0x00, 0x67), handle_JALR },	/* JALR */
-	{ OP_I(      0x00, 0x03), handle_I_Load },	/* LB */
-	{ OP_I(      0x04, 0x03), handle_I_Load },	/* LBU */
-	{ OP_I(      0x01, 0x03), handle_I_Load },	/* LH */
-	{ OP_I(      0x05, 0x03), handle_I_Load },	/* LHU */
-	{ OP_U(            0x37), handle_U   },	/* LUI */
-	{ OP_I(      0x02, 0x03), handle_I_Load },	/* LW */
-	{ OP_R(0x00, 0x06, 0x33), handle_R   },	/* OR */
-	{ OP_I(      0x06, 0x13), handle_I_S },	/* ORI */
-	{ OP_S(      0x00, 0x23), handle_S   },	/* SB */
-	{ OP_S(      0x01, 0x23), handle_S   },	/* SH */
-	{ OP_R(0x00, 0x01, 0x33), handle_R   },	/* SLL */
-	{ OP_R(0x00, 0x01, 0x13), handle_I_5 },	/* SLLI */
-	{ OP_R(0x00, 0x02, 0x33), handle_R   },	/* SLT */
-	{ OP_I(      0x02, 0x13), handle_I_S },	/* SLTI */
-	{ OP_I(      0x03, 0x13), handle_I_S },	/* SLTIU */
-	{ OP_R(0x00, 0x03, 0x33), handle_R   },	/* SLTU */
-	{ OP_R(0x20, 0x05, 0x33), handle_R   },	/* SRA */
-	{ OP_R(0x20, 0x05, 0x13), handle_I_5 },	/* SRAI */
-	{ OP_R(0x00, 0x05, 0x33), handle_R   },	/* SRL */
-	{ OP_R(0x00, 0x05, 0x13), handle_I_5 },	/* SRLI */
-	{ OP_R(0x20, 0x00, 0x33), handle_R   },	/* SUB */
-	{ OP_S(      0x02, 0x23), handle_S   },	/* SW */
-	{ OP_R(0x00, 0x04, 0x33), handle_R   },	/* XOR */
-	{ OP_I(      0x04, 0x13), handle_I_S },	/* XORI */
+	{ OP_R(0x00, 0x00, 0x33), false, handle_R   },	/* ADD */
+	{ OP_I(      0x00, 0x13), false, handle_I_S },	/* ADDI */
+	{ OP_R(0x00, 0x07, 0x33), false, handle_R   },	/* AND */
+	{ OP_I(      0x07, 0x13), false, handle_I_S },	/* ANDI */
+	{ OP_U(            0x17), false, handle_U   },	/* AUIPC */
+	{ OP_B(      0x00, 0x63), false, handle_B   },	/* BEQ */
+	{ OP_B(      0x05, 0x63), false, handle_B   },	/* BGE */
+	{ OP_B(      0x07, 0x63), false, handle_B   },	/* BGEU */
+	{ OP_B(      0x04, 0x63), false, handle_B   },	/* BLT */
+	{ OP_B(      0x06, 0x63), false, handle_B   },	/* BLTU */
+	{ OP_B(      0x01, 0x63), false, handle_B    },	/* BNE */
+	{ OP_I(      0x00, 0x0F), false, handle_FENCE   },	/* FENCE */
+	{ OP_J(            0x6F), false, handle_JAL  },	/* JAL */
+	{ OP_I(      0x00, 0x67), false, handle_JALR },	/* JALR */
+	{ OP_I(      0x00, 0x03), false, handle_I_Load },	/* LB */
+	{ OP_I(      0x04, 0x03), false, handle_I_Load },	/* LBU */
+	{ OP_I(      0x01, 0x03), false, handle_I_Load },	/* LH */
+	{ OP_I(      0x05, 0x03), false, handle_I_Load },	/* LHU */
+	{ OP_U(            0x37), false, handle_U   },	/* LUI */
+	{ OP_I(      0x02, 0x03), false, handle_I_Load },	/* LW */
+	{ OP_R(0x00, 0x06, 0x33), false, handle_R   },	/* OR */
+	{ OP_I(      0x06, 0x13), false, handle_I_S },	/* ORI */
+	{ OP_S(      0x00, 0x23), false, handle_S   },	/* SB */
+	{ OP_S(      0x01, 0x23), false, handle_S   },	/* SH */
+	{ OP_R(0x00, 0x01, 0x33), false, handle_R   },	/* SLL */
+	{ OP_R(0x00, 0x01, 0x13), false, handle_I_5 },	/* SLLI */
+	{ OP_R(0x00, 0x02, 0x33), false, handle_R   },	/* SLT */
+	{ OP_I(      0x02, 0x13), false, handle_I_S },	/* SLTI */
+	{ OP_I(      0x03, 0x13), false, handle_I_S },	/* SLTIU */
+	{ OP_R(0x00, 0x03, 0x33), false, handle_R   },	/* SLTU */
+	{ OP_R(0x20, 0x05, 0x33), false, handle_R   },	/* SRA */
+	{ OP_R(0x20, 0x05, 0x13), false, handle_I_5 },	/* SRAI */
+	{ OP_R(0x00, 0x05, 0x33), false, handle_R   },	/* SRL */
+	{ OP_R(0x00, 0x05, 0x13), false, handle_I_5 },	/* SRLI */
+	{ OP_R(0x20, 0x00, 0x33), false, handle_R   },	/* SUB */
+	{ OP_S(      0x02, 0x23), false, handle_S   },	/* SW */
+	{ OP_R(0x00, 0x04, 0x33), false, handle_R   },	/* XOR */
+	{ OP_I(      0x04, 0x13), false, handle_I_S },	/* XORI */
 
 	/* Pseudo instructions */
-	{ OP_J   (            0x6F), handle_J_OFFSET    },	/* J */
-	{ OP_I   (      0x00, 0x67), handle_I_JR        },	/* JALR */
-	{ OP_I_rs(0x01, 0x00, 0x67), handle_Implicit },	/* RET */
+	{ OP_J   (            0x6F), false, handle_J_OFFSET    },	/* J */
+	{ OP_I   (      0x00, 0x67), false, handle_I_JR        },	/* JALR */
+	{ OP_I_rs(0x01, 0x00, 0x67), false, handle_Implicit },	/* RET */
 
-	{ OP_B(      0x00, 0x63), handle_BZ   },	/* BEQZ */
-	{ OP_B(      0x01, 0x63), handle_BZ   },	/* BNEZ */
-	{ OP_B(      0x05, 0x63), handle_BZ_r },	/* BLEZ */
-	{ OP_B(      0x05, 0x63), handle_BZ   },	/* BGEZ */
-	{ OP_B(      0x04, 0x63), handle_BZ   },	/* BLTZ */
-	{ OP_B(      0x04, 0x63), handle_BZ_r },	/* BGTZ */
+	{ OP_B(      0x00, 0x63), false, handle_BZ   },	/* BEQZ */
+	{ OP_B(      0x01, 0x63), false, handle_BZ   },	/* BNEZ */
+	{ OP_B(      0x05, 0x63), false, handle_BZ_r },	/* BLEZ */
+	{ OP_B(      0x05, 0x63), false, handle_BZ   },	/* BGEZ */
+	{ OP_B(      0x04, 0x63), false, handle_BZ   },	/* BLTZ */
+	{ OP_B(      0x04, 0x63), false, handle_BZ_r },	/* BGTZ */
 
-	{ OP_B(      0x04, 0x63), handle_B_r  },	/* BGT */
-	{ OP_B(      0x05, 0x63), handle_B_r  },	/* BLE */
-	{ OP_B(      0x06, 0x63), handle_B_r  },	/* BLTU */
-	{ OP_B(      0x07, 0x63), handle_B_r  },	/* BLEU */
+	{ OP_B(      0x04, 0x63), false, handle_B_r  },	/* BGT */
+	{ OP_B(      0x05, 0x63), false, handle_B_r  },	/* BLE */
+	{ OP_B(      0x06, 0x63), false, handle_B_r  },	/* BLTU */
+	{ OP_B(      0x07, 0x63), false, handle_B_r  },	/* BLEU */
 
-	{ OP_I_regs(0x000, 0x00, 0x13), handle_I_2r },	/* MV */
-	{ OP_R     ( 0x20, 0x00, 0x33), handle_R_2r   },	/* NEG */
-	{ OP_I_regs(0xFFF, 0x04, 0x13), handle_I_2r },	/* NOT */
-	{ OP_I     (       0x00, 0x13), handle_Implicit },	/* NOP */
+	{ OP_I_regs(0x000, 0x00, 0x13), false, handle_I_2r },	/* MV */
+	{ OP_R     ( 0x20, 0x00, 0x33), false, handle_R_2r   },	/* NEG */
+	{ OP_I_regs(0xFFF, 0x04, 0x13), false, handle_I_2r },	/* NOT */
+	{ OP_I     (       0x00, 0x13), false, handle_Implicit },	/* NOP */
 
-	{ OP_I_regs(0x001, 0x03, 0x13), handle_I_2r },	/* SEQZ */
-	{ OP_R     ( 0x00, 0x03, 0x33), handle_R_2r   },	/* SNEZ */
-	{ OP_R     ( 0x00, 0x02, 0x33), handle_R_2r2   },	/* SLTZ */
-	{ OP_R     ( 0x00, 0x02, 0x33), handle_R_2r   },	/* SGTZ */
+	{ OP_I_regs(0x001, 0x03, 0x13), false, handle_I_2r },	/* SEQZ */
+	{ OP_R     ( 0x00, 0x03, 0x33), false, handle_R_2r   },	/* SNEZ */
+	{ OP_R     ( 0x00, 0x02, 0x33), false, handle_R_2r2   },	/* SLTZ */
+	{ OP_R     ( 0x00, 0x02, 0x33), false, handle_R_2r   },	/* SGTZ */
 
-	{ OP_I_regs(0x001, 0x00, 0x73), handle_Implicit },	/* EBREAK */
-	{ OP_I_regs(0x000, 0x00, 0x73), handle_Implicit },	/* ECALL */
+	{ OP_I_regs(0x001, 0x00, 0x73), false, handle_Implicit },	/* EBREAK */
+	{ OP_I_regs(0x000, 0x00, 0x73), false, handle_Implicit },	/* ECALL */
 
-	{ OP_UNKNOWN(), handle_LI   },	/* LI */
-	{ OP_UNKNOWN(), handle_LA   },	/* LA */
-	{ OP_UNKNOWN(), handle_LLA  },	/* LLA */
-	{ OP_UNKNOWN(), handle_CALL  },	/* CALL */
-	{ OP_UNKNOWN(), handle_TAIL  },	/* TAIL */
+	{ OP_UNKNOWN(), false, handle_LI   },	/* LI */
+	{ OP_UNKNOWN(), false, handle_LA   },	/* LA */
+	{ OP_UNKNOWN(), false, handle_LLA  },	/* LLA */
+	{ OP_UNKNOWN(), false, handle_CALL  },	/* CALL */
+	{ OP_UNKNOWN(), false, handle_TAIL  },	/* TAIL */
+
+	{ 0x10200073, true, handle_Implicit },	/* SRET */
+	{ 0x30200073, true, handle_Implicit },	/* MRET */
+	{ 0x10500073, true, handle_Implicit },	/* WFI */
 
 
 };
@@ -895,8 +888,12 @@ v_ParseIntegerInstruction(void) {
 
 		parse_GetToken();
 
-		if (!parser->parser(parser->baseOpcode, parser->instructionFormat)) {
-			return err_Error(ERROR_OPERAND);
+		if (parser->privileged && !opt_Current->machineOptions->privileged) {
+			err_Error(MERROR_PRIVILEGED);
+		} else {
+			if (!parser->parser(parser->baseOpcode)) {
+				return err_Error(ERROR_OPERAND);
+			}
 		}
 
 		return true;

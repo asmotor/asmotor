@@ -22,7 +22,8 @@
 static char* 
 g_errors[] = {
 	"Illegal addressing mode",
-	"Illegal FENCE specification"
+	"Illegal FENCE specification",
+	"Instruction is privileged"
 };
 
 const char*

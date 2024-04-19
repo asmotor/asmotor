@@ -99,3 +99,9 @@ label2:
     ebreak
     ecall
     
+    OPT mpriv
+
+    mret
+    sret
+    wfi
+

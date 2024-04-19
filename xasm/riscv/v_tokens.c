@@ -94,6 +94,10 @@ g_tokens[] = {
 	{ "CALL",  T_V_32I_CALL   },
 	{ "TAIL",  T_V_32I_TAIL   },
 
+	{ "SRET",  T_V_PRIV_SRET  },
+	{ "MRET",  T_V_PRIV_MRET  },
+	{ "WFI",   T_V_PRIV_WFI   },
+
 	{ "X0",   T_V_REG_X0   },
 	{ "X1",   T_V_REG_X1   },
 	{ "X2",   T_V_REG_X2   },
