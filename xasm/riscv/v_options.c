@@ -41,6 +41,7 @@ v_SetDefaultOptions(SMachineOptions* options) {
     options->architecture = 0;
 	options->pic = false;
 	options->privileged = false;
+	options->reservedRegister = 31;	/* t6 */
 }
 
 void
@@ -60,6 +61,15 @@ v_ParseOption(const char* s) {
 		opt_Current->machineOptions->privileged = true;
 	} else if (strcmp(s, "nopriv") == 0) {
 		opt_Current->machineOptions->privileged = false;
+	} else if (strncmp(s, "res", 3) == 0) {
+		char* endptr;
+		int reg = strtol(s + 3, &endptr, 10);
+		if (*endptr != 0) {
+			opt_Current->machineOptions->reservedRegister = 31;
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+		}
+		opt_Current->machineOptions->reservedRegister = reg;
 	} else {
 		err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
 		return false;
@@ -75,5 +85,6 @@ v_PrintOptions(void) {
 		"    -mnopic  Disable PIC mode (default)\n"
 		"    -mprive  Enable privileged instructions\n"
 		"    -mnopriv Disable privileged instructions (default)\n"
+		"    -mres<d> Reserve register number <d> for use by pseudo-instructions (31 by default)\n"
 	);
 }

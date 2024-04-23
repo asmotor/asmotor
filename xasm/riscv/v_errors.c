@@ -23,7 +23,8 @@ static char*
 g_errors[] = {
 	"Illegal addressing mode",
 	"Illegal FENCE specification",
-	"Instruction is privileged"
+	"Instruction is privileged",
+	"Register r%d is reserved for use by the assembler"
 };
 
 const char*

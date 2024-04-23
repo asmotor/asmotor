@@ -66,9 +66,6 @@ swizzleSFmtImmediate12(SExpression* expr) {
 	if (expr == NULL)
 		return expr_Const(0);
 
-	expr = expr_CheckRange(expr,-0x800, 0x7FF);
-	expr = expr_And(expr, expr_Const(0xFFF));
-
 	if (expr != NULL) {
 		SExpression* oldExpr = expr;
 		expr =
@@ -139,6 +136,10 @@ static bool
 parse_Register(int* reg) {
 	if (T_V_REG_X0 <= lex_Context->token.id && lex_Context->token.id <= T_V_REG_X31) {
 		*reg = lex_Context->token.id - T_V_REG_X0;
+		if (*reg != 0 && opt_Current->machineOptions->reservedRegister == *reg) {
+			err_Error(MERROR_REGISTER_RESERVED, *reg);
+			return false;
+		}
 		parse_GetToken();
 		return true;
 	}
@@ -443,8 +444,15 @@ handle_I_Load(uint32_t opcode) {
 		if (rs1 != -1) {
 			emit_I(opcode, rd, rs1, imm);
 		} else {
-			imm = expr_PcRelative(imm, 0);
-			emit_Load32(imm, rd, getOpcode(T_V_32I_AUIPC), opcode);
+			if (expr_IsConstant(imm)) {
+				if (imm->value.integer >= -0x800 && imm->value.integer <= 0x7FF)
+					emit_I(opcode, rd, 0, imm);
+				else
+					emit_Load32(imm, rd, getOpcode(T_V_32I_LUI), opcode);
+			} else {
+				imm = expr_PcRelative(imm, 0);
+				emit_Load32(imm, rd, getOpcode(T_V_32I_AUIPC), opcode);
+			}
 		}
 		return true;
 	}
@@ -490,7 +498,23 @@ handle_S(uint32_t opcode) {
 			emit_S(opcode, rs1, rs2, imm);
 			return true;
 		} else {
-			if (parse_ExpectComma() && parse_Register(&rs1)) {
+			if (lex_Context->token.id == ',') {
+				parse_GetToken();
+				if (!parse_Register(&rs1)) {
+					return false;
+				}
+			} else {
+				rs1 = 0;
+			}
+			if (expr_IsConstant(imm)) {
+				if (imm->value.integer >= -0x800 && imm->value.integer <= 0x7FF) {
+					emit_S(opcode, rs1, rs2, imm);
+				} else {
+					rs1 = opt_Current->machineOptions->reservedRegister;
+					emit_Store32(imm, rs1, rs2, getOpcode(T_V_32I_LUI), opcode);
+				}
+				return true;
+			} else {
 				imm = expr_PcRelative(imm, 0);
 				emit_Store32(imm, rs1, rs2, getOpcode(T_V_32I_AUIPC), opcode);
 				return true;

@@ -4,8 +4,8 @@
     add a4,gp,sp
     addi t0,s0,-500
 label:
-    and x2,x7,x31
-    and sp,t2,t6
+    and x2,x7,x30
+    and sp,t2,t5
     andi t0,s0,500
     auipc t0,$2345
     beq t0,s6,label2
@@ -45,8 +45,8 @@ label2:
     sub x14,x3,x2
     sw t0,87(t1)
     sw t0,(t1)
-    xor x2,x7,x31
-    xor sp,t2,t6
+    xor x2,x7,x30
+    xor sp,t2,t5
 
     ; pseudoinstructions
 
@@ -98,7 +98,16 @@ label2:
 
     ebreak
     ecall
-    
+
+    lw t0,$4
+    lw t0,$40000000
+    sw t0,$40000004
+    sw t0,label2
+    sw t0,label3
+    sw t0,$44
+
+label3:
+
     OPT mpriv
 
     mret
