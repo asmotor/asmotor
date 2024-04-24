@@ -1,5 +1,9 @@
 	SECTION "Test",CODE[$100]
 
+IO_BASE EQU $40000000
+	la	t0,IO_BASE
+
+
     add x14,x3,x2
     add a4,gp,sp
     addi t0,s0,-500

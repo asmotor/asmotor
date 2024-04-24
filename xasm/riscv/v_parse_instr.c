@@ -735,11 +735,8 @@ handle_LI(uint32_t opcode) {
 
 static bool
 emit_LLA(int rd, SExpression* expr) {
-	if (expr->type == EXPR_SYMBOL) {
-		emit_LI(rd, expr);
-		return true;
-	}
-	return false;
+	emit_LI(rd, expr);
+	return true;
 }
 
 
@@ -750,17 +747,17 @@ handle_LA(uint32_t opcode) {
 	if (parse_Register(&rd)
 	&&  parse_ExpectComma()) {
 
-		SExpression* expr = parse_SymbolExpression();
+		SExpression* expr = parse_Expression(4);
 		if (expr != NULL) {
 			if (opt_Current->machineOptions->pic) {
 				/* PIC mode */
 				err_Error(ERROR_NOT_IMPLEMENTED, "LA (PIC mode)");
 			} else {
 				/* PIC mode disabled */
-				emit_LLA(rd, expr);
+				return emit_LLA(rd, expr);
 			}
+			return true;
 		}
-		return true;
 	}
 
 	return false;

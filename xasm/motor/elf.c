@@ -312,13 +312,13 @@ writeSymbolSection(FILE* fileHandle, uint32_t symbolSection, uint32_t stringSect
 }
 
 
-static void
+static bool
 writeSection(SSection* section, FILE* fileHandle) {
 	section->id = UINT32_MAX;
 
 	if (section->flags & SECTF_LOADFIXED && section->imagePosition == 0) {
 		err_Error(ERROR_ELF_LOAD_ZERO);
-		return;
+		return false;
 	}
 
 	e_word_t sh_type = 0;
@@ -360,6 +360,8 @@ writeSection(SSection* section, FILE* fileHandle) {
 		}
 		fwrite(section->data, 1, section->usedSpace, fileHandle);
 	}
+
+	return true;
 }
 
 typedef struct {
@@ -482,7 +484,8 @@ writeSections(FILE* fileHandle) {
 
 
     for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
-		writeSection(section, fileHandle);
+		if (!writeSection(section, fileHandle))
+			return false;
 	}
 
 	writeSymbolSection(fileHandle, symbolSection, stringSection);
