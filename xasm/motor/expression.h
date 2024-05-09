@@ -32,8 +32,24 @@ typedef enum {
     EXPR_PC_RELATIVE,
     EXPR_INTEGER_CONSTANT,
     EXPR_SYMBOL,
-    EXPR_PARENS
+    EXPR_PARENS,
+	EXPR_RISCV_ELF_RELOC
 } EExpressionType;
+
+#define R_NONE 0
+
+typedef enum {
+	R_RISCV_BRANCH = 16,
+} ERiscvReloc;
+
+typedef enum {
+	R_68K_32 = 1,	/* Direct 32 bit  */
+	R_68K_16 = 2,	/* Direct 16 bit  */
+	R_68K_8 = 3,	/* Direct 8 bit  */
+	R_68K_PC32 = 4,	/* PC relative 32 bit */
+	R_68K_PC16 = 5,	/* PC relative 16 bit */
+	R_68K_PC8 = 6,	/* PC relative 8 bit */
+} E68kReloc;
 
 typedef struct Expression {
     struct Expression* left;
@@ -41,6 +57,7 @@ typedef struct Expression {
     EExpressionType type;
     bool isConstant;
     EToken operation;
+	int reloc;	/* R_NONE, ERiscReloc or E68kReloc */
     union {
         long double floating;
         int32_t integer;
@@ -163,7 +180,7 @@ extern SExpression*
 expr_PcRelative(SExpression* expr, int adjustment);
 
 extern SExpression*
-expr_Pc();
+expr_Pc(void);
 
 extern SExpression*
 expr_Const(int32_t value);
@@ -179,6 +196,9 @@ expr_SymbolByName(string* symbolName);
 
 extern SExpression*
 expr_Bank(string* symbolName);
+
+extern SExpression*
+expr_RiscvElf(ERiscvReloc type, SExpression* expression, SExpression* swizzledExpression);
 
 extern void
 expr_Free(SExpression* expression);

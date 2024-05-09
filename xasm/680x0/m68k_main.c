@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "elf.h"
+#include "expression.h"
 #include "xasm.h"
 
 #include "m68k_errors.h"
@@ -37,7 +39,8 @@ g_680x0Configuration = {
 	false,
 	true,
 	true,
-	true,
+	EM_68K,
+	R_NONE,
 	MINSIZE_8BIT,
 	8,
 	"CODE",

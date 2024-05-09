@@ -169,6 +169,34 @@ checkAvailableSpace(uint32_t count) {
 }
 
 
+static void
+outputRel32(SExpression* expression, uint32_t data) {
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
+
+	if (checkAvailableSpace(4)) {
+		switch (currentSectionType()) {
+			case GROUP_TEXT: {
+				linemap_AddCurrent();
+
+				patch_Create(sect_Current, sect_Current->usedSpace, expression,
+							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_32 : PATCH_BE_32);
+				sect_OutputConst32(data);
+				break;
+			}
+			case GROUP_BSS: {
+                err_Error(ERROR_SECTION_DATA);
+				sect_SkipBytes(4);
+				break;
+			}
+			default: {
+				internalerror("Unknown GROUP type");
+				break;
+			}
+		}
+	}
+}
+
+
 /* Public functions */
 
 uint32_t
@@ -242,8 +270,8 @@ sect_OutputConst8(uint8_t value) {
 	}
 }
 
-void
-sect_OutputReloc8(SExpression* expression) {
+static void
+outputRel8(SExpression* expression, uint8_t data) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);
 
 	if (checkAvailableSpace(1)) {
@@ -252,9 +280,7 @@ sect_OutputReloc8(SExpression* expression) {
 				linemap_AddCurrent();
 
 				patch_Create(sect_Current, sect_Current->usedSpace, expression, PATCH_8);
-				sect_Current->cpuProgramCounter += 1;
-				sect_Current->usedSpace += 1;
-				sect_Current->freeSpace -= 1;
+				sect_OutputConst8(data);
 				break;
 			}
 			case GROUP_BSS: {
@@ -279,7 +305,7 @@ void sect_OutputExpr8(SExpression* expression) {
 		sect_OutputConst8((uint8_t) expression->value.integer);
 		expr_Free(expression);
 	} else {
-		sect_OutputReloc8(expression);
+		outputRel8(expression, 0);
 	}
 }
 
@@ -324,8 +350,8 @@ sect_OutputConst16(uint16_t value) {
 	}
 }
 
-void
-sect_OutputReloc16(SExpression* expression) {
+static void
+outputRel16(SExpression* expression, uint16_t data) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_16BIT);
 
 	if (checkAvailableSpace(2)) {
@@ -335,9 +361,7 @@ sect_OutputReloc16(SExpression* expression) {
 
 				patch_Create(sect_Current, sect_Current->usedSpace, expression,
 							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_16 : PATCH_BE_16);
-				sect_Current->freeSpace -= 2;
-				sect_Current->usedSpace += 2;
-				sect_Current->cpuProgramCounter += 2 / xasm_Configuration->minimumWordSize;
+				sect_OutputConst16(data);
 				break;
 			}
 			case GROUP_BSS: {
@@ -363,7 +387,7 @@ sect_OutputExpr16(SExpression* expression) {
 		sect_OutputConst16((uint16_t) (expression->value.integer));
 		expr_Free(expression);
 	} else {
-		sect_OutputReloc16(expression);
+		outputRel16(expression, 0);
 	}
 }
 
@@ -412,34 +436,6 @@ sect_OutputConst32(uint32_t value) {
 	}
 }
 
-void
-sect_OutputRel32(SExpression* expression) {
-	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
-
-	if (checkAvailableSpace(4)) {
-		switch (currentSectionType()) {
-			case GROUP_TEXT: {
-				linemap_AddCurrent();
-
-				patch_Create(sect_Current, sect_Current->usedSpace, expression,
-							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_32 : PATCH_BE_32);
-				sect_Current->freeSpace -= 4;
-				sect_Current->cpuProgramCounter += 4 / xasm_Configuration->minimumWordSize;
-				sect_Current->usedSpace += 4;
-				break;
-			}
-			case GROUP_BSS: {
-                err_Error(ERROR_SECTION_DATA);
-				sect_SkipBytes(4);
-				break;
-			}
-			default: {
-				internalerror("Unknown GROUP type");
-				break;
-			}
-		}
-	}
-}
 
 extern void
 sect_OutputExpr32(SExpression* expression) {
@@ -451,7 +447,22 @@ sect_OutputExpr32(SExpression* expression) {
 		sect_OutputConst32(expression->value.integer);
 		expr_Free(expression);
 	} else {
-		sect_OutputRel32(expression);
+		outputRel32(expression, 0);
+	}
+}
+
+
+extern void
+sect_OutputExprConst32(SExpression* expression, uint32_t data) {
+	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
+
+	if (expression == NULL) {
+        err_Error(ERROR_EXPR_BAD);
+	} else if (expr_IsConstant(expression)) {
+		sect_OutputConst32(expression->value.integer);
+		expr_Free(expression);
+	} else {
+		outputRel32(expression, data);
 	}
 }
 

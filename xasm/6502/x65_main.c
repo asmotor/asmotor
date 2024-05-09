@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "elf.h"
 #include "xasm.h"
 
 #include "x65_errors.h"
@@ -37,7 +38,8 @@ x65_xasmConfiguration = {
 	false,
 	false,
 	false,
-	false,
+	EM_NONE,
+	R_NONE,
 	MINSIZE_8BIT,
 	1,
 	"CODE",

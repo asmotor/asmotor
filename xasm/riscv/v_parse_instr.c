@@ -228,13 +228,17 @@ static bool
 handle_B_offset(uint32_t opcode, int rs1, int rs2) {
 	SExpression* address = parse_Expression(4);
 	if (address != NULL) {
-		SExpression* op = 
-			expr_Or(
-				swizzleBFmtPcRelative13(address),
-				expr_Const(opcode | rs2 << 20 | rs1 << 15)
+		opcode = opcode | rs2 << 20 | rs1 << 15;
+		SExpression* op =
+			expr_RiscvElf(
+				R_RISCV_BRANCH,
+				address,
+				expr_Or(
+					swizzleBFmtPcRelative13(expr_Copy(address)),
+					expr_Const(opcode))
 			);
 
-		sect_OutputExpr32(op);
+		sect_OutputExprConst32(op, opcode);
 		return true;
 	}
 

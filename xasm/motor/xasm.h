@@ -52,6 +52,7 @@ typedef struct Configuration {
     bool supportAmiga;
     bool supportFloat;
 	EElfArch elfArch;
+	int defaultElfRelocType;
 
     EMinimumWordSize minimumWordSize;
 

@@ -103,6 +103,7 @@ expr_ ## NAME(SExpression* expr) {                \
     r->isConstant = expr->isConstant;             \
     r->type = EXPR_OPERATION;                     \
     r->operation = TOKEN;                         \
+	r->reloc = xasm_Configuration->defaultElfRelocType; \
     return r;                                     \
 }
 
@@ -156,6 +157,15 @@ mergeExpressions(SExpression* left, SExpression* right, EToken operation) {
     expr->right = right;
     expr->type = EXPR_OPERATION;
     expr->operation = operation;
+
+	if (expr->left->type == EXPR_SYMBOL) {
+		expr->reloc = expr->left->type;
+	} else if (expr->right->type == EXPR_SYMBOL) {
+		expr->reloc = expr->right->type;
+	} else {
+		expr->reloc = R_NONE;
+	}
+
     return expr;
 }
 
@@ -406,6 +416,26 @@ expr_Bank(string* symbolName) {
     return r;
 }
 
+
+SExpression*
+expr_RiscvElf(ERiscvReloc type, SExpression* expression, SExpression* swizzledExpression) {
+	if (expr_IsConstant(swizzledExpression)) {
+		expr_Free(expression);
+		return swizzledExpression;
+	}
+
+    SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
+	r->left = expression;
+	r->right = swizzledExpression;
+	r->type = EXPR_RISCV_ELF_RELOC;
+	r->isConstant = false;
+	r->operation = 0;
+	r->reloc = type;
+
+    return r;
+}
+
+
 SExpression*
 expr_Symbol(SSymbol* symbol) {
     if (symbol->flags & SYMF_EXPRESSION) {
@@ -634,7 +664,9 @@ getSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* exp
                 return true;
             }
         }
-    }
+    } else if (expr_Type(expression) == EXPR_RISCV_ELF_RELOC) {
+		return expr_GetImportOffset(resultOffset, resultSymbol, expression->left);
+	}
     return false;
 }
 

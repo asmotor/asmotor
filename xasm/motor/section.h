@@ -107,6 +107,9 @@ extern void
 sect_OutputExpr32(struct Expression* expr);
 
 extern void
+sect_OutputExprConst32(struct Expression* expr, uint32_t data);
+
+extern void
 sect_OutputBinaryFile(string* pFile);
 
 extern void

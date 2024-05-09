@@ -152,14 +152,6 @@ typedef struct {
 #define SHDR_ENTSIZE 36
 #define SHDR_SIZEOF 40
 
-#define R_68K_NONE 0	/* No reloc */
-#define R_68K_32 1		/* Direct 32 bit  */
-#define R_68K_16 2		/* Direct 16 bit  */
-#define R_68K_8 3		/* Direct 8 bit  */
-#define R_68K_PC32 4	/* PC relative 32 bit */
-#define R_68K_PC16 5	/* PC relative 16 bit */
-#define R_68K_PC8 6		/* PC relative 8 bit */
-
 static string_buffer* g_stringTable = NULL;
 static e_shdr* g_sectionHeaders = NULL;
 static uint32_t g_totalSectionHeaders = 0;
@@ -354,10 +346,12 @@ writeSection(SSection* section, FILE* fileHandle) {
 
 	addSectionHeader(&header);
 	if (sh_type & SHT_PROGBITS) {
+		/*
 		for (SPatch* patch = section->patches; patch != NULL; patch = patch->pNext) {
 			for (int i = 0; i < 4; ++i) 
 				section->data[patch->offset + i] = 0;
 		}
+		*/
 		fwrite(section->data, 1, section->usedSpace, fileHandle);
 	}
 
@@ -391,7 +385,7 @@ writeReloc(SSection* section, uint32_t symbolSection, FILE* fileHandle) {
 		if (expr_GetSymbolOffset(&addend, &symbol, patch->expression)) {
 			relocs = realloc(relocs, sizeof(e_rela) * (total_relocs + 1));
 			relocs[total_relocs].offset = patch->offset;
-			relocs[total_relocs].info = ELF32_R_INFO(symbol->id, R_68K_32);
+			relocs[total_relocs].info = ELF32_R_INFO(symbol->id, patch->expression->reloc);
 			relocs[total_relocs].addend = addend;
 			total_relocs += 1;
 		} else {

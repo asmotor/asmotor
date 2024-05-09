@@ -312,6 +312,10 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
 				fputc(OBJ_PC_REL, fileHandle);
 				break;
 			}
+			case EXPR_RISCV_ELF_RELOC: {
+				writeExpression(fileHandle, expression->left);
+				break;
+			}
 			default: {
 				internalerror("Unknown expression");
 				break;

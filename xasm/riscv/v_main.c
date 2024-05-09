@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "expression.h"
 #include "xasm.h"
 
 #include "v_errors.h"
@@ -38,6 +39,7 @@ g_xasmConfiguration = {
 	false,
 	false,
 	EM_RISCV,
+	R_NONE,
 	MINSIZE_8BIT,
 	4,
 	"CODE",

@@ -155,7 +155,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/riscv/motorv",
-            "args": ["allcodes.asm"],
+            "args": ["-oelftest.o", "-fe", "elftest.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/riscv",
             "environment": [],
@@ -164,7 +164,7 @@
         },
         {
             "name": "Debug motor6809",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6809/motor6809",
