@@ -637,13 +637,16 @@ static bool
 handle_J_OFFSET(uint32_t opcode) {
 	SExpression* address = parse_Expression(4);
 	if (address != NULL) {
-		SExpression* op = 
+		SExpression* op = expr_RiscvElf(
+			R_RISCV_JAL,
+			address,
 			expr_Or(
-				swizzleJFmtPcRelative21(address),
+				swizzleJFmtPcRelative21(expr_Copy(address)),
 				expr_Const(opcode)
-			);
+			)
+		);
 
-		sect_OutputExpr32(op);
+		sect_OutputExprConst32(op, opcode);
 		return true;
 	}
 
