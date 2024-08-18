@@ -43,9 +43,10 @@
                 "ASMOTOR_VERSION=\"vscode\""
             ],
             "cStandard": "c11",
-            "cppStandard": "gnu++14",
+            "cppStandard": "c++17",
             "intelliSenseMode": "gcc-x64",
-            "compilerPath": "/usr/bin/gcc"
+            "compilerPath": "/usr/bin/gcc",
+            "compileCommands": "${workspaceFolder}/build/cmake/debug/compile_commands.json"
         }
     ],
     "version": 4

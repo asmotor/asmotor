@@ -19,6 +19,7 @@
 #ifndef XLINK_XLINK_H_INCLUDED_
 #define XLINK_XLINK_H_INCLUDED_
 
+#include "types.h"
 #include "util.h"
 
 #define FILE_FORMAT_NONE				0x0000

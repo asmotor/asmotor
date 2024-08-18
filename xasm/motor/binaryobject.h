@@ -16,8 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_MOTOR_BINARYOBJECT_H_INCLUDED_
-#define XASM_MOTOR_BINARYOBJECT_H_INCLUDED_
+#ifndef XASM_COMMON_BINARYOBJECT_H_INCLUDED_
+#define XASM_COMMON_BINARYOBJECT_H_INCLUDED_
+
+#include "str.h"
 
 extern bool
 bin_Write(string* filename);
@@ -25,4 +27,4 @@ bin_Write(string* filename);
 extern bool
 bin_WriteVerilog(string* filename);
 
-#endif /* XASM_MOTOR_BINARYOBJECT_H_INCLUDED_ */
+#endif /* XASM_COMMON_BINARYOBJECT_H_INCLUDED_ */

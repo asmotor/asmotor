@@ -20,9 +20,9 @@
 #define XASM_MOTOR_CHARSTACK_H_INCLUDED_
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "xasm.h"
+#include "util.h"
 
 typedef struct CharStack {
     char stack[MAX_STRING_SYMBOL_SIZE];

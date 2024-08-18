@@ -16,13 +16,15 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XASM_MOTOR_XASM_H_INCLUDED_
-#define XASM_MOTOR_XASM_H_INCLUDED_
+#ifndef XASM_COMMON_XASM_H_INCLUDED_
+#define XASM_COMMON_XASM_H_INCLUDED_
 
-#include "util.h"
+#include "types.h"
 
 #include "expression.h"
 #include "options.h"
+#include "section.h"
+#include "str.h"
 
 #define MAX_SYMBOL_NAME_LENGTH 256
 #define MAX_STRING_SYMBOL_SIZE 256
@@ -100,4 +102,4 @@ xasm_Configuration;
 extern int
 xasm_Main(const SConfiguration* configuration, int argc, char* argv[]);
 
-#endif // XASM_MOTOR_XASM_H_INCLUDED_
+#endif // XASM_COMMON_XASM_H_INCLUDED_
