@@ -372,7 +372,7 @@ parseFormat(const char** line) {
 	if (tokenIs("CBM_PRG")) {
 		nextToken(line);
 		expectToken(line, "[");
-		g_cbmBaseAddress = expectExpression(line);
+		g_cbmHeaderAddress = expectExpression(line);
 		expectToken(line, "]");
 		g_allowedFormats |= FILE_FORMAT_CBM_PRG;
 
@@ -403,6 +403,8 @@ parseFormat(const char** line) {
 		g_allowedFormats |= FILE_FORMAT_F256_KUP_PAD;
 	} else if (tokenIs("COCO_QL")) {
 		g_allowedFormats |= FILE_FORMAT_COCO_BIN;
+	} else if (tokenIs("MEGA65_PRG")) {
+		g_allowedFormats |= FILE_FORMAT_MEGA65_PRG;
 	} else {
 		FERROR("Unknown format %*s", token_length, token);
 	}

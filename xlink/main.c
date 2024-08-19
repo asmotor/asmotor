@@ -51,9 +51,10 @@
 #define FF_FOENIX_A2560		(FILE_FORMAT_BINARY | FILE_FORMAT_PGZ)
 #define FF_FOENIX_F256		(FILE_FORMAT_BINARY | FILE_FORMAT_F256_KUP | FILE_FORMAT_F256_KUP_PAD | FILE_FORMAT_PGZ)
 #define FF_COCO				(FILE_FORMAT_BINARY | FILE_FORMAT_COCO_BIN)
+#define FF_MEGA65			(FILE_FORMAT_BINARY | FILE_FORMAT_MEGA65_PRG)
 
 FileFormat g_allowedFormats = 0;
-uint16_t g_cbmBaseAddress = 0;
+uint16_t g_cbmHeaderAddress = 0;
 
 static FileFormat g_outputFormat = FILE_FORMAT_NONE;
 static uint8_t* g_hc800Config = NULL;
@@ -117,6 +118,7 @@ printUsage(void) {
            "          -cfxa2560x  Foenix A2560X/K\n"
            "          -cfxf256jrs Foenix F256 Jr. small mode (64 KiB, I/O hole)\n"
 		   "          -ccoco      Tandy TRS-80 Color Computer\n"
+		   "          -cmega65    MEGA65 unbanked\n"
 		   "\n"
            "    -e<symbol>  Code entry point when supported by output format.\n"
 		   "                Will override \"-s\" option\n"
@@ -135,6 +137,7 @@ printUsage(void) {
            "          -ffxkup     Foenix F256 Kernel User Program\n"
            "          -ffxkupp    Foenix F256 Kernel User Program, slot padding\n"
            "          -fcocobin   TRS-80 Color Computer .bin\n"
+		   "          -fmega65    MEGA65 .PRG\n"
 		   "\n"
            "    -m<mapfile> Write a mapfile to <mapfile>\n"
 		   "\n"
@@ -174,6 +177,8 @@ handleFileFormatOption(const string* target) {
 		g_outputFormat = FILE_FORMAT_F256_KUP_PAD;
 	} else if (str_EqualConst(target, "cocobin")) {	/* CoCo BIN */
 		g_outputFormat = FILE_FORMAT_COCO_BIN;
+	} else if (str_EqualConst(target, "mega65")) {	/* MEGA65 .prg */
+		g_outputFormat = FILE_FORMAT_MEGA65_PRG;
 	} else {
 		error("Unknown format \"%s\"", str_String(target));
 	}
@@ -200,12 +205,12 @@ handleLegacyTargetOption(const string* target) {
 		g_allowedFormats = FF_GAME_BOY;
 	} else if (str_EqualConst(target, "c64")) {	/* Commodore 64 .prg */
 		commodore_SetupCommodore64();
-		g_cbmBaseAddress = 0x0801;
+		g_cbmHeaderAddress = 0x0801;
 		g_outputFormat = FILE_FORMAT_CBM_PRG;
 		g_allowedFormats = FF_CBM;
 	} else if (str_EqualConst(target, "c128")) {	/* Commodore 128 .prg */
 		commodore_SetupUnbankedCommodore128();
-		g_cbmBaseAddress = 0x1C01;
+		g_cbmHeaderAddress = 0x1C01;
 		g_outputFormat = FILE_FORMAT_CBM_PRG;
 		g_allowedFormats = FF_CBM;
 	} else if (str_EqualConst(target, "c128f")) {	/* Commodore 128 Function ROM */
@@ -224,7 +229,7 @@ handleLegacyTargetOption(const string* target) {
 		g_binaryPad = 0x4000;
 	} else if (str_EqualConst(target, "c264")) {	/* Commodore 264 series .prg */
 		commodore_SetupCommodore264();
-		g_cbmBaseAddress = 0x1001;
+		g_cbmHeaderAddress = 0x1001;
 		g_outputFormat = FILE_FORMAT_CBM_PRG;
 		g_allowedFormats = FF_CBM;
 	} else if (str_EqualConst(target, "md")) {	/* Sega Mega Drive/Genesis */
@@ -311,11 +316,11 @@ handleMemoryConfigurationOption(const string* target) {
 		g_allowedFormats = FF_AMIGA;
 	} else if (str_EqualConst(target, "c64")) {	/* Commodore 64 .prg */
 		commodore_SetupCommodore64();
-		g_cbmBaseAddress = 0x0801;
+		g_cbmHeaderAddress = 0x0801;
 		g_allowedFormats = FF_CBM;
 	} else if (str_EqualConst(target, "c128")) {	/* Commodore 128 .prg */
 		commodore_SetupUnbankedCommodore128();
-		g_cbmBaseAddress = 0x1C01;
+		g_cbmHeaderAddress = 0x1C01;
 		g_allowedFormats = FF_CBM;
 	} else if (str_EqualConst(target, "c128f")) {	/* Commodore 128 Function ROM */
 		commodore_SetupCommodore128FunctionROM();
@@ -331,7 +336,7 @@ handleMemoryConfigurationOption(const string* target) {
 		g_binaryPad = 0x4000;
 	} else if (str_EqualConst(target, "c264")) {	/* Commodore 264 series .prg */
 		commodore_SetupCommodore264();
-		g_cbmBaseAddress = 0x1001;
+		g_cbmHeaderAddress = 0x1001;
 		g_allowedFormats = FF_CBM;
 	} else if (str_EqualConst(target, "ngb")) {	/* Gameboy ROM image */
 		group_SetupGameboy();
@@ -391,6 +396,9 @@ handleMemoryConfigurationOption(const string* target) {
 	} else if (str_EqualConst(target, "coco")) {	/* TRS Color Computer */
 		group_SetupCoCo();
 		g_allowedFormats = FF_COCO;
+	} else if (str_EqualConst(target, "mega65")) {	/* MEGA65 */
+		commodore_SetupMega65();
+		g_allowedFormats = FF_MEGA65;
 	} else {
 		error("Unknown target \"%s\"", str_String(target));
 	}
@@ -416,7 +424,7 @@ writeOutput(const char* g_outputFilename) {
 			image_WriteBinary(g_outputFilename, g_binaryPad);
 			break;
 		case FILE_FORMAT_CBM_PRG:
-			commodore_WritePrg(g_outputFilename, g_entry, g_cbmBaseAddress);
+			commodore_WritePrg(g_outputFilename, g_entry, g_cbmHeaderAddress);
 			break;
 		case FILE_FORMAT_AMIGA_EXECUTABLE:
 			amiga_WriteExecutable(g_outputFilename, g_entry, false);
@@ -441,6 +449,9 @@ writeOutput(const char* g_outputFilename) {
 			break;
 		case FILE_FORMAT_COCO_BIN:
 			coco_WriteQuickloadBin(g_outputFilename, g_entry);
+			break;
+		case FILE_FORMAT_MEGA65_PRG:
+			commodore_WriteMega65Prg(g_outputFilename, g_entry);
 			break;
 	}
 }
@@ -541,6 +552,10 @@ main(int argc, char* argv[]) {
 
 	group_InitMemoryChunks();
 
+	if (argn == argc) {
+		error("No files specified");
+	}
+	
     while (argn < argc && argv[argn]) {
         obj_Read(argv[argn++]);
     }

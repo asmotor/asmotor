@@ -16,6 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -27,9 +28,15 @@
 #include "xlink.h"
 
 #define SYS_ASCII_ADDRESS 5
+#define NEXT_LINE_HIGH_BYTE 1
 
-static uint8_t basicSys[] = {
-    0x0B, 0x08, 0x0A, 0x00, 0x9E, 0x37, 0x31, 0x38, 0x31, 0x00, 0x00, 0x00, 0x00
+static uint8_t basicSys[13] = {
+    0x0C, 0x08, 0x0A, 0x00, 0x9E, 0x31, 0x32, 0x33, 0x34, 0x00, 0x00, 0x00, 0x00
+};
+
+#define MEGA65_SYS_ASCII_ADDRESS 9
+static uint8_t mega65BasicSys[17] = {
+    0x10, 0x20, 0x0A, 0x00, 0xFE, 0x02, 0x30, 0x3A, 0x9E, 0x37, 0x31, 0x38, 0x31, 0x00, 0x00, 0x00, 0x00
 };
 
 static void
@@ -75,33 +82,59 @@ setupCommodore128ROM(uint32_t baseAddress, uint32_t size) {
     group->pools[0] = pool;
 }
 
-static void
-writeHeader(FILE* fileHandle, const char* entry, uint32_t baseAddress) {
-    int startAddress = 0;
+
+static int32_t
+findStartAddress(const char* entry) {
     if (entry != NULL) {
         SSymbol* entrySymbol = sect_FindExportedSymbol(entry);
         if (entrySymbol == NULL)
             error("Entry symbol \"%s\" not found (it must be exported)", entry);
-        startAddress = entrySymbol->value;
-    } else {
-        startAddress = sect_StartAddressOfFirstCodeSection();
+        return entrySymbol->value;
     }
+	return sect_StartAddressOfFirstCodeSection();
+}
 
-    fputc(baseAddress & 0xFFu, fileHandle);
-    fputc((baseAddress >> 8u) & 0xFFu, fileHandle);
+static void
+writeHeader(FILE* fileHandle, const char* entry, uint32_t headerAddress) {
+    fputc(headerAddress & 0xFFu, fileHandle);
+    fputc((headerAddress >> 8u) & 0xFFu, fileHandle);
 
-    snprintf((char*) &basicSys[SYS_ASCII_ADDRESS], 5, "%d", startAddress);
+	basicSys[NEXT_LINE_HIGH_BYTE] = (headerAddress >> 8u) & 0xFF;
+    snprintf((char*) &basicSys[SYS_ASCII_ADDRESS], 5, "%d", findStartAddress(entry));
 
     fwrite(basicSys, 1, sizeof(basicSys), fileHandle);
 }
 
 extern void
-commodore_WritePrg(const char* outputFilename, const char* entry, uint32_t baseAddress) {
+commodore_WritePrg(const char* outputFilename, const char* entry, uint32_t headerAddress) {
     FILE* fileHandle = fopen(outputFilename, "wb");
     if (fileHandle == NULL)
         error("Unable to open \"%s\" for writing", outputFilename);
 
-    writeHeader(fileHandle, entry, baseAddress);
+    writeHeader(fileHandle, entry, headerAddress);
+
+    image_WriteBinaryToFile(fileHandle, -1);
+
+    fclose(fileHandle);
+}
+
+static void
+writeMega65Header(FILE* fileHandle, const char* entry) {
+    fputc(0x01, fileHandle);
+    fputc(0x20, fileHandle);
+
+    snprintf((char*) &mega65BasicSys[MEGA65_SYS_ASCII_ADDRESS], 5, "%d", findStartAddress(entry));
+
+    fwrite(mega65BasicSys, 1, sizeof(mega65BasicSys), fileHandle);
+}
+
+extern void
+commodore_WriteMega65Prg(const char* outputFilename, const char* entry) {
+    FILE* fileHandle = fopen(outputFilename, "wb");
+    if (fileHandle == NULL)
+        error("Unable to open \"%s\" for writing", outputFilename);
+
+    writeMega65Header(fileHandle, entry);
 
     image_WriteBinaryToFile(fileHandle, -1);
 
@@ -121,6 +154,11 @@ commodore_SetupCommodore64(void) {
 extern void
 commodore_SetupCommodore264(void) {
     setupUnbankedCommodore(0x100E, 0xFD00 - 0x100E);
+}
+
+extern void
+commodore_SetupMega65(void) {
+    setupUnbankedCommodore(0x2012, 0xF700 - 0x2012);
 }
 
 extern void

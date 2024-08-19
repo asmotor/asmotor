@@ -62,6 +62,7 @@ Several machine definitions are built-in. This option selects a particurlar targ
 | hc800mh  | HC800 medium Harvard executable (32 KiB text + 32 KiB sized text banks, 64 KiB data + bss) |
 | hc800l   | HC800 large mode (32 KiB text + data + bss, 32 KiB sized banks text + data + bss) |
 | fxa2560x | Foenix A2560X/K |
+| mega65   | MEGA65 unbanked  |
 
 ### Output file format format
 This option selects the target image format.
@@ -82,6 +83,7 @@ This option selects the target image format.
 | hc800 | HC800 executable |
 | hc800k | HC800 kernal ROM |
 | fxpgz | Foenix PGZ |
+| mega65 | MEGA65 .PRG |
 
 #### **Binary (-tbinary)**
 

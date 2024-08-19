@@ -98,6 +98,7 @@ The available formats are:
 |KUPP|Foenix F256 Kernel User Program, padded to 8 KiB slot size|
 |COCO_QL|TRS-80 Color Computer quickload image|
 |CBM_PRG[x]|Commodore .PRG at address x|
+|MEGA65_PRG|MEGA65 .PRG file|
 
 # Examples
 

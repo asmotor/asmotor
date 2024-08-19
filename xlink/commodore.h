@@ -23,6 +23,9 @@ extern void
 commodore_WritePrg(const char* outputFilename, const char* entry, uint32_t baseAddress);
 
 extern void
+commodore_WriteMega65Prg(const char* outputFilename, const char* entry);
+
+extern void
 commodore_SetupUnbankedCommodore128(void);
 
 extern void
@@ -39,5 +42,8 @@ commodore_SetupCommodore128FunctionROMLow(void);
 
 extern void
 commodore_SetupCommodore128FunctionROMHigh(void);
+
+extern void
+commodore_SetupMega65(void);
 
 #endif
