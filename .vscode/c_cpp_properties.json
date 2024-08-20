@@ -16,7 +16,6 @@
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "msvc-x64",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "configurationProvider": "ms-vscode.cmake-tools"
         },
         {
@@ -31,8 +30,7 @@
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "clang-x64",
-            "compilerPath": "/usr/bin/clang",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compilerPath": "/usr/bin/clang"
         },
         {
             "name": "Linux",
@@ -45,9 +43,9 @@
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-x64",
-            "compilerPath": "/usr/bin/gcc",
-            "compileCommands": "${workspaceFolder}/build/cmake/debug/compile_commands.json"
+            "compilerPath": "/usr/bin/gcc"
         }
     ],
+    "compileCommands": "${workspaceFolder}/build/cmake/debug/compile_commands.json",
     "version": 4
 }

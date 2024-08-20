@@ -22,7 +22,6 @@
 
 #include "mem.h"
 
-#include "xasm.h"
 #include "lexer_constants.h"
 #include "options.h"
 #include "errors.h"
@@ -96,7 +95,7 @@ x65_ParseOption(const char* s) {
 		}
         case 'c': {
 			long n = strtol(&s[1], NULL, 10);
-			if (n >= 0 && n <= 3) {
+			if (n >= 0 && n <= 5) {
 				ECpu6502 cpu = 1 << n;
 				opt_Current->machineOptions->cpu = cpu;
 				opt_Current->machineOptions->m16 = cpu == MOPT_CPU_65C816S;
@@ -138,6 +137,8 @@ x65_PrintOptions(void) {
 		"              1 - 65C02\n"
 		"              2 - 65C02S\n"
 		"              3 - 65C816\n"
+		"              4 - 4510\n"
+		"              5 - 45GS02\n"
 		"    -ms<x>  Synthesized instructions:\n"
 		"              0 - Disabled (default)\n"
 		"              1 - Enabled\n"

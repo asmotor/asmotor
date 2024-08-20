@@ -20,7 +20,6 @@
 #include <stdbool.h>
 
 #include "expression.h"
-#include "lexer.h"
 #include "parse.h"
 #include "errors.h"
 
@@ -37,9 +36,9 @@ typedef struct Parser {
     bool (* handler)(uint8_t baseOpcode, SAddressingMode* addrMode);
 } SParser;
 
-#define CPU_6502 (MOPT_CPU_6502 | MOPT_CPU_65C02 | MOPT_CPU_65C02S | MOPT_CPU_65C816S)
-#define CPU_65C02 (MOPT_CPU_65C02 | MOPT_CPU_65C02S | MOPT_CPU_65C816S)
-#define CPU_65C02S (MOPT_CPU_65C02S)
+#define CPU_6502 (MOPT_CPU_6502 | MOPT_CPU_65C02 | MOPT_CPU_65C02S | MOPT_CPU_65C816S | MOPT_CPU_4510 | MOPT_CPU_45GS02)
+#define CPU_65C02 (MOPT_CPU_65C02 | MOPT_CPU_65C02S | MOPT_CPU_65C816S | MOPT_CPU_4510 | MOPT_CPU_45GS02)
+#define CPU_65C02S (MOPT_CPU_65C02S | MOPT_CPU_4510 | MOPT_CPU_45GS02)
 #define CPU_65C816S (MOPT_CPU_65C816S)
 
 static void

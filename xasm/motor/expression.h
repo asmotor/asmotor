@@ -163,7 +163,7 @@ extern SExpression*
 expr_PcRelative(SExpression* expr, int adjustment);
 
 extern SExpression*
-expr_Pc();
+expr_Pc(void);
 
 extern SExpression*
 expr_Const(int32_t value);
