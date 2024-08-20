@@ -155,7 +155,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/riscv/motorv",
-            "args": ["-oelftest.o", "-fe", "elftest.asm"],
+            "args": ["-oelftest.elf", "-fe", "elftest.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/riscv",
             "environment": [],

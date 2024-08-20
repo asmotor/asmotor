@@ -194,16 +194,22 @@ parse_Unsigned5(void) {
 
 
 static void
-emit_U(uint32_t opcode, int rd, SExpression* imm) {
+emit_LUI_AUIPC(uint32_t opcode, int rd, ERiscvReloc reloc, SExpression* imm) {
+	opcode |= rd << 7;
+
 	if (imm != NULL) {
 		SExpression* op = 
 			expr_Or(
 				expr_Asl(imm, expr_Const(12)),
-				expr_Const(opcode | rd << 7));
+				expr_Const(opcode));
 
-		sect_OutputExpr32(op);
+		if (reloc != R_NONE) {
+			op = expr_RiscvElf(reloc, expr_Copy(imm), op);
+		}
+
+		sect_OutputExprConst32(op, opcode);
 	} else {
-		sect_OutputConst32(opcode | rd << 7);
+		sect_OutputConst32(opcode);
 	}
 }
 
@@ -216,7 +222,7 @@ handle_U(uint32_t opcode) {
 	&&  parse_ExpectComma()) {
 
 		SExpression* imm = parse_Imm20();
-		emit_U(opcode, rd, imm);
+		emit_LUI_AUIPC(opcode, rd, R_NONE, imm);
 		return imm != NULL;
 	}
 
@@ -291,7 +297,7 @@ emit_I(uint32_t opcode, int rd, int rs1, SExpression* imm) {
 				expr_Const(opcode)
 			);
 
-		sect_OutputExpr32(op);
+		sect_OutputExprConst32(op, opcode);
 	}
 }
 
@@ -397,32 +403,45 @@ parse_RegistersImmediate(int* reg1, int* reg2, SExpression** imm, SExpression* (
 
 
 static void
-emit_LoadStore32Upper(uint32_t opcode, SExpression* imm, int rd) {
-	SExpression* upper = 
-		expr_Add(
-			expr_And(
-				expr_Asr(expr_Copy(imm), expr_Const(12)),
-				expr_Const(0xFFFFF)),
-			expr_And(
-				expr_Asr(expr_Copy(imm), expr_Const(11)),
-				expr_Const(1)
-			)
-		);
+emit_U_symbol(uint32_t opcode, SExpression* address, int rd, ERiscvReloc reloc) {
+	opcode |= rd << 7;
 
-	emit_U(opcode, rd, upper);
+	if (address != NULL) {
+		SExpression* op = address;
+		if (address->type != EXPR_SYMBOL) {
+			op = 
+				expr_Add(
+					expr_And(
+						expr_Asr(expr_Copy(op), expr_Const(12)),
+						expr_Const(0xFFFFF)),
+					expr_And(
+						expr_Asr(expr_Copy(op), expr_Const(11)),
+						expr_Const(1)
+					));
+
+			op = expr_Or(
+				expr_And(expr_Copy(op), expr_Const(0xFFFFF000)),
+				expr_Const(opcode));
+		}
+
+		op = expr_RiscvElf(reloc, address, op);
+		sect_OutputExprConst32(op, opcode);
+	} else {
+		sect_OutputConst32(opcode);
+	}
 }
 
 
 static void
-emit_Load32(SExpression* imm, int rd, uint32_t first_opcode, uint32_t second_opcode) {
-	emit_LoadStore32Upper(first_opcode, imm, rd);
+emit_Load32(SExpression* imm, int rd, ERiscvReloc reloc, uint32_t first_opcode, uint32_t second_opcode) {
+	emit_U_symbol(first_opcode, imm, rd, reloc);
 	emit_I(second_opcode, rd, rd, imm);
 }
 
 
 static void
-emit_Store32(SExpression* imm, int rd, int rs, uint32_t first_opcode, uint32_t second_opcode) {
-	emit_LoadStore32Upper(first_opcode, imm, rd);
+emit_Store32(SExpression* imm, int rd, int rs, ERiscvReloc reloc, uint32_t first_opcode, uint32_t second_opcode) {
+	emit_U_symbol(first_opcode, imm, rd, reloc);
 	emit_S(second_opcode, rd, rs, imm);
 }
 
@@ -452,10 +471,10 @@ handle_I_Load(uint32_t opcode) {
 				if (imm->value.integer >= -0x800 && imm->value.integer <= 0x7FF)
 					emit_I(opcode, rd, 0, imm);
 				else
-					emit_Load32(imm, rd, getOpcode(T_V_32I_LUI), opcode);
+					emit_Load32(imm, rd, R_RISCV_HI20, getOpcode(T_V_32I_LUI), opcode);
 			} else {
 				imm = expr_PcRelative(imm, 0);
-				emit_Load32(imm, rd, getOpcode(T_V_32I_AUIPC), opcode);
+				emit_Load32(imm, rd, R_RISCV_PCREL_HI20, getOpcode(T_V_32I_AUIPC), opcode);
 			}
 		}
 		return true;
@@ -515,12 +534,12 @@ handle_S(uint32_t opcode) {
 					emit_S(opcode, rs1, rs2, imm);
 				} else {
 					rs1 = opt_Current->machineOptions->reservedRegister;
-					emit_Store32(imm, rs1, rs2, getOpcode(T_V_32I_LUI), opcode);
+					emit_Store32(imm, rs1, rs2, R_RISCV_HI20, getOpcode(T_V_32I_LUI), opcode);
 				}
 				return true;
 			} else {
 				imm = expr_PcRelative(imm, 0);
-				emit_Store32(imm, rs1, rs2, getOpcode(T_V_32I_AUIPC), opcode);
+				emit_Store32(imm, rs1, rs2, R_RISCV_PCREL_HI20, getOpcode(T_V_32I_AUIPC), opcode);
 				return true;
 			}
 		}
@@ -718,7 +737,7 @@ emit_LI(int rd, SExpression* imm) {
 		}
 	}
 
-	emit_Load32(imm, rd, getOpcode(T_V_32I_LUI), getOpcode(T_V_32I_ADDI));
+	emit_Load32(imm, rd, R_RISCV_HI20, getOpcode(T_V_32I_LUI), getOpcode(T_V_32I_ADDI));
 }
 
 
@@ -790,7 +809,7 @@ handle_LLA(uint32_t opcode) {
 static bool
 handle_CALL(uint32_t opcode) {
 	SExpression* expr = parse_SymbolExpression();
-	emit_Load32(expr, 1 /* x1 */, getOpcode(T_V_32I_AUIPC), getOpcode(T_V_32I_JALR));
+	emit_Load32(expr, 1 /* x1 */, R_RISCV_PCREL_HI20, getOpcode(T_V_32I_AUIPC), getOpcode(T_V_32I_JALR));
 
 	return true;
 }
@@ -799,7 +818,7 @@ handle_CALL(uint32_t opcode) {
 static bool
 handle_TAIL(uint32_t opcode) {
 	SExpression* expr = parse_SymbolExpression();
-	emit_LoadStore32Upper(getOpcode(T_V_32I_AUIPC), expr, 6 /* x6 */);
+	emit_U_symbol(getOpcode(T_V_32I_AUIPC), expr, R_RISCV_PCREL_HI20, 6 /* x6 */);
 	emit_I(getOpcode(T_V_32I_JALR), 0, 6, expr);
 
 	return true;

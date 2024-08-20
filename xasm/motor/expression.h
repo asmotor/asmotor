@@ -41,7 +41,9 @@ typedef enum {
 typedef enum {
 	R_RISCV_BRANCH = 16,
 	R_RISCV_JAL = 17,
-	R_RISCV_CALL_PLT = 19
+	R_RISCV_CALL_PLT = 19,
+	R_RISCV_PCREL_HI20 = 23,
+	R_RISCV_HI20 = 26
 } ERiscvReloc;
 
 typedef enum {
