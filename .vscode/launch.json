@@ -60,11 +60,11 @@
         },
         {
             "name": "Debug motor6502",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/motor6502",
-            "args": ["-fv","-mc1","-w0008","-otest816.r","test816.asm"],
+            "args": ["-fv","-otest4510.r","test4510.asm"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/test/6502",
             "environment": [],

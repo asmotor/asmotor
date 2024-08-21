@@ -48,10 +48,14 @@
 #define MODE_816_LONG_ABS_X		0x0800000u		/* n24,x */
 #define MODE_816_LONG_IND_ABS	0x1000000u		/* [n16] */
 
+#define MODE_4510_IND_ZP_Z	0x2000000u	/* (n8),z */
+
 #define MODE_6502	(MODE_NONE | MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_A | MODE_IND_ABS)
 #define MODE_65C02	(MODE_6502 | MODE_IND_ZP | MODE_IND_ABS_X)
 #define MODE_65C02S	(MODE_65C02 | MODE_ZP_ABS | MODE_BIT_ZP | MODE_BIT_ZP_ABS)
 #define MODE_65816	(MODE_65C02 | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_ABS_X | MODE_816_LONG_IND_ABS)
+#define MODE_4510	(MODE_65C02S | MODE_4510_IND_ZP_Z)
+#define MODE_45GS02	(MODE_4510)
 
 typedef struct {
 	uint32_t mode;
@@ -89,5 +93,9 @@ x65_ParseInstruction(void);
 
 extern bool
 x65_Parse65816Instruction(void);
+
+extern bool
+x65_Parse4510Instruction(void);
+
 
 #endif

@@ -95,6 +95,8 @@ x65_ParseInstruction(void) {
         return true;
 	} else if (x65_Parse65816Instruction()) {
         return true;
+	} else if (x65_Parse4510Instruction()) {
+        return true;
 	} else if (lex_Context->token.id == T_65816_BITS) {
 		parse_GetToken();
 		if (opt_Current->machineOptions->cpu & MOPT_CPU_65C816S) {

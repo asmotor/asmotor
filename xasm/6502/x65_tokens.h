@@ -194,11 +194,20 @@ typedef enum {
 	T_65816_XBA,
 	T_65816_XCE,
 
+	/* 4510/45GS02 */
+	T_4510_CLE,
+	T_4510_INZ,
+	T_4510_LBPL,
+	T_4510_SEE,
+	T_4510_TSY,
+	T_4510_TYS,
+
     /* Registers */
     T_6502_REG_A,
     T_6502_REG_X,
     T_6502_REG_Y,
     T_65816_REG_S,
+	T_4510_REG_Z,
 
 	/* Directives */
 	T_65816_BITS,

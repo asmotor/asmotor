@@ -38,6 +38,8 @@ static uint32_t g_allowedModes[] = {
 	MODE_65C02,
 	MODE_65C02S,
 	MODE_65816,
+	MODE_4510,
+	MODE_45GS02
 };
 
 
