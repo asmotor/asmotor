@@ -195,10 +195,15 @@ typedef enum {
 	T_65816_XCE,
 
 	/* 4510/45GS02 */
+	T_4510_ASR,
 	T_4510_CLE,
+	T_4510_DEZ,
 	T_4510_INZ,
+	T_4510_LBMI,
 	T_4510_LBPL,
+	T_4510_NEG,
 	T_4510_SEE,
+	T_4510_TAZ,
 	T_4510_TSY,
 	T_4510_TYS,
 
@@ -216,6 +221,9 @@ typedef enum {
 
 extern SLexConstantsWord*
 x65_GetUndocumentedInstructions(int n);
+
+extern SLexConstantsWord*
+x65_Get4510Instructions(void);
 
 extern void
 x65_DefineTokens(void);

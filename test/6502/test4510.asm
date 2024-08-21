@@ -52,9 +52,45 @@
 	plp
 	and	#$12
 	rol
-	DB	$2B
+	tys
 	bit	$1234
 	and	$1234
 	rol	$1234
 	bbr2	$12,@
 
+	bmi	@
+	and	($12),y
+	and	($12)
+	lbmi @
+	bit	$12,x
+	and	$12,x
+	rol	$12,x
+	rmb3	$12
+
+	sec
+	and	$1234,y
+	dec	a
+	dea
+	dez
+	bit	$1234,x
+	and	$1234,x
+	rol	$1234,x
+	bbr3	$12,@
+
+	rti
+	eor	($12,x)
+	neg
+	asr
+    asr $1234
+	eor	$12
+	lsr	$12
+	rmb4	$12
+
+	pha
+	eor	#$12
+	lsr
+	taz
+	jmp	$1234
+	eor	$1234
+	lsr	$1234
+	bbr	4,$12,@

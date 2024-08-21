@@ -41,6 +41,21 @@ handle_Implicit(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
 	return true;
 }
+
+
+static bool
+handle_ASR(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	if (addrMode->mode == MODE_NONE || addrMode->mode == MODE_A) {
+		sect_OutputConst8(baseOpcode);
+	} else if (addrMode->mode == MODE_ABS) {
+		baseOpcode += 0x01;
+		sect_OutputConst8(baseOpcode);
+		sect_OutputExpr16(addrMode->expr);
+	} else {
+		assert(false);
+	}
+	return true;
+}
 	
 
 static bool
@@ -60,11 +75,16 @@ handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 
-static SParser g_instructionHandlers[T_4510_TYS - T_4510_CLE + 1] = {
+static SParser g_instructionHandlers[T_4510_TYS - T_4510_ASR + 1] = {
+	{ 0x43, MODE_NONE | MODE_A | MODE_ABS, IMM_NONE, handle_ASR },			/* ASR */
 	{ 0x02, MODE_NONE, IMM_NONE, handle_Implicit },		/* CLE */
+	{ 0x3B, MODE_NONE, IMM_NONE, handle_Implicit },		/* DEZ */
     { 0x1B, MODE_NONE, IMM_NONE, handle_Implicit },		/* INZ */
+    { 0x33, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBMI */
     { 0x13, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBPL */
+	{ 0x42, MODE_NONE, IMM_NONE, handle_Implicit },		/* NEG */
 	{ 0x03, MODE_NONE, IMM_NONE, handle_Implicit },		/* SEE */
+	{ 0x4B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TAZ */
 	{ 0x0B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TSY */
 	{ 0x2B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TYS */
 };
@@ -72,11 +92,11 @@ static SParser g_instructionHandlers[T_4510_TYS - T_4510_CLE + 1] = {
 
 bool
 x65_Parse4510Instruction(void) {
-	if (T_4510_CLE <= lex_Context->token.id && lex_Context->token.id <= T_4510_TYS) {
+	if (T_4510_ASR <= lex_Context->token.id && lex_Context->token.id <= T_4510_TYS) {
 		if (opt_Current->machineOptions->cpu & (MOPT_CPU_4510 | MOPT_CPU_45GS02)) {
 			SAddressingMode addrMode;
 			ETargetToken token = (ETargetToken) lex_Context->token.id;
-			SParser* handler = &g_instructionHandlers[token - T_4510_CLE];
+			SParser* handler = &g_instructionHandlers[token - T_4510_ASR];
 			uint32_t allowedModes = handler->allowedModes;
 
 			parse_GetToken();

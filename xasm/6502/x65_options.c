@@ -1,19 +1,19 @@
 /*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
 
-    This file is part of ASMotor.
+	This file is part of ASMotor.
 
-    ASMotor is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	ASMotor is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    ASMotor is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	ASMotor is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -32,6 +32,7 @@
 #include "x65_tokens.h"
 
 static int g_previousUndocumented = 0;
+static ECpu6502 g_previousCpu = MOPT_CPU_6502;
 
 static uint32_t g_allowedModes[] = {
 	MODE_6502,
@@ -45,17 +46,17 @@ static uint32_t g_allowedModes[] = {
 
 void
 x65_CopyOptions(struct MachineOptions* dest, struct MachineOptions* pSrc) {
-    *dest = *pSrc;
+	*dest = *pSrc;
 }
 
 struct MachineOptions*
 x65_AllocOptions(void) {
-    return mem_Alloc(sizeof(SMachineOptions));
+	return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
 x65_SetDefault(SMachineOptions* options) {
-    options->undocumentedInstructions = 0;
+	options->undocumentedInstructions = 0;
 	options->cpu = MOPT_CPU_6502;
 	options->synthesized = false;
 	options->m16 = false;
@@ -65,27 +66,37 @@ x65_SetDefault(SMachineOptions* options) {
 
 void
 x65_OptionsUpdated(SMachineOptions* options) {
-    int newSet = options->undocumentedInstructions;
-    if (g_previousUndocumented != newSet) {
-        SLexConstantsWord* prev = x65_GetUndocumentedInstructions(g_previousUndocumented);
-        if (prev)
-            lex_ConstantsUndefineWords(prev);
+	if (g_previousCpu == options->cpu && g_previousUndocumented == options->undocumentedInstructions)
+		return;
 
-        SLexConstantsWord* next = x65_GetUndocumentedInstructions(newSet);
-        if (next)
-            lex_ConstantsDefineWords(next);
+	if (g_previousCpu & (MOPT_CPU_4510 | MOPT_CPU_45GS02)) {
+		lex_ConstantsUndefineWords(x65_Get4510Instructions());
+	} else if (g_previousCpu == MOPT_CPU_6502) {
+		SLexConstantsWord* prev = x65_GetUndocumentedInstructions(g_previousUndocumented);
+		if (prev)
+			lex_ConstantsUndefineWords(prev);
+	}
 
-        g_previousUndocumented = newSet;
-    }
+	if (options->cpu & (MOPT_CPU_4510 | MOPT_CPU_45GS02)) {
+		lex_ConstantsDefineWords(x65_Get4510Instructions());
+	} else if (options->cpu == MOPT_CPU_6502) {
+		SLexConstantsWord* next = x65_GetUndocumentedInstructions(options->undocumentedInstructions);
+		if (next)
+			lex_ConstantsDefineWords(next);
+	}
+
+	g_previousCpu = options->cpu;
+	g_previousUndocumented = options->undocumentedInstructions;
+
 }
 
 bool
 x65_ParseOption(const char* s) {
-    if (s == NULL || strlen(s) == 0)
-        return false;
+	if (s == NULL || strlen(s) == 0)
+		return false;
 
-    switch (s[0]) {
-        case 'u': {
+	switch (s[0]) {
+		case 'u': {
 			long n = strtol(&s[1], NULL, 10);
 			if (n >= 0 && n <= 3) {
 				opt_Current->machineOptions->undocumentedInstructions = n;
@@ -93,9 +104,9 @@ x65_ParseOption(const char* s) {
 				err_Error(MERROR_UNDOCUMENTED_RANGE);
 				return false;
 			}
-            break;
+			break;
 		}
-        case 'c': {
+		case 'c': {
 			long n = strtol(&s[1], NULL, 10);
 			if (n >= 0 && n <= 5) {
 				ECpu6502 cpu = 1 << n;
@@ -103,24 +114,25 @@ x65_ParseOption(const char* s) {
 				opt_Current->machineOptions->m16 = cpu == MOPT_CPU_65C816S;
 				opt_Current->machineOptions->x16 = cpu == MOPT_CPU_65C816S;
 				opt_Current->machineOptions->allowedModes = g_allowedModes[n];
+				opt_Current->machineOptions->undocumentedInstructions = 0;
 			} else {
 				err_Error(MERROR_CPU_RANGE);
 				return false;
 			}
 			break;
 		}
-        case 's': {
-            if (strlen(&s[1]) == 1) {
-                opt_Current->machineOptions->synthesized = s[1] == '1';
-                return true;
-            }
-            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-            return false;
-		}
-        default:
+		case 's': {
+			if (strlen(&s[1]) == 1) {
+				opt_Current->machineOptions->synthesized = s[1] == '1';
+				return true;
+			}
 			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
 			return false;
-    }
+		}
+		default:
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+	}
 
 	if (opt_Current->machineOptions->cpu != MOPT_CPU_6502 && opt_Current->machineOptions->undocumentedInstructions != 0) {
 		err_Error(MERROR_UNDOCUMENTED_NOT_SUPPORTED);
@@ -132,7 +144,7 @@ x65_ParseOption(const char* s) {
 
 void
 x65_PrintOptions(void) {
-    printf(
+	printf(
 		"    -mu<x>  Enable undocumented instructions, name set x (0, 1 or 2)\n"
 		"    -mc<x>  Enable 6502 instruction set level\n"
 		"              0 - 6502\n"

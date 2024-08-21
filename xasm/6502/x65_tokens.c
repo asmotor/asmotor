@@ -281,10 +281,15 @@ static SLexConstantsWord g_65816Instructions[] = {
 };
 
 static SLexConstantsWord g_4510Instructions[] = {
+	{ "ASR",	T_4510_ASR },
 	{ "CLE",	T_4510_CLE },
+	{ "DEZ",	T_4510_DEZ },
 	{ "INZ",	T_4510_INZ },
+	{ "LBMI",	T_4510_LBMI },
 	{ "LBPL",	T_4510_LBPL },
+	{ "NEG",	T_4510_NEG },
 	{ "SEE",	T_4510_SEE },
+	{ "TAZ",	T_4510_TAZ },
 	{ "TSY",	T_4510_TSY },
 	{ "TYS",	T_4510_TYS },
 
@@ -299,10 +304,14 @@ x65_DefineTokens(void) {
 	lex_ConstantsDefineWords(g_tokens);
 	lex_ConstantsDefineWords(g_C02Instructions);
 	lex_ConstantsDefineWords(g_65816Instructions);
-	lex_ConstantsDefineWords(g_4510Instructions);
 }
 
 SLexConstantsWord*
 x65_GetUndocumentedInstructions(int n) {
 	return g_undocumentedInstructions[n];
+}
+
+SLexConstantsWord*
+x65_Get4510Instructions(void) {
+	return g_4510Instructions;
 }
