@@ -196,7 +196,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
         lex_Goto(&bm);
     }
 
-    if (allowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_ZP_ABS | MODE_BIT_ZP_ABS | MODE_BIT_ZP | MODE_816_DISP_S | MODE_816_LONG_ABS_X)) {
+    if (allowedModes & (MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_ZP_ABS | MODE_BIT_ZP_ABS | MODE_BIT_ZP | MODE_816_DISP_S | MODE_816_LONG_ABS_X | MODE_4510_ABS_X | MODE_4510_ABS_Y)) {
 		bool force_zp = false;
 		bool force_abs_2 = false;
 		bool force_abs_3 = false;
@@ -229,12 +229,12 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
 					} else if ((is_abs_3 || force_abs_3) && (allowedModes & MODE_816_LONG_ABS_X)) {
 						addrMode->mode = MODE_816_LONG_ABS_X;
 					} else {
-						addrMode->mode = MODE_ABS_X;
+						addrMode->mode = (MODE_ABS_X | MODE_4510_ABS_X) & allowedModes;
 					}
 					return true;
 				} else if (lex_Context->token.id == T_6502_REG_Y) {
 					parse_GetToken();
-					addrMode->mode = (is_zp || force_zp) && (allowedModes & MODE_ZP_Y) ? MODE_ZP_Y : MODE_ABS_Y;
+					addrMode->mode = (is_zp || force_zp) && (allowedModes & MODE_ZP_Y) ? MODE_ZP_Y : (MODE_ABS_Y | MODE_4510_ABS_Y) & allowedModes;
 					return true;
 				} else if (lex_Context->token.id == T_65816_REG_S) {
 					parse_GetToken();

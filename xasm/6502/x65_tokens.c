@@ -282,18 +282,32 @@ static SLexConstantsWord g_65816Instructions[] = {
 
 static SLexConstantsWord g_4510Instructions[] = {
 	{ "ASR",	T_4510_ASR },
+	{ "ASW",	T_4510_ASW },
 	{ "CLE",	T_4510_CLE },
+	{ "CPZ",	T_4510_CPZ },
+	{ "DEW",	T_4510_DEW },
 	{ "DEZ",	T_4510_DEZ },
 	{ "INZ",	T_4510_INZ },
+	{ "LBCC",	T_4510_LBCC },
+	{ "LBCS",	T_4510_LBCS },
 	{ "LBMI",	T_4510_LBMI },
 	{ "LBPL",	T_4510_LBPL },
+	{ "LBSR",	T_4510_LBSR },
+	{ "LBRA",	T_4510_LBRA },
+	{ "LBVS",	T_4510_LBVS },
+	{ "LDZ",	T_4510_LDZ },
+	{ "MAP",	T_4510_MAP },
 	{ "NEG",	T_4510_NEG },
 	{ "SEE",	T_4510_SEE },
+	{ "TAB",	T_4510_TAB },
 	{ "TAZ",	T_4510_TAZ },
+	{ "TBA",	T_4510_TBA },
 	{ "TSY",	T_4510_TSY },
 	{ "TYS",	T_4510_TYS },
+	{ "TZA",	T_4510_TZA },
 
-	{ "Z", T_4510_REG_Z },
+	{ "Z",  T_4510_REG_Z },
+	{ "SP", T_65816_REG_S },
 
 	{ NULL, 0 }
 };

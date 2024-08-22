@@ -59,6 +59,64 @@ handle_ASR(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	
 
 static bool
+handle_ASW(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	if (addrMode->mode == MODE_ABS) {
+		sect_OutputConst8(baseOpcode);
+		sect_OutputExpr16(addrMode->expr);
+	} else {
+		assert(false);
+	}
+	return true;
+}
+	
+
+static bool
+handle_LDZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	switch (addrMode->mode) {
+		case MODE_IMM:
+			sect_OutputConst8(baseOpcode);
+			x65_OutputSU8Expression(addrMode->expr);
+			break;
+		case MODE_ABS:
+			sect_OutputConst8(baseOpcode | (uint8_t) 0x08);
+			x65_OutputU16Expression(addrMode->expr);
+			break;
+		case MODE_ABS_X:
+			sect_OutputConst8(baseOpcode | (uint8_t) 0x18);
+			x65_OutputU16Expression(addrMode->expr);
+			break;
+		default:
+			assert(false);
+	}
+	return true;
+}
+	
+
+static bool
+handle_CPZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	switch (addrMode->mode) {
+		case MODE_IMM:
+			sect_OutputConst8(baseOpcode);
+			x65_OutputSU8Expression(addrMode->expr);
+			break;
+	}
+	return true;
+}
+	
+
+static bool
+handle_DEW(uint8_t baseOpcode, SAddressingMode* addrMode) {
+	switch (addrMode->mode) {
+		case MODE_ZP:
+			sect_OutputConst8(baseOpcode);
+			x65_OutputU8Expression(addrMode->expr);
+			break;
+	}
+	return true;
+}
+	
+
+static bool
 handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
 
@@ -75,24 +133,37 @@ handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 
-static SParser g_instructionHandlers[T_4510_TYS - T_4510_ASR + 1] = {
+static SParser g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
 	{ 0x43, MODE_NONE | MODE_A | MODE_ABS, IMM_NONE, handle_ASR },			/* ASR */
+	{ 0xCB, MODE_ABS, IMM_NONE, handle_ASW },			/* ASW */
 	{ 0x02, MODE_NONE, IMM_NONE, handle_Implicit },		/* CLE */
+	{ 0xC2, MODE_IMM, IMM_NONE, handle_CPZ },			/* CPZ */
+	{ 0xC3, MODE_ZP, IMM_NONE, handle_DEW },				/* DEW */
 	{ 0x3B, MODE_NONE, IMM_NONE, handle_Implicit },		/* DEZ */
     { 0x1B, MODE_NONE, IMM_NONE, handle_Implicit },		/* INZ */
+    { 0x93, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBCC */
+    { 0xB3, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBCS */
     { 0x33, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBMI */
     { 0x13, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBPL */
+    { 0x83, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBRA */
+    { 0x63, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBSR */
+    { 0x73, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBVS */
+    { 0xA3, MODE_IMM | MODE_ABS | MODE_ABS_X,  IMM_NONE, handle_LDZ },	/* LDZ */
+	{ 0x5C, MODE_NONE, IMM_NONE, handle_Implicit },		/* MAP */
 	{ 0x42, MODE_NONE, IMM_NONE, handle_Implicit },		/* NEG */
 	{ 0x03, MODE_NONE, IMM_NONE, handle_Implicit },		/* SEE */
+	{ 0x5B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TAB */
 	{ 0x4B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TAZ */
+	{ 0x7B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TBA */
 	{ 0x0B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TSY */
 	{ 0x2B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TYS */
+	{ 0x6B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TZA */
 };
 
 
 bool
 x65_Parse4510Instruction(void) {
-	if (T_4510_ASR <= lex_Context->token.id && lex_Context->token.id <= T_4510_TYS) {
+	if (T_4510_ASR <= lex_Context->token.id && lex_Context->token.id <= T_4510_TZA) {
 		if (opt_Current->machineOptions->cpu & (MOPT_CPU_4510 | MOPT_CPU_45GS02)) {
 			SAddressingMode addrMode;
 			ETargetToken token = (ETargetToken) lex_Context->token.id;
