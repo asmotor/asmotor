@@ -227,6 +227,9 @@ typedef enum {
 	T_4510_TYS,
 	T_4510_TZA,
 
+	T_45GS02_ASLQ,
+	T_45GS02_ORAQ,
+
     /* Registers */
     T_6502_REG_A,
     T_6502_REG_X,

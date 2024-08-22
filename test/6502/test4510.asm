@@ -1,4 +1,4 @@
-	OPT mc5
+	OPT mc4
 
 	SECTION "Test",CODE[0]
 
@@ -292,3 +292,13 @@
 	inc	$1234,x
 	bbs7	$12,@
 
+; --
+; -- 45GS02
+; --
+
+	OPT	mc5
+
+	oraq	$12
+	aslq	$12
+	oraq	($12),z
+	aslq	$12,x

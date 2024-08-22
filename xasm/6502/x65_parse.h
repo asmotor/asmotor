@@ -22,6 +22,7 @@
 #include <stdbool.h>
 
 #include "expression.h"
+#include "x65_tokens.h"
 
 #define MODE_NONE		0x00001u
 #define MODE_IMM		0x00002u		/* #n8 */
@@ -100,6 +101,9 @@ x65_Parse65816Instruction(void);
 
 extern bool
 x65_Parse4510Instruction(void);
+
+extern bool
+x65_HandleToken(ETargetToken token, uint32_t allowedModes);
 
 extern void
 x65_OutputSU16Expression(SExpression* expr);

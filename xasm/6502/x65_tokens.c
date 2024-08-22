@@ -314,6 +314,9 @@ static SLexConstantsWord g_4510Instructions[] = {
 	{ "TYS",	T_4510_TYS },
 	{ "TZA",	T_4510_TZA },
 
+	{ "ASLQ",	T_45GS02_ASLQ },
+	{ "ORAQ",	T_45GS02_ORAQ },
+
 	{ "Z",  T_4510_REG_Z },
 	{ "SP", T_65816_REG_S },
 

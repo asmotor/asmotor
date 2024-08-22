@@ -41,6 +41,12 @@ typedef struct Parser {
 } SParser;
 
 
+typedef struct QMnemonic {
+	uint32_t allowedModes;
+	ETargetToken token;
+} SQMnemonic;
+
+
 static bool
 handle_Implicit(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
@@ -182,7 +188,8 @@ handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 
-static SParser g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
+static SParser
+g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
 	{ 0x43, MODE_NONE | MODE_A | MODE_ABS, IMM_NONE, handle_ASR },			/* ASR */
 	{ 0xCB, MODE_ABS, IMM_NONE, handle_ASW },			/* ASW */
 	{ 0x02, MODE_NONE, IMM_NONE, handle_Implicit },		/* CLE */
@@ -217,6 +224,13 @@ static SParser g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
 };
 
 
+static SQMnemonic
+g_qMnemonics[T_45GS02_ORAQ + 1 - T_45GS02_ASLQ] = {
+	{ MODE_ZP | MODE_ZP_X, T_6502_ASL },
+	{ MODE_ZP | MODE_4510_IND_ZP_Z, T_6502_ORA }
+};
+
+
 bool
 x65_Parse4510Instruction(void) {
 	if (T_4510_ASR <= lex_Context->token.id && lex_Context->token.id <= T_4510_TZA) {
@@ -231,6 +245,20 @@ x65_Parse4510Instruction(void) {
 				return handler->handler(handler->baseOpcode, &addrMode);
 			else
 				err_Error(MERROR_ILLEGAL_ADDRMODE);
+		} else {
+			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
+		}
+	} else if (T_45GS02_ASLQ <= lex_Context->token.id && lex_Context->token.id <= T_45GS02_ORAQ) {
+		if (opt_Current->machineOptions->cpu & MOPT_CPU_45GS02) {
+			ETargetToken token = (ETargetToken) lex_Context->token.id;
+			SQMnemonic* handler = &g_qMnemonics[token - T_45GS02_ASLQ];
+
+			parse_GetToken();
+
+			sect_OutputConst8(0x42);
+			sect_OutputConst8(0x42);
+
+			return x65_HandleToken(handler->token, handler->allowedModes);
 		} else {
 			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
 		}
