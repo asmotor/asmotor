@@ -16,7 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stddef.h>
 
 #include "lexer_constants.h"
 
@@ -287,10 +287,14 @@ static SLexConstantsWord g_4510Instructions[] = {
 	{ "CPZ",	T_4510_CPZ },
 	{ "DEW",	T_4510_DEW },
 	{ "DEZ",	T_4510_DEZ },
+	{ "EOM",	T_6502_NOP },
+	{ "INW",	T_4510_INW },
 	{ "INZ",	T_4510_INZ },
 	{ "LBCC",	T_4510_LBCC },
 	{ "LBCS",	T_4510_LBCS },
+	{ "LBEQ",	T_4510_LBEQ },
 	{ "LBMI",	T_4510_LBMI },
+	{ "LBNE",	T_4510_LBNE },
 	{ "LBPL",	T_4510_LBPL },
 	{ "LBSR",	T_4510_LBSR },
 	{ "LBRA",	T_4510_LBRA },
@@ -298,6 +302,10 @@ static SLexConstantsWord g_4510Instructions[] = {
 	{ "LDZ",	T_4510_LDZ },
 	{ "MAP",	T_4510_MAP },
 	{ "NEG",	T_4510_NEG },
+	{ "PHW",	T_4510_PHW },
+	{ "PHZ",	T_4510_PHZ },
+	{ "PLZ",	T_4510_PLZ },
+	{ "ROW",	T_4510_ROW },
 	{ "SEE",	T_4510_SEE },
 	{ "TAB",	T_4510_TAB },
 	{ "TAZ",	T_4510_TAZ },

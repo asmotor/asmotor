@@ -17,11 +17,15 @@
 */
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "expression.h"
 #include "lexer.h"
+#include "lexer_context.h"
+#include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
+#include "tokens.h"
 
 #include "x65_options.h"
 #include "x65_parse.h"

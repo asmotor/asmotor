@@ -238,3 +238,57 @@
 	dec	$1234
 	bbs4	$12,@
 
+	bne	@
+	cmp	($12),y
+	cmp	($12),z
+	lbne	@
+	cpz	$12
+	cmp	$12,x
+	dec	$12,x
+	smb5	$12
+
+	cld
+	cmp	$1234,y
+	phx
+	phz
+	cpz	$1234
+	cmp	$1234,x
+	dec	$1234,x
+	bbs5	$12,@
+
+	cpx	#$12
+	sbc	($12,x)
+	lda	($12,sp),y
+	inw	$12
+	cpx	$12
+	sbc	$12
+	inc	$12
+	smb6	$12
+
+	inx
+	sbc	#$12
+	eom
+	row	$1234
+	cpx	$1234
+	sbc	$1234
+	inc	$1234
+	bbs6	$12,@
+
+	beq	@
+	sbc	($12),y
+	sbc	($12),z
+	lbeq	@
+	phw	#$1234
+	sbc	$12,x
+	inc	$12,x
+	smb7	$12
+
+	sed
+	sbc	$1234,y
+	plx
+	plz
+	phw	$1234
+	sbc	$1234,x
+	inc	$1234,x
+	bbs7	$12,@
+

@@ -16,13 +16,15 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <assert.h>
 
 // From util
-#include "util.h"
 #include "fmath.h"
+#include "lists.h"
 #include "mem.h"
+#include "str.h"
 
 // From xasm
 #include "xasm.h"

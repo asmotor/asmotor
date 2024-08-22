@@ -17,6 +17,7 @@
 */
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -30,6 +31,7 @@
 #include "lexer_context.h"
 #include "options.h"
 #include "patch.h"
+#include "symbol.h"
 
 static string* g_lastErrorString = NULL;
 

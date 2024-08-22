@@ -19,6 +19,8 @@
 #ifndef XASM_6502_PARSE_H_INCLUDED_
 #define XASM_6502_PARSE_H_INCLUDED_
 
+#include <stdbool.h>
+
 #include "expression.h"
 
 #define MODE_NONE		0x00001u

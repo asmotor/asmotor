@@ -16,13 +16,15 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "expression.h"
-#include "lexer.h"
+#include "lexer_context.h"
+#include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
 #include "errors.h"
-#include "section.h"
 
 #include "x65_errors.h"
 #include "x65_options.h"

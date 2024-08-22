@@ -16,13 +16,15 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
 #include <stdbool.h>
+#include <stddef.h>
 
+#include "errors.h"
 #include "expression.h"
+#include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
-#include "errors.h"
+#include "section.h"
 
 #include "x65_errors.h"
 #include "x65_options.h"
@@ -137,6 +139,8 @@ handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
         case MODE_816_IND_DISP_S_Y: {
 			if ((opt_Current->machineOptions->cpu & CPU_4510) && baseOpcode == 0x81)
 				baseOpcode = 0x82;
+			else if ((opt_Current->machineOptions->cpu & CPU_4510) && baseOpcode == 0xA1)
+				baseOpcode = 0xE2;
 			else
 				baseOpcode |= 0x12;
             sect_OutputConst8(baseOpcode);
@@ -537,7 +541,7 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0xD0, CPU_6502, IMM_NONE, MODE_ABS, handleBranch },	/* BNE */
     { 0xF0, CPU_6502, IMM_NONE, MODE_ABS, handleBranch },	/* BEQ */
     { 0x00, CPU_6502, IMM_8_BIT, MODE_NONE | MODE_IMM, handleBRK },	/* BRK */
-    { 0xC1, CPU_6502, IMM_ACC, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_ABS_X, handleStandardAll },	/* CMP */
+    { 0xC1, CPU_6502, IMM_ACC, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_ABS_X | MODE_4510_IND_ZP_Z, handleStandardAll },	/* CMP */
     { 0xE0, CPU_6502, IMM_INDEX, MODE_IMM | MODE_ZP | MODE_ABS, handleStandardImm0 },	/* CPX */
     { 0xC0, CPU_6502, IMM_INDEX, MODE_IMM | MODE_ZP | MODE_ABS, handleStandardImm0 },	/* CPY */
     { 0xC2, CPU_6502, IMM_NONE, MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X | MODE_A, handleINCDEC },	/* DEC */
@@ -570,7 +574,7 @@ static SParser g_instructionHandlers[T_65C02_SMB7 - T_6502_ADC + 1] = {
     { 0x62, CPU_6502, IMM_8_BIT, MODE_IMM | MODE_A | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X, handleStandardRotate },	/* ROR */
     { 0x40, CPU_6502, IMM_NONE, MODE_NONE, handleImplied },	/* RTI */
     { 0x60, CPU_6502, IMM_NONE, MODE_NONE | MODE_IMM, handleRTS },	/* RTS */
-    { 0xE1, CPU_6502, IMM_ACC, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_ABS_X, handleStandardAll },	/* SBC */
+    { 0xE1, CPU_6502, IMM_ACC, MODE_IMM | MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_ABS_X | MODE_4510_IND_ZP_Z, handleStandardAll },	/* SBC */
     { 0x81, CPU_6502, IMM_NONE, MODE_ZP | MODE_ZP_X | MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_IND_ZP | MODE_816_DISP_S | MODE_816_LONG_IND_ZP | MODE_816_LONG_ABS | MODE_816_IND_DISP_S_Y | MODE_816_LONG_IND_ZP_Y | MODE_816_LONG_ABS_X | MODE_4510_IND_ZP_Z, handleStandardAll },	/* STA */
     { 0x9A, CPU_6502, IMM_NONE, MODE_NONE, handleImplied },	/* TXS */
     { 0xBA, CPU_6502, IMM_NONE, MODE_NONE, handleImplied },	/* TSX */
