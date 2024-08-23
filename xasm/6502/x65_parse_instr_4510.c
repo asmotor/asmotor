@@ -58,10 +58,14 @@ static bool
 handle_ASR(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	if (addrMode->mode == MODE_NONE || addrMode->mode == MODE_A) {
 		sect_OutputConst8(baseOpcode);
-	} else if (addrMode->mode == MODE_ABS) {
+	} else if (addrMode->mode == MODE_ZP) {
 		baseOpcode += 0x01;
 		sect_OutputConst8(baseOpcode);
-		sect_OutputExpr16(addrMode->expr);
+		x65_OutputU8Expression(addrMode->expr);
+	} else if (addrMode->mode == MODE_ZP_X) {
+		baseOpcode += 0x11;
+		sect_OutputConst8(baseOpcode);
+		x65_OutputU8Expression(addrMode->expr);
 	} else {
 		assert(false);
 	}
@@ -190,8 +194,9 @@ handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 static SParser
 g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
-	{ 0x43, MODE_NONE | MODE_A | MODE_ABS, IMM_NONE, handle_ASR },			/* ASR */
+	{ 0x43, MODE_NONE | MODE_A | MODE_ZP | MODE_ZP_X, IMM_NONE, handle_ASR },			/* ASR */
 	{ 0xCB, MODE_ABS, IMM_NONE, handle_ASW },			/* ASW */
+    { 0x63, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* BSR */
 	{ 0x02, MODE_NONE, IMM_NONE, handle_Implicit },		/* CLE */
 	{ 0xC2, MODE_IMM | MODE_ZP | MODE_ABS, IMM_NONE, handle_CPZ },			/* CPZ */
 	{ 0xC3, MODE_ZP, IMM_NONE, handle_INW_DEW },				/* DEW */
@@ -205,7 +210,7 @@ g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
     { 0xD3, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBNE */
     { 0x13, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBPL */
     { 0x83, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBRA */
-    { 0x63, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBSR */
+    { 0x53, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBVC */
     { 0x73, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBVS */
     { 0xA3, MODE_IMM | MODE_ABS | MODE_ABS_X,  IMM_NONE, handle_LDZ },	/* LDZ */
 	{ 0x5C, MODE_NONE, IMM_NONE, handle_Implicit },		/* MAP */
@@ -225,22 +230,30 @@ g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
 
 
 static SQMnemonic
-g_qMnemonics[T_45GS02_ORAQ + 1 - T_45GS02_ASLQ] = {
-	{ MODE_ZP | MODE_ZP_X, T_6502_ASL },
-	{ MODE_ZP | MODE_4510_IND_ZP_Z, T_6502_ORA }
+g_qMnemonics[T_45GS02_ROLQ + 1 - T_45GS02_ANDQ] = {
+	{ MODE_ZP | MODE_ABS | MODE_4510_IND_ZP_Z, T_6502_AND },
+	{ MODE_NONE | MODE_A | MODE_ABS | MODE_ZP | MODE_ZP_X | MODE_ABS_X, T_6502_ASL },
+	{ MODE_NONE | MODE_A | MODE_ZP | MODE_ZP_X, T_4510_ASR },
+	{ MODE_ZP | MODE_ABS, T_6502_BIT },
+	{ MODE_NONE, T_65C02_DEA },
+	{ MODE_A, T_6502_DEC },
+	{ MODE_ABS | MODE_ZP | MODE_4510_IND_ZP_Z, T_6502_EOR },
+	{ MODE_NONE, T_65C02_INA },
+	{ MODE_A, T_6502_INC },
+	{ MODE_NONE | MODE_A | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_LSR },
+	{ MODE_ABS | MODE_ZP | MODE_4510_IND_ZP_Z, T_6502_ORA },
+	{ MODE_A | MODE_ZP | MODE_ABS | MODE_ABS_X | MODE_ZP_X, T_6502_ROL }
 };
 
 
 bool
-x65_Parse4510Instruction(void) {
-	if (T_4510_ASR <= lex_Context->token.id && lex_Context->token.id <= T_4510_TZA) {
+x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
+	if (T_4510_ASR <= token && token <= T_4510_TZA) {
 		if (opt_Current->machineOptions->cpu & (MOPT_CPU_4510 | MOPT_CPU_45GS02)) {
 			SAddressingMode addrMode;
-			ETargetToken token = (ETargetToken) lex_Context->token.id;
 			SParser* handler = &g_instructionHandlers[token - T_4510_ASR];
-			uint32_t allowedModes = handler->allowedModes;
+			allowedModes = allowedModes & handler->allowedModes;
 
-			parse_GetToken();
 			if (x65_ParseAddressingMode(&addrMode, allowedModes, handler->immSize) && (addrMode.mode & allowedModes))
 				return handler->handler(handler->baseOpcode, &addrMode);
 			else
@@ -248,20 +261,31 @@ x65_Parse4510Instruction(void) {
 		} else {
 			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
 		}
-	} else if (T_45GS02_ASLQ <= lex_Context->token.id && lex_Context->token.id <= T_45GS02_ORAQ) {
+	} else if (T_45GS02_ANDQ <= token && token <= T_45GS02_ROLQ) {
 		if (opt_Current->machineOptions->cpu & MOPT_CPU_45GS02) {
-			ETargetToken token = (ETargetToken) lex_Context->token.id;
-			SQMnemonic* handler = &g_qMnemonics[token - T_45GS02_ASLQ];
-
-			parse_GetToken();
+			SQMnemonic* handler = &g_qMnemonics[token - T_45GS02_ANDQ];
 
 			sect_OutputConst8(0x42);
 			sect_OutputConst8(0x42);
 
-			return x65_HandleToken(handler->token, handler->allowedModes);
+			if (handler->token >= T_4510_ASR && handler->token <= T_4510_TZA)
+				return x65_Handle4510Instruction(handler->token, handler->allowedModes);
+			else
+				return x65_HandleToken(handler->token, handler->allowedModes);
 		} else {
 			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
 		}
+	}
+	return false;
+}
+
+
+bool
+x65_Parse4510Instruction(void) {
+	if (T_4510_ASR <= lex_Context->token.id && lex_Context->token.id <= T_45GS02_ROLQ) {
+		ETargetToken token = (ETargetToken) lex_Context->token.id;
+		parse_GetToken();
+		return x65_Handle4510Instruction(token, 0xFFFFFFFFu);
 	}
 	return false;
 }

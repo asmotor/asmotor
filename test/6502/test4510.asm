@@ -80,7 +80,7 @@
 	eor	($12,x)
 	neg
 	asr
-    asr $1234
+	asr	$12
 	eor	$12
 	lsr	$12
 	rmb4	$12
@@ -97,8 +97,8 @@
 	bvc	@
 	eor	($12),y
 	eor	($12),z
-	DB	$53
-	DB	$54
+	lbvc	@
+	asr	$12,x
 	eor	$12,x
 	lsr	$12,x
 	rmb5	$12
@@ -114,8 +114,8 @@
 
 	rts
 	adc	($12,x)
-	rts #4
-	lbsr $1234
+	rts	#4
+	bsr	@
 	stz	$12
 	adc	$12
 	ror	$12
@@ -292,6 +292,7 @@
 	inc	$1234,x
 	bbs7	$12,@
 
+
 ; --
 ; -- 45GS02
 ; --
@@ -300,5 +301,47 @@
 
 	oraq	$12
 	aslq	$12
+
+	aslq
+	aslq	a
+	oraq	$1234
+	aslq	$1234
+
 	oraq	($12),z
 	aslq	$12,x
+
+	incq	a
+	inaq
+	aslq	$1234,x
+
+	bitq	$12
+	andq	$12
+	rolq	$12
+
+	rolq	a
+	bitq	$1234
+	andq	$1234
+	rolq	$1234
+
+	andq	($12),z
+	rolq	$12,x
+
+	deaq
+	decq	a
+	rolq	$1234,x
+
+	asrq	a
+	asrq	$12
+	eorq	$12
+	lsrq	$12
+
+	lsrq	a
+	eorq	$1234
+	lsrq	$1234
+
+	eorq	($12),z
+	asrq	$12,x
+	lsrq	$12,x
+
+	lsrq	$1234,x
+	
