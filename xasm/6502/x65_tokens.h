@@ -244,6 +244,7 @@ typedef enum {
 	T_45GS02_ORAQ,
 	T_45GS02_ROLQ,
 	T_45GS02_RORQ,
+	T_45GS02_SBCQ,
 	T_45GS02_STAQ,
 
     /* Registers */

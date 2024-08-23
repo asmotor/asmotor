@@ -331,6 +331,7 @@ static SLexConstantsWord g_4510Instructions[] = {
 	{ "ORAQ",	T_45GS02_ORAQ },
 	{ "ROLQ",	T_45GS02_ROLQ },
 	{ "RORQ",	T_45GS02_RORQ },
+	{ "SBCQ",	T_45GS02_SBCQ },
 	{ "STAQ",	T_45GS02_STAQ },
 
 	{ "Z",  T_4510_REG_Z },

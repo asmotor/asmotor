@@ -453,3 +453,23 @@
 	cmpq	$1234,y
 	cmpq	$1234,x
 	decq	$1234,x
+
+	; $E0-$E7
+	sbcq	($12,x)
+	sbcq	$12
+	incq	$12
+
+	; $E8-$EF
+	sbcq	$1234
+	incq	$1234
+
+	; $F0-$F7
+	sbcq	($12),y
+	sbcq	($12),z
+	sbcq	$12,x
+	incq	$12,x
+
+	; $F8-$FF
+	sbcq	$1234,y
+	sbcq	$1234,x
+	incq	$1234,x
