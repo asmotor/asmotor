@@ -230,19 +230,24 @@ g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
 
 
 static SQMnemonic
-g_qMnemonics[T_45GS02_ROLQ + 1 - T_45GS02_ANDQ] = {
+g_qMnemonics[T_45GS02_STAQ + 1 - T_45GS02_ADCQ] = {
+	{ MODE_ZP | MODE_ABS | MODE_4510_IND_ZP_Z, T_6502_ADC },
 	{ MODE_ZP | MODE_ABS | MODE_4510_IND_ZP_Z, T_6502_AND },
 	{ MODE_NONE | MODE_A | MODE_ABS | MODE_ZP | MODE_ZP_X | MODE_ABS_X, T_6502_ASL },
 	{ MODE_NONE | MODE_A | MODE_ZP | MODE_ZP_X, T_4510_ASR },
 	{ MODE_ZP | MODE_ABS, T_6502_BIT },
+	{ MODE_ZP | MODE_ABS | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_4510_IND_ZP_Z | MODE_ZP_X | MODE_ABS_X | MODE_ABS_Y, T_6502_CMP },
 	{ MODE_NONE, T_65C02_DEA },
-	{ MODE_A, T_6502_DEC },
+	{ MODE_A | MODE_ZP | MODE_ABS | MODE_ZP | MODE_ZP_X | MODE_ABS_X, T_6502_DEC },
 	{ MODE_ABS | MODE_ZP | MODE_4510_IND_ZP_Z, T_6502_EOR },
 	{ MODE_NONE, T_65C02_INA },
 	{ MODE_A, T_6502_INC },
+	{ MODE_ABS | MODE_ZP | MODE_IND_ZP_X | MODE_4510_IND_ZP_Z, T_6502_LDA },
 	{ MODE_NONE | MODE_A | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_LSR },
 	{ MODE_ABS | MODE_ZP | MODE_4510_IND_ZP_Z, T_6502_ORA },
-	{ MODE_A | MODE_ZP | MODE_ABS | MODE_ABS_X | MODE_ZP_X, T_6502_ROL }
+	{ MODE_A | MODE_ZP | MODE_ABS | MODE_ABS_X | MODE_ZP_X, T_6502_ROL },
+	{ MODE_A | MODE_ZP | MODE_ABS | MODE_ABS_X | MODE_ZP_X, T_6502_ROR },
+	{ MODE_ZP | MODE_ZP_X | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_4510_IND_ZP_Z | MODE_ABS | MODE_ABS_Y | MODE_ABS_X | MODE_816_IND_DISP_S_Y, T_6502_STA }
 };
 
 
@@ -261,9 +266,9 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 		} else {
 			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
 		}
-	} else if (T_45GS02_ANDQ <= token && token <= T_45GS02_ROLQ) {
+	} else if (T_45GS02_ADCQ <= token && token <= T_45GS02_STAQ) {
 		if (opt_Current->machineOptions->cpu & MOPT_CPU_45GS02) {
-			SQMnemonic* handler = &g_qMnemonics[token - T_45GS02_ANDQ];
+			SQMnemonic* handler = &g_qMnemonics[token - T_45GS02_ADCQ];
 
 			sect_OutputConst8(0x42);
 			sect_OutputConst8(0x42);
@@ -282,7 +287,7 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 
 bool
 x65_Parse4510Instruction(void) {
-	if (T_4510_ASR <= lex_Context->token.id && lex_Context->token.id <= T_45GS02_ROLQ) {
+	if (T_4510_ASR <= lex_Context->token.id && lex_Context->token.id <= T_45GS02_STAQ) {
 		ETargetToken token = (ETargetToken) lex_Context->token.id;
 		parse_GetToken();
 		return x65_Handle4510Instruction(token, 0xFFFFFFFFu);

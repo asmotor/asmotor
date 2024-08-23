@@ -2,6 +2,7 @@
 
 	SECTION "Test",CODE[0]
 
+	; $00-$07
 	brk
 	ora	($11,x)
 	cle
@@ -11,6 +12,7 @@
 	asl	$12
 	rmb0	$12
 
+	; $08-$0F
 	php
 	ora	#$12
 	asl
@@ -20,6 +22,7 @@
 	asl	$1234
 	bbr0	$12,@
 
+	; $10-$17
 	bpl	@
 	ora	($fe),y
 	ora	($12),z
@@ -29,6 +32,7 @@
 	asl	$12,x
 	rmb1	$12
 
+	; $18-$1F
 	clc
 	ora	$1234,y
 	ina
@@ -39,6 +43,7 @@
 	asl	$1234,x
 	bbr1	$12,@
 
+	; $20-$27
 	jsr	@
 	and	($12,x)
 	jsr	($1234)
@@ -48,6 +53,7 @@
 	rol	$12
 	rmb	2,$12
 
+	; $28-$2F
 	plp
 	and	#$12
 	rol
@@ -57,6 +63,7 @@
 	rol	$1234
 	bbr2	$12,@
 
+	; $30-$37
 	bmi	@
 	and	($12),y
 	and	($12),z
@@ -66,6 +73,7 @@
 	rol	$12,x
 	rmb3	$12
 
+	; $38-$3F
 	sec
 	and	$1234,y
 	dec	a
@@ -76,6 +84,7 @@
 	rol	$1234,x
 	bbr3	$12,@
 
+	; $40-$47
 	rti
 	eor	($12,x)
 	neg
@@ -85,6 +94,7 @@
 	lsr	$12
 	rmb4	$12
 
+	; $48-$4F
 	pha
 	eor	#$12
 	lsr
@@ -94,6 +104,7 @@
 	lsr	$1234
 	bbr	4,$12,@
 
+	; $50-$57
 	bvc	@
 	eor	($12),y
 	eor	($12),z
@@ -103,6 +114,7 @@
 	lsr	$12,x
 	rmb5	$12
 
+	; $58-$5F
 	cli
 	eor	$1234,y
 	phy
@@ -112,6 +124,7 @@
 	lsr	$1234,x
 	bbr	5,$12,@
 
+	; $60-$67
 	rts
 	adc	($12,x)
 	rts	#4
@@ -121,6 +134,7 @@
 	ror	$12
 	rmb6	$12
 
+	; $68-$6F
 	pla
 	adc	#$12
 	ror
@@ -130,6 +144,7 @@
 	ror	$1234
 	bbr	6,$12,@
 
+	; $70-$77
 	bvs	@
 	adc	($12),y
 	adc	($12),z
@@ -139,6 +154,7 @@
 	ror	$12,x
 	rmb7	$12
 
+	; $78-$7F
 	sei
 	adc	$1234,y
 	ply
@@ -148,6 +164,7 @@
 	ror	$1234,x
 	bbr7	$12,@
 
+	; $80-$87
 	bra	@
 	sta	($12,x)
 	sta ($12,sp),y
@@ -157,6 +174,7 @@
 	stx	$12
 	smb0	$12
 
+	; $88-$8F
 	dey
 	bit	#$12
 	txa
@@ -166,6 +184,7 @@
 	stx	$1234
 	bbs0	$12,@
 
+	; $90-$97
 	bcc	@
 	sta	($12),y
 	sta	($12),z
@@ -175,6 +194,7 @@
 	stx	$12,y
 	smb1	$12
 
+	; $98-$9F
 	tya
 	sta	$1234,y
 	txs
@@ -184,6 +204,7 @@
 	stz	$1234,x
 	bbs1	$12,@
 
+	; $A0-$A7
 	ldy	#$12
 	lda	($12,x)
 	ldx	#$12
@@ -193,6 +214,7 @@
 	ldx	$12
 	smb2	$12
 
+	; $A8-$AF
 	tay
 	lda	#$12
 	tax
@@ -202,6 +224,7 @@
 	ldx	$1234
 	bbs2	$12,@
 
+	; $B0-$B7
 	bcs	@
 	lda	($12),y
 	lda	($12),z
@@ -211,6 +234,7 @@
 	ldx	$12,y
 	smb3	$12
 
+	; $B8-$BF
 	clv
 	lda	$1234,y
 	tsx
@@ -220,6 +244,7 @@
 	ldx	$1234,y
 	bbs3	$12,@
 
+	; $C0-$C7
 	cpy	#$12
 	cmp	($12,x)
 	cpz #$12
@@ -229,6 +254,7 @@
 	dec	$12
 	smb4	$12
 
+	; $C8-$CF
 	iny
 	cmp	#$12
 	dex
@@ -238,6 +264,7 @@
 	dec	$1234
 	bbs4	$12,@
 
+	; $D0-$D7
 	bne	@
 	cmp	($12),y
 	cmp	($12),z
@@ -247,6 +274,7 @@
 	dec	$12,x
 	smb5	$12
 
+	; $D8-$DF
 	cld
 	cmp	$1234,y
 	phx
@@ -256,6 +284,7 @@
 	dec	$1234,x
 	bbs5	$12,@
 
+	; $E0-$E7
 	cpx	#$12
 	sbc	($12,x)
 	lda	($12,sp),y
@@ -265,6 +294,7 @@
 	inc	$12
 	smb6	$12
 
+	; $E8-$EF
 	inx
 	sbc	#$12
 	eom
@@ -274,6 +304,7 @@
 	inc	$1234
 	bbs6	$12,@
 
+	; $F0-$F7
 	beq	@
 	sbc	($12),y
 	sbc	($12),z
@@ -283,6 +314,7 @@
 	inc	$12,x
 	smb7	$12
 
+	; $F8-$FF
 	sed
 	sbc	$1234,y
 	plx
@@ -299,49 +331,125 @@
 
 	OPT	mc5
 
+	; $00-$07
 	oraq	$12
 	aslq	$12
 
+	; $08-$0F
 	aslq
 	aslq	a
 	oraq	$1234
 	aslq	$1234
 
+	; $10-$17
 	oraq	($12),z
 	aslq	$12,x
 
+	; $18-$1F
 	incq	a
 	inaq
 	aslq	$1234,x
 
+	; $20-$27
 	bitq	$12
 	andq	$12
 	rolq	$12
 
+	; $28-$2F
 	rolq	a
 	bitq	$1234
 	andq	$1234
 	rolq	$1234
 
+	; $30-$37
 	andq	($12),z
 	rolq	$12,x
 
+	; $38-$3F
 	deaq
 	decq	a
 	rolq	$1234,x
 
+	; $40-$47
 	asrq	a
 	asrq	$12
 	eorq	$12
 	lsrq	$12
 
+	; $48-$4F
 	lsrq	a
 	eorq	$1234
 	lsrq	$1234
 
+	; $50-$57
 	eorq	($12),z
 	asrq	$12,x
 	lsrq	$12,x
 
+	; $58-$5F
 	lsrq	$1234,x
 	
+	; $60-$67
+	adcq	$12
+	rorq	$12
+	
+	; $68-$6F
+	rorq	a
+	adcq	$1234
+	rorq	$1234
+
+	; $70-$77
+	adcq	($12),z
+	rorq	$12,x
+
+	; $78-$7F
+	rorq	$1234,x
+
+	; $80-$87
+	staq	($12,x)
+	staq	($12,sp),y
+	staq	$12
+
+	; $88-$8F
+	staq	$1234
+
+	; $90-$97
+	staq	($12),y
+	staq	($12),z
+	staq	$12,x
+
+	; $98-$9F
+	staq	$1234,y
+	staq	$1234,x
+
+	; $A0-$A7
+	ldaq	($12,x)
+	ldaq	$12
+
+	; $A8-$AF
+	ldaq	$1234
+
+	; $B0-$B7
+	ldaq	($12),z
+
+	; $B8-$BF
+
+	; $C0-$C7
+	cmpq	($12,x)
+	cmpq	$12
+	decq	$12
+
+	; $C8-$CF
+	cmpq	$1234
+	decq	$1234
+
+	; $D0-$D7
+	cmpq	($12),y
+	cmpq	($12),z
+	cmpq	$12,x
+	decq	$12,x
+
+	; $D8-$DF
+	cmpq	$1234,y
+	cmpq	$1234,x
+	decq	$1234,x
