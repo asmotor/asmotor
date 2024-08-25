@@ -188,7 +188,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
 						return true;
 					}
 				} else {
-					bool is_zp = !force_abs_2 && expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer <= 255;
+					bool is_zp = !force_abs_2 && expr_IsConstant(addrMode->expr) && opt_Current->machineOptions->bp_base <= addrMode->expr->value.integer && addrMode->expr->value.integer <= opt_Current->machineOptions->bp_base + 255;
 					addrMode->mode = ((force_zp || is_zp) ? (MODE_45GS02_IND_ZP_QUAD | MODE_816_LONG_IND_ZP) : MODE_816_LONG_IND_ABS) & allowedModes;
 					return true;
 				}
@@ -232,7 +232,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
 			if (force_zp)
 				addrMode->expr = expr_CheckRange(addrMode->expr, 0x00, 0xFF);
 		
-			bool is_zp = expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer <= 255;
+			bool is_zp = expr_IsConstant(addrMode->expr) && opt_Current->machineOptions->bp_base <= addrMode->expr->value.integer && addrMode->expr->value.integer <= opt_Current->machineOptions->bp_base + 255;
 			bool is_abs_3 = !force_zp && !force_abs_2 && expr_IsConstant(addrMode->expr) && 0 <= addrMode->expr->value.integer && addrMode->expr->value.integer < (1 << 24);
 
 			if (lex_Context->token.id == ',') {

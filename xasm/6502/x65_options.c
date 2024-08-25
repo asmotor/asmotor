@@ -63,6 +63,7 @@ x65_SetDefault(SMachineOptions* options) {
 	options->m16 = false;
 	options->x16 = false;
 	options->allowedModes = MODE_6502;
+	options->bp_base = 0;
 }
 
 void
@@ -84,6 +85,10 @@ x65_OptionsUpdated(SMachineOptions* options) {
 		SLexConstantsWord* next = x65_GetUndocumentedInstructions(options->undocumentedInstructions);
 		if (next)
 			lex_ConstantsDefineWords(next);
+	}
+
+	if ((options->cpu & (MOPT_CPU_4510 | MOPT_CPU_45GS02)) == 0) {
+		options->bp_base = 0;
 	}
 
 	g_previousCpu = options->cpu;

@@ -26,7 +26,9 @@ static char* g_errors[] = {
 	"Selected CPU does not support instruction",
 	"65C816 required",
 	"Illegal bit width (must be 8 or 16)",
-	"This instruction requires synthesized instructions enabled"
+	"This instruction requires synthesized instructions enabled",
+	"Only supported on 4510 and 45GS02",
+	"Base page must be 256 byte aligned"
 };
 
 const char*

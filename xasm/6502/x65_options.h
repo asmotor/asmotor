@@ -39,6 +39,7 @@ typedef struct MachineOptions {
 	bool m16;	/* 16 bit accumulator immediate */
 	bool x16;	/* 16 bit index immediate */
 	uint32_t allowedModes;
+	int32_t bp_base;
 } SMachineOptions;
 
 extern SMachineOptions*

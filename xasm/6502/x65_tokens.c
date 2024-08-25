@@ -330,7 +330,9 @@ static SLexConstantsWord g_4510Instructions[] = {
 	{ "ROLQ", T_45GS02_ROLQ },
 	{ "RORQ", T_45GS02_RORQ },
 	{ "SBCQ", T_45GS02_SBCQ },
-	{ "STQ", T_45GS02_STQ },
+	{ "STQ",  T_45GS02_STQ },
+
+	{ "SETBP", T_45GS02_SETBP },
 
 	{ "Z",  T_4510_REG_Z },
 	{ "Q",  T_45GS02_REG_Q },

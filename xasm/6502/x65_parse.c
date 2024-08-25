@@ -31,6 +31,7 @@
 #include "x65_parse.h"
 #include "x65_tokens.h"
 
+
 static bool
 parseBitsWidth(SExpression* expr) {
 	if (!expr_IsConstant(expr)) {
@@ -105,6 +106,18 @@ x65_ParseInstruction(void) {
 			return parseBITS();
 		} else {
 			err_Error(MERROR_16BIT_REQUIRED);
+		}
+	} else if (lex_Context->token.id == T_45GS02_SETBP) {
+		parse_GetToken();
+		if (opt_Current->machineOptions->cpu & (MOPT_CPU_4510 | MOPT_CPU_45GS02)) {
+			opt_Current->machineOptions->bp_base = parse_ConstantExpression();
+			if ((opt_Current->machineOptions->bp_base & 0xFF) != 0) {
+				err_Error(MERROR_4510_BP_ALIGNMENT);
+				return false;
+			}
+			return true;
+		} else {
+			err_Error(MERROR_4510_REQUIRED);
 		}
 	}
 

@@ -255,8 +255,10 @@ typedef enum {
 
 	/* Directives */
 	T_65816_BITS,
+	T_45GS02_SETBP,
 
 } ETargetToken;
+
 
 extern SLexConstantsWord*
 x65_GetUndocumentedInstructions(int n);
