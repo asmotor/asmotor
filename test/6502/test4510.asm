@@ -331,145 +331,99 @@
 
 	OPT	mc5
 
-	; $00-$07
-	oraq	$12
+	adc	[$12],z
+	adcq	$12
+	adcq	$1234
+	adcq	($12)
+	adcq	[$12]
+
+	and	[$12],z
+	andq	$12
+	andq	$1234
+	andq	($12)
+	andq	[$12]
+
 	aslq	$12
-
-	; $08-$0F
-	aslq
-	aslq	a
-	oraq	$1234
+	aslq	q
 	aslq	$1234
-
-	; $10-$17
-	oraq	($12),z
 	aslq	$12,x
-
-	; $18-$1F
-	incq	a
-	inaq
 	aslq	$1234,x
 
-	; $20-$27
+	asrq	q
+	asrq	$12
+	asrq	$12,x
+
 	bitq	$12
-	andq	$12
-	rolq	$12
-
-	; $28-$2F
-	rolq	a
 	bitq	$1234
-	andq	$1234
+
+	cmp	[$12],z
+
+	cmpq	$12
+	cmpq	$1234
+	cmpq	($12)
+	cmpq	[$12]
+
+	deq	q
+	deq	$12
+	deq	$1234
+	deq	$12,x
+	deq	$1234,x
+
+	eor	[$12],z
+
+	eorq	$12
+	eorq	$1234
+	eorq	($12)
+	eorq	[$12]
+
+	inq	q
+	inq	$12
+	inq	$1234
+	inq	$12,x
+	inq	$1234,x
+
+	lda	[$12],z
+
+	ldq	$12
+	ldq	$1234
+	ldq	($12),z
+	ldq	[$12],z
+
+	lsrq	$12
+	lsrq	q
+	lsrq	$1234
+	lsrq	$12,x
+	lsrq	$1234,x
+
+	ora	[$12],z
+
+	orq	$12
+	orq	$1234
+	orq	($12)
+	orq	[$12]
+
+	rolq	$12
+	rolq	q
 	rolq	$1234
-
-	; $30-$37
-	andq	($12),z
 	rolq	$12,x
-
-	; $38-$3F
-	deaq
-	decq	a
 	rolq	$1234,x
 
-	; $40-$47
-	asrq	a
-	asrq	$12
-	eorq	$12
-	lsrq	$12
-
-	; $48-$4F
-	lsrq	a
-	eorq	$1234
-	lsrq	$1234
-
-	; $50-$57
-	eorq	($12),z
-	asrq	$12,x
-	lsrq	$12,x
-
-	; $58-$5F
-	lsrq	$1234,x
-	
-	; $60-$67
-	adcq	$12
 	rorq	$12
-	
-	; $68-$6F
-	rorq	a
-	adcq	$1234
+	rorq	q
 	rorq	$1234
-
-	; $70-$77
-	adcq	($12),z
 	rorq	$12,x
-
-	; $78-$7F
 	rorq	$1234,x
 
-	; $80-$87
-	staq	($12,x)
-	staq	($12,sp),y
-	staq	$12
+	sbc	[$12],z
 
-	; $88-$8F
-	staq	$1234
-
-	; $90-$97
-	staq	($12),y
-	staq	($12),z
-	staq	$12,x
-
-	; $98-$9F
-	staq	$1234,y
-	staq	$1234,x
-
-	; $A0-$A7
-	ldaq	($12,x)
-	ldaq	$12
-
-	; $A8-$AF
-	ldaq	$1234
-
-	; $B0-$B7
-	ldaq	($12),z
-
-	; $B8-$BF
-
-	; $C0-$C7
-	cmpq	($12,x)
-	cmpq	$12
-	decq	$12
-
-	; $C8-$CF
-	cmpq	$1234
-	decq	$1234
-
-	; $D0-$D7
-	cmpq	($12),y
-	cmpq	($12),z
-	cmpq	$12,x
-	decq	$12,x
-
-	; $D8-$DF
-	cmpq	$1234,y
-	cmpq	$1234,x
-	decq	$1234,x
-
-	; $E0-$E7
-	sbcq	($12,x)
 	sbcq	$12
-	incq	$12
-
-	; $E8-$EF
 	sbcq	$1234
-	incq	$1234
+	sbcq	($12)
+	sbcq	[$12]
 
-	; $F0-$F7
-	sbcq	($12),y
-	sbcq	($12),z
-	sbcq	$12,x
-	incq	$12,x
+	sta	[$12],z
 
-	; $F8-$FF
-	sbcq	$1234,y
-	sbcq	$1234,x
-	incq	$1234,x
+	stq	$12
+	stq	$1234
+	stq	($12)
+	stq	[$12]
