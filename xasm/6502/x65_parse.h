@@ -71,6 +71,7 @@ typedef struct {
 	SExpression* expr;
 	SExpression* expr2;
 	SExpression* expr3;
+	bool size_forced;
 } SAddressingMode;
 
 typedef enum {

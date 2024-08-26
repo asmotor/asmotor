@@ -60,7 +60,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/motor6502",
-            "args": ["-fv","-otest4510.r","test4510.asm"],
+            "args": ["-mc5", "-fv","-otest4510.r","test4510.asm"],
             "cwd": "${workspaceFolder}/test/6502",
         },
         {

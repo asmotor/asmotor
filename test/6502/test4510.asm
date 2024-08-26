@@ -428,5 +428,18 @@
 	stq	($12)
 	stq	[$12]
 
+
+    IF 0
 	SETBP	$500
-	
+	lda	[$512],z
+	lda	($512)
+	lda	$512
+	lda	$512,x
+	ldx	$512,y
+	lda	($512,x)
+	lda	($512),y
+	lda	[$512]
+	lda	[$512],z
+    ENDC
+
+

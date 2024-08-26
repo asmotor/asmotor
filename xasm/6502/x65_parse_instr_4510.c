@@ -184,7 +184,7 @@ static bool
 handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
     sect_OutputConst8(baseOpcode);
 
-    SExpression* expression = expr_PcRelative(addrMode->expr, -2);
+    SExpression* expression = expr_PcRelative(addrMode->expr, -1);
     expression = expr_CheckRange(expression, -32768, 32767);
     if (expression == NULL) {
         err_Error(ERROR_OPERAND_RANGE);

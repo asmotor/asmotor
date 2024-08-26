@@ -52,8 +52,8 @@ parseImmExpression(bool imm16bit) {
 	return parse_Expression(2);
 }
 
-bool
-x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmediateSize immSize) {
+static bool
+x65_ParseAddressingModeCore(SAddressingMode* addrMode, uint32_t allowedModes, EImmediateSize immSize) {
 	bool imm16bit = false;
 
 	switch (immSize) {
@@ -77,6 +77,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
     addrMode->expr = NULL;
     addrMode->expr2 = NULL;
     addrMode->expr3 = NULL;
+	addrMode->size_forced = false;
 
 	if ((allowedModes & MODE_A) && lex_Context->token.id == T_6502_REG_A) {
 		parse_GetToken();
@@ -165,9 +166,11 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
 		bool force_abs_2 = false;
 
 		if (lex_Context->token.id == T_OP_LESS_THAN) {
+			addrMode->size_forced = true;
 			force_zp = true;
 			parse_GetToken();
 		} else if (lex_Context->token.id == T_OP_BITWISE_OR) {
+			addrMode->size_forced = true;
 			force_abs_2 = true;
 			parse_GetToken();
 		}
@@ -217,12 +220,15 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
 		bool force_abs_3 = false;
 
 		if (lex_Context->token.id == T_OP_LESS_THAN) {
+			addrMode->size_forced = true;
 			force_zp = true;
 			parse_GetToken();
 		} else if (opt_Current->machineOptions->cpu == MOPT_CPU_65C816S && lex_Context->token.id == T_OP_BITWISE_OR) {
+			addrMode->size_forced = true;
 			force_abs_2 = true;
 			parse_GetToken();
 		} else if (opt_Current->machineOptions->cpu == MOPT_CPU_65C816S && lex_Context->token.id == T_OP_GREATER_THAN) {
+			addrMode->size_forced = true;
 			force_abs_3 = true;
 			parse_GetToken();
 		}
@@ -302,4 +308,17 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
     }
 
     return false;
+}
+
+
+extern bool
+x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmediateSize immSize) {
+	if (x65_ParseAddressingModeCore(addrMode, allowedModes, immSize)) {
+		if (!addrMode->size_forced)
+			return true;
+
+		return true;
+	}
+
+	return false;
 }
