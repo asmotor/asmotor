@@ -428,18 +428,22 @@
 	stq	($12)
 	stq	[$12]
 
+	OPT	mc5	
 
-    IF 0
 	SETBP	$500
-	lda	[$512],z
-	lda	($512)
+
 	lda	$512
 	lda	$512,x
 	ldx	$512,y
 	lda	($512,x)
 	lda	($512),y
-	lda	[$512]
+	adcq	[$512]
 	lda	[$512],z
-    ENDC
 
+	lda	<$12
+	lda	$12
+	lda	$12,x
+	ldx	$12,y
 
+    DW  __4510_BP
+    

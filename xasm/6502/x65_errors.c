@@ -28,7 +28,8 @@ static char* g_errors[] = {
 	"Illegal bit width (must be 8 or 16)",
 	"This instruction requires synthesized instructions enabled",
 	"Only supported on 4510 and 45GS02",
-	"Base page must be 256 byte aligned"
+	"Base page must be 256 byte aligned",
+	"Zero/base page addressing mode required"
 };
 
 const char*

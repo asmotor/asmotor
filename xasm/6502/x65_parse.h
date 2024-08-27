@@ -36,6 +36,8 @@
 #define MODE_IND_ZP_Y	0x00200u		/* (n8),y */
 #define MODE_A			0x00400u		/* a */
 #define MODE_IND_ABS	0x00800u		/* (n16) */
+
+// 65C02
 #define MODE_ZP_ABS		0x01000u		/* n8,n16 */
 #define MODE_BIT_ZP		0x02000u		/* n3,n8 */
 #define MODE_BIT_ZP_ABS	0x04000u		/* n8,n8,n16 */

@@ -304,6 +304,7 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 
 					return x65_HandleTokenAddressMode(handler->token, &addrMode);
 				}
+				err_Error(MERROR_ILLEGAL_ADDRMODE);
 			}
 		} else {
 			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);

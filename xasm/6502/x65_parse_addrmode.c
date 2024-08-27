@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "errors.h"
 #include "expression.h"
 #include "lexer.h"
 #include "lexer_context.h"
@@ -27,6 +28,7 @@
 #include "parse_expression.h"
 #include "tokens.h"
 
+#include "x65_errors.h"
 #include "x65_options.h"
 #include "x65_parse.h"
 #include "x65_tokens.h"
@@ -207,7 +209,7 @@ x65_ParseAddressingModeCore(SAddressingMode* addrMode, uint32_t allowedModes, EI
 		if (addrMode->expr != NULL) {
 			if (lex_Context->token.id == ')') {
 				parse_GetToken();
-				addrMode->mode = allowedModes & (MODE_IND_ZP | MODE_IND_ABS);
+				addrMode->mode = MODE_IND_ABS;
 				return true;
 			}
 		}
@@ -311,11 +313,79 @@ x65_ParseAddressingModeCore(SAddressingMode* addrMode, uint32_t allowedModes, EI
 }
 
 
+#define HANDLE_MODES (MODE_ABS | MODE_ABS_X | MODE_ABS_Y | MODE_IND_ABS | MODE_IND_ABS_X | MODE_4510_IND_ZP_Z | MODE_45GS02_IND_ZP_Z_QUAD | MODE_45GS02_IND_ZP_QUAD | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_ZP_ABS | MODE_BIT_ZP_ABS | MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_816_LONG_IND_ZP | MODE_816_LONG_IND_ABS)
+#define ZP_MODES (MODE_4510_IND_ZP_Z | MODE_45GS02_IND_ZP_Z_QUAD | MODE_45GS02_IND_ZP_QUAD | MODE_IND_ZP_X | MODE_IND_ZP_Y | MODE_ZP_ABS | MODE_BIT_ZP_ABS | MODE_ZP | MODE_ZP_X | MODE_ZP_Y | MODE_45GS02_IND_ZP_QUAD | MODE_816_LONG_IND_ZP)
+
+
 extern bool
 x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmediateSize immSize) {
 	if (x65_ParseAddressingModeCore(addrMode, allowedModes, immSize)) {
-		if (!addrMode->size_forced)
+		if (addrMode->size_forced 
+		|| (addrMode->mode & HANDLE_MODES) == 0
+		|| !expr_IsConstant(addrMode->expr))
+			return addrMode->mode != 0;
+
+		int32_t address;
+		switch (addrMode->mode) {
+			case MODE_BIT_ZP:
+			case MODE_BIT_ZP_ABS:
+				address = addrMode->expr2->value.integer;
+				break;
+			default:
+				address = addrMode->expr->value.integer;
+				break;
+		}
+
+		bool is_zp = address >= opt_Current->machineOptions->bp_base && address <= opt_Current->machineOptions->bp_base + 255; 
+		if (!is_zp) {
+			if (addrMode->mode & ZP_MODES) {
+				err_Error(MERROR_NEEDS_ZP);
+			}
 			return true;
+		}
+
+		switch (addrMode->mode) {
+			case MODE_ABS:
+				if ((allowedModes & MODE_ZP) == 0)
+					return true;
+				addrMode->mode = MODE_ZP;
+				break;
+			case MODE_ABS_X:
+				if ((allowedModes & MODE_ZP_X) == 0)
+					return true;
+				addrMode->mode = MODE_ZP_X;
+				break;
+			case MODE_ABS_Y:
+				if ((allowedModes & MODE_ZP_Y) == 0)
+					return true;
+				addrMode->mode = MODE_ZP_Y;
+				break;
+			case MODE_IND_ABS:
+				if ((allowedModes & MODE_IND_ZP) == 0)
+					return true;
+				addrMode->mode = MODE_IND_ZP;
+				break;
+			case MODE_816_LONG_IND_ABS:
+				if ((allowedModes & MODE_816_LONG_IND_ZP) == 0)
+					return true;
+				addrMode->mode = MODE_816_LONG_IND_ZP;
+				break;
+			case MODE_4510_IND_ZP_Z:
+			case MODE_45GS02_IND_ZP_Z_QUAD:
+			case MODE_45GS02_IND_ZP_QUAD:
+			case MODE_IND_ZP_X:
+			case MODE_IND_ZP_Y:
+			case MODE_ZP_ABS:
+			case MODE_BIT_ZP_ABS:
+			case MODE_ZP:
+			case MODE_ZP_X:
+			case MODE_ZP_Y:
+				break;
+			default:
+				return true;
+		}
+
+		addrMode->expr = expr_And(addrMode->expr, expr_Const(0xFF));
 
 		return true;
 	}
