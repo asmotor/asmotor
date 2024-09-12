@@ -38,10 +38,10 @@ Section "Executables (required)"
   ; Set output path to the installation directory.
   ${If} ${RunningX64}
     SetOutPath $INSTDIR
-    File "cmake/release/xasm/680x0/motor68k.exe"
+    File "../_bin_w64/*.exe"
   ${Else}
     SetOutPath $INSTDIR
-    File "Visual Studio 2010\Win32\Release\*.exe"
+    File "../_bin_w32/*.exe"
   ${EndIf}
   
   ; Put file there

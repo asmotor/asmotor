@@ -8,6 +8,8 @@ source_name := (package_base_name + "-src.tar.gz")
 binary_name := (package_base_name + "-bin-" + os() + ".tar.gz")
 binary_windows_32_name := (package_base_name + "-bin-windows-32bit.zip")
 binary_windows_64_name := (package_base_name + "-bin-windows-64bit.zip")
+binary_macos_intel_name := (package_base_name + "-bin-macos-intel.zip")
+binary_macos_arm_name := (package_base_name + "-bin-macos-arm.zip")
 binary_amiga_name := (package_base_name + "-bin-amiga-")
 source_pkg_dir := join("build", package_base_name)
 initialized := path_exists(initialized_marker)
@@ -70,8 +72,27 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	cd _binary_windows_64/bin; zip "../../{{binary_windows_64_name}}" *
 	rm -rf _binary_windows_64
 
+# Build release archive with osxcross x86_64 compiler
+@binary_macos_intel: (install join(justfile_directory(), "_binary_macos_intel") "" "build/macos-intel.cmake")
+	cd _binary_macos_intel/bin; zip "../../{{binary_macos_intel_name}}" *
+	rm -rf _binary_macos_intel
+
+# Build release archive with osxcross arm compiler
+@binary_macos_arm: (install join(justfile_directory(), "_binary_macos_arm") "" "build/macos-arm.cmake")
+	cd _binary_macos_arm/bin; zip "../../{{binary_macos_arm_name}}" *
+	rm -rf _binary_macos_arm
+
+@binary_macos: binary_macos_intel binary_macos_arm
+
 @windows_installer: binary_windows_32 binary_windows_64
-	
+	rm -rf _bin_w64 _bin_w32
+	mkdir _bin_w64 _bin_w32
+	cd _bin_w64; unzip ../{{binary_windows_64_name}}
+	cd _bin_w32; unzip ../{{binary_windows_32_name}}
+	makensis ./build/installer.nsi
+	mv ./build/setup-asmotor.exe .
+	rm -rf _bin_w64 _bin_w32
+
 
 # Build release archive with Amiga compiler, optimized for CPU (000, 020_881, 060)
 @binary_amiga cpu="000" toolchain_path="/opt/amiga" extra_params="":
@@ -99,6 +120,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 # Build release archive with Amiga compiler, optimized for 68060 with FPU
 @binary_amiga_060 toolchain_path="/opt/amiga":
 	just binary_amiga "060-fpu" {{toolchain_path}} "-DM68K_CPU=68060 -DM68K_FPU=hard"
+
 
 # Build source package
 @source: _clean_src_dir (_copy_dir_to_src "util" "xasm/6502" "xasm/6809" "xasm/680x0" "xasm/motor" "xasm/dcpu-16" "xasm/mips" "xasm/rc8" "xasm/schip" "xasm/z80" "xlink" "xlib")

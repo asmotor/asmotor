@@ -68,3 +68,4 @@ asmotor-*.tar.gz
 asmotor_*.deb
 asmotor-*.zip
 makedeb/
+setup-asmotor.exe

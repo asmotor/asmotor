@@ -22,7 +22,7 @@
 #include <string.h>
 
 #if !defined(__STDC_IEC_559__)
-#	if defined(_M_IX86) || defined(_M_X64) || defined(__x86_64)
+#	if defined(_M_IX86) || defined(_M_X64) || defined(__x86_64) || defined(__ARM_ARCH)
 #   	define __STDC_IEC_559__
 #	endif
 #endif
