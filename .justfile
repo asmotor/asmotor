@@ -13,7 +13,7 @@ binary_macos_arm_name := (package_base_name + "-bin-macos-arm.zip")
 binary_amiga_name := (package_base_name + "-bin-amiga-")
 source_pkg_dir := join("build", package_base_name)
 initialized := path_exists(initialized_marker)
-
+deb_arch := if arch() == "x86_64" { "amd64" } else { arch() }
 tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnutar" } else { "tar" }
 
 # Show all recipes
@@ -102,7 +102,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	just install $BIN_DIR "" "build/m68k-amigaos.cmake" "{{extra_params}} -DTOOLCHAIN_PATH={{toolchain_path}} -DM68K_CRT=nix20"
 	cd _binary_amiga_{{cpu}}/bin
 	zip "../../{{binary_amiga_name}}{{cpu}}.zip" *
-	cd ..
+	cd ../..
 	rm -rf _binary_amiga_{{cpu}}
 
 # Build release archive with Amiga compiler, optimized for 68000
@@ -123,9 +123,9 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 
 # Build source package
-@source: _clean_src_dir (_copy_dir_to_src "util" "xasm/6502" "xasm/6809" "xasm/680x0" "xasm/motor" "xasm/dcpu-16" "xasm/mips" "xasm/rc8" "xasm/schip" "xasm/z80" "xlink" "xlib")
+@source: _clean_src_dir (_copy_dir_to_src "util" "xasm/6502" "xasm/6809" "xasm/680x0" "xasm/dcpu-16" "xasm/mips" "xasm/motor" "xasm/rc8" "xasm/schip" "xasm/z80" "xlink" "xlib")
 	cp xasm/CMakeLists.txt {{source_pkg_dir}}/xasm
-	cp .justfile CMakeLists.txt CHANGELOG.md LICENSE.md README.md ucm.cmake *.sh *.ps1 {{source_pkg_dir}}
+	cp .justfile CMakeLists.txt CHANGELOG.md LICENSE.md README.md *.sh *.ps1 {{source_pkg_dir}}
 
 	mkdir -p {{source_pkg_dir}}/build
 	cp -rf build/*.cmake build/version build/Modules {{source_pkg_dir}}/build
@@ -133,13 +133,21 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	{{tar}} -C build -cvzf {{source_name}} {{package_base_name}}
 	rm -rf {{source_pkg_dir}}
 
+@all: source deb windows_installer binary_amiga_000 binary_amiga_020 binary_amiga_020_fpu binary_amiga_060 binary_macos
 
 # Tag, build and release a source package to github
-@publish: source binary_windows_32 binary_windows_64 deb
+@publish: all
 	git tag -f {{version}} -m "Tagged {{version}}"
 	git push
 	git push --force --tags
 	gh release create "{{version}}" {{binary_name}} {{source_name}} *.deb -d -n "Version {{version}}" -p -t "Version {{version}}"
+
+@build-snapshot: git-version all
+
+git-version:
+	#!/bin/sh
+	GIT_VERSION=`git rev-parse --short HEAD`
+	sed -i -E "s/([0-9]+)\.([0-9]+)\.([0-9]+).*/\\1.\\2.\\3.$GIT_VERSION/" build/version 
 
 
 # Build a .deb distribution package
@@ -154,10 +162,10 @@ deb: source
 	cat >_makedeb/PKGBUILD <<EOF
 	# Maintainer: Carsten Elton Sorensen <cso@rift.dk>
 	pkgname=asmotor
-	pkgver={{version}}
+	pkgver="{{version}}"
 	pkgrel=1
 	pkgdesc="Cross assembler package for several CPUs"
-	arch=("{{arch()}}")
+	arch=("{{deb_arch}}")
 	url="https://github.com/asmotor/asmotor"
 	license=("GPL-3")
 	makedepends=("cmake" "build-essential")

@@ -12,7 +12,11 @@ else(MSVC)
   add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-unused-parameter -funsigned-char)
 endif(MSVC)
 
-ucm_set_runtime (STATIC)
+if(NOT (${CMAKE_SYSTEM_NAME} STREQUAL Darwin))
+  link_libraries("-static")
+endif()
+
+ucm_set_runtime(STATIC)
 
 add_definitions(-DASMOTOR_VERSION="${ASMOTOR_VERSION}")
 
