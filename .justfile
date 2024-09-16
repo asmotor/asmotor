@@ -3,7 +3,11 @@
 initialized_marker := ".initialized"
 version_file := join(invocation_directory(), "build/version")
 version := `cat build/version`
+version_base := `sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)(-(.+))?.*/\\1.\\2.\\3/" build/version`
+version_rel := `sed -E "s/([0-9]+)\.([0-9]+)\.([0-9]+)(-(.+))?.*/\\5/" build/version`
+version_git := `git rev-parse --short HEAD`
 package_base_name := ("asmotor-" + version)
+package_rel := if version_rel == "" { "1" } else { version_rel }
 source_name := (package_base_name + "-src.tar.gz")
 binary_name := (package_base_name + "-bin-" + os() + ".tar.gz")
 binary_windows_32_name := (package_base_name + "-bin-windows-32bit.zip")
@@ -133,7 +137,9 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	{{tar}} -C build -cvzf {{source_name}} {{package_base_name}}
 	rm -rf {{source_pkg_dir}}
 
+
 @all: source deb windows_installer binary_amiga_000 binary_amiga_020 binary_amiga_020_fpu binary_amiga_060 binary_macos
+
 
 # Tag, build and release a source package to github
 @publish: all
@@ -142,12 +148,12 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	git push --force --tags
 	gh release create "{{version}}" {{binary_name}} {{source_name}} *.deb -d -n "Version {{version}}" -p -t "Version {{version}}"
 
+
 @build-snapshot: git-version all
 
-git-version:
-	#!/bin/sh
-	GIT_VERSION=`git rev-parse --short HEAD`
-	sed -i -E "s/([0-9]+)\.([0-9]+)\.([0-9]+).*/\\1.\\2.\\3.$GIT_VERSION/" build/version 
+
+@git-version:
+	sed -i -E "s/([0-9]+)\.([0-9]+)\.([0-9]+).*/\\1.\\2.\\3-{{version_git}}/" build/version 
 
 
 # Build a .deb distribution package
@@ -162,8 +168,8 @@ deb: source
 	cat >_makedeb/PKGBUILD <<EOF
 	# Maintainer: Carsten Elton Sorensen <cso@rift.dk>
 	pkgname=asmotor
-	pkgver="{{version}}"
-	pkgrel=1
+	pkgver="{{version_base}}"
+	pkgrel="{{package_rel}}"
 	pkgdesc="Cross assembler package for several CPUs"
 	arch=("{{deb_arch}}")
 	url="https://github.com/asmotor/asmotor"
@@ -178,7 +184,7 @@ deb: source
 		command -v just >/dev/null
 	}
 	package() {
-		cd "\${pkgname}-\${pkgver}"
+		cd "\${pkgname}-{{version}}"
 		just install "\${pkgdir}/"
 		cd "\${pkgdir}/bin"
 		_used_libc=\$(ldd -v * 2>/dev/null | grep GLIBC | sed 's/.*GLIBC_//' | sed 's/).*//' | sort -t "." -k1,1n -k2,2n -k3,3n | tail -n 1)
