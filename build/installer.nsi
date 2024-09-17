@@ -1,7 +1,7 @@
 !include "x64.nsh"
 
 Name "ASMotor"
-OutFile "setup-asmotor.exe"
+OutFile "asmotor-setup.exe"
 
 ; Registry key to check for directory (so if you install again, it will overwrite the old one automatically)
 InstallDirRegKey HKLM "Software\ASMotor" "Install_Dir"

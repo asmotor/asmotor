@@ -22,7 +22,7 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 # Show all recipes
 @default:
-	just --list
+	just --list --unsorted
 
 
 # Clean directory forcing a new build
@@ -61,44 +61,55 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	rm -f {{initialized_marker}}
 
 
+# Append the git commit hash to the current version number
+@append-git-version:
+	just set-version "{{version_base}}-{{version_git}}"
+
+
 # Build release archive with native C compiler
-@binary_native: (install join(justfile_directory(), "_binary"))
+@binary-native: (install join(justfile_directory(), "_binary"))
 	cd _binary/bin; {{tar}} -cvzf "../../{{binary_name}}" *
 	rm -rf _binary
 
+
 # Build release archive with MinGW i686 compiler
-@binary_windows_32: (install join(justfile_directory(), "_binary_windows_32") "" "build/mingw64-i686.cmake")
+@binary-win32: (install join(justfile_directory(), "_binary_windows_32") "" "build/mingw64-i686.cmake")
 	cd _binary_windows_32/bin; zip "../../{{binary_windows_32_name}}" *
 	rm -rf _binary_windows_32
 
 # Build release archive with MinGW x86_64 compiler
-@binary_windows_64: (install join(justfile_directory(), "_binary_windows_64") "" "build/mingw64-x86_64.cmake")
+@binary-win64: (install join(justfile_directory(), "_binary_windows_64") "" "build/mingw64-x86_64.cmake")
 	cd _binary_windows_64/bin; zip "../../{{binary_windows_64_name}}" *
 	rm -rf _binary_windows_64
 
 # Build release archive with osxcross x86_64 compiler
-@binary_macos_intel: (install join(justfile_directory(), "_binary_macos_intel") "" "build/macos-intel.cmake")
+[private]
+@binary-macos-intel: (install join(justfile_directory(), "_binary_macos_intel") "" "build/macos-intel.cmake")
 	cd _binary_macos_intel/bin; zip "../../{{binary_macos_intel_name}}" *
 	rm -rf _binary_macos_intel
 
 # Build release archive with osxcross arm compiler
-@binary_macos_arm: (install join(justfile_directory(), "_binary_macos_arm") "" "build/macos-arm.cmake")
+[private]
+@binary-macos-arm: (install join(justfile_directory(), "_binary_macos_arm") "" "build/macos-arm.cmake")
 	cd _binary_macos_arm/bin; zip "../../{{binary_macos_arm_name}}" *
 	rm -rf _binary_macos_arm
 
-@binary_macos: binary_macos_intel binary_macos_arm
+# Build release archives for macOS with osxcross
+@binary-macos: binary-macos-intel binary-macos-arm
 
-@windows_installer: binary_windows_32 binary_windows_64
+# Build Windows installer
+@windows-installer: binary-win32 binary-win64
 	rm -rf _bin_w64 _bin_w32
 	mkdir _bin_w64 _bin_w32
 	cd _bin_w64; unzip ../{{binary_windows_64_name}}
 	cd _bin_w32; unzip ../{{binary_windows_32_name}}
 	makensis ./build/installer.nsi
-	mv ./build/setup-asmotor.exe .
+	mv ./build/asmotor-setup.exe .
 	rm -rf _bin_w64 _bin_w32
 
 
 # Build release archive with Amiga compiler, optimized for CPU (000, 020_881, 060)
+[private]
 @binary_amiga cpu="000" toolchain_path="/opt/amiga" extra_params="":
 	#!/bin/sh
 	JUSTFILE_DIR={{justfile_directory()}}
@@ -110,19 +121,19 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	rm -rf _binary_amiga_{{cpu}}
 
 # Build release archive with Amiga compiler, optimized for 68000
-@binary_amiga_000 toolchain_path="/opt/amiga":
+@binary-amiga-000 toolchain_path="/opt/amiga":
 	just binary_amiga "000" {{toolchain_path}}
 
 # Build release archive with Amiga compiler, optimized for 68020
-@binary_amiga_020 toolchain_path="/opt/amiga":
+@binary-amiga-020 toolchain_path="/opt/amiga":
 	just binary_amiga "020" {{toolchain_path}} "-DM68K_CPU=68020"
 
 # Build release archive with Amiga compiler, optimized for 68020 with FPU
-@binary_amiga_020_fpu toolchain_path="/opt/amiga":
+@binary-amiga-020-fpu toolchain_path="/opt/amiga":
 	just binary_amiga "020-fpu" {{toolchain_path}} "-DM68K_CPU=68020 -DM68K_FPU=hard"
 
 # Build release archive with Amiga compiler, optimized for 68060 with FPU
-@binary_amiga_060 toolchain_path="/opt/amiga":
+@binary-amiga-060 toolchain_path="/opt/amiga":
 	just binary_amiga "060-fpu" {{toolchain_path}} "-DM68K_CPU=68060 -DM68K_FPU=hard"
 
 
@@ -136,24 +147,6 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 	{{tar}} -C build -cvzf {{source_name}} {{package_base_name}}
 	rm -rf {{source_pkg_dir}}
-
-
-@all: source deb windows_installer binary_amiga_000 binary_amiga_020 binary_amiga_020_fpu binary_amiga_060 binary_macos
-
-
-# Tag, build and release a source package to github
-@publish: all
-	git tag -f {{version}} -m "Tagged {{version}}"
-	git push
-	git push --force --tags
-	gh release create "{{version}}" {{binary_name}} {{source_name}} *.deb -d -n "Version {{version}}" -p -t "Version {{version}}"
-
-
-@build-snapshot: git-version all
-
-
-@git-version:
-	sed -i -E "s/([0-9]+)\.([0-9]+)\.([0-9]+).*/\\1.\\2.\\3-{{version_git}}/" build/version 
 
 
 # Build a .deb distribution package
@@ -202,6 +195,19 @@ deb: source
 	ls -1 *.deb
 
 
+# Build all binary artifacts
+@all: source deb windows-installer binary-amiga-000 binary-amiga-020 binary-amiga-020-fpu binary-amiga-060 binary-macos
+
+
+# Tag, build and release a source package to github
+@publish: all
+	git tag -f {{version}} -m "Tagged {{version}}"
+	git push
+	git push --force --tags
+	gh release create "{{version}}" {{binary_name}} {{source_name}} *.deb -d -n "Version {{version}}" -p -t "Version {{version}}"
+
+
+# Run all integration tests
 test: build
 	#!/bin/sh
 	cd test
@@ -222,4 +228,3 @@ test: build
 @_clean_src_dir:
 	rm -rf asmotor-*.tar.bz2 asmotor-*.tgz {{source_pkg_dir}}
 	mkdir {{source_pkg_dir}}
-
