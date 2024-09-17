@@ -9,7 +9,7 @@ version_git := `git rev-parse --short HEAD`
 package_base_name := ("asmotor-" + version)
 package_rel := if version_rel == "" { "1" } else { version_rel }
 source_name := (package_base_name + "-src.tar.gz")
-binary_name := (package_base_name + "-bin-" + os() + ".tar.gz")
+binary_name := (package_base_name + "-bin-" + os() + "-" + arch() + ".tar.gz")
 binary_windows_32_name := (package_base_name + "-bin-windows-32bit.zip")
 binary_windows_64_name := (package_base_name + "-bin-windows-64bit.zip")
 binary_macos_intel_name := (package_base_name + "-bin-macos-intel.zip")
@@ -82,6 +82,16 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	cd _binary_windows_64/bin; zip "../../{{binary_windows_64_name}}" *
 	rm -rf _binary_windows_64
 
+# Build Windows installer
+@windows-installer: binary-win32 binary-win64
+	rm -rf _bin_w64 _bin_w32
+	mkdir _bin_w64 _bin_w32
+	cd _bin_w64; unzip ../{{binary_windows_64_name}}
+	cd _bin_w32; unzip ../{{binary_windows_32_name}}
+	makensis ./build/installer.nsi
+	mv ./build/asmotor-setup.exe ./asmotor-{{version}}-setup.exe
+	rm -rf _bin_w64 _bin_w32
+
 # Build release archive with osxcross x86_64 compiler
 [private]
 @binary-macos-intel: (install join(justfile_directory(), "_binary_macos_intel") "" "build/macos-intel.cmake")
@@ -96,17 +106,6 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 # Build release archives for macOS with osxcross
 @binary-macos: binary-macos-intel binary-macos-arm
-
-# Build Windows installer
-@windows-installer: binary-win32 binary-win64
-	rm -rf _bin_w64 _bin_w32
-	mkdir _bin_w64 _bin_w32
-	cd _bin_w64; unzip ../{{binary_windows_64_name}}
-	cd _bin_w32; unzip ../{{binary_windows_32_name}}
-	makensis ./build/installer.nsi
-	mv ./build/asmotor-setup.exe .
-	rm -rf _bin_w64 _bin_w32
-
 
 # Build release archive with Amiga compiler, optimized for CPU (000, 020_881, 060)
 [private]
@@ -190,7 +189,7 @@ deb: source
 
 
 # Build all binary artifacts
-@all: source deb windows-installer binary-amiga-000 binary-amiga-020 binary-amiga-020-fpu binary-amiga-060 binary-macos
+@all: source deb windows-installer binary-amiga-000 binary-amiga-020 binary-amiga-020-fpu binary-amiga-060 binary-macos binary-native
 
 
 # Tag, build and release a source package to github
