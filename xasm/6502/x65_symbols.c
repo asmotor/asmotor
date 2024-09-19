@@ -35,6 +35,12 @@ getXWidth(SSymbol* symbol) {
 }
 
 
+static int32_t
+getBP(SSymbol* symbol) {
+	return opt_Current->machineOptions->bp_base;
+}
+
+
 static void
 createEquCallback(const char* name, int32_t (*callback)(SSymbol*)) {
     string* nameStr = str_Create(name);
@@ -60,6 +66,7 @@ x65_DefineSymbols(void) {
     createGroup("ZP", GROUP_BSS);
 	createEquCallback("__816_M", getMWidth);
 	createEquCallback("__816_X", getXWidth);
+	createEquCallback("__4510_BP", getBP);
 }
 
 

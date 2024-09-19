@@ -16,17 +16,20 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stddef.h>
 
 static char* g_errors[] = {
 	"Illegal addressing mode",
 	"Undocumented instruction set must be 0, 1, 2 or 3",
-	"CPU type must be 0, 1, 2 or 3",
+	"CPU type must be 0, 1, 2, 3, 4 or 5",
 	"Selected CPU does not support undocumented instructions",
 	"Selected CPU does not support instruction",
 	"65C816 required",
 	"Illegal bit width (must be 8 or 16)",
-	"This instruction requires synthesized instructions enabled"
+	"This instruction requires synthesized instructions enabled",
+	"Only supported on 4510 and 45GS02",
+	"Base page must be 256 byte aligned",
+	"Zero/base page addressing mode required"
 };
 
 const char*

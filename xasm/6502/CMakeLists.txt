@@ -3,6 +3,7 @@ add_executable (motor6502
     x65_main.c
     x65_options.c
     x65_parse_addrmode.c
+    x65_parse_instr_4510.c
     x65_parse_instr_65816.c
     x65_parse_instr.c
     x65_parse.c

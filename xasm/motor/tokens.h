@@ -19,6 +19,8 @@
 #ifndef XASM_MOTOR_TOKENS_H_INCLUDED_
 #define XASM_MOTOR_TOKENS_H_INCLUDED_
 
+#include <stdbool.h>
+
 typedef enum {
 	T_NONE = 0,
 	T_LINEFEED = '\n',

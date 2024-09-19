@@ -1,5 +1,6 @@
 CompileFlags:
-  Add: [ -I../util, -D__GNUC_STDC_INLINE__ ]
+  Add: [ -D__GNUC_STDC_INLINE__ ]
+  CompilationDatabase: build/cmake/debug
 
 Diagnostics:
   UnusedIncludes: Strict
@@ -10,3 +11,4 @@ Diagnostics:
       - bits/.*\.h
       - stdint\.h
       - unistd\.h
+

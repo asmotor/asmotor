@@ -194,19 +194,77 @@ typedef enum {
 	T_65816_XBA,
 	T_65816_XCE,
 
+	/* 4510/45GS02 */
+	T_4510_ASR,
+	T_4510_ASW,
+	T_4510_BSR,
+	T_4510_CLE,
+	T_4510_CPZ,
+	T_4510_DEW,
+	T_4510_DEZ,
+	T_4510_INW,
+	T_4510_INZ,
+	T_4510_LBCC,
+	T_4510_LBCS,
+	T_4510_LBEQ,
+	T_4510_LBMI,
+	T_4510_LBNE,
+	T_4510_LBPL,
+	T_4510_LBRA,
+	T_4510_LBVC,
+	T_4510_LBVS,
+	T_4510_LDZ,
+	T_4510_MAP,
+	T_4510_NEG,
+	T_4510_PHW,
+	T_4510_PHZ,
+	T_4510_PLZ,
+	T_4510_ROW,
+	T_4510_SEE,
+	T_4510_TAB,
+	T_4510_TAZ,
+	T_4510_TBA,
+	T_4510_TSY,
+	T_4510_TYS,
+	T_4510_TZA,
+
+	T_45GS02_ADCQ,
+	T_45GS02_ANDQ,
+	T_45GS02_ASLQ,
+	T_45GS02_ASRQ,
+	T_45GS02_BITQ,
+	T_45GS02_CMPQ,
+	T_45GS02_DEQ,
+	T_45GS02_EORQ,
+	T_45GS02_INQ,
+	T_45GS02_LDQ,
+	T_45GS02_LSRQ,
+	T_45GS02_ORQ,
+	T_45GS02_ROLQ,
+	T_45GS02_RORQ,
+	T_45GS02_SBCQ,
+	T_45GS02_STQ,
+
     /* Registers */
     T_6502_REG_A,
     T_6502_REG_X,
     T_6502_REG_Y,
     T_65816_REG_S,
+	T_4510_REG_Z,
+	T_45GS02_REG_Q,
 
 	/* Directives */
 	T_65816_BITS,
+	T_45GS02_SETBP,
 
 } ETargetToken;
 
+
 extern SLexConstantsWord*
 x65_GetUndocumentedInstructions(int n);
+
+extern SLexConstantsWord*
+x65_Get4510Instructions(void);
 
 extern void
 x65_DefineTokens(void);

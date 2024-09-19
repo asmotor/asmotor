@@ -19,6 +19,9 @@
 #ifndef XASM_MOTOR_EXPRESSION_H_INCLUDED_
 #define XASM_MOTOR_EXPRESSION_H_INCLUDED_
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "util.h"
 #include "str.h"
 #include "section.h"
@@ -163,7 +166,7 @@ extern SExpression*
 expr_PcRelative(SExpression* expr, int adjustment);
 
 extern SExpression*
-expr_Pc();
+expr_Pc(void);
 
 extern SExpression*
 expr_Const(int32_t value);

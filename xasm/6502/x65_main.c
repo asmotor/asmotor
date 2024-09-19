@@ -42,8 +42,8 @@ x65_xasmConfiguration = {
 	1,
 	"CODE",
 
-	"RB", "RW", NULL, NULL,
-	"DB", "DW", NULL, NULL,
+	"RB", "RW", "RL", NULL,
+	"DB", "DW", "DL", NULL,
 	"DS", NULL, NULL, NULL,
 
 	x65_GetError,

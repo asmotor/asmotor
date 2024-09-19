@@ -212,21 +212,19 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 		--argc;
 	}
 
-	opt_Updated();
-
 	rcode = EXIT_SUCCESS;
 
 	if (argc == 1) {
 		string* sourcePath = str_Create(argv[argn]);
 
 		if (lex_Init(sourcePath)) {
-
 			tokens_Init(configuration->supportFloat);
 			if (configuration->supportFloat) {
 				assert(sizeof(float) == 4);
 				assert(sizeof(double) == 8);
 			}
 			xasm_Configuration->defineTokens();
+			opt_Updated();
 
 			bool parseResult = parse_Do();
 

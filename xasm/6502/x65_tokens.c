@@ -16,7 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stddef.h>
 
 #include "lexer_constants.h"
 
@@ -280,6 +280,67 @@ static SLexConstantsWord g_65816Instructions[] = {
 	{ NULL, 0 }
 };
 
+static SLexConstantsWord g_4510Instructions[] = {
+	{ "ASR",	T_4510_ASR },
+	{ "ASW",	T_4510_ASW },
+	{ "BSR",	T_4510_BSR },
+	{ "CLE",	T_4510_CLE },
+	{ "CPZ",	T_4510_CPZ },
+	{ "DEW",	T_4510_DEW },
+	{ "DEZ",	T_4510_DEZ },
+	{ "EOM",	T_6502_NOP },
+	{ "INW",	T_4510_INW },
+	{ "INZ",	T_4510_INZ },
+	{ "LBCC",	T_4510_LBCC },
+	{ "LBCS",	T_4510_LBCS },
+	{ "LBEQ",	T_4510_LBEQ },
+	{ "LBMI",	T_4510_LBMI },
+	{ "LBNE",	T_4510_LBNE },
+	{ "LBPL",	T_4510_LBPL },
+	{ "LBRA",	T_4510_LBRA },
+	{ "LBVC",	T_4510_LBVC },
+	{ "LBVS",	T_4510_LBVS },
+	{ "LDZ",	T_4510_LDZ },
+	{ "MAP",	T_4510_MAP },
+	{ "NEG",	T_4510_NEG },
+	{ "PHW",	T_4510_PHW },
+	{ "PHZ",	T_4510_PHZ },
+	{ "PLZ",	T_4510_PLZ },
+	{ "ROW",	T_4510_ROW },
+	{ "SEE",	T_4510_SEE },
+	{ "TAB",	T_4510_TAB },
+	{ "TAZ",	T_4510_TAZ },
+	{ "TBA",	T_4510_TBA },
+	{ "TSY",	T_4510_TSY },
+	{ "TYS",	T_4510_TYS },
+	{ "TZA",	T_4510_TZA },
+
+	{ "ADCQ", T_45GS02_ADCQ },
+	{ "ANDQ", T_45GS02_ANDQ },
+	{ "ASLQ", T_45GS02_ASLQ },
+	{ "ASRQ", T_45GS02_ASRQ },
+	{ "BITQ", T_45GS02_BITQ },
+	{ "CMPQ", T_45GS02_CMPQ },
+	{ "DEQ",  T_45GS02_DEQ },
+	{ "EORQ", T_45GS02_EORQ },
+	{ "INQ",  T_45GS02_INQ },
+	{ "LDQ",  T_45GS02_LDQ },
+	{ "LSRQ", T_45GS02_LSRQ },
+	{ "ORQ",	 T_45GS02_ORQ },
+	{ "ROLQ", T_45GS02_ROLQ },
+	{ "RORQ", T_45GS02_RORQ },
+	{ "SBCQ", T_45GS02_SBCQ },
+	{ "STQ",  T_45GS02_STQ },
+
+	{ "SETBP", T_45GS02_SETBP },
+
+	{ "Z",  T_4510_REG_Z },
+	{ "Q",  T_45GS02_REG_Q },
+	{ "SP", T_65816_REG_S },
+
+	{ NULL, 0 }
+};
+
 
 void
 x65_DefineTokens(void) {
@@ -291,4 +352,9 @@ x65_DefineTokens(void) {
 SLexConstantsWord*
 x65_GetUndocumentedInstructions(int n) {
 	return g_undocumentedInstructions[n];
+}
+
+SLexConstantsWord*
+x65_Get4510Instructions(void) {
+	return g_4510Instructions;
 }
