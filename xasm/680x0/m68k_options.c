@@ -171,7 +171,7 @@ m68k_ParseOption(const char* option) {
 void
 m68k_PrintOptions(void) {
     printf(
-		"    -mc<X>  Enable CPU 680X0\n"
+		"    -mc<X>  Enable CPU 680x0\n"
 		"    -mf<X>  Enable FPU 6888x (1, 2), 68040 (4), 68060 (6), 68080 (8)\n"
 		"    -mg<X>  Enable platform specific groups\n"
 		"                a - Amiga\n"

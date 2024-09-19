@@ -30,7 +30,6 @@
 
 static SConfiguration g_xasmConfiguration = {
 	"motorschip",
-	"1.0",
 	0x1000,
 	ASM_BIG_ENDIAN,
 	false,

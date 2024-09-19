@@ -46,7 +46,6 @@ typedef enum {
 
 typedef struct Configuration {
     const char* executableName;
-    const char* backendVersion;
 
     uint32_t maxSectionSize;
     EEndianness defaultEndianness;

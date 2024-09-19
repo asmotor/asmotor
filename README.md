@@ -51,10 +51,13 @@ jsr {
 
 # Installing
 
-## Prebuilt binary
+## Prebuilt binaries
 Binaries can be found in the [releases section](https://github.com/asmotor/asmotor/releases).
 
-There is no schedule for releases, and binaries are most likely somewhat older than the most recent commit. Releases happen after a period of dog fooding without any issues.
+There is no schedule for releases, and binaries in the releases section are most likely somewhat older than the most recent commit. Releases happen after a period of dog fooding without any issues.
+
+"Nightly" pre-built binaries for common platforms can be downloaded [from here](https://www.rift.dk/asmotor/)
+
 
 ## Installing from source
 

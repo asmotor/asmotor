@@ -63,7 +63,7 @@ const SConfiguration* xasm_Configuration = NULL;
 
 static void
 printUsage(void) {
-	printf("%s v%s, ASMotor v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
+	printf("%s v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
 		   "Options:\n"
 		   "    -a<n>    Section alignment when writing binary file (default is %d bytes)\n"
 		   "    -b<AS>   Change the two characters used for binary constants\n"
@@ -75,8 +75,10 @@ printUsage(void) {
 		   "                 x - xobj (default)\n"
 		   "                 e - ELF object file\n"
 		   "                 b - binary file\n"
-		   "                 v - verilog readmemh file\n", xasm_Configuration->executableName,
-		   xasm_Configuration->backendVersion, xasm_Configuration->executableName, xasm_Configuration->sectionAlignment);
+		   "                 v - verilog readmemh file\n", 
+			xasm_Configuration->executableName,
+			xasm_Configuration->executableName,
+			xasm_Configuration->sectionAlignment);
 
 	if (xasm_Configuration->supportAmiga) {
 		printf("                 g - Amiga executable file\n"
