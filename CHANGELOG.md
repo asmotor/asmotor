@@ -2,7 +2,7 @@
 
 Major highlights from this release are support for a number of new CPUs - 65C02, 65C816, 4510, 45GS02, and 6809. Support for Foenix A2560K/X and F256, the CoCo, and the Commodore 65 and MEGA65 har also been implemented along with various file formats.
 
-The assembler is now also able to write 68K ELF objects, improving integration with C compilers. The linker is also able to read ELF object files and output an ELF executable.
+The assembler is now also able to write 68K ELF objects, improving integration with C compilers. The linker is also able to read ELF object files.
 
 A simple but effective new feature is using the `RS` family of commands to define structures with members, consult the documentation for more information.
 
