@@ -1,3 +1,8 @@
+# 1.3.1
+
+Maintenance release that fixes compilation errors with MacPorts.
+
+
 # 1.3.0
 
 Major highlights from this release are support for a number of new CPUs - 65C02, 65C816, 4510, 45GS02, and 6809. Support for Foenix A2560K/X and F256, the CoCo, and the Commodore 65 and MEGA65 har also been implemented along with various file formats.
