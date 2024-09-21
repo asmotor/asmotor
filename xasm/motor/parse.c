@@ -36,7 +36,7 @@ bool
 parse_ExpandStrings = true;
 
 static bool
-handleMacroArgument() {
+handleMacroArgument(void) {
     if (lex_Context->token.id == T_STRING) {
 		string* arg = lex_TokenString();
         lexctx_AddMacroArgument(arg);
@@ -49,7 +49,7 @@ handleMacroArgument() {
 }
 
 static bool
-handleMacroArguments() {
+handleMacroArguments(void) {
     lex_SetMode(LEXER_MODE_MACRO_ARGUMENT0);
     parse_GetToken();
 
@@ -95,7 +95,7 @@ handleMacroInvocation(void) {
 }
 
 static bool
-handleLineBreak() {
+handleLineBreak(void) {
     if (lex_Context->token.id == '\n') {
         parse_GetToken();
         lex_Context->lineNumber += 1;

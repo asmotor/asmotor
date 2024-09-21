@@ -49,7 +49,7 @@ static bool
 acceptQuotedStringUntil(char terminator);
 
 static bool
-acceptStringInterpolation() {
+acceptStringInterpolation(void) {
 	char ch;
 	while ((ch = lex_GetChar()) != '}' || ch == 0) {
 		lex_Context->token.value.string[lex_Context->token.length++] = ch;
@@ -188,7 +188,7 @@ verifyLocalLabel(void) {
 }
 
 static bool
-acceptSymbolTail() {
+acceptSymbolTail(void) {
 	char ch;
 	while (isSymbolCharacter(ch = lex_GetChar())) {
 		lex_Context->token.value.string[lex_Context->token.length++] = ch;
@@ -342,7 +342,7 @@ gameboyCharToInt(char ch) {
 
 
 static bool 
-acceptGameboyLiteral() {
+acceptGameboyLiteral(void) {
 	uint32_t result = 0;
 	char ch = 0;
 	int value;
@@ -431,7 +431,7 @@ matchChar(char match) {
 }
 
 static bool
-stateNormal() {
+stateNormal(void) {
 	bool lineStart = lex_Context->atLineStart;
 	lex_Context->atLineStart = false;
 
@@ -473,7 +473,7 @@ stateMacroArgument0(void) {
 }
 
 static void
-trimTokenStringRight() {
+trimTokenStringRight(void) {
 	char* asterisk = strrchr(lex_Context->token.value.string, '*');
 	if (asterisk != NULL && isspace(*(asterisk - 1))) {
 		*asterisk = 0;
@@ -497,7 +497,7 @@ getStringUntilTerminators(const char* terminators) {
 }
 
 static bool
-stateMacroArguments() {
+stateMacroArguments(void) {
 	consumeComment(skipUnimportantWhitespace(), false);
 
 	if (matchChar('\n')) {

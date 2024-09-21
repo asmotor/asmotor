@@ -76,7 +76,8 @@ callback__LINE(SSymbol* symbol) {
 	return (int32_t) lexctx_TokenLineNumber();
 }
 
-static string* getDateString() {
+static string*
+getDateString(void) {
 	time_t currentTime = time(NULL);
 	struct tm tm;
 	util_localtime(&tm, &currentTime);
@@ -87,7 +88,8 @@ static string* getDateString() {
 	return str_CreateLength(dateString, stringLength);
 }
 
-static string* getTimeString() {
+static string*
+getTimeString(void) {
 	time_t currentTime = time(NULL);
 	struct tm tm;
 	util_localtime(&tm, &currentTime);
@@ -98,7 +100,8 @@ static string* getTimeString() {
 	return str_CreateLength(timeString, stringLength);
 }
 
-static string* getAmigaDateString() {
+static string*
+getAmigaDateString(void) {
 	time_t currentTime = time(NULL);
 	struct tm localTime;
 	util_localtime(&localTime, &currentTime);
