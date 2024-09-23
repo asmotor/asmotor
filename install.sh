@@ -46,5 +46,5 @@ fi
 DIR=/tmp/_asmotor_bootstrap
 rm -rf $DIR
 git clone --recursive https://github.com/asmotor/asmotor.git $DIR
-cd $DIR && just -f .justfile install $1 && cd ..
+cd $DIR && just -f .justfile append-git-version install $1 && cd ..
 rm -rf $DIR
