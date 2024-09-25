@@ -54,7 +54,9 @@ jsr {
 ## Prebuilt binaries
 Binaries can be found in the [releases section](https://github.com/asmotor/asmotor/releases).
 
-"Nightly" pre-built binaries for common platforms can be downloaded [from here](https://www.rift.dk/asmotor/)
+macOS users may also be able to find the latest release in [macports](https://www.macports.org/).
+
+Binaries for common platforms, built from the latest commit, can be [downloaded from here](https://www.rift.dk/asmotor/).
 
 There is no schedule for releases, and binaries in the releases section are most likely somewhat older than the most recent commit. Releases happen after a period of dog fooding without any issues.
 
