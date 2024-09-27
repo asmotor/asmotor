@@ -1,3 +1,8 @@
+# 1.3.2
+
+## Linker
+Error message fixes
+
 # 1.3.1
 
 Maintenance release that fixes compilation errors with MacPorts.

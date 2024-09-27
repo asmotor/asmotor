@@ -543,7 +543,7 @@ main(int argc, char* argv[]) {
     }
 
     if (!g_targetDefined) {
-        error("No target format defined");
+        error("No target machine defined");
 	}
 
 	if ((g_outputFormat & g_allowedFormats) == 0) {
