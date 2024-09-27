@@ -81,7 +81,7 @@ This option selects the target image format.
 | smd | Sega Mega Drive ROM |
 | sms | Sega Master System ROM |
 | hc800 | HC800 executable |
-| hc800k | HC800 kernal ROM |
+| hc800k | HC800 kernel ROM |
 | fxpgz | Foenix PGZ |
 | mega65 | MEGA65 .PRG |
 
