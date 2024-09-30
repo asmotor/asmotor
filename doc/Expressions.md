@@ -147,13 +147,13 @@ Count EQU 8
       DB  "{Count*2}",0  ; Store the string "16"
 ```
 
-The expression may otionally be followed by a comma and an alignment expression.
+The expression may optionally be followed by a comma and an alignment expression.
 
 ```
     DB  "{"Text",9}",0  ; Right align "Text" so the string "     Text" is stored.
 ```
 
-If the alignment is negative, the expression is left aligned insted.
+If the alignment is negative, the expression is left aligned instead.
 
 Lastly the expression may be followed by a colon and a format specifier, in the case of integer expressions.
 

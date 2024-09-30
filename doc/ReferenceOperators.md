@@ -25,7 +25,7 @@ The result of the boolean operators and comparison operators is zero if when *fa
 There are only a couple of operators available that return new strings. One is the string
 concatenation operator, ```+```. The other is the ["to string"](Expressions.md#to_string) operator - ```|expression|```.
 
-The string comparision operators (```~= == <= >= < >```) all return an integer, the result comparison operators is zero if when *false* and non-zero when *true*.
+The string comparison operators (```~= == <= >= < >```) all return an integer, the result comparison operators is zero if when *false* and non-zero when *true*.
 
 
 # Further reading

@@ -25,7 +25,7 @@ A machine definition will invariably use several constants for addresses and so 
 | 1 | @ | An integer variable containing the array index when defining an array of pools |
 | 2 | + | Unary plus |
 | 2 | - | Unary negation |
-| 2 | ( ) | Parentheses for overriding precendece |
+| 2 | ( ) | Parentheses for overriding precedence |
 | 3 | / | Division |
 | 3 | * | Multiplication |
 | 4 | + | Addition |
@@ -47,7 +47,7 @@ POOL name cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
 | size_expr | The size of the pool in bytes |
 | image_offset_expr | Where the pool should be placed in a binary image, or left out if it should be omitted in the binary image, typically used for BSS pools |
 
-For readability, the expression should be surrounded by parantheses, although this is not necessary.
+For readability, the expression should be surrounded by parentheses, although this is not necessary.
 
 ## Array of pools
 To define an array of pools, the following directive is used:

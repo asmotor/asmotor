@@ -18,7 +18,7 @@ All definitions share a HOME pool from $0000 to $03FF, and a BSS pool from $C000
 
 The unbanked definitions have a CODE/DATA pool covering the HOME pool and from $0400 to the end of the ROM image minus 16 bytes for the header.
 
-The banked definition has a number of CODE/DATA pools, the first is from $0400 to $3FFF. The next pool is $3FF0 in size to accomodate the header, and all the last are $4000 in size and follow this in the ROM image, but they are all configured with a base address of $8000. Thus, bank #1 is unused in this configuration, the subsequent banks must be accessed though bank #2.
+The banked definition has a number of CODE/DATA pools, the first is from $0400 to $3FFF. The next pool is $3FF0 in size to accommodate the header, and all the last are $4000 in size and follow this in the ROM image, but they are all configured with a base address of $8000. Thus, bank #1 is unused in this configuration, the subsequent banks must be accessed though bank #2.
 
 ## Definitions
 
