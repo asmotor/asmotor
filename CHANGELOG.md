@@ -3,6 +3,7 @@
 ## Assembler
 
 * Implemented `INCLUDE ONCE` functionality.
+* 45GS02 has an `LDQ #n32` synthesized instruction.
 * It is no longer possible to redefine an `RS` type symbol.
 * Fixed crash when trying to redefine internal symbol.
 

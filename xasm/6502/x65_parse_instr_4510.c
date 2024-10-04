@@ -197,6 +197,24 @@ handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 }
 
 
+static bool
+handle_LDQImm(SAddressingMode* addrMode) {
+	if (opt_Current->machineOptions->synthesized) {
+		sect_OutputConst8(0xA9);	// LDA
+		sect_OutputExpr8(expr_And(expr_Copy(addrMode->expr), expr_Const(0xFF)));
+		sect_OutputConst8(0xA2);	// LDX
+		sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(8)), expr_Const(0xFF)));
+		sect_OutputConst8(0xA0);	// LDY
+		sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(16)), expr_Const(0xFF)));
+		sect_OutputConst8(0xA3);	// LDZ
+		sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(24)), expr_Const(0xFF)));
+	} else {
+		err_Error(MERROR_SYNTHESIZED);
+	}
+	return true;
+}
+
+
 static SParser
 g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
 	{ 0x43, MODE_A | MODE_ZP | MODE_ZP_X, IMM_NONE, handle_ASR },			/* ASR */
@@ -245,7 +263,7 @@ g_qMnemonics[T_45GS02_STQ + 1 - T_45GS02_ADCQ] = {
 	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_DEC },
 	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_EOR },
 	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_INC },
-	{ MODE_ZP | MODE_ABS | MODE_4510_IND_ZP_Z | MODE_45GS02_IND_ZP_Z_QUAD, T_6502_LDA },
+	{ MODE_IMM | MODE_ZP | MODE_ABS | MODE_4510_IND_ZP_Z | MODE_45GS02_IND_ZP_Z_QUAD, T_6502_LDA },
 	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_LSR },
 	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_ORA },
 	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ROL },
@@ -274,22 +292,22 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 		if (opt_Current->machineOptions->cpu & MOPT_CPU_45GS02) {
 			SQMnemonic* handler = &g_qMnemonics[token - T_45GS02_ADCQ];
 
-			sect_OutputConst8(0x42);
-			sect_OutputConst8(0x42);
-
 			if (handler->token >= T_4510_ASR && handler->token <= T_4510_TZA) {
 				SAddressingMode addrMode;
 				SParser* handler4510 = &g_instructionHandlers[handler->token - T_4510_ASR];
 
-				if (x65_ParseAddressingMode(&addrMode, allowedModes, handler4510->immSize) && (addrMode.mode & allowedModes))
+				if (x65_ParseAddressingMode(&addrMode, allowedModes, handler4510->immSize) && (addrMode.mode & allowedModes)) {
+					sect_OutputConst8(0x42);
+					sect_OutputConst8(0x42);
 					return handler4510->handler(handler4510->baseOpcode, &addrMode);
-				else
+				} else {
 					err_Error(MERROR_ILLEGAL_ADDRMODE);
+				}
 			} else {
 				SAddressingMode addrMode;
 				allowedModes = allowedModes & handler->allowedModes;
 
-				if (x65_ParseAddressingMode(&addrMode, allowedModes, IMM_NONE) && (addrMode.mode & allowedModes)) {
+				if (x65_ParseAddressingMode(&addrMode, allowedModes, token == T_45GS02_LDQ ? IMM_32_BIT : IMM_NONE) && (addrMode.mode & allowedModes)) {
 					// Bit of a hack, modes as they use same encoding with different prefix
 					switch (addrMode.mode) {
 						case MODE_45GS02_IND_ZP_QUAD:
@@ -302,6 +320,12 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 							break;
 					}
 
+					if (token == T_45GS02_LDQ && addrMode.mode == MODE_IMM) {
+						return handle_LDQImm(&addrMode);
+					} 
+
+					sect_OutputConst8(0x42);
+					sect_OutputConst8(0x42);
 					return x65_HandleTokenAddressMode(handler->token, &addrMode);
 				}
 				err_Error(MERROR_ILLEGAL_ADDRMODE);

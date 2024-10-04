@@ -80,6 +80,7 @@ typedef enum {
 	IMM_NONE,
 	IMM_8_BIT,
 	IMM_16_BIT,
+	IMM_32_BIT,
 	IMM_ACC,
 	IMM_INDEX
 } EImmediateSize;
