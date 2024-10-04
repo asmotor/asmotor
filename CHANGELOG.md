@@ -1,7 +1,16 @@
 # 1.3.2
 
+## Assembler
+
+* Implemented `INCLUDE ONCE` functionality.
+* It is no longer possible to redefine an `RS` type symbol.
+* Fixed crash when trying to redefine internal symbol.
+
+
 ## Linker
-Error message fixes
+
+* Error message fixes
+
 
 # 1.3.1
 

@@ -481,7 +481,7 @@ void
 sect_OutputBinaryFile(string* filename) {
 	FILE* fileHandle;
 
-	if ((filename = inc_FindFile(filename)) != NULL && (fileHandle = fopen(str_String(filename), "rb")) != NULL) {
+	if ((fileHandle = fopen(str_String(filename), "rb")) != NULL) {
 		dep_AddDependency(filename);
 
 		fseek(fileHandle, 0, SEEK_END);

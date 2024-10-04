@@ -317,8 +317,7 @@ lexctx_CreateFileContext(FILE* fileHandle, string* name) {
 
 
 extern void
-lexctx_ProcessIncludeFile(string* fileName) {
-	string* name = inc_FindFile(fileName);
+lexctx_ProcessIncludeFile(string* name) {
 	FILE* fileHandle;
 	if (name != NULL && (fileHandle = fopen(str_String(name), "rb")) != NULL) {
 		SLexerContext* newContext = lexctx_CreateFileContext(fileHandle, name);

@@ -75,12 +75,15 @@ createRsSymbol(string* symbolName, int32_t multiplier) {
 	parse_GetToken();
 
 	int value = multiplier * parse_ConstantExpression();
-	SSymbol* symbol = sym_CreateSet(symbolName, parse_IncrementRs(value));
 	if (isDotLocalName(symbolName)) {
-		SSymbol* scope = symbol->scope;
-		if (scope->type == SYM_STRUCTURE) {
-			scope->value.integer += value;
+		if (sym_CurrentScope != NULL && sym_CurrentScope->type == SYM_STRUCTURE) {
+			sym_CreateSet(symbolName, parse_IncrementRs(value));
+			sym_CurrentScope->value.integer += value;
+		} else {
+			err_Error(ERROR_NOT_IN_STRUCTURE_SCOPE);
 		}
+	} else {
+		sym_CreateSet(symbolName, parse_IncrementRs(value));
 	}
 }
 

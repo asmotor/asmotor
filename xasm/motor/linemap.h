@@ -19,8 +19,7 @@
 #ifndef XASM_MOTOR_LINEMAP_H_INCLUDED_
 #define XASM_MOTOR_LINEMAP_H_INCLUDED_
 
-#include "set.h"
-#include "str.h"
+#include "lexer_context.h"
 
 #include "section.h"
 

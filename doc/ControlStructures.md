@@ -9,6 +9,16 @@ The ```INCLUDE``` command is used to process another assembly file and then retu
 INCLUDE "irq.inc"
 ```
 
+### Including file only once
+
+It is likely that a file will be included several times, by both the main file and nested include files, which may result in symbols being redefined or causing errors. To combat this, the assembler provides an include guard contruct:
+
+```
+    INCLUDE ONCE
+```
+
+which instructs the assembler to skip including the same file, if it appears in a subsequent `INCLUDE` statement.
+
 ## Repeating blocks
 
 To repeat a block it can be placed inside a ```REPT```/```ENDR``` structure. The ```REPT``` construct repeats the block a specified number of times.

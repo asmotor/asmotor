@@ -109,6 +109,7 @@ static SLexConstantsWord staticTokens[] = {
         {"TEXT",      T_GROUP_TEXT},
         {"RAM",       T_GROUP_BSS},
         {"ORG",       T_DIRECTIVE_ORG},
+        {"ONCE",      T_INCLUDE_ONCE},
 
         {"EQU",       T_SYM_EQU},
         {"EQUF",      T_SYM_EQUF},

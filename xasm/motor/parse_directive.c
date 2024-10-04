@@ -21,22 +21,40 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+#include "set.h"
 #include "str.h"
 #include "fmath.h"
-#include "mem.h"
 
 #include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
 #include "errors.h"
+#include "strcoll.h"
 #include "symbol.h"
 
+#include "includes.h"
 #include "parse_block.h"
 #include "parse_directive.h"
 #include "parse_expression.h"
 #include "parse_float_expression.h"
 #include "parse_string.h"
 #include "parse_symbol.h"
+#include "tokens.h"
+
+
+static set_t*
+includeOnceFilenames = NULL;
+
+static bool
+mayIncludeFile(string* filename) {
+	if (includeOnceFilenames == NULL) {
+		includeOnceFilenames = strset_Create();
+		return true;
+	}
+
+	bool included = strset_Exists(includeOnceFilenames, filename);
+	return !included;
+}
 
 static bool
 handleImport(string *name) {
@@ -259,7 +277,7 @@ handlePrintv(intptr_t _) {
 static bool
 handlePrintf(intptr_t _) {
 	parse_GetToken();
-
+ 
 	int32_t i = parse_ConstantExpression();
 	if (i < 0) {
 		printf("-");
@@ -459,7 +477,7 @@ static string *getFilename(void) {
 		lex_SetMode(LEXER_MODE_NORMAL);
 	}
 
-	return filename;
+	return filename != NULL ? inc_FindFile(filename) : NULL;
 }
 
 static void
@@ -469,19 +487,37 @@ includeFile(string* name) {
 }
 
 static bool
-handleFile(intptr_t intProcess) {
+handleFileCore(intptr_t intProcess) {
 	void (*process)(string *) = (void (*)(string *))intProcess;
-
-	parse_GetToken();
 
 	string *filename = getFilename();
 	if (filename != NULL) {
-		process(filename);
-		str_Free(filename);
+		if (mayIncludeFile(filename)) {
+			process(filename);
+		}
+		return true;
+	}
+
+	err_Error(ERROR_NO_FILE);
+	return false;
+}
+
+static bool
+handleFile(intptr_t intProcess) {
+	parse_GetToken();
+	return handleFileCore(intProcess);
+}
+
+static bool
+handleInclude(intptr_t intProcess) {
+	parse_GetToken();
+
+	if (lex_Context->token.id == T_INCLUDE_ONCE) {
+		parse_GetToken();
+		strset_Insert(includeOnceFilenames, lex_Context->fileInfo->fileName);
 		return true;
 	} else {
-		err_Error(ERROR_EXPR_STRING);
-		return false;
+		return handleFileCore(intProcess);
 	}
 }
 
@@ -712,7 +748,7 @@ static SDirective
 		{purgeSymbol, (intptr_t)sym_Purge},
 		{handleUserError, (intptr_t)err_Fail},
 		{handleUserError, (intptr_t)err_Warn},
-		{handleFile, (intptr_t)includeFile},
+		{handleInclude, (intptr_t)includeFile},
 		{handleFile, (intptr_t)sect_OutputBinaryFile},
 		{defineSpace, 1},
 		{defineSpace, 2},

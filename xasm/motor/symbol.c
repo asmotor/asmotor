@@ -43,7 +43,7 @@ static uint32_t g_defaultSymbolFlags[] = {
 	SYMF_EXPRESSION | SYMF_RELOC,                       // SYM_IMPORT
 	SYMF_EXPORT,                                        // SYM_GROUP
 	SYMF_EXPRESSION | SYMF_MODIFIABLE | SYMF_RELOC,     // SYM_GLOBAL
-	SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_MODIFIABLE | SYMF_STRUCTURE,  // SYM_STRUCTURE
+	SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_STRUCTURE,	// SYM_STRUCTURE
 	SYMF_MODIFIABLE | SYMF_EXPRESSION | SYMF_EXPORTABLE // SYM_UNDEFINED
 };
 
@@ -238,7 +238,11 @@ createSymbolOfType(string* name, ESymbolType type) {
 		return symbol;
 	}
 
-	err_Error(ERROR_MODIFY_SYMBOL, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+	if (symbol->fileInfo != NULL) {
+		err_Error(ERROR_MODIFY_SYMBOL, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+	} else {
+		err_Error(ERROR_MODIFY_INTERNAL_SYMBOL, str_String(name));
+	}
 	return NULL;
 }
 

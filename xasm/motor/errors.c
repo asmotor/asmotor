@@ -112,7 +112,8 @@ static char* g_errors[] = {
     "Invalid SECTION options combination",
 	"GROUP symbol cannot be redefined",
 	"An ELF section cannot be loaded at 0",
-	"Invalid outside structure scope"
+	"Invalid outside structure scope",
+	"Cannot modify internal symbol %s"
 };
 
 static const char*
