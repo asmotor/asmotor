@@ -18,6 +18,7 @@ binary_amiga_name := (package_base_name + "-bin-amiga-")
 source_pkg_dir := join("build", package_base_name)
 initialized := path_exists(initialized_marker)
 deb_arch := if arch() == "x86_64" { "amd64" } else { arch() }
+generator := if `which ninja >/dev/null; echo $?` == '0' { "Ninja" } else { "Unix Makefiles" }
 tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnutar" } else { "tar" }
 
 # Show all recipes
@@ -35,23 +36,23 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 	if ! {{initialized}}; then \
 		mkdir -p build/cmake/debug; \
 		cd build/cmake/debug; \
-		cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_TOOLCHAIN_FILE={{toolchain}} -DASMOTOR_VERSION={{version}}.next -DCMAKE_BUILD_TYPE=Debug ../../..; \
+		cmake -G '{{ generator }}' -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_TOOLCHAIN_FILE={{toolchain}} -DASMOTOR_VERSION={{version}}.next -DCMAKE_BUILD_TYPE=Debug ../../..; \
 		cd ../../..; \
 		touch {{initialized_marker}}; \
 	fi
 
 
 # Build the project in Debug mode
-@build toolchain="": init
-	cmake --build build/cmake/debug
+@build: init
+	cmake --build build/cmake/debug -- -j 1
 
 
 # Build and install the project in Release mode, defaulting to $HOME/.local
 @install directory="$HOME/.local" sudo="" toolchain="" extra_params="":
 	rm -rf build/cmake/release
 	mkdir -p build/cmake/release
-	cd build/cmake/release; cmake {{extra_params}} -DCMAKE_TOOLCHAIN_FILE={{toolchain}} -DASMOTOR_VERSION={{version}} -DCMAKE_INSTALL_PREFIX={{directory}} -DCMAKE_BUILD_TYPE=Release ../../..; cd ../../..
-	cmake --build build/cmake/release -- -j
+	cd build/cmake/release; cmake -G '{{ generator }}' {{extra_params}} -DCMAKE_TOOLCHAIN_FILE={{toolchain}} -DASMOTOR_VERSION={{version}} -DCMAKE_INSTALL_PREFIX={{directory}} -DCMAKE_BUILD_TYPE=Release ../../..; cd ../../..
+	cmake --build build/cmake/release -- -j {{ num_cpus() }}
 	{{sudo}} cmake --install build/cmake/release
 
 
