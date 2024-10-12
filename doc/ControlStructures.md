@@ -11,7 +11,7 @@ INCLUDE "irq.inc"
 
 ### Including file only once
 
-It is likely that a file will be included several times, by both the main file and nested include files, which may result in symbols being redefined or causing errors. To combat this, the assembler provides an include guard contruct:
+It is likely that a file will be included several times, by both the main file and nested include files, which may result in symbols being redefined or causing errors. To combat this, the assembler provides an include guard construct:
 
 ```
     INCLUDE ONCE

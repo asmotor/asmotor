@@ -13,7 +13,8 @@ If you have ever used a Motorola syntax based assembler you will feel right at h
 ## CPU architectures
 * Z80, Game Boy
 * Motorola 680x0
-* MOS 6502
+* Motorola 6809
+* MOS 6502, 65C02, 65C816, 4510, 45GS02
 * MIPS32
 * CHIP-8/SCHIP
 * DCPU-16
@@ -35,6 +36,7 @@ If you have ever used a Motorola syntax based assembler you will feel right at h
     * C128 program
     * C128 function ROM
     * TED (C16/C116/+4) program
+    * MEGA65
 * Game Boy (32 KiB ROM or banked ROM)
 * Sega Mega Drive/Genesis
 * Sega Master System (8 KiB/16 KiB/32 KiB/48 KiB/banked)

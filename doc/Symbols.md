@@ -90,7 +90,7 @@ The ```__RSB```, ```__RSW``` and ```__RSL``` directives are always available as 
 |---|---|---|---|---|---|---|---|
 | ```__RSB``` | ```RB``` | ```RB``` | ```RS.B``` | ```RB``` | n/a | ```RB``` | ```RB``` |
 | ```__RSW``` | ```RW``` | ```RW``` | ```RS.W``` | ```RH``` | ```RW``` | ```RW``` | ```RW``` |
-| ```__RSL``` | n/a | n/a | ```RS.L``` | ```RW``` | ```RL``` | n/a | n/a |
+| ```__RSL``` | ```RL``` | n/a | ```RS.L``` | ```RW``` | ```RL``` | n/a | n/a |
 
 Example:
 ```

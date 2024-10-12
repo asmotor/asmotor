@@ -22,7 +22,7 @@ The data declaration statements will be called something different depending on 
 |---|---|---|---|---|---|---|
 | ```__DCB``` | ```DB``` | ```DB``` | ```DC.B``` | ```DB``` | n/a | ```DB``` |
 | ```__DCW``` | ```DW``` | ```DW``` | ```DC.W``` | ```DH``` | ```DW``` | ```DW``` |
-| ```__DCL``` | n/a | n/a | ```DC.L``` | ```DW``` | ```DL``` | n/a |
+| ```__DCL``` | ```DL``` | n/a | ```DC.L``` | ```DW``` | ```DL``` | n/a |
 
 ### <a name="binary"></a> Binary files
 Data can also be declared by simply including a binary file directly from the file system:

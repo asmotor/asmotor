@@ -6,9 +6,9 @@ ASMotor is the spiritual successor to RGBDS, which was a fairly popular developm
 
 The assembler syntax is based on the friendly, well-known Motorola style macro language. ASMotor aims to be a friendly assembler and toolchain, well-suited to projects that incorporate a large body of hand crafted assembly code.
 
-Currently supported CPUs are the 680x0 family, 6809, 6502 and derivatives, 65816, MIPS32, Z80, Game Boy, DCPU-16, CHIP-8/SCHIP and [the RC811 CPU core](https://github.com/QuorumComp/rc800).
+Currently supported CPUs are the 680x0 family, 6809, 6502 (and derivatives - 65C02, 65C816, 4510 and 45GS02), MIPS32, Z80, Game Boy, DCPU-16, CHIP-8/SCHIP and [the RC811 CPU core](https://github.com/QuorumComp/rc800).
 
-In addition to raw binary dumps, the linker can output target specific binaries for a number of devices using these processors - various Commodore machines, Nintendo Game Boy, Sega Master System and Genesis and more.
+In addition to raw binary dumps, the linker can output target specific binaries for a number of devices using these processors - various Commodore machines, MEGA65, Foenix Retro Computers, Nintendo Game Boy, Sega Master System and Genesis and more.
 
 Interoperability is important and continues to improve. The linker will read ASMotor's own object format and ELF linkable objects, so it is easy to use a bit of C if necessary. The assembler can output ASMotor's own object format, Amiga hunk format (link and executable) and ELF. The assembler should slot right in to another toolchain without any trouble, if that is preferred.
 
