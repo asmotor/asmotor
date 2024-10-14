@@ -1,3 +1,9 @@
+# 1.3.3
+
+## Linker
+
+* CBM: Fixed load address >= 10000
+
 # 1.3.2
 
 ## Assembler

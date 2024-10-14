@@ -36,7 +36,7 @@ static uint8_t basicSys[13] = {
 
 #define MEGA65_SYS_ASCII_ADDRESS 9
 static uint8_t mega65BasicSys[17] = {
-    0x10, 0x20, 0x0A, 0x00, 0xFE, 0x02, 0x30, 0x3A, 0x9E, 0x37, 0x31, 0x38, 0x31, 0x00, 0x00, 0x00, 0x00
+    0x10, 0x20, 0x0A, 0x00, 0xFE, 0x02, 0x30, 0x3A, 0x9E, 0x31, 0x32, 0x33, 0x34, 0x00, 0x00, 0x00, 0x00
 };
 
 static void
@@ -100,7 +100,7 @@ writeHeader(FILE* fileHandle, const char* entry, uint32_t headerAddress) {
     fputc((headerAddress >> 8u) & 0xFFu, fileHandle);
 
 	basicSys[NEXT_LINE_HIGH_BYTE] = (headerAddress >> 8u) & 0xFF;
-    snprintf((char*) &basicSys[SYS_ASCII_ADDRESS], 5, "%d", findStartAddress(entry));
+    snprintf((char*) &basicSys[SYS_ASCII_ADDRESS], 6, "%d", findStartAddress(entry));
 
     fwrite(basicSys, 1, sizeof(basicSys), fileHandle);
 }
@@ -123,7 +123,7 @@ writeMega65Header(FILE* fileHandle, const char* entry) {
     fputc(0x01, fileHandle);
     fputc(0x20, fileHandle);
 
-    snprintf((char*) &mega65BasicSys[MEGA65_SYS_ASCII_ADDRESS], 5, "%d", findStartAddress(entry));
+    snprintf((char*) &mega65BasicSys[MEGA65_SYS_ASCII_ADDRESS], 6, "%d", findStartAddress(entry));
 
     fwrite(mega65BasicSys, 1, sizeof(mega65BasicSys), fileHandle);
 }
