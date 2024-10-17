@@ -1,5 +1,9 @@
 # 1.3.3
 
+## Assembler
+
+* 6502: Added `<>` immediate modifier.
+
 ## Linker
 
 * CBM: Fixed load address >= 10000

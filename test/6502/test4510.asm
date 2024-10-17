@@ -445,6 +445,10 @@
 	lda	$12,x
 	ldx	$12,y
 
+    phw #$1234
+    phw #<>$1234
+    phw #<>$FEDC
+
 	DW  __4510_BP
    
 	OPT	ms1

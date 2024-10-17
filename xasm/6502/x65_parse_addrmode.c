@@ -41,8 +41,22 @@ maskExpression(SExpression* expr, bool imm16bit) {
 static SExpression* 
 parseImmExpression(bool imm16bit) {
 	if (lex_Context->token.id == T_OP_LESS_THAN) {
+		SExpression* expr;
 		parse_GetToken();
-		return maskExpression(parse_Expression(2), imm16bit);
+		if (lex_Context->token.id == T_OP_GREATER_THAN) {
+			parse_GetToken();
+
+			expr = parse_Expression(2);
+			SExpression* high = expr_And(expr_Copy(expr), expr_Const(0xFF00));
+			SExpression* low = expr;
+			expr = expr_Or(
+				expr_Asl(low, expr_Const(8)),
+				expr_Asr(high, expr_Const(8))
+			);
+		} else {
+			expr = parse_Expression(2);
+		}
+		return maskExpression(expr, imm16bit);
 	} else if (lex_Context->token.id == T_OP_GREATER_THAN) {
 		parse_GetToken();
 		return maskExpression(expr_Asr(parse_Expression(2), expr_Const(8)), imm16bit);
