@@ -82,7 +82,7 @@ static bool
 handle_ASW(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	if (addrMode->mode == MODE_ABS) {
 		sect_OutputConst8(baseOpcode);
-		sect_OutputExpr16(addrMode->expr);
+		x65_OutputU16Expression(addrMode->expr);
 	} else {
 		assert(false);
 	}

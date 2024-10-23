@@ -77,7 +77,7 @@ handle_Standard(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		case MODE_ABS:
 		case MODE_IND_ABS:
 			sect_OutputConst8(baseOpcode);
-			sect_OutputExpr16(expr_CheckRange(addrMode->expr, 0, 0xFFFF));
+			x65_OutputU16Expression(expr_CheckRange(addrMode->expr, 0, 0xFFFF));
 			return true;
 		default:
 			return false;

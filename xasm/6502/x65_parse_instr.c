@@ -122,7 +122,7 @@ handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			return true;
 		case MODE_ABS:
 			sect_OutputConst8(baseOpcode | (uint8_t) 0x0C);
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		case MODE_816_LONG_ABS:
 			x65_OutputLongInstruction(baseOpcode | (uint8_t) 0x0E, addrMode->expr);
@@ -140,7 +140,7 @@ handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			// fall through
 		case MODE_4510_IND_ZP_Z:
 			sect_OutputConst8(baseOpcode + (uint8_t) 0x11);
-			x65_OutputSU8Expression(addrMode->expr);
+			x65_OutputU8Expression(addrMode->expr);
 			return true;
 		case MODE_816_IND_DISP_S_Y: {
 			if ((opt_Current->machineOptions->cpu & CPU_4510) && baseOpcode == 0x81)
@@ -164,11 +164,11 @@ handleStandardAll(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			return true;
 		case MODE_ABS_Y:
 			sect_OutputConst8(baseOpcode | (uint8_t) 0x18);
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		case MODE_ABS_X:
 			sect_OutputConst8(baseOpcode | (uint8_t) 0x1C);
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		case MODE_816_LONG_ABS_X:
 			x65_OutputLongInstruction(baseOpcode | (uint8_t) 0x1E, addrMode->expr);
@@ -197,7 +197,7 @@ handleStandardAbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			return true;
 		case MODE_ABS_Y:
 			sect_OutputConst8(baseOpcode | (uint8_t) (7 << 2));
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		case MODE_ZP:
 			sect_OutputConst8(baseOpcode | (uint8_t) (1 << 2));
@@ -205,7 +205,7 @@ handleStandardAbsY7(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			return true;
 		case MODE_ABS:
 			sect_OutputConst8(baseOpcode | (uint8_t) (3 << 2));
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
@@ -234,7 +234,7 @@ handleStandardImm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			return true;
 		case MODE_ABS:
 			sect_OutputConst8(baseOpcode | (uint8_t) (3 << 2));
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		case MODE_ZP_X:
 		case MODE_ZP_Y:
@@ -245,12 +245,12 @@ handleStandardImm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		case MODE_4510_ABS_Y:
 			baseOpcode = ((baseOpcode & 0x02) << 3) | (baseOpcode & 0x80) | 0x0B;
 			sect_OutputConst8(baseOpcode);
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		case MODE_ABS_X:
 		case MODE_ABS_Y:
 			sect_OutputConst8(baseOpcode | (uint8_t) (7 << 2));
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		default:
 			err_Error(MERROR_ILLEGAL_ADDRMODE);
@@ -283,7 +283,7 @@ handleStandardRotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			return true;
 		case MODE_ABS:
 			sect_OutputConst8(baseOpcode | (uint8_t) (3 << 2));
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		case MODE_ZP_X:
 			sect_OutputConst8(baseOpcode | (uint8_t) (5 << 2));
@@ -291,7 +291,7 @@ handleStandardRotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			return true;
 		case MODE_ABS_X:
 			sect_OutputConst8(baseOpcode | (uint8_t) (7 << 2));
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		default:
 			err_Error(MERROR_ILLEGAL_ADDRMODE);
@@ -377,7 +377,7 @@ handleJMP(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 
 	sect_OutputConst8(baseOpcode);
-	sect_OutputExpr16(addrMode->expr);
+	x65_OutputU16Expression(addrMode->expr);
 	return true;
 }
 
@@ -404,7 +404,7 @@ handleJSR(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 
 	sect_OutputConst8(baseOpcode);
-	sect_OutputExpr16(addrMode->expr);
+	x65_OutputU16Expression(addrMode->expr);
 	return true;
 }
 
@@ -470,11 +470,11 @@ handleSTZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			return true;
 		case MODE_ABS:
 			sect_OutputConst8(0x9C);
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		case MODE_ABS_X:
 			sect_OutputConst8(0x9E);
-			sect_OutputExpr16(addrMode->expr);
+			x65_OutputU16Expression(addrMode->expr);
 			return true;
 		default:
 			return false;
