@@ -25,6 +25,7 @@
 #include "str.h"
 #include "fmath.h"
 
+#include "lexer.h"
 #include "lexer_context.h"
 #include "options.h"
 #include "parse.h"

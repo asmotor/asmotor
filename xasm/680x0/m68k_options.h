@@ -19,6 +19,9 @@
 #ifndef XASM_M68K_OPTIONS_H_INCLUDED_
 #define XASM_M68K_OPTIONS_H_INCLUDED_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #define CPUF_68000 0x01
 #define CPUF_68010 0x02
 #define CPUF_68020 0x04

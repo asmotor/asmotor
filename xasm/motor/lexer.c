@@ -23,13 +23,7 @@
 #include <string.h>
 
 #include "util.h"
-#include "crc32.h"
-#include "file.h"
 #include "fmath.h"
-#include "lists.h"
-#include "mem.h"
-#include "strbuf.h"
-#include "strcoll.h"
 
 #include "errors.h"
 #include "lexer.h"

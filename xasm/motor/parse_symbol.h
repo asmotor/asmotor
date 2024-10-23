@@ -19,6 +19,9 @@
 #ifndef XASM_MOTOR_PARSE_SYMBOL_H_INCLUDED_
 #define XASM_MOTOR_PARSE_SYMBOL_H_INCLUDED_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 extern int32_t
 parse_IncrementRs(int32_t size);
 

@@ -16,7 +16,6 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
 #include "options.h"
 #include "symbol.h"
 

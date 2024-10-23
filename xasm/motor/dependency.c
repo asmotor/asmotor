@@ -58,7 +58,8 @@ dep_Initialize(const char* outputFileName) {
 
 extern void
 dep_RemoveDependencyfile(void) {
-	remove(str_String(g_outputFilename));
+	if (g_outputFilename != NULL)
+		remove(str_String(g_outputFilename));
 }
 
 extern void

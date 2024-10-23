@@ -19,6 +19,8 @@
 #ifndef PROJECT_PARSE_DIRECTIVES_H
 #define PROJECT_PARSE_DIRECTIVES_H
 
+#include <stdbool.h>
+
 extern bool
 parse_Directive(void);
 

@@ -2,9 +2,12 @@
 
 ## Assembler
 
-* 6502: Added `<>` immediate modifier.
-* 6502: Proper range check for absolute addresses.
 * Fixed dependency file might end up with date later than main output file, causing unnecessary rebuilds with make.
+
+### 6502
+
+* Added `<>` immediate modifier.
+* Proper range check for absolute addresses.
 
 ## Linker
 

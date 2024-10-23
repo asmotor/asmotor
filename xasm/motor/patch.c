@@ -26,7 +26,6 @@
 
 #include "xasm.h"
 #include "lexer_context.h"
-#include "parse.h"
 #include "patch.h"
 #include "errors.h"
 #include "tokens.h"

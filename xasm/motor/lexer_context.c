@@ -28,7 +28,6 @@
 #include "strcoll.h"
 
 // From xasm
-#include "xasm.h"
 #include "crc32.h"
 #include "dependency.h"
 #include "errors.h"
@@ -36,7 +35,6 @@
 #include "lexer_buffer.h"
 #include "lexer_context.h"
 #include "symbol.h"
-#include "tokens.h"
 
 
 /* Internal variables */

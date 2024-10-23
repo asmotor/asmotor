@@ -23,10 +23,8 @@
 
 #include "mem.h"
 
-#include "xasm.h"
 #include "errors.h"
 #include "options.h"
-#include "symbol.h"
 
 #include "m68k_errors.h"
 #include "m68k_options.h"

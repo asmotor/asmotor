@@ -18,7 +18,6 @@
 
 
 #include <assert.h>
-#include "xasm.h"
 #include "errors.h"
 #include "lexer.h"
 #include "parse.h"

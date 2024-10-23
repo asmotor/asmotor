@@ -16,7 +16,6 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
 #include "symbol.h"
 
 #include "m68k_symbols.h"

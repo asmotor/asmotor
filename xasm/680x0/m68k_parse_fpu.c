@@ -17,7 +17,7 @@
 */
 
 #include "errors.h"
-#include "lexer.h"
+#include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"

@@ -22,20 +22,12 @@
 #include <assert.h>
 
 // From util
-#include "util.h"
-#include "fmath.h"
-#include "mem.h"
 #include "str.h"
-#include "strbuf.h"
 
 // From xasm
 #include "xasm.h"
-#include "errors.h"
-#include "lexer_context.h"
 #include "lexer_constants.h"
-#include "options.h"
 #include "parse.h"
-#include "symbol.h"
 
 #if defined(_MSC_VER)
 #   define sscanf sscanf_s

@@ -42,7 +42,6 @@
 #include "elf.h"
 #include "errors.h"
 #include "lexer.h"
-#include "lexer_context.h"
 #include "object.h"
 #include "options.h"
 #include "parse.h"

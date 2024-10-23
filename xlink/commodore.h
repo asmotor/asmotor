@@ -19,6 +19,8 @@
 #ifndef XLINK_COMMODORE_H_INCLUDED_
 #define XLINK_COMMODORE_H_INCLUDED_
 
+#include <stdint.h>
+
 extern void
 commodore_WritePrg(const char* outputFilename, const char* entry, uint32_t baseAddress);
 

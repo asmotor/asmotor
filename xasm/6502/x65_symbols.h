@@ -20,6 +20,10 @@
 #ifndef XASM_6502_SYMBOLS_H_INCLUDED_
 #define XASM_6502_SYMBOLS_H_INCLUDED_
 
+#include <stdbool.h>
+
+#include "str.h"
+
 extern void
 x65_DefineSymbols(void);
 

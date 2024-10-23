@@ -17,7 +17,6 @@
 */
 
 #include "mem.h"
-#include "strcoll.h"
 
 #include "lexer_context.h"
 #include "linemap.h"

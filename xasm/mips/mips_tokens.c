@@ -16,7 +16,6 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
 #include "lexer_constants.h"
 
 #include "mips_tokens.h"

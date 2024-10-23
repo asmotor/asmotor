@@ -22,6 +22,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "str.h"
+
 extern string*
 parse_CopyMacroBlock(void);
 

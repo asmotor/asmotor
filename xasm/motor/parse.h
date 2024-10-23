@@ -19,8 +19,12 @@
 #ifndef XASM_MOTOR_PARSE_H_INCLUDED_
 #define XASM_MOTOR_PARSE_H_INCLUDED_
 
-#include "expression.h"
-#include "lexer.h"
+#include <stdbool.h>
+
+#include "util.h"
+
+#include "tokens.h"
+
 
 extern bool
 parse_ExpandStrings;

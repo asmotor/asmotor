@@ -19,6 +19,8 @@
 #ifndef XASM_M68K_SYMBOLS_H_INCLUDED_
 #define XASM_M68K_SYMBOLS_H_INCLUDED_
 
+#include "str.h"
+
 #include "m68k_options.h"
 
 extern void

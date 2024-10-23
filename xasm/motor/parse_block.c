@@ -18,9 +18,6 @@
 
 #include <memory.h>
 
-/* From util */
-#include "mem.h"
-
 /* From xasm */
 #include "parse.h"
 #include "parse_block.h"

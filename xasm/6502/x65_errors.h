@@ -19,7 +19,7 @@
 #ifndef XASM_6502_ERRORS_H_INCLUDED_
 #define XASM_6502_ERRORS_H_INCLUDED_
 
-#include "xasm.h"
+#include <stdlib.h>
 
 typedef enum {
     MERROR_ILLEGAL_ADDRMODE = 1000,
