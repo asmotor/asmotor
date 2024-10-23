@@ -255,9 +255,9 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 
 				if (outputFilename != NULL) {
 					dep_SetMainOutput(outputFilename);
-					if (writeOutput(format, outputFilename, sourcePath)) {
-						dep_WriteDependencyFile();
-					} else  {
+					dep_WriteDependencyFile();
+					if (!writeOutput(format, outputFilename, sourcePath)) {
+						dep_RemoveDependencyfile();
 						remove(str_String(outputFilename));
 					}
 				}

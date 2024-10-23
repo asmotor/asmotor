@@ -3,6 +3,7 @@
 ## Assembler
 
 * 6502: Added `<>` immediate modifier.
+* Fixed dependency file might end up with date later than main output file, causing unnecessary rebuilds with make.
 
 ## Linker
 

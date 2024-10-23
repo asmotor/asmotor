@@ -57,6 +57,11 @@ dep_Initialize(const char* outputFileName) {
 }
 
 extern void
+dep_RemoveDependencyfile(void) {
+	remove(str_String(g_outputFilename));
+}
+
+extern void
 dep_Exit(void) {
 	str_Free(g_mainOutput);
 	str_Free(g_outputFilename);
@@ -91,6 +96,8 @@ dep_WriteDependencyFile(void) {
             fprintf(fileHandle, "\n\n");
             strset_Remove(g_dependencySet, g_mainDependency);
             set_ForEachElement(g_dependencySet, writeTarget, (intptr_t) fileHandle);
+
+			fclose(fileHandle);
         }
     }
 }

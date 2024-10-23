@@ -25,6 +25,9 @@ extern void
 dep_Initialize(const char* outputFileName);
 
 extern void
+dep_RemoveDependencyfile(void);
+
+extern void
 dep_Exit(void);
 
 extern void
