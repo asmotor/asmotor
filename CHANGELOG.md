@@ -8,6 +8,7 @@
 
 * Added `<>` immediate modifier.
 * Proper range check for absolute addresses.
+* Improve 45GS02 syntesized LDQ code generation.
 
 ## Linker
 

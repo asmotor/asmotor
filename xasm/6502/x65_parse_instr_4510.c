@@ -200,14 +200,46 @@ handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 static bool
 handle_LDQImm(SAddressingMode* addrMode) {
 	if (opt_Current->machineOptions->synthesized) {
-		sect_OutputConst8(0xA9);	// LDA
-		sect_OutputExpr8(expr_And(expr_Copy(addrMode->expr), expr_Const(0xFF)));
-		sect_OutputConst8(0xA2);	// LDX
-		sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(8)), expr_Const(0xFF)));
-		sect_OutputConst8(0xA0);	// LDY
-		sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(16)), expr_Const(0xFF)));
-		sect_OutputConst8(0xA3);	// LDZ
-		sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(24)), expr_Const(0xFF)));
+		if (expr_IsConstant(addrMode->expr)) {
+			uint32_t imm = (uint32_t) addrMode->expr->value.integer;
+			uint8_t a = (uint8_t) (imm & 0xFF);
+			uint8_t x = (uint8_t) ((imm >> 8) & 0xFF);
+			uint8_t y = (uint8_t) ((imm >> 16) & 0xFF);
+			uint8_t z = (uint8_t) ((imm >> 24) & 0xFF);
+
+			sect_OutputConst8(0xA9);	// LDA
+			sect_OutputConst8(a);
+
+			if (a == x) {
+				sect_OutputConst8(0xAA);	// TAX
+			} else {
+				sect_OutputConst8(0xA2);	// LDX
+				sect_OutputConst8(x);
+			}
+
+			if (a == y) {
+				sect_OutputConst8(0xA8);	// TAX
+			} else {
+				sect_OutputConst8(0xA0);	// LDY
+				sect_OutputConst8(y);
+			}
+
+			if (a == z) {
+				sect_OutputConst8(0x4B);	// TAZ
+			} else {
+				sect_OutputConst8(0xA3);	// LDZ
+				sect_OutputConst8(z);
+			}
+		} else {
+			sect_OutputConst8(0xA9);	// LDA
+			sect_OutputExpr8(expr_And(expr_Copy(addrMode->expr), expr_Const(0xFF)));
+			sect_OutputConst8(0xA2);	// LDX
+			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(8)), expr_Const(0xFF)));
+			sect_OutputConst8(0xA0);	// LDY
+			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(16)), expr_Const(0xFF)));
+			sect_OutputConst8(0xA3);	// LDZ
+			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(24)), expr_Const(0xFF)));
+		}
 	} else {
 		err_Error(MERROR_SYNTHESIZED);
 	}
