@@ -70,5 +70,5 @@ MACRO: (_58), arg1 3987
 MACROREPT * 2 (_59), arg1 3987, narg 2
 MACROREPT * 2 (_60), arg1 1234, narg 1
 MACROEND: (_58), arg1 
-repttest.asm:30: W0003 Line 30
 repttest.asm:4: W0003 Line 4
+repttest.asm:30: W0003 Line 30

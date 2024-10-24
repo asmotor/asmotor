@@ -128,9 +128,14 @@ getError(size_t errorNumber) {
     }
 }
 
+typedef struct Message {
+	uint32_t lineNumber;
+    string* message;
+} SMessage;
+
 typedef struct Messages {
     uint32_t totalMessages;
-    string** messages;
+    SMessage* messages;
 } SMessages;
 
 typedef struct SuspendedErrors {
@@ -165,29 +170,32 @@ matchesLastMessage(string* str) {
 }
 
 static int
-compareStrings(const void* s1, const void* s2) {
-    return str_Compare(*(const string**) s1, *(const string**) s2);
+compareMessages(const void* s1, const void* s2) {
+	SMessage* m1 = (SMessage*) s1;
+	SMessage* m2 = (SMessage*) s2;
+	return m1->lineNumber - m2->lineNumber;
 }
 
 
 static void
 sortMessages(SMessages* messages) {
-    qsort(messages->messages, messages->totalMessages, sizeof(string*), compareStrings);
+    qsort(messages->messages, messages->totalMessages, sizeof(SMessage), compareMessages);
 }
 
 
 static void
-addMessage(SMessages* msg, string* str) {
+addMessage(SMessages* msg, SMessage* message) {
     msg->totalMessages += 1;
-    msg->messages = (string**) mem_Realloc(msg->messages, msg->totalMessages * sizeof(string*));
-    msg->messages[msg->totalMessages - 1] = str_Copy(str);
+    msg->messages = (SMessage*) mem_Realloc(msg->messages, msg->totalMessages * sizeof(SMessage));
+    msg->messages[msg->totalMessages - 1].message = str_Copy(message->message);
+    msg->messages[msg->totalMessages - 1].lineNumber = message->lineNumber;
 }
 
 
 static void
 freeMessages(SMessages* msg) {
     for (uint32_t i = 0; i < msg->totalMessages; ++i) {
-        str_Free(msg->messages[i]);
+        str_Free(msg->messages[i].message);
     }
     mem_Free(msg->messages);
 }
@@ -219,7 +227,7 @@ err_Discard(void) {
 static void
 printMessages(const SMessages* messages, uint32_t* total) {
     for (uint32_t i = 0; i < messages->totalMessages; ++i) {
-        addMessage(&g_allMessages, messages->messages[i]);
+        addMessage(&g_allMessages, &messages->messages[i]);
     }
     *total += messages->totalMessages;
 }
@@ -237,15 +245,19 @@ err_Accept(void) {
 static void
 printError(const SPatch* patch, const SSymbol* symbol, char severity, size_t errorNumber, uint32_t* count, va_list args) {
     string_buffer* buf = strbuf_Create();
+	uint32_t lineNumber = 0;
 
     if (patch != NULL) {
-        strbuf_AppendFormat(buf, "%s:%d: ", str_String(patch->filename), patch->lineNumber);
+		lineNumber = patch->lineNumber;
+        strbuf_AppendFormat(buf, "%s:%d: ", str_String(patch->filename), lineNumber);
     } else if (symbol != NULL) {
-        strbuf_AppendFormat(buf, "%s:%d: ", str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+		lineNumber = symbol->lineNumber;
+        strbuf_AppendFormat(buf, "%s:%d: ", str_String(symbol->fileInfo->fileName), lineNumber);
     } else {
-        string* stack = lexctx_Dump();
+        string* stack = lexctx_GetFilenameBreadcrumb();
         strbuf_AppendString(buf, stack);
         str_Free(stack);
+		lineNumber = lexctx_GetMainFileLineNumber();
     }
     strbuf_AppendFormat(buf, "%c%04d ", severity, (int) errorNumber);
 
@@ -254,15 +266,20 @@ printError(const SPatch* patch, const SSymbol* symbol, char severity, size_t err
     string* str = strbuf_String(buf);
     strbuf_Free(buf);
 
+	SMessage message = {
+		lineNumber, str
+	};
+
     if (g_suspendedErrors == NULL) {
-        addMessage(&g_allMessages, str);
+        addMessage(&g_allMessages, &message);
         *count += 1;
     } else {
         SMessages* msg = severity == 'W' ? &g_suspendedErrors->warnings : &g_suspendedErrors->errors;
-        addMessage(msg, str);
+        addMessage(msg, &message);
     }
     str_Free(str);
 }
+
 
 static bool
 warningEnabled(uint32_t errorNumber) {
@@ -355,9 +372,9 @@ void
 err_PrintAll(void) {
     sortMessages(&g_allMessages);
     for (uint32_t i = 0; i < g_allMessages.totalMessages; ++i) {
-        string* str = g_allMessages.messages[i];
-        if (!matchesLastMessage(str)) {
-            fprintf(stderr, "%s\n", str_String(str));
+        SMessage* message = &g_allMessages.messages[i];
+        if (!matchesLastMessage(message->message)) {
+            fprintf(stderr, "%s\n", str_String(message->message));
         }
     }
 	freeMessages(&g_allMessages);

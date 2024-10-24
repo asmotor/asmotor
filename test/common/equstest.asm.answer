@@ -1,5 +1,5 @@
 First
 Second
+equstest.asm:7: W0003 Line 7
 equstest.asm:13: W0003 Line 11
 equstest.asm:14 -> equstest.asm:15: F0147 Unterminated REPT block at end of file
-equstest.asm:7: W0003 Line 7

@@ -98,7 +98,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/z80/motorz80",
-            "args": ["-mcg", "-fv", "-otest.r", "rstest.asm"],
+            "args": ["-mcg", "-fv", "-otest.r", "failwarn.asm"],
             "cwd": "${workspaceFolder}/test/common",
         },
         {

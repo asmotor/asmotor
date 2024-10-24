@@ -176,7 +176,7 @@ lexctx_ShiftMacroArgs(int32_t count) {
 }
 
 extern string*
-lexctx_Dump(void) {
+lexctx_GetFilenameBreadcrumb(void) {
 	string_buffer* buf = strbuf_Create();
 
 	if (lex_Context == NULL) {
@@ -202,6 +202,21 @@ lexctx_Dump(void) {
 
 	return str;
 }
+
+
+extern uint32_t
+lexctx_GetMainFileLineNumber(void) {
+	if (lex_Context == NULL)
+		return 0;
+
+	SLexerContext* stack = lex_Context;
+	while (list_GetNext(stack)) {
+		stack = list_GetNext(stack);
+	}
+
+	return stack->lineNumber;
+}
+
 
 static void
 copyToken(SLexerToken* dest, const SLexerToken* src) {

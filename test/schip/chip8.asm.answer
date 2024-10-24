@@ -1,2 +1,2 @@
-chip8.asm:4: E0128 Syntax error
 chip8.asm:4: E1002 SCHIP required
+chip8.asm:4: E0128 Syntax error

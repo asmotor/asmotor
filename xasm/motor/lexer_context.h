@@ -113,7 +113,10 @@ extern void
 lexctx_Cleanup(void);
 
 extern string*
-lexctx_Dump(void);
+lexctx_GetFilenameBreadcrumb(void);
+
+extern uint32_t
+lexctx_GetMainFileLineNumber(void);
 
 extern void
 lexctx_ShiftMacroArgs(int32_t count);

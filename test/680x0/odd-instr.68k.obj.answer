@@ -1,4 +1,4 @@
 0000000 45 4d 50 54 59 0a
 0000006
-odd-instr.68k:7: E0128 Syntax error
 odd-instr.68k:7: E1018 Instruction must be word aligned
+odd-instr.68k:7: E0128 Syntax error

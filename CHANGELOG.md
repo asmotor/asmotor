@@ -3,6 +3,7 @@
 ## Assembler
 
 * Fixed dependency file might end up with date later than main output file, causing unnecessary rebuilds with make.
+* Improved error message sort order.
 
 ### 6502
 

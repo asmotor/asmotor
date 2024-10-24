@@ -1,2 +1,3 @@
 failwarn.asm:4: W0003 Warn me
-failwarn.asm:5: F0003 Fail me
+failwarn.asm:115: W0003 Line 115
+failwarn.asm:117: F0003 Fail me
