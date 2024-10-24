@@ -371,8 +371,7 @@ expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
     }
 
     err_Error(ERROR_OPERAND_RANGE);
-
-    return NULL;
+    return expr_Const(0);
 }
 
 
