@@ -14,6 +14,11 @@
 * Improve 45GS02 syntesized LDQ code generation.
 * Proper range check for absolute addresses.
 
+### 680x0
+
+* Amiga HUNK_EXT hunk could be written incorrectly in some circumstances.
+
+
 ## Linker
 
 * CBM: Fixed load address >= 10000

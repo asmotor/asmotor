@@ -107,45 +107,41 @@ writeExtHunk(FILE* fileHandle, const SSection* section, SPatch* importPatches, o
             uint32_t patchCount = 0;
 
             fputstr(patchSymbol->name, fileHandle, EXT_REF32);
-            off_t symbolCountPosition = ftello(fileHandle);
+            off_t patchCountPosition = ftello(fileHandle);
             fputbl(0, fileHandle);
 
-            SPatch* patch = importPatches;
-            do {
-                off_t offsetPosition = ftello(fileHandle);
+            SPatch** ppatch = &importPatches;
+			while (*ppatch) {
+				SPatch* patch = *ppatch;
+				SSymbol* symbol;
+				if (expr_GetImportOffset(&offset, &symbol, patch->expression) && symbol == patchSymbol) {
+					off_t offsetPosition = ftello(fileHandle);
 
-                fseeko(fileHandle, patch->offset + hunkPosition, SEEK_SET);
-                fputbl(offset, fileHandle);
-                fseeko(fileHandle, offsetPosition, SEEK_SET);
+					fseeko(fileHandle, patch->offset + hunkPosition, SEEK_SET);
+					fputbl(offset, fileHandle);
+					fseeko(fileHandle, offsetPosition, SEEK_SET);
 
-                fputbl(patch->offset, fileHandle);
+					fputbl(patch->offset, fileHandle);
 
-                ++patchCount;
-                dataWritten = true;
+					++patchCount;
+					dataWritten = true;
 
-                for (patch = list_GetNext(patch); patch != NULL; patch = list_GetNext(patch)) {
-                    SSymbol* symbol;
-                    if (expr_GetImportOffset(&offset, &symbol, patch->expression) && symbol == patchSymbol) {
-                        assert (patch->pPrev != NULL);
+					*ppatch = patch->pNext;
 
-                        patch->pPrev->pNext = patch->pNext;
-                        if (patch->pNext)
-                            patch->pNext->pPrev = patch->pPrev;
+					if (patch->pNext)
+						patch->pNext->pPrev = patch->pPrev;
 
-						patch_Free(patch);
-                        break;
-                    }
-                }
-            } while (patch != NULL);
+					patch_Free(patch);
+                } else {
+					ppatch = &patch->pNext;
+				}
+            }
 
             off_t currentPosition = ftello(fileHandle);
-            fseeko(fileHandle, symbolCountPosition, SEEK_SET);
+            fseeko(fileHandle, patchCountPosition, SEEK_SET);
             fputbl(patchCount, fileHandle);
             fseeko(fileHandle, currentPosition, SEEK_SET);
         }
-		SPatch* next = list_GetNext(importPatches);
-		patch_Free(importPatches);
-		importPatches = next;
     }
 
     for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
