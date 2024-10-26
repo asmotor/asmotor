@@ -222,8 +222,8 @@ acceptLabel(EToken token) {
 			if (ch == '#') {
 				// unput string symbol value, if found
 				string* name = lex_TokenString();
-				str_Free(name);
 				string* value = sym_GetStringSymbolValueByName(name);
+				str_Free(name);
 				if (value != NULL) {
 					lex_UnputStringLength(str_String(value), str_Length(value));
 					str_Free(value);

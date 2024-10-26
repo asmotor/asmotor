@@ -249,8 +249,10 @@ sect_OutputReloc8(SExpression* expression) {
 				linemap_AddCurrent();
 
 				patch_Create(sect_Current, sect_Current->usedSpace, expression, PATCH_8);
+
+				sect_Current->data[sect_Current->usedSpace++] = 0;
+
 				sect_Current->cpuProgramCounter += 1;
-				sect_Current->usedSpace += 1;
 				sect_Current->freeSpace -= 1;
 				break;
 			}
@@ -332,8 +334,11 @@ sect_OutputReloc16(SExpression* expression) {
 
 				patch_Create(sect_Current, sect_Current->usedSpace, expression,
 							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_16 : PATCH_BE_16);
+
+				sect_Current->data[sect_Current->usedSpace++] = 0;
+				sect_Current->data[sect_Current->usedSpace++] = 0;
+
 				sect_Current->freeSpace -= 2;
-				sect_Current->usedSpace += 2;
 				sect_Current->cpuProgramCounter += 2 / xasm_Configuration->minimumWordSize;
 				break;
 			}
@@ -420,9 +425,14 @@ sect_OutputRel32(SExpression* expression) {
 
 				patch_Create(sect_Current, sect_Current->usedSpace, expression,
 							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_32 : PATCH_BE_32);
+
+				sect_Current->data[sect_Current->usedSpace++] = 0;
+				sect_Current->data[sect_Current->usedSpace++] = 0;
+				sect_Current->data[sect_Current->usedSpace++] = 0;
+				sect_Current->data[sect_Current->usedSpace++] = 0;
+
 				sect_Current->freeSpace -= 4;
 				sect_Current->cpuProgramCounter += 4 / xasm_Configuration->minimumWordSize;
-				sect_Current->usedSpace += 4;
 				break;
 			}
 			case GROUP_BSS: {

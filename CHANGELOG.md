@@ -2,15 +2,17 @@
 
 ## Assembler
 
-* Fixed dependency file might end up with date later than main output file, causing unnecessary rebuilds with make.
 * Improved error message sort order.
 * Out of range constants will no longer early fail assembly.
+* Fixed dependency file might end up with date later than main output file, causing unnecessary rebuilds with make.
+* String interpolation would sometimes fail in rare cases.
+* `GROUP` directive would generate a syntax error.
 
 ### 6502
 
 * Added `<>` immediate modifier.
-* Proper range check for absolute addresses.
 * Improve 45GS02 syntesized LDQ code generation.
+* Proper range check for absolute addresses.
 
 ## Linker
 
