@@ -198,6 +198,7 @@ parse_SymbolDefinition(void) {
 							return false;
 					}
 					sym_CreateGroup(symbolName, groupType);
+					parse_GetToken();
 					break;
 				}
 			}

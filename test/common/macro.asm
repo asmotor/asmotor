@@ -1,4 +1,6 @@
-; macro.asm
+MyGroup	GROUP TEXT
+
+	; macro.asm
 	SECTION "Code",CODE
 
 Function:	MACRO	;funcname
