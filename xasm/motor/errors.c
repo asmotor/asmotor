@@ -173,7 +173,11 @@ static int
 compareMessages(const void* s1, const void* s2) {
 	SMessage* m1 = (SMessage*) s1;
 	SMessage* m2 = (SMessage*) s2;
-	return m1->lineNumber - m2->lineNumber;
+	int n = m1->lineNumber - m2->lineNumber;
+	if (n != 0)
+		return n;
+
+	return strcmp(str_String(m1->message), str_String(m2->message));
 }
 
 
