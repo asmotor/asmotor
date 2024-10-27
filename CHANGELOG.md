@@ -11,7 +11,7 @@
 ### 6502
 
 * Added `<>` immediate modifier.
-* Improve 45GS02 syntesized LDQ code generation.
+* Improved 45GS02 synthesized LDQ code generation.
 * Proper range check for absolute addresses.
 
 ### 680x0
