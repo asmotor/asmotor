@@ -21,6 +21,8 @@
 
 ## Linker
 
+* Implemented line based comments in machine definition files.
+* Improved error messages from errorneous machine definition files.
 * CBM: Fixed load address >= 10000
 
 # 1.3.2

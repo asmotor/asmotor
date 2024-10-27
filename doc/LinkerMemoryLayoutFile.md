@@ -16,6 +16,9 @@ The same pool may be used in more than one group.
 # Definition language
 The language is line-based with each line defining a pool (or array of related pools), a group or the file format the machine supports.
 
+## Comments
+The language supports line based comments. Any characters after a `;` character are ignored for that line. The `;` character may appear anywhere in the line.
+
 ## Expression
 A machine definition will invariably use several constants for addresses and so forth. These can also consist of some common operators and components. From highest to lowest precedence these are:
 

@@ -50,7 +50,7 @@ dummyFree(intptr_t userData, intptr_t element) {
 }
 
 
-#define DELIMITERS " \t\n$%%+-*/()[]:@"
+#define DELIMITERS " \t\n$%%+-*/()[]:@;"
 
 static const char* token;
 static size_t token_length;
@@ -70,6 +70,7 @@ nextToken(const char** in) {
 
 	switch (**in) {
 		case 0:
+		case ';':
 			token_length = 0;
 			return;
 		case '$':
@@ -153,6 +154,9 @@ parseInteger(const char** line, uint32_t* value) {
 		else if (ch >= 'a' && ch <= 'z')
 			ch -= 'a' - 10;
 		else
+			return false;
+
+		if (ch >= base)
 			return false;
 		
 		*value = *value * base + ch;
@@ -293,13 +297,16 @@ parsePool(const char** line) {
 		return pool_Create(image_offset, cpu_address, cpu_bank, size, false);
 	}
 
-	ERROR("Error in pool definition");
+	ERROR("Error in POOL definition");
 	return NULL;
 }
 
 
 static void
 parsePoolDirective(const char** line, strmap_t* pool_map) {
+	if (token_length == 0)
+		ERROR("Empty POOL definition");
+
 	string* name = str_CreateLength(token, token_length);
 	nextToken(line);
 
@@ -311,6 +318,9 @@ parsePoolDirective(const char** line, strmap_t* pool_map) {
 
 static void
 parsePoolsDirective(const char** line, strmap_t* pool_map) {
+	if (token_length == 0)
+		ERROR("Empty POOLS definition");
+
 	string* name = str_CreateLength(token, token_length);
 	nextToken(line);
 
@@ -333,8 +343,14 @@ parsePoolsDirective(const char** line, strmap_t* pool_map) {
 
 static void
 parseGroupDirective(const char** line, strmap_t* pool_map) {
+	if (token_length == 0)
+		ERROR("Missing GROUP name");
+
 	string* name = str_CreateLength(token, token_length);
 	nextToken(line);
+
+	if (token_length == 0)
+		ERROR("Empty GROUP definition");
 
 	vec_t* pool_list = vec_Create(dummyFree);
 	int total = 0;
@@ -346,7 +362,7 @@ parseGroupDirective(const char** line, strmap_t* pool_map) {
 			vec_PushBack(pool_list, (intptr_t) pools);
 			total += pools->count;
 		} else {
-			FERROR("Unknown pool %s", str_String(name));
+			FERROR("Unknown pool \"%s\"", str_String(name));
 		}
 
 		nextToken(line);
@@ -375,11 +391,7 @@ parseFormat(const char** line) {
 		g_cbmHeaderAddress = expectExpression(line);
 		expectToken(line, "]");
 		g_allowedFormats |= FILE_FORMAT_CBM_PRG;
-
-		return;
-	}
-
-	if (tokenIs("BIN")) {
+	} else if (tokenIs("BIN")) {
 		g_allowedFormats |= FILE_FORMAT_BINARY;
 	} else if (tokenIs("GAME_BOY")) {
 		g_allowedFormats |= FILE_FORMAT_GAME_BOY;
@@ -406,7 +418,7 @@ parseFormat(const char** line) {
 	} else if (tokenIs("MEGA65_PRG")) {
 		g_allowedFormats |= FILE_FORMAT_MEGA65_PRG;
 	} else {
-		FERROR("Unknown format %*s", token_length, token);
+		FERROR("Unknown format \"%.*s\"", token_length, token);
 	}
 
 	nextToken(line);
@@ -415,6 +427,9 @@ parseFormat(const char** line) {
 
 static void
 parseFormatsDirective(const char** line) {
+	if (token_length == 0)
+		ERROR("Empty FORMATS definition");
+
 	while (token_length != 0) {
 		parseFormat(line);
 	}
@@ -441,8 +456,14 @@ parseLine(const char* line, strmap_t* pools) {
 		nextToken(&line);
 		parseFormatsDirective(&line);
 	} else {
-		FERROR("Unknown keyword %s in memory map", token);
+		FERROR("Unknown keyword \"%.*s\" in memory map", token_length, token);
 	}
+
+	if (token_length == 0) {
+		return;
+	}
+
+	FERROR("Excess characters \"%.*s\" at end of line", token_length, token);
 }
 
 
@@ -464,6 +485,10 @@ readLine(FILE* file) {
 	string* r = strbuf_String(buf);
 	strbuf_Free(buf);
 
+	if (g_allowedFormats == 0) {
+		ERROR("Missing FORMATS");
+	}
+
 	return r;
 }
 
@@ -474,7 +499,7 @@ mmap_Read(const string* filename) {
 	FILE* file = fopen(str_String(filename), "rt");
 
 	if (file == NULL)
-		FERROR("Unable to open file %s", filename);
+		FERROR("Unable to open file \"%s\"", filename);
 
 	g_filename = str_String(filename);
 	g_line = 1;
