@@ -469,7 +469,7 @@ handleOption(const char* option) {
 
 			g_targetDefined = true;
 			string* filename = str_ToLower(str_Create(&option[1]));
-			mmap_Read(filename);
+			mdef_Read(filename);
 			str_Free(filename);
 			return true;
 		}

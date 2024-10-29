@@ -44,7 +44,7 @@ setupUnbankedCommodore(uint32_t baseAddress, uint32_t size) {
     MemoryGroup* group;
     MemoryPool* codepool;
 
-    codepool = pool_Create(0, baseAddress, 0, size, false);
+    codepool = pool_Create(0, UINT32_MAX, baseAddress, 0, size, false);
 
     //	Create CODE group
     group = group_Create("CODE", 1);
@@ -57,8 +57,8 @@ setupUnbankedCommodore(uint32_t baseAddress, uint32_t size) {
     //	Create BSS group
     group = group_Create("BSS", 1);
     group->pools[0] = codepool;
-    group->pools[1] = pool_Create(-1, 0x200, 0, baseAddress, true);
-    group->pools[2] = pool_Create(-1, baseAddress + size, 0, 0x10000 - baseAddress - size, true);
+    group->pools[1] = pool_Create(-1, UINT32_MAX, 0x200, 0, baseAddress, true);
+    group->pools[2] = pool_Create(-1, UINT32_MAX, baseAddress + size, 0, 0x10000 - baseAddress - size, true);
 }
 
 static void
@@ -66,7 +66,7 @@ setupCommodore128ROM(uint32_t baseAddress, uint32_t size) {
     MemoryGroup* group;
     MemoryPool* pool;
 
-    pool = pool_Create(0, baseAddress, 0, size, false);
+    pool = pool_Create(0, UINT32_MAX, baseAddress, 0, size, false);
 
     //	Create CODE group
     group = group_Create("CODE", 1);
@@ -77,7 +77,7 @@ setupCommodore128ROM(uint32_t baseAddress, uint32_t size) {
     group->pools[0] = pool;
 
     //	Create BSS group
-    pool = pool_Create(-1, 0x0000, 0, 0x10000, true);
+    pool = pool_Create(-1, UINT32_MAX, 0x0000, 0, 0x10000, true);
     group = group_Create("BSS", 1);
     group->pools[0] = pool;
 }

@@ -46,7 +46,7 @@ typedef struct MemoryGroup_ {
 
 
 extern MemoryPool*
-pool_Create(int32_t imageLocation, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size, bool onlyAbs);
+pool_Create(int32_t imageLocation, uint32_t overlay, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size, bool onlyAbs);
 
 extern void
 pool_Free(MemoryPool* pool);

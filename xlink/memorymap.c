@@ -270,12 +270,12 @@ parseExpression_1(const char** line, uint32_t* value) {
 
 
 static uint32_t
-parseOffsetExpression(const char** line) {
+parseOptionalExpression(const char** line) {
 	uint32_t value;
 	if (parseExpression(line, &value))
 		return value;
 
-	return -1;
+	return UINT32_MAX;
 }
 
 
@@ -293,8 +293,13 @@ static MemoryPool*
 parsePool(const char** line) {
 	uint32_t cpu_address, cpu_bank, size;
 	if (parseExpression(line, &cpu_address) && parseExpression(line, &cpu_bank) && parseExpression(line, &size)) {
- 		uint32_t image_offset = parseOffsetExpression(line);
-		return pool_Create(image_offset, cpu_address, cpu_bank, size, false);
+ 		uint32_t image_offset = parseOptionalExpression(line);
+		uint32_t overlay = UINT32_MAX;
+		if (tokenIs(",")) {
+			nextToken(line);
+			overlay = parseExpression(line, &overlay);
+		}
+		return pool_Create(image_offset, overlay, cpu_address, cpu_bank, size, false);
 	}
 
 	ERROR("Error in POOL definition");
@@ -494,7 +499,7 @@ readLine(FILE* file) {
 
 
 void
-mmap_Read(const string* filename) {
+mdef_Read(const string* filename) {
 	strmap_t* pools = strmap_Create(freePools); 
 	FILE* file = fopen(str_String(filename), "rt");
 

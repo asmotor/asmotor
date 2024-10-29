@@ -39,7 +39,7 @@ A machine definition will invariably use several constants for addresses and so 
 To define a single pool, the following directive is used:
 
 ```
-POOL name cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
+POOL name cpu_address_expr cpu_bank_expr size_expr [image_offset_expr [,overlay]]
 ```
 
 | Part | Meaning |
@@ -48,7 +48,8 @@ POOL name cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
 | cpu_address_expr | The pool's location in the CPU's address space |
 | cpu_bank_expr | The pool's bank number, an arbitrary number usually used by the CPU. May be -1 if not used |
 | size_expr | The size of the pool in bytes |
-| image_offset_expr | Where the pool should be placed in a binary image, or left out if it should be omitted in the binary image, typically used for BSS pools |
+| image_offset_expr | Where the pool should be placed in a binary image or overlay. If missing or -1, the pool should be omitted in the binary image, which is typically used for BSS pools. |
+| overlay | The overlay file in which the pool should be placed. | 
 
 For readability, the expression should be surrounded by parentheses, although this is not necessary.
 

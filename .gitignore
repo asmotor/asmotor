@@ -57,7 +57,7 @@ test/gameboy/minios/.d
 PortIndex
 PortIndex.quick
 bin/
-mmap_address.bin
+mdef_address.bin
 .vscode/ipch/**
 gcc-predef.h
 build/.cmake/

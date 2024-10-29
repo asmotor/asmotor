@@ -21,9 +21,9 @@
 
 #include "str.h"
 
-extern uint32_t mmap_file_formats;
+extern uint32_t mdef_file_formats;
 
 extern void
-mmap_Read(const string* name);
+mdef_Read(const string* name);
 
 #endif
