@@ -16,19 +16,26 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <memory.h>
 
-#include "util.h"
 #include "fmath.h"
+#include "lists.h"
 #include "mem.h"
+#include "str.h"
+#include "util.h"
 
-#include "xasm.h"
+#include "errors.h"
+#include "expression.h"
 #include "lexer_context.h"
 #include "patch.h"
-#include "errors.h"
+#include "section.h"
+#include "symbol.h"
 #include "tokens.h"
+#include "xasm.h"
 
 /* Private functions */
 
@@ -336,6 +343,12 @@ reduceOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
         case T_FUNC_BANK: {
             if (!xasm_Configuration->supportBanks)
                 internalerror("Banks not supported");
+
+			SSymbol* symbol = expression->value.symbol;
+			if (symbol->section->flags & SECTF_BANKFIXED) {
+				*result = symbol->section->bank;
+				return true;
+			}
 
             return false;
         }
