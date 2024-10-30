@@ -17,9 +17,12 @@
 */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
 
 #if !defined(__STDC_IEC_559__)
 #	if defined(_M_IX86) || defined(_M_X64) || defined(__x86_64) || defined(__ARM_ARCH)
@@ -34,6 +37,8 @@
 #if defined(_DEBUG) && defined(_WIN32)
 #include <crtdbg.h>
 #endif
+
+#include "str.h"
 
 #include "xasm.h"
 #include "amigaobject.h"

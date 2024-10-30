@@ -79,6 +79,8 @@
  *	ENDR
  */
 
+#include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
 // from util
@@ -88,7 +90,6 @@
 
 // from xlink
 #include "elf.h"
-#include "group.h"
 #include "object.h"
 #include "patch.h"
 #include "section.h"

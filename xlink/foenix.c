@@ -17,15 +17,17 @@
 */
 
 #include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #include "file.h"
-#include "mem.h"
-#include "str.h"
 
 #include "error.h"
 #include "group.h"
-#include "image.h"
+#include "object.h"
 #include "section.h"
+#include "symbol.h"
 
 #define PGZ_32BIT 'z'
 

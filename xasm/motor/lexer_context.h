@@ -19,8 +19,13 @@
 #ifndef XASM_MOTOR_LEXER_CONTEXT_H_INCLUDED_
 #define XASM_MOTOR_LEXER_CONTEXT_H_INCLUDED_
 
+#include <stdbool.h>
+#include <stdio.h>
+
 #include "lists.h"
 #include "str.h"
+#include "vec.h"
+#include "xasm.h"
 
 #include "lexer_buffer.h"
 

@@ -19,6 +19,9 @@
 #ifndef XASM_COMMON_XASM_H_INCLUDED_
 #define XASM_COMMON_XASM_H_INCLUDED_
 
+#include <stdbool.h>
+#include <stdlib.h>
+
 #include "types.h"
 
 #include "expression.h"

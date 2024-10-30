@@ -19,7 +19,9 @@
 #ifndef XLINK_OBJECT_H_INCLUDED_
 #define XLINK_OBJECT_H_INCLUDED_
 
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "symbol.h"
 

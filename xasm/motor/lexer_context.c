@@ -17,15 +17,21 @@
 */
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // From util
 #include "file.h"
+#include "lists.h"
+#include "map.h"
 #include "mem.h"
+#include "str.h"
 #include "strbuf.h"
 #include "strcoll.h"
+#include "util.h"
+#include "vec.h"
 
 // From xasm
 #include "crc32.h"
@@ -34,6 +40,7 @@
 #include "includes.h"
 #include "lexer_buffer.h"
 #include "lexer_context.h"
+#include "options.h"
 #include "symbol.h"
 
 

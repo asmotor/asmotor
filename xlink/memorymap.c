@@ -21,9 +21,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "mem.h"
 #include "str.h"
 #include "strbuf.h"
 #include "strcoll.h"
+#include "vec.h"
 
 #include "error.h"
 #include "group.h"
