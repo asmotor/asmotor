@@ -52,7 +52,7 @@ dummyFree(intptr_t userData, intptr_t element) {
 }
 
 
-#define DELIMITERS " \t\n$%%+-*/()[]:@;"
+#define DELIMITERS " \t\n$%%+-*/()[]:@;,"
 
 static const char* token;
 static size_t token_length;
@@ -87,6 +87,7 @@ nextToken(const char** in) {
 		case ']':
 		case ':':
 		case '@':
+		case ',':
 			token = *in;
 			token_length = 1;
 			++*in;
@@ -299,7 +300,7 @@ parsePool(const char** line) {
 		uint32_t overlay = UINT32_MAX;
 		if (tokenIs(",")) {
 			nextToken(line);
-			overlay = parseExpression(line, &overlay);
+			overlay = expectExpression(line);
 		}
 		return pool_Create(image_offset, overlay, cpu_address, cpu_bank, size, false);
 	}
