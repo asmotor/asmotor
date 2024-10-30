@@ -16,12 +16,13 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "mem.h"
-#include "str.h"
 #include "types.h"
 
 #include "group.h"
-#include "symbol.h"
 #include "xlink.h"
 
 #include <string.h>
@@ -224,6 +225,7 @@ pool_Create(int32_t imageLocation, uint32_t overlay, uint32_t cpuByteLocation, i
     MemoryPool* pool = (MemoryPool*) mem_Alloc(sizeof(MemoryPool));
 
     pool->imageLocation = imageLocation;
+	pool->overlay = overlay;
     pool->cpuByteLocation = cpuByteLocation;
     pool->cpuBank = cpuBank;
     pool->size = size;
@@ -860,3 +862,14 @@ group_SetupCoCo(void) {
 }
 
 
+extern bool
+group_NeedsOverlay(void) {
+	for (MemoryGroup* group = s_machineGroups; group != NULL; group = group->nextGroup) {
+		for (int32_t i = 0; i < group->totalPools; ++i) {
+			if (group->pools[i]->overlay == UINT32_MAX)
+				return true;
+		}
+	}
+
+	return false;
+}

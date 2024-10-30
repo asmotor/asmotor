@@ -17,10 +17,9 @@
 */
 
 #include <ctype.h>
-#include <stdarg.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-#include "util.h"
-#include "file.h"
 #include "str.h"
 
 #include "amiga.h"
@@ -69,6 +68,11 @@ const char* g_outputFilename = NULL;
 static bool
 format_SupportsReloc(FileFormat type) {
     return type == FILE_FORMAT_AMIGA_EXECUTABLE || type == FILE_FORMAT_AMIGA_LINK_OBJECT;
+}
+
+static bool
+format_SupportsOverlay(FileFormat type) {
+    return type == FILE_FORMAT_CBM_PRG || type == FILE_FORMAT_MEGA65_PRG;
 }
 
 static bool
@@ -561,6 +565,10 @@ main(int argc, char* argv[]) {
     }
 
     smart_Process(g_smartlink);
+
+    if (group_NeedsOverlay() && !format_SupportsOverlay(g_outputFormat)) {
+		error("Output format does not support overlay files");
+	}
 
     if (!format_SupportsReloc(g_outputFormat)) {
         assign_Process();

@@ -22,11 +22,13 @@
 #include "types.h"
 
 #include "symbol.h"
+#include <stdbool.h>
 
 struct MemoryChunk_;
 
 typedef struct {
     int32_t imageLocation;      // This pool's position in the ROM image, -1 if not written
+    uint32_t overlay;           // Which overlay file in which the pool should reside
     uint32_t cpuByteLocation;   // Where the CPU sees this pool in its address space
     int32_t cpuBank;            // What the CPU calls this bank
     uint32_t size;              // Size of pool seen from the CPU
@@ -104,5 +106,8 @@ group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int
 
 extern bool
 group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
+
+extern bool
+group_NeedsOverlay(void);
 
 #endif
