@@ -81,8 +81,8 @@ getFileHandle(map_t* fileHandles, uint32_t overlay) {
 	return new_handle;
 }
 
-extern void
-image_WriteBinaryToFile(map_t* fileHandles, int padding) {
+static void
+internalWriteBinary(map_t* fileHandles, int padding) {
 	FILE* mainFile = getFileHandle(fileHandles, UINT32_MAX);
 	assert(mainFile != NULL);
 
@@ -145,16 +145,22 @@ intKeyFree(intptr_t userData, intptr_t element) {
 
 
 extern void
-image_WriteBinary(int padding) {
+image_WriteBinaryToFile(FILE* fileHandle, int padding) {
 	map_t* fileHandles = map_Create(intKeyEquals, intKeyHash, intKeyFree, freeVecFileHandle);
+	map_Insert(fileHandles, UINT32_MAX, (intptr_t) fileHandle);
 
+    internalWriteBinary(fileHandles, padding);
+
+	map_Free(fileHandles);
+}
+
+
+extern void
+image_WriteBinary(const char* outputFilename, int padding) {
     FILE* fileHandle = fopen(g_outputFilename, "wb");
     if (fileHandle == NULL) {
         error("Unable to open \"%s\" for writing", g_outputFilename);
 	}
 
-	map_Insert(fileHandles, UINT32_MAX, (intptr_t) fileHandle);
-    image_WriteBinaryToFile(fileHandles, padding);
-
-	map_Free(fileHandles);
+	image_WriteBinaryToFile(fileHandle, padding);
 }

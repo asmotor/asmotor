@@ -30,6 +30,6 @@ extern void
 image_WriteBinaryToFile(FILE* fileHandle, int padding);
 
 extern void
-image_WriteBinary(const char* name, int padding);
+image_WriteBinary(const char* outputFilename, int padding);
 
 #endif

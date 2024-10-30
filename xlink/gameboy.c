@@ -135,15 +135,16 @@ updateGameBoyHeader(FILE* fileHandle) {
     updateChecksum(fileHandle);
 }
 
-void
+
+extern void
 gameboy_WriteImage(const char* outputFilename) {
+    image_WriteBinary(outputFilename, 0);
+
     FILE* fileHandle = fopen(outputFilename, "w+b");
     if (fileHandle == NULL)
         error("Unable to open \"%s\" for writing", outputFilename);
 
-    image_WriteBinaryToFile(fileHandle, 0);
-
     updateGameBoyHeader(fileHandle);
 
-    fclose(fileHandle);
+	fclose(fileHandle);
 }

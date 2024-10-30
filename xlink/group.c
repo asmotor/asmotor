@@ -138,7 +138,7 @@ group_FindByName(const char* name) {
 
 static bool
 group_AllocateMemoryFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t* cpuByteLocation,
-                              int32_t* cpuBank, int32_t* imageLocation) {
+                              int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay) {
     for (int32_t i = 0; i < group->totalPools; ++i) {
         MemoryPool* pool = group->pools[i];
 
@@ -146,6 +146,7 @@ group_AllocateMemoryFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId,
             if (pool_AllocateMemory(pool, size, cpuByteLocation)) {
                 *cpuBank = pool->cpuBank;
                 *imageLocation = pool->imageLocation == -1 ? -1 : pool->imageLocation + *cpuByteLocation - (int32_t) pool->cpuByteLocation;
+				*overlay = pool->overlay;
                 return true;
             }
         }
@@ -172,7 +173,7 @@ group_AllocateAbsoluteFromGroup(MemoryGroup* group, uint32_t size, int32_t bankI
 
 static bool
 group_AllocateAlignedFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t byteAlign,
-                               int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation) {
+                               int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay) {
     for (int32_t i = 0; i < group->totalPools; ++i) {
         MemoryPool* pool = group->pools[i];
 
@@ -180,6 +181,7 @@ group_AllocateAlignedFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId
             if (pool_AllocateAligned(pool, size, byteAlign, cpuByteLocation)) {
                 *cpuBank = pool->cpuBank;
                 *imageLocation = pool->imageLocation == -1 ? -1 : pool->imageLocation + *cpuByteLocation - (int32_t) pool->cpuByteLocation;
+				*overlay = pool->overlay;
                 return true;
             }
         }
@@ -254,8 +256,7 @@ bool
 group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank,
                      int32_t* imageLocation, uint32_t* overlay) {
     MemoryGroup* group = group_FindByName(groupName);
-    return group_AllocateMemoryFromGroup(group, size, bankId, cpuByteLocation, cpuBank, imageLocation);
-
+    return group_AllocateMemoryFromGroup(group, size, bankId, cpuByteLocation, cpuBank, imageLocation, overlay);
 }
 
 bool
@@ -269,7 +270,7 @@ bool
 group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t* cpuByteLocation,
                       int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay) {
     MemoryGroup* group = group_FindByName(groupName);
-    return group_AllocateAlignedFromGroup(group, size, bankId, byteAlign, cpuByteLocation, cpuBank, imageLocation);
+    return group_AllocateAlignedFromGroup(group, size, bankId, byteAlign, cpuByteLocation, cpuBank, imageLocation, overlay);
 }
 
 void

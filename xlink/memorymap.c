@@ -492,10 +492,6 @@ readLine(FILE* file) {
 	string* r = strbuf_String(buf);
 	strbuf_Free(buf);
 
-	if (g_allowedFormats == 0) {
-		ERROR("Missing FORMATS");
-	}
-
 	return r;
 }
 
@@ -515,5 +511,9 @@ mdef_Read(const string* filename) {
 		parseLine((char *) str_String(line), pools);
 		str_Free(line);
 		g_line += 1;
+	}
+
+	if (g_allowedFormats == 0) {
+		ERROR("Missing FORMATS");
 	}
 }

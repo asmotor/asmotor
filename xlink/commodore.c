@@ -114,8 +114,6 @@ commodore_WritePrg(const char* outputFilename, const char* entry, uint32_t heade
     writeHeader(fileHandle, entry, headerAddress);
 
     image_WriteBinaryToFile(fileHandle, -1);
-
-    fclose(fileHandle);
 }
 
 static void
@@ -137,8 +135,6 @@ commodore_WriteMega65Prg(const char* outputFilename, const char* entry) {
     writeMega65Header(fileHandle, entry);
 
     image_WriteBinaryToFile(fileHandle, -1);
-
-    fclose(fileHandle);
 }
 
 extern void
