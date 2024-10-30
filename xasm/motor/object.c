@@ -81,21 +81,27 @@
  */
 
 #include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "util.h"
-#include "xasm.h"
 #include "file.h"
+#include "lists.h"
+#include "mem.h"
+#include "str.h"
 
 #include "expression.h"
 #include "lexer_context.h"
 #include "linemap.h"
 #include "object.h"
+#include "options.h"
 #include "patch.h"
 #include "section.h"
 #include "symbol.h"
 #include "tokens.h"
+#include "xasm.h"
 
 
 /* Private functions */

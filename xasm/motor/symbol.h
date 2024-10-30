@@ -19,10 +19,11 @@
 #ifndef XASM_MOTOR_SYMBOL_H_INCLUDED_
 #define XASM_MOTOR_SYMBOL_H_INCLUDED_
 
-#include <stdlib.h>
+#include <stdbool.h>
 
 #include "lists.h"
 #include "str.h"
+#include "util.h"
 
 #define SYMBOL_HASH_SIZE 1024U
 

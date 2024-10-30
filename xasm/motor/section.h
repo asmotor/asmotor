@@ -19,6 +19,8 @@
 #ifndef XASM_MOTOR_SECTION_H_INCLUDED_
 #define XASM_MOTOR_SECTION_H_INCLUDED_
 
+#include <stdbool.h>
+
 #include "str.h"
 #include "lists.h"
 

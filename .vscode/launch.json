@@ -125,7 +125,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6809/motor6809",
-            "args": ["test.asm"],
+            "args": ["-otest.bin", "-fb", "test.asm"],
             "cwd": "${workspaceFolder}/test/6809",
         },
         {

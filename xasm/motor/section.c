@@ -16,17 +16,18 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <string.h>
 #include <assert.h>
 
-#include "util.h"
-#include "file.h"
+#include "lists.h"
 #include "mem.h"
+#include "str.h"
+#include "util.h"
 
-#include "xasm.h"
 #include "dependency.h"
 #include "errors.h"
 #include "expression.h"
@@ -35,6 +36,7 @@
 #include "patch.h"
 #include "section.h"
 #include "symbol.h"
+#include "xasm.h"
 
 
 #define SECTION_GROWTH_AMOUNT 0x4000U

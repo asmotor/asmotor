@@ -16,18 +16,31 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <memory.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 // From util
 #include "file.h"
 #include "fmath.h"
 #include "mem.h"
+#include "map.h"
 
 // From xlink
+#include "object.h"
 #include "section.h"
+#include "str.h"
 #include "xlink.h"
 
 #define WRITE_BLOCK_SIZE 16384
+
+static void
+freeVecFileHandle(intptr_t userData, intptr_t v) {
+	fclose((FILE*) v);
+}
 
 static void
 writeRepeatedBytes(FILE* fileHandle, void* data, uint32_t offset, int bytes) {
@@ -51,11 +64,30 @@ allocEmptyBytes(void) {
     return data;
 }
 
+
+static FILE*
+getFileHandle(map_t* fileHandles, uint32_t overlay) {
+	intptr_t int_file;
+	if (map_Value(fileHandles, overlay, &int_file)) {
+		return (FILE*) int_file;
+	}
+
+	string* name = str_CreateFormat("%s.%d", g_outputFilename, overlay);
+	FILE* new_handle = fopen(str_String(name), "wb");
+
+	map_Insert(fileHandles, overlay, (intptr_t) new_handle);
+	str_Free(name);
+
+	return new_handle;
+}
+
 extern void
-image_WriteBinaryToFile(FILE* fileHandle, int padding) {
-    uint32_t headerSize = ftell(fileHandle);
+image_WriteBinaryToFile(map_t* fileHandles, int padding) {
+	FILE* mainFile = getFileHandle(fileHandles, UINT32_MAX);
+	assert(mainFile != NULL);
+
+	uint32_t headerSize = ftell(mainFile);
     char* emptyBytes = allocEmptyBytes();
-    uint32_t currentFileSize = headerSize;
 
     for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
         //	This is a special exported EQU symbol section
@@ -63,37 +95,66 @@ image_WriteBinaryToFile(FILE* fileHandle, int padding) {
             continue;
 
         if (section->used && section->assigned && section->imageLocation != -1 && section->group->type != GROUP_BSS) {
-            uint32_t startOffset = section->imageLocation + headerSize;
+            uint32_t startOffset = section->imageLocation;
+
+			if (section->overlay == UINT32_MAX) {
+				startOffset += headerSize;
+			}
+
             uint32_t endOffset = startOffset + section->size;
+			FILE* file = getFileHandle(fileHandles, section->overlay);
+			uint32_t currentFileSize = fsize(file);
 
             if (startOffset > currentFileSize) {
-                fseek(fileHandle, currentFileSize, SEEK_SET);
-                writeRepeatedBytes(fileHandle, emptyBytes, currentFileSize, startOffset - currentFileSize);
+                fseek(file, currentFileSize, SEEK_SET);
+                writeRepeatedBytes(file, emptyBytes, currentFileSize, startOffset - currentFileSize);
             }
 
-            fseek(fileHandle, startOffset, SEEK_SET);
-            fwrite(section->data, 1, section->size, fileHandle);
+            fseek(file, startOffset, SEEK_SET);
+            fwrite(section->data, 1, section->size, file);
             if (endOffset > currentFileSize)
                 currentFileSize = endOffset;
         }
     }
 
     if (padding != -1) {
-        int bytesToPad =
-                padding == 0 ? (2u << log2n(currentFileSize)) - currentFileSize : padding - currentFileSize % padding;
-        writeRepeatedBytes(fileHandle, emptyBytes, currentFileSize, bytesToPad);
+		uint32_t mainFileSize = fsize(mainFile);
+        int bytesToPad = padding == 0 ? (2u << log2n(mainFileSize)) - mainFileSize : padding - mainFileSize % padding;
+        writeRepeatedBytes(mainFile, emptyBytes, mainFileSize, bytesToPad);
     }
 
     mem_Free(emptyBytes);
 }
 
+
+static bool
+intKeyEquals(intptr_t userData, intptr_t element1, intptr_t element2) {
+	return element1 == element2;
+}
+
+
+static uint32_t
+intKeyHash(intptr_t userData, intptr_t element) {
+	return (uint32_t) element;
+}
+
+
+static void
+intKeyFree(intptr_t userData, intptr_t element) {
+}
+
+
 extern void
-image_WriteBinary(const char* outputFilename, int padding) {
-    FILE* fileHandle = fopen(outputFilename, "wb");
-    if (fileHandle == NULL)
-        error("Unable to open \"%s\" for writing", outputFilename);
+image_WriteBinary(int padding) {
+	map_t* fileHandles = map_Create(intKeyEquals, intKeyHash, intKeyFree, freeVecFileHandle);
 
-    image_WriteBinaryToFile(fileHandle, padding);
+    FILE* fileHandle = fopen(g_outputFilename, "wb");
+    if (fileHandle == NULL) {
+        error("Unable to open \"%s\" for writing", g_outputFilename);
+	}
 
-    fclose(fileHandle);
+	map_Insert(fileHandles, UINT32_MAX, (intptr_t) fileHandle);
+    image_WriteBinaryToFile(fileHandles, padding);
+
+	map_Free(fileHandles);
 }

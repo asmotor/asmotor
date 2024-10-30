@@ -18,13 +18,24 @@
 
 
 #include <assert.h>
-#include "xasm.h"
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "str.h"
+
+#include "errors.h"
 #include "expression.h"
 #include "lexer.h"
-#include "parse.h"
+#include "lexer_context.h"
 #include "options.h"
-#include "errors.h"
+#include "parse.h"
 #include "parse_string.h"
+#include "section.h"
+#include "symbol.h"
+#include "tokens.h"
+#include "xasm.h"
 
 static int32_t
 stringCompare(string* s) {

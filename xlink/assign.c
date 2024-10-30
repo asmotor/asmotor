@@ -16,6 +16,11 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include "group.h"
+#include "object.h"
 #include "section.h"
 #include "xlink.h"
 
@@ -26,7 +31,7 @@ assignOrgAndBankFixedSection(SSection* section, intptr_t data) {
 	sectionPredicate predicate = (sectionPredicate) data;
     if (predicate(section) && section->cpuByteLocation != -1 && section->cpuBank != -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
-                                    &section->cpuBank, &section->imageLocation))
+                                    &section->cpuBank, &section->imageLocation, &section->overlay))
             error("No space for section \"%s\"", section->name);
 
         section->assigned = true;
@@ -38,7 +43,7 @@ assignOrgFixedSection(SSection* section, intptr_t data) {
 	sectionPredicate predicate = (sectionPredicate) data;
     if (predicate(section) && section->cpuByteLocation != -1 && section->cpuBank == -1) {
         if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
-                                    &section->cpuBank, &section->imageLocation))
+                                    &section->cpuBank, &section->imageLocation, &section->overlay))
             error("No space for section \"%s\"", section->name);
 
         section->assigned = true;
@@ -50,7 +55,7 @@ assignBankFixedSection(SSection* section, intptr_t data) {
 	sectionPredicate predicate = (sectionPredicate) data;
     if (predicate(section) && section->cpuByteLocation == -1 && section->cpuBank != -1) {
         if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
-                                  &section->cpuBank, &section->imageLocation))
+                                  &section->cpuBank, &section->imageLocation, &section->overlay))
             error("No space for section \"%s\"", section->name);
 
         section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
@@ -63,7 +68,7 @@ assignAlignedSection(SSection* section, intptr_t data) {
 	sectionPredicate predicate = (sectionPredicate) data;
     if (predicate(section) && section->byteAlign != -1) {
         if (!group_AllocateAligned(section->group->name, section->size, section->cpuBank, section->byteAlign,
-                                   &section->cpuByteLocation, &section->cpuBank, &section->imageLocation))
+                                   &section->cpuByteLocation, &section->cpuBank, &section->imageLocation, &section->overlay))
             error("No space for section \"%s\"", section->name);
 
         section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
@@ -86,7 +91,7 @@ assignSection(SSection* section, intptr_t data) {
 			section->assigned = true;
 		} else if (predicate(section)) {
 			if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
-									&section->cpuBank, &section->imageLocation))
+									&section->cpuBank, &section->imageLocation, &section->overlay))
 				error("No space for section \"%s\"", section->name);
 
 			section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;

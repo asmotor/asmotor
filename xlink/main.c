@@ -412,7 +412,7 @@ handleMemoryConfigurationOption(const string* target) {
 
 
 static void
-writeOutput(const char* g_outputFilename) {
+writeOutput(void) {
 	switch (g_outputFormat) {
 		case FILE_FORMAT_NONE:
 			error("Output format not specified");
@@ -583,7 +583,7 @@ main(int argc, char* argv[]) {
         format_SupportsImports(g_outputFormat));
 
 	if (g_outputFilename != NULL) {
-		writeOutput(g_outputFilename);
+		writeOutput();
 	}
 
     if (g_mapFilename != NULL) {

@@ -155,7 +155,7 @@ group_AllocateMemoryFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId,
 
 static bool
 group_AllocateAbsoluteFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t cpuByteLocation,
-                                int32_t* cpuBank, int32_t* imageLocation) {
+                                int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay) {
     for (int32_t i = 0; i < group->totalPools; ++i) {
         MemoryPool* pool = group->pools[i];
 
@@ -252,7 +252,7 @@ pool_Free(MemoryPool* pool) {
 
 bool
 group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank,
-                     int32_t* imageLocation) {
+                     int32_t* imageLocation, uint32_t* overlay) {
     MemoryGroup* group = group_FindByName(groupName);
     return group_AllocateMemoryFromGroup(group, size, bankId, cpuByteLocation, cpuBank, imageLocation);
 
@@ -260,14 +260,14 @@ group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32
 
 bool
 group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank,
-                       int32_t* imageLocation) {
+                       int32_t* imageLocation, uint32_t* overlay) {
     MemoryGroup* group = group_FindByName(groupName);
-    return group_AllocateAbsoluteFromGroup(group, size, bankId, cpuByteLocation, cpuBank, imageLocation);
+    return group_AllocateAbsoluteFromGroup(group, size, bankId, cpuByteLocation, cpuBank, imageLocation, overlay);
 }
 
 bool
 group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t* cpuByteLocation,
-                      int32_t* cpuBank, int32_t* imageLocation) {
+                      int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay) {
     MemoryGroup* group = group_FindByName(groupName);
     return group_AllocateAlignedFromGroup(group, size, bankId, byteAlign, cpuByteLocation, cpuBank, imageLocation);
 }
@@ -866,7 +866,7 @@ extern bool
 group_NeedsOverlay(void) {
 	for (MemoryGroup* group = s_machineGroups; group != NULL; group = group->nextGroup) {
 		for (int32_t i = 0; i < group->totalPools; ++i) {
-			if (group->pools[i]->overlay == UINT32_MAX)
+			if (group->pools[i]->overlay != UINT32_MAX)
 				return true;
 		}
 	}

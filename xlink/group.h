@@ -99,13 +99,13 @@ extern void
 group_SetupCoCo(void);
 
 extern bool
-group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
+group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay);
 
 extern bool
-group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
+group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay);
 
 extern bool
-group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation);
+group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay);
 
 extern bool
 group_NeedsOverlay(void);

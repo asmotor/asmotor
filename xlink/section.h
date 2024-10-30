@@ -19,10 +19,11 @@
 #ifndef XLINK_SECTION_H_INCLUDED_
 #define XLINK_SECTION_H_INCLUDED_
 
+#include <stdbool.h>
+
 #include "str.h"
 #include "types.h"
 
-#include "group.h"
 #include "object.h"
 #include "patch.h"
 #include "symbol.h"
@@ -51,6 +52,7 @@ typedef struct Section {
     int32_t cpuBank;
     int32_t cpuLocation;
     int32_t imageLocation;
+	uint32_t overlay;
     int32_t minimumWordSize;
     int32_t byteAlign;
 	bool root;
