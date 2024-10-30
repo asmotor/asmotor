@@ -7,6 +7,7 @@
 * Fixed dependency file might end up with date later than main output file, causing unnecessary rebuilds with make.
 * String interpolation would sometimes fail in rare cases.
 * `GROUP` directive would generate a syntax error.
+* `BANK` is now resolved properly when writing binary file.
 
 ### 6502
 
@@ -21,6 +22,7 @@
 
 ## Linker
 
+* Implemented overlay files.
 * Implemented line based comments in machine definition files.
 * Improved error messages from errorneous machine definition files.
 * CBM: Fixed load address >= 10000
