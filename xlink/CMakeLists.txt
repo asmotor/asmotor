@@ -11,8 +11,8 @@ add_executable (xlink
     hc800.c
     image.c
     main.c
+    machinedefinition.c
     mapfile.c
-    memorymap.c
     object.c
     patch.c
     section.c

@@ -39,7 +39,7 @@ A machine definition will invariably use several constants for addresses and so 
 To define a single pool, the following directive is used:
 
 ```
-POOL name cpu_address_expr cpu_bank_expr size_expr [image_offset_expr [,overlay]]
+POOL name cpu_address_expr cpu_bank_expr size_expr [image_offset_expr [:overlay]]
 ```
 
 | Part | Meaning |

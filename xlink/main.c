@@ -34,7 +34,7 @@
 #include "hc800.h"
 #include "image.h"
 #include "mapfile.h"
-#include "memorymap.h"
+#include "machinedefinition.h"
 #include "object.h"
 #include "patch.h"
 #include "section.h"

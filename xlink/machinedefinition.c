@@ -298,7 +298,7 @@ parsePool(const char** line) {
 	if (parseExpression(line, &cpu_address) && parseExpression(line, &cpu_bank) && parseExpression(line, &size)) {
  		uint32_t image_offset = parseOptionalExpression(line);
 		uint32_t overlay = UINT32_MAX;
-		if (tokenIs(",")) {
+		if (tokenIs(":")) {
 			nextToken(line);
 			overlay = expectExpression(line);
 		}
