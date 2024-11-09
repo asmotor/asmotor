@@ -33,7 +33,7 @@ g_xasmConfiguration = {
 	"motorrc8",
 	0x10000,
 	ASM_BIG_ENDIAN,
-	false,
+	true,
 	false,
 	false,
 	false,

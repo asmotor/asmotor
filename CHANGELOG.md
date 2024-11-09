@@ -14,6 +14,7 @@
 * Added `<>` immediate modifier.
 * Improved 45GS02 synthesized LDQ code generation.
 * Proper range check for absolute addresses.
+* Enable `BANK` function.
 
 ### 680x0
 

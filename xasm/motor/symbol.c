@@ -381,14 +381,14 @@ sym_CreateLabel(string* name) {
 			if (!isLocalName(name))
 				sym_CurrentScope = symbol;
 
-			if ((sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) == 0) {
-				SET_TYPE_AND_FLAGS(symbol, SYM_LABEL);
-				symbol->section = sect_Current;
-				symbol->value.integer = sect_Current->cpuProgramCounter;
-			} else {
+			if ((sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) != 0 && (sect_Current->flags & SECTF_BANKFIXED) == 0) {
 				SET_TYPE_AND_FLAGS(symbol, SYM_EQU);
 				symbol->value.integer = sect_Current->cpuProgramCounter + sect_Current->cpuAdjust
 									  + sect_Current->cpuOrigin;
+			} else {
+				SET_TYPE_AND_FLAGS(symbol, SYM_LABEL);
+				symbol->section = sect_Current;
+				symbol->value.integer = sect_Current->cpuProgramCounter;
 			}
 			return symbol;
 		} else {
