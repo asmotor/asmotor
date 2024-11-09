@@ -181,7 +181,7 @@ extern SExpression*
 expr_SymbolByName(string* symbolName);
 
 extern SExpression*
-expr_Bank(string* symbolName);
+expr_Bank(SSymbol* symbol);
 
 extern void
 expr_Free(SExpression* expression);

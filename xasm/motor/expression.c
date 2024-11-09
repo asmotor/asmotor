@@ -393,13 +393,13 @@ expr_Assert(SExpression* expression, SExpression* assertion) {
 
 
 SExpression*
-expr_Bank(string* symbolName) {
+expr_Bank(SSymbol* symbol) {
     assert(xasm_Configuration->supportBanks);
 
     SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
     r->right = NULL;
     r->left = NULL;
-    r->value.symbol = sym_GetSymbol(symbolName);
+    r->value.symbol = symbol;
     r->isConstant = false;
     r->type = EXPR_OPERATION;
     r->operation = T_FUNC_BANK;

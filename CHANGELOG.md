@@ -3,6 +3,7 @@
 ## Assembler
 
 * Improved error message sort order.
+* Allow `BANK` with scope symbols.
 * Out of range constants will no longer early fail assembly.
 * Fixed dependency file might end up with date later than main output file, causing unnecessary rebuilds with make.
 * String interpolation would sometimes fail in rare cases.

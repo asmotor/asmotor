@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "parse_symbol.h"
 #include "str.h"
 
 #include "errors.h"
@@ -71,6 +72,48 @@ static string*
 createLiteralName(void) {
     static uint32_t id = 0;
     return str_CreateFormat("__$Literal_%u", id++);
+}
+
+static SSymbol*
+parseIdentifier(void) {
+	if (lex_Context->token.id == T_ID) {
+		if (strcmp(lex_Context->token.value.string, "@") != 0) {
+			string* name = lex_TokenString();
+			SSymbol* symbol = sym_GetSymbol(name);
+			str_Free(name);
+
+			parse_GetToken();
+
+			while (true) {
+				bool force_local = false;
+
+				// Allow backslash for backwards compatibility
+				if (lex_Context->token.id == '\\') {
+					parse_GetToken();
+					force_local = true;
+				}
+
+				if (lex_Context->token.id == T_ID && lex_Context->token.value.string[0] == '.') {
+					name = lex_TokenString();
+
+					if (!force_local && !xasm_Configuration->isValidLocalName(name)) {
+						str_Free(name);
+						break;
+					}
+
+					symbol = sym_GetSymbolInScope(symbol, name);
+					parse_GetToken();
+					str_Free(name);
+				} else {
+					break;
+				}
+			}
+
+			return symbol;
+		}
+	}
+
+	return NULL;
 }
 
 static SExpression*
@@ -131,40 +174,10 @@ expressionPriority9(size_t maxStringConstLength) {
             return NULL;
         }
         case T_ID: {
-            if (strcmp(lex_Context->token.value.string, "@") != 0) {
-				string* name = lex_TokenString();
-                SSymbol* symbol = sym_GetSymbol(name);
-				str_Free(name);
-
-				parse_GetToken();
-
-				while (true) {
-					bool force_local = false;
-
-					// Allow backslash for backwards compatibility
-	                if (lex_Context->token.id == '\\') {
-	                    parse_GetToken();
-						force_local = true;
-					}
-
-                    if (lex_Context->token.id == T_ID && lex_Context->token.value.string[0] == '.') {
-						name = lex_TokenString();
-
-						if (!force_local && !xasm_Configuration->isValidLocalName(name)) {
-							str_Free(name);
-							break;
-						}
-
-						symbol = sym_GetSymbolInScope(symbol, name);
-						parse_GetToken();
-						str_Free(name);
-					} else {
-						break;
-					}
-				}
-
+			SSymbol* symbol = parseIdentifier();
+			if (symbol != NULL) {
 				return expr_Symbol(symbol);
-            }
+			}
         }
         // fall through
         case T_OP_MULTIPLY:
@@ -360,13 +373,10 @@ handleBankFunction(void) {
 
     if (parse_ExpectChar('(')) {
         if (lex_Context->token.id == T_ID) {
-            string* str = lex_TokenString();
-            SExpression* t1 = expr_Bank(str);
-            str_Free(str);
+            SSymbol* symbol = parseIdentifier();
+            SExpression* t1 = expr_Bank(symbol);
 
             if (t1 != NULL) {
-                parse_GetToken();
-
                 if (parse_ExpectChar(')'))
                     return t1;
             }

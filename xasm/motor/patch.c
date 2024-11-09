@@ -345,7 +345,7 @@ reduceOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
                 internalerror("Banks not supported");
 
 			SSymbol* symbol = expression->value.symbol;
-			if (symbol->section->flags & SECTF_BANKFIXED) {
+			if (symbol->section != NULL && (symbol->section->flags & SECTF_BANKFIXED)) {
 				*result = symbol->section->bank;
 				return true;
 			}
