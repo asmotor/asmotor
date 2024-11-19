@@ -33,6 +33,7 @@
 #include "group.h"
 #include "hc800.h"
 #include "image.h"
+#include "listfile.h"
 #include "mapfile.h"
 #include "machinedefinition.h"
 #include "object.h"
@@ -63,6 +64,7 @@ static int g_binaryPad = -1;
 static const char* g_smartlink = NULL;
 static const char* g_entry = NULL;
 static const char* g_mapFilename = NULL;
+static const char* g_listFilename = NULL;
 static bool g_targetDefined = false;
 
 const char* g_outputFilename = NULL;
@@ -145,12 +147,14 @@ printUsage(void) {
            "          -fcocobin   TRS-80 Color Computer .bin\n"
 		   "          -fmega65    MEGA65 .PRG\n"
 		   "\n"
-           "    -m<mapfile> Write a mapfile to <mapfile>\n"
+           "    -l<listfile> Write a listfile to <listfile>\n"
 		   "\n"
-           "    -o<output>  Write output to file <output>\n"
+           "    -m<mapfile>  Write a mapfile to <mapfile>\n"
 		   "\n"
-           "    -s<symbol>  Strip unused sections, rooting the section containing <symbol>\n"
-           "                <symbol> is used as entry point when support by output format\n"
+           "    -o<output>   Write output to file <output>\n"
+		   "\n"
+           "    -s<symbol>   Strip unused sections, rooting the section containing <symbol>\n"
+           "                 <symbol> is used as entry point when support by output format\n"
     );
     exit(EXIT_SUCCESS);
 }
@@ -499,6 +503,11 @@ handleOption(const char* option) {
 			str_Free(target);
 			return true;
 		}
+		case 'l':	/* Map file */
+			if (option[1] == 0) error("option \"l\" needs an argument");
+
+			g_listFilename = &option[1];
+			return true;
 		case 'm':	/* Map file */
 			if (option[1] == 0) error("option \"m\" needs an argument");
 
@@ -586,10 +595,19 @@ main(int argc, char* argv[]) {
 		writeOutput();
 	}
 
+	sect_SortSections();
+
     if (g_mapFilename != NULL) {
         if (!format_SupportsReloc(g_outputFormat)) {
-            sect_SortSections();
             map_Write(g_mapFilename);
+        } else {
+            error("Output format does not support producing a mapfile");
+        }
+    }
+
+    if (g_listFilename != NULL) {
+        if (!format_SupportsReloc(g_outputFormat)) {
+            list_Write(g_listFilename);
         } else {
             error("Output format does not support producing a mapfile");
         }

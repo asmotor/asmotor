@@ -3,22 +3,25 @@ Depending on the target ISA, the executable to invoke will be named motor, follo
 
 ## Command line options
 ```
--a<n>   Section alignment when writing binary file
--b<AS>  Change the two characters used for binary constants
-        (default is 01)
--e(l|b) Change endianness
--f<f>   Output format, one of
-            x - xobj (default)
-            b - binary file
-            v - verilog readmemh file
-            g - Amiga executable file
-            h - Amiga object file
--i<dir> Extra include path (can appear more than once)
--o<f>   Write assembly output to <file>
--v      Verbose text output
--w<d>   Disable warning <d> (four digits)
--z<XX>  Set the byte value (hex format) used for uninitialised
-        data (default is FF) 
+-a<n>    Section alignment when writing binary file
+-b<AS>   Change the two characters used for binary constants
+         (default is 01)
+-d<FILE> Output dependency file for GNU Make
+-D<NAME> Define EQU symbol with the value 1
+-e(l|b)  Change endianness
+-f<f>    Output format, one of
+             x - xobj (default)
+             e - ELF object file
+             b - binary file
+             v - verilog readmemh file
+             g - Amiga executable file
+             h - Amiga object file
+-i<dir>  Extra include path (can appear more than once)
+-o<f>    Write assembly output to <file>
+-v       Verbose text output
+-w<d>    Disable warning <d> (four digits)
+-z<XX>   Set the byte value (hex format) used for uninitialised
+         data (default is FF) 
 ```
 
 An assembler for a particular ISA may support additional options relevant for the target architecture. Please consult the [CPU specific documentation](CpuSpecifics.md) for ISA specific options.

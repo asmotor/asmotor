@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "str.h"
+
 #include "symbol.h"
 
 typedef enum {
@@ -58,6 +60,9 @@ static inline Group*
 groups_GetGroup(Groups* groups, uint32_t groupId) {
     return groupId != UINT32_MAX && groupId < groups->totalGroups ? &groups->groups[groupId] : NULL;
 }
+
+extern const string*
+obj_GetFilename(uint32_t fileInfoIndex);
 
 extern void
 obj_Read(char* fileName);

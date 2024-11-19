@@ -94,8 +94,10 @@ A binary file's contents is all the sections concatenated. The first byte of the
 If not specified, no map file will be produced.
 
 ```
--m<output>  Write mapfile to file <output>
+-m<output>  Write map file to file <output>
 ```
+
+The map file will include symbol definition location, when debug information is emitted by the assembler (assembler option `-g`)
 
 ### Output file (-o)
 

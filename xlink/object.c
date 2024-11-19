@@ -19,7 +19,8 @@
 /*
  * xLink - OBJECT.C
  *
- *	char	ID[4]="XOB\4";
+ *	char	ID[3]="XOB";
+ *  uint8_t version = 5;
  *	[>=v1] char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
@@ -48,7 +49,7 @@
  *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
- *					uint32_t	Type	;0=EXPORT
+ *					uint32_t Type	;0=EXPORT
  *									;1=IMPORT
  *									;2=LOCAL
  *									;3=LOCALEXPORT
@@ -56,6 +57,10 @@
  *					IF Type==EXPORT or LOCAL or LOCALEXPORT
  *						int32_t	value
  *					ENDC
+ *                  IF Version >= 5
+ *						uint32_t	FileId
+ *						uint32_t	LineNumber
+ *                  ENDC
  *			ENDR
  *          IF Version >= 2
  *				uint32_t	NumberOfLineMappings
@@ -67,13 +72,13 @@
  *			ENDC
  *			uint32_t	Size
  *			IF	SectionCanContainData
- *					uint8_t	Data[Size]
+ *					uint8_t		Data[Size]
  *					uint32_t	NumberOfPatches
  *					REPT	NumberOfPatches
  *							uint32_t	Offset
  *							uint32_t	Type
  *							uint32_t	ExprSize
- *							uint8_t	Expr[ExprSize]
+ *							uint8_t		Expr[ExprSize]
  *					ENDR
  *			ENDC
  *	ENDR
@@ -151,7 +156,7 @@ readGroups(FILE* fileHandle) {
 }
 
 static void
-readSymbol(FILE* fileHandle, SSymbol* symbol) {
+readSymbol(FILE* fileHandle, SSymbol* symbol, int version, uint32_t fileInfoIndex) {
     fgetsz(symbol->name, MAX_SYMBOL_NAME_LENGTH, fileHandle);
 
     symbol->type = (ESymbolType) fgetll(fileHandle);
@@ -161,12 +166,25 @@ readSymbol(FILE* fileHandle, SSymbol* symbol) {
     else
         symbol->value = 0;
 
+    symbol->fileInfoIndex = UINT32_MAX;
+    symbol->lineNumber = 0;
+
+    if (version >= 5) {
+        uint32_t symbolFileInfo = fgetll(fileHandle);
+        symbol->lineNumber = fgetll(fileHandle);
+
+        if (symbolFileInfo != UINT32_MAX) {
+            assert (symbolFileInfo + fileInfoIndex < g_fileInfoCount);
+            symbol->fileInfoIndex = symbolFileInfo + fileInfoIndex;
+        }
+    }
+
     symbol->resolved = false;
     symbol->section = NULL;
 }
 
 static uint32_t
-readSymbols(FILE* fileHandle, SSymbol** outputSymbols) {
+readSymbols(FILE* fileHandle, SSymbol** outputSymbols, int version, uint32_t fileInfoIndex) {
     uint32_t totalSymbols = fgetll(fileHandle);
 
     if (totalSymbols == 0) {
@@ -178,7 +196,7 @@ readSymbols(FILE* fileHandle, SSymbol** outputSymbols) {
             *outputSymbols = symbol;
 
             for (uint32_t i = 0; i < totalSymbols; i += 1)
-                readSymbol(fileHandle, symbol++);
+                readSymbol(fileHandle, symbol++, version, fileInfoIndex);
 
             return totalSymbols;
         }
@@ -223,7 +241,10 @@ readPatches(FILE* fileHandle) {
 
 static void
 readLineMapping(FILE* fileHandle, SLineMapping* lineMapping, uint32_t fileInfoIndex) {
-    lineMapping->fileInfo = &g_fileInfo[fileInfoIndex + fgetll(fileHandle)];
+    uint32_t index = fgetll(fileHandle);
+    assert(index + fileInfoIndex < g_fileInfoCount);
+
+    lineMapping->fileInfo = &g_fileInfo[fileInfoIndex + index];
     lineMapping->lineNumber = fgetll(fileHandle);
     lineMapping->offset = fgetll(fileHandle);
 }
@@ -263,7 +284,7 @@ readSection(FILE* fileHandle, SSection* section, Groups* groups, int version, ui
     else
         section->root = false;
 
-    section->totalSymbols = readSymbols(fileHandle, &section->symbols);
+    section->totalSymbols = readSymbols(fileHandle, &section->symbols, version, fileInfoIndex);
 
     if (version >= 2) {
         section->totalLineMappings = readLineMappings(fileHandle, &section->lineMappings, fileInfoIndex);
@@ -320,8 +341,8 @@ readFileInfo(FILE* fileHandle) {
     uint32_t fileInfoIndex = g_fileInfoCount;
     uint32_t fileInfoInObject = fgetll(fileHandle);
 
-    g_fileInfoCount += fileInfoInObject;
-    if (g_fileInfoCount > 0) {
+    if (fileInfoInObject > 0) {
+        g_fileInfoCount += fileInfoInObject;
         g_fileInfo = mem_Realloc(g_fileInfo, sizeof(SFileInfo) * g_fileInfoCount);
 
         for (uint32_t i = 0; i < fileInfoInObject; ++i) {
@@ -409,6 +430,11 @@ readChunk(FILE* fileHandle) {
             return true;
         }
 
+        case MAKE_ID('X', 'O', 'B', 5): {
+            readXOBn(fileHandle, 5, g_fileId++);
+            return true;
+        }
+
         case MAKE_ID('X', 'L', 'B', 0): {
             readXLB0(fileHandle);
             return true;
@@ -440,4 +466,10 @@ obj_Read(char* fileName) {
     } else {
         error("File \"%s\" not found", fileName);
     }
+}
+
+const string*
+obj_GetFilename(uint32_t fileInfoIndex) {
+    assert(fileInfoIndex < g_fileInfoCount);
+    return g_fileInfo[fileInfoIndex].fileName;
 }

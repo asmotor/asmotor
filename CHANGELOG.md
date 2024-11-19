@@ -27,6 +27,7 @@
 * Implemented overlay files.
 * Implemented line based comments in machine definition files.
 * Improved error messages from errorneous machine definition files.
+* Much improved map file which now includes symbol definition location, when debug information is emitted by the assembler (`-g` switch.)
 * CBM: Fixed load address >= 10000
 
 # 1.3.2

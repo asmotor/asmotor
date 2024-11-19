@@ -20,6 +20,7 @@
 
 #include "mem.h"
 
+#include "object.h"
 #include "section.h"
 #include "symbol.h"
 #include "types.h"
@@ -62,6 +63,8 @@ resolveSymbol(SSection* section, SSymbol* symbol, bool allowImports) {
                             symbol->resolved = true;
                             symbol->value = exportedSymbol->value;
                             symbol->section = definingSection;
+							symbol->fileInfoIndex = exportedSymbol->fileInfoIndex;
+							symbol->lineNumber = exportedSymbol->lineNumber;
 
                             return;
                         }
@@ -89,6 +92,8 @@ resolveSymbol(SSection* section, SSymbol* symbol, bool allowImports) {
                             symbol->resolved = true;
                             symbol->value = exportedSymbol->value;
                             symbol->section = definingSection;
+							symbol->fileInfoIndex = exportedSymbol->fileInfoIndex;
+							symbol->lineNumber = exportedSymbol->lineNumber;
 
                             return;
                         }
@@ -333,3 +338,4 @@ sect_EndAddressOfLastCodeSection(void) {
 
 	return address;
 }
+

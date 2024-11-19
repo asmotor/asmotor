@@ -75,7 +75,7 @@ printUsage(void) {
 		   "    -d<FILE> Output dependency file for GNU Make\n"
 		   "    -D<NAME> Define EQU symbol with the value 1\n"
 		   "    -e(l|b)  Change endianness\n"
-		   "    -fF      Output format, one of\n"
+		   "    -f<F>    Output format, one of\n"
 		   "                 x - xobj (default)\n"
 		   "                 e - ELF object file\n"
 		   "                 b - binary file\n"

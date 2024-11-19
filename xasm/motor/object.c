@@ -16,7 +16,8 @@
 	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*	char	ID[4]="XOB\3";
+/*  char	ID[3]="XOB";
+ *  uint8_t version = 5;
  *	char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
@@ -51,6 +52,10 @@
  *									    ;4=LOCALIMPORT
  *					IF Type==EXPORT or LOCAL or LOCALEXPORT
  *						int32_t	value
+ *					ENDC
+ *					IF Version >= 5
+ *						uint32_t	FileId
+ *						uint32_t	LineNumber
  *					ENDC
  *			ENDR
  *          IF Version >= 2
@@ -113,24 +118,33 @@ writeSymbols(SSection* section, FILE* fileHandle, SExpression* expression, uint3
 		nextId = writeSymbols(section, fileHandle, expression->right, nextId);
 
 		if (expr_Type(expression) == EXPR_SYMBOL || (xasm_Configuration->supportBanks && expr_IsOperator(expression, T_FUNC_BANK))) {
-			if (expression->value.symbol->id == UINT32_MAX) {
-				expression->value.symbol->id = nextId++;
-				fputsz(str_String(expression->value.symbol->name), fileHandle);
-				if (expression->value.symbol->section == section) {
-					if (expression->value.symbol->flags & SYMF_FILE_EXPORT) {
+			SSymbol* symbol = expression->value.symbol;
+			if (symbol->id == UINT32_MAX) {
+				symbol->id = nextId++;
+				fputsz(str_String(symbol->name), fileHandle);
+				if (symbol->section == section) {
+					if (symbol->flags & SYMF_FILE_EXPORT) {
 						fputll(3, fileHandle);    //	LOCALEXPORT
-						fputll((uint32_t) expression->value.symbol->value.integer, fileHandle);
-					} else if (expression->value.symbol->flags & SYMF_EXPORT) {
+						fputll((uint32_t) symbol->value.integer, fileHandle);
+					} else if (symbol->flags & SYMF_EXPORT) {
 						fputll(0, fileHandle);    //	EXPORT
-						fputll((uint32_t) expression->value.symbol->value.integer, fileHandle);
+						fputll((uint32_t) symbol->value.integer, fileHandle);
 					} else {
 						fputll(2, fileHandle);    //	LOCAL
-						fputll((uint32_t) expression->value.symbol->value.integer, fileHandle);
+						fputll((uint32_t) symbol->value.integer, fileHandle);
 					}
-				} else if (expression->value.symbol->type == SYM_IMPORT || expression->value.symbol->type == SYM_GLOBAL) {
+				} else if (symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL) {
 					fputll(1, fileHandle);    //	IMPORT
 				} else {
 					fputll(4, fileHandle);    //	LOCALIMPORT
+				}
+
+				if (opt_Current->enableDebugInfo) {
+					fputll(symbol->fileInfo->fileId, fileHandle);
+					fputll(symbol->lineNumber, fileHandle);
+				} else {
+					fputll(UINT32_MAX, fileHandle);
+					fputll(0, fileHandle);
 				}
 			}
 		}
@@ -154,6 +168,14 @@ writeExportedSymbols(FILE* fileHandle, SSection* section, uint32_t symbolId) {
 				else if (sym->flags & SYMF_FILE_EXPORT)
 					fputll(3, fileHandle);    //	LOCALEXPORT
 				fputll((uint32_t) sym->value.integer, fileHandle);
+
+				if (opt_Current->enableDebugInfo) {
+					fputll(sym->fileInfo->fileId, fileHandle);
+					fputll(sym->lineNumber, fileHandle);
+				} else {
+					fputll(UINT32_MAX, fileHandle);
+					fputll(0, fileHandle);
+				}
 			}
 		}
 	}
@@ -496,7 +518,7 @@ obj_Write(string* fileName) {
 	if ((fileHandle = fopen(str_String(fileName), "wb")) == NULL)
 		return false;
 
-	fwrite("XOB\4", 1, 4, fileHandle);
+	fwrite("XOB\5", 1, 4, fileHandle);
 	fputc(xasm_Configuration->minimumWordSize, fileHandle);
 
 	if (opt_Current->enableDebugInfo) {

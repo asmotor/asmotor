@@ -10,6 +10,7 @@ add_executable (xlink
     group.c
     hc800.c
     image.c
+    listfile.c
     main.c
     machinedefinition.c
     mapfile.c

@@ -19,8 +19,10 @@
 #ifndef XLINK_SYMBOL_H_INCLUDED_
 #define XLINK_SYMBOL_H_INCLUDED_
 
+struct FileInfo;
+struct Section;
+
 #include "util.h"
-#include "types.h"
 
 #define MAX_SYMBOL_NAME_LENGTH 256
 
@@ -37,6 +39,9 @@ typedef struct Symbol {
     ESymbolType type;
     int32_t value;
     bool resolved;
+
+    uint32_t fileInfoIndex;
+	uint32_t lineNumber;
 
     struct Section* section;
 } SSymbol;
