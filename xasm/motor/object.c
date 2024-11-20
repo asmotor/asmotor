@@ -153,13 +153,13 @@ writeSymbols(SSection* section, FILE* fileHandle, SExpression* expression, uint3
 }
 
 static uint32_t
-writeExportedSymbols(FILE* fileHandle, SSection* section, uint32_t symbolId) {
+writeSymbolsWithFlags(FILE* fileHandle, SSection* section, uint32_t symbolId, uint32_t symbolFlags) {
 	for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
 		for (SSymbol* sym = sym_hashedSymbols[i]; sym; sym = list_GetNext(sym)) {
 			if (sym->type != SYM_GROUP)
-				sym->id = (uint32_t) -1;
+				sym->id = UINT32_MAX;
 
-			if (sym->section == section && (sym->flags & (SYMF_EXPORT | SYMF_FILE_EXPORT))) {
+			if (sym->section == section && (sym->flags & symbolFlags)) {
 				sym->id = symbolId++;
 
 				fputsz(str_String(sym->name), fileHandle);
@@ -167,6 +167,11 @@ writeExportedSymbols(FILE* fileHandle, SSection* section, uint32_t symbolId) {
 					fputll(0, fileHandle);    //	EXPORT
 				else if (sym->flags & SYMF_FILE_EXPORT)
 					fputll(3, fileHandle);    //	LOCALEXPORT
+				else if (sym->flags & SYMF_RELOC)
+					fputll(2, fileHandle);    //	LOCAL
+				else
+					assert(false);
+
 				fputll((uint32_t) sym->value.integer, fileHandle);
 
 				if (opt_Current->enableDebugInfo) {
@@ -407,6 +412,14 @@ writeExportedConstantsSection(FILE* fileHandle) {
 				fputsz(str_String(sym->name), fileHandle);
 				fputll(0, fileHandle);    /* EXPORT */
 				fputll((uint32_t) sym->value.integer, fileHandle);
+
+				if (opt_Current->enableDebugInfo) {
+					fputll(sym->fileInfo->fileId, fileHandle);
+					fputll(sym->lineNumber, fileHandle);
+				} else {
+					fputll(UINT32_MAX, fileHandle);
+					fputll(0, fileHandle);
+				}
 			}
 		}
 	}
@@ -425,7 +438,11 @@ writeSectionSymbols(FILE* fileHandle, SSection* section) {
 	off_t symbolCountPosition = ftello(fileHandle);
 	fputll(0, fileHandle);
 
-	uint32_t symbolId = writeExportedSymbols(fileHandle, section, 0);
+	uint32_t symbolTypes = SYMF_EXPORT | SYMF_FILE_EXPORT;
+	if (opt_Current->enableDebugInfo)
+		symbolTypes |= SYMF_RELOC;
+
+	uint32_t symbolId = writeSymbolsWithFlags(fileHandle, section, 0, symbolTypes);
 
 	// Calculate and export symbols IDs by going through patches
 	for (SPatch* patch = section->patches; patch; patch = list_GetNext(patch)) {

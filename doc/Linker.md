@@ -109,8 +109,6 @@ If not specified, no output will be produced.
 
 ### Strip unused sections (-s)
 
-If not specified, no output will be produced.
-
 ```
 -s<symbol>  Strip unused sections, rooting the section containing <symbol>
 ```
