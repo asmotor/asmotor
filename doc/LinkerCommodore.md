@@ -5,24 +5,28 @@
 |---|---|
 | Binary | -fbin |
 | Commodore .PRG | -fcbm |
+| MEGA65 .PRG | -fmega65 |
 
 ### Commodore PRG (-fcbm)
 
-This format's entry point is the first object's first section. XLink will generate the right SYS instruction and address for you. The first section may specify a location. If not, the lowest possible BASIC address is used.
+This format's entry point is the first object's first section. XLink will generate the right `SYS` BASIC command and address for you. The first section may specify a location. If not, the lowest possible BASIC address is used.
+
+If the linker's `-s` or `-e` options are used, these specify the entry address for the `SYS` instruction.
 
 ## Machine definitions
 These machine definitions declares two or three pools, depending on the machine configuration.
 
-### -cc64, -cc128, and -c264
-The regular `-cc64`, `-cc128`, `-c264` defines three pools. Two of these will never be used by the linker automatically, you have to specify absolute placement within these groups with the `SECTION` directive in the assembler source code file.
+### -cc64, -cc128, -c264, and -cmega65
+The regular `-cc64`, `-cc128`, `-c264`, and `-cmega65` define three pools. Two of these will never be used by the linker automatically, you have to specify absolute placement within these groups with the `SECTION` directive in the assembler source code file.
 
 The main pool is the free area used for BASIC programs. Room is reserved for an initial `SYS` entry program. There is also a low memory pool from `$0` to `$1FF` (ZP and stack), and the high memory area above the BASIC area until `$FFFF`. It is these two last pools that will never be used by the linker automatically.
 
 | Configuration | CODE/DATA start | CODE/DATA End |
 |---|---|---|
-| -cc64 | $80E | 9FFF |
-| -cc128 | $1C0E | EFFF |
-| -cc264 | $100E | FCFF |
+| -cc64 | $80E | $9FFF |
+| -cc128 | $1C0E | $EFFF |
+| -cc264 | $100E | $FCFF |
+| -cmega65 | $2012 | $F6FF |
 
 ### -cc128f, -c128fl, and -c128fh
 The Commodore 128 Function ROM is a binary format that can be burned onto an EPROM and placed internally in the C128 (or externally on a cartridge). The images must start with a particular header. XLink doesn't produce this header automatically.

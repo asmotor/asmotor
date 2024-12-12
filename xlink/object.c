@@ -241,10 +241,10 @@ readPatches(FILE* fileHandle) {
 
 static void
 readLineMapping(FILE* fileHandle, SLineMapping* lineMapping, uint32_t fileInfoIndex) {
-    uint32_t index = fgetll(fileHandle);
-    assert(index + fileInfoIndex < g_fileInfoCount);
+    uint32_t index = fgetll(fileHandle) + fileInfoIndex;
+    assert(index < g_fileInfoCount);
 
-    lineMapping->fileInfo = &g_fileInfo[fileInfoIndex + index];
+    lineMapping->fileInfoIndex = index;
     lineMapping->lineNumber = fgetll(fileHandle);
     lineMapping->offset = fgetll(fileHandle);
 }

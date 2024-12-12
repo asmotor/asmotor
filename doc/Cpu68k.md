@@ -37,7 +37,7 @@ This option is used to select the CPU type. The default is 68000.
 | Reserve symbol | RS.B | RS.W | RS.L |
 
 ## Section types
-The Amiga has two types of memory - "chip" memory and non-chip (sometimes called "fast" memory). The assembler supports three additional section types that will place the section into chip memory. These are ```CODE_C```, ```DATA_C``` and ```BSS_C```, which are the `CHIP` equivalents of ```CODE```, ```DATA``` and ```BSS``` respectively. See also the Amiga specific (linker documentation)[AmigaLinker.md].
+The Amiga has two types of memory - "chip" memory and non-chip (sometimes called "fast" memory). The assembler supports three additional section types that will place the section into chip memory. These are ```CODE_C```, ```DATA_C``` and ```BSS_C```, which are the `CHIP` equivalents of ```CODE```, ```DATA``` and ```BSS``` respectively. See also the Amiga specific [linker documentation](LinkerAmiga.md).
 
 ## Functions
 The M68K assembler supports an additional function that may be used in expressions.

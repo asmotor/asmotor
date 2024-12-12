@@ -19,6 +19,11 @@
 #ifndef XLINK_MAPFILE_H_INCLUDED_
 #define XLINK_MAPFILE_H_INCLUDED_
 
+#include <stdint.h>
+
+extern uint32_t
+map_GetValueFieldSize(uint32_t value, uint32_t minimum_size);
+
 extern void
 map_Write(const char* name);
 

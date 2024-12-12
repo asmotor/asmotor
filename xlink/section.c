@@ -23,7 +23,6 @@
 #include "object.h"
 #include "section.h"
 #include "symbol.h"
-#include "types.h"
 
 #include "xlink.h"
 

@@ -22,7 +22,6 @@
 #include <stdbool.h>
 
 #include "str.h"
-#include "types.h"
 
 #include "object.h"
 #include "patch.h"
@@ -35,7 +34,7 @@ typedef struct FileInfo {
 } SFileInfo;
 
 typedef struct LineMapping {
-    SFileInfo* fileInfo;
+    uint32_t fileInfoIndex;
 	uint32_t lineNumber;
 	uint32_t offset;
 } SLineMapping;

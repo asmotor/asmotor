@@ -18,11 +18,22 @@
 
 #include "file.h"
 
+#include "str.h"
+
+#include "mapfile.h"
 #include "object.h"
 #include "section.h"
-#include "str.h"
 #include "xlink.h"
-#include <bits/stdint-uintn.h>
+
+static
+uint32_t max_symbol_length = 0;
+
+static
+int32_t max_symbol_value = 0;
+
+static
+uint32_t symbol_value_field_size;
+
 
 static int
 compareSymbols(const void* element1, const void* element2) {
@@ -41,56 +52,6 @@ compareSymbols(const void* element1, const void* element2) {
 static void
 sortSymbols(SSymbol* symbolArray, uint32_t totalSymbols) {
     qsort(symbolArray, totalSymbols, sizeof(SSymbol), compareSymbols);
-}
-
-#if 0
-
-static void
-writeSectionToMapFile(SSection* section, intptr_t data) {
-    FILE* fileHandle = (FILE*) data;
-
-    sortSymbols(section->symbols, section->totalSymbols);
-
-    for (uint32_t i = 0; i < section->totalSymbols; ++i) {
-        SSymbol* symbol = &section->symbols[i];
-
-        if (!sym_IsImport(symbol) && symbol->resolved) {
-            if (section->cpuBank != -1) {
-                fprintf(fileHandle, "%X:", section->cpuBank);
-            }
-
-            fprintf(fileHandle, "%X %s\n", symbol->value, symbol->name);
-        }
-    }
-}
-
-static void
-writeMapFile(FILE* fileHandle) {
-    sect_ForEachUsedSection(writeSectionToMapFile, (intptr_t) fileHandle);
-}
-
-#else
-
-static
-uint32_t max_symbol_length = 0;
-
-static
-int32_t max_symbol_value = 0;
-
-static
-uint32_t symbol_value_field_size;
-
-
-static uint32_t
-getSymbolValueFieldSize(void) {
-	uint32_t size = 1;
-	uint32_t v = ((uint32_t) max_symbol_value) >> 4;
-	while (v != 0) {
-		v >>= 4;
-		++size;
-	}
-
-	return size;
 }
 
 static void
@@ -131,12 +92,9 @@ findLongestSymbolName(SSection* section, intptr_t data) {
 static void
 writeMapFile(FILE* fileHandle) {
     sect_ForEachUsedSection(findLongestSymbolName, (intptr_t) 0);
-	symbol_value_field_size = getSymbolValueFieldSize();
+	symbol_value_field_size = map_GetValueFieldSize(max_symbol_value, 4);
     sect_ForEachUsedSection(writeSectionToMapFile, (intptr_t) fileHandle);
 }
-
-#endif
-
 
 void
 map_Write(const char* name) {
@@ -145,4 +103,17 @@ map_Write(const char* name) {
         error("Unable to open file \"%s\" for writing", name);
     } 
     writeMapFile(fileHandle);
+	fclose(fileHandle);
 }
+
+extern uint32_t
+map_GetValueFieldSize(uint32_t value, uint32_t minimum_size) {
+	value >>= minimum_size * 4;
+	while (value != 0) {
+		value >>= 4;
+		++minimum_size;
+	}
+
+	return minimum_size;
+}
+
