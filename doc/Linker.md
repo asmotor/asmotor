@@ -55,12 +55,12 @@ Several machine definitions are built-in. This option selects a particurlar targ
 | sms16    | Sega Master System (16 KiB) |
 | sms32    | Sega Master System (32 KiB) |
 | smsb     | Sega Master System banked (64+ KiB) |
-| hc800b   | HC800 16 KiB ROM |
-| hc800s   | HC800 small mode (64 KiB text + data + bss) |
-| hc800sh  | HC800 small Harvard mode (64 KiB text, 64 KiB data + bss) |
-| hc800m   | HC800 medium mode (32 KiB text + data + bss, 32 KiB sized banks text) |
-| hc800mh  | HC800 medium Harvard executable (32 KiB text + 32 KiB sized text banks, 64 KiB data + bss) |
-| hc800l   | HC800 large mode (32 KiB text + data + bss, 32 KiB sized banks text + data + bss) |
+| hc8b     | HC800 16 KiB ROM |
+| hc8s     | HC800 small mode (64 KiB text + data + bss) |
+| hc8sh    | HC800 small Harvard mode (64 KiB text, 64 KiB data + bss) |
+| hc8m     | HC800 medium mode (32 KiB text + data + bss, 32 KiB sized banks text) |
+| hc8mh    | HC800 medium Harvard executable (32 KiB text + 32 KiB sized text banks, 64 KiB data + bss) |
+| hc8l     | HC800 large mode (32 KiB text + data + bss, 32 KiB sized banks text + data + bss) |
 | fxa2560x | Foenix A2560X/K |
 | mega65   | MEGA65 unbanked  |
 
