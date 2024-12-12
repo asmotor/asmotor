@@ -164,6 +164,7 @@ group_AllocateAbsoluteFromGroup(MemoryGroup* group, uint32_t size, int32_t bankI
             if (pool_AllocateAbsolute(pool, size, cpuByteLocation)) {
                 *cpuBank = pool->cpuBank;
                 *imageLocation = pool->imageLocation == -1 ? -1 : pool->imageLocation + cpuByteLocation - (int32_t) pool->cpuByteLocation;
+				*overlay = pool->overlay;
                 return true;
             }
         }
