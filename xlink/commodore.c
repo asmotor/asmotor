@@ -107,7 +107,7 @@ writeHeader(FILE* fileHandle, const char* entry, uint32_t headerAddress) {
 
 extern void
 commodore_WritePrg(const char* outputFilename, const char* entry, uint32_t headerAddress) {
-    FILE* fileHandle = fopen(outputFilename, "wb");
+    FILE* fileHandle = fopen(outputFilename, "w+b");
     if (fileHandle == NULL)
         error("Unable to open \"%s\" for writing", outputFilename);
 
@@ -128,7 +128,7 @@ writeMega65Header(FILE* fileHandle, const char* entry) {
 
 extern void
 commodore_WriteMega65Prg(const char* outputFilename, const char* entry) {
-    FILE* fileHandle = fopen(outputFilename, "wb");
+    FILE* fileHandle = fopen(outputFilename, "w+b");
     if (fileHandle == NULL)
         error("Unable to open \"%s\" for writing", outputFilename);
 

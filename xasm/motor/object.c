@@ -532,7 +532,7 @@ writeFileNames(FILE* fileHandle, SFileInfo** fileInfo, size_t fileCount) {
 extern bool
 obj_Write(string* fileName) {
 	FILE* fileHandle;
-	if ((fileHandle = fopen(str_String(fileName), "wb")) == NULL)
+	if ((fileHandle = fopen(str_String(fileName), "w+b")) == NULL)
 		return false;
 
 	fwrite("XOB\5", 1, 4, fileHandle);

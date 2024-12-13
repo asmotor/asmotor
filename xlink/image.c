@@ -73,7 +73,7 @@ getFileHandle(map_t* fileHandles, uint32_t overlay) {
 	}
 
 	string* name = str_CreateFormat("%s.%d", g_outputFilename, overlay);
-	FILE* new_handle = fopen(str_String(name), "wb");
+	FILE* new_handle = fopen(str_String(name), "w+b");
 
 	map_Insert(fileHandles, overlay, (intptr_t) new_handle);
 	str_Free(name);
@@ -114,6 +114,8 @@ internalWriteBinary(map_t* fileHandles, int padding) {
             fwrite(section->data, 1, section->size, file);
             if (endOffset > currentFileSize)
                 currentFileSize = endOffset;
+			
+			fflush(file);
         }
     }
 
@@ -157,7 +159,7 @@ image_WriteBinaryToFile(FILE* fileHandle, int padding) {
 
 extern void
 image_WriteBinary(const char* outputFilename, int padding) {
-    FILE* fileHandle = fopen(g_outputFilename, "wb");
+    FILE* fileHandle = fopen(g_outputFilename, "w+b");
     if (fileHandle == NULL) {
         error("Unable to open \"%s\" for writing", g_outputFilename);
 	}

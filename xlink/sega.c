@@ -50,7 +50,7 @@ void
 sega_WriteMegaDriveImage(const char* outputFilename) {
     image_WriteBinary(outputFilename, 0);
 
-    FILE* fileHandle = fopen(outputFilename, "a+b");
+    FILE* fileHandle = fopen(outputFilename, "r+b");
     if (fileHandle == NULL)
         error("Unable to open \"%s\" for writing", outputFilename);
 
@@ -144,7 +144,7 @@ void
 sega_WriteMasterSystemImage(const char* outputFilename, int binaryPad) {
     int headerLocation = (binaryPad == 0) || (binaryPad >= 0x8000) ? 0x8000 : binaryPad;
 
-    FILE* fileHandle = fopen(outputFilename, "a+b");
+    FILE* fileHandle = fopen(outputFilename, "r+b");
     if (fileHandle == NULL)
         error("Unable to open \"%s\" for writing", outputFilename);
 

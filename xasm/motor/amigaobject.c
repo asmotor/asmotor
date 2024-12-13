@@ -320,7 +320,7 @@ bool
 ami_WriteObject(string* destFilename, string* sourceFilename) {
     bool r = true;
 
-    FILE* fileHandle = fopen(str_String(destFilename), "wb");
+    FILE* fileHandle = fopen(str_String(destFilename), "w+b");
     if (fileHandle == NULL)
         return false;
 
@@ -346,7 +346,7 @@ extern bool
 ami_WriteExecutable(string* destFilename) {
     bool r = true;
 
-    FILE* fileHandle = fopen(str_String(destFilename), "wb");
+    FILE* fileHandle = fopen(str_String(destFilename), "w+b");
     if (fileHandle == NULL)
         return false;
 

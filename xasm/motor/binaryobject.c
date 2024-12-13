@@ -148,11 +148,11 @@ writeVerilogSection(FILE* fileHandle, SSection* section, uint32_t lastWrittenPos
 
 bool
 bin_Write(string* filename) {
-    return internalWrite(filename, "wb", writeBinarySection);
+    return internalWrite(filename, "w+b", writeBinarySection);
 }
 
 
 bool
 bin_WriteVerilog(string* filename) {
-    return internalWrite(filename, "wt", writeVerilogSection);
+    return internalWrite(filename, "w+t", writeVerilogSection);
 }

@@ -155,7 +155,7 @@ writeHeader(FILE* fileHandle) {
 
 extern void
 hc800_WriteExecutable(const char* outputFilename, uint8_t* configuration) {
-	FILE* fileHandle = fopen(outputFilename, "wb");
+	FILE* fileHandle = fopen(outputFilename, "w+b");
 	if (fileHandle == NULL) {
 		error("Unable to open \"%s\" for writing", outputFilename);
 	}
@@ -193,7 +193,7 @@ extern void
 hc800_WriteKernal(const char* outputFilename) {
 	image_WriteBinary(outputFilename, 0);
 
-	FILE* fileHandle = fopen(outputFilename, "a+b");
+	FILE* fileHandle = fopen(outputFilename, "r+b");
 	if (fileHandle == NULL)
 		error("Unable to open \"%s\" for writing", outputFilename);
 

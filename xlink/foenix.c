@@ -129,7 +129,7 @@ writeKUPSections(FILE* fileHandle, int firstSlot, bool pad) {
 
 extern void
 foenix_WriteExecutablePGZ(const char* outputFilename, const char* entry) {
-	FILE* fileHandle = fopen(outputFilename, "wb");
+	FILE* fileHandle = fopen(outputFilename, "w+b");
 	if (fileHandle == NULL) {
 		error("Unable to open \"%s\" for writing", outputFilename);
 	}
@@ -158,7 +158,7 @@ foenix_WriteExecutablePGZ(const char* outputFilename, const char* entry) {
 
 extern void
 foenix_WriteExecutableKUP(const char* outputFilename, const char* entry, bool pad) {
-	FILE* fileHandle = fopen(outputFilename, "wb");
+	FILE* fileHandle = fopen(outputFilename, "w+b");
 	if (fileHandle == NULL) {
 		error("Unable to open \"%s\" for writing", outputFilename);
 	}

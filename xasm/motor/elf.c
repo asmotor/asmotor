@@ -522,7 +522,7 @@ elf_Write(const string* filename, bool bigEndian, EElfArch arch) {
 	addSectionHeaderZero();
 
     FILE* fileHandle;
-    if ((fileHandle = fopen(str_String(filename), "wb")) != NULL) {
+    if ((fileHandle = fopen(str_String(filename), "w+b")) != NULL) {
 		writeElfHeader(fileHandle, bigEndian, arch);
 		bool success = writeSections(fileHandle);
 		fclose(fileHandle);

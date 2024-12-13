@@ -86,7 +86,7 @@ coco_WriteQuickloadBin(const char* outputFilename, const char* entry) {
 		error("Invalid start address %04X", startAddress);
 	}
 
-    FILE* fileHandle = fopen(outputFilename, "wb");
+    FILE* fileHandle = fopen(outputFilename, "w+b");
     if (fileHandle == NULL) {
         error("Unable to open \"%s\" for writing", outputFilename);
 	}

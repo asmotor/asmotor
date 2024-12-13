@@ -81,7 +81,7 @@ handleExtractCommand(int argc, char* argv[], SModule* library) {
     while (argc) {
         SModule* module = lib_Find(library, argv[argn]);
         if (module != NULL) {
-            FILE* fileHandle = fopen(argv[argn], "wb");
+            FILE* fileHandle = fopen(argv[argn], "w+b");
 
             if (fileHandle != NULL) {
                 fwrite(module->data, sizeof(uint8_t), module->byteLength, fileHandle);

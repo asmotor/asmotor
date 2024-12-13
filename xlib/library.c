@@ -120,7 +120,7 @@ lib_Read(const char* filename) {
 
 bool
 lib_Write(SModule* library, const char* filename) {
-    FILE* fileHandle = fopen(filename, "wb");
+    FILE* fileHandle = fopen(filename, "w+b");
 
     if (fileHandle != NULL) {
         fwrite("XLB\0", sizeof(char), 4, fileHandle);

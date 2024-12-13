@@ -299,7 +299,7 @@ static void
 openAndWriteFile(const char* filename, void (* function)(FILE*, const char*, bool), const char* entry, bool debugInfo) {
     FILE* fileHandle;
 
-    if ((fileHandle = fopen(filename, "wb")) != NULL) {
+    if ((fileHandle = fopen(filename, "w+b")) != NULL) {
         function(fileHandle, entry, debugInfo);
         fclose(fileHandle);
     } else {
