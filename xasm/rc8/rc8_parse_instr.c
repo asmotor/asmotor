@@ -1,19 +1,19 @@
 /*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
 
-    This file is part of ASMotor.
+	This file is part of ASMotor.
 
-    ASMotor is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	ASMotor is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    ASMotor is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	ASMotor is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
@@ -106,10 +106,10 @@ typedef struct Parser {
 static string*
 createUniqueLabel(void) {
 	static uint32_t id = 0;
-    char sym[32];
+	char sym[32];
 
-    snprintf(sym, sizeof(sym), "$target%u", id++);
-    return str_Create(sym);
+	snprintf(sym, sizeof(sym), "$target%u", id++);
+	return str_Create(sym);
 }
 
 
@@ -200,6 +200,180 @@ ensureSource(SAddressingMode** destination, SAddressingMode** source) {
 		*destination = *source;
 		*source = t;
 	}
+}
+
+
+static bool
+handle_LongLoad(uint8_t ld_t_hl, uint8_t ld_hl_t, uint8_t ld_r_ft, uint8_t ld_ft_r, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
+	if (!opt_Current->machineOptions->enableSynthInstructions)
+		return false;
+
+	if (ld_t_hl != 0xFF && destination->mode == MODE_REG_FT && (source->mode & MODE_IND_16BIT_BCDEHL)) {
+		// LD FT,(hl)
+		handle_OpcodeRegister(ld_t_hl, source);	// LD T,(hl)
+		handle_OpcodeRegister(0xBC, source);	// ADD hl,
+		sect_OutputConst8(1);					//        1
+		sect_OutputConst8(0x10);				// EXG F,T
+		handle_OpcodeRegister(ld_t_hl, source);	// LD T,(hl)
+		handle_OpcodeRegister(0xBC, source);	// ADD hl,
+		sect_OutputConst8(-1);					//        -1
+		sect_OutputConst8(0x10);				// EXG F,T
+		return true;
+	} else if (ld_hl_t != 0xFF && (destination->mode & MODE_IND_16BIT_BCDEHL) && source->mode == MODE_REG_FT) {
+		// LD (hl),FT
+		handle_OpcodeRegister(ld_hl_t, destination);	// LD (hl),T
+		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
+		sect_OutputConst8(1);						//        1
+		sect_OutputConst8(0x10);					// EXG F,T
+		handle_OpcodeRegister(ld_hl_t, destination);	// LD T,(hl)
+		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
+		sect_OutputConst8(-1);						//        -1
+		sect_OutputConst8(0x10);					// EXG F,T
+		return true;
+	} else if (ld_t_hl != 0xFF && destination->mode == MODE_REG_FT && (source->mode & MODE_IND_BCDEHL_POST_INC)) {
+		// LD FT,(hl+)
+		handle_OpcodeRegister(ld_t_hl, source);	// LD T,(hl)
+		handle_OpcodeRegister(0xBC, source);	// ADD hl,
+		sect_OutputConst8(1);					//        1
+		sect_OutputConst8(0x10);				// EXG F,T
+		handle_OpcodeRegister(ld_t_hl, source);	// LD T,(hl)
+		sect_OutputConst8(0x10);				// EXG F,T
+		return true;
+	} else if (ld_t_hl != 0xFF && destination->mode == MODE_REG_T && (source->mode & MODE_IND_BCDEHL_POST_INC)) {
+		// LD T,(hl+)
+		handle_OpcodeRegister(ld_t_hl, source);	// LD T,(hl)
+		handle_OpcodeRegister(0xBC, source);	// ADD hl,
+		sect_OutputConst8(1);					//        1
+		return true;
+	} else if (ld_hl_t != 0xFF && (destination->mode & MODE_IND_BCDEHL_POST_INC) && source->mode == MODE_REG_FT) {
+		// LD (hl+),FT
+		handle_OpcodeRegister(ld_hl_t, destination);	// LD (hl),T
+		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
+		sect_OutputConst8(1);						//        1
+		sect_OutputConst8(0x10);					// EXG F,T
+		handle_OpcodeRegister(ld_hl_t, destination);	// LD (hl),T
+		sect_OutputConst8(0x10);					// EXG F,T
+		return true;
+	} else if (ld_hl_t != 0xFF && (destination->mode & MODE_IND_BCDEHL_POST_INC) && source->mode == MODE_REG_T) {
+		// LD (hl+),T
+		handle_OpcodeRegister(ld_hl_t, destination);	// LD (hl),T
+		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
+		sect_OutputConst8(1);						//        1
+		return true;
+	} else if (ld_t_hl != 0xFF && destination->mode == MODE_REG_FT && (source->mode & MODE_IND_BCDEHL_PRE_DEC)) {
+		// LD FT,(-hl)
+		handle_OpcodeRegister(ld_t_hl, source);	// LD T,(hl)
+		handle_OpcodeRegister(0xBC, source);	// ADD hl,
+		sect_OutputConst8(-1);					//        -1
+		sect_OutputConst8(0x10);				// EXG F,T
+		handle_OpcodeRegister(ld_t_hl, source);	// LD T,(hl)
+		return true;
+	} else if (ld_t_hl != 0xFF && destination->mode == MODE_REG_T && (source->mode & MODE_IND_BCDEHL_PRE_DEC)) {
+		// LD T,(-hl)
+		handle_OpcodeRegister(0xBC, source);	// ADD hl,
+		sect_OutputConst8(-1);					//        -1
+		handle_OpcodeRegister(ld_t_hl, source);	// LD T,(hl)
+		return true;
+	} else if (ld_hl_t != 0xFF && (destination->mode & MODE_IND_BCDEHL_PRE_DEC) && source->mode == MODE_REG_FT) {
+		// LD (-hl),FT
+		sect_OutputConst8(0x10);					// EXG F,T
+		handle_OpcodeRegister(ld_hl_t, destination);	// LD (hl),T
+		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
+		sect_OutputConst8(-1);						//        -1
+		sect_OutputConst8(0x10);					// EXG F,T
+		handle_OpcodeRegister(ld_hl_t, destination);	// LD (hl),T
+		return true;
+	} else if (ld_hl_t != 0xFF && (destination->mode & MODE_IND_BCDEHL_PRE_DEC) && source->mode == MODE_REG_T) {
+		// LD (-hl),T
+		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
+		sect_OutputConst8(-1);						//        -1
+		handle_OpcodeRegister(ld_hl_t, destination);	// LD (hl),T
+		return true;
+	} else if (ld_r_ft != 0xFF && (destination->mode & MODE_REG_16BIT_BCDEHL) && source->mode == MODE_IND_FT) {
+		// LD hl,(FT)
+		SAddressingMode high, low;
+		registerPair(&high, &low, destination);
+		handle_OpcodeRegister(ld_r_ft, &low);		// LD l,(FT)
+		handle_OpcodeRegister(0xBC, source);	// ADD FT,
+		sect_OutputConst8(1);					//        1
+		handle_OpcodeRegister(ld_r_ft, &high);		// LD h,(FT)
+		handle_OpcodeRegister(0xBC, source);	// ADD FT,
+		sect_OutputConst8(-1);					//        -1
+		return true;
+	} else if (ld_ft_r != 0xFF && destination->mode == MODE_IND_FT && (source->mode & MODE_REG_16BIT_BCDEHL)) {
+		// LD (FT),hl
+		SAddressingMode high, low;
+		registerPair(&high, &low, source);
+		handle_OpcodeRegister(ld_ft_r, &low);			// LD (FT),l
+		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
+		sect_OutputConst8(1);						//        1
+		handle_OpcodeRegister(ld_ft_r, &high);			// LD (FT),h
+		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
+		sect_OutputConst8(-1);						//        -1
+		return true;
+	} else if (ld_r_ft != 0xFF && (destination->mode & MODE_REG_16BIT_BCDEHL) && source->mode == MODE_IND_FT_POST_INC) {
+		// LD hl,(FT+)
+		SAddressingMode high, low;
+		registerPair(&high, &low, destination);
+		handle_OpcodeRegister(ld_r_ft, &low);		// LD l,(FT)
+		handle_OpcodeRegister(0xBC, source);	// ADD FT,
+		sect_OutputConst8(1);					//        1
+		handle_OpcodeRegister(ld_r_ft, &high);		// LD h,(FT)
+		return true;
+	} else if (ld_r_ft != 0xFF && (destination->mode & MODE_REG_8BIT_FBCDEHL) && source->mode == MODE_IND_FT_POST_INC) {
+		// LD r,(FT+)
+		handle_OpcodeRegister(ld_r_ft, destination);	// LD r,(FT)
+		handle_OpcodeRegister(0xBC, source);		// ADD FT,
+		sect_OutputConst8(1);						//        1
+		return true;
+	} else if (ld_ft_r != 0xFF && destination->mode == MODE_IND_FT_POST_INC && (source->mode & MODE_REG_16BIT_BCDEHL)) {
+		// LD (FT+),hl
+		SAddressingMode high, low;
+		registerPair(&high, &low, source);
+		handle_OpcodeRegister(ld_ft_r, &low);			// LD (FT),l
+		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
+		sect_OutputConst8(1);						//        1
+		handle_OpcodeRegister(ld_ft_r, &high);			// LD (FT),l
+		return true;
+	} else if (ld_ft_r != 0xFF && destination->mode == MODE_IND_FT_POST_INC && (source->mode & MODE_REG_8BIT_FBCDEHL)) {
+		// LD (FT+),r
+		handle_OpcodeRegister(ld_ft_r, source);		// LD (FT),l
+		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
+		sect_OutputConst8(1);						//        1
+		return true;
+	} else if (ld_r_ft != 0xFF && (destination->mode & MODE_REG_16BIT_BCDEHL) && source->mode == MODE_IND_FT_PRE_DEC) {
+		// LD hl,(-FT)
+		SAddressingMode high, low;
+		registerPair(&high, &low, destination);
+		handle_OpcodeRegister(ld_r_ft, &high);		// LD h,(FT)
+		handle_OpcodeRegister(0xBC, source);	// ADD FT,
+		sect_OutputConst8(-1);					//        -1
+		handle_OpcodeRegister(ld_r_ft, &low);		// LD l,(FT)
+		return true;
+	} else if (ld_r_ft != 0xFF && (destination->mode & MODE_REG_8BIT_FBCDEHL) && source->mode == MODE_IND_FT_PRE_DEC) {
+		// LD r,(-FT)
+		handle_OpcodeRegister(0xBC, source);		// ADD FT,
+		sect_OutputConst8(-1);						//        -1
+		handle_OpcodeRegister(ld_r_ft, destination);	// LD r,(FT)
+		return true;
+	} else if (ld_ft_r != 0xFF && destination->mode == MODE_IND_FT_PRE_DEC && (source->mode & MODE_REG_16BIT_BCDEHL)) {
+		// LD (-FT),hl
+		SAddressingMode high, low;
+		registerPair(&high, &low, source);
+		handle_OpcodeRegister(ld_ft_r, &high);			// LD h,(FT)
+		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
+		sect_OutputConst8(-1);						//        -1
+		handle_OpcodeRegister(ld_ft_r, &low);			// LD l,(FT)
+		return true;
+	} else if (ld_ft_r != 0xFF && destination->mode == MODE_IND_FT_PRE_DEC && (source->mode & MODE_REG_8BIT_FBCDEHL)) {
+		// LD (-FT),r
+		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
+		sect_OutputConst8(-1);						//        -1
+		handle_OpcodeRegister(ld_ft_r, source);		// LD r,(FT)
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -345,6 +519,9 @@ handle_J(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SA
 
 static bool
 handle_LCO(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
+	if (source->mode & MODE_IND_16BIT_INC_DEC)
+		return handle_LongLoad(0x0C, 0xFF, 0xFF, 0xFF, cc, destination, source);
+
 	return handle_OpcodeRegister(baseOpcode, source);
 }
 
@@ -429,7 +606,6 @@ handle_LD_R16_imm(SAddressingMode* dest, SExpression* expression) {
 	return handle_Op_Reg_UnsignedImm(0x80, &registerLow, low);
 }
 
-
 static bool 
 handle_LD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	if ((destination->mode & MODE_REG_8BIT) && source->mode == MODE_IMM) {
@@ -452,172 +628,9 @@ handle_LD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, S
 		return handle_OpcodeRegister(0xD0, destination);
 	} else if (destination->mode == MODE_REG_FT && (source->mode & MODE_REG_16BIT_BCDEHL)) {
 		return handle_OpcodeRegister(0xD8, source);
-	} else if (destination->mode == MODE_REG_FT && (source->mode & MODE_IND_16BIT_BCDEHL) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD FT,(hl)
-		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
-		handle_OpcodeRegister(0xBC, source);	// ADD hl,
-		sect_OutputConst8(1);					//        1
-		sect_OutputConst8(0x10);				// EXG F,T
-		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
-		handle_OpcodeRegister(0xBC, source);	// ADD hl,
-		sect_OutputConst8(-1);					//        -1
-		sect_OutputConst8(0x10);				// EXG F,T
-		return true;
-	} else if ((destination->mode & MODE_IND_16BIT_BCDEHL) && source->mode == MODE_REG_FT && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (hl),FT
-		handle_OpcodeRegister(0x00, destination);	// LD (hl),T
-		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
-		sect_OutputConst8(1);						//        1
-		sect_OutputConst8(0x10);					// EXG F,T
-		handle_OpcodeRegister(0x00, destination);	// LD T,(hl)
-		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
-		sect_OutputConst8(-1);						//        -1
-		sect_OutputConst8(0x10);					// EXG F,T
-		return true;
-	} else if (destination->mode == MODE_REG_FT && (source->mode & MODE_IND_BCDEHL_POST_INC) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD FT,(hl+)
-		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
-		handle_OpcodeRegister(0xBC, source);	// ADD hl,
-		sect_OutputConst8(1);					//        1
-		sect_OutputConst8(0x10);				// EXG F,T
-		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
-		sect_OutputConst8(0x10);				// EXG F,T
-		return true;
-	} else if (destination->mode == MODE_REG_T && (source->mode & MODE_IND_BCDEHL_POST_INC) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD T,(hl+)
-		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
-		handle_OpcodeRegister(0xBC, source);	// ADD hl,
-		sect_OutputConst8(1);					//        1
-		return true;
-	} else if ((destination->mode & MODE_IND_BCDEHL_POST_INC) && source->mode == MODE_REG_FT && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (hl+),FT
-		handle_OpcodeRegister(0x00, destination);	// LD (hl),T
-		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
-		sect_OutputConst8(1);						//        1
-		sect_OutputConst8(0x10);					// EXG F,T
-		handle_OpcodeRegister(0x00, destination);	// LD (hl),T
-		sect_OutputConst8(0x10);					// EXG F,T
-		return true;
-	} else if ((destination->mode & MODE_IND_BCDEHL_POST_INC) && source->mode == MODE_REG_T && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (hl+),T
-		handle_OpcodeRegister(0x00, destination);	// LD (hl),T
-		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
-		sect_OutputConst8(1);						//        1
-		return true;
-	} else if (destination->mode == MODE_REG_FT && (source->mode & MODE_IND_BCDEHL_PRE_DEC) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD FT,(-hl)
-		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
-		handle_OpcodeRegister(0xBC, source);	// ADD hl,
-		sect_OutputConst8(-1);					//        -1
-		sect_OutputConst8(0x10);				// EXG F,T
-		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
-		return true;
-	} else if (destination->mode == MODE_REG_T && (source->mode & MODE_IND_BCDEHL_PRE_DEC) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD T,(-hl)
-		handle_OpcodeRegister(0xBC, source);	// ADD hl,
-		sect_OutputConst8(-1);					//        -1
-		handle_OpcodeRegister(0x04, source);	// LD T,(hl)
-		return true;
-	} else if ((destination->mode & MODE_IND_BCDEHL_PRE_DEC) && source->mode == MODE_REG_FT && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (-hl),FT
-		sect_OutputConst8(0x10);					// EXG F,T
-		handle_OpcodeRegister(0x00, destination);	// LD (hl),T
-		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
-		sect_OutputConst8(-1);						//        -1
-		sect_OutputConst8(0x10);					// EXG F,T
-		handle_OpcodeRegister(0x00, destination);	// LD (hl),T
-		return true;
-	} else if ((destination->mode & MODE_IND_BCDEHL_PRE_DEC) && source->mode == MODE_REG_T && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (-hl),T
-		handle_OpcodeRegister(0xBC, destination);	// ADD hl,
-		sect_OutputConst8(-1);						//        -1
-		handle_OpcodeRegister(0x00, destination);	// LD (hl),T
-		return true;
-	} else if ((destination->mode & MODE_REG_16BIT_BCDEHL) && source->mode == MODE_IND_FT && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD hl,(FT)
-		SAddressingMode high, low;
-		registerPair(&high, &low, destination);
-		handle_OpcodeRegister(0x28, &low);		// LD l,(FT)
-		handle_OpcodeRegister(0xBC, source);	// ADD FT,
-		sect_OutputConst8(1);					//        1
-		handle_OpcodeRegister(0x28, &high);		// LD h,(FT)
-		handle_OpcodeRegister(0xBC, source);	// ADD FT,
-		sect_OutputConst8(-1);					//        -1
-		return true;
-	} else if (destination->mode == MODE_IND_FT && (source->mode & MODE_REG_16BIT_BCDEHL) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (FT),hl
-		SAddressingMode high, low;
-		registerPair(&high, &low, source);
-		handle_OpcodeRegister(0x20, &low);			// LD (FT),l
-		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
-		sect_OutputConst8(1);						//        1
-		handle_OpcodeRegister(0x20, &high);			// LD (FT),h
-		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
-		sect_OutputConst8(-1);						//        -1
-		return true;
-	} else if ((destination->mode & MODE_REG_16BIT_BCDEHL) && source->mode == MODE_IND_FT_POST_INC && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD hl,(FT+)
-		SAddressingMode high, low;
-		registerPair(&high, &low, destination);
-		handle_OpcodeRegister(0x28, &low);		// LD l,(FT)
-		handle_OpcodeRegister(0xBC, source);	// ADD FT,
-		sect_OutputConst8(1);					//        1
-		handle_OpcodeRegister(0x28, &high);		// LD h,(FT)
-		return true;
-	} else if ((destination->mode & MODE_REG_8BIT_FBCDEHL) && source->mode == MODE_IND_FT_POST_INC && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD r,(FT+)
-		handle_OpcodeRegister(0x28, destination);	// LD r,(FT)
-		handle_OpcodeRegister(0xBC, source);		// ADD FT,
-		sect_OutputConst8(1);						//        1
-		return true;
-	} else if (destination->mode == MODE_IND_FT_POST_INC && (source->mode & MODE_REG_16BIT_BCDEHL) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (FT+),hl
-		SAddressingMode high, low;
-		registerPair(&high, &low, source);
-		handle_OpcodeRegister(0x20, &low);			// LD (FT),l
-		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
-		sect_OutputConst8(1);						//        1
-		handle_OpcodeRegister(0x20, &high);			// LD (FT),l
-		return true;
-	} else if (destination->mode == MODE_IND_FT_POST_INC && (source->mode & MODE_REG_8BIT_FBCDEHL) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (FT+),r
-		handle_OpcodeRegister(0x20, source);		// LD (FT),l
-		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
-		sect_OutputConst8(1);						//        1
-		return true;
-	} else if ((destination->mode & MODE_REG_16BIT_BCDEHL) && source->mode == MODE_IND_FT_PRE_DEC && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD hl,(-FT)
-		SAddressingMode high, low;
-		registerPair(&high, &low, destination);
-		handle_OpcodeRegister(0x28, &high);		// LD h,(FT)
-		handle_OpcodeRegister(0xBC, source);	// ADD FT,
-		sect_OutputConst8(-1);					//        -1
-		handle_OpcodeRegister(0x28, &low);		// LD l,(FT)
-		return true;
-	} else if ((destination->mode & MODE_REG_8BIT_FBCDEHL) && source->mode == MODE_IND_FT_PRE_DEC && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD r,(-FT)
-		handle_OpcodeRegister(0xBC, source);		// ADD FT,
-		sect_OutputConst8(-1);						//        -1
-		handle_OpcodeRegister(0x28, destination);	// LD r,(FT)
-		return true;
-	} else if (destination->mode == MODE_IND_FT_PRE_DEC && (source->mode & MODE_REG_16BIT_BCDEHL) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (-FT),hl
-		SAddressingMode high, low;
-		registerPair(&high, &low, source);
-		handle_OpcodeRegister(0x20, &high);			// LD h,(FT)
-		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
-		sect_OutputConst8(-1);						//        -1
-		handle_OpcodeRegister(0x20, &low);			// LD l,(FT)
-		return true;
-	} else if (destination->mode == MODE_IND_FT_PRE_DEC && (source->mode & MODE_REG_8BIT_FBCDEHL) && opt_Current->machineOptions->enableSynthInstructions) {
-		// LD (-FT),r
-		handle_OpcodeRegister(0xBC, destination);	// ADD FT,
-		sect_OutputConst8(-1);						//        -1
-		handle_OpcodeRegister(0x20, source);		// LD r,(FT)
-		return true;
 	}
-
-	return false;
+	
+	return handle_LongLoad(0x04, 0x00, 0x28, 0x20, cc, destination, source);
 }
 
 
@@ -638,8 +651,10 @@ handle_JAL(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 
 
 static bool
-handle_LoadIndirect(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	if ((destination->mode & MODE_IND_16BIT_BCDEHL) && source->mode == MODE_REG_T)
+handle_LIO(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
+	if ((source->mode & MODE_IND_16BIT_INC_DEC) || (destination->mode & MODE_IND_16BIT_INC_DEC))
+		return handle_LongLoad(0x34, 0x31, 0xFF, 0xFF, cc, destination, source);
+	else if ((destination->mode & MODE_IND_16BIT_BCDEHL) && source->mode == MODE_REG_T)
 		return handle_OpcodeRegister(baseOpcode, destination);
 	else if (destination->mode == MODE_REG_T && (source->mode & MODE_IND_16BIT))
 		return handle_OpcodeRegister(baseOpcode + 0x04, source);
@@ -840,10 +855,10 @@ g_Parsers[T_RC8_XOR - T_RC8_ADD + 1] = {
 	{ 0x49, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* EXT */
 	{ 0x3C, CONDITION_PASS, MODE_IND_16BIT | MODE_ADDR, MODE_NONE, handle_J },						/* J */
 	{ 0x38, CONDITION_AUTO, MODE_IND_16BIT | MODE_ADDR, MODE_NONE, handle_JAL },					/* JAL */
-	{ 0x0C, CONDITION_AUTO, MODE_REG_T, MODE_IND_16BIT, handle_LCO },								/* LCO */
+	{ 0x0C, CONDITION_AUTO, MODE_REG_T | MODE_REG_FT, MODE_IND_16BIT | MODE_IND_16BIT_INC_DEC, handle_LCO },		/* LCO */
 	{ 0x0A, CONDITION_AUTO, MODE_IND_C | MODE_REG_T, MODE_IND_C | MODE_REG_T, handle_LCR },			/* LCR */
 	{ 0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT | MODE_IND_16BIT | MODE_IND_16BIT_INC_DEC, MODE_IMM | MODE_REG_8BIT | MODE_REG_16BIT | MODE_IND_16BIT | MODE_IND_16BIT_INC_DEC, handle_LD },		/* LD */
-	{ 0x30, CONDITION_AUTO, MODE_IND_16BIT_BCDEHL | MODE_REG_T, MODE_IND_16BIT | MODE_REG_T, handle_LoadIndirect },	/* LIO */
+	{ 0x30, CONDITION_AUTO, MODE_IND_16BIT_INC_DEC | MODE_IND_16BIT_BCDEHL | MODE_REG_T | MODE_REG_FT, MODE_IND_16BIT_INC_DEC | MODE_IND_16BIT | MODE_REG_T | MODE_REG_FT, handle_LIO },	/* LIO */
 	{ 0xE0, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL | MODE_IMM, MODE_REG_8BIT_BCDEHL | MODE_IMM | MODE_NONE, handle_Shift },	/* LS */
 	{ 0x51, CONDITION_AUTO, MODE_REG_T | MODE_REG_FT, MODE_NONE, handle_NEG },						/* NEG */
 	{ 0x00, CONDITION_AUTO, MODE_NONE, MODE_NONE, handle_Implicit },								/* NOP */

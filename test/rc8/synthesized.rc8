@@ -33,3 +33,12 @@
 	ld	t,(bc+)
 	ld	t,(-bc)
 	pick	bc,4
+	lco	ft,(bc+)
+	lco	t,(bc+)
+	lco	t,(-bc)
+	lio	ft,(bc+)
+	lio	t,(bc+)
+	lio	t,(-bc)
+	lio	(bc+),ft
+	lio	(bc+),t
+	lio	(-bc),t

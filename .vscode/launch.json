@@ -39,8 +39,9 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-cmega65", "-fmega65", "-eEntry", "-otest.prg"],
-            "cwd": "/home/ces/dev/mega65test",
+            "args": [ "-sInit","-mkernel.sym","-okernel.bin","-chc800b","-fhc800k","startup.obj","blockdevice.obj","commandline.obj","editor.obj","error.obj","fat32.obj","filesystems.obj","keyboard.obj","main.obj","mbr.obj","mmu.obj","sd.obj","sddevice.obj","syscall.obj","text.obj","uart_commands.obj","uartfs.obj","video.obj","../stdlib/std.lib","../lowlevel/lowlevel.lib"],
+            "cwd": "/home/ces/dev/hc800-mega65/modules/hc800/firmware/kernel",
+
         },
         {
             "name": "(Win) motorz80",
@@ -60,10 +61,18 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/motor6502",
-            "args": ["-ms1", "-mc5", "-fv","-obank.r","bank.asm"],
+            "args": [
+                "-mc5",
+                "-i.",
+                "-ms1",
+                "-g",
+                "-d.deps/zeropage.d",
+                "-o.build/zeropage.o",
+                "src/zeropage.s"],
+
             //"args": ["-fv", "-otest816.r","test816.asm"],
             //"args": ["-fv", "-oundoc0.r","undoc0.asm"],
-            "cwd": "${workspaceFolder}/test/6502",
+            "cwd": "/home/ces/dev/mega65dots",
         },
         {
             "name": "Debug motorschip",
@@ -107,7 +116,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/rc8/motorrc8",
-            "args": [ "equs.rc8" ],
+            "args": [ "synthesized.rc8" ],
             "cwd": "/home/ces/dev/asmotor/test/rc8",
         },
         {
