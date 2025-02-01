@@ -323,6 +323,7 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 	} else if (T_45GS02_ADCQ <= token && token <= T_45GS02_STQ) {
 		if (opt_Current->machineOptions->cpu & MOPT_CPU_45GS02) {
 			SQMnemonic* handler = &g_qMnemonics[token - T_45GS02_ADCQ];
+			allowedModes = allowedModes & handler->allowedModes;
 
 			if (handler->token >= T_4510_ASR && handler->token <= T_4510_TZA) {
 				SAddressingMode addrMode;
