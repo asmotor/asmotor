@@ -30,7 +30,6 @@
 
 static SConfiguration x10c_XasmConfiguration = {
 	"motordcpu16",
-	0x10000,
 	ASM_BIG_ENDIAN,
 	false,
 	false,

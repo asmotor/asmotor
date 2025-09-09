@@ -31,7 +31,6 @@
 static SConfiguration
 m6809_xasmConfiguration = {
 	"motor6809",
-	0x10000,
 	ASM_BIG_ENDIAN,
 	true,	// banks
 	false,

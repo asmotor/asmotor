@@ -74,11 +74,9 @@ z80_ParseOption(const char* s) {
                 switch (s[1]) {
                     case 'g':
                         opt_Current->machineOptions->cpu = CPUF_GB;
-                        z80_XasmConfiguration.maxSectionSize = 0x4000;
                         return true;
                     case 'z':
                         opt_Current->machineOptions->cpu = CPUF_Z80;
-                        z80_XasmConfiguration.maxSectionSize = 0x10000;
                         return true;
                     default:
                         break;

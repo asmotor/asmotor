@@ -50,7 +50,6 @@ typedef enum {
 typedef struct Configuration {
     const char* executableName;
 
-    uint32_t maxSectionSize;
     EEndianness defaultEndianness;
 
     bool supportBanks;

@@ -30,7 +30,6 @@
 
 static SConfiguration g_xasmConfiguration = {
 	"motormips",
-	0x7FFFFFFF,
 	ASM_LITTLE_ENDIAN,
 	false,
 	false,

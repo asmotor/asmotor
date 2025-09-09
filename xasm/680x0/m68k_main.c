@@ -31,7 +31,6 @@
 static SConfiguration
 g_680x0Configuration = {
 	"motor68k",
-	0x7FFFFFFF,
 	ASM_BIG_ENDIAN,
 	false,
 	true,

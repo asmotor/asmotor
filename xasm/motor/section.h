@@ -39,7 +39,6 @@ struct Section {
     uint32_t id;                // Assigned when writing object
 
     uint32_t usedSpace;         // How many bytes are used in the section
-    uint32_t freeSpace;         // How many bytes are free
     uint32_t allocatedSpace;    // How big a chunk of memory pData is pointing to
 
     uint32_t imagePosition;     // Where the section is placed in the final image

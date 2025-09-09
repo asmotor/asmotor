@@ -90,7 +90,6 @@ createSection(const string* name) {
 	memset(newSection, 0, sizeof(SSection));
 
 	newSection->name = str_Copy(name);
-	newSection->freeSpace = xasm_Configuration->maxSectionSize;
 
 	if (sect_Sections != NULL) {
 		SSection* lastSection = sect_Sections;
@@ -152,15 +151,10 @@ checkAvailableSpace(uint32_t count) {
 	assert((uint32_t) xasm_Configuration->minimumWordSize <= count);
 
 	if (sect_Current != NULL) {
-		if (count <= sect_Current->freeSpace) {
-			if (currentSectionType() == GROUP_TEXT) {
-				growCurrentSection(count);
-			}
-			return true;
-		} else {
-            err_Error(ERROR_SECTION_FULL);
-			return false;
+		if (currentSectionType() == GROUP_TEXT) {
+			growCurrentSection(count);
 		}
+		return true;
 	} else {
         err_Error(ERROR_SECTION_MISSING);
 		return false;
@@ -224,7 +218,6 @@ sect_OutputConst8(uint8_t value) {
 			case GROUP_TEXT: {
 				linemap_AddCurrent();
 
-				sect_Current->freeSpace -= 1;
 				sect_Current->data[sect_Current->usedSpace++] = value;
 				sect_Current->cpuProgramCounter += 1;
 				break;
@@ -255,7 +248,6 @@ sect_OutputReloc8(SExpression* expression) {
 				sect_Current->data[sect_Current->usedSpace++] = 0;
 
 				sect_Current->cpuProgramCounter += 1;
-				sect_Current->freeSpace -= 1;
 				break;
 			}
 			case GROUP_BSS: {
@@ -309,7 +301,6 @@ sect_OutputConst16(uint16_t value) {
 						break;
 					}
 				}
-				sect_Current->freeSpace -= 2;
 				sect_Current->cpuProgramCounter += 2 / xasm_Configuration->minimumWordSize;
 				break;
 			}
@@ -340,7 +331,6 @@ sect_OutputReloc16(SExpression* expression) {
 				sect_Current->data[sect_Current->usedSpace++] = 0;
 				sect_Current->data[sect_Current->usedSpace++] = 0;
 
-				sect_Current->freeSpace -= 2;
 				sect_Current->cpuProgramCounter += 2 / xasm_Configuration->minimumWordSize;
 				break;
 			}
@@ -400,7 +390,6 @@ sect_OutputConst32(uint32_t value) {
 						break;
 					}
 				}
-				sect_Current->freeSpace -= 4;
 				sect_Current->cpuProgramCounter += 4 / xasm_Configuration->minimumWordSize;
 				break;
 			}
@@ -433,7 +422,6 @@ sect_OutputRel32(SExpression* expression) {
 				sect_Current->data[sect_Current->usedSpace++] = 0;
 				sect_Current->data[sect_Current->usedSpace++] = 0;
 
-				sect_Current->freeSpace -= 4;
 				sect_Current->cpuProgramCounter += 4 / xasm_Configuration->minimumWordSize;
 				break;
 			}
@@ -503,7 +491,6 @@ sect_OutputBinaryFile(string* filename) {
 					linemap_AddCurrent();
 
 					size_t read = fread(&sect_Current->data[sect_Current->usedSpace], sizeof(uint8_t), size, fileHandle);
-					sect_Current->freeSpace -= size;
 					sect_Current->usedSpace += size;
 					sect_Current->cpuProgramCounter += size / xasm_Configuration->minimumWordSize;
 					if (read != size) {
@@ -560,7 +547,6 @@ sect_SkipBytes(uint32_t count) {
 				break;
 			}
 			case GROUP_BSS: {
-				sect_Current->freeSpace -= count;
 				sect_Current->usedSpace += count;
 				sect_Current->cpuProgramCounter += count / xasm_Configuration->minimumWordSize;
 				break;

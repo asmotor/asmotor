@@ -64,7 +64,7 @@ static char* g_errors[] = {
     "Cannot export symbol defined at %s:%d",
     "SECTION cannot contain initialised data",
     "Cannot import already defined symbol",
-    "Available SECTION space exhausted",
+    "[unused]",
     "No SECTION defined",
     "Expression is neither constant nor relocatable",
     "Expression must be a power of two",
