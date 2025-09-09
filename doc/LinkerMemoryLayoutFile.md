@@ -57,7 +57,7 @@ For readability, the expression should be surrounded by parentheses, although th
 To define an array of pools, the following directive is used:
 
 ```
-POOLS name[start:end] cpu_address_expr cpu_bank_expr size_expr ?image_offset_expr
+POOLS name[start:end] cpu_address_expr cpu_bank_expr size_expr [image_offset_expr [:overlay]]
 ```
 
 `name`, `cpu_address_expr`, `cpu_bank_expr`, `size_expr` and `image_offset_expr` have the same meaning as when defining a single pool. However, one or more of them will usually refer to the `@` variable in an expression, for example `(@*$8000)` when defining the pool's location in an image.

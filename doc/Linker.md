@@ -18,7 +18,7 @@ In order to link object files for a specific platform, it must first be defined.
 * [Foenix A2560K/X](LinkerFoenix2560.md)
 * [Foenix F256 line](LinkerFoenix256.md)
 
-A (custom machine definition)[LinkerMemoryLayoutFile.md] may also defined by the user.
+A [custom machine definition](LinkerMemoryLayoutFile.md) may also defined by the user.
 
 ## Options
 ### Help (-h)
@@ -30,10 +30,10 @@ Prints a short summary of all options.
 ### Machine definition (-a)
 A machine definition file can be used to specify memory regions - locations, sizes and types.
 
-Please refer to (machine definition file documentation)[LinkerMemoryLayoutFile.md] for documentation on this format.
+Please refer to [machine definition file documentation](LinkerMemoryLayoutFile.md) for documentation on this format.
 
 ### Memory configuration (-c)
-Several machine definitions are built-in. This option selects a particurlar target machine's memory configuration. Various sections types, names, banks and locations will be defined.
+Several machine definitions are built-in. This option selects a particular target machine's memory configuration. Various sections types, names, banks and locations will be defined.
 
 ```
 -c<config>  Memory configuration 

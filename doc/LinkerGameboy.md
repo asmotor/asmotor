@@ -33,7 +33,7 @@ This machine definition is used for images larger than 32 KiB. It is banked with
 The HOME group is the area from $0000 to $3FFF, and the CODE/DATA group is several banks mapped into the $4000 to $7FFF. The linker will place CODE/DATA sections in these pools, starting from the pool at the beginning of the ROM image. The bank number can be discovered with the BANK assembler function, and can be used to map the BANK into memory from code.
 
 ## Header
-THe header must be more or less filled correctly by the user, but the linker will correct the following entries:
+The header must be more or less filled correctly by the user, but the linker will correct the following entries:
 
 | Entry | Location |
 |---|---|
