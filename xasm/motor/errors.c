@@ -106,7 +106,7 @@ static char* g_errors[] = {
     "Object file does not support expression",
     "Invalid MACRO argument",
     "Not a string member function returning int",
-    "Too many files specified on command line",
+    "Too many files specified on command line after, last is \"%s\"",
     "Extended precision floating point not supported",
     "Unterminated IF block (started at %s:%d)",
     "SECTION already exists but it has a different combination of options",

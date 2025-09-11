@@ -266,15 +266,15 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 					}
 				}
 			}
-
-			err_PrintAll();
-			if (xasm_TotalErrors > 0) {
-				rcode = EXIT_FAILURE;
-			}
 		}
 		str_Free(sourcePath);
 	} else if (argc > 1) {
-		err_Error(ERROR_TOO_MANY_FILES);
+		err_Error(ERROR_TOO_MANY_FILES, argv[argn]);
+	}
+
+	err_PrintAll();
+	if (xasm_TotalErrors > 0) {
+		rcode = EXIT_FAILURE;
 	}
 
 	str_Free(outputFilename);
