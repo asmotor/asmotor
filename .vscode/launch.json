@@ -66,13 +66,13 @@
                 "-i.",
                 "-ms1",
                 "-g",
-                "-d.deps/zeropage.d",
-                "-o.build/zeropage.o",
-                "src/zeropage.s"],
+                "-d.deps/mod_player.d",
+                "-o.build/mod_player.o",
+                "src/mod_player.s"],
 
             //"args": ["-fv", "-otest816.r","test816.asm"],
             //"args": ["-fv", "-oundoc0.r","undoc0.asm"],
-            "cwd": "/home/ces/dev/mega65dots",
+            "cwd": "/Users/ces/dev/mega65-dots",
         },
         {
             "name": "Debug motorschip",

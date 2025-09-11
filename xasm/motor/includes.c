@@ -35,6 +35,25 @@ g_includePaths;
 
 
 /* Private functions */
+static string*
+buildFilename(string* workingName, string* fileName) {
+	if (workingName == NULL)
+		return fcanonicalizePath(fileName);
+
+	return freplaceFileComponent(workingName, fileName);
+}
+
+static string*
+appendFilename(string* directory, string* fileName) {
+	if (directory == NULL)
+		return fcanonicalizePath(fileName);
+
+	string* n = str_Concat(directory, fileName);
+	string* r = fcanonicalizePath(n);
+	str_Free(n);
+	return r;
+}
+
 
 
 /* Public functions */
@@ -43,18 +62,9 @@ extern string*
 inc_FindFile(string* fileName) {
 	string* workingName = lex_Context == NULL ? NULL : lex_Context->buffer.name;
 
-    fileName = fcanonicalizePath(fileName);
-
-    if (workingName == NULL) {
-        if (fexists(str_String(fileName))) {
-            return fileName;
-        }
-    }
-
-	string* candidate = freplaceFileComponent(workingName, fileName);
+	string* candidate = buildFilename(workingName, fileName);
 	if (candidate != NULL) {
 		if (fexists(str_String(candidate))) {
-			str_Free(fileName);
 			return candidate;
 		}
 		str_Free(candidate);
@@ -62,12 +72,17 @@ inc_FindFile(string* fileName) {
 
     if (g_includePaths != NULL) {
         for (size_t count = 0; count < strvec_Count(g_includePaths); ++count) {
-            string* candidate = str_Concat(strvec_StringAt(g_includePaths, count), fileName);
+            string* candidate = appendFilename(strvec_StringAt(g_includePaths, count), fileName);
 
             if (fexists(str_String(candidate))) {
-				str_Free(fileName);
-                return str_Copy(candidate);
+                return candidate;
             }
+        }
+    }
+
+    if (workingName == NULL) {
+        if (fexists(str_String(fileName))) {
+            return fileName;
         }
     }
 
