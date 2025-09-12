@@ -6,12 +6,16 @@
 * Allow `BANK` with scope symbols.
 * Out of range constants will no longer early fail assembly.
 * Fixed dependency file might end up with date later than main output file, causing unnecessary rebuilds with make.
+* Improved paths in generated dependency file.
 * String interpolation would sometimes fail in rare cases.
 * `GROUP` directive would generate a syntax error.
 * `BANK` is now resolved properly when writing binary file.
+* Section size tracking in the assembler is redundant and has been removed. This enables >64 KiB sections with 8-bit processors.
 
 ### 6502
 
+* Long branch synonyms added for 4510 mode.
+* Some allowed addressing modes were wrong for 4510 mode.
 * Added `<>` immediate modifier.
 * Improved 45GS02 synthesized LDQ code generation.
 * Proper range check for absolute addresses.
@@ -21,6 +25,9 @@
 
 * Amiga HUNK_EXT hunk could be written incorrectly in some circumstances.
 
+### RC811
+* LIO and LCO synthesized instructions added.
+
 
 ## Linker
 
@@ -29,6 +36,7 @@
 * Improved error messages from errorneous machine definition files.
 * Much improved map file which now includes symbol definition location, when debug information is emitted by the assembler (`-g` switch.)
 * CBM: Fixed load address >= 10000
+* Some binary outputs were sometimes truncated.
 
 # 1.3.2
 
