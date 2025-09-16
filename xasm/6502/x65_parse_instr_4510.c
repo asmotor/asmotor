@@ -288,18 +288,18 @@ static SQMnemonic
 g_qMnemonics[T_45GS02_STQ + 1 - T_45GS02_ADCQ] = {
 	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_ADC },
 	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_AND },
-	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ASL },
-	{ MODE_45GS02_Q | MODE_ZP | MODE_ZP_X, T_4510_ASR },
+	{ MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ASL },
+	{ MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ZP_X, T_4510_ASR },
 	{ MODE_ZP | MODE_ABS, T_6502_BIT },
 	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_CMP },
 	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_DEC },
 	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_EOR },
 	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_INC },
 	{ MODE_IMM | MODE_ZP | MODE_ABS | MODE_4510_IND_ZP_Z | MODE_45GS02_IND_ZP_Z_QUAD, T_6502_LDA },
-	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_LSR },
+	{ MODE_IMM |MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_LSR },
 	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_ORA },
-	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ROL },
-	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ROR },
+	{ MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ROL },
+	{ MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ROR },
 	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_SBC },
 	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_STA }
 };
@@ -330,6 +330,19 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 				SParser* handler4510 = &g_instructionHandlers[handler->token - T_4510_ASR];
 
 				if (x65_ParseAddressingMode(&addrMode, allowedModes, handler4510->immSize) && (addrMode.mode & allowedModes)) {
+					// ASRQ #imm
+					if ((handler->token == T_4510_ASR) && addrMode.mode == MODE_IMM && expr_IsConstant(addrMode.expr) && opt_Current->machineOptions->synthesized) {
+						SAddressingMode modeImm1 = { .mode = MODE_45GS02_Q };
+
+						for (uint32_t i = 0; i < (uint32_t) addrMode.expr->value.integer; ++i) {
+							sect_OutputConst8(0x42);
+							sect_OutputConst8(0x42);
+							if (!handler4510->handler(handler4510->baseOpcode, &modeImm1))
+								return false;
+						}
+						return true;
+					}
+
 					sect_OutputConst8(0x42);
 					sect_OutputConst8(0x42);
 					return handler4510->handler(handler4510->baseOpcode, &addrMode);
@@ -352,6 +365,18 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 						default:
 							break;
 					}
+
+					if ((handler->token == T_6502_ASL || handler->token == T_6502_LSR || handler->token == T_6502_ROL || handler->token == T_6502_ROR) && addrMode.mode == MODE_IMM && expr_IsConstant(addrMode.expr) && opt_Current->machineOptions->synthesized) {
+						// ASLQ, LSRQ, ROLQ, RORQ #imm
+						SAddressingMode modeImmA = { .mode = MODE_A };
+						for (uint32_t i = 0; i < (uint32_t) addrMode.expr->value.integer; ++i) {
+							sect_OutputConst8(0x42);
+							sect_OutputConst8(0x42);
+							if (!x65_HandleTokenAddressMode(handler->token, &modeImmA))
+								return false;
+						}
+						return true;
+					} 
 
 					if (token == T_45GS02_LDQ && addrMode.mode == MODE_IMM) {
 						return handle_LDQImm(&addrMode);

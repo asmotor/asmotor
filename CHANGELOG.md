@@ -16,6 +16,7 @@
 
 * Long branch synonyms added for 4510 mode.
 * Some allowed addressing modes were wrong for 4510 mode.
+* Added synthesized immediate 45GS02 Q shifts.
 * Added `<>` immediate modifier.
 * Improved 45GS02 synthesized LDQ code generation.
 * Proper range check for absolute addresses.

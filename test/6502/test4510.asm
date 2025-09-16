@@ -453,6 +453,11 @@
    
 	OPT	ms1
 	ldq	#$12345678
-    ldq #0
-    ldq #$12120012
+	ldq	#0
+    	ldq	#$12120012
+	aslq	#2
+	asrq	#2
+	lsrq	#2
+	rolq	#2
+	rorq	#2
 
