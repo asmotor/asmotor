@@ -460,4 +460,5 @@
 	lsrq	#2
 	rolq	#2
 	rorq	#2
+	rorq	#1
 

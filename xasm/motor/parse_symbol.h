@@ -22,6 +22,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "symbol.h"
+
+extern SSymbol* g_rsSymbol;
+
 extern int32_t
 parse_IncrementRs(int32_t size);
 

@@ -31,7 +31,7 @@
 #include "symbol.h"
 
 
-static SSymbol*
+SSymbol*
 g_rsSymbol = NULL;
 
 static bool

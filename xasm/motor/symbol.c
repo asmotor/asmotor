@@ -24,6 +24,7 @@
 
 #include "mem.h"
 
+#include "parse_symbol.h"
 #include "xasm.h"
 #include "symbol.h"
 #include "lexer_context.h"
@@ -363,6 +364,9 @@ sym_CreateStructure(string* name, int32_t initialCount) {
 extern void
 sym_EndStructure(void) {
 	if (sym_CurrentScope != NULL && sym_CurrentScope->type == SYM_STRUCTURE) {
+		if (g_rsSymbol != NULL)
+			sym_CurrentScope->value.integer = g_rsSymbol->value.integer;
+		
 		sym_CurrentScope = NULL;
 	} else {
 		err_Error(ERROR_NOT_IN_STRUCTURE_SCOPE);

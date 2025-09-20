@@ -11,6 +11,7 @@
 * `GROUP` directive would generate a syntax error.
 * `BANK` is now resolved properly when writing binary file.
 * Section size tracking in the assembler is redundant and has been removed. This enables >64 KiB sections with 8-bit processors.
+* Fix size of RS structures when last entries have no symbol name.
 
 ### 6502
 
