@@ -339,16 +339,18 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
 		|| !expr_IsConstant(addrMode->expr))
 			return addrMode->mode != 0;
 
-		int32_t address;
+		SExpression** zpExpr = NULL;
 		switch (addrMode->mode) {
 			case MODE_BIT_ZP:
 			case MODE_BIT_ZP_ABS:
-				address = addrMode->expr2->value.integer;
+				zpExpr = &addrMode->expr2;
 				break;
 			default:
-				address = addrMode->expr->value.integer;
+				zpExpr = &addrMode->expr;
 				break;
 		}
+
+		int32_t address = (*zpExpr)->value.integer;
 
 		bool is_zp = address >= opt_Current->machineOptions->bp_base && address <= opt_Current->machineOptions->bp_base + 255; 
 		if (!is_zp) {
@@ -399,7 +401,7 @@ x65_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes, EImmed
 				return true;
 		}
 
-		addrMode->expr = expr_And(addrMode->expr, expr_Const(0xFF));
+		*zpExpr = expr_And(*zpExpr, expr_Const(0xFF));
 
 		return true;
 	}
