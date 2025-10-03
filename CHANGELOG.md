@@ -22,6 +22,7 @@
 * Improved 45GS02 synthesized LDQ code generation.
 * Proper range check for absolute addresses.
 * Enable `BANK` function.
+* Fixed issue with SETBP and the BBR instruction and friends.
 
 ### 680x0
 
