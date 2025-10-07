@@ -18,6 +18,7 @@ Depending on the target ISA, the executable to invoke will be named motor, follo
              h - Amiga object file
 -i<dir>  Extra include path (can appear more than once)
 -o<f>    Write assembly output to <file>
+-s<file> Use section types from machine definition file      
 -v       Verbose text output
 -w<d>    Disable warning <d> (four digits)
 -z<XX>   Set the byte value (hex format) used for uninitialised
