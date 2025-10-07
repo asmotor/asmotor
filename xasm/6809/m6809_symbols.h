@@ -20,6 +20,10 @@
 #ifndef XASM_6809_SYMBOLS_H_INCLUDED_
 #define XASM_6809_SYMBOLS_H_INCLUDED_
 
+#include <stdbool.h>
+
+#include "str.h"
+
 extern void
 m6809_DefineSymbols(void);
 

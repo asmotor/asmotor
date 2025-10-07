@@ -28,9 +28,11 @@ createGroup(const char* name, EGroupType type) {
 
 void
 m6809_DefineSymbols(void) {
-    createGroup("CODE", GROUP_TEXT);
-    createGroup("DATA", GROUP_TEXT);
-    createGroup("BSS", GROUP_BSS);
+	if (opt_Current->createGroups) {
+		createGroup("CODE", GROUP_TEXT);
+		createGroup("DATA", GROUP_TEXT);
+		createGroup("BSS", GROUP_BSS);
+	}
 }
 
 extern bool

@@ -1,5 +1,5 @@
 # Machine Definition File
-A machine definition file provides a machine definition for the linker to use when placing sections in memory.
+A machine definition file provides a machine definition for the linker to use when placing sections in memory. The assembler is also able to read this file, and will use it to define the groups available as `SECTION` types. This avoids having to define groups in both source files and the machine definition file.
 
 To define a machine definition, "groups" and "pools" must be declared.
 
@@ -39,7 +39,7 @@ A machine definition will invariably use several constants for addresses and so 
 To define a single pool, the following directive is used:
 
 ```
-POOL name cpu_address_expr cpu_bank_expr size_expr [image_offset_expr [:overlay]]
+POOL name cpu_address_expr cpu_bank_expr size_expr ?(image_offset_expr ?(:overlay))
 ```
 
 | Part | Meaning |
@@ -53,28 +53,48 @@ POOL name cpu_address_expr cpu_bank_expr size_expr [image_offset_expr [:overlay]
 
 For readability, the expression should be surrounded by parentheses, although this is not necessary.
 
+Examples:
+```
+POOL bss1 $10000 0 $50000
+POOL overlay2 $0 2 $E000 $0:2
+```
+
+
 ## Array of pools
 To define an array of pools, the following directive is used:
 
 ```
-POOLS name[start:end] cpu_address_expr cpu_bank_expr size_expr [image_offset_expr [:overlay]]
+POOLS name[start:end] cpu_address_expr cpu_bank_expr size_expr ?(image_offset_expr ?(:overlay))
 ```
 
 `name`, `cpu_address_expr`, `cpu_bank_expr`, `size_expr` and `image_offset_expr` have the same meaning as when defining a single pool. However, one or more of them will usually refer to the `@` variable in an expression, for example `(@*$8000)` when defining the pool's location in an image.
 
 The `start` and `end` components (both inclusive) define the range, and thus number, of pools to create. The pools will be collectively referred to by `name` without any indexing.
 
+Example:
+```
+POOLS banks[1:4] ($1000+@*$100) @ $100 $100 (@-1)*$100
+```
+
+
 ## Groups
 
 The directive to define a group is:
 
 ```
-GROUP name pool_name_1 pool_name_2 ... pool_name_n
+GROUP name ?(:type) pool_name_1 pool_name_2 ... pool_name_n
 ```
 
-`name` is the name of the group and the section type used by assembly `SECTION` directives, this would typically be `CODE`, `BSS` and so forth.
+`name` is the name of the group and the section type used by assembly `SECTION` directives, this would typically be `CODE`, `BSS` and so forth. `type` is optional, and is either `TEXT` or `BSS`. If not specified, it defaults to `TEXT`
 
 Any number of pools may follow the group's name. A pool array cannot be indexed, referring to a pool array will include all its pools.
+
+Examples:
+```
+GROUP BSS:BSS bss_low bss_high data_main data_high bss1
+GROUP CUBE_G data_main overlay2
+```
+
 
 ## Formats
 The `FORMATS` directive is used to specify which file formats can be used with a machine definition.

@@ -25,15 +25,16 @@
 #include "mem.h"
 
 #include "parse_symbol.h"
+#include "str.h"
 #include "xasm.h"
 #include "symbol.h"
 #include "lexer_context.h"
 #include "errors.h"
 #include "section.h"
 
-#define SET_TYPE_AND_FLAGS(symbol, t) ((symbol)->type=t,(symbol)->flags=((symbol)->flags&SYMF_EXPORT)|g_defaultSymbolFlags[t])
+#define SET_TYPE_AND_FLAGS(symbol, t) ((symbol)->type=t,(symbol)->flags=((symbol)->flags&SYMF_EXPORT)|defaultSymbolFlags[t])
 
-static uint32_t g_defaultSymbolFlags[] = {
+static uint32_t defaultSymbolFlags[] = {
 	SYMF_RELOC | SYMF_EXPORTABLE | SYMF_EXPRESSION,     // SYM_LABEL
 	SYMF_CONSTANT | SYMF_EXPORTABLE | SYMF_EXPRESSION,  // SYM_EQU
 	SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_MODIFIABLE,  // SYM_SET
@@ -47,9 +48,64 @@ static uint32_t g_defaultSymbolFlags[] = {
 	SYMF_MODIFIABLE | SYMF_EXPRESSION | SYMF_EXPORTABLE // SYM_UNDEFINED
 };
 
+#define DELIMITERS " \t\n$%%+-*/()[]:@;,"
+
+static const char* token;
+static size_t tokenLength;
+
 SSymbol* sym_CurrentScope = NULL;
 
 SSymbol* sym_hashedSymbols[SYMBOL_HASH_SIZE];
+
+
+// Machine definition parsers
+
+static void
+nextToken(const char** in) {
+	while (**in == ' ' || **in == '\t')
+		++*in;
+
+	switch (**in) {
+		case 0:
+		case ';':
+			tokenLength = 0;
+			return;
+		case '$':
+		case '%':
+		case '+':
+		case '-':
+		case '*':
+		case '/':
+		case '(':
+		case ')':
+		case '[':
+		case ']':
+		case ':':
+		case '@':
+		case ',':
+			token = *in;
+			tokenLength = 1;
+			++*in;
+			break;
+		default:
+			token = *in;
+			tokenLength = 0;
+			while (**in != 0 && strchr(DELIMITERS, **in) == NULL) {
+				++*in;
+				++tokenLength;
+			}
+			break;
+	}
+}
+
+
+static bool
+tokenIs(const char* s) {
+	if (strlen(s) != tokenLength)
+		return false;
+
+	return strncmp(s, token, tokenLength) == 0;
+}
 
 
 // Symbol value callbacks
@@ -595,11 +651,52 @@ sym_ErrorOnUndefined(void) {
 	}
 }
 
+
+extern bool
+sym_ReadMachineDefinitionFile(const char* name) {
+	FILE* f = fopen(name, "rt");
+
+	if (!f) {
+		return err_Error(ERROR_NO_FILE, name);
+	}
+
+	string* s;
+	while ((s = str_ReadLineFromFile(f)) != NULL) {
+		const char* line = str_String(s);
+		nextToken(&line);
+
+		if (tokenIs("GROUP")) {
+			nextToken(&line);
+
+			string* name = str_CreateLength(token, tokenLength);
+			nextToken(&line);
+
+			EGroupType type = GROUP_TEXT;
+			if (tokenIs(":")) {
+				nextToken(&line);
+
+				if (tokenIs("TEXT")) {
+					type = GROUP_TEXT;
+				} else if (tokenIs("BSS")) {
+					type = GROUP_BSS;
+				} else {
+					return err_Error(ERROR_EXPECT_TEXT_BSS);
+				}
+			}
+
+			sym_CreateGroup(name, type);
+			str_Free(name);
+		}
+		str_Free(s);
+	}
+
+	return false;
+}
+
+
 extern bool
 sym_Init(void) {
 	sym_CurrentScope = NULL;
-
-	xasm_Configuration->defineSymbols();
 
 	createEquCallback("__NARG", callback__NARG);
 	createEquCallback("__LINE", callback__LINE);

@@ -357,6 +357,12 @@ parseGroupDirective(const char** line, strmap_t* pool_map) {
 	string* name = str_CreateLength(token, token_length);
 	nextToken(line);
 
+	if (tokenIs(":")) {
+		// Skip token kind, the linker doesn't use it
+		nextToken(line);
+		nextToken(line);
+	}
+
 	if (token_length == 0)
 		ERROR("Empty GROUP definition");
 
@@ -475,28 +481,6 @@ parseLine(const char* line, strmap_t* pools) {
 }
 
 
-static string*
-readLine(FILE* file) {
-	string_buffer* buf = strbuf_Create();
-	
-	int ch = fgetc(file);
-	if (ch == EOF)
-		return NULL;
-
-	do {
-		if (ch == '\n' || ch == EOF)
-			break;
-		strbuf_AppendChar(buf, ch);
-		ch = fgetc(file);
-	} while (ch != '\n' && ch != EOF);
-
-	string* r = strbuf_String(buf);
-	strbuf_Free(buf);
-
-	return r;
-}
-
-
 void
 mdef_Read(const string* filename) {
 	strmap_t* pools = strmap_Create(freePools); 
@@ -508,7 +492,7 @@ mdef_Read(const string* filename) {
 	g_filename = str_String(filename);
 	g_line = 1;
 	string* line = NULL;
-	while ((line = readLine(file)) != NULL) {
+	while ((line = str_ReadLineFromFile(file)) != NULL) {
 		parseLine((char *) str_String(line), pools);
 		str_Free(line);
 		g_line += 1;

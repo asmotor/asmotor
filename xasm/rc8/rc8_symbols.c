@@ -30,11 +30,13 @@ createGroup(const char* name, EGroupType type, uint32_t flags) {
 
 void 
 rc8_DefineSymbols(void) {
-	createGroup("CODE", GROUP_TEXT, 0);
-	createGroup("DATA", GROUP_TEXT, SYMF_DATA);
-	createGroup("DATA_S", GROUP_TEXT, SYMF_DATA|SYMF_SHARED);
-	createGroup("BSS", GROUP_BSS, 0);
-    createGroup("BSS_S", GROUP_BSS, SYMF_SHARED);
+	if (opt_Current->createGroups) {
+		createGroup("CODE", GROUP_TEXT, 0);
+		createGroup("DATA", GROUP_TEXT, SYMF_DATA);
+		createGroup("DATA_S", GROUP_TEXT, SYMF_DATA|SYMF_SHARED);
+		createGroup("BSS", GROUP_BSS, 0);
+		createGroup("BSS_S", GROUP_BSS, SYMF_SHARED);
+	}
 }
 
 bool

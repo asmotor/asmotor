@@ -196,6 +196,7 @@ opt_Open(void) {
     opt_Current->disabledWarningsCount = 0;
     opt_Current->allowReservedKeywordLabels = true;
     opt_Current->enableDebugInfo = false;
+	opt_Current->createGroups = true;
 
     xasm_Configuration->setDefaultOptions(opt_Current->machineOptions);
     opt_Updated();

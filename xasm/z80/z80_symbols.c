@@ -28,12 +28,14 @@ createGroup(const char* name, EGroupType type) {
 
 void
 z80_DefineSymbols(void) {
-	createGroup("HOME", GROUP_TEXT);
-	createGroup("CODE", GROUP_TEXT);
-	createGroup("DATA", GROUP_TEXT);
-	createGroup("BSS", GROUP_BSS);
-	createGroup("HRAM", GROUP_BSS);
-	createGroup("VRAM", GROUP_BSS);
+	if (opt_Current->createGroups) {
+		createGroup("HOME", GROUP_TEXT);
+		createGroup("CODE", GROUP_TEXT);
+		createGroup("DATA", GROUP_TEXT);
+		createGroup("BSS", GROUP_BSS);
+		createGroup("HRAM", GROUP_BSS);
+		createGroup("VRAM", GROUP_BSS);
+	}
 }
 
 bool

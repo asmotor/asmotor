@@ -93,6 +93,7 @@ printUsage(void) {
 		   "    -h       This text\n"
 		   "    -i<dir>  Extra include path (can appear more than once)\n"
 		   "    -o<f>    Write assembly output to <file>\n"
+		   "    -s<file> Use section types from machine definition file\n"
 		   "    -v       Verbose text output\n"
 		   "    -w<d>    Disable warning <d> (four digits)\n"
 		   "    -z<XX>   Set the byte value (hex format) used for uninitialised\n"
@@ -197,6 +198,11 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 			case 'o':
 				outputFilename = str_Create(&argv[argn][2]);
 				break;
+			case 's':
+				if (sym_ReadMachineDefinitionFile(&argv[argn][2])) {
+					opt_Current->createGroups = false;
+				}
+				break;
 			case 'v':
 				verbose = true;
 				break;
@@ -218,58 +224,62 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 		--argc;
 	}
 
-	rcode = EXIT_SUCCESS;
+	if (xasm_TotalErrors == 0) {
+		xasm_Configuration->defineSymbols();
 
-	if (argc == 1) {
-		string* sourcePath = str_Create(argv[argn]);
+		rcode = EXIT_SUCCESS;
 
-		if (lex_Init(sourcePath)) {
-			tokens_Init(configuration->supportFloat);
-			if (configuration->supportFloat) {
-				assert(sizeof(float) == 4);
-				assert(sizeof(double) == 8);
-			}
-			xasm_Configuration->defineTokens();
-			opt_Updated();
+		if (argc == 1) {
+			string* sourcePath = str_Create(argv[argn]);
 
-			bool parseResult = parse_Do();
+			if (lex_Init(sourcePath)) {
+				tokens_Init(configuration->supportFloat);
+				if (configuration->supportFloat) {
+					assert(sizeof(float) == 4);
+					assert(sizeof(double) == 8);
+				}
+				xasm_Configuration->defineTokens();
+				opt_Updated();
 
-			if (parseResult) {
-				patch_OptimizeAll();
-				patch_BackPatch();
+				bool parseResult = parse_Do();
 
-				sym_ErrorOnUndefined();
-			}
+				if (parseResult) {
+					patch_OptimizeAll();
+					patch_BackPatch();
 
-			if (parseResult && xasm_TotalErrors == 0) {
-				if (verbose) {
-					clock_t endClock = clock();
-
-					float timespent = ((float) (endClock - startClock)) / CLOCKS_PER_SEC;
-					printf("Success! %u lines in %.02f seconds ", xasm_TotalLines, timespent);
-					if (timespent == 0) {
-						printf("\n");
-					} else {
-						printf("(%d lines/minute)\n", (int) (60 / timespent * xasm_TotalLines));
-					}
-					if (xasm_TotalWarnings != 0) {
-						printf("Encountered %u warnings\n", xasm_TotalWarnings);
-					}
+					sym_ErrorOnUndefined();
 				}
 
-				if (outputFilename != NULL) {
-					dep_SetMainOutput(outputFilename);
-					dep_WriteDependencyFile();
-					if (!writeOutput(format, outputFilename, sourcePath)) {
-						dep_RemoveDependencyfile();
-						remove(str_String(outputFilename));
+				if (parseResult && xasm_TotalErrors == 0) {
+					if (verbose) {
+						clock_t endClock = clock();
+
+						float timespent = ((float) (endClock - startClock)) / CLOCKS_PER_SEC;
+						printf("Success! %u lines in %.02f seconds ", xasm_TotalLines, timespent);
+						if (timespent == 0) {
+							printf("\n");
+						} else {
+							printf("(%d lines/minute)\n", (int) (60 / timespent * xasm_TotalLines));
+						}
+						if (xasm_TotalWarnings != 0) {
+							printf("Encountered %u warnings\n", xasm_TotalWarnings);
+						}
+					}
+
+					if (outputFilename != NULL) {
+						dep_SetMainOutput(outputFilename);
+						dep_WriteDependencyFile();
+						if (!writeOutput(format, outputFilename, sourcePath)) {
+							dep_RemoveDependencyfile();
+							remove(str_String(outputFilename));
+						}
 					}
 				}
 			}
+			str_Free(sourcePath);
+		} else if (argc > 1) {
+			err_Error(ERROR_TOO_MANY_FILES, argv[argn]);
 		}
-		str_Free(sourcePath);
-	} else if (argc > 1) {
-		err_Error(ERROR_TOO_MANY_FILES, argv[argn]);
 	}
 
 	err_PrintAll();

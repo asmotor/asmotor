@@ -48,6 +48,8 @@ typedef struct Options {
     bool allowReservedKeywordLabels;
 
     bool enableDebugInfo;
+
+	bool createGroups;
 } SOptions;
 
 extern void

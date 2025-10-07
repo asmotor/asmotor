@@ -59,10 +59,13 @@ createGroup(const char* name, EGroupType type) {
 
 void
 x65_DefineSymbols(void) {
-    createGroup("CODE", GROUP_TEXT);
-    createGroup("DATA", GROUP_TEXT);
-    createGroup("BSS", GROUP_BSS);
-    createGroup("ZP", GROUP_BSS);
+	if (opt_Current->createGroups) {
+		createGroup("CODE", GROUP_TEXT);
+		createGroup("DATA", GROUP_TEXT);
+		createGroup("BSS", GROUP_BSS);
+		createGroup("ZP", GROUP_BSS);
+	}
+
 	createEquCallback("__816_M", getMWidth);
 	createEquCallback("__816_X", getXWidth);
 	createEquCallback("__4510_BP", getBP);

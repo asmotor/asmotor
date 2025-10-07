@@ -98,6 +98,9 @@ sym_Init(void);
 extern void
 sym_Exit(void);
 
+extern bool
+sym_ReadMachineDefinitionFile(const char* name);
+
 extern SSymbol*
 sym_CreateLabel(string* name);
 
