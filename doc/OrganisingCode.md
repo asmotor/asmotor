@@ -42,6 +42,8 @@ Code, data and variables are organised in sections. Before any mnemonics or data
 
 This will switch to the section ```A_Code_Section``` if it is already known (and its type matches), or declare it if it doesn't. ```DATA``` may also be used instead of ```CODE```, they are synonymous.
 
+After the section type argument, several arguments may follow, such as `ALIGN`, `PAGE` and `ORG`.
+
 ### <a name="alignment"></a> Alignment
 
 When writing a binary file using the assembler, sections are naturally aligned to a CPU specific byte alignment:
@@ -127,6 +129,21 @@ A section may optionally be aligned to a multiple of bytes.
 ```
 		SECTION "Example",CODE,ALIGN[$100]
 		; This section is aligned to a multiple of $100 bytes
+```
+
+Not all output formats support this option.
+
+
+### Fitting a section within a page
+
+It is possible to make sure a section resides within a page. A page is a number of consecutive bytes starting at a multiple of the argument given. This directive
+ensures that the section size does not exceed the page size, and that the section's content does not span multiple pages. It is very similar to `ALIGN`, but allows
+the starting offset to not be zero.
+
+
+```
+		SECTION "Example",CODE,PAGE[$100]
+		; This section will be placed somewhere within a page, which is aligned to multiple of $100 bytes
 ```
 
 Not all output formats support this option.

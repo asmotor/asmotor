@@ -6,7 +6,7 @@ Please refer to the following sections for information on a particular CPU famil
 
 * [Motorola 680x0](Cpu68k.md)
 * [Motorola 6809](Cpu6809.md)
-* [WDC 65C02 and 65C816](Cpu6502.md)
+* [WDC 65C02, 65C816 and 4510/45GS02](Cpu6502.md)
 * [SCHIP](CpuCHIP.md)
 * [DCPU-16](CpuDCPU.md)
 * [MIPS](CpuMIPS.md)

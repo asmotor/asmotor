@@ -1,3 +1,9 @@
+# 1.3.4
+
+## Assembler
+
+* New `PAGE` section argument, which ensures that the section's contents fit within a page aligned to a multiple of bytes.
+
 # 1.3.3
 
 ## Assembler
