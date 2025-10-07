@@ -68,6 +68,17 @@ commonPatch(void) {
                 imagePos += alignment - 1;
 				imagePos -= imagePos % alignment;
 
+				if (section->flags & SECTF_PAGED) {
+					if (section->usedSpace > section->page) {
+						err_Error(ERROR_SECTION_SIZE_EXCEEDS_PAGE, str_String(section->name));
+						return false;
+					}
+					uint32_t remainingInPage = section->page - imagePos % section->page;
+					if (remainingInPage < section->usedSpace) {
+						imagePos += remainingInPage;
+					}
+				}
+
                 section->flags |= SECTF_LOADFIXED;
                 section->imagePosition = imagePos;
                 section->cpuOrigin = imagePos / xasm_Configuration->minimumWordSize;

@@ -20,7 +20,7 @@
  * xLink - OBJECT.C
  *
  *	char	ID[3]="XOB";
- *  uint8_t version = 5;
+ *  uint8_t version = 6;
  *	[>=v1] char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
@@ -46,6 +46,7 @@
  *			[>=v1] int32_t BasePC	; -1 = not fixed
  *			[>=v3] int32_t ByteAlign ; -1 = not aligned
  *			[>=v4] uint8_t Rooted ; != 0 is rooted
+ *			[>=v6] int32_t Page ; -1 = not paged
  *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
@@ -284,6 +285,12 @@ readSection(FILE* fileHandle, SSection* section, Groups* groups, int version, ui
     else
         section->root = false;
 
+    if (version >= 6)
+        section->page = fgetll(fileHandle);
+    else
+        section->page = -1;
+
+
     section->totalSymbols = readSymbols(fileHandle, &section->symbols, version, fileInfoIndex);
 
     if (version >= 2) {
@@ -432,6 +439,11 @@ readChunk(FILE* fileHandle) {
 
         case MAKE_ID('X', 'O', 'B', 5): {
             readXOBn(fileHandle, 5, g_fileId++);
+            return true;
+        }
+
+        case MAKE_ID('X', 'O', 'B', 6): {
+            readXOBn(fileHandle, 6, g_fileId++);
             return true;
         }
 

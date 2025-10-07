@@ -57,7 +57,8 @@ tar := if path_exists("/opt/local/bin/gnutar") == "true" { "/opt/local/bin/gnuta
 
 
 # Set the ASMotor version number to use when building
-@set-version new_version:
+set-version new_version:
+	#!/bin/bash
 	echo -n {{new_version}} >{{version_file}}
 	rm -f {{initialized_marker}}
 

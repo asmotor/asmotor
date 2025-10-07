@@ -49,6 +49,7 @@ struct Section {
 
     uint32_t bank;
 	uint32_t align;
+	uint32_t page;
 
     struct LineMapSection* lineMap;
 
@@ -64,6 +65,7 @@ typedef struct Section SSection;
 #define SECTF_ORGFIXED  0x04u
 #define SECTF_ALIGNED   0x08u
 #define SECTF_ROOT      0x10u
+#define SECTF_PAGED     0x20u
 
 extern SSection* sect_Current;
 extern SSection* sect_Sections;
@@ -75,7 +77,7 @@ extern bool
 sect_SwitchTo(const string* sectname, struct Symbol* group);
 
 extern bool
-sect_SwitchTo_KIND(const string* sectname, struct Symbol* group, uint32_t flags, uint32_t origin, uint32_t bank, uint32_t align);
+sect_SwitchTo_KIND(const string* sectname, struct Symbol* group, uint32_t flags, uint32_t origin, uint32_t bank, uint32_t align, uint32_t page);
 
 extern bool
 sect_SwitchTo_NAMEONLY(const string* sectname);

@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+#include "section.h"
 #include "set.h"
 #include "str.h"
 #include "fmath.h"
@@ -198,6 +199,7 @@ handleSection(intptr_t _) {
 
 	uint32_t bank = UINT32_MAX;
 	uint32_t align = UINT32_MAX;
+	uint32_t page = UINT32_MAX;
 
 	while (lex_Context->token.id == ',') {
 		parse_GetToken();
@@ -214,6 +216,13 @@ handleSection(intptr_t _) {
 				if (align != UINT32_MAX || !parseBracketedConstant(&align))
 					return false;
 				flags |= SECTF_ALIGNED;
+				break;
+			}
+			case T_FUNC_PAGE: {
+				parse_GetToken();
+				if (page != UINT32_MAX || !parseBracketedConstant(&page))
+					return false;
+				flags |= SECTF_PAGED;
 				break;
 			}
 			case T_FUNC_ROOT: {
@@ -239,7 +248,7 @@ handleSection(intptr_t _) {
 	if (flags == 0) {
 		sect_SwitchTo(name, groupSymbol);
 	} else {
-		sect_SwitchTo_KIND(name, groupSymbol, flags, loadAddress, bank, align);
+		sect_SwitchTo_KIND(name, groupSymbol, flags, loadAddress, bank, align, page);
 	}
 
 	str_Free(name);

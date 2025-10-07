@@ -114,7 +114,8 @@ static char* g_errors[] = {
 	"GROUP symbol cannot be redefined",
 	"An ELF section cannot be loaded at 0",
 	"Invalid outside structure scope",
-	"Cannot modify internal symbol %s"
+	"Cannot modify internal symbol %s",
+	"Section %s size exceeds page size"
 };
 
 static const char*

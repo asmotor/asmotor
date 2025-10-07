@@ -27,6 +27,20 @@
 typedef bool (*sectionPredicate)(SSection*);
 
 static void
+assignSectionCore(SSection* section, intptr_t data) {
+	sectionPredicate predicate = (sectionPredicate) data;
+    if (predicate(section)) {
+        if (!group_AllocateAligned(section->group->name, section->size, section->cpuBank, section->byteAlign, section->page,
+                                   &section->cpuByteLocation, &section->cpuBank, &section->imageLocation, &section->overlay))
+            error("No space for section \"%s\"", section->name);
+
+        section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
+        section->assigned = true;
+    }
+}
+
+
+static void
 assignOrgAndBankFixedSection(SSection* section, intptr_t data) {
 	sectionPredicate predicate = (sectionPredicate) data;
     if (predicate(section) && section->cpuByteLocation != -1 && section->cpuBank != -1) {
@@ -51,28 +65,44 @@ assignOrgFixedSection(SSection* section, intptr_t data) {
 }
 
 static void
-assignBankFixedSection(SSection* section, intptr_t data) {
-	sectionPredicate predicate = (sectionPredicate) data;
-    if (predicate(section) && section->cpuByteLocation == -1 && section->cpuBank != -1) {
-        if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
-                                  &section->cpuBank, &section->imageLocation, &section->overlay))
-            error("No space for section \"%s\"", section->name);
+assignBankedAlignedPagedSection(SSection* section, intptr_t data) {
+	if (section->cpuBank != -1 && section->byteAlign != -1 && section->page != -1) {
+		assignSectionCore(section, data);
+    }
+}
 
-        section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
-        section->assigned = true;
+static void
+assignPagedSection(SSection* section, intptr_t data) {
+	if (section->cpuBank == -1 && section->byteAlign == -1 && section->page != -1) {
+		assignSectionCore(section, data);
     }
 }
 
 static void
 assignAlignedSection(SSection* section, intptr_t data) {
-	sectionPredicate predicate = (sectionPredicate) data;
-    if (predicate(section) && section->byteAlign != -1) {
-        if (!group_AllocateAligned(section->group->name, section->size, section->cpuBank, section->byteAlign,
-                                   &section->cpuByteLocation, &section->cpuBank, &section->imageLocation, &section->overlay))
-            error("No space for section \"%s\"", section->name);
+	if (section->cpuBank == -1 && section->byteAlign != -1 && section->page == -1) {
+		assignSectionCore(section, data);
+    }
+}
 
-        section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
-        section->assigned = true;
+static void
+assignAlignedPagedSection(SSection* section, intptr_t data) {
+    if (section->cpuBank == -1 && section->byteAlign != -1 && section->page != -1) {
+		assignSectionCore(section, data);
+    }
+}
+
+static void
+assignBankedPagedSection(SSection* section, intptr_t data) {
+    if (section->cpuBank != -1 && section->byteAlign == -1 && section->page != -1) {
+		assignSectionCore(section, data);
+    }
+}
+
+static void
+assignBankedAlignedSection(SSection* section, intptr_t data) {
+    if (section->cpuBank != -1 && section->byteAlign != -1 && section->page == -1) {
+		assignSectionCore(section, data);
     }
 }
 
@@ -90,8 +120,8 @@ assignSection(SSection* section, intptr_t data) {
 			section->imageLocation = -1;
 			section->assigned = true;
 		} else if (predicate(section)) {
-			if (!group_AllocateMemory(section->group->name, section->size, section->cpuBank, &section->cpuByteLocation,
-									&section->cpuBank, &section->imageLocation, &section->overlay))
+			if (!group_AllocateAligned(section->group->name, section->size, section->cpuBank, section->byteAlign, section->page,
+									   &section->cpuByteLocation, &section->cpuBank, &section->imageLocation, &section->overlay))
 				error("No space for section \"%s\"", section->name);
 
 			section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
@@ -149,8 +179,12 @@ assign_Process(void) {
 
 		sect_ForEachUsedSection(assignOrgAndBankFixedSection, pred);
 		sect_ForEachUsedSection(assignOrgFixedSection, pred);
-		sect_ForEachUsedSection(assignBankFixedSection, pred);
+		sect_ForEachUsedSection(assignBankedAlignedPagedSection, pred);
+		sect_ForEachUsedSection(assignBankedAlignedSection, pred);
+		sect_ForEachUsedSection(assignBankedPagedSection, pred);
+		sect_ForEachUsedSection(assignAlignedPagedSection, pred);
 		sect_ForEachUsedSection(assignAlignedSection, pred);
+		sect_ForEachUsedSection(assignPagedSection, pred);
 		sect_ForEachUsedSection(assignSection, pred);
 	}
 	sect_ForEachUsedSection(assignSection, (intptr_t) truePredicate);

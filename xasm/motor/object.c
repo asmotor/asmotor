@@ -17,7 +17,7 @@
 */
 
 /*  char	ID[3]="XOB";
- *  uint8_t version = 5;
+ *  uint8_t version = 6;
  *	char	MinimumWordSize ; Used for address calculations.
  *							; 1 - A CPU address points to a byte in memory
  *							; 2 - A CPU address points to a 16 bit word in memory (CPU address 0x1000 is the 0x2000th byte)
@@ -42,6 +42,8 @@
  *			int32_t	Position; -1 = not fixed
  *			[>=v1] int32_t BasePC	; -1 = not fixed
  *			[>=v3] int32_t ByteAlign ; -1 = not aligned
+ *			[>=v4] uint8_t Rooted ; != 0 is rooted
+ *			[>=v6] int32_t Page ; -1 = not paged
  *			uint32_t	NumberOfSymbols
  *			REPT	NumberOfSymbols
  *					ASCIIZ	Name
@@ -400,6 +402,7 @@ writeExportedConstantsSection(FILE* fileHandle) {
 	fputll(UINT32_MAX, fileHandle);  //	BasePC
 	fputll(UINT32_MAX, fileHandle);  //	Align
 	fputc(0, fileHandle);            //	Root
+	fputll(UINT32_MAX, fileHandle);  //	Page
 
 	off_t symbolCountPos = ftell(fileHandle);
 	fputll(0, fileHandle);        //	Number of symbols
@@ -505,6 +508,7 @@ writeSection(FILE* fileHandle, SSection* section) {
 	fputll(section->flags & SECTF_LOADFIXED ? section->cpuOrigin : UINT32_MAX, fileHandle);
 	fputll(section->flags & SECTF_ALIGNED ? section->align : UINT32_MAX, fileHandle);
 	fputc(section->flags & SECTF_ROOT ? 1 : 0, fileHandle);
+	fputll(section->flags & SECTF_PAGED ? section->page : UINT32_MAX, fileHandle);
 
 	writeSectionSymbols(fileHandle, section);
 
@@ -535,7 +539,7 @@ obj_Write(string* fileName) {
 	if ((fileHandle = fopen(str_String(fileName), "w+b")) == NULL)
 		return false;
 
-	fwrite("XOB\5", 1, 4, fileHandle);
+	fwrite("XOB\6", 1, 4, fileHandle);
 	fputc(xasm_Configuration->minimumWordSize, fileHandle);
 
 	if (opt_Current->enableDebugInfo) {

@@ -54,6 +54,7 @@ typedef struct Section {
 	uint32_t overlay;
     int32_t minimumWordSize;
     int32_t byteAlign;
+    int32_t page;
 	bool root;
 
     char name[MAX_SYMBOL_NAME_LENGTH];

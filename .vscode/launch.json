@@ -39,8 +39,8 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": [ "-sInit","-mkernel.sym","-okernel.bin","-chc800b","-fhc800k","startup.obj","blockdevice.obj","commandline.obj","editor.obj","error.obj","fat32.obj","filesystems.obj","keyboard.obj","main.obj","mbr.obj","mmu.obj","sd.obj","sddevice.obj","syscall.obj","text.obj","uart_commands.obj","uartfs.obj","video.obj","../stdlib/std.lib","../lowlevel/lowlevel.lib"],
-            "cwd": "/home/ces/dev/hc800-mega65/modules/hc800/firmware/kernel",
+            "args": [ "-amega65.def","-fmega65","-ldots.list","-mdots.map","-odots.prg","-sEntry",".build/startup.o",".build/home.o",".build/display.o",".build/bitmap_mode.o",".build/zeropage.o",".build/cube_model_256.o",".build/cube_model_320.o",".build/dotcube_tables.o",".build/dotcube.o",".build/dots_palette.o",".build/math.o",".build/math_fixed12.o",".build/math_screen.o",".build/mathtest.o",".build/mod_player.o",".build/polygon_256.o",".build/polygon_320.o",".build/polycube_256.o",".build/polycube_320.o",".build/shadedots.o",".build/sinedots_tables.o",".build/sinedots.o",".build/twister.o" ],
+            "cwd": "/Users/ces/dev/mega65-dots",
 
         },
         {
@@ -61,20 +61,18 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/6502/motor6502",
-            /*
             "args": [
                 "-mc5",
-                "-i.",
                 "-ms1",
                 "-g",
-                "-d.deps/mod_player.d",
-                "-o.build/mod_player.o",
-                "src/mod_player.s"],
-*/
+                "-d.deps/sinedots.d",
+                "-o.build/sinedots.o",
+                "src/sinedots.s"],
             //"args": ["-fv", "-otest816.r","test816.asm"],
             //"args": ["-fv", "-oundoc0.r","undoc0.asm"],
-            "args": ["-fv", "-ors.r","rs.asm"],
-            "cwd": "${workspaceFolder}/test/6502",
+            //"args": ["-fv", "-ors.r","rs.asm"],
+            //"cwd": "${workspaceFolder}/test/6502",
+            "cwd": "/Users/ces/dev/mega65-dots",
         },
         {
             "name": "Debug motorschip",

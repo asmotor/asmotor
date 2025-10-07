@@ -88,8 +88,54 @@ pool_AllocateAbsolute(MemoryPool* pool, uint32_t size, uint32_t cpuByteLocation)
 }
 
 static bool
-pool_AllocateAligned(MemoryPool* pool, uint32_t size, uint32_t byteAlign, int32_t* resultLocation) {
+pool_AllocateAligned(MemoryPool* pool, uint32_t size, uint32_t byteAlign, uint32_t pageSize, int32_t* resultLocation) {
+	if (byteAlign == UINT32_MAX && pageSize == UINT32_MAX) {
+		return pool_AllocateMemory(pool, size, resultLocation);
+	}
+
     for (MemoryChunk* chunk = pool->freeChunks; chunk != NULL; chunk = chunk->nextChunk) {
+		if (pageSize != UINT32_MAX) {
+			// The requested memory is page aligned and possible byte aligned
+			if (size > pageSize) {
+				return false;
+			}
+
+			uint32_t page = chunk->cpuByteLocation;
+
+			while (page < chunk->cpuByteLocation + chunk->size) {
+				uint32_t remainingChunkSize = chunk->cpuByteLocation + chunk->size - page;
+				uint32_t remainingPageSize = pageSize - page % pageSize;
+				if (remainingPageSize > remainingChunkSize) {
+					remainingPageSize = remainingChunkSize;
+				}
+
+				if (size <= remainingPageSize) {
+					if (byteAlign != UINT32_MAX) {
+						uint32_t cpuByteLocation = page + byteAlign - 1;
+						cpuByteLocation -= cpuByteLocation % byteAlign;
+
+						if (cpuByteLocation >= chunk->cpuByteLocation
+							&& cpuByteLocation + size <= chunk->cpuByteLocation + chunk->size) {
+
+							pool_CarveRange(chunk, size, cpuByteLocation);
+
+							*resultLocation = cpuByteLocation;
+							return true;
+						}
+					} else {
+						pool_CarveRange(chunk, size, page);
+
+						*resultLocation = page;
+						return true;
+					}
+				}
+				page += remainingPageSize;
+			}
+
+			return false;
+		}
+
+		// Requested memory is byte aligned
 		uint32_t cpuByteLocation = chunk->cpuByteLocation + byteAlign - 1;
 		cpuByteLocation -= cpuByteLocation % byteAlign;
         if (cpuByteLocation >= chunk->cpuByteLocation
@@ -137,24 +183,6 @@ group_FindByName(const char* name) {
 }
 
 static bool
-group_AllocateMemoryFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t* cpuByteLocation,
-                              int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay) {
-    for (int32_t i = 0; i < group->totalPools; ++i) {
-        MemoryPool* pool = group->pools[i];
-
-        if (bankId == -1 || bankId == pool->cpuBank) {
-            if (pool_AllocateMemory(pool, size, cpuByteLocation)) {
-                *cpuBank = pool->cpuBank;
-                *imageLocation = pool->imageLocation == -1 ? -1 : pool->imageLocation + *cpuByteLocation - (int32_t) pool->cpuByteLocation;
-				*overlay = pool->overlay;
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-static bool
 group_AllocateAbsoluteFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t cpuByteLocation,
                                 int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay) {
     for (int32_t i = 0; i < group->totalPools; ++i) {
@@ -173,13 +201,13 @@ group_AllocateAbsoluteFromGroup(MemoryGroup* group, uint32_t size, int32_t bankI
 }
 
 static bool
-group_AllocateAlignedFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t byteAlign,
+group_AllocateAlignedFromGroup(MemoryGroup* group, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t pageSize,
                                int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay) {
     for (int32_t i = 0; i < group->totalPools; ++i) {
         MemoryPool* pool = group->pools[i];
 
         if (bankId == -1 || bankId == pool->cpuBank) {
-            if (pool_AllocateAligned(pool, size, byteAlign, cpuByteLocation)) {
+            if (pool_AllocateAligned(pool, size, byteAlign, pageSize, cpuByteLocation)) {
                 *cpuBank = pool->cpuBank;
                 *imageLocation = pool->imageLocation == -1 ? -1 : pool->imageLocation + *cpuByteLocation - (int32_t) pool->cpuByteLocation;
 				*overlay = pool->overlay;
@@ -254,13 +282,6 @@ pool_Free(MemoryPool* pool) {
 
 
 bool
-group_AllocateMemory(const char* groupName, uint32_t size, int32_t bankId, int32_t* cpuByteLocation, int32_t* cpuBank,
-                     int32_t* imageLocation, uint32_t* overlay) {
-    MemoryGroup* group = group_FindByName(groupName);
-    return group_AllocateMemoryFromGroup(group, size, bankId, cpuByteLocation, cpuBank, imageLocation, overlay);
-}
-
-bool
 group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank,
                        int32_t* imageLocation, uint32_t* overlay) {
     MemoryGroup* group = group_FindByName(groupName);
@@ -268,10 +289,10 @@ group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int
 }
 
 bool
-group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t* cpuByteLocation,
+group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t pageSize, int32_t* cpuByteLocation,
                       int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay) {
     MemoryGroup* group = group_FindByName(groupName);
-    return group_AllocateAlignedFromGroup(group, size, bankId, byteAlign, cpuByteLocation, cpuBank, imageLocation, overlay);
+    return group_AllocateAlignedFromGroup(group, size, bankId, byteAlign, pageSize, cpuByteLocation, cpuBank, imageLocation, overlay);
 }
 
 void

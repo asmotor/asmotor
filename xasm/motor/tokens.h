@@ -61,6 +61,7 @@ typedef enum {
 
 	T_FUNC_BANK,
 	T_FUNC_ALIGN,
+	T_FUNC_PAGE,
 	T_FUNC_ROOT,
 
 	T_OP_FDIV,

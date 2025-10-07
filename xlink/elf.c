@@ -804,6 +804,7 @@ sectionToXlink(const ElfHeader* elf, const ElfSectionHeader* header, uint32_t se
 	section->imageLocation = section->cpuByteLocation;
 	section->minimumWordSize = 1;
 	section->byteAlign = header->sh_addralign >= 2 ? (int32_t) header->sh_addralign : -1;
+	section->page = -1;
 	section->root = false;
 	strncpy(section->name, header->name, MAX_SYMBOL_NAME_LENGTH - 1);
 

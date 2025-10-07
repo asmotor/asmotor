@@ -576,7 +576,7 @@ sect_SwitchTo(const string* sectname, SSymbol* group) {
 }
 
 bool
-sect_SwitchTo_KIND(const string* sectname, SSymbol* group, uint32_t flags, uint32_t origin, uint32_t bank, uint32_t align) {
+sect_SwitchTo_KIND(const string* sectname, SSymbol* group, uint32_t flags, uint32_t origin, uint32_t bank, uint32_t align, uint32_t page) {
 	SSection* newSection;
 
 	if ((flags & SECTF_BANKFIXED) && !xasm_Configuration->supportBanks)
@@ -586,7 +586,8 @@ sect_SwitchTo_KIND(const string* sectname, SSymbol* group, uint32_t flags, uint3
 		if (newSection->flags == flags 
 		&& ((flags & SECTF_BANKFIXED) == 0 || newSection->bank == bank)
 		&& ((flags & SECTF_LOADFIXED) == 0 || newSection->cpuOrigin == origin)
-		&& ((flags & SECTF_ALIGNED) == 0 || newSection->align == align)) {
+		&& ((flags & SECTF_ALIGNED) == 0 || newSection->align == align)
+		&& ((flags & SECTF_PAGED) == 0 || newSection->page == page)) {
 			sect_Current = newSection;
 			return true;
 		}
@@ -600,6 +601,7 @@ sect_SwitchTo_KIND(const string* sectname, SSymbol* group, uint32_t flags, uint3
 		newSection->flags = flags;
 		newSection->bank = (flags & SECTF_BANKFIXED) ? bank : 0;
 		newSection->align = (flags & SECTF_ALIGNED) ? align : 0;
+		newSection->page = (flags & SECTF_PAGED) ? page : 0;
 		newSection->cpuOrigin = (flags & SECTF_LOADFIXED) ? origin : 0;
 		newSection->imagePosition = newSection->cpuOrigin * xasm_Configuration->minimumWordSize;
 	}

@@ -62,6 +62,7 @@ static SLexConstantsWord staticTokens[] = {
 
         {"DEF",       T_FUNC_DEF},
         {"ALIGN",     T_FUNC_ALIGN},
+        {"PAGE",      T_FUNC_PAGE},
         {"ROOT",      T_FUNC_ROOT},
 
         {"SIN",       T_FUNC_SIN},
