@@ -150,7 +150,7 @@ parseInteger(const char** line, uint32_t* value) {
 	*value = 0;
 	for (size_t i = 0; i < token_length; ++i) {
 		char ch = token[i];
-		if (ch >= '0' && ch < '9')
+		if (ch >= '0' && ch <= '9')
 			ch -= '0';
 		else if (ch >= 'A' && ch <= 'Z')
 			ch -= 'A' - 10;
