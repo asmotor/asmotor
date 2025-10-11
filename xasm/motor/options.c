@@ -77,7 +77,11 @@ handleBinaryLiteralChars(const char* characters) {
 
 static bool
 handleUnitializedFill(const char* fill) {
-    if (strlen(fill) <= 2) {
+	size_t len = 0;
+	while (fill[len] != 0 && fill[len] != ' ' && fill[len] != '\t')
+		++len;
+
+	if (len <= 2) {
         if (strcmp(fill, "?") == 0) {
             opt_Current->uninitializedValue = 0xFF;
             return true;

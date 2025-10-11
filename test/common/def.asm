@@ -11,3 +11,5 @@ Sym	EQU	1
 	ELSE
 		PRINTT "Sym exists\n"
 	ENDC
+
+	OPT	z00	; test

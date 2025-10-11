@@ -5,6 +5,7 @@
 * New `PAGE` section argument, which ensures that the section's contents fit within a page aligned to a multiple of bytes.
 * The assembler is now able to read a machine definition file (`-s` option) and use it to define the available GROUPS.
 * Fixed issue with multiplication in exported patches.
+* Fixed issue with trailing comments in `OPT` directive.
 
 
 # 1.3.3
