@@ -77,13 +77,13 @@ It is possible to generate a deterministic sequence of pseudo random numbers. Th
 
 | Name | Operation |
 |---|---|
-| rand() | Produce a 16 bit random number and advance the seed |
+| rand(lower,upper) | Produce a random number in the range [lower;upper] (inclusive) and advance the seed |
 
 Setting the seed is possible through the `RANDSEED` directive, and the current seed can be retrieved in the `__RANDSEED` symbol.
 
 ```
     RANDSEED $12345678
-    PRINTV rand()
+    PRINTV rand(16,64)
     PRINTV __RANDSEED
 ```
 

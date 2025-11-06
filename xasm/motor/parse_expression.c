@@ -32,6 +32,7 @@
 #include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
+#include "parse_expression.h"
 #include "parse_string.h"
 #include "section.h"
 #include "symbol.h"
@@ -370,12 +371,19 @@ SExpression*
 handleRandFunction(void) {
     parse_GetToken();
 
-    if (parse_ExpectChar('(') && parse_ExpectChar(')')) {
-		// Xorshift algorithm
-		s_randseed ^= (s_randseed << 13);
-		s_randseed ^= (s_randseed >> 17);
-		s_randseed ^= (s_randseed << 5);
-		return expr_Const((uint16_t) s_randseed);
+    if (parse_ExpectChar('(')) {
+		int32_t lower_bound = parse_ConstantExpression();
+		if (parse_ExpectChar(',')) {
+			int32_t upper_bound = parse_ConstantExpression();
+			if (parse_ExpectChar(')')) {
+				// Xorshift algorithm
+				s_randseed ^= (s_randseed << 13);
+				s_randseed ^= (s_randseed >> 17);
+				s_randseed ^= (s_randseed << 5);
+
+				return expr_Const(s_randseed % (1 + upper_bound - lower_bound) + lower_bound);
+			}
+		}
 	}
 
 	return NULL;

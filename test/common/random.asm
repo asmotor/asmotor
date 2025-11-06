@@ -1,8 +1,8 @@
 	PRINTV	__RANDSEED
 	PRINTT	"\n"
-	PRINTV	rand()
-	PRINTV	rand()
-	PRINTV	rand()
+	PRINTV	rand(1,4)
+	PRINTV	rand(0,15)
+	PRINTV	rand(87,100)
 	PRINTT	"\n"
 	PRINTV	__RANDSEED
 	PRINTT	"\n"
@@ -10,9 +10,9 @@
 	RANDSEED $DEADF00D
 	PRINTV	__RANDSEED
 	PRINTT	"\n"
-	PRINTV	rand()
-	PRINTV	rand()
-	PRINTV	rand()
+	PRINTV	rand(1,4)
+	PRINTV	rand(0,15)
+	PRINTV	rand(87,100)
 	PRINTT	"\n"
 
 rand	EQU	2
