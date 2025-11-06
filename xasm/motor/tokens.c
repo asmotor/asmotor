@@ -65,6 +65,8 @@ static SLexConstantsWord staticTokens[] = {
         {"PAGE",      T_FUNC_PAGE},
         {"ROOT",      T_FUNC_ROOT},
 
+        {"RAND",      T_FUNC_RAND},
+
         {"SIN",       T_FUNC_SIN},
         {"COS",       T_FUNC_COS},
         {"TAN",       T_FUNC_TAN},
@@ -145,6 +147,8 @@ static SLexConstantsWord staticTokens[] = {
         {"POPO",      T_DIRECTIVE_POPO},
 
         {"OPT",       T_DIRECTIVE_OPT},
+
+		{"RANDSEED",  T_DIRECTIVE_RANDSEED},
 
         {"LOWLIMIT",  T_FUNC_LOWLIMIT},
         {"HIGHLIMIT", T_FUNC_HIGHLIMIT},

@@ -1,0 +1,17 @@
+	PRINTV	__RANDSEED
+	PRINTT	"\n"
+	PRINTV	rand()
+	PRINTV	rand()
+	PRINTV	rand()
+	PRINTT	"\n"
+	PRINTV	__RANDSEED
+	PRINTT	"\n"
+
+	RANDSEED $DEADF00D
+	PRINTV	__RANDSEED
+	PRINTT	"\n"
+	PRINTV	rand()
+	PRINTV	rand()
+	PRINTV	rand()
+	PRINTT	"\n"
+

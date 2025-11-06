@@ -92,6 +92,8 @@ typedef struct Symbol {
 extern SSymbol*
 sym_CurrentScope;
 
+extern uint32_t s_randseed;
+
 extern bool
 sym_Init(void);
 

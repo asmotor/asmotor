@@ -11,6 +11,7 @@
 | acos | [inverse cosine](Expressions.md#math) of argument |
 | atan | [inverse tangent](Expressions.md#math) of argument |
 | atan2 | [inverse tangent](Expressions.md#math) of two arguments |
+| rand | [pseudo random number generator](Expressions.md#random_numbers) |
 
 ## Symbols
 

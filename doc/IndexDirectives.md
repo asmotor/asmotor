@@ -22,6 +22,7 @@
 | ```ORG``` | Set the [origin address](OrganisingCode.md#origin_address) for the following code |
 | ```OPT``` | Set [options](Assembler.md#setting_options) |
 | ```PUSHO```, ```POPO``` | [Push or pop options](Assembler.md#setting_options) on the option stack |
+| ```RANDSEED``` | Set [random number generator](Expressions.md#random_numbers) seed |
 | ```IFC```, ```IFNC```, ```IFD```, ```IFND```, ```IF```, ```IFEQ```, ```IFGT```, ```IFGE```, ```IFLT```, ```IFLE```, ```ELSE```, ```ENDC``` | Used to form [conditional assembling](ControlStructures.md#if) blocks |
 
 

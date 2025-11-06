@@ -189,6 +189,7 @@ The assembler declares several symbols:
 | ```__DATE``` | Todays date | EQUS |
 | ```__TIME``` | The current time | EQUS |
 | ```__AMIGADATE``` | The current date in Amiga version format (dd.mm.yyyy) | EQUS |
+| ```__RANDSEED``` | The current random seed for the [`rand()`](Expressions.md#random_numbers) function | EQU |
 
 ## <a name="purge"></a> Removing symbols
 

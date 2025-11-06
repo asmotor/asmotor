@@ -38,6 +38,7 @@
 #include "tokens.h"
 #include "xasm.h"
 
+
 static int32_t
 stringCompare(string* s) {
     int32_t r = 0;
@@ -366,6 +367,21 @@ handleDefFunction(void) {
 }
 
 SExpression*
+handleRandFunction(void) {
+    parse_GetToken();
+
+    if (parse_ExpectChar('(') && parse_ExpectChar(')')) {
+		// Xorshift algorithm
+		s_randseed ^= (s_randseed << 13);
+		s_randseed ^= (s_randseed >> 17);
+		s_randseed ^= (s_randseed << 5);
+		return expr_Const((uint16_t) s_randseed);
+	}
+
+	return NULL;
+}
+
+SExpression*
 handleBankFunction(void) {
     assert(xasm_Configuration->supportBanks);
 
@@ -409,6 +425,8 @@ expressionPriority7(size_t maxStringConstLength) {
             return handleDefFunction();
         case T_FUNC_BANK:
             return handleBankFunction();
+        case T_FUNC_RAND:
+            return handleRandFunction();
         default: {
             SExpression* expr = xasm_Configuration->parseFunction();
             if (expr != NULL)

@@ -55,6 +55,8 @@ static size_t tokenLength;
 
 SSymbol* sym_CurrentScope = NULL;
 
+uint32_t s_randseed = 0x1337C0DE;
+
 SSymbol* sym_hashedSymbols[SYMBOL_HASH_SIZE];
 
 
@@ -127,10 +129,18 @@ callback__NARG(SSymbol* symbol) {
 	return (int32_t) lexctx_GetMacroArgumentCount();
 }
 
+
 static int32_t
 callback__LINE(SSymbol* symbol) {
 	return (int32_t) lexctx_TokenLineNumber();
 }
+
+
+static int32_t
+callback__RANDSEED(SSymbol* symbol) {
+	return (int32_t) s_randseed;
+}
+
 
 static string*
 getDateString(void) {
@@ -189,12 +199,14 @@ callback__AMIGADATE(SSymbol* symbol) {
 	return str_Copy(symbol->value.macro);
 }
 
-static void
+static SSymbol*
 createEquCallback(const char* name, int32_t (*callback)(struct Symbol*)) {
 	string* nameString = str_Create(name);
 	SSymbol* symbol = sym_CreateEqu(nameString, 0);
 	symbol->callback.integer = callback;
 	str_Free(nameString);
+
+	return symbol;
 }
 
 static void
@@ -698,6 +710,7 @@ extern bool
 sym_Init(void) {
 	sym_CurrentScope = NULL;
 
+	createEquCallback("__RANDSEED", callback__RANDSEED);
 	createEquCallback("__NARG", callback__NARG);
 	createEquCallback("__LINE", callback__LINE);
 	createEqusCallback("__DATE", callback__DATE);

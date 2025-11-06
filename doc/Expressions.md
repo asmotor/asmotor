@@ -71,6 +71,23 @@ ANGLE   SET     ANGLE+1.0/256
         ENDR
 ```
 
+### <a name="random_numbers"></a> Random number generator
+
+It is possible to generate a deterministic sequence of pseudo random numbers. The seed will be the same between each invocation of the assembler and therefore produce the same result every time.
+
+| Name | Operation |
+|---|---|
+| rand() | Produce a 16 bit random number and advance the seed |
+
+Setting the seed is possible through the `RANDSEED` directive, and the current seed can be retrieved in the `__RANDSEED` symbol.
+
+```
+    RANDSEED $12345678
+    PRINTV rand()
+    PRINTV __RANDSEED
+```
+
+
 ### <a name="symbol_functions"></a> Symbol functions
 
 A couple of functions that deal with symbols are also available:

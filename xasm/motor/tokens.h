@@ -63,6 +63,8 @@ typedef enum {
 	T_FUNC_ALIGN,
 	T_FUNC_PAGE,
 	T_FUNC_ROOT,
+	
+	T_FUNC_RAND,
 
 	T_OP_FDIV,
 	T_OP_FMUL,
@@ -165,7 +167,9 @@ typedef enum {
 	T_DIRECTIVE_PUSHS,
 	T_DIRECTIVE_POPS,
 
-	T_DIRECTIVE_LAST = T_DIRECTIVE_POPS,
+	T_DIRECTIVE_RANDSEED,
+
+	T_DIRECTIVE_LAST = T_DIRECTIVE_RANDSEED,
 
 	// Dummy tokens not produced by the lexer follow:
 	

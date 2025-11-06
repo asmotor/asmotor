@@ -730,6 +730,13 @@ handleRs(intptr_t multiplier) {
 	return true;
 }
 
+static bool
+handleRandseed(intptr_t _) {
+	parse_GetToken();
+	s_randseed = (uint32_t) parse_ConstantExpression();
+	return true;
+}
+
 typedef struct Directive {
 	bool (*handler)(intptr_t);
 	intptr_t userData;
@@ -795,6 +802,7 @@ static SDirective
 		{handleOpt, 0},
 		{handlePushs, 0},
 		{handlePops, 0},
+		{handleRandseed, 0},
 };
 
 #if defined(_MSC_VER)
