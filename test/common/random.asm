@@ -15,3 +15,7 @@
 	PRINTV	rand()
 	PRINTT	"\n"
 
+rand	EQU	2
+
+	PRINTV	rand
+	PRINTT	"\n"

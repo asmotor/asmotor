@@ -10,6 +10,7 @@
 | ```RSRESET```, ```RSSET```, ```__RB```, ```__RW```, ```__RL``` | Define [```RS``` symbols](Symbols.md#rs_symbols) |
 | ```PRINTT```, ```PRINTV```, ```PRINTF``` | [Output text](Diagnostics.md) to stdout |
 | ```FAIL```, ```WARN``` | [Display a warning or error](Diagnostics.md) on the console |
+| ```ASSERTF```, ```ASSERTW``` | [Display a warning or error](Diagnostics.md) on the console, if an expression is false |
 | ```EXPORT```, ```IMPORT```, ```GLOBAL```, ```XDEF```, ```XREF``` | [Export and import](Symbols.md#import_export) symbols to/from other modules |
 | ```PURGE``` | [Remove a symbol](Symbols.md#purge) from the symbol table |
 | ```INCLUDE``` | [Include](ControlStructures.md) and process a different source file |

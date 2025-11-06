@@ -350,6 +350,22 @@ handleUserError(intptr_t intFail) {
 }
 
 static bool
+handleAssert(intptr_t intFail) {
+	bool (*fail)(int, ...) = (bool (*)(int, ...))intFail;
+
+	parse_GetToken();
+
+	int32_t success = parse_ConstantExpression();
+	string* message = NULL;
+
+	if (parse_ExpectComma() && (message = parse_ExpectStringExpression()) != NULL && !success) {
+		fail(WARN_USER_GENERIC, str_String(message));
+	}
+	str_Free(message);
+	return true;
+}
+
+static bool
 handleEven(intptr_t _) {
 	parse_GetToken();
 	sect_Align(2);
@@ -765,6 +781,8 @@ static SDirective
 		{purgeSymbol, (intptr_t)sym_Purge},
 		{handleUserError, (intptr_t)err_Fail},
 		{handleUserError, (intptr_t)err_Warn},
+		{handleAssert, (intptr_t)err_Fail},
+		{handleAssert, (intptr_t)err_Warn},
 		{handleInclude, (intptr_t)includeFile},
 		{handleFile, (intptr_t)sect_OutputBinaryFile},
 		{defineSpace, 1},

@@ -114,6 +114,8 @@ static SLexConstantsWord staticTokens[] = {
 
         {"FAIL",      T_DIRECTIVE_FAIL},
         {"WARN",      T_DIRECTIVE_WARN},
+        {"ASSERTF",   T_DIRECTIVE_ASSERTF},
+        {"ASSERTW",   T_DIRECTIVE_ASSERTW},
 
         {"INCLUDE",   T_DIRECTIVE_INCLUDE},
         {"INCBIN",    T_DIRECTIVE_INCBIN},

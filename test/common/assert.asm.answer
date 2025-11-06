@@ -1,0 +1,2 @@
+assert.asm:2: W0003 2+2 should equal 5
+assert.asm:5: F0003 2+2 should equal 5

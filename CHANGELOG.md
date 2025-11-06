@@ -4,9 +4,11 @@
 
 * New `PAGE` section argument, which ensures that the section's contents fit within a page aligned to a multiple of bytes.
 * New `rand()` random number generator function and supporting directive and symbol.
+* New `ASSERTF` and `ASSERTW` assert directives, that can replace `IF/FAIL/ENDC` blocks.
 * The assembler is now able to read a machine definition file (`-s` option) and use it to define the available GROUPS.
 * Fixed issue with multiplication in exported patches.
 * Fixed issue with trailing comments in `OPT` directive.
+* Symbols with reserved names now properly disables the overridden name.
 
 
 # 1.3.3

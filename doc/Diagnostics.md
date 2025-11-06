@@ -25,6 +25,14 @@ FAIL "Argument MUST be <= 100"
 ENDC
 ```
 
+Instead of the `WARN` and `FAIL` constructs, two "assert" directives are also available, which will output a warning or error message, if an expression is not equal to zero.
+
+```
+ASSERTW (\1)>=42,"Argument should be >= 42"
+
+ASSERTW (\1)<=100,"Argument MUST be <= 100"
+```
+s
 
 # Further reading
 * [Introduction](Introduction.md), goals and background

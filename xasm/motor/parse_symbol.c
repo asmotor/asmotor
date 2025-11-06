@@ -107,8 +107,10 @@ parse_SymbolDefinition(void) {
 	bool r = false;
 
 	if (lex_Context->token.id == T_LABEL) {
-		if (lex_ConstantsMatchTokenString() != NULL) {
+		const SLexConstantsWord* constantWord = lex_ConstantsMatchTokenString();
+		if (constantWord != NULL) {
 			err_Warn(WARN_SYMBOL_WITH_RESERVED_NAME);
+			lex_ConstantsUndefineWord(constantWord->name, constantWord->token);
 		}
 
 		string* symbolName = lex_TokenString();
