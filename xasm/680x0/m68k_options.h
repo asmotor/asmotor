@@ -46,7 +46,7 @@ typedef enum Platform68k {
 	PLATFORM_GENERIC,
 	PLATFORM_AMIGA,
 	PLATFORM_GENESIS,
-	PLATFORM_A2650K
+	PLATFORM_A2560K
 } EPlatform68k;
 
 typedef struct MachineOptions {

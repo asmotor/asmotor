@@ -56,7 +56,7 @@ m68k_DefineMachineGroups(EPlatform68k platform) {
 				createGroup("DATA_C", GROUP_TEXT, SYMF_DATA | SYMF_SHARED);
 				createGroup("BSS_C", GROUP_BSS, SYMF_SHARED);
 				break;
-			case PLATFORM_A2650K:
+			case PLATFORM_A2560K:
 				createGroup("DATA_VA", GROUP_TEXT, SYMF_DATA);
 				createGroup("BSS_VA", GROUP_BSS, 0);
 				createGroup("DATA_VB", GROUP_TEXT, SYMF_DATA);

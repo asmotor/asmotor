@@ -129,7 +129,7 @@ m68k_ParseOption(const char* option) {
                         opt_Current->machineOptions->platform = PLATFORM_AMIGA;
                         return true;
                     case 'f':
-                        opt_Current->machineOptions->platform = PLATFORM_A2650K;
+                        opt_Current->machineOptions->platform = PLATFORM_A2560K;
                         return true;
                     case 'g':
                         opt_Current->machineOptions->platform = PLATFORM_GENERIC;
@@ -173,7 +173,7 @@ m68k_PrintOptions(void) {
 		"    -mf<X>  Enable FPU 6888x (1, 2), 68040 (4), 68060 (6), 68080 (8)\n"
 		"    -mg<X>  Enable platform specific groups\n"
 		"                a - Amiga\n"
-		"                f - Foenix A2650K/X\n"
+		"                f - Foenix A2560K/X\n"
 		"                g - Generic (default)\n"
 		"                s - Sega Genesis/Mega Drive\n"
 		"    -mm<X>  MOVEM updates regmask, <X> is y(es) or n(o) (default)\n"
