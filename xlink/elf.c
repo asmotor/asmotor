@@ -17,16 +17,24 @@
 */
 
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // from util
 #include "file.h"
 #include "mem.h"
+#include "str.h"
 
 // from xlink
 #include "elf.h"
-#include "group.h"
+#include "object.h"
+#include "patch.h"
 #include "section.h"
+#include "symbol.h"
 #include "xlink.h"
+
+// A good source of information on the ELF format is the glib.c elf.h header
 
 static Group g_codeGroup = { "CODE", GROUP_TEXT, 0 };
 static Group g_dataGroup = { "DATA", GROUP_TEXT, GROUP_FLAG_DATA };
@@ -250,13 +258,23 @@ static uint16_t (*read_half)(const uint8_t*, size_t);
 #define SHF_WRITE 0x1
 #define SHF_ALLOC 0x2
 #define SHF_EXECINSTR 0x4
+#define SHF_MERGE 0x10
+#define SHF_STRINGS 0x20
 #define SHF_MASKPROC 0xf0000000
 
+// Symbol tab bind field
 #define STB_LOCAL 0
 #define STB_GLOBAL 1
 #define STB_WEAK 2
+#define STB_NUM	3
 #define STB_LOPROC 13
 #define STB_HIPROC 15
+
+// Symbol tab type field
+#define STT_NOTYPE	0
+#define STT_OBJECT	1
+#define STT_FUNC	2
+#define STT_SECTION	3
 
 #define SHN_UNDEF 0
 #define SHN_LORESERVE 0xff00
@@ -498,8 +516,11 @@ readSections(FILE* fileHandle, ElfSectionHeader* headers, uint_fast16_t totalSec
 
 static const ElfSectionHeader*
 getSectionHeader(const ElfHeader* elf, uint32_t index) {
+	if (index == SHN_ABS)
+		return NULL;
+
 	if (index >= elf->totalSectionHeaders)
-		error("getSectionHeader read outside range (%d)", index);
+		error("getSectionHeader read outside range (%04X)", index);
 
 	return index == 0 ? NULL : &elf->headers[index];
 }
@@ -560,8 +581,12 @@ resolveSymTabSection(const ElfHeader* elf, ElfSectionHeader* header) {
 
 	for (uint32_t i = 0; i < symbols->totalSymbols; ++i) {
 		ElfSymbol* symbol = &symbols->data[i];
-		symbol->name = getString(symbols->stringSection, symbol->st_nameindex);
 		symbol->section = getSectionHeader(elf, symbol->st_shndx);
+		if (symbol->type == STT_SECTION && symbol->st_nameindex == 0) {
+ 			symbol->name = symbol->section->name;
+		} else {
+ 			symbol->name = getString(symbols->stringSection, symbol->st_nameindex);
+		}
 	}
 }
 
@@ -669,15 +694,21 @@ symbolsToXlink(const ElfHeader* elf, const ElfSectionHeader* header) {
 	// Local symbols
 	for (uint32_t i = 1; i < header->sh_info; ++i) {
 		ElfSymbol* elfSymbol = &symbols->data[i];
-		if (elfSymbol->st_nameindex == 0) continue;
-
 		const ElfSectionHeader* elfSymbolSection = elfSymbol->section;
+
+		if (elfSymbolSection == NULL) continue;
+		if (elfSymbolSection->data.progbits->xlinkSection == NULL) continue;
+		if (elfSymbol->st_nameindex == 0 && elfSymbol->type != STT_SECTION) continue;
+		
 		SSymbol* xlinkSymbol = addElfSymbolToProgbits(elfSymbolSection->data.progbits, elfSymbol);
 		elfSymbol->xlinkSymbol = xlinkSymbol;
 
 		if (elfSymbol->st_shndx == SHN_UNDEF) {
 			xlinkSymbol->type = SYM_LOCALIMPORT;
 		} else if (elfSymbol->st_shndx == SHN_ABS) {
+			xlinkSymbol->type = SYM_LOCALEXPORT;
+			xlinkSymbol->resolved = true;
+		} else if (elfSymbol->type == STT_SECTION) {
 			xlinkSymbol->type = SYM_LOCALEXPORT;
 			xlinkSymbol->resolved = true;
 		} else {
@@ -712,8 +743,13 @@ static uint8_t
 g_relocExpr[] = {
 	OBJ_SYMBOL, 0, 0, 0, 0,
 	OBJ_CONSTANT, 0, 0, 0, 0,
-	OBJ_OP_ADD
+	OBJ_OP_ADD,
+	OBJ_CONSTANT, 0, 0, 0, 0,
+	OBJ_PC_REL
 };
+
+#define EXPR_SIMPLE_SIZE 11
+#define EXPR_PCREL_SIZE 16
 
 #define EXPR_SYMBOL_OFFSET 1
 #define EXPR_CONSTANT_OFFSET 6
@@ -727,10 +763,16 @@ relocsToXlink(const ElfHeader* elf, const ElfSectionHeader* relocs) {
 	for (uint32_t i = 0; i < relas->totalRelocations; ++i) {
 		ElfRelocAddendEntry* rela = &relas->data[i];
 		SPatch* patch = &xlinkSection->patches->patches[i];
+		int exprSize = 0;
 
 		switch (rela->type) {
 			case R_68K_32:
 				patch->type = PATCH_BE_32;
+				exprSize = EXPR_SIMPLE_SIZE;
+				break;
+			case R_68K_PC32:
+				patch->type = PATCH_BE_32;
+				exprSize = EXPR_PCREL_SIZE;
 				break;
 			default:
 				error("relocsToXlink unknown relocation type (%d)", rela->type);
@@ -740,6 +782,9 @@ relocsToXlink(const ElfHeader* elf, const ElfSectionHeader* relocs) {
 		if (xlinkSymbol == NULL && rela->symbol->st_shndx == SHN_UNDEF) {
 			xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
 			xlinkSymbol->type = SYM_IMPORT;
+		} else if (xlinkSymbol == NULL && (rela->symbol->section == relas->section)) {
+			xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
+			xlinkSymbol->type = SYM_LOCALIMPORT;
 		} else if (rela->symbol->section != relas->section) {
 			xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
 			xlinkSymbol->type = SYM_LOCALIMPORT;
@@ -753,9 +798,9 @@ relocsToXlink(const ElfHeader* elf, const ElfSectionHeader* relocs) {
 		patch->valueSymbol = NULL;
 
 		patch->offset = rela->r_offset;
-		patch->expressionSize = sizeof(g_relocExpr);
+		patch->expressionSize = exprSize;
 		patch->expression = mem_Alloc(patch->expressionSize);
-		memcpy(patch->expression, g_relocExpr, sizeof(g_relocExpr));
+		memcpy(patch->expression, g_relocExpr, exprSize);
 		patch->expression[EXPR_SYMBOL_OFFSET + 0] = xlinkSymbolIndex & 0xFF;
 		patch->expression[EXPR_SYMBOL_OFFSET + 1] = (xlinkSymbolIndex >> 8) & 0xFF;
 		patch->expression[EXPR_SYMBOL_OFFSET + 2] = (xlinkSymbolIndex >> 16) & 0xFF;
@@ -777,6 +822,8 @@ sectionToXlink(const ElfHeader* elf, const ElfSectionHeader* header, uint32_t se
 			group = &g_codeGroup;
 		else if ((header->sh_flags & SHF_ALLOC) == SHF_ALLOC)
 			group = &g_dataGroup;
+		else if (header->sh_flags & SHF_STRINGS)
+			return;
 		else if (header->sh_flags == 0)
 			return;
 		else
@@ -816,8 +863,12 @@ sectionToXlink(const ElfHeader* elf, const ElfSectionHeader* header, uint32_t se
 
 	section->size = header->sh_size;
 	if (header->sh_type == SHT_PROGBITS) {
-		section->data = mem_Alloc(section->size);
-		memcpy(section->data, header->data.progbits->data, section->size);
+		if (section->size > 0) {
+			section->data = mem_Alloc(section->size);
+			memcpy(section->data, header->data.progbits->data, section->size);
+		} else {
+			section->data = NULL;
+		}
 	}
 
 	section->patches = NULL;
@@ -850,7 +901,10 @@ elfToXlink(const ElfHeader* elf, uint32_t fileId) {
 
 
 void
-elf_Read(FILE* fileHandle, uint32_t fileId) {
+elf_Read(FILE* fileHandle, const char* filename, uint32_t fileId) {
+	SFileInfo* fileInfo = obj_AllocateFileInfo(1);
+	fileInfo->fileName = str_Create(filename);
+
 	e_off_t sectionHeadersOffset;
 	e_half_t sectionHeaderEntrySize;
 	e_half_t totalSectionHeaders;

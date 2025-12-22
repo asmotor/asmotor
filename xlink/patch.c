@@ -17,12 +17,10 @@
 */
 
 #include <string.h>
+#include <stdio.h>
 
 #include "fmath.h"
 #include "mem.h"
-#include "str.h"
-
-#include "util.h"
 
 #include "patch.h"
 #include "section.h"

@@ -27,6 +27,8 @@
 
 #include "symbol.h"
 
+struct FileInfo;
+
 typedef enum {
     GROUP_TEXT = 0,
     GROUP_BSS = 1
@@ -60,6 +62,9 @@ static inline Group*
 groups_GetGroup(Groups* groups, uint32_t groupId) {
     return groupId != UINT32_MAX && groupId < groups->totalGroups ? &groups->groups[groupId] : NULL;
 }
+
+extern struct FileInfo*
+obj_AllocateFileInfo(uint32_t count);
 
 extern const string*
 obj_GetFilename(uint32_t fileInfoIndex);

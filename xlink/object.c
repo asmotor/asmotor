@@ -85,7 +85,9 @@
  *	ENDR
  */
 
+#include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -392,10 +394,10 @@ readXOBn(FILE* fileHandle, int32_t version, uint32_t fileId) {
 }
 
 static bool
-readChunk(FILE* fileHandle);
+readChunk(FILE* fileHandle, const char* filename);
 
 static void
-readXLB0(FILE* fileHandle) {
+readXLB0(FILE* fileHandle, const char* filename) {
     uint32_t count = fgetll(fileHandle);
 
     while (count--) {
@@ -403,12 +405,12 @@ readXLB0(FILE* fileHandle) {
         }  // Skip name
         fgetll(fileHandle);           // Skip length
 
-        readChunk(fileHandle);
+        readChunk(fileHandle, filename);
     }
 }
 
 static bool
-readChunk(FILE* fileHandle) {
+readChunk(FILE* fileHandle, const char* filename) {
     uint32_t id = fgetll(fileHandle);
 
     switch (id) {
@@ -448,12 +450,12 @@ readChunk(FILE* fileHandle) {
         }
 
         case MAKE_ID('X', 'L', 'B', 0): {
-            readXLB0(fileHandle);
+            readXLB0(fileHandle, filename);
             return true;
         }
 
         case MAKE_ID(0x7F, 'E', 'L', 'F'): {
-            elf_Read(fileHandle, g_fileId++);
+            elf_Read(fileHandle, filename, g_fileId++);
             return false;
         }
 
@@ -463,20 +465,36 @@ readChunk(FILE* fileHandle) {
     }
 }
 
+extern SFileInfo*
+obj_AllocateFileInfo(uint32_t count) {
+	uint32_t index = g_fileInfoCount;
+
+	g_fileInfoCount += count;
+	g_fileInfo = mem_Realloc(g_fileInfo, sizeof(SFileInfo) * g_fileInfoCount);
+
+	for (uint32_t i = 0; i < count; ++i) {
+		g_fileInfo[index + i].fileName = NULL;
+		g_fileInfo[index + i].crc32 = 0;
+		g_fileInfo[index + i].index = index + i;
+	}
+
+	return &g_fileInfo[index];
+}
+
 void
-obj_Read(char* fileName) {
+obj_Read(char* filename) {
     FILE* fileHandle;
 
-    if ((fileHandle = fopen(fileName, "rb")) != NULL) {
+    if ((fileHandle = fopen(filename, "rb")) != NULL) {
         size_t size = fsize(fileHandle);
 
         while ((size_t) ftell(fileHandle) < size
-             && readChunk(fileHandle))
+             && readChunk(fileHandle, filename))
         {}
 
         fclose(fileHandle);
     } else {
-        error("File \"%s\" not found", fileName);
+        error("File \"%s\" not found", filename);
     }
 }
 

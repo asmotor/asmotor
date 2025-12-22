@@ -20,8 +20,9 @@
 #define XLINK_ELF_H_INCLUDED_
 
 #include <stdio.h>
+#include <stdint.h>
 
 extern void
-elf_Read(FILE* fileHandle, uint32_t fileId);
+elf_Read(FILE* fileHandle, const char* filename, uint32_t fileId);
 
 #endif

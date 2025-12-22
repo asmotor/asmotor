@@ -23,6 +23,7 @@
 
 #include "xlink.h"
 #include "error.h"
+#include "util.h"
 
 NORETURN (void error(const char* fmt, ...));
 
