@@ -10,6 +10,9 @@
 * Fixed issue with trailing comments in `OPT` directive.
 * Symbols with reserved names now properly disables the overridden name.
 
+### 680x0
+
+* `disp(PC/Ax,Dx.w)` notation now defaults to 8 bit displacement on >= 68020. 
 
 # 1.3.3
 

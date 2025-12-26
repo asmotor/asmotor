@@ -594,7 +594,12 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
     if (lex_Context->token.id == '(') {
         parse_GetToken();
 
+		bool hasDisplacement = addrMode->outer.displacement != NULL;
+
         if (getOuterMode(addrMode)) {
+			if (hasDisplacement && addrMode->outer.baseRegister != REG_NONE && addrMode->outer.displacementSize == SIZE_DEFAULT) {
+				addrMode->outer.displacementSize = SIZE_BYTE;
+			}
             return optimizeMode(addrMode);
         }
         return false;
