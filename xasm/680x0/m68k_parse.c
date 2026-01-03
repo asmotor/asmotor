@@ -731,12 +731,14 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
                 return true;
             }
         } else {
-            if ((instruction->allowedSourceModes & AM_EMPTY) == 0)
-                return true;
+            if ((instruction->allowedSourceModes & AM_EMPTY) == 0) {
+				err_Error(ERROR_OPERAND);
+				return true;
+			}
         }
     }
 
-    if (instruction->allowedDestModes != 0) {
+    if (instruction->allowedDestModes != 0 && instruction->allowedDestModes != AM_EMPTY) {
         if (lex_Context->token.id == ',') {
             parse_GetToken();
             if (!m68k_GetAddressingMode(&dest, allowFloat))

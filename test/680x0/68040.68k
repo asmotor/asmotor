@@ -1,0 +1,11 @@
+	SECTION	"Code",CODE[$1000]
+
+	MC68040
+
+	cinva
+
+	moveq	#0,d0
+	movec	d0,CACR
+
+	cinva	#3
+	cinva	dc

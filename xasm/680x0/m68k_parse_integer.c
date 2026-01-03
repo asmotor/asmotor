@@ -18,11 +18,13 @@
 
 #include <stdbool.h>
 
+#include "errors.h"
+#include "expression.h"
 #include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "errors.h"
+#include "section.h"
 
 #include "m68k_errors.h"
 #include "m68k_options.h"
@@ -1539,27 +1541,26 @@ static bool
 handleCache040(uint16_t ins, uint16_t scope, ESize sz, SAddressingMode* src, SAddressingMode* dest) {
     err_Warn(MERROR_INSTRUCTION_PRIV);
 
-    uint16_t cache = 0;
+    SExpression* cache = NULL;
 
-    if (src->directRegister == T_68K_REG_DC)
-        cache = 0x1;
-    else if (src->directRegister == T_68K_REG_IC)
-        cache = 0x2;
-    else if (src->directRegister == T_68K_REG_BC)
-        cache = 0x3;
-    else {
-        err_Error(ERROR_DEST_OPERAND);
-        return true;
-    }
+	if (src->mode == AM_SYSREG && src->directRegister == T_68K_REG_DC) {
+		cache = expr_Const(0x1);
+	}else if (src->mode == AM_SYSREG && src->directRegister == T_68K_REG_IC) {
+		cache = expr_Const(0x2);
+	} else if (src->mode == AM_EMPTY || (src->mode == AM_SYSREG && src->directRegister == T_68K_REG_BC)) {
+		cache = expr_Const(0x3);
+	} else if (src->mode == AM_IMM) {
+		cache = expr_CheckRange(src->immediateInteger, 1, 3);
+	} else {
+		err_Error(ERROR_DEST_OPERAND);
+		return true;
+	}
 
-    uint16_t reg;
+	cache = expr_Asl(cache, expr_Const(6));
 
-    if (scope == 3)
-        reg = 0;
-    else
-        reg = (uint16_t) (dest->outer.baseRegister & 7u);
+    uint16_t reg = (scope == 3) ? 0 : (uint16_t) (dest->outer.baseRegister & 7u);
 
-    sect_OutputConst16(ins | scope << 3 | cache << 6 | reg);
+    sect_OutputExpr16(expr_Or(expr_Const(ins | scope << 3 | reg), cache));
     return true;
 }
 
@@ -2181,7 +2182,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_68040 | CPUF_68060,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0000,
-        AM_SYSREG,
+    	AM_EMPTY | AM_IMM | AM_SYSREG,
         AM_NONE,
         false,
         handleCINVA
@@ -2190,7 +2191,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_68040 | CPUF_68060,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0000,
-        AM_SYSREG,
+        AM_IMM | AM_SYSREG,
         AM_AIND,
         false,
         handleCINVL
@@ -2199,7 +2200,7 @@ g_integerInstructions[T_68K_INTEGER_LAST - T_68K_INTEGER_FIRST + 1] = {
         CPUF_68040 | CPUF_68060,
         SIZE_DEFAULT, SIZE_DEFAULT,
         0x0000,
-        AM_SYSREG,
+        AM_IMM | AM_SYSREG,
         AM_AIND,
         false,
         handleCINVP

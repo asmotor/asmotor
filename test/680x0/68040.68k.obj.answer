@@ -1,0 +1,6 @@
+0000000 f4 d8 70 00 4e 7b 00 02 f4 d8 f4 58 
+0000014
+68040.68k:5: W1008 Instruction is privileged
+68040.68k:8: W1008 Instruction is privileged
+68040.68k:10: W1008 Instruction is privileged
+68040.68k:11: W1008 Instruction is privileged
