@@ -241,7 +241,7 @@ getOuterMode(SAddressingMode* outMode) {
 
 static void
 optimizeFields(SModeRegisters* registers) {
-    if (registers->displacement != NULL && expr_IsConstant(registers->displacement) && registers->displacement->value.integer == 0) {
+    if (registers->baseRegister != REG_PC && registers->displacement != NULL && expr_IsConstant(registers->displacement) && registers->displacement->value.integer == 0) {
         expr_Free(registers->displacement);
         registers->displacement = NULL;
     }

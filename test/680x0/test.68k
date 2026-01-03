@@ -195,7 +195,6 @@ Symbol:
 	pack	-(a2),-(a3),#$2020
 	unpack	-(a2),-(a3),#$2020
 
-
 Scope:
 	move.w	d0,d1
 .local
@@ -211,5 +210,9 @@ DataLength:	EQU	@-DataStart
 
         PRINTV  DataLength
 		PRINTT	"\n"
-        
+
+	EVEN
+.l7	lea	([.l7,PC],d1.w,$5678.w),a2
+.l2	lea	([.l2,PC,d1.w],$1234.w),a2
+.l6	lea	([.l6,PC,d1.w]),a2
 

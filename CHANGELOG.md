@@ -13,6 +13,8 @@
 ### 680x0
 
 * `disp(PC/Ax,Dx.w)` notation now defaults to 8 bit displacement on >= 68020. 
+* Fixed PC relative >=68020 addressing wrong offset.
+* Fixed PC relative address with offset 0.
 
 # 1.3.3
 
