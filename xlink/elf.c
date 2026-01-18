@@ -681,7 +681,7 @@ addElfSymbolToProgbits(ElfProgBitsSection* symbolSectionProgBits, const ElfSymbo
 	strncpy(xlinkSymbol->name, elfSymbol->name, MAX_SYMBOL_NAME_LENGTH - 1);
 	xlinkSymbol->resolved = false;
 	xlinkSymbol->section = xlinkSymbolSection;
-	xlinkSymbol->value = 0;
+	xlinkSymbol->value = elfSymbol->st_value;
 
 	return xlinkSymbol;
 }
