@@ -19,6 +19,9 @@
 #ifndef XLINK_PATCH_H_INCLUDED_
 #define XLINK_PATCH_H_INCLUDED_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 typedef enum {
     PATCH_8,
     PATCH_LE_16,
@@ -83,6 +86,11 @@ typedef struct Patches {
     uint32_t totalPatches;
     SPatch patches[];
 } SPatches;
+
+struct Symbol;
+
+extern bool
+patch_EvaluateExpression(uint8_t* expression, uint32_t expressionSize, int32_t* outValue, struct Symbol** outSymbol);
 
 extern void
 patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports);

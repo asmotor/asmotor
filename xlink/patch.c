@@ -17,6 +17,8 @@
 */
 
 #include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "fmath.h"
@@ -363,10 +365,7 @@ makePatchString(SPatch* patch, SSection* section) {
     }
 
 static bool
-calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t* outValue, SSymbol** outSymbol) {
-    int32_t size = patch->expressionSize;
-    uint8_t* expression = patch->expression;
-
+calculateExpressionValue(uint8_t* expression, uint32_t size, SPatch* patch, SSection* section, bool allowImports, int32_t* outValue, SSymbol** outSymbol) {
     g_stackIndex = 0;
 
     while (size > 0) {
@@ -383,9 +382,11 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
                     pushSymbolInt(left.symbol, left.value - right.value);
                 else if (left.symbol != NULL && right.symbol != NULL && left.symbol->section == right.symbol->section)
                     pushInt(left.symbol->value - right.symbol->value);
-                else
+                else if (patch != NULL && section != NULL) {
                     error("Expression \"%s\" at offset %d in section \"%s\" attempts to subtract two values from different sections",
-                          makePatchString(patch, section), patch->offset, section->name);
+						makePatchString(patch, section), patch->offset, section->name);
+				} else
+					error("Internal patch error");
                 break;
             }
             case OBJ_OP_ADD: {
@@ -396,9 +397,11 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
                     pushSymbolInt(left.symbol, left.value + right.value);
                 else if (left.symbol == NULL)
                     pushSymbolInt(right.symbol, left.value + right.value);
-                else
+                else if (patch != NULL && section != NULL) {
                     error("Expression \"%s\" at offset %d in section \"%s\" attempts to add two values from different sections",
                           makePatchString(patch, section), patch->offset, section->name);
+				} else
+					error("Internal patch error");
                 break;
             }
             case OBJ_OP_XOR: {
@@ -498,10 +501,11 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
 
                 if (left.symbol == NULL && right.symbol == NULL && left.value >= right.value)
                     pushInt(left.value);
-                else
+                else if (patch != NULL && section != NULL) {
                     error("Expression \"%s\" at offset %d in section \"%s\" out of range (%d must be >= %d)",
                           makePatchString(patch, section), patch->offset, section->name, left.value, right.value);
-
+				} else
+					error("Internal patch error");
                 break;
             }
             case OBJ_FUNC_HIGH_LIMIT: {
@@ -509,10 +513,11 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
 
                 if (left.symbol == NULL && right.symbol == NULL && left.value <= right.value)
                     pushInt(left.value);
-                else
+                else if (patch != NULL && section != NULL) {
                     error("Expression \"%s\" at offset %d in section \"%s\" out of range (%d must be <= %d)",
                           makePatchString(patch, section), patch->offset, section->name, left.value, right.value);
-
+				} else
+					error("Internal patch error");
                 break;
             }
             case OBJ_FUNC_FDIV: {
@@ -580,9 +585,11 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
                     pushInt(left.value - (section->cpuLocation + patch->offset));
                 else if (left.symbol->section == section)
                     pushInt(left.symbol->value + left.value - patch->offset);
-                else
+                else if (patch != NULL && section != NULL) {
                     error("Illegal PC relative expression \"%s\" at offset %d in section \"%s\" attempts to subtract two values from different sections",
                           makePatchString(patch, section), patch->offset, section->name);
+				} else
+					error("Internal patch error");
                 break;
             }
             case OBJ_FUNC_ASSERT: {
@@ -590,9 +597,11 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
 
                 if (left.symbol == NULL && right.symbol == NULL && right.value != 0)
                     pushInt(left.value);
-                else
+                else if (patch != NULL && section != NULL) {
                     error("Expression \"%s\" (=%d) at offset %d in section \"%s\" out of range",
                           makePatchString(patch, section), left.value, patch->offset, section->name);
+				} else
+					error("Internal patch error");
                 break;
             }
             default: {
@@ -606,6 +615,14 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
     *outValue = entry.value;
     *outSymbol = entry.symbol;
     return g_stackIndex == 0;
+}
+
+static bool
+calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t* outValue, SSymbol** outSymbol) {
+    int32_t size = patch->expressionSize;
+    uint8_t* expression = patch->expression;
+
+	return calculateExpressionValue(expression, size, patch, section, allowImports, outValue, outSymbol);
 }
 
 static void
@@ -704,6 +721,11 @@ patchSection(SSection* section, bool allowReloc, bool onlySectionRelativeReloc, 
             }
         }
     }
+}
+
+extern bool
+patch_EvaluateExpression(uint8_t* expression, uint32_t expressionSize, int32_t* outValue, SSymbol** outSymbol) {
+	return calculateExpressionValue(expression, expressionSize, NULL, NULL, true, outValue, outSymbol);
 }
 
 extern void

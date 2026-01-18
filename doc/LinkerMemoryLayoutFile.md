@@ -24,15 +24,17 @@ A machine definition will invariably use several constants for addresses and so 
 
 | Precedence | Component | Meaning |
 |---|---|---|
-| 1 | Integer | A constant number. Can be expressed in hexadecimal (prefixed by $, eg. `$1234`), binary (prefixed by `%`, eg. `%1100`), or decimal (no prefix) |
-| 1 | @ | An integer variable containing the array index when defining an array of pools |
-| 2 | + | Unary plus |
-| 2 | - | Unary negation |
-| 2 | ( ) | Parentheses for overriding precedence |
-| 3 | / | Division |
-| 3 | * | Multiplication |
-| 4 | + | Addition |
-| 4 | - | Subtraction |
+| 1 | Integer | A constant number. Can be expressed in hexadecimal (prefixed by $, eg. `$1234`), binary (prefixed by `%`, eg. `%1100`), or decimal (no prefix.) |
+| - | @ | An integer variable containing the array index when defining an array of pools. |
+| - | symbol | The name of a symbol. |
+| 2 | . | Property access. |
+| 3 | + | Unary plus. |
+| - | - | Unary negation. |
+| - | ( ) | Parentheses for overriding precedence. |
+| 4 | / | Division. |
+| - | * | Multiplication. |
+| 5 | + | Addition. |
+| - | - | Subtraction. |
 
 ## Defining a pool
 
@@ -95,6 +97,16 @@ GROUP BSS:BSS bss_low bss_high data_main data_high bss1
 GROUP CUBE_G data_main overlay2
 ```
 
+
+## Symbols
+
+Symbols can be exported by the linker and used by the assembler. The syntax is:
+
+```
+SYMBOL name expression
+```
+
+`expression`s are the same as for pools, but can all use the `.` operator. The `@` symbol is not available.
 
 ## Formats
 The `FORMATS` directive is used to specify which file formats can be used with a machine definition.

@@ -29,6 +29,7 @@
 
 #include "error.h"
 #include "group.h"
+#include "patch.h"
 #include "xlink.h"
 
 
@@ -54,6 +55,8 @@ dummyFree(intptr_t userData, intptr_t element) {
 
 #define DELIMITERS " \t\n$%%+-*/()[]:@;,"
 
+static bool g_parsePool;
+
 static const char* token;
 static size_t token_length;
 static uint32_t pool_index;
@@ -63,6 +66,16 @@ static int g_line;
 
 #define FERROR(fmt, ...) error("%s:%d: " fmt, g_filename, g_line, __VA_ARGS__)
 #define ERROR(err) error("%s:%d: %s", g_filename, g_line, err)
+
+
+static void
+appendConstant(string_buffer* expr, uint32_t constant) {
+	strbuf_AppendChar(expr, OBJ_CONSTANT);
+	strbuf_AppendChar(expr, constant & 0xFF);
+	strbuf_AppendChar(expr, (constant >> 8) & 0xFF);
+	strbuf_AppendChar(expr, (constant >> 16) & 0xFF);
+	strbuf_AppendChar(expr, (constant >> 24));
+}
 
 
 static void
@@ -134,7 +147,7 @@ freePools(intptr_t userData, intptr_t element) {
 
 
 static bool
-parseInteger(const char** line, uint32_t* value) {
+parseInteger(const char** line, string_buffer* expr) {
 	if (token_length == 0)
 		return false;
 
@@ -147,7 +160,7 @@ parseInteger(const char** line, uint32_t* value) {
 		base = 2;
 	}
 
-	*value = 0;
+	uint32_t value = 0;
 	for (size_t i = 0; i < token_length; ++i) {
 		char ch = token[i];
 		if (ch >= '0' && ch <= '9')
@@ -162,8 +175,10 @@ parseInteger(const char** line, uint32_t* value) {
 		if (ch >= base)
 			return false;
 		
-		*value = *value * base + ch;
+		value = value * base + ch;
 	}
+
+	appendConstant(expr, value);
 
 	nextToken(line);
 
@@ -171,17 +186,19 @@ parseInteger(const char** line, uint32_t* value) {
 }
 
 
-static bool parseExpression_1(const char** line, uint32_t* value);
+static bool parseExpression_1(const char** line, string_buffer* expr);
 
 static bool
-parseExpression_4(const char** line, uint32_t* value) {
-	if (tokenIs("@")) {
+parseExpression_4(const char** line, string_buffer* expr) {
+	if (g_parsePool && tokenIs("@")) {
 		nextToken(line);
-		*value = pool_index;
+
+		appendConstant(expr, pool_index);
+
 		return true;
 	}
 
-	if (parseInteger(line, value)) {
+	if (parseInteger(line, expr)) {
 		return true;
 	}
 
@@ -189,26 +206,27 @@ parseExpression_4(const char** line, uint32_t* value) {
 }
 
 static bool
-parseExpression_3(const char** line, uint32_t* value) {
+parseExpression_3(const char** line, string_buffer* expr) {
 	while (tokenIs("+"))
 		nextToken(line);
 
 	if (tokenIs("-")) {
 		nextToken(line);
-		if (parseExpression_3(line, value)) {
-			*value = - *value;
+		appendConstant(expr, 0);
+		if (parseExpression_3(line, expr)) {
+			strbuf_AppendChar(expr, OBJ_OP_SUB);
 			return true;
 		}
 	} else if (tokenIs("(")) {
 		nextToken(line);
-		if (parseExpression_1(line, value)) {
+		if (parseExpression_1(line, expr)) {
 			if (tokenIs(")")) {
 				nextToken(line);
 				return true;
 			}
 		}
 	} else {
-		return parseExpression_4(line, value);
+		return parseExpression_4(line, expr);
 	}
 
 	return false;
@@ -216,19 +234,43 @@ parseExpression_3(const char** line, uint32_t* value) {
 
 
 static bool
-parseExpression_2(const char** line, uint32_t* value) {
-	if (parseExpression_3(line, value)) {
+parseExpression_2(const char** line, string_buffer* expr) {
+	if (parseExpression_3(line, expr)) {
 		while (true) {
 			bool mul = tokenIs("*");
 			bool div = tokenIs("/");
 			if (mul || div) {
-				uint32_t rhs;
 				nextToken(line);
-				if (parseExpression_3(line, &rhs)) {
+				if (parseExpression_3(line, expr)) {
 					if (mul)
-						*value *= rhs;
+						strbuf_AppendChar(expr, OBJ_OP_MUL);
 					else /* if (div) */
-						*value /= rhs;
+						strbuf_AppendChar(expr, OBJ_OP_DIV);
+				}
+			} else {
+				break;
+			}
+		}
+		return true;
+	}
+
+	return false;
+}
+
+
+static bool
+parseExpression_1(const char** line, string_buffer* expr) {
+	if (parseExpression_2(line, expr)) {
+		while (true) {
+			bool plus = tokenIs("+");
+			bool minus = tokenIs("-");
+			if (plus || minus) {
+				nextToken(line);
+				if (parseExpression_2(line, expr)) {
+					if (plus)
+						strbuf_AppendChar(expr, OBJ_OP_ADD);
+					else /* if (minus) */
+						strbuf_AppendChar(expr, OBJ_OP_SUB);
 					
 				}
 			} else {
@@ -243,33 +285,24 @@ parseExpression_2(const char** line, uint32_t* value) {
 
 
 static bool
-parseExpression_1(const char** line, uint32_t* value) {
-	if (parseExpression_2(line, value)) {
-		while (true) {
-			bool plus = tokenIs("+");
-			bool minus = tokenIs("-");
-			if (plus || minus) {
-				uint32_t rhs;
-				nextToken(line);
-				if (parseExpression_2(line, &rhs)) {
-					if (plus)
-						*value += rhs;
-					else /* if (minus) */
-						*value -= rhs;
-					
-				}
-			} else {
-				break;
-			}
-		}
-		return true;
+parseExpression(const char** line, uint32_t* value) {
+	SSymbol* symbol = NULL;
+	string_buffer* buffer = strbuf_Create();
+	bool r = false;
+
+	*value = 0;
+
+	if (parseExpression_1(line, buffer)) {
+		int32_t ivalue;
+
+		r = patch_EvaluateExpression((uint8_t *) strbuf_Data(buffer), strbuf_Size(buffer), &ivalue, &symbol);
+		*value = (uint32_t) ivalue;
 	}
 
-	return false;
+	strbuf_Free(buffer);
+
+	return r;
 }
-
-
-#define parseExpression parseExpression_1
 
 
 static uint32_t
@@ -295,6 +328,8 @@ expectExpression(const char** line) {
 static MemoryPool*
 parsePool(const char** line) {
 	uint32_t cpu_address, cpu_bank, size;
+	
+	g_parsePool = true;
 	if (parseExpression(line, &cpu_address) && parseExpression(line, &cpu_bank) && parseExpression(line, &size)) {
  		uint32_t image_offset = parseOptionalExpression(line);
 		uint32_t overlay = UINT32_MAX;
@@ -302,6 +337,7 @@ parsePool(const char** line) {
 			nextToken(line);
 			overlay = expectExpression(line);
 		}
+		g_parsePool = false;
 		return pool_Create(image_offset, overlay, cpu_address, cpu_bank, size, false);
 	}
 
@@ -459,7 +495,9 @@ parseLine(const char* line, strmap_t* pools) {
 
 	if (tokenIs("POOL")) {
 		nextToken(&line);
+		g_parsePool = true;
 		parsePoolDirective(&line, pools);
+		g_parsePool = false;
 	} else if (tokenIs("POOLS")) {
 		nextToken(&line);
 		parsePoolsDirective(&line, pools);
@@ -491,6 +529,7 @@ mdef_Read(const string* filename) {
 
 	g_filename = str_String(filename);
 	g_line = 1;
+	g_parsePool = false;
 	string* line = NULL;
 	while ((line = str_ReadLineFromFile(file)) != NULL) {
 		parseLine((char *) str_String(line), pools);
