@@ -1,19 +1,19 @@
 /*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
 
-	This file is part of ASMotor.
+    This file is part of ASMotor.
 
-	ASMotor is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    ASMotor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	ASMotor is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    ASMotor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
@@ -22,39 +22,27 @@
 #include "mem.h"
 #include "str.h"
 
-#include "xlink.h"
 #include "hc800.h"
 #include "image.h"
 #include "section.h"
+#include "xlink.h"
 
-#define HUNK_MMU 0
-#define HUNK_END 1
+#define HUNK_MMU  0
+#define HUNK_END  1
 #define HUNK_DATA 2
 
-
-#define HC800_HARVARD 0x01
+#define HC800_HARVARD   0x01
 #define HC800_32K_BANKS 0x14
 
-uint8_t
-hc800_ConfigSmall[9] = { 0x00,            
-	0x81, 0x82, 0x83, 0x84, 0x81, 0x82, 0x83, 0x84 };
+uint8_t hc800_ConfigSmall[9] = {0x00, 0x81, 0x82, 0x83, 0x84, 0x81, 0x82, 0x83, 0x84};
 
-uint8_t
-hc800_ConfigSmallHarvard[9] = { HC800_HARVARD,
-	0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88 };
+uint8_t hc800_ConfigSmallHarvard[9] = {HC800_HARVARD, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88};
 
-uint8_t
-hc800_ConfigMedium[9] =	{ HC800_32K_BANKS,
-	0x81, 0x82, 0x83, 0x84, 0x81, 0x82, 0x83, 0x84 };
+uint8_t hc800_ConfigMedium[9] = {HC800_32K_BANKS, 0x81, 0x82, 0x83, 0x84, 0x81, 0x82, 0x83, 0x84};
 
-uint8_t
-hc800_ConfigMediumHarvard[9] = { HC800_HARVARD | HC800_32K_BANKS,
-	0x81, 0x82, 0x87, 0x88, 0x83, 0x84, 0x85, 0x86 };
+uint8_t hc800_ConfigMediumHarvard[9] = {HC800_HARVARD | HC800_32K_BANKS, 0x81, 0x82, 0x87, 0x88, 0x83, 0x84, 0x85, 0x86};
 
-uint8_t
-hc800_ConfigLarge[9] = { HC800_32K_BANKS,
-	0x81, 0x82, 0x83, 0x84, 0x81, 0x82, 0x83, 0x84 };
-
+uint8_t hc800_ConfigLarge[9] = {HC800_32K_BANKS, 0x81, 0x82, 0x83, 0x84, 0x81, 0x82, 0x83, 0x84};
 
 static off_t
 writeHunkStart(FILE* fileHandle, int hunkType) {
@@ -66,7 +54,6 @@ writeHunkStart(FILE* fileHandle, int hunkType) {
 	return dataPos;
 }
 
-
 static void
 writeHunkEnd(FILE* fileHandle, off_t dataPos) {
 	off_t length = ftello(fileHandle) - dataPos;
@@ -75,7 +62,6 @@ writeHunkEnd(FILE* fileHandle, off_t dataPos) {
 
 	fseek(fileHandle, 0, SEEK_END);
 }
-
 
 static SSection*
 writeBank(FILE* fileHandle, SSection* section) {
@@ -89,7 +75,7 @@ writeBank(FILE* fileHandle, SSection* section) {
 	SSection* r = NULL;
 
 	while (section != NULL) {
-		assert (section->cpuBank >= bank);
+		assert(section->cpuBank >= bank);
 		if (section->cpuBank == bank) {
 			if (section->group->type != GROUP_BSS) {
 				// Make sure hunk is as large as needed before adding more data
@@ -132,7 +118,6 @@ writeDataHunks(FILE* fileHandle) {
 	}
 }
 
-
 static void
 writeMmuHunk(FILE* fileHandle, uint8_t* configuration) {
 	off_t pos = writeHunkStart(fileHandle, HUNK_MMU);
@@ -140,13 +125,11 @@ writeMmuHunk(FILE* fileHandle, uint8_t* configuration) {
 	writeHunkEnd(fileHandle, pos);
 }
 
-
 static void
 writeEndHunk(FILE* fileHandle) {
 	off_t pos = writeHunkStart(fileHandle, HUNK_END);
 	writeHunkEnd(fileHandle, pos);
 }
-
 
 static void
 writeHeader(FILE* fileHandle) {

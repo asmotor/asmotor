@@ -31,5 +31,4 @@ foenix_SetupFoenixF256JrSmallGroups(void);
 extern void
 foenix_SetupFoenixA2560XGroups(void);
 
-
 #endif

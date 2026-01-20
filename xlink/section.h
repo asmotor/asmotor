@@ -28,56 +28,55 @@
 #include "symbol.h"
 
 typedef struct FileInfo {
-    string* fileName;
-    uint32_t crc32;
-    uint32_t index;
+	string* fileName;
+	uint32_t crc32;
+	uint32_t index;
 } SFileInfo;
 
 typedef struct LineMapping {
-    uint32_t fileInfoIndex;
+	uint32_t fileInfoIndex;
 	uint32_t lineNumber;
 	uint32_t offset;
 } SLineMapping;
 
 typedef struct Section {
-    uint32_t fileId;
-    uint32_t sectionId;
+	uint32_t fileId;
+	uint32_t sectionId;
 
-    Group* group;
+	Group* group;
 
-    // Before they are assigned, bank, byteLocation and basePC reflect the programmer's wish.
-    // After, they point to where this section actually is
-    int32_t cpuByteLocation; // Where the CPU sees this section, in bytes
-    int32_t cpuBank;
-    int32_t cpuLocation;
-    int32_t imageLocation;
+	// Before they are assigned, bank, byteLocation and basePC reflect the programmer's wish.
+	// After, they point to where this section actually is
+	int32_t cpuByteLocation; // Where the CPU sees this section, in bytes
+	int32_t cpuBank;
+	int32_t cpuLocation;
+	int32_t imageLocation;
 	uint32_t overlay;
-    int32_t minimumWordSize;
-    int32_t byteAlign;
-    int32_t page;
+	int32_t minimumWordSize;
+	int32_t byteAlign;
+	int32_t page;
 	bool root;
 
-    char name[MAX_SYMBOL_NAME_LENGTH];
+	char name[MAX_SYMBOL_NAME_LENGTH];
 
-    uint32_t totalSymbols;
-    SSymbol* symbols;
+	uint32_t totalSymbols;
+	SSymbol* symbols;
 
-    uint32_t totalLineMappings;
-    SLineMapping* lineMappings;
+	uint32_t totalLineMappings;
+	SLineMapping* lineMappings;
 
-    uint32_t size;
-    uint8_t* data;
+	uint32_t size;
+	uint8_t* data;
 
-    SPatches* patches;
+	SPatches* patches;
 
-    bool used;
-    bool assigned;
+	bool used;
+	bool assigned;
 
-    struct Section* nextSection;
+	struct Section* nextSection;
 } SSection;
 
-extern SSection*
-sect_Sections;
+extern SSection* sect_Sections;
 
 extern SSection*
 sect_CreateNew(void);
@@ -92,7 +91,7 @@ extern char*
 sect_GetSymbolName(SSection* section, uint32_t symbolId);
 
 extern void
-sect_ForEachUsedSection(void (* function)(SSection*, intptr_t), intptr_t data);
+sect_ForEachUsedSection(void (*function)(SSection*, intptr_t), intptr_t data);
 
 extern uint32_t
 sect_TotalSections(void);
@@ -120,6 +119,5 @@ sect_StartAddressOfFirstCodeSection(void);
 
 extern int
 sect_EndAddressOfLastCodeSection(void);
-
 
 #endif

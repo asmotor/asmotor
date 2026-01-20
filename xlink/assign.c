@@ -29,81 +29,80 @@ typedef bool (*sectionPredicate)(SSection*);
 static void
 assignSectionCore(SSection* section, intptr_t data) {
 	sectionPredicate predicate = (sectionPredicate) data;
-    if (predicate(section)) {
-        if (!group_AllocateAligned(section->group->name, section->size, section->cpuBank, section->byteAlign, section->page,
-                                   &section->cpuByteLocation, &section->cpuBank, &section->imageLocation, &section->overlay))
-            error("No space for section \"%s\"", section->name);
+	if (predicate(section)) {
+		if (!group_AllocateAligned(section->group->name, section->size, section->cpuBank, section->byteAlign, section->page,
+		                           &section->cpuByteLocation, &section->cpuBank, &section->imageLocation, &section->overlay))
+			error("No space for section \"%s\"", section->name);
 
-        section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
-        section->assigned = true;
-    }
+		section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
+		section->assigned = true;
+	}
 }
-
 
 static void
 assignOrgAndBankFixedSection(SSection* section, intptr_t data) {
 	sectionPredicate predicate = (sectionPredicate) data;
-    if (predicate(section) && section->cpuByteLocation != -1 && section->cpuBank != -1) {
-        if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
-                                    &section->cpuBank, &section->imageLocation, &section->overlay))
-            error("No space for section \"%s\"", section->name);
+	if (predicate(section) && section->cpuByteLocation != -1 && section->cpuBank != -1) {
+		if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
+		                            &section->cpuBank, &section->imageLocation, &section->overlay))
+			error("No space for section \"%s\"", section->name);
 
-        section->assigned = true;
-    }
+		section->assigned = true;
+	}
 }
 
 static void
 assignOrgFixedSection(SSection* section, intptr_t data) {
 	sectionPredicate predicate = (sectionPredicate) data;
-    if (predicate(section) && section->cpuByteLocation != -1 && section->cpuBank == -1) {
-        if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
-                                    &section->cpuBank, &section->imageLocation, &section->overlay))
-            error("No space for section \"%s\"", section->name);
+	if (predicate(section) && section->cpuByteLocation != -1 && section->cpuBank == -1) {
+		if (!group_AllocateAbsolute(section->group->name, section->size, section->cpuBank, section->cpuByteLocation,
+		                            &section->cpuBank, &section->imageLocation, &section->overlay))
+			error("No space for section \"%s\"", section->name);
 
-        section->assigned = true;
-    }
+		section->assigned = true;
+	}
 }
 
 static void
 assignBankedAlignedPagedSection(SSection* section, intptr_t data) {
 	if (section->cpuBank != -1 && section->byteAlign != -1 && section->page != -1) {
 		assignSectionCore(section, data);
-    }
+	}
 }
 
 static void
 assignPagedSection(SSection* section, intptr_t data) {
 	if (section->cpuBank == -1 && section->byteAlign == -1 && section->page != -1) {
 		assignSectionCore(section, data);
-    }
+	}
 }
 
 static void
 assignAlignedSection(SSection* section, intptr_t data) {
 	if (section->cpuBank == -1 && section->byteAlign != -1 && section->page == -1) {
 		assignSectionCore(section, data);
-    }
+	}
 }
 
 static void
 assignAlignedPagedSection(SSection* section, intptr_t data) {
-    if (section->cpuBank == -1 && section->byteAlign != -1 && section->page != -1) {
+	if (section->cpuBank == -1 && section->byteAlign != -1 && section->page != -1) {
 		assignSectionCore(section, data);
-    }
+	}
 }
 
 static void
 assignBankedPagedSection(SSection* section, intptr_t data) {
-    if (section->cpuBank != -1 && section->byteAlign == -1 && section->page != -1) {
+	if (section->cpuBank != -1 && section->byteAlign == -1 && section->page != -1) {
 		assignSectionCore(section, data);
-    }
+	}
 }
 
 static void
 assignBankedAlignedSection(SSection* section, intptr_t data) {
-    if (section->cpuBank != -1 && section->byteAlign != -1 && section->page == -1) {
+	if (section->cpuBank != -1 && section->byteAlign != -1 && section->page == -1) {
 		assignSectionCore(section, data);
-    }
+	}
 }
 
 static void
@@ -121,7 +120,7 @@ assignSection(SSection* section, intptr_t data) {
 			section->assigned = true;
 		} else if (predicate(section)) {
 			if (!group_AllocateAligned(section->group->name, section->size, section->cpuBank, section->byteAlign, section->page,
-									   &section->cpuByteLocation, &section->cpuBank, &section->imageLocation, &section->overlay))
+			                           &section->cpuByteLocation, &section->cpuBank, &section->imageLocation, &section->overlay))
 				error("No space for section \"%s\"", section->name);
 
 			section->cpuLocation = section->cpuByteLocation / section->minimumWordSize;
@@ -137,17 +136,20 @@ isCode(SSection* section) {
 
 static bool
 isCodeShared(SSection* section) {
-	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT && section->group->flags == GROUP_FLAG_SHARED;
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT &&
+	       section->group->flags == GROUP_FLAG_SHARED;
 }
 
 static bool
 isData(SSection* section) {
-	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT && section->group->flags == GROUP_FLAG_DATA;
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT &&
+	       section->group->flags == GROUP_FLAG_DATA;
 }
 
 static bool
 isDataShared(SSection* section) {
-	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT && section->group->flags == (GROUP_FLAG_DATA | GROUP_FLAG_SHARED);
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_TEXT &&
+	       section->group->flags == (GROUP_FLAG_DATA | GROUP_FLAG_SHARED);
 }
 
 static bool
@@ -157,7 +159,8 @@ isBSS(SSection* section) {
 
 static bool
 isBSSShared(SSection* section) {
-	return !section->assigned && section->group != NULL && section->group->type == GROUP_BSS && section->group->flags == GROUP_FLAG_SHARED;
+	return !section->assigned && section->group != NULL && section->group->type == GROUP_BSS &&
+	       section->group->flags == GROUP_FLAG_SHARED;
 }
 
 static bool
@@ -167,9 +170,7 @@ truePredicate(SSection* section) {
 
 #define TOTAL_PREDICATES 6
 static sectionPredicate sectionPredicates[TOTAL_PREDICATES] = {
-	isCodeShared, isCode,
-	isDataShared, isData,
-	isBSSShared, isBSS,
+    isCodeShared, isCode, isDataShared, isData, isBSSShared, isBSS,
 };
 
 void
@@ -189,5 +190,5 @@ assign_Process(void) {
 	}
 	sect_ForEachUsedSection(assignSection, (intptr_t) truePredicate);
 
-    sect_SortSections();
+	sect_SortSections();
 }

@@ -72,23 +72,23 @@ writeSections(FILE* fileHandle) {
 extern void
 coco_WriteQuickloadBin(const char* outputFilename, const char* entry) {
 	// Start address section
-    int startAddress = 0;
-    if (entry != NULL) {
-        SSymbol* entrySymbol = sect_FindExportedSymbol(entry);
-        if (entrySymbol == NULL)
-            error("Entry symbol \"%s\" not found (it must be exported)", entry);
-        startAddress = entrySymbol->value;
-    } else {
-        startAddress = sect_StartAddressOfFirstCodeSection();
-    }
+	int startAddress = 0;
+	if (entry != NULL) {
+		SSymbol* entrySymbol = sect_FindExportedSymbol(entry);
+		if (entrySymbol == NULL)
+			error("Entry symbol \"%s\" not found (it must be exported)", entry);
+		startAddress = entrySymbol->value;
+	} else {
+		startAddress = sect_StartAddressOfFirstCodeSection();
+	}
 
 	if (startAddress >= 0x8000) {
 		error("Invalid start address %04X", startAddress);
 	}
 
-    FILE* fileHandle = fopen(outputFilename, "w+b");
-    if (fileHandle == NULL) {
-        error("Unable to open \"%s\" for writing", outputFilename);
+	FILE* fileHandle = fopen(outputFilename, "w+b");
+	if (fileHandle == NULL) {
+		error("Unable to open \"%s\" for writing", outputFilename);
 	}
 
 	// The rest of the sections

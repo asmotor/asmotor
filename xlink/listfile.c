@@ -16,17 +16,15 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "error.h"
 #include "listfile.h"
+#include "error.h"
 #include "mapfile.h"
 #include "object.h"
 #include "section.h"
 
-
 static uint32_t longest_address = 0;
 
 static uint32_t address_field_size = 0;
-
 
 static int
 compareLineMappings(const void* v1, const void* v2) {
@@ -80,7 +78,6 @@ writeSection(SSection* section, intptr_t data) {
 
 		offset = nextOffset;
 	}
-
 }
 
 static void
@@ -103,10 +100,10 @@ writeListFile(FILE* fileHandle) {
 
 void
 list_Write(const char* name) {
-    FILE* fileHandle = fopen(name, "wt");
-    if (fileHandle == NULL) {
-        error("Unable to open file \"%s\" for writing", name);
-    } 
-    writeListFile(fileHandle);
+	FILE* fileHandle = fopen(name, "wt");
+	if (fileHandle == NULL) {
+		error("Unable to open file \"%s\" for writing", name);
+	}
+	writeListFile(fileHandle);
 	fclose(fileHandle);
 }

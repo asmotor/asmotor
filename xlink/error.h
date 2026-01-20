@@ -21,7 +21,7 @@
 
 #include "util.h"
 
-NORETURN (void error(const char* fmt, ...));
+NORETURN(void error(const char* fmt, ...));
 
 extern void
 error(const char* fmt, ...);

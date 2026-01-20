@@ -19,8 +19,8 @@
 #ifndef XLINK_ELF_H_INCLUDED_
 #define XLINK_ELF_H_INCLUDED_
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 extern void
 elf_Read(FILE* fileHandle, const char* filename, uint32_t fileId);

@@ -30,121 +30,119 @@
 #define POS_COMP_CHECKSUM   0x014DL
 #define POS_CHECKSUM        0x014EL
 
-static uint8_t g_nintendoChar[48] = {
-    0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D, 0x00, 0x08,
-    0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E, 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63,
-    0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E
-};
+static uint8_t g_nintendoChar[48] = {0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 0x00, 0x83,
+                                     0x00, 0x0C, 0x00, 0x0D, 0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E,
+                                     0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63,
+                                     0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E};
 
 static void
 updateNintendoCharacterArea(FILE* fileHandle) {
-    fseek(fileHandle, POS_NINTENDO_LOGO, SEEK_SET);
-    fwrite(g_nintendoChar, sizeof(uint8_t), sizeof(g_nintendoChar), fileHandle);
+	fseek(fileHandle, POS_NINTENDO_LOGO, SEEK_SET);
+	fwrite(g_nintendoChar, sizeof(uint8_t), sizeof(g_nintendoChar), fileHandle);
 }
 
 static void
 updateRomSize(FILE* fileHandle) {
-    fflush(fileHandle);
-    fseek(fileHandle, POS_ROM_SIZE, SEEK_SET);
+	fflush(fileHandle);
+	fseek(fileHandle, POS_ROM_SIZE, SEEK_SET);
 
-    int cartRomSize = fgetc(fileHandle);
-    if (cartRomSize == EOF)
-        cartRomSize = 0x00;
+	int cartRomSize = fgetc(fileHandle);
+	if (cartRomSize == EOF)
+		cartRomSize = 0x00;
 
-    uint8_t calculatedRomSize = 0;
-    size_t romSize = fsize(fileHandle);
-    while (romSize > (0x8000UL << calculatedRomSize))
-        ++calculatedRomSize;
+	uint8_t calculatedRomSize = 0;
+	size_t romSize = fsize(fileHandle);
+	while (romSize > (0x8000UL << calculatedRomSize))
+		++calculatedRomSize;
 
-    if (calculatedRomSize != cartRomSize) {
-        fseek(fileHandle, POS_ROM_SIZE, SEEK_SET);
-        fwrite(&calculatedRomSize, 1, 1, fileHandle);
-    }
+	if (calculatedRomSize != cartRomSize) {
+		fseek(fileHandle, POS_ROM_SIZE, SEEK_SET);
+		fwrite(&calculatedRomSize, 1, 1, fileHandle);
+	}
 }
 
 static void
 updateCartridgeType(FILE* fileHandle) {
-    fseek(fileHandle, POS_CARTRIDGE_TYPE, SEEK_SET);
+	fseek(fileHandle, POS_CARTRIDGE_TYPE, SEEK_SET);
 
-    int cartType = fgetc(fileHandle);
-    if (cartType == EOF)
-        cartType = 0x00;
+	int cartType = fgetc(fileHandle);
+	if (cartType == EOF)
+		cartType = 0x00;
 
-    if (fsize(fileHandle) <= 0x8000UL || cartType != 0x00) {
-        // cart type byte can be anything
-        return;
-    }
+	if (fsize(fileHandle) <= 0x8000UL || cartType != 0x00) {
+		// cart type byte can be anything
+		return;
+	}
 
-    cartType = 0x01;
-    fseek(fileHandle, POS_CARTRIDGE_TYPE, SEEK_SET);
-    fwrite(&cartType, 1, 1, fileHandle);
+	cartType = 0x01;
+	fseek(fileHandle, POS_CARTRIDGE_TYPE, SEEK_SET);
+	fwrite(&cartType, 1, 1, fileHandle);
 }
 
 static void
 updateChecksum(FILE* fileHandle) {
-    size_t romSize = fsize(fileHandle);
+	size_t romSize = fsize(fileHandle);
 
-    uint16_t cartChecksum = 0;
-    uint16_t calculatedChecksum = 0;
-    uint8_t cartCompChecksum = 0;
-    uint8_t calculatedCompChecksum = 0;
+	uint16_t cartChecksum = 0;
+	uint16_t calculatedChecksum = 0;
+	uint8_t cartCompChecksum = 0;
+	uint8_t calculatedCompChecksum = 0;
 
-    fseek(fileHandle, 0, SEEK_SET);
+	fseek(fileHandle, 0, SEEK_SET);
 
-    for (size_t i = 0; i < romSize; ++i) {
-        int ch = fgetc(fileHandle);
-        if (ch == EOF)
-            ch = 0;
+	for (size_t i = 0; i < romSize; ++i) {
+		int ch = fgetc(fileHandle);
+		if (ch == EOF)
+			ch = 0;
 
-        if (i < 0x0134L) {
-            calculatedChecksum += (uint16_t) ch;
-        } else if (i < 0x014DL) {
-            calculatedCompChecksum += (uint8_t) ch;
-            calculatedChecksum += (uint16_t) ch;
-        } else if (i == 0x014DL) {
-            cartCompChecksum = (uint8_t) ch;
-        } else if (i == 0x014EL) {
-            cartChecksum = (uint16_t) ch << 8U;
-        } else if (i == 0x014FL) {
-            cartChecksum |= (uint16_t) ch;
-        } else {
-            calculatedChecksum += (uint16_t) ch;
-        }
-    }
+		if (i < 0x0134L) {
+			calculatedChecksum += (uint16_t) ch;
+		} else if (i < 0x014DL) {
+			calculatedCompChecksum += (uint8_t) ch;
+			calculatedChecksum += (uint16_t) ch;
+		} else if (i == 0x014DL) {
+			cartCompChecksum = (uint8_t) ch;
+		} else if (i == 0x014EL) {
+			cartChecksum = (uint16_t) ch << 8U;
+		} else if (i == 0x014FL) {
+			cartChecksum |= (uint16_t) ch;
+		} else {
+			calculatedChecksum += (uint16_t) ch;
+		}
+	}
 
-    calculatedCompChecksum = (uint8_t) (0xE7U - calculatedCompChecksum);
-    calculatedChecksum += calculatedCompChecksum;
+	calculatedCompChecksum = (uint8_t) (0xE7U - calculatedCompChecksum);
+	calculatedChecksum += calculatedCompChecksum;
 
-    if (cartChecksum != calculatedChecksum) {
-        fseek(fileHandle, POS_CHECKSUM, SEEK_SET);
-        fputc(calculatedChecksum >> 8U, fileHandle);
-        fputc(calculatedChecksum & 0xFFU, fileHandle);
-    }
+	if (cartChecksum != calculatedChecksum) {
+		fseek(fileHandle, POS_CHECKSUM, SEEK_SET);
+		fputc(calculatedChecksum >> 8U, fileHandle);
+		fputc(calculatedChecksum & 0xFFU, fileHandle);
+	}
 
-    if (cartCompChecksum != calculatedCompChecksum) {
-        fseek(fileHandle, POS_COMP_CHECKSUM, SEEK_SET);
-        fwrite(&calculatedCompChecksum, 1, 1, fileHandle);
-    }
+	if (cartCompChecksum != calculatedCompChecksum) {
+		fseek(fileHandle, POS_COMP_CHECKSUM, SEEK_SET);
+		fwrite(&calculatedCompChecksum, 1, 1, fileHandle);
+	}
 }
 
 static void
 updateGameBoyHeader(FILE* fileHandle) {
-    updateNintendoCharacterArea(fileHandle);
-    updateRomSize(fileHandle);
-    updateCartridgeType(fileHandle);
-    updateChecksum(fileHandle);
+	updateNintendoCharacterArea(fileHandle);
+	updateRomSize(fileHandle);
+	updateCartridgeType(fileHandle);
+	updateChecksum(fileHandle);
 }
-
 
 extern void
 gameboy_WriteImage(const char* outputFilename) {
-    image_WriteBinary(outputFilename, 0);
+	image_WriteBinary(outputFilename, 0);
 
-    FILE* fileHandle = fopen(outputFilename, "r+b");
-    if (fileHandle == NULL)
-        error("Unable to open \"%s\" for writing", outputFilename);
+	FILE* fileHandle = fopen(outputFilename, "r+b");
+	if (fileHandle == NULL)
+		error("Unable to open \"%s\" for writing", outputFilename);
 
-    updateGameBoyHeader(fileHandle);
+	updateGameBoyHeader(fileHandle);
 
 	fclose(fileHandle);
 }

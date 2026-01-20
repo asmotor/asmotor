@@ -23,4 +23,3 @@ extern void
 smart_Process(const char* name);
 
 #endif
-

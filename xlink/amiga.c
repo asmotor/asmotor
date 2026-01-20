@@ -37,238 +37,237 @@
 #define HUNK_HEADER  0x3F3u
 #define HUNKF_CHIP   (1u << 30u)
 
-#define EXT_DEF      0x01000000u
-#define EXT_REF32    0x81000000u
+#define EXT_DEF   0x01000000u
+#define EXT_REF32 0x81000000u
 
 static void
 writeBuffer(FILE* fileHandle, const void* buffer, size_t bufferSize) {
-    fwrite(buffer, 1, bufferSize, fileHandle);
+	fwrite(buffer, 1, bufferSize, fileHandle);
 
-    while ((bufferSize & 3u) != 0) {
-        fputc(0, fileHandle);
-        ++bufferSize;
-    }
+	while ((bufferSize & 3u) != 0) {
+		fputc(0, fileHandle);
+		++bufferSize;
+	}
 }
 
 static uint32_t
 longSize(uint32_t size) {
-    return (size + 3) / 4;
+	return (size + 3) / 4;
 }
 
 static void
 writeString(FILE* fileHandle, char* string, uint32_t extFlags) {
-    uint32_t stringLength = (uint32_t) strlen(string);
+	uint32_t stringLength = (uint32_t) strlen(string);
 
-    fputbl(longSize(stringLength) | extFlags, fileHandle);
-    writeBuffer(fileHandle, string, stringLength);
+	fputbl(longSize(stringLength) | extFlags, fileHandle);
+	writeBuffer(fileHandle, string, stringLength);
 }
 
 static uint32_t
 sectionSize(SSection* section) {
-    uint32_t size = longSize(section->size);
-    if (section->group->flags & GROUP_FLAG_SHARED)
-        size |= HUNKF_CHIP;
+	uint32_t size = longSize(section->size);
+	if (section->group->flags & GROUP_FLAG_SHARED)
+		size |= HUNKF_CHIP;
 
-    return size;
+	return size;
 }
 
 static void
 writeSectionNames(FILE* fileHandle, bool debugInfo) {
-    if (debugInfo) {
-        for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
-            if (section->used && !sect_IsEquSection(section))
-                writeString(fileHandle, section->name, 0);
-        }
-    }
+	if (debugInfo) {
+		for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
+			if (section->used && !sect_IsEquSection(section))
+				writeString(fileHandle, section->name, 0);
+		}
+	}
 
-    fputbl(0, fileHandle);
+	fputbl(0, fileHandle);
 }
 
 static void
 writeSectionSizes(FILE* fileHandle) {
-    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
-        if (section->used && !sect_IsEquSection(section))
-            fputbl(sectionSize(section), fileHandle);
-    }
+	for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
+		if (section->used && !sect_IsEquSection(section))
+			fputbl(sectionSize(section), fileHandle);
+	}
 }
 
 static void
 writeStringHunk(FILE* fileHandle, uint32_t hunkType, char* hunkName) {
-    fputbl(hunkType, fileHandle);
-    writeString(fileHandle, hunkName != NULL ? hunkName : "", 0);
+	fputbl(hunkType, fileHandle);
+	writeString(fileHandle, hunkName != NULL ? hunkName : "", 0);
 }
 
 static void
 writeHunkUnit(FILE* fileHandle, char* hunkName) {
-    writeStringHunk(fileHandle, HUNK_UNIT, hunkName);
+	writeStringHunk(fileHandle, HUNK_UNIT, hunkName);
 }
 
 static void
 writeHunkName(FILE* fileHandle, char* hunkName) {
-    writeStringHunk(fileHandle, HUNK_NAME, hunkName);
+	writeStringHunk(fileHandle, HUNK_NAME, hunkName);
 }
 
 static void
 writeHunkHeader(FILE* fileHandle, bool debugInfo, uint32_t totalSections) {
-    fputbl(HUNK_HEADER, fileHandle);
-    writeSectionNames(fileHandle, debugInfo);
+	fputbl(HUNK_HEADER, fileHandle);
+	writeSectionNames(fileHandle, debugInfo);
 
-    fputbl(totalSections, fileHandle);     // total hunks
-    fputbl(0, fileHandle);                 // first hunk number
-    fputbl(totalSections - 1, fileHandle); // last hunk number
-    writeSectionSizes(fileHandle);
+	fputbl(totalSections, fileHandle);     // total hunks
+	fputbl(0, fileHandle);                 // first hunk number
+	fputbl(totalSections - 1, fileHandle); // last hunk number
+	writeSectionSizes(fileHandle);
 }
 
 static void
 writeExtHunk(FILE* fileHandle, SSection* section, SPatches* importPatches, uint32_t codePos) {
-    // TODO: Implement when writing Amiga linker object
+	// TODO: Implement when writing Amiga linker object
 }
 
 static uint32_t
 hunkType(SSection* section) {
-    uint32_t hunkType;
+	uint32_t hunkType;
 
-    switch (section->group->type) {
-        case GROUP_TEXT:
-            if (section->group->flags & GROUP_FLAG_DATA)
-                hunkType = HUNK_DATA;
-            else
-                hunkType = HUNK_CODE;
+	switch (section->group->type) {
+	case GROUP_TEXT:
+		if (section->group->flags & GROUP_FLAG_DATA)
+			hunkType = HUNK_DATA;
+		else
+			hunkType = HUNK_CODE;
 
-            break;
-        default:
-        case GROUP_BSS:
-            hunkType = HUNK_BSS;
+		break;
+	default:
+	case GROUP_BSS:
+		hunkType = HUNK_BSS;
 
-            break;
-    }
+		break;
+	}
 
-    return hunkType;
+	return hunkType;
 }
 
 typedef struct Offsets {
-    uint32_t capacity;
-    uint32_t total;
-    uint32_t offsets[];
+	uint32_t capacity;
+	uint32_t total;
+	uint32_t offsets[];
 } SOffsets;
 
 static SOffsets**
 allocOffsets(uint32_t totalSections) {
-    SOffsets** offsets = mem_Alloc(sizeof(SOffsets*) * totalSections);
-    for (uint32_t i = 0; i < totalSections; ++i) {
-        SOffsets* offset = mem_Alloc(sizeof(SOffsets) + sizeof(uint32_t) * 4);
-        offset->capacity = 4;
-        offset->total = 0;
-        offsets[i] = offset;
-    }
+	SOffsets** offsets = mem_Alloc(sizeof(SOffsets*) * totalSections);
+	for (uint32_t i = 0; i < totalSections; ++i) {
+		SOffsets* offset = mem_Alloc(sizeof(SOffsets) + sizeof(uint32_t) * 4);
+		offset->capacity = 4;
+		offset->total = 0;
+		offsets[i] = offset;
+	}
 
-    return offsets;
+	return offsets;
 }
 
 static void
 freeOffsets(SOffsets** offsets, uint32_t totalSections) {
-    for (uint32_t i = 0; i < totalSections; ++i)
-        mem_Free(offsets[i]);
+	for (uint32_t i = 0; i < totalSections; ++i)
+		mem_Free(offsets[i]);
 
-    mem_Free(offsets);
+	mem_Free(offsets);
 }
 
 static SOffsets**
 getPatchSectionOffsets(SPatches* patches, uint32_t totalSections) {
-    bool hasReloc = false;
-    SOffsets** offsets = allocOffsets(totalSections);
-    SPatch* patch = patches->patches;
+	bool hasReloc = false;
+	SOffsets** offsets = allocOffsets(totalSections);
+	SPatch* patch = patches->patches;
 
-    for (uint32_t index = 0; index < patches->totalPatches; ++index, ++patch) {
-        if (patch->type == PATCH_RELOC) {
-            if (patch->type == PATCH_RELOC && patch->valueSection != NULL) {
-                SOffsets** offset = &offsets[patch->valueSection->sectionId];
-                if ((*offset)->total == (*offset)->capacity) {
-                    (*offset)->capacity *= 2;
-                    *offset = mem_Realloc(*offset, sizeof(SOffsets) + sizeof(uint32_t) * (*offset)->capacity);
-                }
-                (*offset)->offsets[(*offset)->total++] = patch->offset;
-                hasReloc = true;
-            }
-        }
-    }
+	for (uint32_t index = 0; index < patches->totalPatches; ++index, ++patch) {
+		if (patch->type == PATCH_RELOC) {
+			if (patch->type == PATCH_RELOC && patch->valueSection != NULL) {
+				SOffsets** offset = &offsets[patch->valueSection->sectionId];
+				if ((*offset)->total == (*offset)->capacity) {
+					(*offset)->capacity *= 2;
+					*offset = mem_Realloc(*offset, sizeof(SOffsets) + sizeof(uint32_t) * (*offset)->capacity);
+				}
+				(*offset)->offsets[(*offset)->total++] = patch->offset;
+				hasReloc = true;
+			}
+		}
+	}
 
-    if (!hasReloc) {
-        freeOffsets(offsets, totalSections);
-        return NULL;
-    }
+	if (!hasReloc) {
+		freeOffsets(offsets, totalSections);
+		return NULL;
+	}
 
-    return offsets;
+	return offsets;
 }
 
 static void
 writeReloc32(FILE* fileHandle, SSection* section, uint32_t totalSections) {
-    SOffsets** offsets = getPatchSectionOffsets(section->patches, totalSections);
+	SOffsets** offsets = getPatchSectionOffsets(section->patches, totalSections);
 
-    if (offsets != NULL) {
-        fputbl(HUNK_RELOC32, fileHandle);
-        for (uint32_t sectionId = 0; sectionId < totalSections; ++sectionId) {
-            SOffsets* offset = offsets[sectionId];
-            if (offset->total > 0) {
-                fputbl(offset->total, fileHandle);
-                fputbl(sectionId, fileHandle);
+	if (offsets != NULL) {
+		fputbl(HUNK_RELOC32, fileHandle);
+		for (uint32_t sectionId = 0; sectionId < totalSections; ++sectionId) {
+			SOffsets* offset = offsets[sectionId];
+			if (offset->total > 0) {
+				fputbl(offset->total, fileHandle);
+				fputbl(sectionId, fileHandle);
 
-                for (uint32_t i = 0; i < offset->total; ++i)
-                    fputbl(offset->offsets[i], fileHandle);
-            }
-        }
-        fputbl(0, fileHandle);
+				for (uint32_t i = 0; i < offset->total; ++i)
+					fputbl(offset->offsets[i], fileHandle);
+			}
+		}
+		fputbl(0, fileHandle);
 
-        freeOffsets(offsets, totalSections);
-    }
+		freeOffsets(offsets, totalSections);
+	}
 }
 
 static void
-writeSymbolHunk(FILE* fileHandle, SSection* section) {
-}
+writeSymbolHunk(FILE* fileHandle, SSection* section) {}
 
 static void
 writeSection(FILE* fileHandle, SSection* section, bool debugInfo, uint32_t totalSections, bool linkObject) {
-    if (linkObject)
-        writeHunkName(fileHandle, section->name);
+	if (linkObject)
+		writeHunkName(fileHandle, section->name);
 
-    fputbl(hunkType(section), fileHandle);
-    fputbl(longSize(section->size), fileHandle);
+	fputbl(hunkType(section), fileHandle);
+	fputbl(longSize(section->size), fileHandle);
 
-    if (section->group->type == GROUP_TEXT) {
-        writeBuffer(fileHandle, section->data, section->size);
-        writeReloc32(fileHandle, section, totalSections);
-    }
+	if (section->group->type == GROUP_TEXT) {
+		writeBuffer(fileHandle, section->data, section->size);
+		writeReloc32(fileHandle, section, totalSections);
+	}
 
-    if (linkObject)
-        writeExtHunk(fileHandle, section, NULL, 0);
+	if (linkObject)
+		writeExtHunk(fileHandle, section, NULL, 0);
 
-    if (debugInfo)
-        writeSymbolHunk(fileHandle, section);
+	if (debugInfo)
+		writeSymbolHunk(fileHandle, section);
 
-    fputbl(HUNK_END, fileHandle);
+	fputbl(HUNK_END, fileHandle);
 }
 
 static void
 writeSections(FILE* fileHandle, bool debugInfo, uint32_t totalSections, bool linkObject) {
-    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
-        if (section->used && !sect_IsEquSection(section))
-            writeSection(fileHandle, section, debugInfo, totalSections, linkObject);
-    }
+	for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
+		if (section->used && !sect_IsEquSection(section))
+			writeSection(fileHandle, section, debugInfo, totalSections, linkObject);
+	}
 }
 
 static uint32_t
 updateSectionIds(void) {
-    uint32_t sectionId = 0;
+	uint32_t sectionId = 0;
 
-    for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
-        if (section->used && !sect_IsEquSection(section))
-            section->sectionId = sectionId++;
-        else
-            section->sectionId = UINT32_MAX;
-    }
+	for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
+		if (section->used && !sect_IsEquSection(section))
+			section->sectionId = sectionId++;
+		else
+			section->sectionId = UINT32_MAX;
+	}
 
-    return sectionId;
+	return sectionId;
 }
 
 static void
@@ -281,38 +280,38 @@ writeExecutable(FILE* fileHandle, const char* entry, bool debugInfo) {
 			error("The entry symbol must be the first location of the first section in this file format");
 	}
 
-    uint32_t totalSections = updateSectionIds();
+	uint32_t totalSections = updateSectionIds();
 
-    writeHunkHeader(fileHandle, debugInfo, totalSections);
-    writeSections(fileHandle, debugInfo, totalSections, false);
+	writeHunkHeader(fileHandle, debugInfo, totalSections);
+	writeSections(fileHandle, debugInfo, totalSections, false);
 }
 
 static void
 writeLinkObject(FILE* fileHandle, const char* entry, bool debugInfo) {
-    uint32_t totalSections = updateSectionIds();
+	uint32_t totalSections = updateSectionIds();
 
-    writeHunkUnit(fileHandle, NULL);
-    writeSections(fileHandle, debugInfo, totalSections, true);
+	writeHunkUnit(fileHandle, NULL);
+	writeSections(fileHandle, debugInfo, totalSections, true);
 }
 
 static void
-openAndWriteFile(const char* filename, void (* function)(FILE*, const char*, bool), const char* entry, bool debugInfo) {
-    FILE* fileHandle;
+openAndWriteFile(const char* filename, void (*function)(FILE*, const char*, bool), const char* entry, bool debugInfo) {
+	FILE* fileHandle;
 
-    if ((fileHandle = fopen(filename, "w+b")) != NULL) {
-        function(fileHandle, entry, debugInfo);
-        fclose(fileHandle);
-    } else {
-        error("Unable to open file \"%s\" for writing", filename);
-    }
+	if ((fileHandle = fopen(filename, "w+b")) != NULL) {
+		function(fileHandle, entry, debugInfo);
+		fclose(fileHandle);
+	} else {
+		error("Unable to open file \"%s\" for writing", filename);
+	}
 }
 
 void
 amiga_WriteExecutable(const char* filename, const char* entry, bool debugInfo) {
-    openAndWriteFile(filename, writeExecutable, entry, debugInfo);
+	openAndWriteFile(filename, writeExecutable, entry, debugInfo);
 }
 
 void
 amiga_WriteLinkObject(const char* filename, bool debugInfo) {
-    openAndWriteFile(filename, writeLinkObject, NULL, debugInfo);
+	openAndWriteFile(filename, writeLinkObject, NULL, debugInfo);
 }

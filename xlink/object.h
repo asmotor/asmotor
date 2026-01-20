@@ -30,37 +30,37 @@
 struct FileInfo;
 
 typedef enum {
-    GROUP_TEXT = 0,
-    GROUP_BSS = 1
+	GROUP_TEXT = 0,
+	GROUP_BSS = 1
 } GroupType;
 
 #define GROUP_FLAG_SHARED 0x20000000u
 #define GROUP_FLAG_DATA   0x40000000u
 
 typedef struct {
-    char name[MAX_SYMBOL_NAME_LENGTH];
-    GroupType type;
-    uint32_t flags;
+	char name[MAX_SYMBOL_NAME_LENGTH];
+	GroupType type;
+	uint32_t flags;
 } Group;
 
 typedef struct {
-    uint32_t totalGroups;
-    Group groups[];
+	uint32_t totalGroups;
+	Group groups[];
 } Groups;
 
 static inline bool
 group_isText(Group* group) {
-    return group != NULL && group->type == GROUP_TEXT;
+	return group != NULL && group->type == GROUP_TEXT;
 }
 
 static inline char*
 group_Name(Group* group) {
-    return group != NULL ? group->name : NULL;
+	return group != NULL ? group->name : NULL;
 }
 
 static inline Group*
 groups_GetGroup(Groups* groups, uint32_t groupId) {
-    return groupId != UINT32_MAX && groupId < groups->totalGroups ? &groups->groups[groupId] : NULL;
+	return groupId != UINT32_MAX && groupId < groups->totalGroups ? &groups->groups[groupId] : NULL;
 }
 
 extern struct FileInfo*

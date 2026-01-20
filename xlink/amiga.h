@@ -19,6 +19,8 @@
 #ifndef XLINK_AMIGA_H_INCLUDED_
 #define XLINK_AMIGA_H_INCLUDED_
 
+#include <stdbool.h>
+
 extern void
 amiga_WriteExecutable(const char* filename, const char* entry, bool debugInfo);
 

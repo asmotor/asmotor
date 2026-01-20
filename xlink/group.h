@@ -29,27 +29,26 @@
 struct MemoryChunk_;
 
 typedef struct {
-    int32_t imageLocation;      // This pool's position in the ROM image, -1 if not written
-    uint32_t overlay;           // Which overlay file in which the pool should reside
-    uint32_t cpuByteLocation;   // Where the CPU sees this pool in its address space
-    int32_t cpuBank;            // What the CPU calls this bank
-    uint32_t size;              // Size of pool seen from the CPU
-	bool onlyAbs;				// Only allow absolute placement, never allocate dynamically
+	int32_t imageLocation;    // This pool's position in the ROM image, -1 if not written
+	uint32_t overlay;         // Which overlay file in which the pool should reside
+	uint32_t cpuByteLocation; // Where the CPU sees this pool in its address space
+	int32_t cpuBank;          // What the CPU calls this bank
+	uint32_t size;            // Size of pool seen from the CPU
+	bool onlyAbs;             // Only allow absolute placement, never allocate dynamically
 
-    struct MemoryChunk_* freeChunks;
+	struct MemoryChunk_* freeChunks;
 } MemoryPool;
 
 typedef struct MemoryGroup_ {
-    struct MemoryGroup_* nextGroup;
+	struct MemoryGroup_* nextGroup;
 
 	uint32_t groupId;
 
-    char name[MAX_SYMBOL_NAME_LENGTH];
-    int32_t totalPools;
+	char name[MAX_SYMBOL_NAME_LENGTH];
+	int32_t totalPools;
 
-    MemoryPool* pools[];
+	MemoryPool* pools[];
 } MemoryGroup;
-
 
 extern MemoryPool*
 pool_Create(int32_t imageLocation, uint32_t overlay, uint32_t cpuByteLocation, int32_t cpuBank, uint32_t size, bool onlyAbs);
@@ -106,16 +105,17 @@ extern void
 group_SetupCoCo(void);
 
 extern bool
-group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay);
+group_AllocateAbsolute(const char* groupName, uint32_t size, int32_t bankId, int32_t cpuByteLocation, int32_t* cpuBank,
+                       int32_t* imageLocation, uint32_t* overlay);
 
 extern bool
-group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t pageSize, int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay);
+group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int32_t byteAlign, int32_t pageSize,
+                      int32_t* cpuByteLocation, int32_t* cpuBank, int32_t* imageLocation, uint32_t* overlay);
 
 extern bool
 group_NeedsOverlay(void);
 
 extern void
 group_GetProperty(uint32_t groupId, ESymbolProperty property, struct Section** section, int32_t* value);
-
 
 #endif

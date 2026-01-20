@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef    XLINK_IMAGE_H_INCLUDED_
-#define    XLINK_IMAGE_H_INCLUDED_
+#ifndef XLINK_IMAGE_H_INCLUDED_
+#define XLINK_IMAGE_H_INCLUDED_
 
 #include <stdio.h>
 

@@ -27,35 +27,34 @@ useSectionWithLocalExport(const char* name, uint32_t fileId);
 
 static void
 markReferencedSectionsUsed(SSection* section) {
-    section->used = true;
-    for (uint32_t i = 0; i < section->totalSymbols; ++i) {
-        SSymbol* symbol = &section->symbols[i];
-        if (symbol->type == SYM_LOCALIMPORT)
-            useSectionWithLocalExport(symbol->name, section->fileId);
-        else if (symbol->type == SYM_IMPORT)
-            useSectionWithGlobalExport(symbol->name);
-    }
+	section->used = true;
+	for (uint32_t i = 0; i < section->totalSymbols; ++i) {
+		SSymbol* symbol = &section->symbols[i];
+		if (symbol->type == SYM_LOCALIMPORT)
+			useSectionWithLocalExport(symbol->name, section->fileId);
+		else if (symbol->type == SYM_IMPORT)
+			useSectionWithGlobalExport(symbol->name);
+	}
 }
 
 static void
 useSectionWithGlobalExport(const char* name) {
-    SSection* section = sect_FindSectionWithExportedSymbol(name);
-    if (section != NULL) {
+	SSection* section = sect_FindSectionWithExportedSymbol(name);
+	if (section != NULL) {
 		if (!section->used)
-	        markReferencedSectionsUsed(section);
-    } else {
-        error("Symbol \"%s\" not found (it must be exported)", name);
-    }
+			markReferencedSectionsUsed(section);
+	} else {
+		error("Symbol \"%s\" not found (it must be exported)", name);
+	}
 }
 
 static void
 useSectionWithLocalExport(const char* name, uint32_t fileId) {
-    SSection* section = sect_FindSectionWithLocallyExportedSymbol(name, fileId);
-    if (section != NULL && !section->used) {
-        markReferencedSectionsUsed(section);
-    }
+	SSection* section = sect_FindSectionWithLocallyExportedSymbol(name, fileId);
+	if (section != NULL && !section->used) {
+		markReferencedSectionsUsed(section);
+	}
 }
-
 
 static void
 useRootedSections(void) {
@@ -70,16 +69,16 @@ useRootedSections(void) {
 
 extern void
 smart_Process(const char* name) {
-    if (name != NULL) {
-        useSectionWithGlobalExport(name);
-        useRootedSections();
-    } else {
-        // Link in all sections
-        SSection* section = sect_Sections;
+	if (name != NULL) {
+		useSectionWithGlobalExport(name);
+		useRootedSections();
+	} else {
+		// Link in all sections
+		SSection* section = sect_Sections;
 
-        while (section != NULL) {
-            section->used = true;
-            section = section->nextSection;
-        }
-    }
+		while (section != NULL) {
+			section->used = true;
+			section = section->nextSection;
+		}
+	}
 }

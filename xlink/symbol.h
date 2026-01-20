@@ -28,46 +28,46 @@ struct Section;
 #define MAX_SYMBOL_NAME_LENGTH 256
 
 typedef enum {
-    SYM_EXPORT,
-    SYM_IMPORT,
-    SYM_LOCAL,
-    SYM_LOCALEXPORT,
-    SYM_LOCALIMPORT,
-    SYM_LINKER = 255	// 255 so it doesn't collide with XOBJ values
+	SYM_EXPORT,
+	SYM_IMPORT,
+	SYM_LOCAL,
+	SYM_LOCALEXPORT,
+	SYM_LOCALIMPORT,
+	SYM_LINKER = 255 // 255 so it doesn't collide with XOBJ values
 } ESymbolType;
 
 typedef struct Symbol {
-    char name[MAX_SYMBOL_NAME_LENGTH];
-    ESymbolType type;
-    int32_t value;
-    bool resolved;
+	char name[MAX_SYMBOL_NAME_LENGTH];
+	ESymbolType type;
+	int32_t value;
+	bool resolved;
 
-    uint32_t fileInfoIndex;
+	uint32_t fileInfoIndex;
 	uint32_t lineNumber;
 
 	struct Section* section;
 
-	string_buffer* expression;	// Linker symbols
+	string_buffer* expression; // Linker symbols
 } SSymbol;
 
 INLINE bool
 symbol_IsLocal(SSymbol* symbol) {
-    switch (symbol->type) {
-        case SYM_LOCAL:
-        case SYM_LOCALEXPORT:
-        case SYM_LOCALIMPORT:
-            return true;
-        default:
-        case SYM_LINKER:
-        case SYM_EXPORT:
-        case SYM_IMPORT:
-            return false;
-    }
+	switch (symbol->type) {
+	case SYM_LOCAL:
+	case SYM_LOCALEXPORT:
+	case SYM_LOCALIMPORT:
+		return true;
+	default:
+	case SYM_LINKER:
+	case SYM_EXPORT:
+	case SYM_IMPORT:
+		return false;
+	}
 }
 
 INLINE bool
 sym_IsImport(const SSymbol* symbol) {
-    return symbol->type == SYM_IMPORT || symbol->type == SYM_LOCALIMPORT;
+	return symbol->type == SYM_IMPORT || symbol->type == SYM_LOCALIMPORT;
 }
 
 #endif
