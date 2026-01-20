@@ -205,7 +205,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 
         case AM_PCXDISP020: {
             if (mode->outer.displacement)
-                mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 0);
+                mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 2);
         }
         // fall through
         case AM_AXDISP020: {
@@ -267,7 +267,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 
         case AM_PREINDPCXD020: {
             if (mode->inner.displacement)
-                mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 0);
+                mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 2);
         }
         // fall through
         case AM_PREINDAXD020: {
@@ -358,7 +358,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 
         case AM_POSTINDPCXD020: {
             if (mode->inner.displacement)
-                mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 0);
+                mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 2);
         }
         // fall through
         case AM_POSTINDAXD020: {
