@@ -22,6 +22,7 @@
 struct FileInfo;
 struct Section;
 
+#include "strbuf.h"
 #include "util.h"
 
 #define MAX_SYMBOL_NAME_LENGTH 256
@@ -31,7 +32,8 @@ typedef enum {
     SYM_IMPORT,
     SYM_LOCAL,
     SYM_LOCALEXPORT,
-    SYM_LOCALIMPORT
+    SYM_LOCALIMPORT,
+    SYM_LINKER = 255	// 255 so it doesn't collide with XOBJ values
 } ESymbolType;
 
 typedef struct Symbol {
@@ -43,7 +45,9 @@ typedef struct Symbol {
     uint32_t fileInfoIndex;
 	uint32_t lineNumber;
 
-    struct Section* section;
+	struct Section* section;
+
+	string_buffer* expression;	// Linker symbols
 } SSymbol;
 
 INLINE bool
@@ -54,6 +58,7 @@ symbol_IsLocal(SSymbol* symbol) {
         case SYM_LOCALIMPORT:
             return true;
         default:
+        case SYM_LINKER:
         case SYM_EXPORT:
         case SYM_IMPORT:
             return false;

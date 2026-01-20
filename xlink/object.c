@@ -184,6 +184,7 @@ readSymbol(FILE* fileHandle, SSymbol* symbol, int version, uint32_t fileInfoInde
 
     symbol->resolved = false;
     symbol->section = NULL;
+	symbol->expression = NULL;
 }
 
 static uint32_t

@@ -19,10 +19,12 @@
 #ifndef XLINK_GROUP_H_INCLUDED_
 #define XLINK_GROUP_H_INCLUDED_
 
+#include <stdbool.h>
+
 #include "types.h"
 
+#include "patch.h"
 #include "symbol.h"
-#include <stdbool.h>
 
 struct MemoryChunk_;
 
@@ -40,6 +42,8 @@ typedef struct {
 typedef struct MemoryGroup_ {
     struct MemoryGroup_* nextGroup;
 
+	uint32_t groupId;
+
     char name[MAX_SYMBOL_NAME_LENGTH];
     int32_t totalPools;
 
@@ -55,6 +59,9 @@ pool_Free(MemoryPool* pool);
 
 extern MemoryGroup*
 group_Create(const char* groupName, uint32_t totalBanks);
+
+extern MemoryGroup*
+group_Find(const char* groupName);
 
 extern void
 group_InitMemoryChunks(void);
@@ -106,5 +113,9 @@ group_AllocateAligned(const char* groupName, uint32_t size, int32_t bankId, int3
 
 extern bool
 group_NeedsOverlay(void);
+
+extern void
+group_GetProperty(uint32_t groupId, ESymbolProperty property, struct Section** section, int32_t* value);
+
 
 #endif

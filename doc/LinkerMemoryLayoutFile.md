@@ -25,9 +25,9 @@ A machine definition will invariably use several constants for addresses and so 
 | Precedence | Component | Meaning |
 |---|---|---|
 | 1 | Integer | A constant number. Can be expressed in hexadecimal (prefixed by $, eg. `$1234`), binary (prefixed by `%`, eg. `%1100`), or decimal (no prefix.) |
-| - | @ | An integer variable containing the array index when defining an array of pools. |
-| - | symbol | The name of a symbol. |
-| 2 | . | Property access. |
+| - | @ | An integer variable containing the array index when defining an array of pools. (only for `POOLS`) |
+| - | symbol | The name of a symbol. (only for `SYMBOL`) |
+| 2 | . | Property access. (only for `SYMBOL`) |
 | 3 | + | Unary plus. |
 | - | - | Unary negation. |
 | - | ( ) | Parentheses for overriding precedence. |
@@ -106,7 +106,22 @@ Symbols can be exported by the linker and used by the assembler. The syntax is:
 SYMBOL name expression
 ```
 
-`expression`s are the same as for pools, but can all use the `.` operator. The `@` symbol is not available.
+`expression`s are the same as for pools, but can also use the `.` operator. The `@` symbol is not available.
+
+In addition to simple values, `SYMBOL` can also make the start address and size of a `GROUP` available to linkable objects:
+
+```
+GROUP BSS:BSS RAM_BLOCK
+SYMBOL __bssStart BSS.start
+SYMBOL __bssSize BSS.size
+```
+
+A group has the following properties available:
+
+| Property | Meaning |
+|---|---|
+| .start | The start address of a `GROUP` |
+| .size | The size in bytes of a `GROUP` |
 
 ## Formats
 The `FORMATS` directive is used to specify which file formats can be used with a machine definition.

@@ -24,6 +24,7 @@
 #include "fmath.h"
 #include "mem.h"
 
+#include "group.h"
 #include "patch.h"
 #include "section.h"
 #include "symbol.h"
@@ -33,6 +34,7 @@
 #define STACKSIZE 256
 
 typedef struct StackEntry_ {
+    SSection* section;
     SSymbol* symbol;
     int32_t value;
 } StackEntry;
@@ -82,17 +84,17 @@ popStringPair(char** outLeft, char** outRight) {
 }
 
 static void
-pushSymbolInt(SSymbol* symbol, int32_t value) {
+pushStackValue(SSection* section, SSymbol* symbol, int32_t value) {
     if (g_stackIndex >= STACKSIZE)
         error("patch too complex");
 
-    StackEntry entry = {symbol, value};
+    StackEntry entry = {section, symbol, value};
     g_stack[g_stackIndex++] = entry;
 }
 
 static void
 pushInt(int32_t value) {
-    pushSymbolInt(NULL, value);
+    pushStackValue(NULL, NULL, value);
 }
 
 static StackEntry
@@ -359,13 +361,13 @@ makePatchString(SPatch* patch, SSection* section) {
 #define unary(left, operator) \
     (left) = popInt(); \
     if ((left).symbol == NULL) { \
-        pushSymbolInt((left).symbol, operator((left).value)); \
+        pushStackValue(NULL, (left).symbol, operator((left).value)); \
     } else { \
         error("Expression \"%s\" at offset %d in section \"%s\" attempts to perform a unary operation on a value relative to a section", makePatchString(patch, section), patch->offset, section->name); \
     }
 
 static bool
-calculateExpressionValue(uint8_t* expression, uint32_t size, SPatch* patch, SSection* section, bool allowImports, int32_t* outValue, SSymbol** outSymbol) {
+calculateExpressionValue(uint8_t* expression, uint32_t size, SPatch* patch, SSection* section, bool allowImports, int32_t* outValue, SSymbol** outSymbol, SSection** outSection) {
     g_stackIndex = 0;
 
     while (size > 0) {
@@ -379,7 +381,7 @@ calculateExpressionValue(uint8_t* expression, uint32_t size, SPatch* patch, SSec
                 if (left.symbol == NULL && right.symbol == NULL)
                     pushInt(left.value - right.value);
                 else if (left.symbol != NULL && right.symbol == NULL)
-                    pushSymbolInt(left.symbol, left.value - right.value);
+                    pushStackValue(NULL, left.symbol, left.value - right.value);
                 else if (left.symbol != NULL && right.symbol != NULL && left.symbol->section == right.symbol->section)
                     pushInt(left.symbol->value - right.symbol->value);
                 else if (patch != NULL && section != NULL) {
@@ -394,9 +396,9 @@ calculateExpressionValue(uint8_t* expression, uint32_t size, SPatch* patch, SSec
                 if (left.symbol == NULL && right.symbol == NULL)
                     pushInt(left.value + right.value);
                 else if (right.symbol == NULL)
-                    pushSymbolInt(left.symbol, left.value + right.value);
+                    pushStackValue(NULL, left.symbol, left.value + right.value);
                 else if (left.symbol == NULL)
-                    pushSymbolInt(right.symbol, left.value + right.value);
+                    pushStackValue(NULL, right.symbol, left.value + right.value);
                 else if (patch != NULL && section != NULL) {
                     error("Expression \"%s\" at offset %d in section \"%s\" attempts to add two values from different sections",
                           makePatchString(patch, section), patch->offset, section->name);
@@ -556,9 +558,9 @@ calculateExpressionValue(uint8_t* expression, uint32_t size, SPatch* patch, SSec
 
                 symbol = sect_GetSymbol(section, symbolId, allowImports);
                 if (symbol->section != NULL && (symbol->section->cpuLocation != -1 || symbol->section->group == NULL))
-                    pushSymbolInt(NULL, symbol->value);
+                    pushStackValue(NULL, NULL, symbol->value);
                 else
-                    pushSymbolInt(symbol, 0);
+                    pushStackValue(NULL, symbol, 0);
                 size -= 4;
                 break;
             }
@@ -604,6 +606,15 @@ calculateExpressionValue(uint8_t* expression, uint32_t size, SPatch* patch, SSec
 					error("Internal patch error");
                 break;
             }
+			case OBJ_GROUP_PROPERTY: {
+                popIntPair(&left, &right);
+
+				SSection* section;
+				int32_t value;
+				group_GetProperty(left.value, right.value, &section, &value);
+				pushStackValue(section, NULL, value);
+				break;
+			}
             default: {
                 error("Unknown patch operator");
                 break;
@@ -612,8 +623,16 @@ calculateExpressionValue(uint8_t* expression, uint32_t size, SPatch* patch, SSec
     }
 
     StackEntry entry = popInt();
-    *outValue = entry.value;
-    *outSymbol = entry.symbol;
+
+	if (outValue != NULL)
+	    *outValue = entry.value;
+
+	if (outSymbol != NULL)
+	    *outSymbol = entry.symbol;
+
+	if (outSection != NULL)
+	    *outSection = entry.section;
+
     return g_stackIndex == 0;
 }
 
@@ -622,7 +641,7 @@ calculatePatchValue(SPatch* patch, SSection* section, bool allowImports, int32_t
     int32_t size = patch->expressionSize;
     uint8_t* expression = patch->expression;
 
-	return calculateExpressionValue(expression, size, patch, section, allowImports, outValue, outSymbol);
+	return calculateExpressionValue(expression, size, patch, section, allowImports, outValue, outSymbol, NULL);
 }
 
 static void
@@ -724,8 +743,8 @@ patchSection(SSection* section, bool allowReloc, bool onlySectionRelativeReloc, 
 }
 
 extern bool
-patch_EvaluateExpression(uint8_t* expression, uint32_t expressionSize, int32_t* outValue, SSymbol** outSymbol) {
-	return calculateExpressionValue(expression, expressionSize, NULL, NULL, true, outValue, outSymbol);
+patch_EvaluateExpression(uint8_t* expression, uint32_t expressionSize, int32_t* outValue, SSymbol** outSymbol, SSection** outSection) {
+	return calculateExpressionValue(expression, expressionSize, NULL, NULL, true, outValue, outSymbol, outSection);
 }
 
 extern void

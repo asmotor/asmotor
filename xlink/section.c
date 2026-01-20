@@ -19,9 +19,11 @@
 #include <string.h>
 
 #include "mem.h"
+#include "strbuf.h"
 
 #include "object.h"
 #include "section.h"
+#include "patch.h"
 #include "symbol.h"
 
 #include "xlink.h"
@@ -102,6 +104,16 @@ resolveSymbol(SSection* section, SSymbol* symbol, bool allowImports) {
 
             error("Unresolved symbol \"%s\"", symbol->name);
         }
+
+		case SYM_LINKER: {
+			if (!patch_EvaluateExpression((uint8_t*) strbuf_Data(symbol->expression), strbuf_Size(symbol->expression), &symbol->value, NULL, &symbol->section)) {
+				error("Error evaluating linker symbol \"%s\"", symbol->name);
+			}
+
+			symbol->type = SYM_EXPORT;
+			symbol->resolved = true;
+			break;
+		}
 
         default: {
             error("Unhandled symbol type");
@@ -240,6 +252,8 @@ sect_CreateNew(void) {
     if (*section == NULL)
         error("Out of memory");
 
+	memset(*section, 0, sizeof(SSection));
+
     (*section)->sectionId = g_sectionId++;
     (*section)->nextSection = NULL;
     (*section)->used = false;
@@ -275,6 +289,7 @@ extern SSymbol*
 sect_FindExportedSymbol(const char* symbolName) {
     for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
         SSymbol* symbol = sectionHasSymbol(section, symbolName, SYM_EXPORT);
+		symbol = symbol != NULL ? symbol : sectionHasSymbol(section, symbolName, SYM_LINKER);
         if (symbol != NULL) {
 			return symbol;
         }
@@ -286,11 +301,12 @@ extern SSection*
 sect_FindSectionWithExportedSymbol(const char* symbolName) {
     for (SSection* section = sect_Sections; section != NULL; section = section->nextSection) {
         SSymbol* symbol = sectionHasSymbol(section, symbolName, SYM_EXPORT);
+		symbol = symbol != NULL ? symbol : sectionHasSymbol(section, symbolName, SYM_LINKER);
         if (symbol != NULL) {
-            if (sect_IsEquSection(section)) {
+            if (symbol->section == NULL && sect_IsEquSection(section)) {
                 return findSectionContainingAddress(symbol->value, section->fileId);
             }
-            return section;
+            return symbol->section != NULL ? symbol->section : section;
         }
     }
     return NULL;

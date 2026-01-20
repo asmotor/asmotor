@@ -565,6 +565,10 @@ main(int argc, char* argv[]) {
 		error("Memory/machine configuration does not support output format");
 	}
 
+	if (format_SupportsReloc(g_outputFormat) && (g_mapFilename != NULL || g_listFilename != NULL)) {
+		error("Output format does not support producing a mapfile");
+    }
+
 	group_InitMemoryChunks();
 
 	if (argn == argc) {
@@ -583,6 +587,7 @@ main(int argc, char* argv[]) {
 
     if (!format_SupportsReloc(g_outputFormat)) {
         assign_Process();
+		sect_SortSections();
 		sect_ResolveUnresolved();
 	}
 
@@ -595,23 +600,10 @@ main(int argc, char* argv[]) {
 		writeOutput();
 	}
 
-	sect_SortSections();
-
-    if (g_mapFilename != NULL) {
-        if (!format_SupportsReloc(g_outputFormat)) {
-            map_Write(g_mapFilename);
-        } else {
-            error("Output format does not support producing a mapfile");
-        }
-    }
-
-    if (g_listFilename != NULL) {
-        if (!format_SupportsReloc(g_outputFormat)) {
-            list_Write(g_listFilename);
-        } else {
-            error("Output format does not support producing a mapfile");
-        }
-    }
+	if (g_mapFilename != NULL)
+		map_Write(g_mapFilename);
+	if (g_listFilename != NULL)
+		list_Write(g_listFilename);
 
     return EXIT_SUCCESS;
 }

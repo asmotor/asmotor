@@ -18,11 +18,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "mem.h"
 #include "types.h"
 
 #include "group.h"
+#include "section.h"
 #include "xlink.h"
 
 #include <string.h>
@@ -37,6 +39,61 @@ typedef struct MemoryChunk_ {
 } MemoryChunk;
 
 static MemoryGroup* s_machineGroups = NULL;
+
+static MemoryGroup*
+group_GetById(uint32_t groupId) {
+	for (MemoryGroup* group = s_machineGroups; group != NULL; group = group->nextGroup) {
+		if (group->groupId == groupId)
+			return group;
+	}
+
+	return NULL;
+}
+
+
+static bool
+group_GetFirstAndLastSection(MemoryGroup* group, SSection** begin, SSection** end) {
+	// Find first section belonging to group
+	SSection* first;
+	for (first = sect_Sections; first != NULL; first = first->nextSection) {
+		if (!first->used)
+			continue;
+
+		if (first->group != NULL && strcmp(first->group->name, group->name) == 0)
+			break;
+	}
+
+	if (first == NULL)
+		return NULL;
+
+	// Find last section belonging to group
+	SSection* last = first;
+	SSection* candidate;
+	for (candidate = last->nextSection; candidate != NULL; candidate = candidate->nextSection) {
+		if (!candidate->used)
+			continue;
+
+		if (candidate->group != NULL && strcmp(candidate->group->name, group->name) == 0) {
+			last = candidate;
+		}
+	}
+
+	// Check that group does not appear in more sections
+	for (candidate = last->nextSection; candidate != NULL; candidate = candidate->nextSection) {
+		if (!candidate->used)
+			continue;
+
+		if (strcmp(candidate->group->name, group->name) == 0)
+			return false;
+	}
+
+	// Group is contiguous, set min max
+	*begin = first;
+	*end = last;
+
+	return true;
+}
+
 
 static bool
 pool_AllocateMemory(MemoryPool* pool, uint32_t size, int32_t* cpuByteLocation) {
@@ -237,17 +294,65 @@ group_InitMemoryChunks(void) {
 
 extern MemoryGroup*
 group_Create(const char* groupName, uint32_t totalBanks) {
+	uint32_t nextId = 0;
+
     MemoryGroup** ppgroup = &s_machineGroups;
-    while (*ppgroup)
+    while (*ppgroup) {
         ppgroup = &(*ppgroup)->nextGroup;
+		++nextId;
+	}
 
     *ppgroup = (MemoryGroup*) mem_Alloc(sizeof(MemoryGroup) + sizeof(MemoryPool*) * totalBanks);
 
     strncpy((*ppgroup)->name, groupName, sizeof((*ppgroup)->name) - 1);
+	(*ppgroup)->groupId = nextId;
     (*ppgroup)->nextGroup = NULL;
     (*ppgroup)->totalPools = totalBanks;
 
     return *ppgroup;
+}
+
+
+extern MemoryGroup*
+group_Find(const char* groupName) {
+	for (MemoryGroup* group = s_machineGroups; group != NULL; group = group->nextGroup) {
+		if (strcmp(group->name, groupName) == 0) {
+			return group;
+		}
+	}
+
+	return NULL;
+}
+
+
+extern void
+group_GetProperty(uint32_t groupId, ESymbolProperty property, SSection** section, int32_t* value) {
+	MemoryGroup* group = group_GetById(groupId);
+	if (group == NULL)
+		error("Internal error - group ID not found");
+
+	SSection* start;
+	SSection* end;
+
+	if (!group_GetFirstAndLastSection(group, &start, &end)) {
+		error("Group \"%s\" is not contiguous", group->name);
+	}
+
+	switch (property) {
+		case PROP_START: {
+			*section = start;
+			*value = start->cpuLocation != -1 ? start->cpuLocation : 0;
+			break;
+		}
+		case PROP_SIZE: {
+			*section = NULL;
+			*value = (end->cpuLocation != -1 ? end->cpuLocation + end->size : end->size) - 
+			         (start->cpuLocation != -1 ? start->cpuLocation : 0);
+			break;
+		}
+		default:
+			error("Internal error - invalid property ID");
+	}
 }
 
 

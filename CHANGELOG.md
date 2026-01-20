@@ -1,3 +1,16 @@
+# 1.3.5
+
+## Assembler
+
+### 680x0
+
+* Fixed PC relative >=68020 addressing wrong offset.
+
+
+## Linker
+
+* It is now possible to export symbols in the machine definition files, for instance for communicating the size of a BSS section.
+
 # 1.3.4
 
 ## Assembler

@@ -68,7 +68,13 @@ typedef enum {
     OBJ_PC_REL,
     OBJ_FUNC_BANK,
     OBJ_FUNC_ASSERT,
+	OBJ_GROUP_PROPERTY,
 } EExpressionOperator;
+
+typedef enum {
+	PROP_START,
+	PROP_SIZE
+} ESymbolProperty;
 
 typedef struct {
     EPatchType type;
@@ -90,7 +96,7 @@ typedef struct Patches {
 struct Symbol;
 
 extern bool
-patch_EvaluateExpression(uint8_t* expression, uint32_t expressionSize, int32_t* outValue, struct Symbol** outSymbol);
+patch_EvaluateExpression(uint8_t* expression, uint32_t expressionSize, int32_t* outValue, struct Symbol** outSymbol, struct Section** outSection);
 
 extern void
 patch_Process(bool allowReloc, bool onlySectionRelativeReloc, bool allowImports);

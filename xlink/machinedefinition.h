@@ -21,6 +21,8 @@
 
 #include "str.h"
 
+#include "symbol.h"
+
 extern uint32_t mdef_file_formats;
 
 extern void
