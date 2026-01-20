@@ -39,8 +39,8 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": ["-amega65.def","-fmega65","-ldots.list","-mdots.map","-odots.prg","-sEntry",".build/startup.o",".build/home.o",".build/display.o",".build/bitmap_mode.o",".build/zeropage.o",".build/cube_model_256.o",".build/cube_model_320.o",".build/dotcube_tables.o",".build/dotcube.o",".build/dots_palette.o",".build/font.o",".build/math.o",".build/math_fixed12.o",".build/math_screen.o",".build/mathtest.o",".build/mod_player.o",".build/polygon_256.o",".build/polygon_320.o",".build/polycube_256.o",".build/polycube_320.o",".build/shadedots.o",".build/sinedots_tables.o",".build/sinedots.o",".build/twister.o"],
-            "cwd": "/Users/ces/dev/mega65-dots",
+            "args": [ "-aa2560k.def", "-ohello.pgz", "-lhello.pgz.lst", "-mhello.pgz.map", "-ffxpgz", "-s__program_start", "build-release/clearbuffer.o", "build-release/cordic.o", "build-release/fadepixels.o", "build-release/fmath.o", "build-release/shadedots.o", "build-release/startup-motor.o", "build-release/memcpy.o", "build-release/memset.o", "build-release/color.o", "build-release/vicky.o", "build-release/gavin.o", "build-release/keyboard.o", "build-release/aaline.o", "build-release/cordicGenerateTable.o", "build-release/f68_debug.o", "build-release/linearAlgebra.o", "build-release/main.o", "build-release/screen.o", "build-release/object3d.o", "build-release/simpleMalloc.o", "build-release/vswitch.o" ],
+            "cwd": "/Users/ces/dev/a2560k-3d",
 
         },
         {
@@ -122,7 +122,7 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xasm/680x0/motor68k",
-            "args": ["issue17.68k"],
+            "args": ["-w0008", "-mc4", "68040.68k"],
             "cwd": "${workspaceFolder}/test/680x0",
         },
         {
