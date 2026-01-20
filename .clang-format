@@ -33,7 +33,7 @@ AlignConsecutiveShortCaseStatements:
   AcrossEmptyLines: false
   AcrossComments:  false
   AlignCaseColons: false
-AlignEscapedNewlines: Right
+AlignEscapedNewlines: Left
 AlignOperands:   Align
 AlignTrailingComments:
   Kind:            Always
