@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -18,6 +18,10 @@
 
 #ifndef XASM_RC8_SYMBOLS_H_INCLUDED_
 #define XASM_RC8_SYMBOLS_H_INCLUDED_
+
+#include <stdbool.h>
+
+#include "str.h"
 
 extern void
 rc8_DefineSymbols(void);

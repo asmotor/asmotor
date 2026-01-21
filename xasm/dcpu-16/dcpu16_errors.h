@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,10 +19,12 @@
 #ifndef XASM_DCPU16_ERRORS_H_INCLUDED_
 #define XASM_DCPU16_ERRORS_H_INCLUDED_
 
+#include <stdio.h>
+
 typedef enum {
-    MERROR_ILLEGAL_ADDRMODE = 1000,
-    MERROR_ADDRMODE_ONE_REGISTER,
-    MERROR_ADDRMODE_SUBTRACT_REGISTER,
+	MERROR_ILLEGAL_ADDRMODE = 1000,
+	MERROR_ADDRMODE_ONE_REGISTER,
+	MERROR_ADDRMODE_SUBTRACT_REGISTER,
 } EMachineError;
 
 extern const char*

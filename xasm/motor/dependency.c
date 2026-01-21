@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -28,32 +28,30 @@
 static string* g_outputFilename = NULL;
 static string* g_mainOutput = NULL;
 static string* g_mainDependency = NULL;
-static set_t * g_dependencySet = NULL;
-
+static set_t* g_dependencySet = NULL;
 
 /* Internal functions */
 
 static void
 writeDependency(set_t* _, intptr_t element, intptr_t data) {
-    FILE* fileHandle = (FILE*) data;
-    string* str = (string*) element;
-    fprintf(fileHandle, " %s", str_String(str));
+	FILE* fileHandle = (FILE*) data;
+	string* str = (string*) element;
+	fprintf(fileHandle, " %s", str_String(str));
 }
 
 static void
 writeTarget(set_t* _, intptr_t element, intptr_t data) {
-    FILE* fileHandle = (FILE*) data;
-    string* str = (string*) element;
-    fprintf(fileHandle, "%s:\n\n", str_String(str));
+	FILE* fileHandle = (FILE*) data;
+	string* str = (string*) element;
+	fprintf(fileHandle, "%s:\n\n", str_String(str));
 }
-
 
 /* Exported functions */
 
 extern void
 dep_Initialize(const char* outputFileName) {
-    g_outputFilename = str_Create(outputFileName);
-    g_dependencySet = strset_Create();
+	g_outputFilename = str_Create(outputFileName);
+	g_dependencySet = strset_Create();
 }
 
 extern void
@@ -73,32 +71,32 @@ dep_Exit(void) {
 
 extern void
 dep_SetMainOutput(string* filename) {
-    g_mainOutput = str_Copy(filename);
+	g_mainOutput = str_Copy(filename);
 }
 
 extern void
 dep_AddDependency(string* filename) {
-    if (g_dependencySet != NULL) {
-        if (g_mainDependency == NULL) {
-            g_mainDependency = str_Copy(filename);
-        }
-        strset_Insert(g_dependencySet, filename);
-    }
+	if (g_dependencySet != NULL) {
+		if (g_mainDependency == NULL) {
+			g_mainDependency = str_Copy(filename);
+		}
+		strset_Insert(g_dependencySet, filename);
+	}
 }
 
 extern void
 dep_WriteDependencyFile(void) {
-    if (g_dependencySet != NULL) {
-        FILE* fileHandle = fopen(str_String(g_outputFilename), "wt");
-        if (fileHandle != NULL) {
-            fprintf(fileHandle, "%s:", str_String(g_mainOutput));
-            set_ForEachElement(g_dependencySet, writeDependency, (intptr_t) fileHandle);
+	if (g_dependencySet != NULL) {
+		FILE* fileHandle = fopen(str_String(g_outputFilename), "wt");
+		if (fileHandle != NULL) {
+			fprintf(fileHandle, "%s:", str_String(g_mainOutput));
+			set_ForEachElement(g_dependencySet, writeDependency, (intptr_t) fileHandle);
 
-            fprintf(fileHandle, "\n\n");
-            strset_Remove(g_dependencySet, g_mainDependency);
-            set_ForEachElement(g_dependencySet, writeTarget, (intptr_t) fileHandle);
+			fprintf(fileHandle, "\n\n");
+			strset_Remove(g_dependencySet, g_mainDependency);
+			set_ForEachElement(g_dependencySet, writeTarget, (intptr_t) fileHandle);
 
 			fclose(fileHandle);
-        }
-    }
+		}
+	}
 }

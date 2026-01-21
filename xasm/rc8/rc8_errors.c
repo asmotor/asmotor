@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,13 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stdio.h>
 
-static char* 
-g_errors[] = {
-	"Illegal addressing mode",
+static char* g_errors[] = {
+    "Illegal addressing mode",
     "Expected condition code",
-    "Requires synthesized instructions"
+    "Requires synthesized instructions",
 };
 
 const char*

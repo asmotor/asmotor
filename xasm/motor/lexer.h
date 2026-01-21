@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,16 +19,12 @@
 #ifndef XASM_MOTOR_LEXER_H_INCLUDED_
 #define XASM_MOTOR_LEXER_H_INCLUDED_
 
-#include <stdio.h>
+#include <stdbool.h>
 
-#include "xasm.h"
 #include "str.h"
 #include "types.h"
 
-#include "charstack.h"
-#include "lexer_buffer.h"
 #include "lexer_context.h"
-#include "tokens.h"
 
 extern bool
 lex_Init(string* filename);

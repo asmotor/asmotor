@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -24,15 +24,12 @@
 #include "vec.h"
 
 // From xasm
-#include "lexer_context.h"
 #include "includes.h"
-
+#include "lexer_context.h"
 
 /* Internal variables */
 
-static vec_t*
-g_includePaths;
-
+static vec_t* g_includePaths;
 
 /* Private functions */
 static string*
@@ -54,8 +51,6 @@ appendFilename(string* directory, string* fileName) {
 	return r;
 }
 
-
-
 /* Public functions */
 
 extern string*
@@ -70,40 +65,39 @@ inc_FindFile(string* fileName) {
 		str_Free(candidate);
 	}
 
-    if (g_includePaths != NULL) {
-        for (size_t count = 0; count < strvec_Count(g_includePaths); ++count) {
-            string* candidate = appendFilename(strvec_StringAt(g_includePaths, count), fileName);
+	if (g_includePaths != NULL) {
+		for (size_t count = 0; count < strvec_Count(g_includePaths); ++count) {
+			string* candidate = appendFilename(strvec_StringAt(g_includePaths, count), fileName);
 
-            if (fexists(str_String(candidate))) {
-                return candidate;
-            }
-        }
-    }
+			if (fexists(str_String(candidate))) {
+				return candidate;
+			}
+		}
+	}
 
-    if (workingName == NULL) {
-        if (fexists(str_String(fileName))) {
-            return fileName;
-        }
-    }
+	if (workingName == NULL) {
+		if (fexists(str_String(fileName))) {
+			return fileName;
+		}
+	}
 
 	str_Free(fileName);
-    return NULL;
+	return NULL;
 }
-
 
 extern void
 inc_AddIncludePath(string* pathname) {
-    if (g_includePaths == NULL)
-        g_includePaths = strvec_Create();
+	if (g_includePaths == NULL)
+		g_includePaths = strvec_Create();
 
-    char ch = str_CharAt(pathname, str_Length(pathname) - 1);
-    if (ch != '\\' && ch != '/') {
-        string* slash = str_Create("/");
+	char ch = str_CharAt(pathname, str_Length(pathname) - 1);
+	if (ch != '\\' && ch != '/') {
+		string* slash = str_Create("/");
 		string* cat = str_Concat(pathname, slash);
-        strvec_PushBack(g_includePaths, cat);
-        str_Free(slash);
+		strvec_PushBack(g_includePaths, cat);
+		str_Free(slash);
 		str_Free(cat);
-    } else {
-        strvec_PushBack(g_includePaths, pathname);
-    }
+	} else {
+		strvec_PushBack(g_includePaths, pathname);
+	}
 }

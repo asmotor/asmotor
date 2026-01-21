@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,22 +16,25 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
+
+#include "str.h"
+
 #include "options.h"
 #include "symbol.h"
-#include "xasm.h"
 
+#include "m68k_options.h"
 #include "m68k_symbols.h"
 
-static SSymbol*
-g_usedRegisters = NULL;
+static SSymbol* g_usedRegisters = NULL;
 
 static void
 createGroup(const char* name, EGroupType type, uint32_t flags) {
-    string* nameString = str_Create(name);
-    SSymbol* symbol = sym_CreateGroup(nameString, type);
+	string* nameString = str_Create(name);
+	SSymbol* symbol = sym_CreateGroup(nameString, type);
 	if (symbol != NULL)
 		symbol->flags |= flags;
-    str_Free(nameString);
+	str_Free(nameString);
 }
 
 void
@@ -43,7 +46,7 @@ m68k_DefineSymbols(void) {
 	}
 
 	string* regmask = str_Create("__USED_REGMASK");
-    g_usedRegisters = sym_CreateEqu(regmask, 0);
+	g_usedRegisters = sym_CreateEqu(regmask, 0);
 	str_Free(regmask);
 }
 
@@ -84,11 +87,6 @@ bool
 m68k_IsValidLocalName(const string* name) {
 	const char* s = str_String(name);
 
-	return _stricmp(s, ".b") != 0
-		&& _stricmp(s, ".w") != 0
-		&& _stricmp(s, ".l") != 0
-		&& _stricmp(s, ".s") != 0
-		&& _stricmp(s, ".d") != 0
-		&& _stricmp(s, ".x") != 0
-		&& _stricmp(s, ".p") != 0;
+	return _stricmp(s, ".b") != 0 && _stricmp(s, ".w") != 0 && _stricmp(s, ".l") != 0 && _stricmp(s, ".s") != 0 &&
+	       _stricmp(s, ".d") != 0 && _stricmp(s, ".x") != 0 && _stricmp(s, ".p") != 0;
 }

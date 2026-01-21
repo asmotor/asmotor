@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,13 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stdbool.h>
+
 #include "expression.h"
-#include "lexer.h"
-#include "parse.h"
-#include "parse_expression.h"
-#include "errors.h"
-#include "section.h"
+#include "lexer_context.h"
 
 #include "m6809_parse.h"
 
@@ -30,18 +27,18 @@ uint32_t g_dp_base = DP_BASE_UNKNOWN;
 
 SExpression*
 m6809_ParseFunction(void) {
-    switch (lex_Context->token.id) {
-        default:
-            return NULL;
-    }
+	switch (lex_Context->token.id) {
+		default:
+			return NULL;
+	}
 }
 
 bool
 m6809_ParseInstruction(void) {
-    if (m6809_ParseIntegerInstruction())
-        return true;
+	if (m6809_ParseIntegerInstruction())
+		return true;
 	else if (m6809_ParseDirective())
 		return true;
 
-    return false;
+	return false;
 }

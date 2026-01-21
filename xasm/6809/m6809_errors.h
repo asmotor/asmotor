@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,10 +19,10 @@
 #ifndef XASM_6809_ERRORS_H_INCLUDED_
 #define XASM_6809_ERRORS_H_INCLUDED_
 
-#include "xasm.h"
+#include <stdio.h>
 
 typedef enum {
-    MERROR_ILLEGAL_ADDRMODE = 1000,
+	MERROR_ILLEGAL_ADDRMODE = 1000,
 	MERROR_SAME_SIZE_REGISTER
 } EMachineError;
 

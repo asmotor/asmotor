@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,7 +19,11 @@
 #ifndef XASM_RC8_PARSE_H_INCLUDED_
 #define XASM_RC8_PARSE_H_INCLUDED_
 
-extern SExpression* 
+#include <stdbool.h>
+
+#include "expression.h"
+
+extern SExpression*
 rc8_ExpressionSU16(void);
 
 extern bool

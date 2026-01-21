@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -51,11 +51,12 @@ parseRegisterIndexed(SAddressingMode* addrMode, uint32_t mode, uint8_t postbyte)
 			addrMode->indexed_post_byte = postbyte | r;
 			return true;
 		}
-	}	
+	}
 	return false;
 }
 
-uint8_t parseRegisterListBit(ETargetToken allowedStack, ETargetToken disallowedStack) {
+uint8_t
+parseRegisterListBit(ETargetToken allowedStack, ETargetToken disallowedStack) {
 	ETargetToken t = lex_Context->token.id;
 	switch (t) {
 		case T_6809_REG_CCR:
@@ -127,7 +128,8 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 		return true;
 	}
 
-	if ((allowedModes & (MODE_INDEXED_R_INC1 | MODE_INDEXED_R_INC2 | MODE_INDEXED_R_DEC1 | MODE_INDEXED_R_DEC2 | MODE_INDEXED_R)) && lex_Context->token.id == ',') {
+	if ((allowedModes & (MODE_INDEXED_R_INC1 | MODE_INDEXED_R_INC2 | MODE_INDEXED_R_DEC1 | MODE_INDEXED_R_DEC2 | MODE_INDEXED_R)) &&
+	    lex_Context->token.id == ',') {
 		parse_GetToken();
 
 		int minus = 0;
@@ -199,7 +201,8 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 	}
 
 	addrMode->expr = parse_Expression(2);
-	if (allowedModes & (MODE_INDEXED_R_5BIT | MODE_INDEXED_R_8BIT | MODE_INDEXED_R_16BIT | MODE_INDEXED_PC_8BIT | MODE_INDEXED_PC_16BIT)) {
+	if (allowedModes &
+	    (MODE_INDEXED_R_5BIT | MODE_INDEXED_R_8BIT | MODE_INDEXED_R_16BIT | MODE_INDEXED_PC_8BIT | MODE_INDEXED_PC_16BIT)) {
 		if (lex_Context->token.id == ',') {
 			parse_GetToken();
 
@@ -282,5 +285,5 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 
 	lex_Goto(&bm);
 
-    return (allowedModes & MODE_NONE);
+	return (allowedModes & MODE_NONE);
 }

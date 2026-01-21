@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,9 +16,11 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
+#include "options.h"
 #include "xasm.h"
 
 #include "m6809_errors.h"
@@ -28,39 +30,40 @@
 #include "m6809_symbols.h"
 #include "m6809_tokens.h"
 
-static SConfiguration
-m6809_xasmConfiguration = {
-	"motor6809",
-	ASM_BIG_ENDIAN,
-	true,	// banks
-	false,
-	false,
-	false,
-	MINSIZE_8BIT,
-	1,
-	"CODE",
+static SConfiguration m6809_xasmConfiguration = {
+    "motor6809",
+    ASM_BIG_ENDIAN,
+    true, // banks
+    false,
+    false,
+    false,
+    MINSIZE_8BIT,
+    1,
+    "CODE",
 
+    // clang-format off
 	"RB", "RW", NULL, NULL,
 	"DB", "DW", NULL, NULL,
 	"DS", NULL, NULL, NULL,
+    // clang-format on
 
-	m6809_GetError,
-	m6809_DefineTokens,
-	m6809_DefineSymbols,
+    m6809_GetError,
+    m6809_DefineTokens,
+    m6809_DefineSymbols,
 
-	m6809_AllocOptions,
-	m6809_SetDefault,
-	m6809_CopyOptions,
-	m6809_ParseOption,
-	m6809_OptionsUpdated,
-	m6809_PrintOptions,
+    m6809_AllocOptions,
+    m6809_SetDefault,
+    m6809_CopyOptions,
+    m6809_ParseOption,
+    m6809_OptionsUpdated,
+    m6809_PrintOptions,
 
-	m6809_ParseFunction,
-	m6809_ParseInstruction,
+    m6809_ParseFunction,
+    m6809_ParseInstruction,
 
-	m6809_AssignSection,
+    m6809_AssignSection,
 
-	m6809_IsValidLocalName
+    m6809_IsValidLocalName,
 };
 
 extern int

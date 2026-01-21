@@ -1,19 +1,19 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
-	This file is part of ASMotor.
+    This file is part of ASMotor.
 
-	ASMotor is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    ASMotor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	ASMotor is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    ASMotor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
@@ -43,7 +43,6 @@
 #include "options.h"
 #include "symbol.h"
 
-
 /* Internal variables */
 
 SLexerContext* lex_Context;
@@ -51,7 +50,6 @@ SLexerContext* lex_Context;
 static vec_t* g_newMacroArguments;
 
 static map_t* g_fileNameMap = NULL;
-
 
 /* Private functions */
 
@@ -149,7 +147,6 @@ copyFileInfo(map_t* map, intptr_t key, intptr_t value, intptr_t data) {
 	array[fileInfo->fileId] = fileInfo;
 }
 
-
 /* Public functions */
 
 extern size_t
@@ -210,7 +207,6 @@ lexctx_GetFilenameBreadcrumb(void) {
 	return str;
 }
 
-
 extern uint32_t
 lexctx_GetMainFileLineNumber(void) {
 	if (lex_Context == NULL)
@@ -223,7 +219,6 @@ lexctx_GetMainFileLineNumber(void) {
 
 	return stack->lineNumber;
 }
-
 
 static void
 copyToken(SLexerToken* dest, const SLexerToken* src) {
@@ -244,7 +239,7 @@ continueFrom(SLexerContext* ctx) {
 
 extern bool
 lexctx_EndReptBlock(void) {
-	assert (lex_Context->type == CONTEXT_REPT);
+	assert(lex_Context->type == CONTEXT_REPT);
 
 	if (list_IsLast(lex_Context)) {
 		return false;
@@ -266,7 +261,7 @@ lexctx_EndCurrentBuffer(void) {
 	if (lex_Context->type == CONTEXT_REPT) {
 		err_Fail(ERROR_NEED_ENDR);
 	}
-	assert (lex_Context->type != CONTEXT_REPT);
+	assert(lex_Context->type != CONTEXT_REPT);
 
 	if (list_IsLast(lex_Context)) {
 		return false;
@@ -328,13 +323,12 @@ lexctx_CreateFileContext(FILE* fileHandle, string* name) {
 	ctx->fileInfo = createFileInfo(name);
 
 	if (opt_Current->enableDebugInfo)
-		ctx->fileInfo->crc32 = crc32((const uint8_t *)str_String(fileContent), size);
+		ctx->fileInfo->crc32 = crc32((const uint8_t*) str_String(fileContent), size);
 
 	str_Free(canonicalizedContent);
 
 	return ctx;
 }
-
 
 extern void
 lexctx_ProcessIncludeFile(string* name) {
@@ -370,7 +364,8 @@ lexctx_ProcessMacro(string* macroName) {
 	SSymbol* symbol = sym_GetSymbol(macroName);
 
 	if (symbol != NULL) {
-		SLexerContext* newContext = lexctx_CreateMemoryContext(symbol->fileInfo->fileName, symbol->value.macro, g_newMacroArguments);
+		SLexerContext* newContext =
+		    lexctx_CreateMemoryContext(symbol->fileInfo->fileName, symbol->value.macro, g_newMacroArguments);
 
 		newContext->type = CONTEXT_MACRO;
 
@@ -447,7 +442,7 @@ lexctx_TokenLineNumber(void) {
 extern SFileInfo**
 lexctx_GetFileInfo(size_t* totalFiles) {
 	*totalFiles = map_Count(g_fileNameMap);
-	assert (*totalFiles != 0);
+	assert(*totalFiles != 0);
 
 	SFileInfo** result = mem_Alloc(*totalFiles * sizeof(SFileInfo*));
 	map_ForEachKeyValue(g_fileNameMap, copyFileInfo, (intptr_t) result);

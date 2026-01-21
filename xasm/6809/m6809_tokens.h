@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -22,21 +22,21 @@
 #include "lexer_constants.h"
 
 typedef enum {
-    T_6809_ABX = 6000,
-    T_6809_ADCA,
-    T_6809_ADCB,
-    T_6809_ADDA,
-    T_6809_ADDB,
-    T_6809_ADDD,
-    T_6809_ANDA,
-    T_6809_ANDB,
-    T_6809_ANDCC,
-    T_6809_ASL,
-    T_6809_ASLA,
-    T_6809_ASLB,
-    T_6809_ASR,
-    T_6809_ASRA,
-    T_6809_ASRB,
+	T_6809_ABX = 6000,
+	T_6809_ADCA,
+	T_6809_ADCB,
+	T_6809_ADDA,
+	T_6809_ADDB,
+	T_6809_ADDD,
+	T_6809_ANDA,
+	T_6809_ANDB,
+	T_6809_ANDCC,
+	T_6809_ASL,
+	T_6809_ASLA,
+	T_6809_ASLB,
+	T_6809_ASR,
+	T_6809_ASRA,
+	T_6809_ASRB,
 
 	T_6809_BRA,
 	T_6809_BRN,
@@ -143,8 +143,8 @@ typedef enum {
 	T_6809_RTI,
 	T_6809_RTS,
 
-    T_6809_SBCA,
-    T_6809_SBCB,
+	T_6809_SBCA,
+	T_6809_SBCB,
 
 	T_6809_SEX,
 
@@ -160,10 +160,10 @@ typedef enum {
 	T_6809_SUBB,
 	T_6809_SUBD,
 
-    T_6809_SWI,
-    T_6809_SWI2,
-    T_6809_SWI3,
-    T_6809_SYNC,
+	T_6809_SWI,
+	T_6809_SWI2,
+	T_6809_SWI3,
+	T_6809_SYNC,
 
 	T_6809_TFR,
 
@@ -171,25 +171,25 @@ typedef enum {
 	T_6809_TSTA,
 	T_6809_TSTB,
 
-    T_6809_NOP,
+	T_6809_NOP,
 
-    /* Registers */
+	/* Registers */
 
-    T_6809_REG_A,
-    T_6809_REG_B,
-    T_6809_REG_D,
-    T_6809_REG_PCR,
-    T_6809_REG_CCR,
-    T_6809_REG_DPR,
+	T_6809_REG_A,
+	T_6809_REG_B,
+	T_6809_REG_D,
+	T_6809_REG_PCR,
+	T_6809_REG_CCR,
+	T_6809_REG_DPR,
 
 	// These four must be in order
-    T_6809_REG_X,
-    T_6809_REG_Y,
-   	T_6809_REG_U,
-    T_6809_REG_S,
+	T_6809_REG_X,
+	T_6809_REG_Y,
+	T_6809_REG_U,
+	T_6809_REG_S,
 
 	// Directive
-	T_6809_SETDP
+	T_6809_SETDP,
 
 } ETargetToken;
 

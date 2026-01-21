@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -17,13 +17,13 @@
 */
 
 #include <memory.h>
+#include <stdbool.h>
 
 /* From xasm */
-#include "parse.h"
-#include "parse_block.h"
 #include "lexer.h"
 #include "lexer_context.h"
-
+#include "parse.h"
+#include "parse_block.h"
 
 /* Internal functions */
 
@@ -104,7 +104,6 @@ isFalseBranch(EToken token) {
 
 /* Public functions */
 
-
 bool
 parse_SkipPastTrueBranch(void) {
 	if (lex_Context->token.id == '\n')
@@ -138,8 +137,7 @@ parse_SkipPastEndr(void) {
 	return false;
 }
 
-static size_t
-getNextDirectiveIndex;
+static size_t getNextDirectiveIndex;
 
 static bool
 getNextDirectiveIndexed(void) {
@@ -159,9 +157,9 @@ parse_CopyMacroBlock(void) {
 		return NULL;
 
 	string* str = str_CreateLength(NULL, getNextDirectiveIndex);
-    lex_CopyUnexpandedContent((char*) str_String(str), getNextDirectiveIndex);
+	lex_CopyUnexpandedContent((char*) str_String(str), getNextDirectiveIndex);
 
 	lex_Context->lineNumber += (uint32_t) lex_SkipBytes(getNextDirectiveIndex);
 
-    return str;
+	return str;
 }

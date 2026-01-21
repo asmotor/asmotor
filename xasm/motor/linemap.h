@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -23,22 +23,19 @@
 
 #include "section.h"
 
-
 struct LineMapEntry {
-    SFileInfo* fileInfo;
-    uint32_t lineNumber;
-    uint32_t offset;
+	SFileInfo* fileInfo;
+	uint32_t lineNumber;
+	uint32_t offset;
 };
 typedef struct LineMapEntry SLineMapEntry;
 
-
 struct LineMapSection {
-    uint32_t totalEntries;
-    uint32_t allocatedEntries;
-    SLineMapEntry* entries;
+	uint32_t totalEntries;
+	uint32_t allocatedEntries;
+	SLineMapEntry* entries;
 };
 typedef struct LineMapSection SLineMapSection;
-
 
 extern void
 linemap_Add(SFileInfo* filename, uint32_t lineNumber, SSection* section, uint32_t offset);

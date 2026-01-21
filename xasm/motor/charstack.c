@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -21,7 +21,6 @@
 
 #include "charstack.h"
 
-
 extern SCharStack*
 chstk_Create(void) {
 	SCharStack* stack = (SCharStack*) mem_Alloc(sizeof(SCharStack));
@@ -29,13 +28,11 @@ chstk_Create(void) {
 	return stack;
 }
 
-
 extern void
 chstk_Copy(SCharStack* dest, const SCharStack* source) {
-    memcpy(dest->stack, source->stack, source->count);
-    dest->count = source->count;
+	memcpy(dest->stack, source->stack, source->count);
+	dest->count = source->count;
 }
-
 
 extern size_t
 chstk_Discard(SCharStack* stack, size_t count) {

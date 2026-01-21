@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,121 +16,118 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "str.h"
 
-#include "lexer_context.h"
+#include "errors.h"
 #include "lexer.h"
+#include "lexer_context.h"
 #include "parse.h"
 #include "parse_directive.h"
 #include "parse_symbol.h"
-#include "errors.h"
 #include "symbol.h"
 
-bool
-parse_ExpandStrings = true;
+bool parse_ExpandStrings = true;
 
 static bool
 handleMacroArgument(void) {
-    if (lex_Context->token.id == T_STRING) {
+	if (lex_Context->token.id == T_STRING) {
 		string* arg = lex_TokenString();
-        lexctx_AddMacroArgument(arg);
+		lexctx_AddMacroArgument(arg);
 		str_Free(arg);
-        parse_GetToken();
-        return true;
-    } else {
-        return false;
-    }
+		parse_GetToken();
+		return true;
+	} else {
+		return false;
+	}
 }
 
 static bool
 handleMacroArguments(void) {
-    lex_SetMode(LEXER_MODE_MACRO_ARGUMENT0);
-    parse_GetToken();
+	lex_SetMode(LEXER_MODE_MACRO_ARGUMENT0);
+	parse_GetToken();
 
-    if (lex_Context->token.id == T_MACROARG0) {
+	if (lex_Context->token.id == T_MACROARG0) {
 		string* arg = lex_TokenString();
-        lexctx_SetMacroArgument0(arg);
+		lexctx_SetMacroArgument0(arg);
 		str_Free(arg);
-        parse_GetToken();
-    }
+		parse_GetToken();
+	}
 
-    if (handleMacroArgument()) {
-        while (lex_Context->token.id == ',') {
-            parse_GetToken();
-            if (!handleMacroArgument()) {
-                err_Error(ERROR_INVALID_MACRO_ARGUMENT);
-                break;
-            }
-        }
-    }
+	if (handleMacroArgument()) {
+		while (lex_Context->token.id == ',') {
+			parse_GetToken();
+			if (!handleMacroArgument()) {
+				err_Error(ERROR_INVALID_MACRO_ARGUMENT);
+				break;
+			}
+		}
+	}
 
-    lex_SetMode(LEXER_MODE_NORMAL);
-    return lex_Context->token.id == '\n';
+	lex_SetMode(LEXER_MODE_NORMAL);
+	return lex_Context->token.id == '\n';
 }
 
 static bool
 handleMacroInvocation(void) {
-    bool r = false;
-    if (lex_Context->token.id == T_ID) {
-        string* symbolName = lex_TokenString();
+	bool r = false;
+	if (lex_Context->token.id == T_ID) {
+		string* symbolName = lex_TokenString();
 
-        if (sym_IsMacro(symbolName)) {
-            if (handleMacroArguments()) {
-                lexctx_ProcessMacro(symbolName);
-                parse_GetToken();
-                r = true;
-            }
-        } else {
-            err_Error(ERROR_INSTR_UNKNOWN, lex_Context->token.value.string);
-        }
-        str_Free(symbolName);
-    }
-    return r;
+		if (sym_IsMacro(symbolName)) {
+			if (handleMacroArguments()) {
+				lexctx_ProcessMacro(symbolName);
+				parse_GetToken();
+				r = true;
+			}
+		} else {
+			err_Error(ERROR_INSTR_UNKNOWN, lex_Context->token.value.string);
+		}
+		str_Free(symbolName);
+	}
+	return r;
 }
 
 static bool
 handleLineBreak(void) {
-    if (lex_Context->token.id == '\n') {
-        parse_GetToken();
-        lex_Context->lineNumber += 1;
-        xasm_TotalLines += 1;
-        return true;
-    }
-    return false;
+	if (lex_Context->token.id == '\n') {
+		parse_GetToken();
+		lex_Context->lineNumber += 1;
+		xasm_TotalLines += 1;
+		return true;
+	}
+	return false;
 }
-
 
 /* Public functions */
 
 bool
 parse_IsDot(void) {
-    if (lex_Context->token.id == '.') {
-        parse_GetToken();
-        return true;
-    }
+	if (lex_Context->token.id == '.') {
+		parse_GetToken();
+		return true;
+	}
 
-    if (lex_Context->token.id == T_ID && lex_Context->token.value.string[0] == '.') {
-        lex_UnputString(lex_Context->token.value.string + 1);
-        parse_GetToken();
-        return true;
-    }
+	if (lex_Context->token.id == T_ID && lex_Context->token.value.string[0] == '.') {
+		lex_UnputString(lex_Context->token.value.string + 1);
+		parse_GetToken();
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 bool
 parse_ExpectChar(char ch) {
-    if (lex_Context->token.id == (uint32_t) ch) {
-        parse_GetToken();
-        return true;
-    } else {
-        err_Error(ERROR_CHAR_EXPECTED, ch);
-        return false;
-    }
+	if (lex_Context->token.id == (uint32_t) ch) {
+		parse_GetToken();
+		return true;
+	} else {
+		err_Error(ERROR_CHAR_EXPECTED, ch);
+		return false;
+	}
 }
 
 void
@@ -156,33 +153,33 @@ parse_GetToken(void) {
 
 bool
 parse_Until(EToken endToken) {
-    while (lex_Context->token.id) {
-        if (xasm_Configuration->parseInstruction())
-            continue;
+	while (lex_Context->token.id) {
+		if (xasm_Configuration->parseInstruction())
+			continue;
 
-        if (parse_SymbolDefinition())
-            continue;
+		if (parse_SymbolDefinition())
+			continue;
 
-        if (parse_Directive())
-            continue;
+		if (parse_Directive())
+			continue;
 
-        if (handleMacroInvocation())
-            continue;
+		if (handleMacroInvocation())
+			continue;
 
-        if (handleLineBreak())
-            continue;
+		if (handleLineBreak())
+			continue;
 
-        if (lex_Context->token.id == endToken)
-            return true;
+		if (lex_Context->token.id == endToken)
+			return true;
 
-        return err_Error(ERROR_SYNTAX);
-    }
+		return err_Error(ERROR_SYNTAX);
+	}
 
-    return true;
+	return true;
 }
 
 bool
 parse_Do(void) {
-    parse_GetToken();
-    return parse_Until(T_POP_END);
+	parse_GetToken();
+	return parse_Until(T_POP_END);
 }

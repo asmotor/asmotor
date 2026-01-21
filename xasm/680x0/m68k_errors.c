@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,30 +19,29 @@
 #include "xasm.h"
 
 static const char* g_errors[] = {
-	"Result of operation is undefined",
-	"Instruction is unsized, ignoring size",
-	"Scale out of range (must be 1, 2, 4 or 8)",
-	"Invalid index register size",
-	"Invalid displacement size",
-	"Invalid instruction size",
-	"Invalid instruction for selected CPU",
-	"Bitfield expected",
-	"Instruction is privileged",
-	"MOVEM instruction skipped due to empty register list",
-	"CAS misaligned word or long access is unimplemented on 68060",
-	"FPU register expected",
-	"Instruction not supported by selected FPU",
-	"Selected FPU 6888x needs CPU 68020 or 68030",
-	"Selected FPU 68040 needs CPU 68040",
-	"Selected FPU 68060 needs CPU 68060",
-	"Not an allowed 68080 mode",
-	"Third operand is the wrong kind",
-	"Instruction must be word aligned"
+    "Result of operation is undefined",
+    "Instruction is unsized, ignoring size",
+    "Scale out of range (must be 1, 2, 4 or 8)",
+    "Invalid index register size",
+    "Invalid displacement size",
+    "Invalid instruction size",
+    "Invalid instruction for selected CPU",
+    "Bitfield expected",
+    "Instruction is privileged",
+    "MOVEM instruction skipped due to empty register list",
+    "CAS misaligned word or long access is unimplemented on 68060",
+    "FPU register expected",
+    "Instruction not supported by selected FPU",
+    "Selected FPU 6888x needs CPU 68020 or 68030",
+    "Selected FPU 68040 needs CPU 68040",
+    "Selected FPU 68060 needs CPU 68060",
+    "Not an allowed 68080 mode",
+    "Third operand is the wrong kind",
+    "Instruction must be word aligned",
 };
 
 const char*
-m68k_GetError(size_t errorNumber)
-{
+m68k_GetError(size_t errorNumber) {
 	if (errorNumber < 1000)
 		return NULL;
 

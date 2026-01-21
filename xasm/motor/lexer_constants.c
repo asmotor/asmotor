@@ -1,42 +1,41 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
-	This file is part of ASMotor.
+    This file is part of ASMotor.
 
-	ASMotor is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    ASMotor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	ASMotor is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    ASMotor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
 #include <ctype.h>
 
 // From xasm
-#include "lexer_constants.h"
 #include "lexer.h"
+#include "lexer_constants.h"
 #include "tokens.h"
 
 // From util
 #include "lists.h"
 #include "mem.h"
-#include "str.h"
-
 
 /* Private defines */
 
-#define HASH(hash, key) {            \
-	(hash) = ((hash) << 1u) + (key); \
-	(hash) ^= (hash) >> 3u;          \
-	(hash) &= WORDS_HASH_SIZE - 1u;  \
-}
+#define HASH(hash, key)                  \
+	{                                    \
+		(hash) = ((hash) << 1u) + (key); \
+		(hash) ^= (hash) >> 3u;          \
+		(hash) &= WORDS_HASH_SIZE - 1u;  \
+	}
 
 #define WORDS_HASH_SIZE 1024u
 
@@ -104,13 +103,14 @@ lex_ConstantsMatchWord(void) {
 			break;
 
 		lex_Context->token.value.string[lex_Context->token.length++] = ch;
-		
+
 		if (isspace(ch))
 			break;
 
 		HASH(hashCode, toupper(ch));
 		for (SConstantWord* candidate = g_wordsHashTable[hashCode]; candidate != NULL; candidate = list_GetNext(candidate)) {
-			if (candidate->nameLength == lex_Context->token.length && _strnicmp(lex_Context->token.value.string, candidate->definition.name, candidate->nameLength) == 0) {
+			if (candidate->nameLength == lex_Context->token.length &&
+			    _strnicmp(lex_Context->token.value.string, candidate->definition.name, candidate->nameLength) == 0) {
 				result = candidate;
 				break;
 			}
@@ -132,7 +132,6 @@ lex_ConstantsMatchWord(void) {
 	return definition;
 }
 
-
 const SLexConstantsWord*
 lex_ConstantsMatchTokenString(void) {
 	uint32_t hashCode = 0;
@@ -141,7 +140,8 @@ lex_ConstantsMatchTokenString(void) {
 	}
 
 	for (SConstantWord* candidate = g_wordsHashTable[hashCode]; candidate != NULL; candidate = list_GetNext(candidate)) {
-		if (candidate->nameLength == lex_Context->token.length && _strnicmp(lex_Context->token.value.string, candidate->definition.name, candidate->nameLength) == 0) {
+		if (candidate->nameLength == lex_Context->token.length &&
+		    _strnicmp(lex_Context->token.value.string, candidate->definition.name, candidate->nameLength) == 0) {
 			lex_Context->token.id = candidate->definition.token;
 			return &candidate->definition;
 		}
@@ -149,7 +149,6 @@ lex_ConstantsMatchTokenString(void) {
 
 	return NULL;
 }
-
 
 void
 lex_PrintMaxTokensPerHash(void) {

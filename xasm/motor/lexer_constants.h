@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -21,16 +21,10 @@
 
 #include <stdint.h>
 
-#include "lists.h"
-#include "str.h"
-
-#include "tokens.h"
-
 typedef struct {
-    const char* name;
-    uint32_t token;
+	const char* name;
+	uint32_t token;
 } SLexConstantsWord;
-
 
 extern void
 lex_ConstantsDefineWord(const char* name, uint32_t token);

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -24,27 +24,25 @@
 
 #include "expression.h"
 #include "section.h"
-#include "symbol.h"
-
 
 struct Section;
 
 typedef enum {
-    PATCH_8,
-    PATCH_LE_16,
-    PATCH_BE_16,
-    PATCH_LE_32,
-    PATCH_BE_32,
+	PATCH_8,
+	PATCH_LE_16,
+	PATCH_BE_16,
+	PATCH_LE_32,
+	PATCH_BE_32,
 } EPatchType;
 
 typedef struct Patch {
-    list_Data(struct Patch);
-    struct Section* section;
-    uint32_t offset;
-    EPatchType type;
-    SExpression* expression;
-    string* filename;
-    uint32_t lineNumber;
+	list_Data(struct Patch);
+	struct Section* section;
+	uint32_t offset;
+	EPatchType type;
+	SExpression* expression;
+	string* filename;
+	uint32_t lineNumber;
 } SPatch;
 
 extern void

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,7 +19,7 @@
 #ifndef XASM_RC8_TOKENS_H_INCLUDED_
 #define XASM_RC8_TOKENS_H_INCLUDED_
 
-typedef	enum {
+typedef enum {
 	T_RC8_ADD = 6000,
 	T_RC8_AND,
 	T_RC8_CMP,
@@ -55,7 +55,7 @@ typedef	enum {
 	T_RC8_XOR,
 
 	/* Registers */
-	
+
 	T_RC8_REG_F,
 	T_RC8_REG_T,
 	T_RC8_REG_B,
@@ -95,7 +95,7 @@ typedef	enum {
 	T_RC8_CC_NE,
 } ETargetToken;
 
-extern void 
+extern void
 rc8_DefineTokens(void);
 
 #endif

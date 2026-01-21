@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -21,9 +21,9 @@
 
 #include "mem.h"
 
-#include "xasm.h"
-#include "options.h"
 #include "errors.h"
+#include "options.h"
+#include "xasm.h"
 
 #include "z80_options.h"
 #include "z80_tokens.h"
@@ -34,87 +34,86 @@ uint32_t z80_gameboyLiteralId;
 
 SMachineOptions*
 z80_AllocOptions(void) {
-    return mem_Alloc(sizeof(SMachineOptions));
+	return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
 z80_CopyOptions(SMachineOptions* dest, SMachineOptions* src) {
-    *dest = *src;
+	*dest = *src;
 }
 
 void
 z80_SetDefaultOptions(SMachineOptions* options) {
-    options->cpu = CPUF_Z80;
-    options->synthesizedInstructions = false;
+	options->cpu = CPUF_Z80;
+	options->synthesizedInstructions = false;
 }
 
 void
-z80_OptionsUpdated(SMachineOptions* options) {
-}
+z80_OptionsUpdated(SMachineOptions* options) {}
 
 bool
 z80_ParseOption(const char* s) {
-    if (s == NULL || strlen(s) == 0)
-        return false;
+	if (s == NULL || strlen(s) == 0)
+		return false;
 
-    switch (s[0]) {
-        case 'g':
-            if (strlen(&s[1]) == 4) {
-                opt_Current->gameboyLiteralCharacters[0] = s[1];
-                opt_Current->gameboyLiteralCharacters[1] = s[2];
-                opt_Current->gameboyLiteralCharacters[2] = s[3];
-                opt_Current->gameboyLiteralCharacters[3] = s[4];
-                return true;
-            }
+	switch (s[0]) {
+		case 'g':
+			if (strlen(&s[1]) == 4) {
+				opt_Current->gameboyLiteralCharacters[0] = s[1];
+				opt_Current->gameboyLiteralCharacters[1] = s[2];
+				opt_Current->gameboyLiteralCharacters[2] = s[3];
+				opt_Current->gameboyLiteralCharacters[3] = s[4];
+				return true;
+			}
 
-            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-            return false;
-        case 'c':
-            if (strlen(&s[1]) == 1) {
-                switch (s[1]) {
-                    case 'g':
-                        opt_Current->machineOptions->cpu = CPUF_GB;
-                        return true;
-                    case 'z':
-                        opt_Current->machineOptions->cpu = CPUF_Z80;
-                        return true;
-                    default:
-                        break;
-                }
-            }
-            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-            return false;
-        case 's':
-            if (strlen(&s[1]) == 1) {
-                opt_Current->machineOptions->synthesizedInstructions = s[1] == '1';
-                return true;
-            }
-            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-            return false;
-        case 'u':
-            if (strlen(&s[1]) == 1) {
-                opt_Current->machineOptions->undocumentedInstructions = s[1] == '1';
-                return true;
-            }
-            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-            return false;
-        default:
-            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-            return false;
-    }
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+		case 'c':
+			if (strlen(&s[1]) == 1) {
+				switch (s[1]) {
+					case 'g':
+						opt_Current->machineOptions->cpu = CPUF_GB;
+						return true;
+					case 'z':
+						opt_Current->machineOptions->cpu = CPUF_Z80;
+						return true;
+					default:
+						break;
+				}
+			}
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+		case 's':
+			if (strlen(&s[1]) == 1) {
+				opt_Current->machineOptions->synthesizedInstructions = s[1] == '1';
+				return true;
+			}
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+		case 'u':
+			if (strlen(&s[1]) == 1) {
+				opt_Current->machineOptions->undocumentedInstructions = s[1] == '1';
+				return true;
+			}
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+		default:
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+	}
 }
 
 void
 z80_PrintOptions(void) {
-    printf("    -mg<ASCI> Change the four characters used for Gameboy graphics\n"
-           "              constants (default is 0123)\n");
-    printf("    -mc<x>    Change CPU type:\n"
-           "                  g - Gameboy\n"
-           "                  z - Z80\n");
-    printf("    -ms<x>    Synthesized instructions:\n"
-           "                  0 - Disabled (default)\n"
-           "                  1 - Enabled\n");
-    printf("    -mu<x>    Undocumented instructions:\n"
-           "                  0 - Disabled (default)\n"
-           "                  1 - Enabled\n");
+	printf("    -mg<ASCI> Change the four characters used for Gameboy graphics\n"
+	       "              constants (default is 0123)\n"
+	       "    -mc<x>    Change CPU type:\n"
+	       "                  g - Gameboy\n"
+	       "                  z - Z80\n"
+	       "    -ms<x>    Synthesized instructions:\n"
+	       "                  0 - Disabled (default)\n"
+	       "                  1 - Enabled\n"
+	       "    -mu<x>    Undocumented instructions:\n"
+	       "                  0 - Disabled (default)\n"
+	       "                  1 - Enabled\n");
 }

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -24,10 +24,10 @@
 #define MAXNAMELENGTH 256
 
 typedef struct Module {
-    char name[MAXNAMELENGTH];
-    uint32_t byteLength;
-    uint8_t* data;
-    struct Module* nextModule;
+	char name[MAXNAMELENGTH];
+	uint32_t byteLength;
+	uint8_t* data;
+	struct Module* nextModule;
 } SModule;
 
 #endif

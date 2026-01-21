@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -24,20 +24,20 @@
 
 typedef enum {
 	/* If this enum is changed, parsing must be changed in x65_ParseOption */
-	MOPT_CPU_6502	= 0x01,
-	MOPT_CPU_65C02	= 0x02,
-	MOPT_CPU_65C02S	= 0x04,	/* + bit instructions */
+	MOPT_CPU_6502 = 0x01,
+	MOPT_CPU_65C02 = 0x02,
+	MOPT_CPU_65C02S = 0x04, /* + bit instructions */
 	MOPT_CPU_65C816S = 0x08,
-	MOPT_CPU_4510   = 0x10,
+	MOPT_CPU_4510 = 0x10,
 	MOPT_CPU_45GS02 = 0x20
 } ECpu6502;
 
 typedef struct MachineOptions {
-    int undocumentedInstructions;
+	int undocumentedInstructions;
 	ECpu6502 cpu;
 	bool synthesized;
-	bool m16;	/* 16 bit accumulator immediate */
-	bool x16;	/* 16 bit index immediate */
+	bool m16; /* 16 bit accumulator immediate */
+	bool x16; /* 16 bit index immediate */
 	uint32_t allowedModes;
 	int32_t bp_base;
 } SMachineOptions;

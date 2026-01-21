@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,13 +19,16 @@
 #ifndef XASM_SCHIP_OPTIONS_H_INCLUDED_
 #define XASM_SCHIP_OPTIONS_H_INCLUDED_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #define CPUF_CHIP8 0x01
 #define CPUF_SCHIP 0x02
 
 #define CPUF_ALL 0x03
 
 typedef struct MachineOptions {
-    uint8_t cpu;
+	uint8_t cpu;
 } SMachineOptions;
 
 extern SMachineOptions*

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -23,59 +23,58 @@
 
 #include "mem.h"
 
-#include "xasm.h"
-#include "options.h"
 #include "errors.h"
+#include "options.h"
+#include "xasm.h"
+
 
 #include "dcpu16_options.h"
 
 struct MachineOptions*
 x10c_AllocOptions(void) {
-    return mem_Alloc(sizeof(SMachineOptions));
+	return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
-x10c_SetDefaults(SMachineOptions* options) {
-}
+x10c_SetDefaults(SMachineOptions* options) {}
 
 void
 x10c_CopyOptions(struct MachineOptions* dest, struct MachineOptions* src) {
-    *dest = *src;
+	*dest = *src;
 }
 
 void
-x10c_OptionsUpdated(SMachineOptions* options) {
-}
+x10c_OptionsUpdated(SMachineOptions* options) {}
 
 bool
 x10c_ParseOption(const char* option) {
-    if (option == NULL || strlen(option) == 0)
-        return false;
+	if (option == NULL || strlen(option) == 0)
+		return false;
 
-    switch (option[0]) {
-        case 'o':
-            if (strlen(&option[1]) == 1) {
-                switch (option[1] - '0') {
-                    case 0:
-                        opt_Current->machineOptions->optimize = false;
-                        return true;
-                    case 1:
-                        opt_Current->machineOptions->optimize = true;
-                        return true;
-                    default:
-                        break;
-                }
-            }
-            break;
-        default:
-            break;
-    }
+	switch (option[0]) {
+		case 'o':
+			if (strlen(&option[1]) == 1) {
+				switch (option[1] - '0') {
+					case 0:
+						opt_Current->machineOptions->optimize = false;
+						return true;
+					case 1:
+						opt_Current->machineOptions->optimize = true;
+						return true;
+					default:
+						break;
+				}
+			}
+			break;
+		default:
+			break;
+	}
 
-    err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
-    return false;
+	err_Warn(WARN_MACHINE_UNKNOWN_OPTION, option);
+	return false;
 }
 
 void
 x10c_PrintOptions(void) {
-    printf("    -mo<X>  Optimization level, 0 or 1\n");
+	printf("    -mo<X>  Optimization level, 0 or 1\n");
 }

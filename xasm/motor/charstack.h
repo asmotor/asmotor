@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -21,12 +21,12 @@
 
 #include <stdlib.h>
 
-#include "xasm.h"
 #include "util.h"
+#include "xasm.h"
 
 typedef struct CharStack {
-    char stack[MAX_STRING_SYMBOL_SIZE];
-    size_t count;
+	char stack[MAX_STRING_SYMBOL_SIZE];
+	size_t count;
 } SCharStack;
 
 INLINE void
@@ -42,7 +42,7 @@ chstk_Copy(SCharStack* dest, const SCharStack* source);
 
 INLINE void
 chstk_Push(SCharStack* stack, char ch) {
-    stack->stack[stack->count++] = ch;
+	stack->stack[stack->count++] = ch;
 }
 
 extern void
@@ -50,13 +50,13 @@ chstk_PushString(SCharStack* stack, string* str);
 
 INLINE size_t
 chstk_Count(SCharStack* stack) {
-    return stack->count;
+	return stack->count;
 }
 
 INLINE char
 chstk_Pop(SCharStack* stack) {
 	if (stack->count > 0) {
-	    return stack->stack[--(stack->count)];
+		return stack->stack[--(stack->count)];
 	}
 	return 0;
 }
@@ -64,7 +64,7 @@ chstk_Pop(SCharStack* stack) {
 INLINE char
 chstk_PeekAt(SCharStack* stack, size_t index) {
 	if (stack->count > index) {
-	    return stack->stack[stack->count - index - 1];
+		return stack->stack[stack->count - index - 1];
 	}
 	return 0;
 }
@@ -76,6 +76,5 @@ chstk_Peek(SCharStack* stack) {
 
 extern size_t
 chstk_Discard(SCharStack* stack, size_t count);
-
 
 #endif /* XASM_MOTOR_CHARSTACK_H_INCLUDED_ */

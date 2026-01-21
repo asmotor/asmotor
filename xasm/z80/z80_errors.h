@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -20,18 +20,19 @@
 #define XASM_Z80_ERRORS_H_INCLUDED_
 
 #include <stdint.h>
+#include <stdio.h>
 
 typedef enum {
-    MERROR_EXPECT_A = 1000,
-    MERROR_EXPECT_SP,
-    MERROR_SUGGEST_OPCODE,
-    MERROR_EXPRESSION_FF00,
-    MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU,
-    MERROR_SYNTHESIZED_INSTRUCTIONS,
-    MERROR_UNDOCUMENTED_INSTRUCTIONS
+	MERROR_EXPECT_A = 1000,
+	MERROR_EXPECT_SP,
+	MERROR_SUGGEST_OPCODE,
+	MERROR_EXPRESSION_FF00,
+	MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU,
+	MERROR_SYNTHESIZED_INSTRUCTIONS,
+	MERROR_UNDOCUMENTED_INSTRUCTIONS
 } EMachineError;
 
 extern const char*
 z80_GetError(size_t errorNumber);
 
-#endif //XASM_GAMEBOY_ERRORS_H_INCLUDED_
+#endif // XASM_GAMEBOY_ERRORS_H_INCLUDED_

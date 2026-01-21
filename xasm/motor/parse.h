@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -25,9 +25,7 @@
 
 #include "tokens.h"
 
-
-extern bool
-parse_ExpandStrings;
+extern bool parse_ExpandStrings;
 
 extern bool
 parse_Until(EToken endToken);
@@ -46,7 +44,7 @@ parse_IsDot(void);
 
 INLINE bool
 parse_ExpectComma(void) {
-    return parse_ExpectChar(',');
+	return parse_ExpectChar(',');
 }
 
 #endif /* XASM_MOTOR_PARSE_H_INCLUDED_ */

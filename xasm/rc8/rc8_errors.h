@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,8 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XASM_RC8_ERRORS_H_INCLUDED_
-#define	XASM_RC8_ERRORS_H_INCLUDED_
+#ifndef XASM_RC8_ERRORS_H_INCLUDED_
+#define XASM_RC8_ERRORS_H_INCLUDED_
+
+#include <stdio.h>
 
 typedef enum {
 	MERROR_ILLEGAL_ADDRMODE = 1000,
@@ -28,4 +30,4 @@ typedef enum {
 extern const char*
 rc8_GetError(size_t errorNumber);
 
-#endif	/* LOCALASM_H */
+#endif /* LOCALASM_H */

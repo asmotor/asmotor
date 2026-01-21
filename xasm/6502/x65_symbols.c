@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,46 +16,44 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdbool.h>
+
+#include "str.h"
+
 #include "options.h"
 #include "symbol.h"
 
 #include "x65_options.h"
-
 
 static int32_t
 getMWidth(SSymbol* symbol) {
 	return opt_Current->machineOptions->m16 ? 16 : 8;
 }
 
-
 static int32_t
 getXWidth(SSymbol* symbol) {
 	return opt_Current->machineOptions->x16 ? 16 : 8;
 }
-
 
 static int32_t
 getBP(SSymbol* symbol) {
 	return opt_Current->machineOptions->bp_base;
 }
 
-
 static void
 createEquCallback(const char* name, int32_t (*callback)(SSymbol*)) {
-    string* nameStr = str_Create(name);
+	string* nameStr = str_Create(name);
 	SSymbol* symbol = sym_CreateEqu(nameStr, 0);
 	symbol->callback.integer = callback;
-    str_Free(nameStr);
+	str_Free(nameStr);
 }
-
 
 static void
 createGroup(const char* name, EGroupType type) {
-    string* nameStr = str_Create(name);
-    sym_CreateGroup(nameStr, type);
-    str_Free(nameStr);
+	string* nameStr = str_Create(name);
+	sym_CreateGroup(nameStr, type);
+	str_Free(nameStr);
 }
-
 
 void
 x65_DefineSymbols(void) {
@@ -70,7 +68,6 @@ x65_DefineSymbols(void) {
 	createEquCallback("__816_X", getXWidth);
 	createEquCallback("__4510_BP", getBP);
 }
-
 
 bool
 x65_IsValidLocalName(const string* name) {

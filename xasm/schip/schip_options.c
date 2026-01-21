@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,68 +16,66 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <memory.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "mem.h"
 
-#include "xasm.h"
-#include "options.h"
 #include "errors.h"
+#include "options.h"
 
 #include "schip_options.h"
-#include "schip_tokens.h"
 
 SMachineOptions*
 schip_AllocOptions(void) {
-    return mem_Alloc(sizeof(SMachineOptions));
+	return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
 schip_CopyOptions(SMachineOptions* dest, SMachineOptions* src) {
-    *dest = *src;
+	*dest = *src;
 }
 
 void
 schip_SetDefaultOptions(SMachineOptions* options) {
-    options->cpu = CPUF_SCHIP;
+	options->cpu = CPUF_SCHIP;
 }
 
 void
-schip_OptionsUpdated(SMachineOptions* options) {
-}
+schip_OptionsUpdated(SMachineOptions* options) {}
 
 bool
 schip_ParseOption(const char* s) {
-    if (s == NULL || strlen(s) == 0)
-        return false;
+	if (s == NULL || strlen(s) == 0)
+		return false;
 
-    switch (s[0]) {
-        case 'c':
-            if (strlen(&s[1]) == 1) {
-                switch (s[1]) {
-                    case '0':
-                        opt_Current->machineOptions->cpu = CPUF_CHIP8;
-                        return true;
-                    case '1':
-                        opt_Current->machineOptions->cpu = CPUF_SCHIP;
-                        return true;
-                    default:
-                        break;
-                }
-            }
-            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-            return false;
-        default:
-            err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-            return false;
-    }
+	switch (s[0]) {
+		case 'c':
+			if (strlen(&s[1]) == 1) {
+				switch (s[1]) {
+					case '0':
+						opt_Current->machineOptions->cpu = CPUF_CHIP8;
+						return true;
+					case '1':
+						opt_Current->machineOptions->cpu = CPUF_SCHIP;
+						return true;
+					default:
+						break;
+				}
+			}
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+		default:
+			err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+			return false;
+	}
 }
 
 void
 schip_PrintOptions(void) {
-    printf("    -mc<X>  Enable CPU:\n");
-    printf("            0 = CHIP-8\n");
-    printf("            1 = SuperCHIP (default)\n");
+	printf("    -mc<X>  Enable CPU:\n");
+	printf("            0 = CHIP-8\n");
+	printf("            1 = SuperCHIP (default)\n");
 }

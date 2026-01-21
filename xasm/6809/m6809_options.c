@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,45 +16,36 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdbool.h>
 
 #include "mem.h"
 
-#include "xasm.h"
-#include "lexer_constants.h"
-#include "options.h"
 #include "errors.h"
+#include "options.h"
 
-#include "m6809_errors.h"
 #include "m6809_options.h"
-#include "m6809_tokens.h"
 
 void
 m6809_CopyOptions(struct MachineOptions* dest, struct MachineOptions* pSrc) {
-    *dest = *pSrc;
+	*dest = *pSrc;
 }
 
 struct MachineOptions*
 m6809_AllocOptions(void) {
-    return mem_Alloc(sizeof(SMachineOptions));
+	return mem_Alloc(sizeof(SMachineOptions));
 }
 
 void
-m6809_SetDefault(SMachineOptions* options) {
-}
+m6809_SetDefault(SMachineOptions* options) {}
 
 void
-m6809_OptionsUpdated(SMachineOptions* options) {
-}
+m6809_OptionsUpdated(SMachineOptions* options) {}
 
 bool
 m6809_ParseOption(const char* s) {
-    err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
-    return false;
+	err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
+	return false;
 }
 
 void
-m6809_PrintOptions(void) {
-}
+m6809_PrintOptions(void) {}

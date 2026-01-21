@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,6 +19,10 @@
 #ifndef XASM_DCPU16_PARSE_H_INCLUDED_
 #define XASM_DCPU16_PARSE_H_INCLUDED_
 
+#include <stdbool.h>
+
+#include "expression.h"
+
 extern SExpression*
 x10c_ParseFunction(void);
 
@@ -26,4 +30,3 @@ extern bool
 x10c_ParseInstruction(void);
 
 #endif
-

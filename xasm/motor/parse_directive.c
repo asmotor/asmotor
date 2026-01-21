@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,21 +16,19 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <ctype.h>
+#include <stdint.h>
 
+#include "fmath.h"
 #include "section.h"
 #include "set.h"
 #include "str.h"
-#include "fmath.h"
 
+#include "errors.h"
 #include "lexer.h"
 #include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
-#include "errors.h"
 #include "strcoll.h"
 #include "symbol.h"
 
@@ -43,9 +41,7 @@
 #include "parse_symbol.h"
 #include "tokens.h"
 
-
-static set_t*
-includeOnceFilenames = NULL;
+static set_t* includeOnceFilenames = NULL;
 
 static bool
 mayIncludeFile(string* filename) {
@@ -59,27 +55,27 @@ mayIncludeFile(string* filename) {
 }
 
 static bool
-handleImport(string *name) {
+handleImport(string* name) {
 	return sym_Import(name) != NULL;
 }
 
 static bool
-handleExport(string *name) {
+handleExport(string* name) {
 	return sym_Export(name) != NULL;
 }
 
 static bool
-handleGlobal(string *name) {
+handleGlobal(string* name) {
 	return sym_Global(name) != NULL;
 }
 
 static bool
 modifySymbol(intptr_t intModification) {
-	bool (*modification)(string *) = (bool (*)(string *))intModification;
+	bool (*modification)(string*) = (bool (*)(string*)) intModification;
 
 	parse_GetToken();
 	while (lex_Context->token.id == T_ID) {
-		string *symbolName = lex_TokenString();
+		string* symbolName = lex_TokenString();
 		modification(symbolName);
 		str_Free(symbolName);
 
@@ -162,7 +158,7 @@ static bool
 handleSection(intptr_t _) {
 	parse_GetToken();
 
-	string *name = parse_ExpectStringExpression();
+	string* name = parse_ExpectStringExpression();
 	if (name == NULL)
 		return true;
 
@@ -178,8 +174,8 @@ handleSection(intptr_t _) {
 		return false;
 	}
 
-	string *groupName = lex_TokenString();
-	SSymbol *groupSymbol = sym_GetSymbol(groupName);
+	string* groupName = lex_TokenString();
+	SSymbol* groupSymbol = sym_GetSymbol(groupName);
 	str_Free(groupName);
 
 	if (groupSymbol->type != SYM_GROUP) {
@@ -258,7 +254,7 @@ handleSection(intptr_t _) {
 static bool
 handleOrg(intptr_t _) {
 	parse_GetToken();
-	sect_SetOriginAddress((uint32_t)parse_ConstantExpression());
+	sect_SetOriginAddress((uint32_t) parse_ConstantExpression());
 
 	return true;
 }
@@ -267,7 +263,7 @@ static bool
 handlePrintt(intptr_t _) {
 	parse_GetToken();
 
-	string *result = parse_ExpectStringExpression();
+	string* result = parse_ExpectStringExpression();
 	if (result != NULL) {
 		printf("%s", str_String(result));
 		str_Free(result);
@@ -287,13 +283,13 @@ handlePrintv(intptr_t _) {
 static bool
 handlePrintf(intptr_t _) {
 	parse_GetToken();
- 
+
 	int32_t i = parse_ConstantExpression();
 	if (i < 0) {
 		printf("-");
 		i = -i;
 	}
-	printf("%d.%05d", (uint32_t)i >> 16u, imuldiv((uint32_t)i & 0xFFFFu, 100000, 65536));
+	printf("%d.%05d", (uint32_t) i >> 16u, imuldiv((uint32_t) i & 0xFFFFu, 100000, 65536));
 
 	return true;
 }
@@ -304,7 +300,7 @@ defineSpace(intptr_t multiplier) {
 
 	int32_t offset = parse_ConstantExpression();
 	if (offset >= 0) {
-		sect_SkipBytes((uint32_t)offset * (uint32_t)multiplier);
+		sect_SkipBytes((uint32_t) offset * (uint32_t) multiplier);
 		return true;
 	} else {
 		err_Error(ERROR_EXPR_POSITIVE);
@@ -337,11 +333,11 @@ handleRsend(intptr_t _) {
 
 static bool
 handleUserError(intptr_t intFail) {
-	bool (*fail)(int, ...) = (bool (*)(int, ...))intFail;
+	bool (*fail)(int, ...) = (bool (*)(int, ...)) intFail;
 
 	parse_GetToken();
 
-	string *result = parse_ExpectStringExpression();
+	string* result = parse_ExpectStringExpression();
 	if (result != NULL) {
 		fail(WARN_USER_GENERIC, str_String(result));
 	}
@@ -351,7 +347,7 @@ handleUserError(intptr_t intFail) {
 
 static bool
 handleAssert(intptr_t intFail) {
-	bool (*fail)(int, ...) = (bool (*)(int, ...))intFail;
+	bool (*fail)(int, ...) = (bool (*)(int, ...)) intFail;
 
 	parse_GetToken();
 
@@ -383,8 +379,8 @@ handleCnop(intptr_t _) {
 
 		int32_t align = parse_ConstantExpression();
 		if (align >= 0) {
-			sect_Align((uint32_t)align);
-			sect_SkipBytes((uint32_t)offset);
+			sect_Align((uint32_t) align);
+			sect_SkipBytes((uint32_t) offset);
 		} else {
 			err_Error(ERROR_EXPR_POSITIVE);
 		}
@@ -399,8 +395,8 @@ handleDb(intptr_t _) {
 	do {
 		parse_GetToken();
 
-		SExpression *expr;
-		string *str;
+		SExpression* expr;
+		string* str;
 
 		if ((expr = parse_Expression(1)) != NULL) {
 			if (expr == NULL && lex_Context->token.id != ',')
@@ -413,9 +409,9 @@ handleDb(intptr_t _) {
 				err_Error(ERROR_EXPRESSION_N_BIT, 8);
 			}
 		} else if ((str = parse_StringExpression()) != NULL) {
-			const char *s = str_String(str);
+			const char* s = str_String(str);
 			while (*s) {
-				sect_OutputConst8((uint8_t)*s++);
+				sect_OutputConst8((uint8_t) *s++);
 			}
 
 			str_Free(str);
@@ -432,7 +428,7 @@ handleDw(intptr_t _) {
 	do {
 		parse_GetToken();
 
-		SExpression *expr = parse_Expression(2);
+		SExpression* expr = parse_Expression(2);
 		if (expr == NULL && lex_Context->token.id != ',')
 			err_Error(ERROR_EXPECT_EXPR);
 
@@ -456,7 +452,7 @@ handleDl(intptr_t _) {
 	do {
 		parse_GetToken();
 
-		SExpression *expr = parse_Expression(4);
+		SExpression* expr = parse_Expression(4);
 		if (expr == NULL && lex_Context->token.id != ',')
 			err_Error(ERROR_EXPECT_EXPR);
 
@@ -467,7 +463,7 @@ handleDl(intptr_t _) {
 			if (xasm_Configuration->supportFloat && parse_TryFloatExpression(4, &result)) {
 				sect_OutputFloat32(result);
 			} else {
-				sect_SkipBytes(4); //err_Error(ERROR_INVALID_EXPRESSION);
+				sect_SkipBytes(4); // err_Error(ERROR_INVALID_EXPRESSION);
 			}
 		}
 	} while (lex_Context->token.id == ',');
@@ -484,15 +480,16 @@ handleDd(intptr_t _) {
 		if (parse_TryFloatExpression(8, &result)) {
 			sect_OutputFloat64(result);
 		} else {
-			sect_SkipBytes(8); //err_Error(ERROR_INVALID_EXPRESSION);
+			sect_SkipBytes(8); // err_Error(ERROR_INVALID_EXPRESSION);
 		}
 	} while (lex_Context->token.id == ',');
 
 	return true;
 }
 
-static string *getFilename(void) {
-	string *filename = parse_StringExpression();
+static string*
+getFilename(void) {
+	string* filename = parse_StringExpression();
 
 	if (filename == NULL) {
 		lex_SetMode(LEXER_MODE_MACRO_ARGUMENT);
@@ -514,9 +511,9 @@ includeFile(string* name) {
 
 static bool
 handleFileCore(intptr_t intProcess) {
-	void (*process)(string *) = (void (*)(string *))intProcess;
+	void (*process)(string*) = (void (*)(string*)) intProcess;
 
-	string *filename = getFilename();
+	string* filename = getFilename();
 	if (filename != NULL) {
 		if (mayIncludeFile(filename)) {
 			process(filename);
@@ -553,7 +550,7 @@ handleRept(intptr_t _) {
 	int32_t reptCount = parse_ConstantExpression();
 
 	if (reptCount > 0) {
-		lexctx_ProcessRepeatBlock((uint32_t)reptCount);
+		lexctx_ProcessRepeatBlock((uint32_t) reptCount);
 	} else if (reptCount < 0) {
 		err_Error(ERROR_EXPR_POSITIVE);
 	} else if (!parse_SkipPastEndr()) {
@@ -567,7 +564,7 @@ static bool
 handleShift(intptr_t _) {
 	parse_GetToken();
 
-	SExpression *expr = parse_Expression(4);
+	SExpression* expr = parse_Expression(4);
 	if (expr != NULL) {
 		if (expr_IsConstant(expr)) {
 			lexctx_ShiftMacroArgs(expr->value.integer);
@@ -585,14 +582,14 @@ handleShift(intptr_t _) {
 
 static bool
 handleIfStrings(intptr_t intPredicate) {
-	bool (*predicate)(const string *, const string *) = (bool (*)(const string *, const string *))intPredicate;
+	bool (*predicate)(const string*, const string*) = (bool (*)(const string*, const string*)) intPredicate;
 
 	parse_GetToken();
 
-	string *s1 = parse_ExpectStringExpression();
+	string* s1 = parse_ExpectStringExpression();
 	if (s1 != NULL) {
 		if (parse_ExpectComma()) {
-			string *s2 = parse_ExpectStringExpression();
+			string* s2 = parse_ExpectStringExpression();
 			if (s2 != NULL) {
 				if (!predicate(s1, s2)) {
 					parse_SkipPastTrueBranch();
@@ -615,12 +612,12 @@ handleIfStrings(intptr_t intPredicate) {
 
 static bool
 handleIfSymbol(intptr_t intPredicate) {
-	bool (*predicate)(const string *) = (bool (*)(const string *))intPredicate;
+	bool (*predicate)(const string*) = (bool (*)(const string*)) intPredicate;
 
 	parse_GetToken();
 
 	if (lex_Context->token.id == T_ID) {
-		string *symbolName = lex_TokenString();
+		string* symbolName = lex_TokenString();
 		if (predicate(symbolName)) {
 			parse_GetToken();
 		} else {
@@ -636,7 +633,7 @@ handleIfSymbol(intptr_t intPredicate) {
 
 static bool
 handleIfExpr(intptr_t intPredicate) {
-	bool (*predicate)(int32_t) = (bool (*)(int32_t))intPredicate;
+	bool (*predicate)(int32_t) = (bool (*)(int32_t)) intPredicate;
 
 	parse_GetToken();
 
@@ -742,7 +739,7 @@ handlePops(intptr_t _) {
 static bool
 handleRs(intptr_t multiplier) {
 	parse_GetToken();
-	parse_IncrementRs(parse_ConstantExpression() * (int32_t)multiplier);
+	parse_IncrementRs(parse_ConstantExpression() * (int32_t) multiplier);
 	return true;
 }
 
@@ -759,77 +756,77 @@ typedef struct Directive {
 } SDirective;
 
 #if defined(_MSC_VER)
-#	pragma warning(push)
-#	pragma warning(disable : 4113)
+#pragma warning(push)
+#pragma warning(disable : 4113)
 #endif
 
-static SDirective
-	g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
-		{handleRsreset, 0},
-		{handleRsset, 0},
-		{handleRsend, 0},
-		{handleRs, 1},
-		{handleRs, 2},
-		{handleRs, 4},
-		{handleRs, 8},
-		{handlePrintt, 0},
-		{handlePrintv, 0},
-		{handlePrintf, 0},
-		{modifySymbol, (intptr_t)handleExport},
-		{modifySymbol, (intptr_t)handleImport},
-		{modifySymbol, (intptr_t)handleGlobal},
-		{purgeSymbol, (intptr_t)sym_Purge},
-		{handleUserError, (intptr_t)err_Fail},
-		{handleUserError, (intptr_t)err_Warn},
-		{handleAssert, (intptr_t)err_Fail},
-		{handleAssert, (intptr_t)err_Warn},
-		{handleInclude, (intptr_t)includeFile},
-		{handleFile, (intptr_t)sect_OutputBinaryFile},
-		{defineSpace, 1},
-		{defineSpace, 2},
-		{defineSpace, 4},
-		{defineSpace, 8},
-		{handleDb, 0},
-		{handleDw, 0},
-		{handleDl, 0},
-		{handleDd, 0},
-		{handleSection, 0},
-		{handleOrg, 0},
-		{handleShift, 0},
-		{handleMexit, 0},
-		{handleMexit, 0},
-		{handleRept, 0},
-		{handleRexit, 0},
-		{handleEndr, 0},
-		{handleIfStrings, (intptr_t)str_Equal},
-		{handleIfStrings, (intptr_t)str_NotEqual},
-		{handleIfSymbol, (intptr_t)sym_IsDefined},
-		{handleIfSymbol, (intptr_t)sym_IsNotDefined},
-		{handleIfExpr, (intptr_t)valueNotEqualsZero},
-		{handleIfExpr, (intptr_t)valueEqualsZero},
-		{handleIfExpr, (intptr_t)valueGreaterThanZero},
-		{handleIfExpr, (intptr_t)valueGreaterOrEqualsZero},
-		{handleIfExpr, (intptr_t)valueLessThanZero},
-		{handleIfExpr, (intptr_t)valueLessOrEqualsZero},
-		{handleElse, 0},
-		{handleEndc, 0},
-		{handleEven, 0},
-		{handleCnop, 0},
-		{handlePusho, 0},
-		{handlePopo, 0},
-		{handleOpt, 0},
-		{handlePushs, 0},
-		{handlePops, 0},
-		{handleRandseed, 0},
+static SDirective g_Directives[T_DIRECTIVE_LAST - T_DIRECTIVE_FIRST + 1] = {
+    {handleRsreset,   0                                  },
+    {handleRsset,     0                                  },
+    {handleRsend,     0                                  },
+    {handleRs,        1                                  },
+    {handleRs,        2                                  },
+    {handleRs,        4                                  },
+    {handleRs,        8                                  },
+    {handlePrintt,    0                                  },
+    {handlePrintv,    0                                  },
+    {handlePrintf,    0                                  },
+    {modifySymbol,    (intptr_t) handleExport            },
+    {modifySymbol,    (intptr_t) handleImport            },
+    {modifySymbol,    (intptr_t) handleGlobal            },
+    {purgeSymbol,     (intptr_t) sym_Purge               },
+    {handleUserError, (intptr_t) err_Fail                },
+    {handleUserError, (intptr_t) err_Warn                },
+    {handleAssert,    (intptr_t) err_Fail                },
+    {handleAssert,    (intptr_t) err_Warn                },
+    {handleInclude,   (intptr_t) includeFile             },
+    {handleFile,      (intptr_t) sect_OutputBinaryFile   },
+    {defineSpace,     1                                  },
+    {defineSpace,     2                                  },
+    {defineSpace,     4                                  },
+    {defineSpace,     8                                  },
+    {handleDb,        0                                  },
+    {handleDw,        0                                  },
+    {handleDl,        0                                  },
+    {handleDd,        0                                  },
+    {handleSection,   0                                  },
+    {handleOrg,       0                                  },
+    {handleShift,     0                                  },
+    {handleMexit,     0                                  },
+    {handleMexit,     0                                  },
+    {handleRept,      0                                  },
+    {handleRexit,     0                                  },
+    {handleEndr,      0                                  },
+    {handleIfStrings, (intptr_t) str_Equal               },
+    {handleIfStrings, (intptr_t) str_NotEqual            },
+    {handleIfSymbol,  (intptr_t) sym_IsDefined           },
+    {handleIfSymbol,  (intptr_t) sym_IsNotDefined        },
+    {handleIfExpr,    (intptr_t) valueNotEqualsZero      },
+    {handleIfExpr,    (intptr_t) valueEqualsZero         },
+    {handleIfExpr,    (intptr_t) valueGreaterThanZero    },
+    {handleIfExpr,    (intptr_t) valueGreaterOrEqualsZero},
+    {handleIfExpr,    (intptr_t) valueLessThanZero       },
+    {handleIfExpr,    (intptr_t) valueLessOrEqualsZero   },
+    {handleElse,      0                                  },
+    {handleEndc,      0                                  },
+    {handleEven,      0                                  },
+    {handleCnop,      0                                  },
+    {handlePusho,     0                                  },
+    {handlePopo,      0                                  },
+    {handleOpt,       0                                  },
+    {handlePushs,     0                                  },
+    {handlePops,      0                                  },
+    {handleRandseed,  0                                  },
 };
 
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
 
-bool parse_Directive(void) {
+bool
+parse_Directive(void) {
 	if (lex_Context->token.id >= T_DIRECTIVE_FIRST && lex_Context->token.id <= T_DIRECTIVE_LAST) {
-		SDirective *directive = &g_Directives[lex_Context->token.id - T_DIRECTIVE_FIRST];
+		SDirective* directive = &g_Directives[lex_Context->token.id - T_DIRECTIVE_FIRST];
 		return directive->handler(directive->userData);
 	}
 	return false;

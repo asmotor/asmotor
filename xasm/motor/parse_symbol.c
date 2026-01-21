@@ -1,24 +1,25 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
-	This file is part of ASMotor.
+    This file is part of ASMotor.
 
-	ASMotor is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    ASMotor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	ASMotor is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    ASMotor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
+#include "errors.h"
 #include "lexer.h"
 #include "lexer_constants.h"
 #include "lexer_context.h"
@@ -27,12 +28,9 @@
 #include "parse_expression.h"
 #include "parse_string.h"
 #include "parse_symbol.h"
-#include "errors.h"
 #include "symbol.h"
 
-
-SSymbol*
-g_rsSymbol = NULL;
+SSymbol* g_rsSymbol = NULL;
 
 static bool
 isDotLocalName(const string* name) {
@@ -121,7 +119,7 @@ parse_SymbolDefinition(void) {
 
 		if (lex_Context->token.id == T_SYM_MACRO) {
 			if (totalColons != 1) {
-			    err_Error(ERROR_SYMBOL_EXPORT, str_String(lex_Context->buffer.name), lex_Context->lineNumber);
+				err_Error(ERROR_SYMBOL_EXPORT, str_String(lex_Context->buffer.name), lex_Context->lineNumber);
 				return false;
 			} else {
 				uint32_t lineNumber = lex_Context->lineNumber;

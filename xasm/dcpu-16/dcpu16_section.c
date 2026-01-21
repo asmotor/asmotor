@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,8 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "section.h"
+
 #include "dcpu16_section.h"
 
 extern void
-x10c_AssignSection(SSection* section) {
-}
+x10c_AssignSection(SSection* section) {}

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,18 +19,17 @@
 #include <assert.h>
 
 #include "str.h"
+#include "strcoll.h"
 
 #include "lexer_buffer.h"
-
 
 // Private functions
 
 static string*
 createUniqueValue(void) {
-    static uint32_t runId = 0;
-    return str_CreateFormat("_%u", runId++);
+	static uint32_t runId = 0;
+	return str_CreateFormat("_%u", runId++);
 }
-
 
 static char
 nextChar(SLexerBuffer* buffer) {
@@ -46,7 +45,6 @@ nextChar(SLexerBuffer* buffer) {
 	return 0;
 }
 
-
 static char
 peekChar(SLexerBuffer* buffer) {
 	char ch = chstk_Peek(&buffer->charStack);
@@ -60,7 +58,6 @@ peekChar(SLexerBuffer* buffer) {
 
 	return 0;
 }
-
 
 // Public functions
 
@@ -96,10 +93,9 @@ lexbuf_GetChar(SLexerBuffer* buffer) {
 	}
 }
 
-
 extern void
 lexbuf_Init(SLexerBuffer* buffer, string* name, string* content, vec_t* arguments) {
-	assert (arguments != NULL);
+	assert(arguments != NULL);
 
 	chstk_Init(&buffer->charStack);
 	buffer->name = str_Copy(name);
@@ -109,7 +105,6 @@ lexbuf_Init(SLexerBuffer* buffer, string* name, string* content, vec_t* argument
 	buffer->arguments = arguments;
 }
 
-
 extern void
 lexbuf_Destroy(SLexerBuffer* buffer) {
 	str_Free(buffer->name);
@@ -117,14 +112,12 @@ lexbuf_Destroy(SLexerBuffer* buffer) {
 	str_Free(buffer->uniqueValue);
 }
 
-
 extern void
 lexbuf_ShiftArguments(SLexerBuffer* buffer, int32_t count) {
 	while (count-- > 0 && strvec_Count(buffer->arguments) >= 2) {
 		strvec_RemoveAt(buffer->arguments, 1);
 	}
 }
-
 
 extern void
 lexbuf_Copy(SLexerBuffer* dest, const SLexerBuffer* source) {
@@ -136,7 +129,6 @@ lexbuf_Copy(SLexerBuffer* dest, const SLexerBuffer* source) {
 	dest->arguments = source->arguments;
 }
 
-
 extern void
 lexbuf_ShallowCopy(SLexerBuffer* dest, const SLexerBuffer* source) {
 	chstk_Copy(&dest->charStack, &source->charStack);
@@ -146,7 +138,6 @@ lexbuf_ShallowCopy(SLexerBuffer* dest, const SLexerBuffer* source) {
 	dest->index = source->index;
 	dest->arguments = source->arguments;
 }
-
 
 extern void
 lexbuf_ContinueFrom(SLexerBuffer* dest, const SLexerBuffer* source) {
@@ -158,7 +149,6 @@ lexbuf_ContinueFrom(SLexerBuffer* dest, const SLexerBuffer* source) {
 	dest->index = source->index;
 	dest->arguments = source->arguments;
 }
-
 
 extern size_t
 lexbuf_SkipUnexpandedChars(SLexerBuffer* buffer, size_t count) {
@@ -182,13 +172,11 @@ lexbuf_SkipUnexpandedChars(SLexerBuffer* buffer, size_t count) {
 	return linesSkipped;
 }
 
-
 extern void
 lexbuf_RenewUniqueValue(SLexerBuffer* buffer) {
 	str_Free(buffer->uniqueValue);
 	buffer->uniqueValue = createUniqueValue();
 }
-
 
 extern void
 lexbuf_CopyUnexpandedContent(SLexerBuffer* buffer, char* dest, size_t count) {
@@ -200,12 +188,10 @@ lexbuf_CopyUnexpandedContent(SLexerBuffer* buffer, char* dest, size_t count) {
 	memcpy(dest, buffer->text->data + buffer->index, count);
 }
 
-
 extern void
 lexbuf_UnputChar(SLexerBuffer* buffer, char ch) {
 	chstk_Push(&buffer->charStack, ch);
 }
-
 
 extern char
 lexbuf_GetUnexpandedChar(SLexerBuffer* buffer, size_t index) {

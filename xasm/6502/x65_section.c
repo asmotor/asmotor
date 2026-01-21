@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,5 +19,4 @@
 #include "x65_section.h"
 
 extern void
-x65_AssignSection(SSection* section) {
-}
+x65_AssignSection(SSection* section) {}

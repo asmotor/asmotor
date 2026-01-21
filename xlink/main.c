@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -418,134 +418,134 @@ handleMemoryConfigurationOption(const string* target) {
 static void
 writeOutput(void) {
 	switch (g_outputFormat) {
-	case FILE_FORMAT_NONE:
-		error("Output format not specified");
-		break;
-	case FILE_FORMAT_MEGA_DRIVE:
-		sega_WriteMegaDriveImage(g_outputFilename);
-		break;
-	case FILE_FORMAT_MASTER_SYSTEM:
-		sega_WriteMasterSystemImage(g_outputFilename, g_binaryPad);
-		break;
-	case FILE_FORMAT_GAME_BOY:
-		gameboy_WriteImage(g_outputFilename);
-		break;
-	case FILE_FORMAT_BINARY:
-		image_WriteBinary(g_outputFilename, g_binaryPad);
-		break;
-	case FILE_FORMAT_CBM_PRG:
-		commodore_WritePrg(g_outputFilename, g_entry, g_cbmHeaderAddress);
-		break;
-	case FILE_FORMAT_AMIGA_EXECUTABLE:
-		amiga_WriteExecutable(g_outputFilename, g_entry, false);
-		break;
-	case FILE_FORMAT_AMIGA_LINK_OBJECT:
-		amiga_WriteLinkObject(g_outputFilename, false);
-		break;
-	case FILE_FORMAT_HC800_KERNEL:
-		hc800_WriteKernal(g_outputFilename);
-		break;
-	case FILE_FORMAT_HC800:
-		hc800_WriteExecutable(g_outputFilename, g_hc800Config);
-		break;
-	case FILE_FORMAT_PGZ:
-		foenix_WriteExecutablePGZ(g_outputFilename, g_entry);
-		break;
-	case FILE_FORMAT_F256_KUP:
-		foenix_WriteExecutableKUP(g_outputFilename, g_entry, false);
-		break;
-	case FILE_FORMAT_F256_KUP_PAD:
-		foenix_WriteExecutableKUP(g_outputFilename, g_entry, true);
-		break;
-	case FILE_FORMAT_COCO_BIN:
-		coco_WriteQuickloadBin(g_outputFilename, g_entry);
-		break;
-	case FILE_FORMAT_MEGA65_PRG:
-		commodore_WriteMega65Prg(g_outputFilename, g_entry);
-		break;
+		case FILE_FORMAT_NONE:
+			error("Output format not specified");
+			break;
+		case FILE_FORMAT_MEGA_DRIVE:
+			sega_WriteMegaDriveImage(g_outputFilename);
+			break;
+		case FILE_FORMAT_MASTER_SYSTEM:
+			sega_WriteMasterSystemImage(g_outputFilename, g_binaryPad);
+			break;
+		case FILE_FORMAT_GAME_BOY:
+			gameboy_WriteImage(g_outputFilename);
+			break;
+		case FILE_FORMAT_BINARY:
+			image_WriteBinary(g_outputFilename, g_binaryPad);
+			break;
+		case FILE_FORMAT_CBM_PRG:
+			commodore_WritePrg(g_outputFilename, g_entry, g_cbmHeaderAddress);
+			break;
+		case FILE_FORMAT_AMIGA_EXECUTABLE:
+			amiga_WriteExecutable(g_outputFilename, g_entry, false);
+			break;
+		case FILE_FORMAT_AMIGA_LINK_OBJECT:
+			amiga_WriteLinkObject(g_outputFilename, false);
+			break;
+		case FILE_FORMAT_HC800_KERNEL:
+			hc800_WriteKernal(g_outputFilename);
+			break;
+		case FILE_FORMAT_HC800:
+			hc800_WriteExecutable(g_outputFilename, g_hc800Config);
+			break;
+		case FILE_FORMAT_PGZ:
+			foenix_WriteExecutablePGZ(g_outputFilename, g_entry);
+			break;
+		case FILE_FORMAT_F256_KUP:
+			foenix_WriteExecutableKUP(g_outputFilename, g_entry, false);
+			break;
+		case FILE_FORMAT_F256_KUP_PAD:
+			foenix_WriteExecutableKUP(g_outputFilename, g_entry, true);
+			break;
+		case FILE_FORMAT_COCO_BIN:
+			coco_WriteQuickloadBin(g_outputFilename, g_entry);
+			break;
+		case FILE_FORMAT_MEGA65_PRG:
+			commodore_WriteMega65Prg(g_outputFilename, g_entry);
+			break;
 	}
 }
 
 static bool
 handleOption(const char* option) {
 	switch (tolower(option[0])) {
-	case '?':
-	case 'h':
-		printUsage();
-		break;
-	case 'a': { /* Memory map */
-		if (g_targetDefined)
-			error("more than one target (option \"a\", \"t\", \"c\") defined");
+		case '?':
+		case 'h':
+			printUsage();
+			break;
+		case 'a': { /* Memory map */
+			if (g_targetDefined)
+				error("more than one target (option \"a\", \"t\", \"c\") defined");
 
-		g_targetDefined = true;
-		string* filename = str_ToLower(str_Create(&option[1]));
-		mdef_Read(filename);
-		str_Free(filename);
-		return true;
-	}
-	case 'c': { /* Memory configuration */
-		if (g_targetDefined)
-			error("more than one target (option \"a\", \"t\", \"c\") defined");
+			g_targetDefined = true;
+			string* filename = str_ToLower(str_Create(&option[1]));
+			mdef_Read(filename);
+			str_Free(filename);
+			return true;
+		}
+		case 'c': { /* Memory configuration */
+			if (g_targetDefined)
+				error("more than one target (option \"a\", \"t\", \"c\") defined");
 
-		g_targetDefined = true;
-		string* target = str_ToLower(str_Create(&option[1]));
-		handleMemoryConfigurationOption(target);
-		str_Free(target);
-		return true;
-	}
-	case 'e': /* Entry point */
-		if (option[1] == 0)
-			error("option \"e\" needs an argument");
-		g_entry = &option[1];
+			g_targetDefined = true;
+			string* target = str_ToLower(str_Create(&option[1]));
+			handleMemoryConfigurationOption(target);
+			str_Free(target);
+			return true;
+		}
+		case 'e': /* Entry point */
+			if (option[1] == 0)
+				error("option \"e\" needs an argument");
+			g_entry = &option[1];
 
-		return true;
-	case 'f': { /* File format */
-		string* target = str_ToLower(str_Create(&option[1]));
-		handleFileFormatOption(target);
-		str_Free(target);
-		return true;
-	}
-	case 'l': /* Map file */
-		if (option[1] == 0)
-			error("option \"l\" needs an argument");
+			return true;
+		case 'f': { /* File format */
+			string* target = str_ToLower(str_Create(&option[1]));
+			handleFileFormatOption(target);
+			str_Free(target);
+			return true;
+		}
+		case 'l': /* Map file */
+			if (option[1] == 0)
+				error("option \"l\" needs an argument");
 
-		g_listFilename = &option[1];
-		return true;
-	case 'm': /* Map file */
-		if (option[1] == 0)
-			error("option \"m\" needs an argument");
+			g_listFilename = &option[1];
+			return true;
+		case 'm': /* Map file */
+			if (option[1] == 0)
+				error("option \"m\" needs an argument");
 
-		g_mapFilename = &option[1];
-		return true;
-	case 'o': /* Output filename */
-		if (option[1] == 0)
-			error("option \"o\" needs an argument");
+			g_mapFilename = &option[1];
+			return true;
+		case 'o': /* Output filename */
+			if (option[1] == 0)
+				error("option \"o\" needs an argument");
 
-		g_outputFilename = &option[1];
-		return true;
-	case 's': /* Smart linking */
-		if (option[1] == 0)
-			error("option \"s\" needs an argument");
+			g_outputFilename = &option[1];
+			return true;
+		case 's': /* Smart linking */
+			if (option[1] == 0)
+				error("option \"s\" needs an argument");
 
-		g_smartlink = &option[1];
-		if (g_entry == NULL)
-			g_entry = g_smartlink;
+			g_smartlink = &option[1];
+			if (g_entry == NULL)
+				g_entry = g_smartlink;
 
-		return true;
-	case 't': { /* Target */
-		if (g_targetDefined)
-			error("more than one target (option \"a\", \"t\", \"c\") defined");
+			return true;
+		case 't': { /* Target */
+			if (g_targetDefined)
+				error("more than one target (option \"a\", \"t\", \"c\") defined");
 
-		fprintf(stderr, "Warning: option -t is deprecated and has been replaced with -f and -c\n");
-		g_targetDefined = true;
+			fprintf(stderr, "Warning: option -t is deprecated and has been replaced with -f and -c\n");
+			g_targetDefined = true;
 
-		string* target = str_ToLower(str_Create(&option[1]));
-		handleLegacyTargetOption(target);
-		str_Free(target);
-		return true;
-	}
-	default:
-		break;
+			string* target = str_ToLower(str_Create(&option[1]));
+			handleLegacyTargetOption(target);
+			str_Free(target);
+			return true;
+		}
+		default:
+			break;
 	}
 	return false;
 }

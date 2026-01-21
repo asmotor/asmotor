@@ -87,36 +87,36 @@ nextToken(const char** in) {
 		++*in;
 
 	switch (**in) {
-	case 0:
-	case ';':
-		token_length = 0;
-		return;
-	case '$':
-	case '%':
-	case '+':
-	case '-':
-	case '*':
-	case '/':
-	case '(':
-	case ')':
-	case '[':
-	case ']':
-	case ':':
-	case '@':
-	case ',':
-	case '.':
-		token = *in;
-		token_length = 1;
-		++*in;
-		break;
-	default:
-		token = *in;
-		token_length = 0;
-		while (**in != 0 && strchr(DELIMITERS, **in) == NULL) {
+		case 0:
+		case ';':
+			token_length = 0;
+			return;
+		case '$':
+		case '%':
+		case '+':
+		case '-':
+		case '*':
+		case '/':
+		case '(':
+		case ')':
+		case '[':
+		case ']':
+		case ':':
+		case '@':
+		case ',':
+		case '.':
+			token = *in;
+			token_length = 1;
 			++*in;
-			++token_length;
-		}
-		break;
+			break;
+		default:
+			token = *in;
+			token_length = 0;
+			while (**in != 0 && strchr(DELIMITERS, **in) == NULL) {
+				++*in;
+				++token_length;
+			}
+			break;
 	}
 }
 

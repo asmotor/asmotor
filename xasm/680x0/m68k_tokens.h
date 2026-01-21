@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,10 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XASM_M68K_TOKENS_H_INCLUDED_
-#define	XASM_M68K_TOKENS_H_INCLUDED_
+#ifndef XASM_M68K_TOKENS_H_INCLUDED_
+#define XASM_M68K_TOKENS_H_INCLUDED_
 
-typedef	enum {
+typedef enum {
 	T_68K_ABCD = 6000,
 	T_68K_ADD,
 	T_68K_ADDA,
@@ -371,7 +371,7 @@ typedef	enum {
 	T_68K_REGMASK,
 	T_68K_REGMASKADD,
 	T_68K_REGMASKRESET,
-	
+
 	T_FPU_FABS,
 	T_FPU_FSABS,
 	T_FPU_FDABS,
@@ -400,7 +400,7 @@ typedef	enum {
 	T_FPU_FBULE,
 	T_FPU_FBNE,
 	T_FPU_FBT,
-	
+
 	T_FPU_FBSF,
 	T_FPU_FBSEQ,
 	T_FPU_FBGT,
@@ -422,7 +422,7 @@ typedef	enum {
 	T_FPU_FCMP,
 	T_FPU_FCOS,
 	T_FPU_FCOSH,
-	
+
 	T_FPU_FDBF,
 	T_FPU_FDBEQ,
 	T_FPU_FDBOGT,
@@ -440,7 +440,7 @@ typedef	enum {
 	T_FPU_FDBULE,
 	T_FPU_FDBNE,
 	T_FPU_FDBT,
-	
+
 	T_FPU_FDBSF,
 	T_FPU_FDBSEQ,
 	T_FPU_FDBGT,
@@ -458,7 +458,7 @@ typedef	enum {
 	T_FPU_FDBNGT,
 	T_FPU_FDBSNE,
 	T_FPU_FDBST,
-	
+
 	T_FPU_FDIV,
 	T_FPU_FSDIV,
 	T_FPU_FDDIV,
@@ -507,7 +507,7 @@ typedef	enum {
 	T_FPU_FSULE,
 	T_FPU_FSNE,
 	T_FPU_FST,
-	
+
 	T_FPU_FSSF,
 	T_FPU_FSSEQ,
 	T_FPU_FSGT,
@@ -540,7 +540,7 @@ typedef	enum {
 	T_FPU_FTAN,
 	T_FPU_FTANH,
 	T_FPU_FTENTOX,
-	
+
 	T_FPU_FTRAPF,
 	T_FPU_FTRAPEQ,
 	T_FPU_FTRAPOGT,
@@ -549,7 +549,7 @@ typedef	enum {
 	T_FPU_FTRAPOLE,
 	T_FPU_FTRAPOGL,
 	T_FPU_FTRAPOR,
-	
+
 	T_FPU_FTRAPUN,
 	T_FPU_FTRAPUEQ,
 	T_FPU_FTRAPUGT,
@@ -558,7 +558,7 @@ typedef	enum {
 	T_FPU_FTRAPULE,
 	T_FPU_FTRAPNE,
 	T_FPU_FTRAPT,
-	
+
 	T_FPU_FTRAPSF,
 	T_FPU_FTRAPSEQ,
 	T_FPU_FTRAPGT,
@@ -567,7 +567,7 @@ typedef	enum {
 	T_FPU_FTRAPLE,
 	T_FPU_FTRAPGL,
 	T_FPU_FTRAPGLE,
-	
+
 	T_FPU_FTRAPNGLE,
 	T_FPU_FTRAPNGL,
 	T_FPU_FTRAPNLE,
@@ -576,7 +576,7 @@ typedef	enum {
 	T_FPU_FTRAPNGT,
 	T_FPU_FTRAPSNE,
 	T_FPU_FTRAPST,
-	
+
 	T_FPU_FTST,
 	T_FPU_FTWOTOX,
 

@@ -1,51 +1,52 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
-	This file is part of ASMotor.
+    This file is part of ASMotor.
 
-	ASMotor is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    ASMotor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	ASMotor is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    ASMotor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <time.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <time.h>
 
 #include "mem.h"
 
-#include "parse_symbol.h"
-#include "str.h"
-#include "xasm.h"
-#include "symbol.h"
-#include "lexer_context.h"
 #include "errors.h"
+#include "lexer_context.h"
+#include "parse_symbol.h"
 #include "section.h"
+#include "str.h"
+#include "symbol.h"
+#include "xasm.h"
 
-#define SET_TYPE_AND_FLAGS(symbol, t) ((symbol)->type=t,(symbol)->flags=((symbol)->flags&SYMF_EXPORT)|defaultSymbolFlags[t])
+#define SET_TYPE_AND_FLAGS(symbol, t) \
+	((symbol)->type = t, (symbol)->flags = ((symbol)->flags & SYMF_EXPORT) | defaultSymbolFlags[t])
 
 static uint32_t defaultSymbolFlags[] = {
-	SYMF_RELOC | SYMF_EXPORTABLE | SYMF_EXPRESSION,     // SYM_LABEL
-	SYMF_CONSTANT | SYMF_EXPORTABLE | SYMF_EXPRESSION,  // SYM_EQU
-	SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_MODIFIABLE,  // SYM_SET
-	SYMF_HAS_DATA,                                      // SYM_EQUS
-	SYMF_CONSTANT,                                      // SYM_EQUF
-	SYMF_HAS_DATA,                                      // SYM_MACRO
-	SYMF_EXPRESSION | SYMF_RELOC,                       // SYM_IMPORT
-	SYMF_EXPORT,                                        // SYM_GROUP
-	SYMF_EXPRESSION | SYMF_MODIFIABLE | SYMF_RELOC,     // SYM_GLOBAL
-	SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_STRUCTURE,	// SYM_STRUCTURE
-	SYMF_MODIFIABLE | SYMF_EXPRESSION | SYMF_EXPORTABLE // SYM_UNDEFINED
+    SYMF_RELOC | SYMF_EXPORTABLE | SYMF_EXPRESSION,     // SYM_LABEL
+    SYMF_CONSTANT | SYMF_EXPORTABLE | SYMF_EXPRESSION,  // SYM_EQU
+    SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_MODIFIABLE,  // SYM_SET
+    SYMF_HAS_DATA,                                      // SYM_EQUS
+    SYMF_CONSTANT,                                      // SYM_EQUF
+    SYMF_HAS_DATA,                                      // SYM_MACRO
+    SYMF_EXPRESSION | SYMF_RELOC,                       // SYM_IMPORT
+    SYMF_EXPORT,                                        // SYM_GROUP
+    SYMF_EXPRESSION | SYMF_MODIFIABLE | SYMF_RELOC,     // SYM_GLOBAL
+    SYMF_CONSTANT | SYMF_EXPRESSION | SYMF_STRUCTURE,   // SYM_STRUCTURE
+    SYMF_MODIFIABLE | SYMF_EXPRESSION | SYMF_EXPORTABLE // SYM_UNDEFINED
 };
 
 #define DELIMITERS " \t\n$%%+-*/()[]:@;,"
@@ -58,7 +59,6 @@ SSymbol* sym_CurrentScope = NULL;
 uint32_t s_randseed = 0x1337C0DE;
 
 SSymbol* sym_hashedSymbols[SYMBOL_HASH_SIZE];
-
 
 // Machine definition parsers
 
@@ -100,7 +100,6 @@ nextToken(const char** in) {
 	}
 }
 
-
 static bool
 tokenIs(const char* s) {
 	if (strlen(s) != tokenLength)
@@ -109,9 +108,7 @@ tokenIs(const char* s) {
 	return strncmp(s, token, tokenLength) == 0;
 }
 
-
 // Symbol value callbacks
-
 
 static bool
 util_localtime(struct tm* const tmDest, time_t const* const sourceTime) {
@@ -123,24 +120,20 @@ util_localtime(struct tm* const tmDest, time_t const* const sourceTime) {
 #endif
 }
 
-
 static int32_t
 callback__NARG(SSymbol* symbol) {
 	return (int32_t) lexctx_GetMacroArgumentCount();
 }
-
 
 static int32_t
 callback__LINE(SSymbol* symbol) {
 	return (int32_t) lexctx_TokenLineNumber();
 }
 
-
 static int32_t
 callback__RANDSEED(SSymbol* symbol) {
 	return (int32_t) s_randseed;
 }
-
 
 static string*
 getDateString(void) {
@@ -210,13 +203,12 @@ createEquCallback(const char* name, int32_t (*callback)(struct Symbol*)) {
 }
 
 static void
-createEqusCallback(const char* name, string* (*callback)(struct Symbol*)) {
+createEqusCallback(const char* name, string* (*callback)(struct Symbol*) ) {
 	string* nameString = str_Create(name);
 	SSymbol* symbol = sym_CreateEqus(nameString, NULL);
 	symbol->callback.string = callback;
 	str_Free(nameString);
 }
-
 
 // Private functions
 
@@ -262,7 +254,7 @@ createSymbol(const string* name, SSymbol* scope) {
 }
 
 static bool
-isLocalName(const string *name) {
+isLocalName(const string* name) {
 	return str_CharAt(name, 0) == '$' || str_CharAt(name, 0) == '.' || str_CharAt(name, -1) == '$';
 }
 
@@ -314,12 +306,11 @@ createSymbolOfType(string* name, ESymbolType type) {
 	return NULL;
 }
 
-
 /* Exported functions */
 
 extern int32_t
 sym_GetValue(SSymbol* symbol) {
-	assert (symbol->type != SYM_EQUS);
+	assert(symbol->type != SYM_EQUS);
 
 	if (symbol->callback.integer)
 		return symbol->callback.integer(symbol);
@@ -434,7 +425,7 @@ sym_EndStructure(void) {
 	if (sym_CurrentScope != NULL && sym_CurrentScope->type == SYM_STRUCTURE) {
 		if (g_rsSymbol != NULL)
 			sym_CurrentScope->value.integer = g_rsSymbol->value.integer;
-		
+
 		sym_CurrentScope = NULL;
 	} else {
 		err_Error(ERROR_NOT_IN_STRUCTURE_SCOPE);
@@ -455,8 +446,7 @@ sym_CreateLabel(string* name) {
 
 			if ((sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) != 0 && (sect_Current->flags & SECTF_BANKFIXED) == 0) {
 				SET_TYPE_AND_FLAGS(symbol, SYM_EQU);
-				symbol->value.integer = sect_Current->cpuProgramCounter + sect_Current->cpuAdjust
-									  + sect_Current->cpuOrigin;
+				symbol->value.integer = sect_Current->cpuProgramCounter + sect_Current->cpuAdjust + sect_Current->cpuOrigin;
 			} else {
 				SET_TYPE_AND_FLAGS(symbol, SYM_LABEL);
 				symbol->section = sect_Current;
@@ -467,7 +457,8 @@ sym_CreateLabel(string* name) {
 			err_Error(ERROR_LABEL_SECTION);
 		}
 	} else {
-		err_Error(ERROR_MODIFY_SYMBOL, symbol->fileInfo == NULL ? "[UNKNOWN]" : str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+		err_Error(ERROR_MODIFY_SYMBOL, symbol->fileInfo == NULL ? "[UNKNOWN]" : str_String(symbol->fileInfo->fileName),
+		          symbol->lineNumber);
 	}
 
 	return NULL;
@@ -567,7 +558,7 @@ sym_PurgeWhere(bool (*predicate)(SSymbol* symbol)) {
 	for (uint32_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
 		SSymbol** list = &sym_hashedSymbols[i];
 		SSymbol* sym = *list;
-		
+
 		while (sym != NULL) {
 			SSymbol* next = list_GetNext(sym);
 			if (predicate(sym)) {
@@ -663,7 +654,6 @@ sym_ErrorOnUndefined(void) {
 	}
 }
 
-
 extern bool
 sym_ReadMachineDefinitionFile(const char* name) {
 	FILE* f = fopen(name, "rt");
@@ -704,7 +694,6 @@ sym_ReadMachineDefinitionFile(const char* name) {
 
 	return false;
 }
-
 
 extern bool
 sym_Init(void) {

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -20,13 +20,13 @@
 
 static char* g_errors[] = {
     "Result of operation is undefined",
-    "Register expected"
+    "Register expected",
 };
 
 const char*
 mips_GetError(size_t errorNumber) {
-    if (errorNumber < 1000)
-        return NULL;
+	if (errorNumber < 1000)
+		return NULL;
 
-    return g_errors[errorNumber - 1000];
+	return g_errors[errorNumber - 1000];
 }

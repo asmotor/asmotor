@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,29 +16,25 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stdbool.h>
 
 #include "expression.h"
-#include "lexer.h"
-#include "parse.h"
-#include "parse_expression.h"
-#include "errors.h"
-#include "section.h"
+#include "lexer_context.h"
 
 #include "mips_parse.h"
 
 SExpression*
 mips_ParseFunction(void) {
-    switch (lex_Context->token.id) {
-        default:
-            return NULL;
-    }
+	switch (lex_Context->token.id) {
+		default:
+			return NULL;
+	}
 }
 
 bool
 mips_ParseInstruction(void) {
-    if (mips_ParseIntegerInstruction())
-        return true;
+	if (mips_ParseIntegerInstruction())
+		return true;
 
-    return false;
+	return false;
 }

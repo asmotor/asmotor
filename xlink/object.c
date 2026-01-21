@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -412,54 +412,54 @@ readChunk(FILE* fileHandle, const char* filename) {
 	uint32_t id = fgetll(fileHandle);
 
 	switch (id) {
-	case MAKE_ID('X', 'O', 'B', 0): {
-		readXOB0(fileHandle, g_fileId++);
-		return true;
-	}
+		case MAKE_ID('X', 'O', 'B', 0): {
+			readXOB0(fileHandle, g_fileId++);
+			return true;
+		}
 
-	case MAKE_ID('X', 'O', 'B', 1): {
-		readXOB1(fileHandle, g_fileId++);
-		return true;
-	}
+		case MAKE_ID('X', 'O', 'B', 1): {
+			readXOB1(fileHandle, g_fileId++);
+			return true;
+		}
 
-	case MAKE_ID('X', 'O', 'B', 2): {
-		readXOBn(fileHandle, 2, g_fileId++);
-		return true;
-	}
+		case MAKE_ID('X', 'O', 'B', 2): {
+			readXOBn(fileHandle, 2, g_fileId++);
+			return true;
+		}
 
-	case MAKE_ID('X', 'O', 'B', 3): {
-		readXOBn(fileHandle, 3, g_fileId++);
-		return true;
-	}
+		case MAKE_ID('X', 'O', 'B', 3): {
+			readXOBn(fileHandle, 3, g_fileId++);
+			return true;
+		}
 
-	case MAKE_ID('X', 'O', 'B', 4): {
-		readXOBn(fileHandle, 4, g_fileId++);
-		return true;
-	}
+		case MAKE_ID('X', 'O', 'B', 4): {
+			readXOBn(fileHandle, 4, g_fileId++);
+			return true;
+		}
 
-	case MAKE_ID('X', 'O', 'B', 5): {
-		readXOBn(fileHandle, 5, g_fileId++);
-		return true;
-	}
+		case MAKE_ID('X', 'O', 'B', 5): {
+			readXOBn(fileHandle, 5, g_fileId++);
+			return true;
+		}
 
-	case MAKE_ID('X', 'O', 'B', 6): {
-		readXOBn(fileHandle, 6, g_fileId++);
-		return true;
-	}
+		case MAKE_ID('X', 'O', 'B', 6): {
+			readXOBn(fileHandle, 6, g_fileId++);
+			return true;
+		}
 
-	case MAKE_ID('X', 'L', 'B', 0): {
-		readXLB0(fileHandle, filename);
-		return true;
-	}
+		case MAKE_ID('X', 'L', 'B', 0): {
+			readXLB0(fileHandle, filename);
+			return true;
+		}
 
-	case MAKE_ID(0x7F, 'E', 'L', 'F'): {
-		elf_Read(fileHandle, filename, g_fileId++);
-		return false;
-	}
+		case MAKE_ID(0x7F, 'E', 'L', 'F'): {
+			elf_Read(fileHandle, filename, g_fileId++);
+			return false;
+		}
 
-	default: {
-		error("Unknown file type");
-	}
+		default: {
+			error("Unknown file type");
+		}
 	}
 }
 

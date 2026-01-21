@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -479,26 +479,26 @@ readSections(FILE* fileHandle, ElfSectionHeader* headers, uint_fast16_t totalSec
 	for (uint_fast16_t i = 0; i < totalSections; ++i) {
 		ElfSectionHeader* header = &headers[i];
 		switch (header->sh_type) {
-		case SHT_PROGBITS:
-			readProgBitsSection(fileHandle, header);
-			break;
-		case SHT_NOBITS:
-			readNoBitsSection(fileHandle, header);
-			break;
-		case SHT_STRTAB:
-			readStrTabSection(fileHandle, header);
-			break;
-		case SHT_SYMTAB:
-			readSymTabSection(fileHandle, header);
-			break;
-		case SHT_RELA:
-			readRelASection(fileHandle, header);
-			break;
-		case SHT_REL:
-			readRelSection(fileHandle, header);
-			break;
-		default:
-			break;
+			case SHT_PROGBITS:
+				readProgBitsSection(fileHandle, header);
+				break;
+			case SHT_NOBITS:
+				readNoBitsSection(fileHandle, header);
+				break;
+			case SHT_STRTAB:
+				readStrTabSection(fileHandle, header);
+				break;
+			case SHT_SYMTAB:
+				readSymTabSection(fileHandle, header);
+				break;
+			case SHT_RELA:
+				readRelASection(fileHandle, header);
+				break;
+			case SHT_REL:
+				readRelSection(fileHandle, header);
+				break;
+			default:
+				break;
 		}
 	}
 }
@@ -589,14 +589,14 @@ resolveRelASection(ElfHeader* elf, ElfSectionHeader* header) {
 static int32_t
 readData(const ElfSectionHeader* text, uint32_t offset, uint32_t type) {
 	switch (type) {
-	case R_68K_32:
-	case R_68K_PC32:
-		return read_word(text->data.progbits->data, offset);
-	case R_68K_16:
-	case R_68K_PC16:
-		return read_half(text->data.progbits->data, offset);
-	default:
-		error("readData unsupported type (%d)", type);
+		case R_68K_32:
+		case R_68K_PC32:
+			return read_word(text->data.progbits->data, offset);
+		case R_68K_16:
+		case R_68K_PC16:
+			return read_half(text->data.progbits->data, offset);
+		default:
+			error("readData unsupported type (%d)", type);
 	}
 }
 
@@ -630,17 +630,17 @@ resolveNamesAndIndices(ElfHeader* elf) {
 	for (uint32_t i = 0; i < elf->totalSectionHeaders; ++i) {
 		ElfSectionHeader* header = &elf->headers[i];
 		switch (header->sh_type) {
-		case SHT_SYMTAB:
-			resolveSymTabSection(elf, header);
-			break;
-		case SHT_RELA:
-			resolveRelASection(elf, header);
-			break;
-		case SHT_REL:
-			resolveRelSection(elf, header);
-			break;
-		default:
-			break;
+			case SHT_SYMTAB:
+				resolveSymTabSection(elf, header);
+				break;
+			case SHT_RELA:
+				resolveRelASection(elf, header);
+				break;
+			case SHT_REL:
+				resolveRelSection(elf, header);
+				break;
+			default:
+				break;
 		}
 	}
 }
@@ -722,16 +722,13 @@ symbolsToXlink(const ElfHeader* elf, const ElfSectionHeader* header) {
 	}
 }
 
-// clang-format off
-static uint8_t
-g_relocExpr[] = {
-	OBJ_SYMBOL, 0, 0, 0, 0,
-	OBJ_CONSTANT, 0, 0, 0, 0,
-	OBJ_OP_ADD,
-	OBJ_CONSTANT, 0, 0, 0, 0,
-	OBJ_PC_REL
+static uint8_t g_relocExpr[] = {
+    OBJ_SYMBOL,   0, 0, 0, 0, //
+    OBJ_CONSTANT, 0, 0, 0, 0, //
+    OBJ_OP_ADD,               //
+    OBJ_CONSTANT, 0, 0, 0, 0, //
+    OBJ_PC_REL                //
 };
-// clang-format on
 
 #define EXPR_SIMPLE_SIZE 11
 #define EXPR_PCREL_SIZE  16
@@ -751,16 +748,16 @@ relocsToXlink(const ElfHeader* elf, const ElfSectionHeader* relocs) {
 		int exprSize = 0;
 
 		switch (rela->type) {
-		case R_68K_32:
-			patch->type = PATCH_BE_32;
-			exprSize = EXPR_SIMPLE_SIZE;
-			break;
-		case R_68K_PC32:
-			patch->type = PATCH_BE_32;
-			exprSize = EXPR_PCREL_SIZE;
-			break;
-		default:
-			error("relocsToXlink unknown relocation type (%d)", rela->type);
+			case R_68K_32:
+				patch->type = PATCH_BE_32;
+				exprSize = EXPR_SIMPLE_SIZE;
+				break;
+			case R_68K_PC32:
+				patch->type = PATCH_BE_32;
+				exprSize = EXPR_PCREL_SIZE;
+				break;
+			default:
+				error("relocsToXlink unknown relocation type (%d)", rela->type);
 		}
 
 		SSymbol* xlinkSymbol = rela->symbol->xlinkSymbol;

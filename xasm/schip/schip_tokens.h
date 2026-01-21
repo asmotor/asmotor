@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,10 +16,10 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef	XASM_SCHIP_TOKENS_H_INCLUDED_
-#define	XASM_SCHIP_TOKENS_H_INCLUDED_
+#ifndef XASM_SCHIP_TOKENS_H_INCLUDED_
+#define XASM_SCHIP_TOKENS_H_INCLUDED_
 
-typedef	enum {
+typedef enum {
 	/* reg */
 	T_CHIP_BCD = 6000,
 	T_CHIP_LDF,
@@ -102,7 +102,7 @@ typedef	enum {
 	T_CHIP_REG_RPL
 } ETargetToken;
 
-extern void 
+extern void
 schip_DefineTokens(void);
 
-#endif	//XASM_SCHIP_TOKENS_H_INCLUDED_
+#endif // XASM_SCHIP_TOKENS_H_INCLUDED_

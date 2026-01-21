@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -53,15 +53,15 @@ typedef struct Symbol {
 INLINE bool
 symbol_IsLocal(SSymbol* symbol) {
 	switch (symbol->type) {
-	case SYM_LOCAL:
-	case SYM_LOCALEXPORT:
-	case SYM_LOCALIMPORT:
-		return true;
-	default:
-	case SYM_LINKER:
-	case SYM_EXPORT:
-	case SYM_IMPORT:
-		return false;
+		case SYM_LOCAL:
+		case SYM_LOCALEXPORT:
+		case SYM_LOCALIMPORT:
+			return true;
+		default:
+		case SYM_LINKER:
+		case SYM_EXPORT:
+		case SYM_IMPORT:
+			return false;
 	}
 }
 

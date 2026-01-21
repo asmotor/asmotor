@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -24,4 +24,4 @@
 extern bool
 parse_Directive(void);
 
-#endif //PROJECT_PARSE_DIRECTIVES_H
+#endif // PROJECT_PARSE_DIRECTIVES_H

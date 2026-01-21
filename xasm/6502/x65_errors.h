@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,12 +19,12 @@
 #ifndef XASM_6502_ERRORS_H_INCLUDED_
 #define XASM_6502_ERRORS_H_INCLUDED_
 
-#include <stdlib.h>
+#include <stdio.h>
 
 typedef enum {
-    MERROR_ILLEGAL_ADDRMODE = 1000,
-    MERROR_UNDOCUMENTED_RANGE,
-    MERROR_CPU_RANGE,
+	MERROR_ILLEGAL_ADDRMODE = 1000,
+	MERROR_UNDOCUMENTED_RANGE,
+	MERROR_CPU_RANGE,
 	MERROR_UNDOCUMENTED_NOT_SUPPORTED,
 	MERROR_INSTRUCTION_NOT_SUPPORTED,
 	MERROR_16BIT_REQUIRED,

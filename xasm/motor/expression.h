@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -22,48 +22,49 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "util.h"
-#include "str.h"
 #include "section.h"
+#include "str.h"
 #include "symbol.h"
 #include "tokens.h"
+#include "util.h"
 
 struct Symbol;
 
 typedef enum {
-    EXPR_OPERATION,
-    EXPR_PC_RELATIVE,
-    EXPR_INTEGER_CONSTANT,
-    EXPR_SYMBOL,
-    EXPR_PARENS
+	EXPR_OPERATION,
+	EXPR_PC_RELATIVE,
+	EXPR_INTEGER_CONSTANT,
+	EXPR_SYMBOL,
+	EXPR_PARENS
 } EExpressionType;
 
 typedef struct Expression {
-    struct Expression* left;
-    struct Expression* right;
-    EExpressionType type;
-    bool isConstant;
-    EToken operation;
-    union {
-        long double floating;
-        int32_t integer;
-        struct Symbol* symbol;
-    } value;
+	struct Expression* left;
+	struct Expression* right;
+	EExpressionType type;
+	bool isConstant;
+	EToken operation;
+
+	union {
+		long double floating;
+		int32_t integer;
+		struct Symbol* symbol;
+	} value;
 } SExpression;
 
 INLINE EExpressionType
 expr_Type(const SExpression* expression) {
-    return expression->type;
+	return expression->type;
 }
 
 INLINE bool
 expr_IsOperator(SExpression* expression, EToken operation) {
-    return expression != NULL && expression->type == EXPR_OPERATION && expression->operation == operation;
+	return expression != NULL && expression->type == EXPR_OPERATION && expression->operation == operation;
 }
 
 INLINE bool
 expr_IsConstant(const SExpression* expression) {
-    return expression != NULL && expression->isConstant;
+	return expression != NULL && expression->isConstant;
 }
 
 extern SExpression*
@@ -212,6 +213,5 @@ expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression
 
 extern bool
 expr_GetSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression);
-
 
 #endif /* XASM_MOTOR_EXPRESSION_H_INCLUDED_ */

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -20,37 +20,37 @@
 #define XASM_DCPU16_TOKENS_H_INCLUDED_
 
 typedef enum {
-    T_DCPU16_ADD = 6000,
-    T_DCPU16_AND,
-    T_DCPU16_BOR,
-    T_DCPU16_DIV,
-    T_DCPU16_IFB,
-    T_DCPU16_IFE,
-    T_DCPU16_IFG,
-    T_DCPU16_IFN,
-    T_DCPU16_JSR,
-    T_DCPU16_MOD,
-    T_DCPU16_MUL,
-    T_DCPU16_SET,
-    T_DCPU16_SHL,
-    T_DCPU16_SHR,
-    T_DCPU16_SUB,
-    T_DCPU16_XOR,
+	T_DCPU16_ADD = 6000,
+	T_DCPU16_AND,
+	T_DCPU16_BOR,
+	T_DCPU16_DIV,
+	T_DCPU16_IFB,
+	T_DCPU16_IFE,
+	T_DCPU16_IFG,
+	T_DCPU16_IFN,
+	T_DCPU16_JSR,
+	T_DCPU16_MOD,
+	T_DCPU16_MUL,
+	T_DCPU16_SET,
+	T_DCPU16_SHL,
+	T_DCPU16_SHR,
+	T_DCPU16_SUB,
+	T_DCPU16_XOR,
 
-    T_REG_A,
-    T_REG_B,
-    T_REG_C,
-    T_REG_X,
-    T_REG_Y,
-    T_REG_Z,
-    T_REG_I,
-    T_REG_J,
-    T_REG_POP,
-    T_REG_PEEK,
-    T_REG_PUSH,
-    T_REG_SP,
-    T_REG_PC,
-    T_REG_O
+	T_REG_A,
+	T_REG_B,
+	T_REG_C,
+	T_REG_X,
+	T_REG_Y,
+	T_REG_Z,
+	T_REG_I,
+	T_REG_J,
+	T_REG_POP,
+	T_REG_PEEK,
+	T_REG_PUSH,
+	T_REG_SP,
+	T_REG_PC,
+	T_REG_O,
 } ETargetToken;
 
 extern void

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,12 +16,12 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
+#include <memory.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <memory.h>
 #include <string.h>
-#include <assert.h>
 
 #include "lists.h"
 #include "mem.h"
@@ -37,7 +37,6 @@
 #include "section.h"
 #include "symbol.h"
 #include "xasm.h"
-
 
 #define SECTION_GROWTH_AMOUNT 0x4000U
 
@@ -67,7 +66,6 @@ freeSection(SSection* section) {
 	str_Free(section->name);
 	mem_Free(section->data);
 	mem_Free(section);
-
 }
 
 static EGroupType
@@ -110,7 +108,7 @@ findSection(const string* name, SSymbol* group) {
 				if (newSection->group == group) {
 					return newSection;
 				} else {
-                    err_Error(ERROR_SECT_EXISTS);
+					err_Error(ERROR_SECT_EXISTS);
 					return NULL;
 				}
 			} else {
@@ -156,11 +154,10 @@ checkAvailableSpace(uint32_t count) {
 		}
 		return true;
 	} else {
-        err_Error(ERROR_SECTION_MISSING);
+		err_Error(ERROR_SECTION_MISSING);
 		return false;
 	}
 }
-
 
 /* Public functions */
 
@@ -168,10 +165,9 @@ uint32_t
 sect_CurrentSize(void) {
 	if (sect_Current == NULL)
 		return 0;
-		
+
 	return sect_Current->usedSpace;
 }
-
 
 void
 sect_OutputConst16At(uint16_t value, uint32_t offset) {
@@ -197,7 +193,7 @@ sect_OutputConst16At(uint16_t value, uint32_t offset) {
 				break;
 			}
 			case GROUP_BSS: {
-                err_Error(ERROR_SECTION_DATA);
+				err_Error(ERROR_SECTION_DATA);
 				break;
 			}
 			default: {
@@ -205,9 +201,8 @@ sect_OutputConst16At(uint16_t value, uint32_t offset) {
 				break;
 			}
 		}
-	}	
+	}
 }
-
 
 void
 sect_OutputConst8(uint8_t value) {
@@ -223,7 +218,7 @@ sect_OutputConst8(uint8_t value) {
 				break;
 			}
 			case GROUP_BSS: {
-                err_Error(ERROR_SECTION_DATA);
+				err_Error(ERROR_SECTION_DATA);
 				break;
 			}
 			default: {
@@ -251,7 +246,7 @@ sect_OutputReloc8(SExpression* expression) {
 				break;
 			}
 			case GROUP_BSS: {
-                err_Error(ERROR_SECTION_DATA);
+				err_Error(ERROR_SECTION_DATA);
 				sect_SkipBytes(1);
 				break;
 			}
@@ -263,11 +258,12 @@ sect_OutputReloc8(SExpression* expression) {
 	}
 }
 
-void sect_OutputExpr8(SExpression* expression) {
+void
+sect_OutputExpr8(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_8BIT);
 
 	if (expression == NULL) {
-        err_Error(ERROR_EXPR_BAD);
+		err_Error(ERROR_EXPR_BAD);
 	} else if (expr_IsConstant(expression)) {
 		sect_OutputConst8((uint8_t) expression->value.integer);
 		expr_Free(expression);
@@ -305,7 +301,7 @@ sect_OutputConst16(uint16_t value) {
 				break;
 			}
 			case GROUP_BSS: {
-                err_Error(ERROR_SECTION_DATA);
+				err_Error(ERROR_SECTION_DATA);
 				break;
 			}
 			default: {
@@ -326,7 +322,7 @@ sect_OutputReloc16(SExpression* expression) {
 				linemap_AddCurrent();
 
 				patch_Create(sect_Current, sect_Current->usedSpace, expression,
-							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_16 : PATCH_BE_16);
+				             opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_16 : PATCH_BE_16);
 
 				sect_Current->data[sect_Current->usedSpace++] = 0;
 				sect_Current->data[sect_Current->usedSpace++] = 0;
@@ -335,7 +331,7 @@ sect_OutputReloc16(SExpression* expression) {
 				break;
 			}
 			case GROUP_BSS: {
-                err_Error(ERROR_SECTION_DATA);
+				err_Error(ERROR_SECTION_DATA);
 				sect_SkipBytes(2);
 				break;
 			}
@@ -352,7 +348,7 @@ sect_OutputExpr16(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_16BIT);
 
 	if (expression == NULL) {
-        err_Error(ERROR_EXPR_BAD);
+		err_Error(ERROR_EXPR_BAD);
 	} else if (expr_IsConstant(expression)) {
 		sect_OutputConst16((uint16_t) (expression->value.integer));
 		expr_Free(expression);
@@ -394,7 +390,7 @@ sect_OutputConst32(uint32_t value) {
 				break;
 			}
 			case GROUP_BSS: {
-                err_Error(ERROR_SECTION_DATA);
+				err_Error(ERROR_SECTION_DATA);
 				break;
 			}
 			default: {
@@ -415,7 +411,7 @@ sect_OutputRel32(SExpression* expression) {
 				linemap_AddCurrent();
 
 				patch_Create(sect_Current, sect_Current->usedSpace, expression,
-							 opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_32 : PATCH_BE_32);
+				             opt_Current->endianness == ASM_LITTLE_ENDIAN ? PATCH_LE_32 : PATCH_BE_32);
 
 				sect_Current->data[sect_Current->usedSpace++] = 0;
 				sect_Current->data[sect_Current->usedSpace++] = 0;
@@ -426,7 +422,7 @@ sect_OutputRel32(SExpression* expression) {
 				break;
 			}
 			case GROUP_BSS: {
-                err_Error(ERROR_SECTION_DATA);
+				err_Error(ERROR_SECTION_DATA);
 				sect_SkipBytes(4);
 				break;
 			}
@@ -443,7 +439,7 @@ sect_OutputExpr32(SExpression* expression) {
 	assert(xasm_Configuration->minimumWordSize <= MINSIZE_32BIT);
 
 	if (expression == NULL) {
-        err_Error(ERROR_EXPR_BAD);
+		err_Error(ERROR_EXPR_BAD);
 	} else if (expr_IsConstant(expression)) {
 		sect_OutputConst32(expression->value.integer);
 		expr_Free(expression);
@@ -451,7 +447,6 @@ sect_OutputExpr32(SExpression* expression) {
 		sect_OutputRel32(expression);
 	}
 }
-
 
 void
 sect_OutputFloat32(long double value) {
@@ -462,7 +457,6 @@ sect_OutputFloat32(long double value) {
 	sect_OutputConst32(intValue);
 }
 
-
 void
 sect_OutputFloat64(long double value) {
 	double floatValue = (double) value;
@@ -472,7 +466,6 @@ sect_OutputFloat64(long double value) {
 	sect_OutputConst32((uint32_t) intValue);
 	sect_OutputConst32((uint32_t) (intValue >> 32));
 }
-
 
 void
 sect_OutputBinaryFile(string* filename) {
@@ -494,12 +487,12 @@ sect_OutputBinaryFile(string* filename) {
 					sect_Current->usedSpace += size;
 					sect_Current->cpuProgramCounter += size / xasm_Configuration->minimumWordSize;
 					if (read != size) {
-                        err_Fail(ERROR_READ);
+						err_Fail(ERROR_READ);
 					}
 					break;
 				}
 				case GROUP_BSS: {
-                    err_Error(ERROR_SECTION_DATA);
+					err_Error(ERROR_SECTION_DATA);
 					break;
 				}
 				default: {
@@ -511,7 +504,7 @@ sect_OutputBinaryFile(string* filename) {
 
 		fclose(fileHandle);
 	} else {
-        err_Error(ERROR_NO_FILE);
+		err_Error(ERROR_NO_FILE);
 	}
 
 	str_Free(filename);
@@ -576,23 +569,24 @@ sect_SwitchTo(const string* sectname, SSymbol* group) {
 }
 
 bool
-sect_SwitchTo_KIND(const string* sectname, SSymbol* group, uint32_t flags, uint32_t origin, uint32_t bank, uint32_t align, uint32_t page) {
+sect_SwitchTo_KIND(const string* sectname, SSymbol* group, uint32_t flags, uint32_t origin, uint32_t bank, uint32_t align,
+                   uint32_t page) {
 	SSection* newSection;
 
 	if ((flags & SECTF_BANKFIXED) && !xasm_Configuration->supportBanks)
 		internalerror("Banks not supported");
 
 	if ((newSection = findSection(sectname, group)) != NULL) {
-		if (newSection->flags == flags 
-		&& ((flags & SECTF_BANKFIXED) == 0 || newSection->bank == bank)
-		&& ((flags & SECTF_LOADFIXED) == 0 || newSection->cpuOrigin == origin)
-		&& ((flags & SECTF_ALIGNED) == 0 || newSection->align == align)
-		&& ((flags & SECTF_PAGED) == 0 || newSection->page == page)) {
+		if (newSection->flags == flags &&                                          //
+		    ((flags & SECTF_BANKFIXED) == 0 || newSection->bank == bank) &&        //
+		    ((flags & SECTF_LOADFIXED) == 0 || newSection->cpuOrigin == origin) && //
+		    ((flags & SECTF_ALIGNED) == 0 || newSection->align == align) &&        //
+		    ((flags & SECTF_PAGED) == 0 || newSection->page == page)) {
 			sect_Current = newSection;
 			return true;
 		}
 
-        err_Error(ERROR_SECT_EXISTS_DIFFERENT_KIND);
+		err_Error(ERROR_SECT_EXISTS_DIFFERENT_KIND);
 		return false;
 	}
 
@@ -615,7 +609,7 @@ sect_SwitchTo_NAMEONLY(const string* sectname) {
 	if ((sect_Current = findSection(sectname, NULL)) != NULL) {
 		return true;
 	} else {
-        err_Error(ERROR_NO_SECT);
+		err_Error(ERROR_NO_SECT);
 		return false;
 	}
 }
@@ -640,14 +634,14 @@ sect_Exit(void) {
 void
 sect_SetOriginAddress(uint32_t org) {
 	if (sect_Current == NULL) {
-        err_Error(ERROR_SECTION_MISSING);
+		err_Error(ERROR_SECTION_MISSING);
 	} else {
 		sect_Current->flags |= SECTF_ORGFIXED;
 		sect_Current->cpuAdjust = org - (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin);
 	}
 }
 
-uint32_t 
+uint32_t
 sect_TotalSections(void) {
 	uint32_t totalSections = 0;
 	for (const SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
@@ -683,4 +677,3 @@ sect_Pop(void) {
 
 	return false;
 }
-

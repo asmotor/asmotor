@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,23 +16,23 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "mem.h"
 #include "str.h"
 #include "strbuf.h"
 
-#include "xasm.h"
 #include "errors.h"
 #include "lexer_context.h"
 #include "options.h"
 #include "patch.h"
 #include "symbol.h"
+#include "xasm.h"
 
 static string* g_lastErrorString = NULL;
 
@@ -45,7 +45,7 @@ static char* g_warnings[] = {
     "\"MEXIT\" used outside MACRO, ignored",
     "Not inside REPT block, ignored",
     "Error in machine option %s",
-	"Symbol has reserved name",
+    "Symbol has reserved name",
 };
 
 static char* g_errors[] = {
@@ -111,64 +111,59 @@ static char* g_errors[] = {
     "Unterminated IF block (started at %s:%d)",
     "SECTION already exists but it has a different combination of options",
     "Invalid SECTION options combination",
-	"GROUP symbol cannot be redefined",
-	"An ELF section cannot be loaded at 0",
-	"Invalid outside structure scope",
-	"Cannot modify internal symbol %s",
-	"Section %s size exceeds page size"
+    "GROUP symbol cannot be redefined",
+    "An ELF section cannot be loaded at 0",
+    "Invalid outside structure scope",
+    "Cannot modify internal symbol %s",
+    "Section %s size exceeds page size",
 };
 
 static const char*
 getError(size_t errorNumber) {
-    if (errorNumber >= 1000)
-        return xasm_Configuration->getMachineError(errorNumber);
+	if (errorNumber >= 1000)
+		return xasm_Configuration->getMachineError(errorNumber);
 
-    if (errorNumber < sizeof(g_warnings) / sizeof(char*)) {
-        return g_warnings[errorNumber];
-    } else {
-        return g_errors[errorNumber - 100];
-    }
+	if (errorNumber < sizeof(g_warnings) / sizeof(char*)) {
+		return g_warnings[errorNumber];
+	} else {
+		return g_errors[errorNumber - 100];
+	}
 }
 
 typedef struct Message {
 	uint32_t lineNumber;
-    string* message;
+	string* message;
 } SMessage;
 
 typedef struct Messages {
-    uint32_t totalMessages;
-    SMessage* messages;
+	uint32_t totalMessages;
+	SMessage* messages;
 } SMessages;
 
 typedef struct SuspendedErrors {
-    struct SuspendedErrors* next;
-    SMessages errors;
-    SMessages warnings;
+	struct SuspendedErrors* next;
+	SMessages errors;
+	SMessages warnings;
 } SSuspendedErrors;
 
-static SMessages 
-g_allMessages;
+static SMessages g_allMessages;
 
-static SSuspendedErrors* 
-g_suspendedErrors = NULL;
-
-
+static SSuspendedErrors* g_suspendedErrors = NULL;
 
 static void
 initializeMessages(SMessages* msg) {
-    msg->totalMessages = 0;
-    msg->messages = NULL;
+	msg->totalMessages = 0;
+	msg->messages = NULL;
 }
-
 
 static bool
 matchesLastMessage(string* str) {
-    if (str_Equal(str, g_lastErrorString)) {
-        return true;
-    }
+	if (str_Equal(str, g_lastErrorString)) {
+		return true;
+	}
 
-    STR_ASSIGN(g_lastErrorString, str);
-    return false;
+	STR_ASSIGN(g_lastErrorString, str);
+	return false;
 }
 
 static int
@@ -182,207 +177,198 @@ compareMessages(const void* s1, const void* s2) {
 	return strcmp(str_String(m1->message), str_String(m2->message));
 }
 
-
 static void
 sortMessages(SMessages* messages) {
-    qsort(messages->messages, messages->totalMessages, sizeof(SMessage), compareMessages);
+	qsort(messages->messages, messages->totalMessages, sizeof(SMessage), compareMessages);
 }
-
 
 static void
 addMessage(SMessages* msg, SMessage* message) {
-    msg->totalMessages += 1;
-    msg->messages = (SMessage*) mem_Realloc(msg->messages, msg->totalMessages * sizeof(SMessage));
-    msg->messages[msg->totalMessages - 1].message = str_Copy(message->message);
-    msg->messages[msg->totalMessages - 1].lineNumber = message->lineNumber;
+	msg->totalMessages += 1;
+	msg->messages = (SMessage*) mem_Realloc(msg->messages, msg->totalMessages * sizeof(SMessage));
+	msg->messages[msg->totalMessages - 1].message = str_Copy(message->message);
+	msg->messages[msg->totalMessages - 1].lineNumber = message->lineNumber;
 }
-
 
 static void
 freeMessages(SMessages* msg) {
-    for (uint32_t i = 0; i < msg->totalMessages; ++i) {
-        str_Free(msg->messages[i].message);
-    }
-    mem_Free(msg->messages);
+	for (uint32_t i = 0; i < msg->totalMessages; ++i) {
+		str_Free(msg->messages[i].message);
+	}
+	mem_Free(msg->messages);
 }
-
 
 void
 err_Suspend(void) {
-    SSuspendedErrors* errors = (SSuspendedErrors*) mem_Alloc(sizeof(SSuspendedErrors));
+	SSuspendedErrors* errors = (SSuspendedErrors*) mem_Alloc(sizeof(SSuspendedErrors));
 
-    errors->next = g_suspendedErrors;
-    initializeMessages(&errors->errors);
-    initializeMessages(&errors->warnings);
+	errors->next = g_suspendedErrors;
+	initializeMessages(&errors->errors);
+	initializeMessages(&errors->warnings);
 
-    g_suspendedErrors = errors;
+	g_suspendedErrors = errors;
 }
 
 void
 err_Discard(void) {
-    assert(g_suspendedErrors != NULL);
+	assert(g_suspendedErrors != NULL);
 
-    freeMessages(&g_suspendedErrors->errors);
-    freeMessages(&g_suspendedErrors->warnings);
+	freeMessages(&g_suspendedErrors->errors);
+	freeMessages(&g_suspendedErrors->warnings);
 
-    SSuspendedErrors* block = g_suspendedErrors;
-    g_suspendedErrors = block->next;
-    mem_Free(block);    
+	SSuspendedErrors* block = g_suspendedErrors;
+	g_suspendedErrors = block->next;
+	mem_Free(block);
 }
 
 static void
 printMessages(const SMessages* messages, uint32_t* total) {
-    for (uint32_t i = 0; i < messages->totalMessages; ++i) {
-        addMessage(&g_allMessages, &messages->messages[i]);
-    }
-    *total += messages->totalMessages;
+	for (uint32_t i = 0; i < messages->totalMessages; ++i) {
+		addMessage(&g_allMessages, &messages->messages[i]);
+	}
+	*total += messages->totalMessages;
 }
 
 void
 err_Accept(void) {
-    assert(g_suspendedErrors != NULL);
-    
-    printMessages(&g_suspendedErrors->warnings, &xasm_TotalWarnings);
-    printMessages(&g_suspendedErrors->errors, &xasm_TotalErrors);
+	assert(g_suspendedErrors != NULL);
 
-    err_Discard();
+	printMessages(&g_suspendedErrors->warnings, &xasm_TotalWarnings);
+	printMessages(&g_suspendedErrors->errors, &xasm_TotalErrors);
+
+	err_Discard();
 }
 
 static void
 printError(const SPatch* patch, const SSymbol* symbol, char severity, size_t errorNumber, uint32_t* count, va_list args) {
-    string_buffer* buf = strbuf_Create();
+	string_buffer* buf = strbuf_Create();
 	uint32_t lineNumber = 0;
 
-    if (patch != NULL) {
+	if (patch != NULL) {
 		lineNumber = patch->lineNumber;
-        strbuf_AppendFormat(buf, "%s:%d: ", str_String(patch->filename), lineNumber);
-    } else if (symbol != NULL) {
+		strbuf_AppendFormat(buf, "%s:%d: ", str_String(patch->filename), lineNumber);
+	} else if (symbol != NULL) {
 		lineNumber = symbol->lineNumber;
-        strbuf_AppendFormat(buf, "%s:%d: ", str_String(symbol->fileInfo->fileName), lineNumber);
-    } else {
-        string* stack = lexctx_GetFilenameBreadcrumb();
-        strbuf_AppendString(buf, stack);
-        str_Free(stack);
+		strbuf_AppendFormat(buf, "%s:%d: ", str_String(symbol->fileInfo->fileName), lineNumber);
+	} else {
+		string* stack = lexctx_GetFilenameBreadcrumb();
+		strbuf_AppendString(buf, stack);
+		str_Free(stack);
 		lineNumber = lexctx_GetMainFileLineNumber();
-    }
-    strbuf_AppendFormat(buf, "%c%04d ", severity, (int) errorNumber);
+	}
+	strbuf_AppendFormat(buf, "%c%04d ", severity, (int) errorNumber);
 
-    strbuf_AppendArgs(buf, getError(errorNumber), args);
+	strbuf_AppendArgs(buf, getError(errorNumber), args);
 
-    string* str = strbuf_String(buf);
-    strbuf_Free(buf);
+	string* str = strbuf_String(buf);
+	strbuf_Free(buf);
 
-	SMessage message = {
-		lineNumber, str
-	};
+	SMessage message = {lineNumber, str};
 
-    if (g_suspendedErrors == NULL) {
-        addMessage(&g_allMessages, &message);
-        *count += 1;
-    } else {
-        SMessages* msg = severity == 'W' ? &g_suspendedErrors->warnings : &g_suspendedErrors->errors;
-        addMessage(msg, &message);
-    }
-    str_Free(str);
+	if (g_suspendedErrors == NULL) {
+		addMessage(&g_allMessages, &message);
+		*count += 1;
+	} else {
+		SMessages* msg = severity == 'W' ? &g_suspendedErrors->warnings : &g_suspendedErrors->errors;
+		addMessage(msg, &message);
+	}
+	str_Free(str);
 }
-
 
 static bool
 warningEnabled(uint32_t errorNumber) {
-    for (uint32_t i = 0; i < opt_Current->disabledWarningsCount; ++i) {
-        if (opt_Current->disabledWarnings[i] == errorNumber)
-            return false;
-    }
-    return true;
+	for (uint32_t i = 0; i < opt_Current->disabledWarningsCount; ++i) {
+		if (opt_Current->disabledWarnings[i] == errorNumber)
+			return false;
+	}
+	return true;
 }
 
 bool
 err_Warn(uint32_t errorNumber, ...) {
-    if (warningEnabled(errorNumber)) {
-        va_list args;
+	if (warningEnabled(errorNumber)) {
+		va_list args;
 
-        va_start(args, errorNumber);
-        printError(NULL, NULL, 'W', errorNumber, &xasm_TotalWarnings, args);
-        va_end(args);
-    }
-    return true;
+		va_start(args, errorNumber);
+		printError(NULL, NULL, 'W', errorNumber, &xasm_TotalWarnings, args);
+		va_end(args);
+	}
+	return true;
 }
 
 bool
 err_Error(uint32_t n, ...) {
-    va_list args;
+	va_list args;
 
-    va_start(args, n);
-    printError(NULL, NULL, 'E', n, &xasm_TotalErrors, args);
-    va_end(args);
+	va_start(args, n);
+	printError(NULL, NULL, 'E', n, &xasm_TotalErrors, args);
+	va_end(args);
 
-    return false;
+	return false;
 }
 
 bool
 err_PatchError(const SPatch* patch, uint32_t n, ...) {
-    va_list args;
+	va_list args;
 
-    va_start(args, n);
-    printError(patch, NULL, 'E', n, &xasm_TotalErrors, args);
-    va_end(args);
+	va_start(args, n);
+	printError(patch, NULL, 'E', n, &xasm_TotalErrors, args);
+	va_end(args);
 
-    ++xasm_TotalErrors;
-    return false;
+	++xasm_TotalErrors;
+	return false;
 }
 
 bool
 err_SymbolError(const SSymbol* symbol, uint32_t n, ...) {
-    va_list args;
+	va_list args;
 
-    va_start(args, n);
-    printError(NULL, symbol, 'E', n, &xasm_TotalErrors, args);
-    va_end(args);
+	va_start(args, n);
+	printError(NULL, symbol, 'E', n, &xasm_TotalErrors, args);
+	va_end(args);
 
-    ++xasm_TotalErrors;
-    return false;
+	++xasm_TotalErrors;
+	return false;
 }
 
 bool
 err_Fail(uint32_t n, ...) {
-    va_list args;
+	va_list args;
 
-    va_start(args, n);
-    printError(NULL, NULL, 'F', n, &xasm_TotalErrors, args);
-    va_end(args);
+	va_start(args, n);
+	printError(NULL, NULL, 'F', n, &xasm_TotalErrors, args);
+	va_end(args);
 
-    err_PrintAll();
-    exit(EXIT_FAILURE);
+	err_PrintAll();
+	exit(EXIT_FAILURE);
 }
 
 bool
 err_PatchFail(const SPatch* patch, uint32_t n, ...) {
-    va_list args;
+	va_list args;
 
-    va_start(args, n);
-    printError(patch, NULL, 'F', n, &xasm_TotalErrors, args);
-    va_end(args);
+	va_start(args, n);
+	printError(patch, NULL, 'F', n, &xasm_TotalErrors, args);
+	va_end(args);
 
-    err_PrintAll();
-    exit(EXIT_FAILURE);
+	err_PrintAll();
+	exit(EXIT_FAILURE);
 }
-
 
 void
 err_Init(void) {
-    initializeMessages(&g_allMessages);
+	initializeMessages(&g_allMessages);
 }
-
 
 void
 err_PrintAll(void) {
-    sortMessages(&g_allMessages);
-    for (uint32_t i = 0; i < g_allMessages.totalMessages; ++i) {
-        SMessage* message = &g_allMessages.messages[i];
-        if (!matchesLastMessage(message->message)) {
-            fprintf(stderr, "%s\n", str_String(message->message));
-        }
-    }
+	sortMessages(&g_allMessages);
+	for (uint32_t i = 0; i < g_allMessages.totalMessages; ++i) {
+		SMessage* message = &g_allMessages.messages[i];
+		if (!matchesLastMessage(message->message)) {
+			fprintf(stderr, "%s\n", str_String(message->message));
+		}
+	}
 	freeMessages(&g_allMessages);
 	str_Free(g_lastErrorString);
 }

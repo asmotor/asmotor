@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -26,6 +26,5 @@ parse_StringExpression(void);
 
 extern string*
 parse_ExpectStringExpression(void);
-
 
 #endif // XASM_MOTOR_PARSE_STRING_H_INCLUDED_

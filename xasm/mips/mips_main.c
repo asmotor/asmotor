@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "xasm.h"
 
@@ -29,37 +29,39 @@
 #include "mips_tokens.h"
 
 static SConfiguration g_xasmConfiguration = {
-	"motormips",
-	ASM_LITTLE_ENDIAN,
-	false,
-	false,
-	false,
-	false,
-	MINSIZE_8BIT,
-	8,
-	"CODE",
+    "motormips",
+    ASM_LITTLE_ENDIAN,
+    false,
+    false,
+    false,
+    false,
+    MINSIZE_8BIT,
+    8,
+    "CODE",
 
-	"RB",  "RH",  "RW",  NULL,
-	"DB",  "DH",  "DW",  NULL,
-	"DSB", "DSH", "DSW", NULL,
+    // clang-format off
+    "RB",  "RH",  "RW",  NULL,
+    "DB",  "DH",  "DW",  NULL,
+    "DSB", "DSH", "DSW", NULL,
+	// clang-format off
 
-	mips_GetError,
-	mips_DefineTokens,
-	mips_DefineSymbols,
+    mips_GetError,
+    mips_DefineTokens,
+    mips_DefineSymbols,
 
-	mips_AllocOptions,
-	mips_SetDefaultOptions,
-	mips_CopyOptions,
-	mips_ParseOption,
-	mips_OptionsUpdated,
-	mips_PrintOptions,
+    mips_AllocOptions,
+    mips_SetDefaultOptions,
+    mips_CopyOptions,
+    mips_ParseOption,
+    mips_OptionsUpdated,
+    mips_PrintOptions,
 
-	mips_ParseFunction,
-	mips_ParseInstruction,
+    mips_ParseFunction,
+    mips_ParseInstruction,
 
-	mips_AssignSection,
+    mips_AssignSection,
 
-	mips_IsValidLocalName
+    mips_IsValidLocalName,
 };
 
 extern int

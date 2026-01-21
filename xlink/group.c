@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -332,19 +332,19 @@ group_GetProperty(uint32_t groupId, ESymbolProperty property, SSection** section
 	}
 
 	switch (property) {
-	case PROP_START: {
-		*section = start;
-		*value = start->cpuLocation != -1 ? start->cpuLocation : 0;
-		break;
-	}
-	case PROP_SIZE: {
-		*section = NULL;
-		*value = (end->cpuLocation != -1 ? end->cpuLocation + end->size : end->size) -
-		         (start->cpuLocation != -1 ? start->cpuLocation : 0);
-		break;
-	}
-	default:
-		error("Internal error - invalid property ID");
+		case PROP_START: {
+			*section = start;
+			*value = start->cpuLocation != -1 ? start->cpuLocation : 0;
+			break;
+		}
+		case PROP_SIZE: {
+			*section = NULL;
+			*value = (end->cpuLocation != -1 ? end->cpuLocation + end->size : end->size) -
+			         (start->cpuLocation != -1 ? start->cpuLocation : 0);
+			break;
+		}
+		default:
+			error("Internal error - invalid property ID");
 	}
 }
 

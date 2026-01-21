@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -18,11 +18,11 @@
 
 #include "xasm.h"
 
+#include "errors.h"
 #include "expression.h"
 #include "lexer.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "errors.h"
 #include "section.h"
 
 #include "schip_parse.h"
@@ -30,28 +30,28 @@
 
 SExpression*
 schip_ParseExpressionU12(void) {
-    SExpression* expression = parse_Expression(1);
-    if (expression == NULL)
-        return NULL;
+	SExpression* expression = parse_Expression(1);
+	if (expression == NULL)
+		return NULL;
 
-    expression = expr_CheckRange(expression, 0, 4095);
-    if (expression == NULL)
-        err_Error(ERROR_OPERAND_RANGE);
-    return expression;
+	expression = expr_CheckRange(expression, 0, 4095);
+	if (expression == NULL)
+		err_Error(ERROR_OPERAND_RANGE);
+	return expression;
 }
 
 SExpression*
 schip_ParseFunction(void) {
-    switch (lex_Context->token.id) {
-        default:
-            return NULL;
-    }
+	switch (lex_Context->token.id) {
+		default:
+			return NULL;
+	}
 }
 
 bool
 schip_ParseInstruction(void) {
-    if (schip_ParseIntegerInstruction())
-        return true;
+	if (schip_ParseIntegerInstruction())
+		return true;
 
-    return false;
+	return false;
 }

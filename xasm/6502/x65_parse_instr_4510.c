@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -34,25 +34,22 @@
 #include "x65_tokens.h"
 
 typedef struct Parser {
-    uint8_t baseOpcode;
-    uint32_t allowedModes;
+	uint8_t baseOpcode;
+	uint32_t allowedModes;
 	EImmediateSize immSize;
-    bool (* handler)(uint8_t baseOpcode, SAddressingMode* addrMode);
+	bool (*handler)(uint8_t baseOpcode, SAddressingMode* addrMode);
 } SParser;
-
 
 typedef struct QMnemonic {
 	uint32_t allowedModes;
 	ETargetToken token;
 } SQMnemonic;
 
-
 static bool
 handle_Implicit(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
 	return true;
 }
-
 
 static bool
 handle_ASR(uint8_t baseOpcode, SAddressingMode* addrMode) {
@@ -76,7 +73,6 @@ handle_ASR(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 	return true;
 }
-	
 
 static bool
 handle_ASW(uint8_t baseOpcode, SAddressingMode* addrMode) {
@@ -88,7 +84,6 @@ handle_ASW(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 	return true;
 }
-	
 
 static bool
 handle_LDZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
@@ -110,7 +105,6 @@ handle_LDZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 	return true;
 }
-	
 
 static bool
 handle_CPZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
@@ -132,7 +126,6 @@ handle_CPZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 	return true;
 }
-	
 
 static bool
 handle_INW_DEW(uint8_t baseOpcode, SAddressingMode* addrMode) {
@@ -146,7 +139,6 @@ handle_INW_DEW(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 	return true;
 }
-	
 
 static bool
 handle_PHW(uint8_t baseOpcode, SAddressingMode* addrMode) {
@@ -164,7 +156,6 @@ handle_PHW(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 	return true;
 }
-	
 
 static bool
 handle_ROW(uint8_t baseOpcode, SAddressingMode* addrMode) {
@@ -178,24 +169,22 @@ handle_ROW(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 	return true;
 }
-	
 
 static bool
 handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
-    sect_OutputConst8(baseOpcode);
+	sect_OutputConst8(baseOpcode);
 
-    SExpression* expression = expr_PcRelative(addrMode->expr, -1);
-    expression = expr_CheckRange(expression, -32768, 32767);
-    if (expression == NULL) {
-        err_Error(ERROR_OPERAND_RANGE);
-        return true;
-    } else {
-        sect_OutputExpr16(expression);
-    }
+	SExpression* expression = expr_PcRelative(addrMode->expr, -1);
+	expression = expr_CheckRange(expression, -32768, 32767);
+	if (expression == NULL) {
+		err_Error(ERROR_OPERAND_RANGE);
+		return true;
+	} else {
+		sect_OutputExpr16(expression);
+	}
 
-    return true;
+	return true;
 }
-
 
 static bool
 handle_LDQImm(SAddressingMode* addrMode) {
@@ -207,37 +196,37 @@ handle_LDQImm(SAddressingMode* addrMode) {
 			uint8_t y = (uint8_t) ((imm >> 16) & 0xFF);
 			uint8_t z = (uint8_t) ((imm >> 24) & 0xFF);
 
-			sect_OutputConst8(0xA9);	// LDA
+			sect_OutputConst8(0xA9); // LDA
 			sect_OutputConst8(a);
 
 			if (a == x) {
-				sect_OutputConst8(0xAA);	// TAX
+				sect_OutputConst8(0xAA); // TAX
 			} else {
-				sect_OutputConst8(0xA2);	// LDX
+				sect_OutputConst8(0xA2); // LDX
 				sect_OutputConst8(x);
 			}
 
 			if (a == y) {
-				sect_OutputConst8(0xA8);	// TAX
+				sect_OutputConst8(0xA8); // TAX
 			} else {
-				sect_OutputConst8(0xA0);	// LDY
+				sect_OutputConst8(0xA0); // LDY
 				sect_OutputConst8(y);
 			}
 
 			if (a == z) {
-				sect_OutputConst8(0x4B);	// TAZ
+				sect_OutputConst8(0x4B); // TAZ
 			} else {
-				sect_OutputConst8(0xA3);	// LDZ
+				sect_OutputConst8(0xA3); // LDZ
 				sect_OutputConst8(z);
 			}
 		} else {
-			sect_OutputConst8(0xA9);	// LDA
+			sect_OutputConst8(0xA9); // LDA
 			sect_OutputExpr8(expr_And(expr_Copy(addrMode->expr), expr_Const(0xFF)));
-			sect_OutputConst8(0xA2);	// LDX
+			sect_OutputConst8(0xA2); // LDX
 			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(8)), expr_Const(0xFF)));
-			sect_OutputConst8(0xA0);	// LDY
+			sect_OutputConst8(0xA0); // LDY
 			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(16)), expr_Const(0xFF)));
-			sect_OutputConst8(0xA3);	// LDZ
+			sect_OutputConst8(0xA3); // LDZ
 			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(24)), expr_Const(0xFF)));
 		}
 	} else {
@@ -246,64 +235,59 @@ handle_LDQImm(SAddressingMode* addrMode) {
 	return true;
 }
 
-
-static SParser
-g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
-	{ 0x43, MODE_A | MODE_ZP | MODE_ZP_X, IMM_NONE, handle_ASR },			/* ASR */
-	{ 0xCB, MODE_ABS, IMM_NONE, handle_ASW },			/* ASW */
-    { 0x63, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* BSR */
-	{ 0x02, MODE_NONE, IMM_NONE, handle_Implicit },		/* CLE */
-	{ 0xC2, MODE_IMM | MODE_ZP | MODE_ABS, IMM_8_BIT, handle_CPZ },			/* CPZ */
-	{ 0xC3, MODE_ZP, IMM_NONE, handle_INW_DEW },				/* DEW */
-	{ 0x3B, MODE_NONE, IMM_NONE, handle_Implicit },		/* DEZ */
-    { 0xE3, MODE_ZP, IMM_NONE, handle_INW_DEW },		/* INW */
-    { 0x1B, MODE_NONE, IMM_NONE, handle_Implicit },		/* INZ */
-    { 0x93, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBCC */
-    { 0xB3, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBCS */
-    { 0xF3, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBEQ */
-    { 0x33, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBMI */
-    { 0xD3, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBNE */
-    { 0x13, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBPL */
-    { 0x83, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBRA */
-    { 0x53, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBVC */
-    { 0x73, MODE_ABS,  IMM_NONE, handle_LongBranch },	/* LBVS */
-    { 0xA3, MODE_IMM | MODE_ABS | MODE_ABS_X,  IMM_NONE, handle_LDZ },	/* LDZ */
-	{ 0x5C, MODE_NONE, IMM_NONE, handle_Implicit },		/* MAP */
-	{ 0x42, MODE_NONE, IMM_NONE, handle_Implicit },		/* NEG */
-	{ 0xF4, MODE_IMM | MODE_ABS, IMM_16_BIT, handle_PHW },		/* PHW */
-	{ 0xDB, MODE_NONE, IMM_NONE, handle_Implicit },		/* PHZ */
-	{ 0xFB, MODE_NONE, IMM_NONE, handle_Implicit },		/* PLZ */
-	{ 0xEB, MODE_ABS, IMM_NONE, handle_ROW },		/* ROW */
-	{ 0x03, MODE_NONE, IMM_NONE, handle_Implicit },		/* SEE */
-	{ 0x5B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TAB */
-	{ 0x4B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TAZ */
-	{ 0x7B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TBA */
-	{ 0x0B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TSY */
-	{ 0x2B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TYS */
-	{ 0x6B, MODE_NONE, IMM_NONE, handle_Implicit },		/* TZA */
+static SParser g_instructionHandlers[T_4510_TZA - T_4510_ASR + 1] = {
+    {0x43, MODE_A | MODE_ZP | MODE_ZP_X,     IMM_NONE,   handle_ASR       }, /* ASR */
+    {0xCB, MODE_ABS,                         IMM_NONE,   handle_ASW       }, /* ASW */
+    {0x63, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* BSR */
+    {0x02, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* CLE */
+    {0xC2, MODE_IMM | MODE_ZP | MODE_ABS,    IMM_8_BIT,  handle_CPZ       }, /* CPZ */
+    {0xC3, MODE_ZP,                          IMM_NONE,   handle_INW_DEW   }, /* DEW */
+    {0x3B, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* DEZ */
+    {0xE3, MODE_ZP,                          IMM_NONE,   handle_INW_DEW   }, /* INW */
+    {0x1B, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* INZ */
+    {0x93, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* LBCC */
+    {0xB3, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* LBCS */
+    {0xF3, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* LBEQ */
+    {0x33, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* LBMI */
+    {0xD3, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* LBNE */
+    {0x13, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* LBPL */
+    {0x83, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* LBRA */
+    {0x53, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* LBVC */
+    {0x73, MODE_ABS,                         IMM_NONE,   handle_LongBranch}, /* LBVS */
+    {0xA3, MODE_IMM | MODE_ABS | MODE_ABS_X, IMM_NONE,   handle_LDZ       }, /* LDZ */
+    {0x5C, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* MAP */
+    {0x42, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* NEG */
+    {0xF4, MODE_IMM | MODE_ABS,              IMM_16_BIT, handle_PHW       }, /* PHW */
+    {0xDB, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* PHZ */
+    {0xFB, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* PLZ */
+    {0xEB, MODE_ABS,                         IMM_NONE,   handle_ROW       }, /* ROW */
+    {0x03, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* SEE */
+    {0x5B, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* TAB */
+    {0x4B, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* TAZ */
+    {0x7B, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* TBA */
+    {0x0B, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* TSY */
+    {0x2B, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* TYS */
+    {0x6B, MODE_NONE,                        IMM_NONE,   handle_Implicit  }, /* TZA */
 };
 
-
-static SQMnemonic
-g_qMnemonics[T_45GS02_STQ + 1 - T_45GS02_ADCQ] = {
-	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_ADC },
-	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_AND },
-	{ MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ASL },
-	{ MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ZP_X, T_4510_ASR },
-	{ MODE_ZP | MODE_ABS, T_6502_BIT },
-	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_CMP },
-	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_DEC },
-	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_EOR },
-	{ MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_INC },
-	{ MODE_IMM | MODE_ZP | MODE_ABS | MODE_4510_IND_ZP_Z | MODE_45GS02_IND_ZP_Z_QUAD, T_6502_LDA },
-	{ MODE_IMM |MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_LSR },
-	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_ORA },
-	{ MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ROL },
-	{ MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X, T_6502_ROR },
-	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_SBC },
-	{ MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD, T_6502_STA }
+static SQMnemonic g_qMnemonics[T_45GS02_STQ + 1 - T_45GS02_ADCQ] = {
+    {MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD,                     T_6502_ADC},
+    {MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD,                     T_6502_AND},
+    {MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X,         T_6502_ASL},
+    {MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ZP_X,                                 T_4510_ASR},
+    {MODE_ZP | MODE_ABS,                                                             T_6502_BIT},
+    {MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD,                     T_6502_CMP},
+    {MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X,                    T_6502_DEC},
+    {MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD,                     T_6502_EOR},
+    {MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X,                    T_6502_INC},
+    {MODE_IMM | MODE_ZP | MODE_ABS | MODE_4510_IND_ZP_Z | MODE_45GS02_IND_ZP_Z_QUAD, T_6502_LDA},
+    {MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X,         T_6502_LSR},
+    {MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD,                     T_6502_ORA},
+    {MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X,         T_6502_ROL},
+    {MODE_IMM | MODE_45GS02_Q | MODE_ZP | MODE_ABS | MODE_ZP_X | MODE_ABS_X,         T_6502_ROR},
+    {MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD,                     T_6502_SBC},
+    {MODE_ZP | MODE_ABS | MODE_IND_ZP | MODE_45GS02_IND_ZP_QUAD,                     T_6502_STA}
 };
-
 
 bool
 x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
@@ -331,8 +315,9 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 
 				if (x65_ParseAddressingMode(&addrMode, allowedModes, handler4510->immSize) && (addrMode.mode & allowedModes)) {
 					// ASRQ #imm
-					if ((handler->token == T_4510_ASR) && addrMode.mode == MODE_IMM && expr_IsConstant(addrMode.expr) && opt_Current->machineOptions->synthesized) {
-						SAddressingMode modeImm1 = { .mode = MODE_45GS02_Q };
+					if ((handler->token == T_4510_ASR) && addrMode.mode == MODE_IMM && expr_IsConstant(addrMode.expr) &&
+					    opt_Current->machineOptions->synthesized) {
+						SAddressingMode modeImm1 = {.mode = MODE_45GS02_Q};
 
 						for (uint32_t i = 0; i < (uint32_t) addrMode.expr->value.integer; ++i) {
 							sect_OutputConst8(0x42);
@@ -353,7 +338,8 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 				SAddressingMode addrMode;
 				allowedModes = allowedModes & handler->allowedModes;
 
-				if (x65_ParseAddressingMode(&addrMode, allowedModes, token == T_45GS02_LDQ ? IMM_32_BIT : IMM_NONE) && (addrMode.mode & allowedModes)) {
+				if (x65_ParseAddressingMode(&addrMode, allowedModes, token == T_45GS02_LDQ ? IMM_32_BIT : IMM_NONE) &&
+				    (addrMode.mode & allowedModes)) {
 					// Bit of a hack, modes as they use same encoding with different prefix
 					switch (addrMode.mode) {
 						case MODE_45GS02_IND_ZP_QUAD:
@@ -366,9 +352,11 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 							break;
 					}
 
-					if ((handler->token == T_6502_ASL || handler->token == T_6502_LSR || handler->token == T_6502_ROL || handler->token == T_6502_ROR) && addrMode.mode == MODE_IMM && expr_IsConstant(addrMode.expr) && opt_Current->machineOptions->synthesized) {
+					if ((handler->token == T_6502_ASL || handler->token == T_6502_LSR || handler->token == T_6502_ROL ||
+					     handler->token == T_6502_ROR) &&
+					    addrMode.mode == MODE_IMM && expr_IsConstant(addrMode.expr) && opt_Current->machineOptions->synthesized) {
 						// ASLQ, LSRQ, ROLQ, RORQ #imm
-						SAddressingMode modeImmA = { .mode = MODE_A };
+						SAddressingMode modeImmA = {.mode = MODE_A};
 						for (uint32_t i = 0; i < (uint32_t) addrMode.expr->value.integer; ++i) {
 							sect_OutputConst8(0x42);
 							sect_OutputConst8(0x42);
@@ -376,11 +364,11 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 								return false;
 						}
 						return true;
-					} 
+					}
 
 					if (token == T_45GS02_LDQ && addrMode.mode == MODE_IMM) {
 						return handle_LDQImm(&addrMode);
-					} 
+					}
 
 					sect_OutputConst8(0x42);
 					sect_OutputConst8(0x42);
@@ -394,7 +382,6 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 	}
 	return false;
 }
-
 
 bool
 x65_Parse4510Instruction(void) {

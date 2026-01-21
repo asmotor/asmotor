@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -87,34 +87,34 @@ sega_CalcSizeCode(uint8_t code, size_t fileSize) {
 	uint8_t newCode = 0;
 
 	switch (fileSize) {
-	case 0x002000:
-		newCode = 0x0A;
-		break;
-	case 0x004000:
-		newCode = 0x0B;
-		break;
-	case 0x008000:
-		newCode = 0x0C;
-		break;
-	case 0x00C000:
-		newCode = 0x0D;
-		break;
-	case 0x010000:
-		newCode = 0x0E;
-		break;
-	case 0x020000:
-		newCode = 0x0F;
-		break;
-	case 0x040000:
-		newCode = 0x00;
-		break;
-	case 0x080000:
-		newCode = 0x01;
-		break;
-	default:
-	case 0x100000:
-		newCode = 0x02;
-		break;
+		case 0x002000:
+			newCode = 0x0A;
+			break;
+		case 0x004000:
+			newCode = 0x0B;
+			break;
+		case 0x008000:
+			newCode = 0x0C;
+			break;
+		case 0x00C000:
+			newCode = 0x0D;
+			break;
+		case 0x010000:
+			newCode = 0x0E;
+			break;
+		case 0x020000:
+			newCode = 0x0F;
+			break;
+		case 0x040000:
+			newCode = 0x00;
+			break;
+		case 0x080000:
+			newCode = 0x01;
+			break;
+		default:
+		case 0x100000:
+			newCode = 0x02;
+			break;
 	}
 
 	return (uint8_t) ((code & 0xF0U) | newCode);

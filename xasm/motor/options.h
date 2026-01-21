@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -24,30 +24,30 @@
 #define MAX_DISABLED_WARNINGS 32
 
 typedef enum {
-    ASM_LITTLE_ENDIAN,
-    ASM_BIG_ENDIAN
+	ASM_LITTLE_ENDIAN,
+	ASM_BIG_ENDIAN
 } EEndianness;
 
 struct MachineOptions;
 
 typedef struct Options {
-    list_Data(struct Options);
+	list_Data(struct Options);
 
-    EEndianness endianness;
-    uint8_t binaryLiteralCharacters[2];
-    uint8_t gameboyLiteralCharacters[4];
-    uint8_t uninitializedValue;
+	EEndianness endianness;
+	uint8_t binaryLiteralCharacters[2];
+	uint8_t gameboyLiteralCharacters[4];
+	uint8_t uninitializedValue;
 
-    int32_t sectionAlignment;
+	int32_t sectionAlignment;
 
-    uint8_t disabledWarningsCount;
-    uint16_t disabledWarnings[MAX_DISABLED_WARNINGS];
+	uint8_t disabledWarningsCount;
+	uint16_t disabledWarnings[MAX_DISABLED_WARNINGS];
 
-    struct MachineOptions* machineOptions;
+	struct MachineOptions* machineOptions;
 
-    bool allowReservedKeywordLabels;
+	bool allowReservedKeywordLabels;
 
-    bool enableDebugInfo;
+	bool enableDebugInfo;
 
 	bool createGroups;
 } SOptions;

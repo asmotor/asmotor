@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,9 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-
+#include "options.h"
 #include "xasm.h"
 
 #include "m68k_errors.h"
@@ -28,39 +26,40 @@
 #include "m68k_symbols.h"
 #include "m68k_tokens.h"
 
-static SConfiguration
-g_680x0Configuration = {
-	"motor68k",
-	ASM_BIG_ENDIAN,
-	false,
-	true,
-	true,
-	true,
-	MINSIZE_8BIT,
-	8,
-	"CODE",
+static SConfiguration g_680x0Configuration = {
+    "motor68k",
+    ASM_BIG_ENDIAN,
+    false,
+    true,
+    true,
+    true,
+    MINSIZE_8BIT,
+    8,
+    "CODE",
 
+    // clang-format off
 	"RS.B", "RS.W", "RS.L", "RS.D",
 	"DC.B", "DC.W", "DC.L", "DC.D",
 	"DS.B", "DS.W", "DS.L", "DS.D",
+    // clang-format on
 
-	m68k_GetError,
-	m68k_DefineTokens,
-	m68k_DefineSymbols,
+    m68k_GetError,
+    m68k_DefineTokens,
+    m68k_DefineSymbols,
 
-	m68k_AllocOptions,
-	m68k_SetDefaults,
-	m68k_CopyOptions,
-	m68k_ParseOption,
-	m68k_OptionsUpdated,
-	m68k_PrintOptions,
+    m68k_AllocOptions,
+    m68k_SetDefaults,
+    m68k_CopyOptions,
+    m68k_ParseOption,
+    m68k_OptionsUpdated,
+    m68k_PrintOptions,
 
-	m68k_ParseFunction,
-	m68k_ParseInstruction,
+    m68k_ParseFunction,
+    m68k_ParseInstruction,
 
-	m68k_AssignSection,
+    m68k_AssignSection,
 
-	m68k_IsValidLocalName
+    m68k_IsValidLocalName,
 };
 
 extern int

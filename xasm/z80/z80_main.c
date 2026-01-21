@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "xasm.h"
 
@@ -28,39 +28,39 @@
 #include "z80_symbols.h"
 #include "z80_tokens.h"
 
-SConfiguration
-z80_XasmConfiguration = {
-	"motorz80",
-	ASM_LITTLE_ENDIAN,
-	true,
-	false,
-	false,
-	false,
-	MINSIZE_8BIT,
-	1,
-	"HOME",
+SConfiguration z80_XasmConfiguration = {
+    "motorz80",
+    ASM_LITTLE_ENDIAN,
+    true,
+    false,
+    false,
+    false,
+    MINSIZE_8BIT,
+    1,
+    "HOME",
+    // clang-format off
+    "RB", "RW", NULL, NULL,
+    "DB", "DW", NULL, NULL,
+    "DS", NULL, NULL, NULL,
+    // clang-format on
 
-	"RB", "RW", NULL, NULL,
-	"DB", "DW", NULL, NULL,
-	"DS", NULL, NULL, NULL,
+    z80_GetError,
+    z80_DefineTokens,
+    z80_DefineSymbols,
 
-	z80_GetError,
-	z80_DefineTokens,
-	z80_DefineSymbols,
+    z80_AllocOptions,
+    z80_SetDefaultOptions,
+    z80_CopyOptions,
+    z80_ParseOption,
+    z80_OptionsUpdated,
+    z80_PrintOptions,
 
-	z80_AllocOptions,
-	z80_SetDefaultOptions,
-	z80_CopyOptions,
-	z80_ParseOption,
-	z80_OptionsUpdated,
-	z80_PrintOptions,
+    z80_ParseFunction,
+    z80_ParseInstruction,
 
-	z80_ParseFunction,
-	z80_ParseInstruction,
+    z80_AssignSection,
 
-	z80_AssignSection,
-
-	z80_IsValidLocalName
+    z80_IsValidLocalName,
 };
 
 extern int

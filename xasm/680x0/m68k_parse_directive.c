@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -30,60 +30,60 @@
 
 bool
 m68k_ParseDirective(void) {
-    switch (lex_Context->token.id) {
-        case T_68K_MC68000:
-            opt_Current->machineOptions->cpu = CPUF_68000;
-            parse_GetToken();
-            return true;
-        case T_68K_MC68010:
-            opt_Current->machineOptions->cpu = CPUF_68010;
-            parse_GetToken();
-            return true;
-        case T_68K_MC68020:
-            opt_Current->machineOptions->cpu = CPUF_68020;
-            parse_GetToken();
-            return true;
-        case T_68K_MC68030:
-            opt_Current->machineOptions->cpu = CPUF_68030;
-            parse_GetToken();
-            return true;
-        case T_68K_MC68040:
-            opt_Current->machineOptions->cpu = CPUF_68040;
-            parse_GetToken();
-            return true;
-        case T_68K_MC68060:
-            opt_Current->machineOptions->cpu = CPUF_68060;
-            parse_GetToken();
-            return true;
-        case T_68K_MC68080:
-            opt_Current->machineOptions->cpu = CPUF_68080;
-            parse_GetToken();
-            return true;
-        case T_68K_FPU6888X:
-            opt_Current->machineOptions->fpu = FPUF_6888X;
-            parse_GetToken();
-            return true;
-        case T_68K_FPU68040:
-            opt_Current->machineOptions->fpu = FPUF_68040;
-            parse_GetToken();
-            return true;
-        case T_68K_FPU68060:
-            opt_Current->machineOptions->fpu = FPUF_68060;
-            parse_GetToken();
-            return true;
-        case T_68K_FPU68080:
-            opt_Current->machineOptions->fpu = FPUF_68080;
-            parse_GetToken();
-            return true;
-        case T_68K_REGMASKADD:
-            parse_GetToken();
-            m68k_AddRegmask(parse_ConstantExpression());
-            return true;
-        case T_68K_REGMASKRESET:
-            m68k_ResetRegmask();
-            parse_GetToken();
-            return true;
-        default:
-            return false;
-    }
+	switch (lex_Context->token.id) {
+		case T_68K_MC68000:
+			opt_Current->machineOptions->cpu = CPUF_68000;
+			parse_GetToken();
+			return true;
+		case T_68K_MC68010:
+			opt_Current->machineOptions->cpu = CPUF_68010;
+			parse_GetToken();
+			return true;
+		case T_68K_MC68020:
+			opt_Current->machineOptions->cpu = CPUF_68020;
+			parse_GetToken();
+			return true;
+		case T_68K_MC68030:
+			opt_Current->machineOptions->cpu = CPUF_68030;
+			parse_GetToken();
+			return true;
+		case T_68K_MC68040:
+			opt_Current->machineOptions->cpu = CPUF_68040;
+			parse_GetToken();
+			return true;
+		case T_68K_MC68060:
+			opt_Current->machineOptions->cpu = CPUF_68060;
+			parse_GetToken();
+			return true;
+		case T_68K_MC68080:
+			opt_Current->machineOptions->cpu = CPUF_68080;
+			parse_GetToken();
+			return true;
+		case T_68K_FPU6888X:
+			opt_Current->machineOptions->fpu = FPUF_6888X;
+			parse_GetToken();
+			return true;
+		case T_68K_FPU68040:
+			opt_Current->machineOptions->fpu = FPUF_68040;
+			parse_GetToken();
+			return true;
+		case T_68K_FPU68060:
+			opt_Current->machineOptions->fpu = FPUF_68060;
+			parse_GetToken();
+			return true;
+		case T_68K_FPU68080:
+			opt_Current->machineOptions->fpu = FPUF_68080;
+			parse_GetToken();
+			return true;
+		case T_68K_REGMASKADD:
+			parse_GetToken();
+			m68k_AddRegmask(parse_ConstantExpression());
+			return true;
+		case T_68K_REGMASKRESET:
+			m68k_ResetRegmask();
+			parse_GetToken();
+			return true;
+		default:
+			return false;
+	}
 }

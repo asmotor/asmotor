@@ -1,19 +1,19 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
-	This file is part of ASMotor.
+    This file is part of ASMotor.
 
-	ASMotor is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    ASMotor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	ASMotor is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    ASMotor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*  char	ID[3]="XOB";
@@ -93,11 +93,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "util.h"
 #include "file.h"
 #include "lists.h"
 #include "mem.h"
 #include "str.h"
+#include "util.h"
 
 #include "expression.h"
 #include "lexer_context.h"
@@ -110,7 +110,6 @@
 #include "tokens.h"
 #include "xasm.h"
 
-
 /* Private functions */
 
 static uint32_t
@@ -119,26 +118,27 @@ writeSymbols(SSection* section, FILE* fileHandle, SExpression* expression, uint3
 		nextId = writeSymbols(section, fileHandle, expression->left, nextId);
 		nextId = writeSymbols(section, fileHandle, expression->right, nextId);
 
-		if (expr_Type(expression) == EXPR_SYMBOL || (xasm_Configuration->supportBanks && expr_IsOperator(expression, T_FUNC_BANK))) {
+		if (expr_Type(expression) == EXPR_SYMBOL ||
+		    (xasm_Configuration->supportBanks && expr_IsOperator(expression, T_FUNC_BANK))) {
 			SSymbol* symbol = expression->value.symbol;
 			if (symbol->id == UINT32_MAX) {
 				symbol->id = nextId++;
 				fputsz(str_String(symbol->name), fileHandle);
 				if (symbol->section == section) {
 					if (symbol->flags & SYMF_FILE_EXPORT) {
-						fputll(3, fileHandle);    //	LOCALEXPORT
+						fputll(3, fileHandle); //	LOCALEXPORT
 						fputll((uint32_t) symbol->value.integer, fileHandle);
 					} else if (symbol->flags & SYMF_EXPORT) {
-						fputll(0, fileHandle);    //	EXPORT
+						fputll(0, fileHandle); //	EXPORT
 						fputll((uint32_t) symbol->value.integer, fileHandle);
 					} else {
-						fputll(2, fileHandle);    //	LOCAL
+						fputll(2, fileHandle); //	LOCAL
 						fputll((uint32_t) symbol->value.integer, fileHandle);
 					}
 				} else if (symbol->type == SYM_IMPORT || symbol->type == SYM_GLOBAL) {
-					fputll(1, fileHandle);    //	IMPORT
+					fputll(1, fileHandle); //	IMPORT
 				} else {
-					fputll(4, fileHandle);    //	LOCALIMPORT
+					fputll(4, fileHandle); //	LOCALIMPORT
 				}
 
 				if (opt_Current->enableDebugInfo) {
@@ -166,11 +166,11 @@ writeSymbolsWithFlags(FILE* fileHandle, SSection* section, uint32_t symbolId, ui
 
 				fputsz(str_String(sym->name), fileHandle);
 				if (sym->flags & SYMF_EXPORT)
-					fputll(0, fileHandle);    //	EXPORT
+					fputll(0, fileHandle); //	EXPORT
 				else if (sym->flags & SYMF_FILE_EXPORT)
-					fputll(3, fileHandle);    //	LOCALEXPORT
+					fputll(3, fileHandle); //	LOCALEXPORT
 				else if (sym->flags & SYMF_RELOC)
-					fputll(2, fileHandle);    //	LOCAL
+					fputll(2, fileHandle); //	LOCAL
 				else
 					assert(false);
 
@@ -196,8 +196,9 @@ markLocalExportsInExpression(SSection* section, SExpression* expression) {
 		markLocalExportsInExpression(section, expression->left);
 		markLocalExportsInExpression(section, expression->right);
 
-		if ((expr_Type(expression) == EXPR_SYMBOL || (xasm_Configuration->supportBanks && expr_IsOperator(expression, T_FUNC_BANK)))
-			&& (expression->value.symbol->flags & SYMF_EXPORTABLE) && expression->value.symbol->section != section) {
+		if ((expr_Type(expression) == EXPR_SYMBOL ||
+		     (xasm_Configuration->supportBanks && expr_IsOperator(expression, T_FUNC_BANK))) &&
+		    (expression->value.symbol->flags & SYMF_EXPORTABLE) && expression->value.symbol->section != section) {
 			expression->value.symbol->flags |= SYMF_FILE_EXPORT;
 		}
 	}
@@ -321,7 +322,7 @@ writeExpression(FILE* fileHandle, SExpression* expression) {
 						fputc(OBJ_FUNC_ATAN, fileHandle);
 						break;
 					case T_FUNC_BANK: {
-						assert (xasm_Configuration->supportBanks);
+						assert(xasm_Configuration->supportBanks);
 						fputc(OBJ_FUNC_BANK, fileHandle);
 						fputll(expression->value.symbol->id, fileHandle);
 						break;
@@ -395,17 +396,17 @@ writeGroups(FILE* fileHandle) {
 
 static void
 writeExportedConstantsSection(FILE* fileHandle) {
-	fputll(UINT32_MAX, fileHandle);  //	GroupID , -1 for EQU symbols
-	fputc(0, fileHandle);            //	Name
-	fputll(UINT32_MAX, fileHandle);  //	Bank
-	fputll(UINT32_MAX, fileHandle);  //	Org
-	fputll(UINT32_MAX, fileHandle);  //	BasePC
-	fputll(UINT32_MAX, fileHandle);  //	Align
-	fputc(0, fileHandle);            //	Root
-	fputll(UINT32_MAX, fileHandle);  //	Page
+	fputll(UINT32_MAX, fileHandle); //	GroupID , -1 for EQU symbols
+	fputc(0, fileHandle);           //	Name
+	fputll(UINT32_MAX, fileHandle); //	Bank
+	fputll(UINT32_MAX, fileHandle); //	Org
+	fputll(UINT32_MAX, fileHandle); //	BasePC
+	fputll(UINT32_MAX, fileHandle); //	Align
+	fputc(0, fileHandle);           //	Root
+	fputll(UINT32_MAX, fileHandle); //	Page
 
 	off_t symbolCountPos = ftell(fileHandle);
-	fputll(0, fileHandle);        //	Number of symbols
+	fputll(0, fileHandle); //	Number of symbols
 	uint32_t integerExportCount = 0;
 
 	for (uint_fast16_t i = 0; i < SYMBOL_HASH_SIZE; ++i) {
@@ -413,7 +414,7 @@ writeExportedConstantsSection(FILE* fileHandle) {
 			if ((sym->type == SYM_EQU || sym->type == SYM_SET) && (sym->flags & SYMF_EXPORT)) {
 				++integerExportCount;
 				fputsz(str_String(sym->name), fileHandle);
-				fputll(0, fileHandle);    /* EXPORT */
+				fputll(0, fileHandle); /* EXPORT */
 				fputll((uint32_t) sym->value.integer, fileHandle);
 
 				if (opt_Current->enableDebugInfo) {
@@ -529,7 +530,6 @@ writeFileNames(FILE* fileHandle, SFileInfo** fileInfo, size_t fileCount) {
 		fputll(fileInfo[i]->crc32, fileHandle);
 	}
 }
-
 
 /* Public functions */
 

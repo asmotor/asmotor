@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -25,13 +25,13 @@ static const char* g_errors[] = {
     "Expression must be in the $FF00-$FFFF range",
     "Instruction not supported by selected CPU",
     "Synthesized instructions must be enabled",
-    "Undocumented instructions must be enabled"
+    "Undocumented instructions must be enabled",
 };
 
 const char*
 z80_GetError(size_t errorNumber) {
-    if (errorNumber < 1000)
-        return NULL;
+	if (errorNumber < 1000)
+		return NULL;
 
-    return g_errors[errorNumber - 1000];
+	return g_errors[errorNumber - 1000];
 }

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -21,12 +21,13 @@
 #include "schip_error.h"
 
 static const char* g_errors[] = {
-	"Result of operation is undefined",
-	"Register expected",
-    "SCHIP required"
+    "Result of operation is undefined",
+    "Register expected",
+    "SCHIP required",
 };
 
-const char* schip_GetError(size_t errorNumber) {
+const char*
+schip_GetError(size_t errorNumber) {
 	if (errorNumber < 1000)
 		return NULL;
 

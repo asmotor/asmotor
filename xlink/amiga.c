@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -129,18 +129,18 @@ hunkType(SSection* section) {
 	uint32_t hunkType;
 
 	switch (section->group->type) {
-	case GROUP_TEXT:
-		if (section->group->flags & GROUP_FLAG_DATA)
-			hunkType = HUNK_DATA;
-		else
-			hunkType = HUNK_CODE;
+		case GROUP_TEXT:
+			if (section->group->flags & GROUP_FLAG_DATA)
+				hunkType = HUNK_DATA;
+			else
+				hunkType = HUNK_CODE;
 
-		break;
-	default:
-	case GROUP_BSS:
-		hunkType = HUNK_BSS;
+			break;
+		default:
+		case GROUP_BSS:
+			hunkType = HUNK_BSS;
 
-		break;
+			break;
 	}
 
 	return hunkType;

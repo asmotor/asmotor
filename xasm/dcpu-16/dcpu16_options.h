@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,8 +19,10 @@
 #ifndef XASM_DCPU16_OPTIONS_H_INCLUDED_
 #define XASM_DCPU16_OPTIONS_H_INCLUDED_
 
+#include <stdbool.h>
+
 typedef struct MachineOptions {
-    int optimize;
+	int optimize;
 } SMachineOptions;
 
 extern struct MachineOptions*

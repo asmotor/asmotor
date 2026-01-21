@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,13 +19,16 @@
 #ifndef XASM_Z80_OPTIONS_H_INCLUDED_
 #define XASM_Z80_OPTIONS_H_INCLUDED_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #define CPUF_GB  0x01u
 #define CPUF_Z80 0x02u
 
 typedef struct MachineOptions {
-    uint8_t cpu;
-    bool synthesizedInstructions;
-    bool undocumentedInstructions;
+	uint8_t cpu;
+	bool synthesizedInstructions;
+	bool undocumentedInstructions;
 } SMachineOptions;
 
 extern uint32_t z80_gameboyLiteralId;

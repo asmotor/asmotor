@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -20,7 +20,6 @@
 #define XASM_MOTOR_LEXER_CONTEXT_H_INCLUDED_
 
 #include <stdbool.h>
-#include <stdio.h>
 
 #include "lists.h"
 #include "str.h"
@@ -30,58 +29,60 @@
 #include "lexer_buffer.h"
 
 typedef enum {
-    CONTEXT_FILE,
-    CONTEXT_REPT,
-    CONTEXT_MACRO
+	CONTEXT_FILE,
+	CONTEXT_REPT,
+	CONTEXT_MACRO
 } EContextType;
 
 typedef enum {
-    LEXER_MODE_NORMAL,
-    LEXER_MODE_MACRO_ARGUMENT0,
-    LEXER_MODE_MACRO_ARGUMENT
+	LEXER_MODE_NORMAL,
+	LEXER_MODE_MACRO_ARGUMENT0,
+	LEXER_MODE_MACRO_ARGUMENT
 } ELexerMode;
 
 typedef struct FileInfo {
-    string* fileName;
-    uint32_t fileId;
-    uint32_t crc32;
+	string* fileName;
+	uint32_t fileId;
+	uint32_t crc32;
 } SFileInfo;
 
 typedef struct {
-    uint32_t id;
-    size_t length;
-    union {
-        char string[MAX_TOKEN_LENGTH + 1];
-        int32_t integer;
-        long double floating;
-    } value;
+	uint32_t id;
+	size_t length;
+
+	union {
+		char string[MAX_TOKEN_LENGTH + 1];
+		int32_t integer;
+		long double floating;
+	} value;
 } SLexerToken;
 
 struct Symbol;
 
 typedef struct LexerContext {
-    list_Data(struct LexerContext);
+	list_Data(struct LexerContext);
 
 	SLexerToken token;
 
 	EContextType type;
-    ELexerMode mode;
+	ELexerMode mode;
 
 	SLexerBuffer buffer;
-    bool atLineStart;
+	bool atLineStart;
 
-    SFileInfo* fileInfo;
-    uint32_t lineNumber;
+	SFileInfo* fileInfo;
+	uint32_t lineNumber;
 
-    union {
-        struct {
+	union {
+		struct {
 			struct LexerContext* bookmark;
-            uint32_t remaining;
-        } repeat;
-        struct {
-            struct Symbol* symbol;
-        } macro;
-    } block;
+			uint32_t remaining;
+		} repeat;
+
+		struct {
+			struct Symbol* symbol;
+		} macro;
+	} block;
 } SLexerContext;
 
 extern SFileInfo**
@@ -150,7 +151,6 @@ lexctx_Destroy(SLexerContext* context);
 extern void
 lexctx_FreeContext(SLexerContext* buffer);
 
-extern SLexerContext *
-lex_Context;
+extern SLexerContext* lex_Context;
 
 #endif /* XASM_MOTOR_LEXER_CONTEXT_H_INCLUDED_ */

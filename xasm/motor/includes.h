@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -20,7 +20,6 @@
 #define XASM_MOTOR_INCLUDE_H_INCLUDED_
 
 #include "str.h"
-
 
 extern void
 inc_AddIncludePath(string* pathname);

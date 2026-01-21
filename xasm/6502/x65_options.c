@@ -1,19 +1,19 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
-	This file is part of ASMotor.
+    This file is part of ASMotor.
 
-	ASMotor is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    ASMotor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	ASMotor is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    ASMotor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <stdbool.h>
@@ -23,9 +23,9 @@
 
 #include "mem.h"
 
+#include "errors.h"
 #include "lexer_constants.h"
 #include "options.h"
-#include "errors.h"
 
 #include "x65_errors.h"
 #include "x65_options.h"
@@ -36,14 +36,8 @@ static int g_previousUndocumented = 0;
 static ECpu6502 g_previousCpu = MOPT_CPU_6502;
 
 static uint32_t g_allowedModes[] = {
-	MODE_6502,
-	MODE_65C02,
-	MODE_65C02S,
-	MODE_65816,
-	MODE_4510,
-	MODE_45GS02
+    MODE_6502, MODE_65C02, MODE_65C02S, MODE_65816, MODE_4510, MODE_45GS02,
 };
-
 
 void
 x65_CopyOptions(struct MachineOptions* dest, struct MachineOptions* pSrc) {
@@ -93,7 +87,6 @@ x65_OptionsUpdated(SMachineOptions* options) {
 
 	g_previousCpu = options->cpu;
 	g_previousUndocumented = options->undocumentedInstructions;
-
 }
 
 bool
@@ -150,17 +143,15 @@ x65_ParseOption(const char* s) {
 
 void
 x65_PrintOptions(void) {
-	printf(
-		"    -mu<x>  Enable undocumented instructions, name set x (0, 1 or 2)\n"
-		"    -mc<x>  Enable 6502 instruction set level\n"
-		"              0 - 6502\n"
-		"              1 - 65C02\n"
-		"              2 - 65C02S\n"
-		"              3 - 65C816\n"
-		"              4 - 4510\n"
-		"              5 - 45GS02\n"
-		"    -ms<x>  Synthesized instructions:\n"
-		"              0 - Disabled (default)\n"
-		"              1 - Enabled\n"
-	);
+	printf("    -mu<x>  Enable undocumented instructions, name set x (0, 1 or 2)\n"
+	       "    -mc<x>  Enable 6502 instruction set level\n"
+	       "              0 - 6502\n"
+	       "              1 - 65C02\n"
+	       "              2 - 65C02S\n"
+	       "              3 - 65C816\n"
+	       "              4 - 4510\n"
+	       "              5 - 45GS02\n"
+	       "    -ms<x>  Synthesized instructions:\n"
+	       "              0 - Disabled (default)\n"
+	       "              1 - Enabled\n");
 }

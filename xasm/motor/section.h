@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -21,8 +21,8 @@
 
 #include <stdbool.h>
 
-#include "str.h"
 #include "lists.h"
+#include "str.h"
 
 struct Expression;
 struct LineMapSection;
@@ -30,32 +30,32 @@ struct Patch;
 struct Symbol;
 
 struct Section {
-    list_Data(struct Section);
+	list_Data(struct Section);
 
-    string* name;
-    struct Symbol* group;
-    uint32_t flags;
+	string* name;
+	struct Symbol* group;
+	uint32_t flags;
 
-    uint32_t id;                // Assigned when writing object
+	uint32_t id; // Assigned when writing object
 
-    uint32_t usedSpace;         // How many bytes are used in the section
-    uint32_t allocatedSpace;    // How big a chunk of memory pData is pointing to
+	uint32_t usedSpace;      // How many bytes are used in the section
+	uint32_t allocatedSpace; // How big a chunk of memory pData is pointing to
 
-    uint32_t imagePosition;     // Where the section is placed in the final image
+	uint32_t imagePosition; // Where the section is placed in the final image
 
-    uint32_t cpuOrigin;         // Where the CPU sees the first CPU word of this section
-    uint32_t cpuProgramCounter; // The CPU word offset into the section
-    uint32_t cpuAdjust;
+	uint32_t cpuOrigin;         // Where the CPU sees the first CPU word of this section
+	uint32_t cpuProgramCounter; // The CPU word offset into the section
+	uint32_t cpuAdjust;
 
-    uint32_t bank;
+	uint32_t bank;
 	uint32_t align;
 	uint32_t page;
 
-    struct LineMapSection* lineMap;
+	struct LineMapSection* lineMap;
 
-    struct Patch* patches;
+	struct Patch* patches;
 
-    uint8_t* data;
+	uint8_t* data;
 };
 
 typedef struct Section SSection;
@@ -77,7 +77,8 @@ extern bool
 sect_SwitchTo(const string* sectname, struct Symbol* group);
 
 extern bool
-sect_SwitchTo_KIND(const string* sectname, struct Symbol* group, uint32_t flags, uint32_t origin, uint32_t bank, uint32_t align, uint32_t page);
+sect_SwitchTo_KIND(const string* sectname, struct Symbol* group, uint32_t flags, uint32_t origin, uint32_t bank, uint32_t align,
+                   uint32_t page);
 
 extern bool
 sect_SwitchTo_NAMEONLY(const string* sectname);

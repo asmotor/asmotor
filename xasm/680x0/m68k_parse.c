@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -22,12 +22,12 @@
 
 #include "util.h"
 
+#include "errors.h"
 #include "expression.h"
 #include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "errors.h"
 #include "section.h"
 
 #include "m68k_errors.h"
@@ -38,765 +38,764 @@
 
 static uint32_t
 enable020Modes(uint32_t modes) {
-    uint32_t modes020 = modes & (AM_IMM_WHEN20 | AM_PCDISP_WHEN20 | AM_PCXDISP_WHEN20);
-    if (modes020 != 0) {
-        if (modes020 & AM_IMM_WHEN20)
-            modes |= AM_IMM;
-        if (modes020 & AM_PCDISP_WHEN20)
-            modes |= AM_PCDISP;
-        if (modes020 & AM_PCXDISP_WHEN20)
-            modes |= AM_PCXDISP;
-    }
+	uint32_t modes020 = modes & (AM_IMM_WHEN20 | AM_PCDISP_WHEN20 | AM_PCXDISP_WHEN20);
+	if (modes020 != 0) {
+		if (modes020 & AM_IMM_WHEN20)
+			modes |= AM_IMM;
+		if (modes020 & AM_PCDISP_WHEN20)
+			modes |= AM_PCDISP;
+		if (modes020 & AM_PCXDISP_WHEN20)
+			modes |= AM_PCXDISP;
+	}
 
-    return modes;
+	return modes;
 }
 
 static bool
 getBitfield(SAddressingMode* mode) {
-    if (parse_ExpectChar('{')) {
-        mode->hasBitfield = true;
+	if (parse_ExpectChar('{')) {
+		mode->hasBitfield = true;
 
-        if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
-            mode->bitfieldOffsetRegister = lex_Context->token.id - T_68K_REG_D0;
-            mode->bitfieldOffsetExpression = NULL;
-            parse_GetToken();
-        } else {
-            mode->bitfieldOffsetExpression = parse_Expression(4);
-            if (mode->bitfieldOffsetExpression == NULL) {
-                err_Error(ERROR_OPERAND);
-                return false;
-            }
-            mode->bitfieldOffsetRegister = -1;
-        }
+		if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
+			mode->bitfieldOffsetRegister = lex_Context->token.id - T_68K_REG_D0;
+			mode->bitfieldOffsetExpression = NULL;
+			parse_GetToken();
+		} else {
+			mode->bitfieldOffsetExpression = parse_Expression(4);
+			if (mode->bitfieldOffsetExpression == NULL) {
+				err_Error(ERROR_OPERAND);
+				return false;
+			}
+			mode->bitfieldOffsetRegister = -1;
+		}
 
-        if (!parse_ExpectChar(':'))
-            return false;
+		if (!parse_ExpectChar(':'))
+			return false;
 
-        if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
-            mode->bitfieldWidthRegister = lex_Context->token.id - T_68K_REG_D0;
-            mode->bitfieldWidthExpression = NULL;
-            parse_GetToken();
-        } else {
-            mode->bitfieldWidthExpression = parse_Expression(4);
-            if (mode->bitfieldWidthExpression == NULL) {
-                err_Error(ERROR_OPERAND);
-                return true;
-            }
-            mode->bitfieldWidthRegister = -1;
-        }
+		if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D7) {
+			mode->bitfieldWidthRegister = lex_Context->token.id - T_68K_REG_D0;
+			mode->bitfieldWidthExpression = NULL;
+			parse_GetToken();
+		} else {
+			mode->bitfieldWidthExpression = parse_Expression(4);
+			if (mode->bitfieldWidthExpression == NULL) {
+				err_Error(ERROR_OPERAND);
+				return true;
+			}
+			mode->bitfieldWidthRegister = -1;
+		}
 
-        return parse_ExpectChar('}');
-    }
+		return parse_ExpectChar('}');
+	}
 
-    return false;
+	return false;
 }
 
 bool
 m68k_OutputExtensionWords(SAddressingMode* mode) {
-    switch (mode->mode) {
-        case AM_IMM: {
-            switch (mode->immediateSize) {
-                case SIZE_BYTE: {
-                    mode->immediateInteger = m68k_ExpressionCheck8Bit(mode->immediateInteger);
-                    if (mode->immediateInteger) {
-                        sect_OutputExpr16(mode->immediateInteger);
-                        return true;
-                    }
-                    return false;
-                }
-                default:
-                case SIZE_WORD: {
-                    mode->immediateInteger = m68k_ExpressionCheck16Bit(mode->immediateInteger);
-                    if (mode->immediateInteger) {
-                        sect_OutputExpr16(mode->immediateInteger);
-                        return true;
-                    }
-                    return false;
-                }
-                case SIZE_LONG: {
-                    if (mode->immediateInteger) {
-                        sect_OutputExpr32(mode->immediateInteger);
-                        return true;
-                    }
-                    return false;
-                }
-                case SIZE_SINGLE: {
-                    sect_OutputFloat32(mode->immediateFloat);
-                    return true;
-                }
-                case SIZE_DOUBLE: {
-                    sect_OutputFloat64(mode->immediateFloat);
-                    return true;
-                }
-                case SIZE_EXTENDED: {
-                    err_Error(ERROR_EXTENDED_PRECISION_UNSUPPORTED);
-                    return true;
-                }
-            }
-        }
-        case AM_WORD: {
-            if (mode->outer.displacement) {
-                sect_OutputExpr16(mode->outer.displacement);
-                return true;
-            }
-            internalerror("no word");
-            break;
-        }
-        case AM_LONG: {
-            if (mode->outer.displacement) {
-                sect_OutputExpr32(mode->outer.displacement);
-                return true;
-            }
-            internalerror("no long");
-            break;
-        }
-        case AM_PCDISP: {
-            if (mode->outer.displacement)
-                mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 0);
-        }
-        // fall through
-        case AM_ADISP: {
-            if (mode->outer.displacement) {
-                if (mode->outer.displacementSize == SIZE_WORD || mode->outer.displacementSize == SIZE_DEFAULT) {
-                    sect_OutputExpr16(mode->outer.displacement);
-                    return true;
-                }
-                err_Error(MERROR_DISP_SIZE);
-                return false;
-            }
-            internalerror("no displacement word");
-            break;
-        }
-        case AM_PCXDISP: {
-            if (mode->outer.displacement)
-                mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 0);
-        }
-        // fall through
-        case AM_AXDISP: {
-            uint16_t ins = (uint16_t) (mode->outer.indexRegister << 12u);
-            if (mode->outer.indexSize == SIZE_LONG)
-                ins |= 0x0800;
+	switch (mode->mode) {
+		case AM_IMM: {
+			switch (mode->immediateSize) {
+				case SIZE_BYTE: {
+					mode->immediateInteger = m68k_ExpressionCheck8Bit(mode->immediateInteger);
+					if (mode->immediateInteger) {
+						sect_OutputExpr16(mode->immediateInteger);
+						return true;
+					}
+					return false;
+				}
+				default:
+				case SIZE_WORD: {
+					mode->immediateInteger = m68k_ExpressionCheck16Bit(mode->immediateInteger);
+					if (mode->immediateInteger) {
+						sect_OutputExpr16(mode->immediateInteger);
+						return true;
+					}
+					return false;
+				}
+				case SIZE_LONG: {
+					if (mode->immediateInteger) {
+						sect_OutputExpr32(mode->immediateInteger);
+						return true;
+					}
+					return false;
+				}
+				case SIZE_SINGLE: {
+					sect_OutputFloat32(mode->immediateFloat);
+					return true;
+				}
+				case SIZE_DOUBLE: {
+					sect_OutputFloat64(mode->immediateFloat);
+					return true;
+				}
+				case SIZE_EXTENDED: {
+					err_Error(ERROR_EXTENDED_PRECISION_UNSUPPORTED);
+					return true;
+				}
+			}
+		}
+		case AM_WORD: {
+			if (mode->outer.displacement) {
+				sect_OutputExpr16(mode->outer.displacement);
+				return true;
+			}
+			internalerror("no word");
+			break;
+		}
+		case AM_LONG: {
+			if (mode->outer.displacement) {
+				sect_OutputExpr32(mode->outer.displacement);
+				return true;
+			}
+			internalerror("no long");
+			break;
+		}
+		case AM_PCDISP: {
+			if (mode->outer.displacement)
+				mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 0);
+		}
+		// fall through
+		case AM_ADISP: {
+			if (mode->outer.displacement) {
+				if (mode->outer.displacementSize == SIZE_WORD || mode->outer.displacementSize == SIZE_DEFAULT) {
+					sect_OutputExpr16(mode->outer.displacement);
+					return true;
+				}
+				err_Error(MERROR_DISP_SIZE);
+				return false;
+			}
+			internalerror("no displacement word");
+			break;
+		}
+		case AM_PCXDISP: {
+			if (mode->outer.displacement)
+				mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 0);
+		}
+		// fall through
+		case AM_AXDISP: {
+			uint16_t ins = (uint16_t) (mode->outer.indexRegister << 12u);
+			if (mode->outer.indexSize == SIZE_LONG)
+				ins |= 0x0800;
 
-            SExpression* expr;
-            if (mode->outer.displacement != NULL)
-                expr = m68k_ExpressionCheck8Bit(mode->outer.displacement);
-            else
-                expr = expr_Const(0);
+			SExpression* expr;
+			if (mode->outer.displacement != NULL)
+				expr = m68k_ExpressionCheck8Bit(mode->outer.displacement);
+			else
+				expr = expr_Const(0);
 
-            expr = expr_And(expr, expr_Const(0xFF));
-            if (expr != NULL) {
-                expr = expr_Or(expr, expr_Const(ins));
-                if (mode->outer.indexScale != NULL) {
-                    expr = expr_Or(expr, expr_Asl(mode->outer.indexScale, expr_Const(9)));
-                }
-                sect_OutputExpr16(expr);
-                return true;
-            }
-            return false;
-        }
+			expr = expr_And(expr, expr_Const(0xFF));
+			if (expr != NULL) {
+				expr = expr_Or(expr, expr_Const(ins));
+				if (mode->outer.indexScale != NULL) {
+					expr = expr_Or(expr, expr_Asl(mode->outer.indexScale, expr_Const(9)));
+				}
+				sect_OutputExpr16(expr);
+				return true;
+			}
+			return false;
+		}
 
-        case AM_DREG:
-        case AM_AREG:
-        case AM_FPUREG:
-        case AM_AIND:
-        case AM_AINC:
-        case AM_ADEC:
-            return true;
+		case AM_DREG:
+		case AM_AREG:
+		case AM_FPUREG:
+		case AM_AIND:
+		case AM_AINC:
+		case AM_ADEC:
+			return true;
 
-        case AM_PCXDISP020: {
-            if (mode->outer.displacement)
-                mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 2);
-        }
-        // fall through
-        case AM_AXDISP020: {
-            uint16_t ins = 0x0100;
-            SExpression* expr;
+		case AM_PCXDISP020: {
+			if (mode->outer.displacement)
+				mode->outer.displacement = expr_PcRelative(mode->outer.displacement, 2);
+		}
+		// fall through
+		case AM_AXDISP020: {
+			uint16_t ins = 0x0100;
+			SExpression* expr;
 
-            if (mode->outer.baseRegister == REG_NONE) {
-                ins |= 0x0080;
-            }
+			if (mode->outer.baseRegister == REG_NONE) {
+				ins |= 0x0080;
+			}
 
-            if (mode->outer.indexRegister == REG_NONE) {
-                ins |= 0x0040;
-            } else {
-                ins |= mode->outer.indexRegister << 12;
-                if (mode->outer.indexSize == SIZE_LONG)
-                    ins |= 0x0800;
-            }
+			if (mode->outer.indexRegister == REG_NONE) {
+				ins |= 0x0040;
+			} else {
+				ins |= mode->outer.indexRegister << 12;
+				if (mode->outer.indexSize == SIZE_LONG)
+					ins |= 0x0800;
+			}
 
-            if (mode->outer.displacement != NULL) {
-                m68k_OptimizeDisplacement(&mode->outer);
-                switch (mode->outer.displacementSize) {
-                    case SIZE_WORD:
-                        ins |= 0x0020;
-                        break;
-                    case SIZE_LONG:
-                        ins |= 0x0030;
-                        break;
-                    default:
-                        internalerror("unknown BD size");
-                        return false;
-                }
-            } else {
-                ins |= 0x0010;
-            }
+			if (mode->outer.displacement != NULL) {
+				m68k_OptimizeDisplacement(&mode->outer);
+				switch (mode->outer.displacementSize) {
+					case SIZE_WORD:
+						ins |= 0x0020;
+						break;
+					case SIZE_LONG:
+						ins |= 0x0030;
+						break;
+					default:
+						internalerror("unknown BD size");
+						return false;
+				}
+			} else {
+				ins |= 0x0010;
+			}
 
-            expr = expr_Const(ins);
-            if (expr != NULL) {
-                if (mode->outer.indexScale != NULL) {
-                    expr = expr_Or(expr, expr_Asl(mode->outer.indexScale, expr_Const(9)));
-                }
-                sect_OutputExpr16(expr);
+			expr = expr_Const(ins);
+			if (expr != NULL) {
+				if (mode->outer.indexScale != NULL) {
+					expr = expr_Or(expr, expr_Asl(mode->outer.indexScale, expr_Const(9)));
+				}
+				sect_OutputExpr16(expr);
 
-                if (mode->outer.displacement != NULL) {
-                    switch (mode->outer.displacementSize) {
-                        default:
-                        case SIZE_WORD:
-                            sect_OutputExpr16(mode->outer.displacement);
-                            break;
-                        case SIZE_LONG:
-                            sect_OutputExpr32(mode->outer.displacement);
-                            break;
-                    }
-                }
+				if (mode->outer.displacement != NULL) {
+					switch (mode->outer.displacementSize) {
+						default:
+						case SIZE_WORD:
+							sect_OutputExpr16(mode->outer.displacement);
+							break;
+						case SIZE_LONG:
+							sect_OutputExpr32(mode->outer.displacement);
+							break;
+					}
+				}
 
-                return true;
-            }
-            return false;
-        }
+				return true;
+			}
+			return false;
+		}
 
-        case AM_PREINDPCXD020: {
-            if (mode->inner.displacement)
-                mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 2);
-        }
-        // fall through
-        case AM_PREINDAXD020: {
-            uint16_t ins = 0x0100;
-            SExpression* expr;
+		case AM_PREINDPCXD020: {
+			if (mode->inner.displacement)
+				mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 2);
+		}
+		// fall through
+		case AM_PREINDAXD020: {
+			uint16_t ins = 0x0100;
+			SExpression* expr;
 
-            if (mode->inner.baseRegister == REG_NONE) {
-                ins |= 0x0080;
-            }
+			if (mode->inner.baseRegister == REG_NONE) {
+				ins |= 0x0080;
+			}
 
-            if (mode->inner.indexRegister == REG_NONE) {
-                ins |= 0x0040;
-            } else {
-                ins |= mode->inner.indexRegister << 12;
-                if (mode->inner.indexSize == SIZE_LONG)
-                    ins |= 0x0800;
-            }
+			if (mode->inner.indexRegister == REG_NONE) {
+				ins |= 0x0040;
+			} else {
+				ins |= mode->inner.indexRegister << 12;
+				if (mode->inner.indexSize == SIZE_LONG)
+					ins |= 0x0800;
+			}
 
-            if (mode->inner.displacement != NULL) {
-                m68k_OptimizeDisplacement(&mode->inner);
-                switch (mode->inner.displacementSize) {
-                    case SIZE_WORD:
-                        ins |= 0x0020;
-                        break;
-                    case SIZE_LONG:
-                        ins |= 0x0030;
-                        break;
-                    default:
-                        internalerror("unknown BD size");
-                        return false;
-                }
-            } else {
-                ins |= 0x0010;
-            }
+			if (mode->inner.displacement != NULL) {
+				m68k_OptimizeDisplacement(&mode->inner);
+				switch (mode->inner.displacementSize) {
+					case SIZE_WORD:
+						ins |= 0x0020;
+						break;
+					case SIZE_LONG:
+						ins |= 0x0030;
+						break;
+					default:
+						internalerror("unknown BD size");
+						return false;
+				}
+			} else {
+				ins |= 0x0010;
+			}
 
-            if (mode->outer.displacement != NULL) {
-                m68k_OptimizeDisplacement(&mode->outer);
-                switch (mode->outer.displacementSize) {
-                    case SIZE_WORD:
-                        ins |= 0x0002;
-                        break;
-                    case SIZE_LONG:
-                        ins |= 0x0003;
-                        break;
-                    default:
-                        internalerror("unknown OD size");
-                        return false;
-                }
-            } else {
-                ins |= 0x0001;
-            }
+			if (mode->outer.displacement != NULL) {
+				m68k_OptimizeDisplacement(&mode->outer);
+				switch (mode->outer.displacementSize) {
+					case SIZE_WORD:
+						ins |= 0x0002;
+						break;
+					case SIZE_LONG:
+						ins |= 0x0003;
+						break;
+					default:
+						internalerror("unknown OD size");
+						return false;
+				}
+			} else {
+				ins |= 0x0001;
+			}
 
-            expr = expr_Const(ins);
-            if (expr != NULL) {
-                if (mode->inner.indexScale != NULL) {
-                    expr = expr_Or(expr, expr_Asl(mode->inner.indexScale, expr_Const(9)));
-                }
-                sect_OutputExpr16(expr);
+			expr = expr_Const(ins);
+			if (expr != NULL) {
+				if (mode->inner.indexScale != NULL) {
+					expr = expr_Or(expr, expr_Asl(mode->inner.indexScale, expr_Const(9)));
+				}
+				sect_OutputExpr16(expr);
 
-                if (mode->inner.displacement != NULL) {
-                    switch (mode->inner.displacementSize) {
-                        default:
-                        case SIZE_WORD:
-                            sect_OutputExpr16(mode->inner.displacement);
-                            break;
-                        case SIZE_LONG:
-                            sect_OutputExpr32(mode->inner.displacement);
-                            break;
-                    }
-                }
+				if (mode->inner.displacement != NULL) {
+					switch (mode->inner.displacementSize) {
+						default:
+						case SIZE_WORD:
+							sect_OutputExpr16(mode->inner.displacement);
+							break;
+						case SIZE_LONG:
+							sect_OutputExpr32(mode->inner.displacement);
+							break;
+					}
+				}
 
-                if (mode->outer.displacement != NULL) {
-                    switch (mode->outer.displacementSize) {
-                        default:
-                        case SIZE_WORD:
-                            sect_OutputExpr16(mode->outer.displacement);
-                            break;
-                        case SIZE_LONG:
-                            sect_OutputExpr32(mode->outer.displacement);
-                            break;
-                    }
-                }
+				if (mode->outer.displacement != NULL) {
+					switch (mode->outer.displacementSize) {
+						default:
+						case SIZE_WORD:
+							sect_OutputExpr16(mode->outer.displacement);
+							break;
+						case SIZE_LONG:
+							sect_OutputExpr32(mode->outer.displacement);
+							break;
+					}
+				}
 
-                return true;
-            }
-            return false;
-        }
+				return true;
+			}
+			return false;
+		}
 
-        case AM_POSTINDPCXD020: {
-            if (mode->inner.displacement)
-                mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 2);
-        }
-        // fall through
-        case AM_POSTINDAXD020: {
-            uint16_t ins = 0x0100;
-            SExpression* expr;
+		case AM_POSTINDPCXD020: {
+			if (mode->inner.displacement)
+				mode->inner.displacement = expr_PcRelative(mode->inner.displacement, 2);
+		}
+		// fall through
+		case AM_POSTINDAXD020: {
+			uint16_t ins = 0x0100;
+			SExpression* expr;
 
-            if (mode->inner.baseRegister == REG_NONE) {
-                ins |= 0x0080;
-            }
+			if (mode->inner.baseRegister == REG_NONE) {
+				ins |= 0x0080;
+			}
 
-            if (mode->outer.indexRegister == REG_NONE) {
-                ins |= 0x0040;
-            } else {
-                ins |= mode->outer.indexRegister << 12;
-                if (mode->outer.indexSize == SIZE_LONG)
-                    ins |= 0x0800;
-            }
+			if (mode->outer.indexRegister == REG_NONE) {
+				ins |= 0x0040;
+			} else {
+				ins |= mode->outer.indexRegister << 12;
+				if (mode->outer.indexSize == SIZE_LONG)
+					ins |= 0x0800;
+			}
 
-            if (mode->inner.displacement != NULL) {
-                m68k_OptimizeDisplacement(&mode->inner);
-                switch (mode->inner.displacementSize) {
-                    case SIZE_WORD:
-                        ins |= 0x0020;
-                        break;
-                    case SIZE_LONG:
-                        ins |= 0x0030;
-                        break;
-                    default:
-                        internalerror("unknown BD size");
-                        return false;
-                }
-            } else {
-                ins |= 0x0010;
-            }
+			if (mode->inner.displacement != NULL) {
+				m68k_OptimizeDisplacement(&mode->inner);
+				switch (mode->inner.displacementSize) {
+					case SIZE_WORD:
+						ins |= 0x0020;
+						break;
+					case SIZE_LONG:
+						ins |= 0x0030;
+						break;
+					default:
+						internalerror("unknown BD size");
+						return false;
+				}
+			} else {
+				ins |= 0x0010;
+			}
 
-            if (mode->outer.displacement != NULL) {
-                m68k_OptimizeDisplacement(&mode->outer);
-                switch (mode->outer.displacementSize) {
-                    case SIZE_WORD:
-                        ins |= 0x0006;
-                        break;
-                    case SIZE_LONG:
-                        ins |= 0x0007;
-                        break;
-                    default:
-                        internalerror("unknown OD size");
-                        return false;
-                }
-            } else {
-                ins |= 0x0005;
-            }
+			if (mode->outer.displacement != NULL) {
+				m68k_OptimizeDisplacement(&mode->outer);
+				switch (mode->outer.displacementSize) {
+					case SIZE_WORD:
+						ins |= 0x0006;
+						break;
+					case SIZE_LONG:
+						ins |= 0x0007;
+						break;
+					default:
+						internalerror("unknown OD size");
+						return false;
+				}
+			} else {
+				ins |= 0x0005;
+			}
 
-            expr = expr_Const(ins);
-            if (expr != NULL) {
-                if (mode->outer.indexScale != NULL) {
-                    expr = expr_Or(expr, expr_Asl(mode->outer.indexScale, expr_Const(9)));
-                }
-                sect_OutputExpr16(expr);
+			expr = expr_Const(ins);
+			if (expr != NULL) {
+				if (mode->outer.indexScale != NULL) {
+					expr = expr_Or(expr, expr_Asl(mode->outer.indexScale, expr_Const(9)));
+				}
+				sect_OutputExpr16(expr);
 
-                if (mode->inner.displacement != NULL) {
-                    switch (mode->inner.displacementSize) {
-                        default:
-                        case SIZE_WORD:
-                            sect_OutputExpr16(mode->inner.displacement);
-                            break;
-                        case SIZE_LONG:
-                            sect_OutputExpr32(mode->inner.displacement);
-                            break;
-                    }
-                }
+				if (mode->inner.displacement != NULL) {
+					switch (mode->inner.displacementSize) {
+						default:
+						case SIZE_WORD:
+							sect_OutputExpr16(mode->inner.displacement);
+							break;
+						case SIZE_LONG:
+							sect_OutputExpr32(mode->inner.displacement);
+							break;
+					}
+				}
 
-                if (mode->outer.displacement != NULL) {
-                    switch (mode->outer.displacementSize) {
-                        default:
-                        case SIZE_WORD:
-                            sect_OutputExpr16(mode->outer.displacement);
-                            break;
-                        case SIZE_LONG:
-                            sect_OutputExpr32(mode->outer.displacement);
-                            break;
-                    }
-                }
+				if (mode->outer.displacement != NULL) {
+					switch (mode->outer.displacementSize) {
+						default:
+						case SIZE_WORD:
+							sect_OutputExpr16(mode->outer.displacement);
+							break;
+						case SIZE_LONG:
+							sect_OutputExpr32(mode->outer.displacement);
+							break;
+					}
+				}
 
-                return true;
-            }
-            return false;
-        }
+				return true;
+			}
+			return false;
+		}
 
-        default:
-            internalerror("unsupported addressing mode");
-            return false;
+		default:
+			internalerror("unsupported addressing mode");
+			return false;
+	}
 
-    }
-
-    return false;
+	return false;
 }
 
 uint16_t
 m68k_GetEffectiveAddressField(SAddressingMode* mode) {
-    switch (mode->mode) {
-        case AM_DREG:
-            return mode->directRegister;
-        case AM_AREG:
-            return 0x1 << 3 | mode->directRegister;
-        case AM_AIND:
-            return 0x2 << 3 | (mode->outer.baseRegister & 7u);
-        case AM_AINC:
-            return 0x3 << 3 | (mode->outer.baseRegister & 7u);
-        case AM_ADEC:
-            return 0x4 << 3 | (mode->outer.baseRegister & 7u);
-        case AM_ADISP:
-            return 0x5 << 3 | (mode->outer.baseRegister & 7u);
-        case AM_AXDISP:
-            return 0x6 << 3 | (mode->outer.baseRegister & 7u);
-        case AM_WORD:
-            return 0x7 << 3 | 0x0;
-        case AM_LONG:
-            return 0x7 << 3 | 0x1;
-        case AM_IMM:
-            return 0x7 << 3 | 0x4;
-        case AM_PCDISP:
-            return 0x7 << 3 | 0x2;
-        case AM_PCXDISP:
-            return 0x7 << 3 | 0x3;
-        case AM_AXDISP020:
-            if (mode->outer.baseRegister != REG_NONE)
-                return 0x6 << 3 | (mode->outer.baseRegister & 7u);
-            else
-                return 0x6 << 3 | 0;
-        case AM_PCXDISP020:
-        case AM_PREINDPCXD020:
-        case AM_POSTINDPCXD020:
-            return 0x7 << 3 | 0x3;
-        case AM_PREINDAXD020:
-        case AM_POSTINDAXD020:
-            if (mode->inner.baseRegister != REG_NONE)
-                return (uint16_t) ((0x6 << 3) | (mode->inner.baseRegister & 7u));
-            else
-                return 0x6 << 3 | 0;
-        case AM_FPUREG:
-            return 0;
-        default:
-            internalerror("Unknown addressing mode");
-    }
+	switch (mode->mode) {
+		case AM_DREG:
+			return mode->directRegister;
+		case AM_AREG:
+			return 0x1 << 3 | mode->directRegister;
+		case AM_AIND:
+			return 0x2 << 3 | (mode->outer.baseRegister & 7u);
+		case AM_AINC:
+			return 0x3 << 3 | (mode->outer.baseRegister & 7u);
+		case AM_ADEC:
+			return 0x4 << 3 | (mode->outer.baseRegister & 7u);
+		case AM_ADISP:
+			return 0x5 << 3 | (mode->outer.baseRegister & 7u);
+		case AM_AXDISP:
+			return 0x6 << 3 | (mode->outer.baseRegister & 7u);
+		case AM_WORD:
+			return 0x7 << 3 | 0x0;
+		case AM_LONG:
+			return 0x7 << 3 | 0x1;
+		case AM_IMM:
+			return 0x7 << 3 | 0x4;
+		case AM_PCDISP:
+			return 0x7 << 3 | 0x2;
+		case AM_PCXDISP:
+			return 0x7 << 3 | 0x3;
+		case AM_AXDISP020:
+			if (mode->outer.baseRegister != REG_NONE)
+				return 0x6 << 3 | (mode->outer.baseRegister & 7u);
+			else
+				return 0x6 << 3 | 0;
+		case AM_PCXDISP020:
+		case AM_PREINDPCXD020:
+		case AM_POSTINDPCXD020:
+			return 0x7 << 3 | 0x3;
+		case AM_PREINDAXD020:
+		case AM_POSTINDAXD020:
+			if (mode->inner.baseRegister != REG_NONE)
+				return (uint16_t) ((0x6 << 3) | (mode->inner.baseRegister & 7u));
+			else
+				return 0x6 << 3 | 0;
+		case AM_FPUREG:
+			return 0;
+		default:
+			internalerror("Unknown addressing mode");
+	}
 
-    return 0;
+	return 0;
 }
 
-extern uint16_t 
+extern uint16_t
 m68k_Get68080BankBits(SAddressingMode* addr) {
-    if ((addr->mode & (AM_DREG | AM_AREG | AM_AINC | AM_ADEC | AM_AIND)) != 0) {
-        return addr->directRegisterBank;
-    } else if ((addr->mode & (AM_AXDISP | AM_AXDISP020)) != 0) {
-        return (addr->outer.baseBank << 1) | (addr->outer.indexBank);
-    } else {
-        return 0;
-    }
+	if ((addr->mode & (AM_DREG | AM_AREG | AM_AINC | AM_ADEC | AM_AIND)) != 0) {
+		return addr->directRegisterBank;
+	} else if ((addr->mode & (AM_AXDISP | AM_AXDISP020)) != 0) {
+		return (addr->outer.baseBank << 1) | (addr->outer.indexBank);
+	} else {
+		return 0;
+	}
 }
-
 
 static bool
 thirdOperandAllowed(SInstruction* instruction, SAddressingMode* dest) {
-    return (opt_Current->machineOptions->cpu & CPUF_68080)
-    &&     instruction->allowThirdOperand
-    &&     (instruction->allowedDestModes & dest->mode & (AM_DREG | AM_AREG | AM_FPUREG));
+	return (opt_Current->machineOptions->cpu & CPUF_68080) && instruction->allowThirdOperand &&
+	       (instruction->allowedDestModes & dest->mode & (AM_DREG | AM_AREG | AM_FPUREG));
 }
 
 static bool
 parseDataRegister(uint16_t* outRegister) {
-    if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D31) {
-        *outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_D0);
-        parse_GetToken();
-        return true;
-    }
+	if (lex_Context->token.id >= T_68K_REG_D0 && lex_Context->token.id <= T_68K_REG_D31) {
+		*outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_D0);
+		parse_GetToken();
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 static bool
 parseAddressRegister(uint16_t* outRegister) {
-    if (lex_Context->token.id >= T_68K_REG_A0 && lex_Context->token.id <= T_68K_REG_A15) {
-        *outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_A0);
-        parse_GetToken();
-        return true;
-    }
+	if (lex_Context->token.id >= T_68K_REG_A0 && lex_Context->token.id <= T_68K_REG_A15) {
+		*outRegister = (uint16_t) (lex_Context->token.id - T_68K_REG_A0);
+		parse_GetToken();
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 static bool
 parseFpuRegister(uint16_t* outRegister) {
-    if (lex_Context->token.id >= T_FPUREG_0 && lex_Context->token.id <= T_FPUREG_7) {
-        *outRegister = (uint16_t) (lex_Context->token.id - T_FPUREG_0);
-        parse_GetToken();
-        return true;
-    }
+	if (lex_Context->token.id >= T_FPUREG_0 && lex_Context->token.id <= T_FPUREG_7) {
+		*outRegister = (uint16_t) (lex_Context->token.id - T_FPUREG_0);
+		parse_GetToken();
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
-
-static bool 
+static bool
 parseThirdOperand(SInstruction* instruction, SAddressingMode* dest, uint16_t* thirdReg) {
-    *thirdReg = 0xFFFF;
-    if (thirdOperandAllowed(instruction, dest)) {
-        if (lex_Context->token.id == ',') {
-            parse_GetToken();
-            switch (dest->mode) {
-                case AM_DREG: return parseDataRegister(thirdReg);
-                case AM_AREG: return parseAddressRegister(thirdReg);
-                case AM_FPUREG: return parseFpuRegister(thirdReg);
-                default: return false;
-            }
-            return false;
-        }
-    }
-    return true;
+	*thirdReg = 0xFFFF;
+	if (thirdOperandAllowed(instruction, dest)) {
+		if (lex_Context->token.id == ',') {
+			parse_GetToken();
+			switch (dest->mode) {
+				case AM_DREG:
+					return parseDataRegister(thirdReg);
+				case AM_AREG:
+					return parseAddressRegister(thirdReg);
+				case AM_FPUREG:
+					return parseFpuRegister(thirdReg);
+				default:
+					return false;
+			}
+			return false;
+		}
+	}
+	return true;
 }
 
 bool
 parse_PrefixStart(SPrefix* prefix, SAddressingMode* src, SAddressingMode* dest) {
-    prefix->offset = sect_CurrentSize();
+	prefix->offset = sect_CurrentSize();
 
-    uint16_t srcBanks = m68k_Get68080BankBits(src);
-    uint16_t destBanks = m68k_Get68080BankBits(dest);
-    prefix->prefix = 0x7100 | (srcBanks << 2) | destBanks;
+	uint16_t srcBanks = m68k_Get68080BankBits(src);
+	uint16_t destBanks = m68k_Get68080BankBits(dest);
+	prefix->prefix = 0x7100 | (srcBanks << 2) | destBanks;
 
-    sect_OutputConst16(0);
-    return true;
+	sect_OutputConst16(0);
+	return true;
 }
-
 
 bool
 parse_MaybePrefixStart(SPrefix* prefix, SInstruction* instruction, SAddressingMode* src, SAddressingMode* dest) {
-    uint16_t thirdReg = 0;
-    if (!parseThirdOperand(instruction, dest, &thirdReg)) {
-        err_Error(MERROR_THIRD_OPERAND_WRONG_TYPE);
-        return false;
-    }
+	uint16_t thirdReg = 0;
+	if (!parseThirdOperand(instruction, dest, &thirdReg)) {
+		err_Error(MERROR_THIRD_OPERAND_WRONG_TYPE);
+		return false;
+	}
 
-    prefix->offset = sect_CurrentSize();
+	prefix->offset = sect_CurrentSize();
 
-    uint16_t srcBanks = m68k_Get68080BankBits(src);
-    uint16_t destBanks = m68k_Get68080BankBits(dest);
-    bool prefix68080 = srcBanks != 0 || destBanks != 0 ||  thirdReg != 0xFFFF;
+	uint16_t srcBanks = m68k_Get68080BankBits(src);
+	uint16_t destBanks = m68k_Get68080BankBits(dest);
+	bool prefix68080 = srcBanks != 0 || destBanks != 0 || thirdReg != 0xFFFF;
 
-    if (prefix68080) {
-        if (thirdReg == 0xFFFF) {
-            thirdReg = 0;
-        } else {
-            thirdReg ^= (dest->directRegisterBank << 3) | dest->directRegister;
-        }
-        uint16_t lowThird = (thirdReg & 0x03) << 4;
-        uint16_t highThird = (thirdReg & 0x1C) << 7;
-        prefix->prefix = 0x7100 | highThird | lowThird | (srcBanks << 2) | destBanks;
+	if (prefix68080) {
+		if (thirdReg == 0xFFFF) {
+			thirdReg = 0;
+		} else {
+			thirdReg ^= (dest->directRegisterBank << 3) | dest->directRegister;
+		}
+		uint16_t lowThird = (thirdReg & 0x03) << 4;
+		uint16_t highThird = (thirdReg & 0x1C) << 7;
+		prefix->prefix = 0x7100 | highThird | lowThird | (srcBanks << 2) | destBanks;
 
-        sect_OutputConst16(0);
-    } else {
-        prefix->prefix = 0;
-    }
+		sect_OutputConst16(0);
+	} else {
+		prefix->prefix = 0;
+	}
 
-    return true;
+	return true;
 }
 
 void
 parse_PrefixEnd(SPrefix* prefix) {
-    if (prefix->prefix != 0) {
-        uint16_t size = (sect_CurrentSize() - prefix->offset - 4) >> 1;
-        sect_OutputConst16At(prefix->prefix | (size << 6), prefix->offset);
-    }    
+	if (prefix->prefix != 0) {
+		uint16_t size = (sect_CurrentSize() - prefix->offset - 4) >> 1;
+		sect_OutputConst16At(prefix->prefix | (size << 6), prefix->offset);
+	}
 }
 
 bool
 m68k_ParseOpCore(SInstruction* instruction, ESize inssz, SAddressingMode* src, SAddressingMode* dest, bool disablePrefix) {
-    EAddrMode allowedSrc;
-    EAddrMode allowedDest;
+	EAddrMode allowedSrc;
+	EAddrMode allowedDest;
 
-    allowedSrc = instruction->allowedSourceModes;
-    if (opt_Current->machineOptions->cpu >= CPUF_68020)
-        allowedSrc = enable020Modes(allowedSrc);
+	allowedSrc = instruction->allowedSourceModes;
+	if (opt_Current->machineOptions->cpu >= CPUF_68020)
+		allowedSrc = enable020Modes(allowedSrc);
 
-    if ((allowedSrc & src->mode) == 0 && !(allowedSrc == 0 && src->mode == AM_EMPTY)) {
-        err_Error(ERROR_SOURCE_OPERAND);
-        return true;
-    }
+	if ((allowedSrc & src->mode) == 0 && !(allowedSrc == 0 && src->mode == AM_EMPTY)) {
+		err_Error(ERROR_SOURCE_OPERAND);
+		return true;
+	}
 
-    allowedDest = instruction->allowedDestModes;
-    if (opt_Current->machineOptions->cpu >= CPUF_68020)
-        allowedDest = enable020Modes(allowedDest);
+	allowedDest = instruction->allowedDestModes;
+	if (opt_Current->machineOptions->cpu >= CPUF_68020)
+		allowedDest = enable020Modes(allowedDest);
 
-    if ((allowedDest & dest->mode) == 0 && !(allowedDest == 0 && dest->mode == AM_EMPTY)) {
-        err_Error(ERROR_DEST_OPERAND);
-        return true;
-    }
+	if ((allowedDest & dest->mode) == 0 && !(allowedDest == 0 && dest->mode == AM_EMPTY)) {
+		err_Error(ERROR_DEST_OPERAND);
+		return true;
+	}
 
-    SPrefix prefix;
-    if ((!disablePrefix) && !parse_MaybePrefixStart(&prefix, instruction, src, dest)) {
-        return false;
-    }
+	SPrefix prefix;
+	if ((!disablePrefix) && !parse_MaybePrefixStart(&prefix, instruction, src, dest)) {
+		return false;
+	}
 
 	m68k_AddRegmask(m68k_SourceUpdatedRegisters(src));
 	m68k_AddRegmask(m68k_DestinationUpdatedRegisters(dest));
 
-    bool result = instruction->handler(inssz, src, dest, instruction->data);
+	bool result = instruction->handler(inssz, src, dest, instruction->data);
 
-    if (!disablePrefix)
-        parse_PrefixEnd(&prefix);
+	if (!disablePrefix)
+		parse_PrefixEnd(&prefix);
 
-    return result;
+	return result;
 }
 
 static bool
 check68080ModesAllowed(SAddressingMode* addr) {
-    if ((opt_Current->machineOptions->cpu & CPUF_68080) == 0) {
-        return (addr->directRegisterBank == 0) && (addr->outer.baseBank == 0) && (addr->outer.indexBank == 0);
-    } else {
-        switch (addr->mode) {
-            case AM_AXDISP:
-            case AM_AXDISP020:
-                return (addr->outer.baseBank <= 1) && (addr->outer.indexBank <= 1);
-            case AM_AREG:
-            case AM_AIND:
-            case AM_AINC:
-            case AM_ADEC:
-            case AM_DREG:
-                return true;
-            default:
-                return (addr->directRegisterBank == 0) && (addr->outer.baseBank == 0) && (addr->outer.indexBank == 0);
-        }
-    }
+	if ((opt_Current->machineOptions->cpu & CPUF_68080) == 0) {
+		return (addr->directRegisterBank == 0) && (addr->outer.baseBank == 0) && (addr->outer.indexBank == 0);
+	} else {
+		switch (addr->mode) {
+			case AM_AXDISP:
+			case AM_AXDISP020:
+				return (addr->outer.baseBank <= 1) && (addr->outer.indexBank <= 1);
+			case AM_AREG:
+			case AM_AIND:
+			case AM_AINC:
+			case AM_ADEC:
+			case AM_DREG:
+				return true;
+			default:
+				return (addr->directRegisterBank == 0) && (addr->outer.baseBank == 0) && (addr->outer.indexBank == 0);
+		}
+	}
 }
 
 bool
 m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat) {
-    ESize insSz;
-    SAddressingMode src;
-    SAddressingMode dest;
+	ESize insSz;
+	SAddressingMode src;
+	SAddressingMode dest;
 
-    if ((sect_CurrentSize() & 1) != 0) {
-        err_Error(MERROR_WORD_ALIGN);
-        return true;
-    }
+	if ((sect_CurrentSize() & 1) != 0) {
+		err_Error(MERROR_WORD_ALIGN);
+		return true;
+	}
 
-    if (instruction->allowedSizes == SIZE_DEFAULT) {
-        if (m68k_GetSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
-            err_Warn(MERROR_IGNORING_SIZE);
-            parse_GetToken();
-        }
-        insSz = SIZE_DEFAULT;
-    } else
-        insSz = m68k_GetSizeSpecifier(instruction->defaultSize);
+	if (instruction->allowedSizes == SIZE_DEFAULT) {
+		if (m68k_GetSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
+			err_Warn(MERROR_IGNORING_SIZE);
+			parse_GetToken();
+		}
+		insSz = SIZE_DEFAULT;
+	} else
+		insSz = m68k_GetSizeSpecifier(instruction->defaultSize);
 
-    src.mode = AM_EMPTY;
-    dest.mode = AM_EMPTY;
+	src.mode = AM_EMPTY;
+	dest.mode = AM_EMPTY;
 
-    if (instruction->allowedSourceModes != 0 && instruction->allowedSourceModes != AM_EMPTY) {
-        if (m68k_GetAddressingMode(&src, allowFloat)) {
-            if (instruction->allowedSourceModes & AM_BITFIELD) {
-                if (!getBitfield(&src)) {
-                    err_Error(MERROR_EXPECT_BITFIELD);
-                    return false;
-                }
-            }
+	if (instruction->allowedSourceModes != 0 && instruction->allowedSourceModes != AM_EMPTY) {
+		if (m68k_GetAddressingMode(&src, allowFloat)) {
+			if (instruction->allowedSourceModes & AM_BITFIELD) {
+				if (!getBitfield(&src)) {
+					err_Error(MERROR_EXPECT_BITFIELD);
+					return false;
+				}
+			}
 
-            if (src.mode == AM_IMM)
-                src.immediateSize = insSz;
+			if (src.mode == AM_IMM)
+				src.immediateSize = insSz;
 
-            if (!check68080ModesAllowed(&src)) {
-                err_Error(MERROR_NOT_68080_MODE);
-                return true;
-            }
-        } else {
-            if ((instruction->allowedSourceModes & AM_EMPTY) == 0) {
+			if (!check68080ModesAllowed(&src)) {
+				err_Error(MERROR_NOT_68080_MODE);
+				return true;
+			}
+		} else {
+			if ((instruction->allowedSourceModes & AM_EMPTY) == 0) {
 				err_Error(ERROR_OPERAND);
 				return true;
 			}
-        }
-    }
+		}
+	}
 
-    if (instruction->allowedDestModes != 0 && instruction->allowedDestModes != AM_EMPTY) {
-        if (lex_Context->token.id == ',') {
-            parse_GetToken();
-            if (!m68k_GetAddressingMode(&dest, allowFloat))
-                return false;
+	if (instruction->allowedDestModes != 0 && instruction->allowedDestModes != AM_EMPTY) {
+		if (lex_Context->token.id == ',') {
+			parse_GetToken();
+			if (!m68k_GetAddressingMode(&dest, allowFloat))
+				return false;
 
-            if (instruction->allowedDestModes & AM_BITFIELD) {
-                if (!getBitfield(&dest)) {
-                    err_Error(MERROR_EXPECT_BITFIELD);
-                    return false;
-                }
-            }
+			if (instruction->allowedDestModes & AM_BITFIELD) {
+				if (!getBitfield(&dest)) {
+					err_Error(MERROR_EXPECT_BITFIELD);
+					return false;
+				}
+			}
 
-            if (!check68080ModesAllowed(&dest)) {
-                err_Error(MERROR_NOT_68080_MODE);
-                return true;
-            }
-        } 
-    }
+			if (!check68080ModesAllowed(&dest)) {
+				err_Error(MERROR_NOT_68080_MODE);
+				return true;
+			}
+		}
+	}
 
-    if ((instruction->allowedSizes & insSz) == 0 && instruction->allowedSizes != 0 && instruction->defaultSize != 0) {
-        err_Error(MERROR_INSTRUCTION_SIZE);
-    }
+	if ((instruction->allowedSizes & insSz) == 0 && instruction->allowedSizes != 0 && instruction->defaultSize != 0) {
+		err_Error(MERROR_INSTRUCTION_SIZE);
+	}
 
-    bool disablePrefix = false;
-    ETargetToken targetToken = (ETargetToken) token;
-    disablePrefix |= m68k_CanUseShortMOVEfromA(targetToken, &src, &dest, insSz);
-    disablePrefix |= m68k_CanUseShortMOVEA(targetToken, &src, &dest, insSz);
+	bool disablePrefix = false;
+	ETargetToken targetToken = (ETargetToken) token;
+	disablePrefix |= m68k_CanUseShortMOVEfromA(targetToken, &src, &dest, insSz);
+	disablePrefix |= m68k_CanUseShortMOVEA(targetToken, &src, &dest, insSz);
 
-    return m68k_ParseOpCore(instruction, insSz, &src, &dest, disablePrefix);
+	return m68k_ParseOpCore(instruction, insSz, &src, &dest, disablePrefix);
 }
 
 SExpression*
 m68k_ParseFunction(void) {
-    switch (lex_Context->token.id) {
-        case T_68K_REGMASK: {
-            parse_GetToken();
-            if (!parse_ExpectChar('('))
-                return NULL;
-            uint32_t regs = m68k_ParseRegisterList();
-            if (regs == REGLIST_FAIL)
-                return NULL;
-            if (!parse_ExpectChar(')'))
-                return NULL;
-            return expr_Const(regs);
-        }
-        default:
-            return NULL;
-    }
+	switch (lex_Context->token.id) {
+		case T_68K_REGMASK: {
+			parse_GetToken();
+			if (!parse_ExpectChar('('))
+				return NULL;
+			uint32_t regs = m68k_ParseRegisterList();
+			if (regs == REGLIST_FAIL)
+				return NULL;
+			if (!parse_ExpectChar(')'))
+				return NULL;
+			return expr_Const(regs);
+		}
+		default:
+			return NULL;
+	}
 }
 
 bool
 m68k_ParseInstruction(void) {
-    if (m68k_IntegerInstruction())
-        return true;
-    else if (m68k_ParseFpuInstruction())
-        return true;
-    else if (m68k_ParseDirective())
-        return false;
+	if (m68k_IntegerInstruction())
+		return true;
+	else if (m68k_ParseFpuInstruction())
+		return true;
+	else if (m68k_ParseDirective())
+		return false;
 
-    return false;
+	return false;
 }

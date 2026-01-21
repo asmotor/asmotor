@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,11 +19,12 @@
 #ifndef XASM_RC8_OPTIONS_H_INCLUDED_
 #define XASM_RC8_OPTIONS_H_INCLUDED_
 
-typedef struct MachineOptions {
-    bool enableSynthInstructions;
-    bool enableSideeffectingSynthInstructions;
-} SMachineOptions;
+#include <stdbool.h>
 
+typedef struct MachineOptions {
+	bool enableSynthInstructions;
+	bool enableSideeffectingSynthInstructions;
+} SMachineOptions;
 
 extern SMachineOptions*
 rc8_AllocOptions(void);
@@ -42,6 +43,5 @@ rc8_OptionsUpdated(SMachineOptions* options);
 
 extern void
 rc8_PrintOptions(void);
-
 
 #endif

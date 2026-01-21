@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,8 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "xasm.h"
 
@@ -28,39 +29,40 @@
 #include "rc8_symbols.h"
 #include "rc8_tokens.h"
 
-static SConfiguration
-g_xasmConfiguration = {
-	"motorrc8",
-	ASM_BIG_ENDIAN,
-	true,
-	false,
-	false,
-	false,
-	MINSIZE_8BIT,
-	1,
-	"CODE",
+static SConfiguration g_xasmConfiguration = {
+    "motorrc8",
+    ASM_BIG_ENDIAN,
+    true,
+    false,
+    false,
+    false,
+    MINSIZE_8BIT,
+    1,
+    "CODE",
 
+    // clang-format off
 	"RB", "RW", NULL, NULL,
 	"DB", "DW", NULL, NULL,
 	"DS", NULL, NULL, NULL,
+    // clang-format on
 
-	rc8_GetError,
-	rc8_DefineTokens,
-	rc8_DefineSymbols,
+    rc8_GetError,
+    rc8_DefineTokens,
+    rc8_DefineSymbols,
 
-	rc8_AllocOptions,
-	rc8_SetDefaultOptions,
-	rc8_CopyOptions,
-	rc8_ParseOption,
-	rc8_OptionsUpdated,
-	rc8_PrintOptions,
+    rc8_AllocOptions,
+    rc8_SetDefaultOptions,
+    rc8_CopyOptions,
+    rc8_ParseOption,
+    rc8_OptionsUpdated,
+    rc8_PrintOptions,
 
-	rc8_ParseFunction,
-	rc8_ParseInstruction,
+    rc8_ParseFunction,
+    rc8_ParseInstruction,
 
-	rc8_AssignSection,
+    rc8_AssignSection,
 
-	rc8_IsValidLocalName
+    rc8_IsValidLocalName,
 };
 
 extern int

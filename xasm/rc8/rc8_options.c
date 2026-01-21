@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -20,34 +20,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "xasm.h"
-
 #include "errors.h"
 #include "mem.h"
 #include "options.h"
 
-#include "rc8_errors.h"
 #include "rc8_options.h"
 
-struct MachineOptions* 
+struct MachineOptions*
 rc8_AllocOptions(void) {
 	return mem_Alloc(sizeof(SMachineOptions));
 }
 
-void 
+void
 rc8_CopyOptions(struct MachineOptions* destination, struct MachineOptions* source) {
 	*destination = *source;
 }
 
-void 
+void
 rc8_SetDefaultOptions(SMachineOptions* options) {
-    options->enableSynthInstructions = true;
-    options->enableSideeffectingSynthInstructions = false;
+	options->enableSynthInstructions = true;
+	options->enableSideeffectingSynthInstructions = false;
 }
 
 void
-rc8_OptionsUpdated(SMachineOptions* options) {
-}
+rc8_OptionsUpdated(SMachineOptions* options) {}
 
 bool
 rc8_ParseOption(const char* s) {
@@ -59,5 +55,4 @@ rc8_ParseOption(const char* s) {
 }
 
 void
-rc8_PrintOptions(void) {
-}
+rc8_PrintOptions(void) {}

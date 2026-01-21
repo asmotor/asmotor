@@ -1,36 +1,35 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
-	This file is part of ASMotor.
+    This file is part of ASMotor.
 
-	ASMotor is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    ASMotor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	ASMotor is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    ASMotor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
-#include <stdlib.h>
-#include <memory.h>
 #include <ctype.h>
+#include <memory.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "util.h"
 #include "fmath.h"
+#include "util.h"
 
 #include "errors.h"
 #include "lexer.h"
 #include "lexer_constants.h"
 #include "lexer_context.h"
 #include "symbol.h"
-
 
 /* Private functions */
 
@@ -39,7 +38,7 @@ getUnexpandedChar(size_t index) {
 	return lexbuf_GetUnexpandedChar(&lex_Context->buffer, index);
 }
 
-static bool 
+static bool
 acceptQuotedStringUntil(char terminator);
 
 static bool
@@ -154,7 +153,8 @@ consumeComment(bool wasSpace, bool lineStart) {
 	char ch = lex_GetChar();
 
 	if (ch == ';' || (ch == '*' && (wasSpace || lineStart))) {
-		while (!isLineEnd(ch = lex_GetChar())) {}
+		while (!isLineEnd(ch = lex_GetChar())) {
+		}
 		wasSpace = false;
 	}
 	lex_UnputChar(ch);
@@ -163,7 +163,7 @@ consumeComment(bool wasSpace, bool lineStart) {
 
 static bool
 isStartSymbolCharacter(char ch) {
-	return isalpha(ch) ||  ch == '_';
+	return isalpha(ch) || ch == '_';
 }
 
 static bool
@@ -247,7 +247,8 @@ static int
 asciiToBinary(char ch) {
 	if (isdigit(ch)) {
 		return ch - '0';
-	} if ((ch >= 'a') && (ch <= 'f')) {
+	}
+	if ((ch >= 'a') && (ch <= 'f')) {
 		return ch - 'a' + 10;
 	} else if ((ch >= 'A') && (ch <= 'F')) {
 		return ch - 'A' + 10;
@@ -323,7 +324,6 @@ acceptNumericAndLocalLabel(int radix, bool lineStart) {
 	return true;
 }
 
-
 static int
 gameboyCharToInt(char ch) {
 	for (uint32_t i = 0; i <= 3; ++i) {
@@ -334,8 +334,7 @@ gameboyCharToInt(char ch) {
 	return -1;
 }
 
-
-static bool 
+static bool
 acceptGameboyLiteral(void) {
 	uint32_t result = 0;
 	char ch = 0;
@@ -351,7 +350,6 @@ acceptGameboyLiteral(void) {
 	return true;
 }
 
-
 static bool
 acceptVariadic(bool lineStart) {
 	char ch = lex_GetChar();
@@ -363,7 +361,7 @@ acceptVariadic(bool lineStart) {
 	} else if (ch == '`') {
 		return acceptGameboyLiteral();
 	}
-	
+
 	lex_UnputChar(ch);
 	if (isdigit(ch)) {
 		return acceptNumericAndLocalLabel(10, lineStart);
@@ -419,7 +417,7 @@ matchChar(char match) {
 	if (ch == match) {
 		return true;
 	}
-	
+
 	lex_UnputChar(ch);
 	return false;
 }
@@ -477,7 +475,6 @@ trimTokenStringRight(void) {
 	while (lex_Context->token.value.string[lex_Context->token.length - 1] == ' ') {
 		lex_Context->token.value.string[--lex_Context->token.length] = 0;
 	}
-
 }
 
 static void
@@ -554,7 +551,6 @@ stateMacroArguments(void) {
 	}
 }
 
-
 static bool
 skipToNextLine(void) {
 	char ch = lex_GetChar();
@@ -595,7 +591,7 @@ charIsIndexed(size_t* index, char* candidates) {
 static void
 skipLabel(void) {
 	char ch = lex_GetChar();
-	while (strchr(" \t\n",ch) == NULL && ch != 0) {
+	while (strchr(" \t\n", ch) == NULL && ch != 0) {
 		ch = lex_GetChar();
 	}
 	lex_UnputChar(ch);
@@ -605,7 +601,7 @@ static void
 skipLabelIndexed(size_t* index) {
 	for (;;) {
 		char ch = getUnexpandedChar(*index);
-		if (strchr(" \t",ch) != NULL || ch == 0)
+		if (strchr(" \t", ch) != NULL || ch == 0)
 			return;
 		*index += 1;
 	}
@@ -687,7 +683,7 @@ lex_UnputString(const char* str) {
 
 void
 lex_SetMode(ELexerMode mode) {
-	assert (lex_Context != NULL);
+	assert(lex_Context != NULL);
 	lex_Context->mode = mode;
 }
 
@@ -727,7 +723,7 @@ lex_GetNextDirectiveUnexpanded(size_t* index) {
 	for (;;) {
 		if (!skipToNextLineIndexed(index))
 			return false;
-			
+
 		if (charIsIndexed(index, ";*"))
 			continue;
 		skipLabelIndexed(index);

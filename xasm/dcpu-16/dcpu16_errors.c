@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,7 +16,7 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include <stdio.h>
 
 static const char* g_errors[] = {
     "Illegal addressing mode",
@@ -26,5 +26,5 @@ static const char* g_errors[] = {
 
 const char*
 x10c_GetError(size_t errorNumber) {
-    return errorNumber >= 1000 ? g_errors[errorNumber - 1000] : NULL;
+	return errorNumber >= 1000 ? g_errors[errorNumber - 1000] : NULL;
 }

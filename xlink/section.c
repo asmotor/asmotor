@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -35,89 +35,90 @@ static uint32_t g_sectionId = 0;
 static void
 resolveSymbol(SSection* section, SSymbol* symbol, bool allowImports) {
 	switch (symbol->type) {
-	case SYM_LOCALEXPORT:
-	case SYM_EXPORT:
-	case SYM_LOCAL: {
-		symbol->resolved = true;
-		symbol->section = section;
+		case SYM_LOCALEXPORT:
+		case SYM_EXPORT:
+		case SYM_LOCAL: {
+			symbol->resolved = true;
+			symbol->section = section;
 
-		if (section->cpuLocation != -1)
-			symbol->value += section->cpuLocation;
+			if (section->cpuLocation != -1)
+				symbol->value += section->cpuLocation;
 
-		break;
-	}
+			break;
+		}
 
-	case SYM_IMPORT: {
-		SSection* definingSection;
+		case SYM_IMPORT: {
+			SSection* definingSection;
 
-		for (definingSection = sect_Sections; definingSection != NULL; definingSection = definingSection->nextSection) {
-			if (definingSection->used || definingSection->group == NULL) {
-				uint32_t i;
-				SSymbol* exportedSymbol = definingSection->symbols;
+			for (definingSection = sect_Sections; definingSection != NULL; definingSection = definingSection->nextSection) {
+				if (definingSection->used || definingSection->group == NULL) {
+					uint32_t i;
+					SSymbol* exportedSymbol = definingSection->symbols;
 
-				for (i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol) {
-					if (exportedSymbol->type == SYM_EXPORT && strcmp(exportedSymbol->name, symbol->name) == 0) {
-						if (!exportedSymbol->resolved)
-							resolveSymbol(definingSection, exportedSymbol, allowImports);
+					for (i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol) {
+						if (exportedSymbol->type == SYM_EXPORT && strcmp(exportedSymbol->name, symbol->name) == 0) {
+							if (!exportedSymbol->resolved)
+								resolveSymbol(definingSection, exportedSymbol, allowImports);
 
-						symbol->resolved = true;
-						symbol->value = exportedSymbol->value;
-						symbol->section = definingSection;
-						symbol->fileInfoIndex = exportedSymbol->fileInfoIndex;
-						symbol->lineNumber = exportedSymbol->lineNumber;
+							symbol->resolved = true;
+							symbol->value = exportedSymbol->value;
+							symbol->section = definingSection;
+							symbol->fileInfoIndex = exportedSymbol->fileInfoIndex;
+							symbol->lineNumber = exportedSymbol->lineNumber;
 
-						return;
+							return;
+						}
 					}
 				}
 			}
+
+			if (!allowImports)
+				error("Unresolved symbol \"%s\"", symbol->name);
+
+			break;
 		}
 
-		if (!allowImports)
+		case SYM_LOCALIMPORT: {
+			for (SSection* definingSection = sect_Sections; definingSection != NULL;
+			     definingSection = definingSection->nextSection) {
+				if (definingSection->used && definingSection->fileId == section->fileId) {
+					SSymbol* exportedSymbol = definingSection->symbols;
+
+					for (uint32_t i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol) {
+						if ((exportedSymbol->type == SYM_LOCALEXPORT || exportedSymbol->type == SYM_EXPORT) &&
+						    strcmp(exportedSymbol->name, symbol->name) == 0) {
+							if (!exportedSymbol->resolved)
+								resolveSymbol(definingSection, exportedSymbol, allowImports);
+
+							symbol->resolved = true;
+							symbol->value = exportedSymbol->value;
+							symbol->section = definingSection;
+							symbol->fileInfoIndex = exportedSymbol->fileInfoIndex;
+							symbol->lineNumber = exportedSymbol->lineNumber;
+
+							return;
+						}
+					}
+				}
+			}
+
 			error("Unresolved symbol \"%s\"", symbol->name);
+		}
 
-		break;
-	}
-
-	case SYM_LOCALIMPORT: {
-		for (SSection* definingSection = sect_Sections; definingSection != NULL; definingSection = definingSection->nextSection) {
-			if (definingSection->used && definingSection->fileId == section->fileId) {
-				SSymbol* exportedSymbol = definingSection->symbols;
-
-				for (uint32_t i = 0; i < definingSection->totalSymbols; ++i, ++exportedSymbol) {
-					if ((exportedSymbol->type == SYM_LOCALEXPORT || exportedSymbol->type == SYM_EXPORT) &&
-					    strcmp(exportedSymbol->name, symbol->name) == 0) {
-						if (!exportedSymbol->resolved)
-							resolveSymbol(definingSection, exportedSymbol, allowImports);
-
-						symbol->resolved = true;
-						symbol->value = exportedSymbol->value;
-						symbol->section = definingSection;
-						symbol->fileInfoIndex = exportedSymbol->fileInfoIndex;
-						symbol->lineNumber = exportedSymbol->lineNumber;
-
-						return;
-					}
-				}
+		case SYM_LINKER: {
+			if (!patch_EvaluateExpression((uint8_t*) strbuf_Data(symbol->expression), strbuf_Size(symbol->expression),
+			                              &symbol->value, NULL, &symbol->section)) {
+				error("Error evaluating linker symbol \"%s\"", symbol->name);
 			}
+
+			symbol->type = SYM_EXPORT;
+			symbol->resolved = true;
+			break;
 		}
 
-		error("Unresolved symbol \"%s\"", symbol->name);
-	}
-
-	case SYM_LINKER: {
-		if (!patch_EvaluateExpression((uint8_t*) strbuf_Data(symbol->expression), strbuf_Size(symbol->expression), &symbol->value,
-		                              NULL, &symbol->section)) {
-			error("Error evaluating linker symbol \"%s\"", symbol->name);
+		default: {
+			error("Unhandled symbol type");
 		}
-
-		symbol->type = SYM_EXPORT;
-		symbol->resolved = true;
-		break;
-	}
-
-	default: {
-		error("Unhandled symbol type");
-	}
 	}
 }
 

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "xasm.h"
 
@@ -29,37 +29,39 @@
 #include "schip_tokens.h"
 
 static SConfiguration g_xasmConfiguration = {
-	"motorschip",
-	ASM_BIG_ENDIAN,
-	false,
-	false,
-	false,
-	false,
-	MINSIZE_8BIT,
-	1,
-	"CODE",
+    "motorschip",
+    ASM_BIG_ENDIAN,
+    false,
+    false,
+    false,
+    false,
+    MINSIZE_8BIT,
+    1,
+    "CODE",
 
-	"RB",  "RW",  NULL, NULL,
-	"DB",  "DW",  NULL, NULL,
-	"DSB", "DSW", NULL, NULL,
+    // clang-format off
+    "RB", "RW",   NULL, NULL,
+    "DB", "DW",   NULL, NULL,
+    "DSB", "DSW", NULL, NULL,
+	// clang-format off
+	
+    schip_GetError,
+    schip_DefineTokens,
+    schip_DefineSymbols,
 
-	schip_GetError,
-	schip_DefineTokens,
-	schip_DefineSymbols,
+    schip_AllocOptions,
+    schip_SetDefaultOptions,
+    schip_CopyOptions,
+    schip_ParseOption,
+    schip_OptionsUpdated,
+    schip_PrintOptions,
 
-	schip_AllocOptions,
-	schip_SetDefaultOptions,
-	schip_CopyOptions,
-	schip_ParseOption,
-	schip_OptionsUpdated,
-	schip_PrintOptions,
+    schip_ParseFunction,
+    schip_ParseInstruction,
 
-	schip_ParseFunction,
-	schip_ParseInstruction,
+    schip_AssignSection,
 
-	schip_AssignSection,
-
-	schip_IsValidLocalName,
+    schip_IsValidLocalName,
 };
 
 extern int

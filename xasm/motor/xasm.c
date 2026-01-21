@@ -1,19 +1,19 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
-	This file is part of ASMotor.
+    This file is part of ASMotor.
 
-	ASMotor is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    ASMotor is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	ASMotor is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    ASMotor is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
@@ -23,15 +23,14 @@
 #include <string.h>
 #include <time.h>
 
-
 #if !defined(__STDC_IEC_559__)
-#	if defined(_M_IX86) || defined(_M_X64) || defined(__x86_64) || defined(__ARM_ARCH)
-#   	define __STDC_IEC_559__
-#	endif
+#if defined(_M_IX86) || defined(_M_X64) || defined(__x86_64) || defined(__ARM_ARCH)
+#define __STDC_IEC_559__
+#endif
 #endif
 
 #if !defined(__STDC_IEC_559__) && !defined(__GCC_IEC_559)
-#   error "Requires IEEE 754 floating point!"
+#error "Requires IEEE 754 floating point!"
 #endif
 
 #if defined(_DEBUG) && defined(_WIN32)
@@ -40,7 +39,6 @@
 
 #include "str.h"
 
-#include "xasm.h"
 #include "amigaobject.h"
 #include "binaryobject.h"
 #include "dependency.h"
@@ -54,9 +52,10 @@
 #include "section.h"
 #include "symbol.h"
 #include "tokens.h"
+#include "xasm.h"
 
-#include "util.h"
 #include "amitime.h"
+#include "util.h"
 
 uint32_t xasm_TotalLines = 0;
 uint32_t xasm_TotalErrors = 0;
@@ -64,42 +63,39 @@ uint32_t xasm_TotalWarnings = 0;
 
 const SConfiguration* xasm_Configuration = NULL;
 
-
 static void
 printUsage(void) {
 	printf("%s v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
-		   "Options:\n"
-		   "    -a<n>    Section alignment when writing binary file (default is %d bytes)\n"
-		   "    -b<AS>   Change the two characters used for binary constants\n"
-		   "             (default is 01)\n"
-		   "    -d<FILE> Output dependency file for GNU Make\n"
-		   "    -D<NAME> Define EQU symbol with the value 1\n"
-		   "    -e(l|b)  Change endianness\n"
-		   "    -f<F>    Output format, one of\n"
-		   "                 x - xobj (default)\n"
-		   "                 e - ELF object file\n"
-		   "                 b - binary file\n"
-		   "                 v - verilog readmemh file\n", 
-			xasm_Configuration->executableName,
-			xasm_Configuration->executableName,
-			xasm_Configuration->sectionAlignment);
+	       "Options:\n"
+	       "    -a<n>    Section alignment when writing binary file (default is %d bytes)\n"
+	       "    -b<AS>   Change the two characters used for binary constants\n"
+	       "             (default is 01)\n"
+	       "    -d<FILE> Output dependency file for GNU Make\n"
+	       "    -D<NAME> Define EQU symbol with the value 1\n"
+	       "    -e(l|b)  Change endianness\n"
+	       "    -f<F>    Output format, one of\n"
+	       "                 x - xobj (default)\n"
+	       "                 e - ELF object file\n"
+	       "                 b - binary file\n"
+	       "                 v - verilog readmemh file\n",
+	       xasm_Configuration->executableName, xasm_Configuration->executableName, xasm_Configuration->sectionAlignment);
 
 	if (xasm_Configuration->supportAmiga) {
 		printf("                 g - Amiga executable file\n"
-			   "                 h - Amiga object file\n");
+		       "                 h - Amiga object file\n");
 	}
 
 	printf("    -g       Include debug information\n"
-		   "    -h       This text\n"
-		   "    -i<dir>  Extra include path (can appear more than once)\n"
-		   "    -o<f>    Write assembly output to <file>\n"
-		   "    -s<file> Use section types from machine definition file\n"
-		   "    -v       Verbose text output\n"
-		   "    -w<d>    Disable warning <d> (four digits)\n"
-		   "    -z<XX>   Set the byte value (hex format) used for uninitialised\n"
-		   "             data (default is FF)\n"
-		   "\n"
-		   "Machine specific options:\n");
+	       "    -h       This text\n"
+	       "    -i<dir>  Extra include path (can appear more than once)\n"
+	       "    -o<f>    Write assembly output to <file>\n"
+	       "    -s<file> Use section types from machine definition file\n"
+	       "    -v       Verbose text output\n"
+	       "    -w<d>    Disable warning <d> (four digits)\n"
+	       "    -z<XX>   Set the byte value (hex format) used for uninitialised\n"
+	       "             data (default is FF)\n"
+	       "\n"
+	       "Machine specific options:\n");
 	xasm_Configuration->printOptionUsage();
 	exit(EXIT_SUCCESS);
 }
@@ -122,7 +118,6 @@ writeOutput(char format, string* outputFilename, string* sourceFilename) {
 		default:
 			return false;
 	}
-
 }
 
 extern int
@@ -133,7 +128,8 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 	int rcode;
 
 #if defined(_DEBUG) && defined(_WIN32) && !defined(__MINGW32__)
-	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG)| _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_DELAY_FREE_MEM_DF);
+	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF | _CRTDBG_CHECK_ALWAYS_DF |
+	               _CRTDBG_DELAY_FREE_MEM_DF);
 	atexit(getchar);
 #endif
 
@@ -295,7 +291,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 	lex_Exit();
 	sect_Exit();
 
-//	mem_ShowLeaks();
+	//	mem_ShowLeaks();
 
 	return rcode;
 }

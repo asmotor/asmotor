@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,24 +16,22 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "xasm.h"
+#include "options.h"
 #include "symbol.h"
-
 
 static void
 createGroup(const char* name, EGroupType type, uint32_t flags) {
-    string* nameStr = str_Create(name);
-    sym_CreateGroup(nameStr, type)->flags |= flags;
-    str_Free(nameStr);
+	string* nameStr = str_Create(name);
+	sym_CreateGroup(nameStr, type)->flags |= flags;
+	str_Free(nameStr);
 }
 
-
-void 
+void
 rc8_DefineSymbols(void) {
 	if (opt_Current->createGroups) {
 		createGroup("CODE", GROUP_TEXT, 0);
 		createGroup("DATA", GROUP_TEXT, SYMF_DATA);
-		createGroup("DATA_S", GROUP_TEXT, SYMF_DATA|SYMF_SHARED);
+		createGroup("DATA_S", GROUP_TEXT, SYMF_DATA | SYMF_SHARED);
 		createGroup("BSS", GROUP_BSS, 0);
 		createGroup("BSS_S", GROUP_BSS, SYMF_SHARED);
 	}
@@ -43,4 +41,3 @@ bool
 rc8_IsValidLocalName(const string* name) {
 	return true;
 }
-

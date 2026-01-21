@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -30,11 +30,21 @@
 #define SYS_ASCII_ADDRESS   5
 #define NEXT_LINE_HIGH_BYTE 1
 
-static uint8_t basicSys[13] = {0x0C, 0x08, 0x0A, 0x00, 0x9E, 0x31, 0x32, 0x33, 0x34, 0x00, 0x00, 0x00, 0x00};
+static uint8_t basicSys[13] = {
+    0x0C, 0x08,                               // Next line address
+    0x0A, 0x00,                               // Line number
+    0x9E, 0x31, 0x32, 0x33, 0x34, 0x00, 0x00, // SYS1234x
+    0x00, 0x00                                // end program
+};
 
 #define MEGA65_SYS_ASCII_ADDRESS 9
-static uint8_t mega65BasicSys[17] = {0x10, 0x20, 0x0A, 0x00, 0xFE, 0x02, 0x30, 0x3A, 0x9E,
-                                     0x31, 0x32, 0x33, 0x34, 0x00, 0x00, 0x00, 0x00};
+static uint8_t mega65BasicSys[17] = {
+    0x10, 0x20,                               // Next line address
+    0x0A, 0x00,                               // Line number
+    0xFE, 0x02, 0x30, 0x3A,                   // BANK0:
+    0x9E, 0x31, 0x32, 0x33, 0x34, 0x00, 0x00, // SYS1234x
+    0x00, 0x00,                               // end program
+};
 
 static void
 setupUnbankedCommodore(uint32_t baseAddress, uint32_t size) {

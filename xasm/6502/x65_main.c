@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -16,8 +16,8 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "xasm.h"
 
@@ -28,39 +28,40 @@
 #include "x65_symbols.h"
 #include "x65_tokens.h"
 
-static SConfiguration
-x65_xasmConfiguration = {
-	"motor6502",
-	ASM_LITTLE_ENDIAN,
-	true,
-	false,
-	false,
-	false,
-	MINSIZE_8BIT,
-	1,
-	"CODE",
+static SConfiguration x65_xasmConfiguration = {
+    "motor6502",
+    ASM_LITTLE_ENDIAN,
+    true,
+    false,
+    false,
+    false,
+    MINSIZE_8BIT,
+    1,
+    "CODE",
 
+    // clang-format off
 	"RB", "RW", "RL", NULL,
 	"DB", "DW", "DL", NULL,
 	"DS", NULL, NULL, NULL,
+    // clang-format on
 
-	x65_GetError,
-	x65_DefineTokens,
-	x65_DefineSymbols,
+    x65_GetError,
+    x65_DefineTokens,
+    x65_DefineSymbols,
 
-	x65_AllocOptions,
-	x65_SetDefault,
-	x65_CopyOptions,
-	x65_ParseOption,
-	x65_OptionsUpdated,
-	x65_PrintOptions,
+    x65_AllocOptions,
+    x65_SetDefault,
+    x65_CopyOptions,
+    x65_ParseOption,
+    x65_OptionsUpdated,
+    x65_PrintOptions,
 
-	x65_ParseFunction,
-	x65_ParseInstruction,
+    x65_ParseFunction,
+    x65_ParseInstruction,
 
-	x65_AssignSection,
-	
-	x65_IsValidLocalName
+    x65_AssignSection,
+
+    x65_IsValidLocalName,
 };
 
 extern int

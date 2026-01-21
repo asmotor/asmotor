@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -22,9 +22,9 @@
 #include "xasm.h"
 
 typedef enum {
-    MERROR_UNDEFINED_RESULT = 1000,
-    MERROR_REGISTER_EXPECTED,
-    MERROR_REQUIRES_SCHIP,
+	MERROR_UNDEFINED_RESULT = 1000,
+	MERROR_REGISTER_EXPECTED,
+	MERROR_REQUIRES_SCHIP,
 } EMachineError;
 
 extern const char*

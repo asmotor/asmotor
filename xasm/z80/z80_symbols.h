@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -18,6 +18,8 @@
 
 #ifndef XASM_Z80_SYMBOLS_H_INCLUDED_
 #define XASM_Z80_SYMBOLS_H_INCLUDED_
+
+#include "str.h"
 
 extern void
 z80_DefineSymbols(void);

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,17 +19,18 @@
 #ifndef XASM_MOTOR_LEXERBUFFER_H_INCLUDED_
 #define XASM_MOTOR_LEXERBUFFER_H_INCLUDED_
 
+#include "str.h"
+#include "vec.h"
+
 #include "charstack.h"
-#include "lists.h"
-#include "strcoll.h"
 
 typedef struct LexerBuffer {
 	SCharStack charStack;
-    string* name;
+	string* name;
 	string* uniqueValue;
-    string* text;
+	string* text;
 	size_t index;
-    vec_t* arguments;
+	vec_t* arguments;
 } SLexerBuffer;
 
 extern void
@@ -67,6 +68,5 @@ lexbuf_SkipUnexpandedChars(SLexerBuffer* fbuffer, size_t count);
 
 extern void
 lexbuf_RenewUniqueValue(SLexerBuffer* fbuffer);
-
 
 #endif /* XASM_MOTOR_LEXERBUFFER_H_INCLUDED_ */

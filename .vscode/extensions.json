@@ -1,5 +1,6 @@
 {
 	"recommendations": [
-		"ASMotor.asmotor-syntax"
+        "ASMotor.asmotor-syntax",
+        "xaver.clang-format"
 	]
 }

@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -30,67 +30,66 @@
 struct FileInfo;
 
 typedef enum {
-    SYM_LABEL = 0,
-    SYM_EQU,
-    SYM_SET,
-    SYM_EQUS,
-    SYM_EQUF,
-    SYM_MACRO,
-    SYM_IMPORT,
-    SYM_GROUP,
-    SYM_GLOBAL,
-    SYM_STRUCTURE,
-    SYM_UNDEFINED
+	SYM_LABEL = 0,
+	SYM_EQU,
+	SYM_SET,
+	SYM_EQUS,
+	SYM_EQUF,
+	SYM_MACRO,
+	SYM_IMPORT,
+	SYM_GROUP,
+	SYM_GLOBAL,
+	SYM_STRUCTURE,
+	SYM_UNDEFINED
 } ESymbolType;
 
 typedef enum {
-    GROUP_TEXT = 0,
-    GROUP_BSS = 1
+	GROUP_TEXT = 0,
+	GROUP_BSS = 1
 } EGroupType;
 
-#define SYMF_CONSTANT       0x001u      // symbol has a constant value (the Value field is safe to use)
-#define SYMF_RELOC          0x002u      // symbol will change its value during linking
-#define SYMF_EXPORT         0x008u      // symbol should be exported
-#define SYMF_EXPORTABLE     0x010u      // symbol can be exported
-#define SYMF_EXPRESSION     0x020u      // symbol can be used in expressions
-#define SYMF_MODIFIABLE     0x040u      // symbol can be redefined
-#define SYMF_HAS_DATA       0x080u      // symbol has data attached (Macro.pData)
-#define SYMF_FILE_EXPORT    0x100u      // symbol should be exported to sections local to this file
-#define SYMF_STRUCTURE    	0x200u      // symbol is a structure definition
-#define SYMF_DATA           0x40000000u
-#define SYMF_SHARED         0x20000000u // Means CHIP on Amiga
-#define SYMF_USED           0x10000000u
+#define SYMF_CONSTANT    0x001u // symbol has a constant value (the Value field is safe to use)
+#define SYMF_RELOC       0x002u // symbol will change its value during linking
+#define SYMF_EXPORT      0x008u // symbol should be exported
+#define SYMF_EXPORTABLE  0x010u // symbol can be exported
+#define SYMF_EXPRESSION  0x020u // symbol can be used in expressions
+#define SYMF_MODIFIABLE  0x040u // symbol can be redefined
+#define SYMF_HAS_DATA    0x080u // symbol has data attached (Macro.pData)
+#define SYMF_FILE_EXPORT 0x100u // symbol should be exported to sections local to this file
+#define SYMF_STRUCTURE   0x200u // symbol is a structure definition
+#define SYMF_DATA        0x40000000u
+#define SYMF_SHARED      0x20000000u // Means CHIP on Amiga
+#define SYMF_USED        0x10000000u
 
 typedef struct Symbol {
-    list_Data(struct Symbol);
+	list_Data(struct Symbol);
 
-    string* name;
-    ESymbolType type;
-    uint32_t flags;
+	string* name;
+	ESymbolType type;
+	uint32_t flags;
 
-    struct FileInfo* fileInfo;
-    uint32_t lineNumber;
-    
-    struct Symbol* scope;
-    struct Section* section;
+	struct FileInfo* fileInfo;
+	uint32_t lineNumber;
 
-    union {
-        int32_t (* integer)(struct Symbol*);
-        string* (* string)(struct Symbol*);
-    } callback;
+	struct Symbol* scope;
+	struct Section* section;
 
-    union {
-        int32_t integer;
-        long double floating;
-        EGroupType groupType;
-        string* macro;
-    } value;
+	union {
+		int32_t (*integer)(struct Symbol*);
+		string* (*string)(struct Symbol*);
+	} callback;
 
-    uint32_t id;    // used by object output routines
+	union {
+		int32_t integer;
+		long double floating;
+		EGroupType groupType;
+		string* macro;
+	} value;
+
+	uint32_t id; // used by object output routines
 } SSymbol;
 
-extern SSymbol*
-sym_CurrentScope;
+extern SSymbol* sym_CurrentScope;
 
 extern uint32_t s_randseed;
 
@@ -180,7 +179,7 @@ sym_ErrorOnUndefined(void);
 
 INLINE bool
 sym_IsNotDefined(const string* symbolName) {
-    return !sym_IsDefined((symbolName));
+	return !sym_IsDefined((symbolName));
 }
 
 extern SSymbol* sym_hashedSymbols[SYMBOL_HASH_SIZE];

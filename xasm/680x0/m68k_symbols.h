@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -37,6 +37,5 @@ m68k_ResetRegmask(void);
 
 extern bool
 m68k_IsValidLocalName(const string* name);
-
 
 #endif

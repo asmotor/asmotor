@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -21,11 +21,13 @@
 
 #define CPUF_MIPS32R1 0x01
 #define CPUF_MIPS32R2 0x02
+#define CPUF_ALL      0x03
 
-#define CPUF_ALL 0x03
+#include <stdbool.h>
+#include <stdint.h>
 
 typedef struct MachineOptions {
-    uint8_t cpu;
+	uint8_t cpu;
 } SMachineOptions;
 
 extern SMachineOptions*

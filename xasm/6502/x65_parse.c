@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -19,18 +19,17 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "errors.h"
 #include "expression.h"
 #include "lexer_context.h"
 #include "options.h"
 #include "parse.h"
 #include "parse_expression.h"
-#include "errors.h"
 
 #include "x65_errors.h"
 #include "x65_options.h"
 #include "x65_parse.h"
 #include "x65_tokens.h"
-
 
 static bool
 parseBitsWidth(SExpression* expr) {
@@ -54,7 +53,7 @@ static bool
 parseBITS(void) {
 	SExpression* m = NULL;
 	SExpression* x = NULL;
-	
+
 	m = parse_Expression(2);
 	if (lex_Context->token.id == ',') {
 		parse_GetToken();
@@ -73,33 +72,33 @@ parseBITS(void) {
 
 SExpression*
 x65_ParseExpressionSU8(void) {
-    SExpression* expression = parse_Expression(1);
-    if (expression == NULL)
-        return NULL;
+	SExpression* expression = parse_Expression(1);
+	if (expression == NULL)
+		return NULL;
 
-    expression = expr_CheckRange(expression, -128, 255);
-    if (expression == NULL)
-        err_Error(ERROR_OPERAND_RANGE);
+	expression = expr_CheckRange(expression, -128, 255);
+	if (expression == NULL)
+		err_Error(ERROR_OPERAND_RANGE);
 
-    return expr_And(expression, expr_Const(0xFF));
+	return expr_And(expression, expr_Const(0xFF));
 }
 
 SExpression*
 x65_ParseFunction(void) {
-    switch (lex_Context->token.id) {
-        default:
-            return NULL;
-    }
+	switch (lex_Context->token.id) {
+		default:
+			return NULL;
+	}
 }
 
 bool
 x65_ParseInstruction(void) {
-    if (x65_ParseIntegerInstruction()) {
-        return true;
+	if (x65_ParseIntegerInstruction()) {
+		return true;
 	} else if (x65_Parse65816Instruction()) {
-        return true;
+		return true;
 	} else if (x65_Parse4510Instruction()) {
-        return true;
+		return true;
 	} else if (lex_Context->token.id == T_65816_BITS) {
 		parse_GetToken();
 		if (opt_Current->machineOptions->cpu & MOPT_CPU_65C816S) {
@@ -121,6 +120,5 @@ x65_ParseInstruction(void) {
 		}
 	}
 
-    return false;
+	return false;
 }
-

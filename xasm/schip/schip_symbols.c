@@ -1,4 +1,4 @@
-/*  Copyright 2008-2022 Carsten Elton Sorensen and contributors
+/*  Copyright 2008-2026 Carsten Elton Sorensen and contributors
 
     This file is part of ASMotor.
 
@@ -22,9 +22,9 @@
 
 static void
 createGroup(const char* name, EGroupType type) {
-    string* nameStr = str_Create(name);
-    sym_CreateGroup(nameStr, type);
-    str_Free(nameStr);
+	string* nameStr = str_Create(name);
+	sym_CreateGroup(nameStr, type);
+	str_Free(nameStr);
 }
 
 void
