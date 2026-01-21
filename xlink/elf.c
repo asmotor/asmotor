@@ -48,9 +48,14 @@ typedef uint16_t e_half_t;
 struct ElfSectionHeader;
 
 typedef struct {
+	SSection* section;
+	uint32_t symbolIndex;
+} SSymbolHandle;
+
+typedef struct {
 	const char* name;
 	const struct ElfSectionHeader* section;
-	SSymbol* xlinkSymbol;
+	SSymbolHandle xlinkSymbol;
 
 	e_word_t st_nameindex;
 	e_addr_t st_value;
@@ -97,7 +102,7 @@ typedef struct {
 } ElfRelocSection;
 
 typedef struct {
-	const ElfSymbol* symbol;
+	ElfSymbol* symbol;
 
 	e_addr_t r_offset;
 	int32_t r_addend;
@@ -142,6 +147,11 @@ typedef struct {
 	e_half_t stringSectionHeaderIndex;
 	ElfSectionHeader* headers;
 } ElfHeader;
+
+static SSymbol*
+symbolOfHandle(const SSymbolHandle* handle) {
+	return &handle->section->symbols[handle->symbolIndex];
+}
 
 static uint32_t
 read_word_b(const uint8_t* mem, size_t offset) {
@@ -425,7 +435,8 @@ readSymTabSection(FILE* fileHandle, ElfSectionHeader* header) {
 
 		symbol->name = NULL;
 		symbol->section = NULL;
-		symbol->xlinkSymbol = NULL;
+		symbol->xlinkSymbol.section = NULL;
+		symbol->xlinkSymbol.symbolIndex = UINT32_MAX;
 	}
 
 	header->data.symbols = table;
@@ -533,12 +544,12 @@ getSymbolTable(const ElfHeader* elf, uint32_t index) {
 	return header->data.symbols;
 }
 
-static const ElfSymbol*
+static ElfSymbol*
 getSymbol(const ElfSymbolSection* symbols, uint32_t index) {
 	if (index >= symbols->totalSymbols)
 		error("getSymbol read outside range (%d)", index);
 
-	return index == 0 ? NULL : &symbols->data[index];
+	return index == 0 ? NULL : (ElfSymbol*) &symbols->data[index];
 }
 
 static const char*
@@ -645,7 +656,7 @@ resolveNamesAndIndices(ElfHeader* elf) {
 	}
 }
 
-static SSymbol*
+static SSymbolHandle
 addElfSymbolToProgbits(ElfProgBitsSection* symbolSectionProgBits, const ElfSymbol* elfSymbol) {
 	SSection* xlinkSymbolSection = symbolSectionProgBits->xlinkSection;
 	if (xlinkSymbolSection->totalSymbols == symbolSectionProgBits->allocatedSymbols) {
@@ -658,13 +669,14 @@ addElfSymbolToProgbits(ElfProgBitsSection* symbolSectionProgBits, const ElfSymbo
 		    realloc(xlinkSymbolSection->symbols, sizeof(SSymbol) * symbolSectionProgBits->allocatedSymbols);
 	}
 
-	SSymbol* xlinkSymbol = &xlinkSymbolSection->symbols[xlinkSymbolSection->totalSymbols++];
+	SSymbol* xlinkSymbol = &xlinkSymbolSection->symbols[xlinkSymbolSection->totalSymbols];
 	strncpy(xlinkSymbol->name, elfSymbol->name, MAX_SYMBOL_NAME_LENGTH - 1);
 	xlinkSymbol->resolved = false;
 	xlinkSymbol->section = xlinkSymbolSection;
 	xlinkSymbol->value = elfSymbol->st_value;
 
-	return xlinkSymbol;
+	SSymbolHandle r = {xlinkSymbolSection, xlinkSymbolSection->totalSymbols++};
+	return r;
 }
 
 static void
@@ -683,18 +695,21 @@ symbolsToXlink(const ElfHeader* elf, const ElfSectionHeader* header) {
 		if (elfSymbol->st_nameindex == 0 && elfSymbol->type != STT_SECTION)
 			continue;
 
-		SSymbol* xlinkSymbol = addElfSymbolToProgbits(elfSymbolSection->data.progbits, elfSymbol);
-		elfSymbol->xlinkSymbol = xlinkSymbol;
+		elfSymbol->xlinkSymbol = addElfSymbolToProgbits(elfSymbolSection->data.progbits, elfSymbol);
 
 		if (elfSymbol->st_shndx == SHN_UNDEF) {
+			SSymbol* xlinkSymbol = symbolOfHandle(&elfSymbol->xlinkSymbol);
 			xlinkSymbol->type = SYM_LOCALIMPORT;
 		} else if (elfSymbol->st_shndx == SHN_ABS) {
+			SSymbol* xlinkSymbol = symbolOfHandle(&elfSymbol->xlinkSymbol);
 			xlinkSymbol->type = SYM_LOCALEXPORT;
 			xlinkSymbol->resolved = true;
 		} else if (elfSymbol->type == STT_SECTION) {
+			SSymbol* xlinkSymbol = symbolOfHandle(&elfSymbol->xlinkSymbol);
 			xlinkSymbol->type = SYM_LOCALEXPORT;
 			xlinkSymbol->resolved = true;
 		} else {
+			SSymbol* xlinkSymbol = symbolOfHandle(&elfSymbol->xlinkSymbol);
 			xlinkSymbol->type = SYM_LOCALEXPORT;
 		}
 	}
@@ -709,13 +724,14 @@ symbolsToXlink(const ElfHeader* elf, const ElfSectionHeader* header) {
 			// Ignore imported symbols for now. They will be added when processing relocs
 		} else {
 			const ElfSectionHeader* elfSymbolSection = elfSymbol->section;
-			SSymbol* xlinkSymbol = addElfSymbolToProgbits(elfSymbolSection->data.progbits, elfSymbol);
-			elfSymbol->xlinkSymbol = xlinkSymbol;
+			elfSymbol->xlinkSymbol = addElfSymbolToProgbits(elfSymbolSection->data.progbits, elfSymbol);
 
 			if (elfSymbol->st_shndx == SHN_ABS) {
+				SSymbol* xlinkSymbol = symbolOfHandle(&elfSymbol->xlinkSymbol);
 				xlinkSymbol->type = SYM_EXPORT;
 				xlinkSymbol->resolved = true;
 			} else {
+				SSymbol* xlinkSymbol = symbolOfHandle(&elfSymbol->xlinkSymbol);
 				xlinkSymbol->type = SYM_EXPORT;
 			}
 		}
@@ -760,19 +776,21 @@ relocsToXlink(const ElfHeader* elf, const ElfSectionHeader* relocs) {
 				error("relocsToXlink unknown relocation type (%d)", rela->type);
 		}
 
-		SSymbol* xlinkSymbol = rela->symbol->xlinkSymbol;
-		if (xlinkSymbol == NULL && rela->symbol->st_shndx == SHN_UNDEF) {
-			xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
-			xlinkSymbol->type = SYM_IMPORT;
-		} else if (xlinkSymbol == NULL && (rela->symbol->section == relas->section)) {
-			xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
-			xlinkSymbol->type = SYM_LOCALIMPORT;
+		SSymbolHandle handle = rela->symbol->xlinkSymbol;
+		bool validSymbol = handle.section != NULL;
+
+		if (!validSymbol && rela->symbol->st_shndx == SHN_UNDEF) {
+			handle = rela->symbol->xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
+			symbolOfHandle(&handle)->type = SYM_IMPORT;
+		} else if (!validSymbol && (rela->symbol->section == relas->section)) {
+			handle = rela->symbol->xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
+			symbolOfHandle(&handle)->type = SYM_LOCALIMPORT;
 		} else if (rela->symbol->section != relas->section) {
-			xlinkSymbol = addElfSymbolToProgbits(progbits, rela->symbol);
-			xlinkSymbol->type = SYM_LOCALIMPORT;
+			handle = addElfSymbolToProgbits(progbits, rela->symbol);
+			symbolOfHandle(&handle)->type = rela->symbol->section == NULL ? SYM_IMPORT : SYM_LOCALIMPORT;
 		}
 
-		size_t xlinkSymbolIndex = xlinkSymbol - xlinkSection->symbols;
+		size_t xlinkSymbolIndex = handle.symbolIndex;
 		if (xlinkSymbolIndex >= xlinkSection->totalSymbols)
 			error("relocsToXlink error illegal symbol index (%d)", xlinkSymbolIndex);
 
