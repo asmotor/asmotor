@@ -276,7 +276,7 @@
 		sub	bc
 		sub	ft,de
 		sub	ft,hl
-		add	ft,ft
+		DB	$F4
 		add	bc
 		add	ft,de
 		add	ft,hl

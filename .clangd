@@ -10,5 +10,6 @@ Diagnostics:
       - types\.h
       - bits/.*\.h
       - stdint\.h
+      - _stdint\.h
       - unistd\.h
 

@@ -6,6 +6,12 @@
 
 * Fixed PC relative >=68020 addressing wrong offset.
 
+### RC800
+
+* `ADD FT,FT` is now rejected as it is redundant with `LS FT,1`.
+* `LS`/`RS`/`RSA` now produce a specific error message when shift count is out of range.
+* `XOR`/`OR` with 0 and `AND` with $FF now warn as they are no-ops.
+
 
 ## Linker
 

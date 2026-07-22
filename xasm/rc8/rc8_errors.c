@@ -22,6 +22,8 @@ static char* g_errors[] = {
     "Illegal addressing mode",
     "Expected condition code",
     "Requires synthesized instructions",
+    "Bitwise operation with 0 is a no-op",
+    "Shift count must be in range 0..15",
 };
 
 const char*

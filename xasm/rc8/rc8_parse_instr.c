@@ -177,11 +177,6 @@ handle_Op_Reg_UnsignedImm(uint8_t baseOpcode, SAddressingMode* registerDest, SEx
 	return handle_Op_Reg_Imm(baseOpcode, 0, 255, registerDest, expression);
 }
 
-static bool
-handle_Op_Reg_UnsignedImm4(uint8_t baseOpcode, SAddressingMode* registerDest, SExpression* expression) {
-	return handle_Op_Reg_Imm(baseOpcode, 0, 15, registerDest, expression);
-}
-
 static void
 ensureSource(SAddressingMode** destination, SAddressingMode** source) {
 	// If only destination has been specified, swap the two modes.
@@ -374,8 +369,11 @@ handle_ADD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 
 	if ((destination->mode & (MODE_REG_T | MODE_NONE)) && (source->mode & MODE_REG_8BIT))
 		return handle_OpcodeRegister(0x40, source);
-	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_16BIT))
+	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_16BIT)) {
+		if (destination->mode == MODE_REG_FT && source->mode == MODE_REG_FT)
+			return err_Error(ERROR_OPERAND);
 		return handle_OpcodeRegister(0xF4, source);
+	}
 	else if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM))
 		return handle_Op_Reg_SignedOrUnsignedImm(0xA0, destination, source->expression);
 	else if ((destination->mode & MODE_REG_16BIT) && (source->mode & MODE_IMM)) {
@@ -414,6 +412,12 @@ handle_Bitwise(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destinati
 	if ((source->mode & MODE_REG_8BIT_FBCDEHL) && (destination->mode & (MODE_NONE | MODE_REG_T)))
 		return handle_OpcodeRegister(baseOpcode, source);
 	else if ((source->mode & MODE_IMM) && (destination->mode & (MODE_NONE | MODE_REG_T))) {
+		if (expr_IsConstant(source->expression) && source->expression->value.integer >= 0 && source->expression->value.integer <= 255) {
+			if ((baseOpcode == 0x60 || baseOpcode == 0x70) && source->expression->value.integer == 0)
+				err_Warn(MERROR_BITWISE_ZERO_NOOP);
+			else if (baseOpcode == 0x68 && source->expression->value.integer == 255)
+				err_Warn(MERROR_BITWISE_ZERO_NOOP);
+		}
 		baseOpcode = 0xB0 + ((baseOpcode >> 3) & 0x03);
 		return handle_Op_Reg_SignedOrUnsignedImm(baseOpcode, NULL, source->expression);
 	}
@@ -723,8 +727,15 @@ handle_Shift(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination
 	if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_8BIT_BCDEHL))
 		return handle_OpcodeRegister(baseOpcode, source);
 	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_IMM)) {
+		if (expr_IsConstant(source->expression) && (source->expression->value.integer < 0 || source->expression->value.integer > 15))
+			return err_Error(MERROR_SHIFT_COUNT_RANGE);
+		SExpression* ranged = expr_CheckRange(source->expression, 0, 15);
+		if (ranged == NULL)
+			return false;
 		baseOpcode = 0xB8 + ((baseOpcode >> 3) & 0x03);
-		return handle_Op_Reg_UnsignedImm4(baseOpcode, NULL, source->expression);
+		sect_OutputConst8(baseOpcode);
+		sect_OutputExpr8(ranged);
+		return true;
 	}
 
 	return false;

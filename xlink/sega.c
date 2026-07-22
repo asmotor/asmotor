@@ -16,6 +16,9 @@
     along with ASMotor.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdint.h>
+#include <stdio.h>
+
 #include "file.h"
 
 #include "image.h"

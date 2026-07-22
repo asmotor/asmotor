@@ -39,9 +39,8 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceFolder}/build/cmake/debug/xlink/xlink",
-            "args": [ "-aa2560k.def", "-ohello.pgz", "-lhello.pgz.lst", "-mhello.pgz.map", "-ffxpgz", "-s__program_start", "build-release/clearbuffer.o", "build-release/cordic.o", "build-release/fadepixels.o", "build-release/fmath.o", "build-release/shadedots.o", "build-release/startup-motor.o", "build-release/memcpy.o", "build-release/memset.o", "build-release/color.o", "build-release/vicky.o", "build-release/gavin.o", "build-release/keyboard.o", "build-release/aaline.o", "build-release/cordicGenerateTable.o", "build-release/f68_debug.o", "build-release/linearAlgebra.o", "build-release/main.o", "build-release/screen.o", "build-release/object3d.o", "build-release/simpleMalloc.o", "build-release/vswitch.o" ],
-            "cwd": "/Users/ces/dev/a2560k-3d",
-
+            "args": ["-aa2560k.def", "-omandelbrot.pgz", "-lmandelbrot.pgz.lst", "-mmandelbrot.pgz.map", "-ffxpgz", "-s__program_start", "build-release/main.o", "build-release/mandelbrot.o", "build-release/texture.o", "build-release/startup-motor.o", "build-release/memcpy.o", "build-release/memset.o", "build-release/palette.o", "build-release/color.o", "build-release/gavin.o", "build-release/keyboard.o", "build-release/vicky.o", "build-release/simpleMalloc.o", "build-release/vswitch.o"],
+            "cwd": "/Users/ces/dev/a2560k-mandelbrot",
         },
         {
             "name": "(Win) motorz80",

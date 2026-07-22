@@ -6,6 +6,8 @@ include (build/ucm.cmake)
 
 set (CMAKE_C_STANDARD 99)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(MSVC)
   add_compile_options(/W3 /WX /wd4068 /J /D_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1)
 else(MSVC)
