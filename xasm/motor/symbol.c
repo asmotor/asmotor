@@ -471,9 +471,11 @@ sym_GetSymbolValueAsStringByName(string** dest, const string* name) {
 		case SYM_SET: {
 			string* r = str_CreateFormat("%d", sym_GetValue(symbol));
 			str_Move(dest, &r);
+			break;
 		}
 		case SYM_EQUS: {
 			sym_GetStringSymbolValue(dest, symbol);
+			break;
 		}
 		case SYM_LABEL:
 		case SYM_MACRO:
