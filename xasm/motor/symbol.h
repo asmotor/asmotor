@@ -76,7 +76,7 @@ typedef struct Symbol {
 
 	union {
 		int32_t (*integer)(struct Symbol*);
-		string* (*string)(struct Symbol*);
+		void (*string)(string**, struct Symbol*);
 	} callback;
 
 	union {
@@ -147,14 +147,14 @@ sym_Import(string* name);
 extern SSymbol*
 sym_Global(string* name);
 
-extern string*
-sym_GetSymbolValueAsStringByName(const string* name);
+extern void
+sym_GetSymbolValueAsStringByName(string** dest, const string* name);
 
-extern string*
-sym_GetStringSymbolValue(SSymbol* symbol);
+extern void
+sym_GetStringSymbolValue(string** dest, SSymbol* symbol);
 
-extern string*
-sym_GetStringSymbolValueByName(const string* name);
+extern void
+sym_GetStringSymbolValueByName(string** dest, const string* name);
 
 extern int32_t
 sym_GetValue(SSymbol* symbol);

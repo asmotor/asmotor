@@ -140,7 +140,8 @@ parse_GetToken(void) {
 			break;
 
 		string* symbolName = lex_TokenString();
-		string* value = sym_GetStringSymbolValueByName(symbolName);
+		string* value = NULL;
+		sym_GetStringSymbolValueByName(&value, symbolName);
 		str_Free(symbolName);
 
 		if (value == NULL)

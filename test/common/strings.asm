@@ -59,3 +59,5 @@ Test	EQUS	"This is a test"
 	PRINTT	"{-1234:X6}\n"
 	PRINTT	"{|Test|,30}\n"
 	PRINTT	"{"Text",9}\n"
+
+	PRINTT	"1"+"2"+"3"+"\n"

@@ -87,7 +87,7 @@ createSection(const string* name) {
 	SSection* newSection = mem_Alloc(sizeof(SSection));
 	memset(newSection, 0, sizeof(SSection));
 
-	newSection->name = str_Copy(name);
+	str_Assign(&newSection->name, name);
 
 	if (sect_Sections != NULL) {
 		SSection* lastSection = sect_Sections;

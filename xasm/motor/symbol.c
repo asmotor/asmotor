@@ -168,28 +168,26 @@ getAmigaDateString(void) {
 	return str_CreateFormat("%d.%d.%d", localTime.tm_mday, localTime.tm_mon + 1, localTime.tm_year + 1900);
 }
 
-static string*
-callback__DATE(SSymbol* symbol) {
+static void
+setMacroAndAssign(string** dest, SSymbol* symbol, string* (*creator)(void)) {
 	str_Free(symbol->value.macro);
-	symbol->value.macro = getDateString();
-
-	return str_Copy(symbol->value.macro);
+	symbol->value.macro = creator();
+	str_Assign(dest, symbol->value.macro);
 }
 
-static string*
-callback__TIME(SSymbol* symbol) {
-	str_Free(symbol->value.macro);
-	symbol->value.macro = getTimeString();
-
-	return str_Copy(symbol->value.macro);
+static void
+callback__DATE(string** dest, SSymbol* symbol) {
+	setMacroAndAssign(dest, symbol, getDateString);
 }
 
-static string*
-callback__AMIGADATE(SSymbol* symbol) {
-	str_Free(symbol->value.macro);
-	symbol->value.macro = getAmigaDateString();
+static void
+callback__TIME(string** dest, SSymbol* symbol) {
+	setMacroAndAssign(dest, symbol, getTimeString);
+}
 
-	return str_Copy(symbol->value.macro);
+static void
+callback__AMIGADATE(string** dest, SSymbol* symbol) {
+	setMacroAndAssign(dest, symbol, getAmigaDateString);
 }
 
 static SSymbol*
@@ -203,7 +201,7 @@ createEquCallback(const char* name, int32_t (*callback)(struct Symbol*)) {
 }
 
 static void
-createEqusCallback(const char* name, string* (*callback)(struct Symbol*) ) {
+createEqusCallback(const char* name, void (*callback)(string**, struct Symbol*)) {
 	string* nameString = str_Create(name);
 	SSymbol* symbol = sym_CreateEqus(nameString, NULL);
 	symbol->callback.string = callback;
@@ -242,7 +240,7 @@ createSymbol(const string* name, SSymbol* scope) {
 	memset(newSymbol, 0, sizeof(SSymbol));
 
 	SET_TYPE_AND_FLAGS(newSymbol, SYM_UNDEFINED);
-	newSymbol->name = str_Copy(name);
+	str_Assign(&newSymbol->name, name);
 	newSymbol->scope = scope;
 	newSymbol->fileInfo = lexctx_TokenFileInfo();
 	newSymbol->lineNumber = lexctx_TokenLineNumber();
@@ -360,7 +358,7 @@ extern SSymbol*
 sym_CreateEqus(string* name, string* value) {
 	SSymbol* symbol = createSymbolOfType(name, SYM_EQUS);
 	if (symbol != NULL) {
-		symbol->value.macro = str_Copy(value);
+		str_Assign(&symbol->value.macro, value);
 	}
 	return symbol;
 }
@@ -369,7 +367,7 @@ extern SSymbol*
 sym_CreateMacro(string* name, string* macro, uint32_t lineNumber) {
 	SSymbol* symbol = createSymbolOfType(name, SYM_MACRO);
 	if (symbol != NULL) {
-		symbol->value.macro = str_Copy(macro);
+		str_Assign(&symbol->value.macro, macro);
 		symbol->lineNumber = lineNumber;
 	}
 	return symbol;
@@ -464,17 +462,18 @@ sym_CreateLabel(string* name) {
 	return NULL;
 }
 
-extern string*
-sym_GetSymbolValueAsStringByName(const string* name) {
+extern void
+sym_GetSymbolValueAsStringByName(string** dest, const string* name) {
 	SSymbol* symbol = findOrCreateSymbol(name);
 
 	switch (symbol->type) {
 		case SYM_EQU:
 		case SYM_SET: {
-			return str_CreateFormat("%d", sym_GetValue(symbol));
+			string* r = str_CreateFormat("%d", sym_GetValue(symbol));
+			str_Move(dest, &r);
 		}
 		case SYM_EQUS: {
-			return sym_GetStringSymbolValue(symbol);
+			sym_GetStringSymbolValue(dest, symbol);
 		}
 		case SYM_LABEL:
 		case SYM_MACRO:
@@ -483,7 +482,8 @@ sym_GetSymbolValueAsStringByName(const string* name) {
 		case SYM_GLOBAL:
 		case SYM_UNDEFINED:
 		default: {
-			return str_Create("[UNDEFINED]");
+			string* r = str_Create("[UNDEFINED]");
+			str_Move(dest, &r);
 		}
 	}
 }
@@ -598,27 +598,27 @@ sym_IsDefined(const string* pName) {
 	return pSym != NULL && pSym->type != SYM_UNDEFINED;
 }
 
-extern string*
-sym_GetStringSymbolValue(SSymbol* symbol) {
+extern void
+sym_GetStringSymbolValue(string** dest, SSymbol* symbol) {
 	if (symbol->type == SYM_EQUS) {
 		if (symbol->callback.string) {
-			return symbol->callback.string(symbol);
+			symbol->callback.string(dest, symbol);
 		} else {
-			return str_Copy(symbol->value.macro);
+			str_Assign(dest, symbol->value.macro);
 		}
+	} else {
+		str_Clear(dest);
 	}
-
-	return NULL;
 }
 
-extern string*
-sym_GetStringSymbolValueByName(const string* name) {
+extern void
+sym_GetStringSymbolValueByName(string** dest, const string* name) {
 	SSymbol* symbol = getSymbol(name, assumedScopeOf(name));
 
 	if (symbol != NULL)
-		return sym_GetStringSymbolValue(symbol);
-
-	return NULL;
+		sym_GetStringSymbolValue(dest, symbol);
+	else
+		str_Clear(dest);
 }
 
 static void

@@ -487,8 +487,8 @@ handleDd(intptr_t _) {
 	return true;
 }
 
-static string*
-getFilename(void) {
+static void
+getFilename(string** dest) {
 	string* filename = parse_StringExpression();
 
 	if (filename == NULL) {
@@ -500,7 +500,12 @@ getFilename(void) {
 		lex_SetMode(LEXER_MODE_NORMAL);
 	}
 
-	return filename != NULL ? inc_FindFile(filename) : NULL;
+	if (filename == NULL) {
+		str_Clear(dest);
+		return;
+	}
+
+	inc_FindFile(dest, filename);
 }
 
 static void
@@ -513,7 +518,8 @@ static bool
 handleFileCore(intptr_t intProcess) {
 	void (*process)(string*) = (void (*)(string*)) intProcess;
 
-	string* filename = getFilename();
+	string* filename = NULL;
+	getFilename(&filename);
 	if (filename != NULL) {
 		if (mayIncludeFile(filename)) {
 			process(filename);

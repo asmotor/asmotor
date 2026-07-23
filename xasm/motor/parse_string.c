@@ -272,7 +272,7 @@ stringExpressionPri2(void) {
 				string* symbol = lex_TokenString();
 				parse_GetToken();
 				if (lex_Context->token.id == T_OP_BITWISE_OR) {
-					result = sym_GetSymbolValueAsStringByName(symbol);
+					sym_GetSymbolValueAsStringByName(&result, symbol);
 					parse_GetToken();
 				}
 				str_Free(symbol);
@@ -383,15 +383,16 @@ parse_StringExpression(void) {
 		parse_GetToken();
 
 		string* s2 = stringExpressionPri1();
-		if (s2 == NULL)
+		if (s2 == NULL) {
+			str_Free(s1);
 			return NULL;
+		}
 
 		string* r = str_Concat(s1, s2);
 
 		str_Free(s2);
 		str_Free(s1);
-
-		return r;
+		s1 = r;
 	}
 
 	return s1;

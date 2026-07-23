@@ -71,14 +71,14 @@ dep_Exit(void) {
 
 extern void
 dep_SetMainOutput(string* filename) {
-	g_mainOutput = str_Copy(filename);
+	str_Assign(&g_mainOutput, filename);
 }
 
 extern void
 dep_AddDependency(string* filename) {
 	if (g_dependencySet != NULL) {
 		if (g_mainDependency == NULL) {
-			g_mainDependency = str_Copy(filename);
+			str_Assign(&g_mainDependency, filename);
 		}
 		strset_Insert(g_dependencySet, filename);
 	}

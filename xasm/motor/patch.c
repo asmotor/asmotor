@@ -466,7 +466,7 @@ patch_Create(SSection* section, uint32_t offset, SExpression* expression, EPatch
 	patch->offset = offset;
 	patch->type = type;
 	patch->expression = expression;
-	patch->filename = str_Copy(lex_Context->buffer.name);
+	str_Assign(&patch->filename, lex_Context->buffer.name);
 	patch->lineNumber = lex_Context->lineNumber;
 }
 

@@ -478,9 +478,12 @@ handleOption(const char* option) {
 				error("more than one target (option \"a\", \"t\", \"c\") defined");
 
 			g_targetDefined = true;
-			string* filename = str_ToLower(str_Create(&option[1]));
-			mdef_Read(filename);
-			str_Free(filename);
+			{
+				string* filename = str_Create(&option[1]);
+				str_ToLowerReplace(&filename);
+				mdef_Read(filename);
+				str_Free(filename);
+			}
 			return true;
 		}
 		case 'c': { /* Memory configuration */
@@ -488,9 +491,12 @@ handleOption(const char* option) {
 				error("more than one target (option \"a\", \"t\", \"c\") defined");
 
 			g_targetDefined = true;
-			string* target = str_ToLower(str_Create(&option[1]));
-			handleMemoryConfigurationOption(target);
-			str_Free(target);
+			{
+				string* target = str_Create(&option[1]);
+				str_ToLowerReplace(&target);
+				handleMemoryConfigurationOption(target);
+				str_Free(target);
+			}
 			return true;
 		}
 		case 'e': /* Entry point */
@@ -500,9 +506,12 @@ handleOption(const char* option) {
 
 			return true;
 		case 'f': { /* File format */
-			string* target = str_ToLower(str_Create(&option[1]));
-			handleFileFormatOption(target);
-			str_Free(target);
+			{
+				string* target = str_Create(&option[1]);
+				str_ToLowerReplace(&target);
+				handleFileFormatOption(target);
+				str_Free(target);
+			}
 			return true;
 		}
 		case 'l': /* Map file */
@@ -539,9 +548,12 @@ handleOption(const char* option) {
 			fprintf(stderr, "Warning: option -t is deprecated and has been replaced with -f and -c\n");
 			g_targetDefined = true;
 
-			string* target = str_ToLower(str_Create(&option[1]));
-			handleLegacyTargetOption(target);
-			str_Free(target);
+			{
+				string* target = str_Create(&option[1]);
+				str_ToLowerReplace(&target);
+				handleLegacyTargetOption(target);
+				str_Free(target);
+			}
 			return true;
 		}
 		default:

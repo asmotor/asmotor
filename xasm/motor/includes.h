@@ -24,7 +24,9 @@
 extern void
 inc_AddIncludePath(string* pathname);
 
-extern string*
-inc_FindFile(string* filename);
+/* Borrowed reference: caller retains ownership of filename.
+ * Writes result to *dest (owned by caller, or NULL if not found). */
+extern void
+inc_FindFile(string** dest, const string* filename);
 
 #endif /* XASM_MOTOR_INCLUDE_H_INCLUDED_ */

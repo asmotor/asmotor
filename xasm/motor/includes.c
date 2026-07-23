@@ -32,57 +32,73 @@
 static vec_t* g_includePaths;
 
 /* Private functions */
-static string*
-buildFilename(string* workingName, string* fileName) {
-	if (workingName == NULL)
-		return fcanonicalizePath(fileName);
+static void
+buildFilename(string** dest, const string* workingName, const string* fileName) {
+	if (workingName == NULL) {
+		string* r = fcanonicalizePath(fileName);
+		str_Move(dest, &r);
+		return;
+	}
 
-	return freplaceFileComponent(workingName, fileName);
+	freplaceFileComponent(dest, workingName, fileName);
 }
 
-static string*
-appendFilename(string* directory, string* fileName) {
-	if (directory == NULL)
-		return fcanonicalizePath(fileName);
+static void
+appendFilename(string** dest, const string* directory, const string* fileName) {
+	if (directory == NULL) {
+		string* r = fcanonicalizePath(fileName);
+		str_Move(dest, &r);
+		return;
+	}
 
 	string* n = str_Concat(directory, fileName);
 	string* r = fcanonicalizePath(n);
 	str_Free(n);
-	return r;
+	str_Move(dest, &r);
 }
 
 /* Public functions */
 
-extern string*
-inc_FindFile(string* fileName) {
+/*
+ * inc_FindFile: takes a BORROWED reference to fileName.
+ * Writes result to *dest (owned by caller, or NULL if not found).
+ * The caller always retains ownership of fileName and must free it.
+ */
+extern void
+inc_FindFile(string** dest, const string* fileName) {
 	string* workingName = lex_Context == NULL ? NULL : lex_Context->buffer.name;
 
-	string* candidate = buildFilename(workingName, fileName);
+	string* candidate = NULL;
+	buildFilename(&candidate, workingName, fileName);
 	if (candidate != NULL) {
 		if (fexists(str_String(candidate))) {
-			return candidate;
+			str_Move(dest, &candidate);
+			return;
 		}
 		str_Free(candidate);
 	}
 
 	if (g_includePaths != NULL) {
 		for (size_t count = 0; count < strvec_Count(g_includePaths); ++count) {
-			string* candidate = appendFilename(strvec_StringAt(g_includePaths, count), fileName);
+			appendFilename(&candidate, strvec_StringAt(g_includePaths, count), fileName);
 
 			if (fexists(str_String(candidate))) {
-				return candidate;
+				str_Move(dest, &candidate);
+				return;
 			}
+			str_Free(candidate);
 		}
 	}
 
 	if (workingName == NULL) {
 		if (fexists(str_String(fileName))) {
-			return fileName;
+			string* r = fcanonicalizePath(fileName);
+			str_Move(dest, &r);
+			return;
 		}
 	}
 
-	str_Free(fileName);
-	return NULL;
+	str_Clear(dest);
 }
 
 extern void

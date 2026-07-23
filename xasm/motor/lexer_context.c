@@ -76,7 +76,8 @@ createFileInfo(string* fileName) {
 		return (SFileInfo*) value;
 	} else {
 		SFileInfo* entry = mem_Alloc(sizeof(SFileInfo));
-		entry->fileName = str_Copy(fileName);
+		entry->fileName = NULL;
+		str_Assign(&entry->fileName, fileName);
 		entry->fileId = nextFileId++;
 		entry->crc32 = 0;
 		strmap_Insert(g_fileNameMap, fileName, (intptr_t) entry);
@@ -397,7 +398,8 @@ lexctx_ContextInit(string* fileName) {
 	sym_CreateEqus(symbolName, fileName);
 	str_Free(symbolName);
 
-	string* name = inc_FindFile(fileName);
+	string* name = NULL;
+	inc_FindFile(&name, fileName);
 	if (name != NULL) {
 		FILE* fileHandle = fopen(str_String(name), "rb");
 		if (fileHandle != NULL) {

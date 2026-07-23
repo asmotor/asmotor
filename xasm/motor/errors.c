@@ -186,7 +186,8 @@ static void
 addMessage(SMessages* msg, SMessage* message) {
 	msg->totalMessages += 1;
 	msg->messages = (SMessage*) mem_Realloc(msg->messages, msg->totalMessages * sizeof(SMessage));
-	msg->messages[msg->totalMessages - 1].message = str_Copy(message->message);
+	msg->messages[msg->totalMessages - 1].message = NULL;
+	str_Assign(&msg->messages[msg->totalMessages - 1].message, message->message);
 	msg->messages[msg->totalMessages - 1].lineNumber = message->lineNumber;
 }
 

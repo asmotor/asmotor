@@ -25,10 +25,11 @@
 
 // Private functions
 
-static string*
-createUniqueValue(void) {
+static void
+createUniqueValue(string** dest) {
 	static uint32_t runId = 0;
-	return str_CreateFormat("_%u", runId++);
+	string* s = str_CreateFormat("_%u", runId++);
+	str_Move(dest, &s);
 }
 
 static char
@@ -98,9 +99,12 @@ lexbuf_Init(SLexerBuffer* buffer, string* name, string* content, vec_t* argument
 	assert(arguments != NULL);
 
 	chstk_Init(&buffer->charStack);
-	buffer->name = str_Copy(name);
-	buffer->uniqueValue = createUniqueValue();
-	buffer->text = str_Copy(content);
+	buffer->name = NULL;
+	buffer->uniqueValue = NULL;
+	buffer->text = NULL;
+	str_Assign(&buffer->name, name);
+	createUniqueValue(&buffer->uniqueValue);
+	str_Assign(&buffer->text, content);
 	buffer->index = 0;
 	buffer->arguments = arguments;
 }
@@ -122,9 +126,12 @@ lexbuf_ShiftArguments(SLexerBuffer* buffer, int32_t count) {
 extern void
 lexbuf_Copy(SLexerBuffer* dest, const SLexerBuffer* source) {
 	chstk_Copy(&dest->charStack, &source->charStack);
-	dest->name = str_Copy(source->name);
-	dest->uniqueValue = str_Copy(source->uniqueValue);
-	dest->text = str_Copy(source->text);
+	dest->name = NULL;
+	dest->uniqueValue = NULL;
+	dest->text = NULL;
+	str_Assign(&dest->name, source->name);
+	str_Assign(&dest->uniqueValue, source->uniqueValue);
+	str_Assign(&dest->text, source->text);
 	dest->index = source->index;
 	dest->arguments = source->arguments;
 }
@@ -142,10 +149,8 @@ lexbuf_ShallowCopy(SLexerBuffer* dest, const SLexerBuffer* source) {
 extern void
 lexbuf_ContinueFrom(SLexerBuffer* dest, const SLexerBuffer* source) {
 	chstk_Copy(&dest->charStack, &source->charStack);
-	str_Free(dest->name);
-	str_Free(dest->text);
-	dest->name = str_Copy(source->name);
-	dest->text = str_Copy(source->text);
+	str_Assign(&dest->name, source->name);
+	str_Assign(&dest->text, source->text);
 	dest->index = source->index;
 	dest->arguments = source->arguments;
 }
@@ -174,8 +179,7 @@ lexbuf_SkipUnexpandedChars(SLexerBuffer* buffer, size_t count) {
 
 extern void
 lexbuf_RenewUniqueValue(SLexerBuffer* buffer) {
-	str_Free(buffer->uniqueValue);
-	buffer->uniqueValue = createUniqueValue();
+	createUniqueValue(&buffer->uniqueValue);
 }
 
 extern void
