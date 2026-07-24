@@ -85,6 +85,16 @@ typedef struct {
 	bool size_forced;
 } SAddressingMode;
 
+static inline void
+addrMode_FreeAll(SAddressingMode* addrMode) {
+	expr_Free(addrMode->expr);
+	addrMode->expr = NULL;
+	expr_Free(addrMode->expr2);
+	addrMode->expr2 = NULL;
+	expr_Free(addrMode->expr3);
+	addrMode->expr3 = NULL;
+}
+
 typedef enum {
 	IMM_NONE,
 	IMM_8_BIT,

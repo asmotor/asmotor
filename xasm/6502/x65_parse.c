@@ -62,9 +62,11 @@ parseBITS(void) {
 
 	if (m != NULL) {
 		opt_Current->machineOptions->m16 = parseBitsWidth(m);
+		expr_Free(m);
 	}
 	if (x != NULL) {
 		opt_Current->machineOptions->x16 = parseBitsWidth(x);
+		expr_Free(x);
 	}
 
 	return true;

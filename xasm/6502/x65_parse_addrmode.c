@@ -174,6 +174,7 @@ x65_ParseAddressingModeCore(SAddressingMode* addrMode, uint32_t allowedModes, EI
 			}
 		}
 
+		addrMode_FreeAll(addrMode);
 		lex_Goto(&bm);
 	}
 
@@ -221,6 +222,7 @@ x65_ParseAddressingModeCore(SAddressingMode* addrMode, uint32_t allowedModes, EI
 				}
 			}
 		}
+		addrMode_FreeAll(addrMode);
 		lex_Goto(&bm);
 	}
 
@@ -235,6 +237,7 @@ x65_ParseAddressingModeCore(SAddressingMode* addrMode, uint32_t allowedModes, EI
 				return true;
 			}
 		}
+		addrMode_FreeAll(addrMode);
 		lex_Goto(&bm);
 	}
 
@@ -321,6 +324,7 @@ x65_ParseAddressingModeCore(SAddressingMode* addrMode, uint32_t allowedModes, EI
 			}
 		}
 
+		addrMode_FreeAll(addrMode);
 		lex_Goto(&bm);
 	}
 

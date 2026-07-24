@@ -41,6 +41,7 @@ static bool
 handle_PcRelative(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
 	sect_OutputExpr16(expr_PcRelative(addrMode->expr, -1));
+	addrMode->expr = NULL;
 	return true;
 }
 
@@ -48,12 +49,14 @@ static bool
 handle_COP(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
 	sect_OutputExpr8(expr_CheckRange(addrMode->expr, 0, 0xFF));
+	addrMode->expr = NULL;
 	return true;
 }
 
 static bool
 handle_Jump(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	x65_OutputLongInstruction(baseOpcode, addrMode->expr);
+	addrMode->expr = NULL;
 	return true;
 }
 
@@ -62,6 +65,8 @@ handle_MOVE(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
 	sect_OutputExpr8(addrMode->expr);
 	sect_OutputExpr8(addrMode->expr2);
+	addrMode->expr = NULL;
+	addrMode->expr2 = NULL;
 	return true;
 }
 
@@ -71,11 +76,13 @@ handle_Standard(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		case MODE_IMM:
 			sect_OutputConst8(baseOpcode);
 			sect_OutputExpr8(expr_CheckRange(addrMode->expr, -128, 0xFF));
+			addrMode->expr = NULL;
 			return true;
 		case MODE_ABS:
 		case MODE_IND_ABS:
 			sect_OutputConst8(baseOpcode);
 			x65_OutputU16Expression(expr_CheckRange(addrMode->expr, 0, 0xFFFF));
+			addrMode->expr = NULL;
 			return true;
 		default:
 			return false;
@@ -127,10 +134,13 @@ x65_Parse65816Instruction(void) {
 			uint32_t allowedModes = handler->allowedModes;
 
 			parse_GetToken();
-			if (x65_ParseAddressingMode(&addrMode, allowedModes, handler->immSize) && (addrMode.mode & allowedModes))
-				return handler->handler(handler->baseOpcode, &addrMode);
-			else
+			if (x65_ParseAddressingMode(&addrMode, allowedModes, handler->immSize) && (addrMode.mode & allowedModes)) {
+				bool result = handler->handler(handler->baseOpcode, &addrMode);
+				addrMode_FreeAll(&addrMode);
+				return result;
+			} else {
 				err_Error(MERROR_ILLEGAL_ADDRMODE);
+			}
 		} else {
 			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
 		}

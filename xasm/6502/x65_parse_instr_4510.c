@@ -62,11 +62,13 @@ handle_ASR(uint8_t baseOpcode, SAddressingMode* addrMode) {
 			baseOpcode += 0x01;
 			sect_OutputConst8(baseOpcode);
 			x65_OutputU8Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		case MODE_ZP_X:
 			baseOpcode += 0x11;
 			sect_OutputConst8(baseOpcode);
 			x65_OutputU8Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		default:
 			assert(false);
@@ -79,6 +81,7 @@ handle_ASW(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	if (addrMode->mode == MODE_ABS) {
 		sect_OutputConst8(baseOpcode);
 		x65_OutputU16Expression(addrMode->expr);
+		addrMode->expr = NULL;
 	} else {
 		assert(false);
 	}
@@ -91,14 +94,17 @@ handle_LDZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		case MODE_IMM:
 			sect_OutputConst8(baseOpcode);
 			x65_OutputSU8Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		case MODE_ABS:
 			sect_OutputConst8(baseOpcode | (uint8_t) 0x08);
 			x65_OutputU16Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		case MODE_ABS_X:
 			sect_OutputConst8(baseOpcode | (uint8_t) 0x18);
 			x65_OutputU16Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		default:
 			assert(false);
@@ -112,14 +118,17 @@ handle_CPZ(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		case MODE_IMM:
 			sect_OutputConst8(baseOpcode);
 			x65_OutputSU8Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		case MODE_ZP:
 			sect_OutputConst8(0xD4);
 			x65_OutputSU8Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		case MODE_ABS:
 			sect_OutputConst8(0xDC);
 			x65_OutputU16Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		default:
 			assert(false);
@@ -133,6 +142,7 @@ handle_INW_DEW(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		case MODE_ZP:
 			sect_OutputConst8(baseOpcode);
 			x65_OutputU8Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		default:
 			assert(false);
@@ -146,10 +156,12 @@ handle_PHW(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		case MODE_IMM:
 			sect_OutputConst8(baseOpcode);
 			x65_OutputU16Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		case MODE_ABS:
 			sect_OutputConst8(baseOpcode | 0x08);
 			x65_OutputU16Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		default:
 			assert(false);
@@ -163,6 +175,7 @@ handle_ROW(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		case MODE_ABS:
 			sect_OutputConst8(baseOpcode);
 			x65_OutputU16Expression(addrMode->expr);
+			addrMode->expr = NULL;
 			break;
 		default:
 			assert(false);
@@ -176,6 +189,7 @@ handle_LongBranch(uint8_t baseOpcode, SAddressingMode* addrMode) {
 
 	SExpression* expression = expr_PcRelative(addrMode->expr, -1);
 	expression = expr_CheckRange(expression, -32768, 32767);
+	addrMode->expr = NULL;
 	if (expression == NULL) {
 		err_Error(ERROR_OPERAND_RANGE);
 		return true;
@@ -229,6 +243,7 @@ handle_LDQImm(SAddressingMode* addrMode) {
 			sect_OutputConst8(0xA3); // LDZ
 			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(24)), expr_Const(0xFF)));
 		}
+		addrMode_FreeAll(addrMode);
 	} else {
 		err_Error(MERROR_SYNTHESIZED);
 	}
@@ -297,10 +312,13 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 			SParser* handler = &g_instructionHandlers[token - T_4510_ASR];
 			allowedModes = allowedModes & handler->allowedModes;
 
-			if (x65_ParseAddressingMode(&addrMode, allowedModes, handler->immSize) && (addrMode.mode & allowedModes))
-				return handler->handler(handler->baseOpcode, &addrMode);
-			else
+			if (x65_ParseAddressingMode(&addrMode, allowedModes, handler->immSize) && (addrMode.mode & allowedModes)) {
+				bool result = handler->handler(handler->baseOpcode, &addrMode);
+				addrMode_FreeAll(&addrMode);
+				return result;
+			} else {
 				err_Error(MERROR_ILLEGAL_ADDRMODE);
+			}
 		} else {
 			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
 		}
@@ -325,12 +343,15 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 							if (!handler4510->handler(handler4510->baseOpcode, &modeImm1))
 								return false;
 						}
+						addrMode_FreeAll(&addrMode);
 						return true;
 					}
 
 					sect_OutputConst8(0x42);
 					sect_OutputConst8(0x42);
-					return handler4510->handler(handler4510->baseOpcode, &addrMode);
+					bool result = handler4510->handler(handler4510->baseOpcode, &addrMode);
+					addrMode_FreeAll(&addrMode);
+					return result;
 				} else {
 					err_Error(MERROR_ILLEGAL_ADDRMODE);
 				}
@@ -363,16 +384,21 @@ x65_Handle4510Instruction(ETargetToken token, uint32_t allowedModes) {
 							if (!x65_HandleTokenAddressMode(handler->token, &modeImmA))
 								return false;
 						}
+						addrMode_FreeAll(&addrMode);
 						return true;
 					}
 
 					if (token == T_45GS02_LDQ && addrMode.mode == MODE_IMM) {
-						return handle_LDQImm(&addrMode);
+						bool result = handle_LDQImm(&addrMode);
+						addrMode_FreeAll(&addrMode);
+						return result;
 					}
 
 					sect_OutputConst8(0x42);
 					sect_OutputConst8(0x42);
-					return x65_HandleTokenAddressMode(handler->token, &addrMode);
+					bool result = x65_HandleTokenAddressMode(handler->token, &addrMode);
+					addrMode_FreeAll(&addrMode);
+					return result;
 				}
 				err_Error(MERROR_ILLEGAL_ADDRMODE);
 			}
