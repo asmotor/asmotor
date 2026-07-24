@@ -250,11 +250,17 @@ ensureUndocumentedEnabled(void) {
 
 static SExpression*
 createExpressionNBit(SExpression* expression, int lowLimit, int highLimit, int bits) {
-	expression = expr_CheckRange(expression, lowLimit, highLimit);
-	if (expression == NULL)
+	SExpression* result = expr_CheckRange(expression, lowLimit, highLimit);
+	if (result == NULL) {
 		err_Error(ERROR_EXPRESSION_N_BIT, bits);
-
-	return expression;
+		return expr_Const(0);
+	}
+	if (result == expression) {
+		SExpression* copy = expr_Const(result->value.integer);
+		expr_Free(result);
+		return copy;
+	}
+	return result;
 }
 
 static SExpression*
@@ -289,17 +295,23 @@ createExpression3U(SExpression* expression) {
 
 static SExpression*
 createExpressionPCRel(SExpression* expression) {
-	expression = expr_PcRelative(expression, -1);
-	return createExpression8S(expression);
+	SExpression* pcExpr = expr_PcRelative(expression, -1);
+	if (pcExpr == expression) {
+		SExpression* copy = expr_Const(pcExpr->value.integer);
+		expr_Free(pcExpr);
+		pcExpr = copy;
+	}
+	return createExpression8S(pcExpr);
 }
 
 static SExpression*
 createExpressionImmHi(SExpression* expression) {
-	expression = expr_CheckRange(expression, 0xFF00, 0xFFFF);
-	if (expression == NULL)
+	SExpression* result = expr_CheckRange(expression, 0xFF00, 0xFFFF);
+	if (result == NULL) {
 		err_Error(MERROR_EXPRESSION_FF00);
-
-	return expr_And(expression, expr_Const(0xFF));
+		return expr_Const(0);
+	}
+	return expr_And(result, expr_Const(0xFF));
 }
 
 static void
@@ -313,10 +325,12 @@ outputIXIY(SAddressingMode* addrMode, uint8_t opcode) {
 	sect_OutputConst8(opcode);
 
 	if (addrMode->mode & MODE_GROUP_I_IND_DISP) {
-		if (addrMode->expression != NULL)
+		if (addrMode->expression != NULL) {
 			sect_OutputExpr8(addrMode->expression);
-		else
+			addrMode->expression = NULL;
+		} else {
 			sect_OutputConst8(0);
+		}
 	}
 }
 
@@ -347,6 +361,7 @@ handleAlu(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 		if (addrMode2->mode & MODE_IMM) {
 			sect_OutputConst8((uint8_t) 0xC6u | instruction->opcode);
 			sect_OutputExpr8(createExpression8SU(addrMode2->expression));
+			addrMode2->expression = NULL;
 			return true;
 		}
 	}
@@ -401,6 +416,7 @@ handleAdd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 	if (IS_GB && (addrMode1->mode & MODE_REG_SP) && (addrMode2->mode & MODE_IMM)) {
 		sect_OutputConst8(0xE8);
 		sect_OutputExpr8(createExpression8SU(addrMode2->expression));
+		addrMode2->expression = NULL;
 		return true;
 	}
 
@@ -429,6 +445,7 @@ handleBit(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 	        expr_Asl(                                      //
 	            createExpression3U(addrMode1->expression), //
 	            expr_Const(3))));
+	addrMode1->expression = NULL;
 
 	return true;
 }
@@ -438,6 +455,7 @@ handleCall(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMod
 	if ((addrMode1->mode & MODE_IMM) && addrMode2->mode == 0) {
 		sect_OutputConst8(instruction->opcode);
 		sect_OutputExpr16(createExpression16U(addrMode1->expression));
+		addrMode1->expression = NULL;
 	} else if ((addrMode1->mode & MODE_CC_Z80) && (addrMode2->mode & MODE_IMM)) {
 		if (IS_GB && !(addrMode1->mode & MODE_CC_GB)) {
 			err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
@@ -446,6 +464,7 @@ handleCall(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMod
 		uint8_t modeF = (uint8_t) addrMode1->modeF << 3u;
 		sect_OutputConst8((uint8_t) (instruction->opcode & ~0x19u) | modeF);
 		sect_OutputExpr16(createExpression16U(addrMode2->expression));
+		addrMode2->expression = NULL;
 	} else {
 		err_Error(ERROR_OPERAND);
 	}
@@ -504,10 +523,12 @@ handleJr(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 	if ((addrMode1->mode & MODE_IMM) && addrMode2->mode == 0) {
 		sect_OutputConst8(0x18);
 		sect_OutputExpr8(createExpressionPCRel(addrMode1->expression));
+		addrMode1->expression = NULL;
 	} else if ((addrMode1->mode & MODE_CC_GB) && (addrMode2->mode & MODE_IMM)) {
 		uint8_t modeF = (uint8_t) addrMode1->modeF << 3u;
 		sect_OutputConst8((uint8_t) 0x20u | modeF);
 		sect_OutputExpr8(createExpressionPCRel(addrMode2->expression));
+		addrMode2->expression = NULL;
 	} else {
 		err_Error(ERROR_OPERAND);
 	}
@@ -546,10 +567,12 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		    addrMode2->expression->value.integer <= 0xFFFF) {
 			sect_OutputConst8(0xF0);
 			sect_OutputExpr8(createExpressionImmHi(addrMode2->expression));
-		} else {
-			sect_OutputConst8((uint8_t) (IS_GB ? 0xFAu : 0x3Au));
-			sect_OutputExpr16(createExpression16U(addrMode2->expression));
-		}
+			addrMode2->expression = NULL;
+        } else {
+            sect_OutputConst8((uint8_t) (IS_GB ? 0xFAu : 0x3Au));
+            sect_OutputExpr16(createExpression16U(addrMode2->expression));
+            addrMode2->expression = NULL;
+        }
 	} else if ((addrMode1->mode & (MODE_GROUP_D | MODE_GROUP_IXYLH)) && (addrMode2->mode & MODE_IMM)) {
 		uint8_t regD = (uint8_t) addrMode1->registerD << 3u;
 		if (addrMode1->mode & MODE_GROUP_IXYLH) {
@@ -557,14 +580,17 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		}
 		sect_OutputConst8((uint8_t) 0x06u | regD);
 		sect_OutputExpr8(createExpression8SU(addrMode2->expression));
+		addrMode2->expression = NULL;
 	} else if ((addrMode1->mode & MODE_IMM_IND) && (addrMode2->mode & MODE_REG_A)) {
 		if (IS_GB && expr_IsConstant(addrMode1->expression) && addrMode1->expression->value.integer >= 0xFF00 &&
 		    addrMode1->expression->value.integer <= 0xFFFF) {
 			sect_OutputConst8(0xE0);
 			sect_OutputExpr8(createExpressionImmHi(addrMode1->expression));
+			addrMode1->expression = NULL;
 		} else {
 			sect_OutputConst8((uint8_t) (IS_GB ? 0xEAu : 0x32u));
 			sect_OutputExpr16(createExpression16U(addrMode1->expression));
+			addrMode1->expression = NULL;
 		}
 	} else if ((addrMode1->mode & MODE_REG_SP) && (addrMode2->mode & MODE_GROUP_HL)) {
 		outputGroupHL(addrMode2);
@@ -577,16 +603,19 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		outputGroupHL(addrMode1);
 		sect_OutputConst8((uint8_t) 0x01u | regSS);
 		sect_OutputExpr16(createExpression16SU(addrMode2->expression));
+		addrMode2->expression = NULL;
 	} else if (IS_GB && (addrMode1->mode & MODE_REG_A) && (addrMode2->mode & MODE_REG_C_IND)) {
 		sect_OutputConst8(0xF2);
 	} else if (IS_GB && (addrMode1->mode & MODE_REG_HL) && (addrMode2->mode & MODE_REG_SP_DISP)) {
 		sect_OutputConst8(0xF8);
 		sect_OutputExpr8(addrMode2->expression);
+		addrMode2->expression = NULL;
 	} else if (IS_GB && (addrMode1->mode & MODE_REG_C_IND) && (addrMode2->mode & MODE_REG_A)) {
 		sect_OutputConst8(0xE2);
 	} else if (IS_GB && (addrMode1->mode & MODE_IMM_IND) && (addrMode2->mode & MODE_REG_SP)) {
 		sect_OutputConst8(0x08);
 		sect_OutputExpr16(createExpression16U(addrMode1->expression));
+		addrMode1->expression = NULL;
 	} else if (IS_Z80 && (addrMode1->mode & MODE_IMM_IND) && (addrMode2->mode & (MODE_GROUP_SS | MODE_GROUP_HL))) {
 		if (addrMode2->registerSS == REG_SS_HL) {
 			outputGroupHL(addrMode2);
@@ -597,11 +626,13 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 			sect_OutputConst8((uint8_t) 0x43u | regSS);
 		}
 		sect_OutputExpr16(createExpression16U(addrMode1->expression));
+		addrMode1->expression = NULL;
 	} else if (IS_Z80 && (addrMode1->mode & MODE_GROUP_I_IND_DISP) && (addrMode2->mode & MODE_GROUP_D)) {
 		outputIXIY(addrMode1, (uint8_t) (0x70u | (uint8_t) addrMode2->registerD));
 	} else if (IS_Z80 && (addrMode1->mode & MODE_GROUP_I_IND_DISP) && (addrMode2->mode & MODE_IMM)) {
 		outputIXIY(addrMode1, 0x36);
 		sect_OutputExpr8(createExpression8SU(addrMode2->expression));
+		addrMode2->expression = NULL;
 	} else if (IS_Z80 && (addrMode1->mode & MODE_GROUP_D) && (addrMode2->mode & MODE_GROUP_I_IND_DISP)) {
 		uint8_t regD = (uint8_t) addrMode1->registerD << 3u;
 		outputIXIY(addrMode2, (uint8_t) 0x46u | regD);
@@ -623,6 +654,7 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 			sect_OutputConst8((uint8_t) 0x4Bu | regSS);
 		}
 		sect_OutputExpr16(createExpression16U(addrMode2->expression));
+		addrMode2->expression = NULL;
 	} else if ((addrMode1->mode & MODE_GROUP_SS) && (addrMode1->registerSS <= REG_SS_HL) && (addrMode2->mode & MODE_GROUP_SS) &&
 	           (addrMode2->registerSS <= REG_SS_HL)) {
 		if (!ensureSynthesizedEnabled())
@@ -722,9 +754,11 @@ handleLdh(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 	if ((addrMode1->mode & MODE_REG_A) && (addrMode2->mode & MODE_IMM_IND)) {
 		sect_OutputConst8((uint8_t) (instruction->opcode | 0x10u));
 		sect_OutputExpr8(createExpressionImmHi(addrMode2->expression));
+		addrMode2->expression = NULL;
 	} else if ((addrMode1->mode & MODE_IMM_IND) && (addrMode2->mode & MODE_REG_A)) {
 		sect_OutputConst8(instruction->opcode);
 		sect_OutputExpr8(createExpressionImmHi(addrMode1->expression));
+		addrMode1->expression = NULL;
 	} else {
 		err_Error(ERROR_OPERAND);
 	}
@@ -736,6 +770,7 @@ static bool
 handleLdhl(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	sect_OutputConst8(instruction->opcode);
 	sect_OutputExpr8(createExpression8S(addrMode2->expression));
+	addrMode2->expression = NULL;
 
 	return true;
 }
@@ -872,6 +907,7 @@ handleRst(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 		err_Error(ERROR_EXPR_CONST);
 	}
 	expr_Free(addrMode1->expression);
+	addrMode1->expression = NULL;
 
 	return true;
 }
@@ -887,6 +923,7 @@ static bool
 handleDjnz(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
 	sect_OutputConst8(instruction->opcode);
 	sect_OutputExpr8(createExpressionPCRel(addrMode1->expression));
+	addrMode1->expression = NULL;
 	return true;
 }
 
@@ -919,11 +956,13 @@ handleIm(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 	if (!expr_IsConstant(addrMode1->expression)) {
 		err_Error(ERROR_EXPR_CONST);
 		expr_Free(addrMode1->expression);
+		addrMode1->expression = NULL;
 		return true;
 	}
 
 	int32_t value = addrMode1->expression->value.integer;
 	expr_Free(addrMode1->expression);
+	addrMode1->expression = NULL;
 	sect_OutputConst8(0xED);
 	switch (value) {
 		case 0:
@@ -952,6 +991,7 @@ handleInOut(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMo
 	if (addrMode2->mode & (MODE_REG_A | MODE_NONE)) {
 		sect_OutputConst8((uint8_t) (0xDBu ^ ((instruction->opcode & 1u) << 3u)));
 		sect_OutputExpr8(createExpression8U(addrMode1->expression));
+		addrMode1->expression = NULL;
 		return true;
 	}
 
@@ -991,6 +1031,7 @@ handleOut(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode
 			sect_OutputConst8(0xED);
 			sect_OutputConst8(0x71);
 			expr_Free(addrMode2->expression);
+			addrMode2->expression = NULL;
 			return true;
 		}
 
@@ -1229,6 +1270,8 @@ z80_ParseInstruction(void) {
 					parse_GetToken();
 					if (!parse_AddrMode(&addrMode2)) {
 						err_Error(ERROR_SECOND_OPERAND);
+						if (addrMode1.expression != NULL)
+							expr_Free(addrMode1.expression);
 						return true;
 					}
 				} else if (instruction->allowedModes2 != 0 && (instruction->allowedModes1 & MODE_REG_A) &&
@@ -1240,6 +1283,8 @@ z80_ParseInstruction(void) {
 				}
 			} else if (addrMode1.mode != 0 && (addrMode1.mode & MODE_NONE) == 0) {
 				err_Error(ERROR_FIRST_OPERAND);
+				if (addrMode1.expression != NULL)
+					expr_Free(addrMode1.expression);
 				return true;
 			}
 		}
@@ -1250,8 +1295,13 @@ z80_ParseInstruction(void) {
 			    (addrMode2.mode == 0 && ((instruction->allowedModes2 == 0) || (instruction->allowedModes2 & MODE_NONE)))) {
 				if ((opt_Current->machineOptions->cpu & instruction->cpu) && (opt_Current->machineOptions->cpu & addrMode1.cpu) &&
 				    (opt_Current->machineOptions->cpu & addrMode2.cpu)) {
-					return instruction->handler(instruction, instruction->allowedModes1 != 0 ? &addrMode1 : NULL,
-					                            instruction->allowedModes2 != 0 ? &addrMode2 : NULL);
+					bool result = instruction->handler(instruction, instruction->allowedModes1 != 0 ? &addrMode1 : NULL,
+					                                   instruction->allowedModes2 != 0 ? &addrMode2 : NULL);
+					if (addrMode1.expression != NULL)
+						expr_Free(addrMode1.expression);
+					if (addrMode2.expression != NULL)
+						expr_Free(addrMode2.expression);
+					return result;
 				} else {
 					err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED_BY_CPU);
 				}
