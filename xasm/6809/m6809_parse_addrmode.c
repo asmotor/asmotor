@@ -26,6 +26,8 @@
 #include "m6809_parse.h"
 #include "m6809_tokens.h"
 
+#include "expression.h"
+
 static bool
 parseExpressionMode(SAddressingMode* addrMode, uint32_t mode) {
 	parse_GetToken();
@@ -219,6 +221,8 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 					addrMode->indexed_post_byte = 0x8D;
 					return true;
 				}
+				expr_Free(addrMode->expr);
+				addrMode->expr = NULL;
 				return false;
 			}
 
@@ -283,6 +287,8 @@ m6809_ParseAddressingMode(SAddressingMode* addrMode, uint32_t allowedModes) {
 		return true;
 	}
 
+	expr_Free(addrMode->expr);
+	addrMode->expr = NULL;
 	lex_Goto(&bm);
 
 	return (allowedModes & MODE_NONE);

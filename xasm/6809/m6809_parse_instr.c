@@ -56,17 +56,23 @@ emitIndexed(SAddressingMode* addrMode) {
 	sect_OutputConst8(addrMode->indexed_post_byte);
 	if (addrMode->mode & MODE_INDEXED_R_8BIT) {
 		outputExpr8(addrMode->expr);
+		addrMode->expr = NULL;
 		return true;
 	} else if (addrMode->mode & (MODE_INDEXED_R_16BIT | MODE_EXTENDED_INDIRECT)) {
 		outputExpr16(addrMode->expr);
+		addrMode->expr = NULL;
 		return true;
 	} else if (addrMode->mode & MODE_INDEXED_PC_8BIT) {
 		outputExpr8(expr_PcRelative(addrMode->expr, -1));
+		addrMode->expr = NULL;
 		return true;
 	} else if (addrMode->mode & MODE_INDEXED_PC_16BIT) {
 		outputExpr16(expr_PcRelative(addrMode->expr, -2));
+		addrMode->expr = NULL;
 		return true;
 	}
+	expr_Free(addrMode->expr);
+	addrMode->expr = NULL;
 	return false;
 }
 
@@ -75,15 +81,18 @@ emitOpcode(uint8_t baseOpcode, SAddressingMode* addrMode, uint8_t directCode, ui
 	if (addrMode->mode == MODE_DIRECT) {
 		sect_OutputConst8(baseOpcode | directCode);
 		outputExpr8(expr_And(addrMode->expr, expr_Const(0xFF)));
+		addrMode->expr = NULL;
 		return true;
 	} else if (addrMode->mode == MODE_EXTENDED) {
 		sect_OutputConst8(baseOpcode | extendedCode);
 		outputExpr16(addrMode->expr);
+		addrMode->expr = NULL;
 		return true;
 	} else if (addrMode->mode & MODE_ALL_INDEXED) {
 		sect_OutputConst8(baseOpcode | indexedCode);
-		emitIndexed(addrMode);
+		return emitIndexed(addrMode);
 	}
+	addrMode_FreeAll(addrMode);
 	return false;
 }
 
@@ -97,6 +106,7 @@ handleOpcodeP8(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	if (addrMode->mode == MODE_IMMEDIATE) {
 		sect_OutputConst8(baseOpcode);
 		outputExpr8(addrMode->expr);
+		addrMode->expr = NULL;
 		return true;
 	}
 
@@ -114,6 +124,7 @@ handleOpcodeP16(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	if (addrMode->mode == MODE_IMMEDIATE) {
 		sect_OutputConst8(baseOpcode);
 		outputExpr16(addrMode->expr);
+		addrMode->expr = NULL;
 		return true;
 	}
 
@@ -156,6 +167,7 @@ static bool
 handleImm8(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
 	outputExpr8(addrMode->expr);
+	addrMode->expr = NULL;
 	return true;
 }
 
@@ -163,6 +175,7 @@ static bool
 handleBcc(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
 	outputExpr8(expr_PcRelative(addrMode->expr, -1));
+	addrMode->expr = NULL;
 	return true;
 }
 
@@ -171,6 +184,7 @@ handleLBcc(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(PAGE1);
 	sect_OutputConst8(baseOpcode);
 	outputExpr16(expr_PcRelative(addrMode->expr, -2));
+	addrMode->expr = NULL;
 	return true;
 }
 
@@ -178,6 +192,7 @@ static bool
 handleLBRA(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	sect_OutputConst8(baseOpcode);
 	outputExpr16(expr_PcRelative(addrMode->expr, -2));
+	addrMode->expr = NULL;
 	return true;
 }
 
@@ -396,7 +411,7 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
 bool
 m6809_ParseIntegerInstruction(void) {
 	if (T_6809_ABX <= lex_Context->token.id && lex_Context->token.id <= T_6809_NOP) {
-		SAddressingMode addrMode;
+		SAddressingMode addrMode = {0};
 		ETargetToken token = (ETargetToken) lex_Context->token.id;
 		SParser* handler = &g_instructionHandlers[token - T_6809_ABX];
 
@@ -410,8 +425,11 @@ m6809_ParseIntegerInstruction(void) {
 					addrMode.mode = MODE_EXTENDED;
 				}
 			}
-			return handler->handler(handler->baseOpcode, &addrMode);
+			bool result = handler->handler(handler->baseOpcode, &addrMode);
+			addrMode_FreeAll(&addrMode);
+			return result;
 		} else {
+			addrMode_FreeAll(&addrMode);
 			err_Error(MERROR_ILLEGAL_ADDRMODE);
 		}
 	}

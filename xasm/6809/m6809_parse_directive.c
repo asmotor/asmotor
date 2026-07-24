@@ -40,14 +40,14 @@ handleSETDP(ETargetToken token) {
 	if (expr_IsConstant(expr)) {
 		if (expr->value.integer >= 0 && expr->value.integer <= 0xFF) {
 			g_dp_base = expr->value.integer << 8;
+			expr_Free(expr);
 			return true;
-		} else {
-			err_Error(ERROR_OPERAND_RANGE);
 		}
 	} else {
 		err_Error(ERROR_EXPR_CONST);
 	}
 
+	expr_Free(expr);
 	return false;
 }
 

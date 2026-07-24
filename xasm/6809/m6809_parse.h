@@ -69,6 +69,12 @@ typedef struct {
 	SExpression* expr;
 } SAddressingMode;
 
+static inline void
+addrMode_FreeAll(SAddressingMode* addrMode) {
+	expr_Free(addrMode->expr);
+	addrMode->expr = NULL;
+}
+
 #define DP_BASE_UNKNOWN UINT32_MAX
 extern uint32_t g_dp_base;
 
