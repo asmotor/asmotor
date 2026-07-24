@@ -31,10 +31,10 @@ extern void
 dep_Exit(void);
 
 extern void
-dep_SetMainOutput(string* filename);
+dep_SetMainOutput(const string* filename);
 
 extern void
-dep_AddDependency(string* filename);
+dep_AddDependency(const string* filename);
 
 extern void
 dep_WriteDependencyFile(void);

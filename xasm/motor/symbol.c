@@ -288,7 +288,7 @@ isModifiable(const SSymbol* symbol) {
 }
 
 static SSymbol*
-createSymbolOfType(string* name, ESymbolType type) {
+createSymbolOfType(const string* name, ESymbolType type) {
 	SSymbol* symbol = findOrCreateSymbol(name);
 
 	if (isModifiable(symbol) && canBeType(symbol, type)) {
@@ -317,7 +317,7 @@ sym_GetValue(SSymbol* symbol) {
 }
 
 extern int32_t
-sym_GetValueByName(string* name) {
+sym_GetValueByName(const string* name) {
 	SSymbol* symbol = findOrCreateSymbol(name);
 
 	if (symbol->flags & SYMF_CONSTANT)
@@ -328,17 +328,17 @@ sym_GetValueByName(string* name) {
 }
 
 extern SSymbol*
-sym_GetSymbol(string* name) {
+sym_GetSymbol(const string* name) {
 	return findOrCreateSymbol(name);
 }
 
 extern SSymbol*
-sym_GetSymbolInScope(SSymbol* scope, string* name) {
+sym_GetSymbolInScope(SSymbol* scope, const string* name) {
 	return findOrCreateSymbolInScope(scope, name);
 }
 
 extern SSymbol*
-sym_CreateGroup(string* name, EGroupType value) {
+sym_CreateGroup(const string* name, EGroupType value) {
 	SSymbol* symbol = getSymbol(name, NULL);
 	if (symbol != NULL) {
 		if (symbol->type != SYM_GROUP || symbol->value.groupType != value) {
@@ -355,7 +355,7 @@ sym_CreateGroup(string* name, EGroupType value) {
 }
 
 extern SSymbol*
-sym_CreateEqus(string* name, string* value) {
+sym_CreateEqus(const string* name, const string* value) {
 	SSymbol* symbol = createSymbolOfType(name, SYM_EQUS);
 	if (symbol != NULL) {
 		str_Assign(&symbol->value.macro, value);
@@ -364,7 +364,17 @@ sym_CreateEqus(string* name, string* value) {
 }
 
 extern SSymbol*
-sym_CreateMacro(string* name, string* macro, uint32_t lineNumber) {
+sym_CreateEqusOwned(string** name, string** value) {
+	SSymbol* symbol = createSymbolOfType(*name, SYM_EQUS);
+	if (symbol != NULL) {
+		str_Move(&symbol->value.macro, value);
+	}
+	str_Clear(name);
+	return symbol;
+}
+
+extern SSymbol*
+sym_CreateMacro(const string* name, const string* macro, uint32_t lineNumber) {
 	SSymbol* symbol = createSymbolOfType(name, SYM_MACRO);
 	if (symbol != NULL) {
 		str_Assign(&symbol->value.macro, macro);
@@ -374,7 +384,18 @@ sym_CreateMacro(string* name, string* macro, uint32_t lineNumber) {
 }
 
 extern SSymbol*
-sym_CreateEqu(string* name, int32_t value) {
+sym_CreateMacroOwned(string** name, string** macro, uint32_t lineNumber) {
+	SSymbol* symbol = createSymbolOfType(*name, SYM_MACRO);
+	if (symbol != NULL) {
+		str_Move(&symbol->value.macro, macro);
+		symbol->lineNumber = lineNumber;
+	}
+	str_Clear(name);
+	return symbol;
+}
+
+extern SSymbol*
+sym_CreateEqu(const string* name, int32_t value) {
 	SSymbol* symbol = findOrCreateSymbol(name);
 
 	if (isModifiable(symbol) && (canBeType(symbol, SYM_EQU) || symbol->type == SYM_GLOBAL)) {
@@ -395,7 +416,7 @@ sym_CreateEqu(string* name, int32_t value) {
 }
 
 extern SSymbol*
-sym_CreateSet(string* name, int32_t value) {
+sym_CreateSet(const string* name, int32_t value) {
 	SSymbol* symbol = createSymbolOfType(name, SYM_SET);
 	if (symbol != NULL) {
 		if (!isLocalName(name))
@@ -407,7 +428,7 @@ sym_CreateSet(string* name, int32_t value) {
 }
 
 extern SSymbol*
-sym_CreateStructure(string* name, int32_t initialCount) {
+sym_CreateStructure(const string* name, int32_t initialCount) {
 	SSymbol* symbol = createSymbolOfType(name, SYM_STRUCTURE);
 	if (symbol != NULL) {
 		if (!isLocalName(name))
@@ -431,7 +452,7 @@ sym_EndStructure(void) {
 }
 
 extern SSymbol*
-sym_CreateLabel(string* name) {
+sym_CreateLabel(const string* name) {
 	SSymbol* symbol = findOrCreateSymbol(name);
 
 	if (isModifiable(symbol) && (canBeType(symbol, SYM_LABEL) || symbol->type == SYM_GLOBAL)) {
@@ -491,7 +512,7 @@ sym_GetSymbolValueAsStringByName(string** dest, const string* name) {
 }
 
 extern SSymbol*
-sym_Export(string* name) {
+sym_Export(const string* name) {
 	SSymbol* symbol = findOrCreateSymbol(name);
 
 	if (symbol->flags & SYMF_EXPORTABLE) {
@@ -504,7 +525,7 @@ sym_Export(string* name) {
 }
 
 extern SSymbol*
-sym_Import(string* name) {
+sym_Import(const string* name) {
 	SSymbol* symbol = findOrCreateSymbol(name);
 
 	if (symbol->type == SYM_UNDEFINED) {
@@ -518,7 +539,7 @@ sym_Import(string* name) {
 }
 
 extern SSymbol*
-sym_Global(string* name) {
+sym_Global(const string* name) {
 	SSymbol* symbol = findOrCreateSymbol(name);
 
 	if (symbol->type == SYM_GLOBAL || symbol->type == SYM_IMPORT) {
@@ -543,7 +564,7 @@ sym_Global(string* name) {
 }
 
 extern bool
-sym_Purge(string* name) {
+sym_Purge(const string* name) {
 	SSymbol** hashTableEntry = &sym_hashedSymbols[hash(name)];
 	SSymbol* symbol = getSymbol(name, assumedScopeOf(name));
 

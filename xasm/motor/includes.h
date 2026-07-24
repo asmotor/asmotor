@@ -22,7 +22,7 @@
 #include "str.h"
 
 extern void
-inc_AddIncludePath(string* pathname);
+inc_AddIncludePath(const string* pathname);
 
 /* Borrowed reference: caller retains ownership of filename.
  * Writes result to *dest (owned by caller, or NULL if not found). */

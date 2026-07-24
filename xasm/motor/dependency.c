@@ -70,12 +70,12 @@ dep_Exit(void) {
 }
 
 extern void
-dep_SetMainOutput(string* filename) {
+dep_SetMainOutput(const string* filename) {
 	str_Assign(&g_mainOutput, filename);
 }
 
 extern void
-dep_AddDependency(string* filename) {
+dep_AddDependency(const string* filename) {
 	if (g_dependencySet != NULL) {
 		if (g_mainDependency == NULL) {
 			str_Assign(&g_mainDependency, filename);

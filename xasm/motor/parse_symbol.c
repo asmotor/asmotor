@@ -126,8 +126,7 @@ parse_SymbolDefinition(void) {
 
 				string* block = parse_CopyMacroBlock();
 				if (block != NULL) {
-					sym_CreateMacro(symbolName, block, lineNumber);
-					str_Free(block);
+					sym_CreateMacroOwned(&symbolName, &block, lineNumber);
 					parse_GetToken();
 					r = true;
 				} else {
@@ -177,8 +176,7 @@ parse_SymbolDefinition(void) {
 
 					string* value = parse_ExpectStringExpression();
 					if (value != NULL) {
-						sym_CreateEqus(symbolName, value);
-						str_Free(value);
+						sym_CreateEqusOwned(&symbolName, &value);
 					}
 					break;
 				}

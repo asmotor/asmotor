@@ -102,7 +102,7 @@ inc_FindFile(string** dest, const string* fileName) {
 }
 
 extern void
-inc_AddIncludePath(string* pathname) {
+inc_AddIncludePath(const string* pathname) {
 	if (g_includePaths == NULL)
 		g_includePaths = strvec_Create();
 

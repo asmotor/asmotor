@@ -103,49 +103,55 @@ extern bool
 sym_ReadMachineDefinitionFile(const char* name);
 
 extern SSymbol*
-sym_CreateLabel(string* name);
+sym_CreateLabel(const string* name);
 
 extern SSymbol*
-sym_CreateEqus(string* name, string* value);
+sym_CreateEqus(const string* name, const string* value);
 
 extern SSymbol*
-sym_CreateEqu(string* name, int32_t value);
+sym_CreateEqusOwned(string** name, string** value);
 
 extern SSymbol*
-sym_CreateSet(string* name, int32_t value);
+sym_CreateEqu(const string* name, int32_t value);
 
 extern SSymbol*
-sym_CreateGroup(string* name, EGroupType value);
+sym_CreateSet(const string* name, int32_t value);
 
 extern SSymbol*
-sym_CreateMacro(string* name, string* macro, uint32_t lineNumber);
+sym_CreateGroup(const string* name, EGroupType value);
 
 extern SSymbol*
-sym_CreateStructure(string* name, int32_t initialCount);
+sym_CreateMacro(const string* name, const string* macro, uint32_t lineNumber);
+
+extern SSymbol*
+sym_CreateMacroOwned(string** name, string** macro, uint32_t lineNumber);
+
+extern SSymbol*
+sym_CreateStructure(const string* name, int32_t initialCount);
 
 extern void
 sym_EndStructure(void);
 
 extern SSymbol*
-sym_GetSymbol(string* name);
+sym_GetSymbol(const string* name);
 
 extern SSymbol*
-sym_GetSymbolInScope(SSymbol* scope, string* name);
+sym_GetSymbolInScope(SSymbol* scope, const string* name);
 
 extern bool
-sym_Purge(string* name);
+sym_Purge(const string* name);
 
 extern void
 sym_PurgeWhere(bool (*predicate)(SSymbol* symbol));
 
 extern SSymbol*
-sym_Export(string* name);
+sym_Export(const string* name);
 
 extern SSymbol*
-sym_Import(string* name);
+sym_Import(const string* name);
 
 extern SSymbol*
-sym_Global(string* name);
+sym_Global(const string* name);
 
 extern void
 sym_GetSymbolValueAsStringByName(string** dest, const string* name);
@@ -160,7 +166,7 @@ extern int32_t
 sym_GetValue(SSymbol* symbol);
 
 extern int32_t
-sym_GetValueByName(string* name);
+sym_GetValueByName(const string* name);
 
 extern bool
 sym_IsDefined(const string* pName);
