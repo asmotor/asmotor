@@ -96,6 +96,12 @@ typedef struct {
 	SExpression* expression;
 } SAddressingMode;
 
+static void
+addrMode_FreeAll(SAddressingMode* addrMode) {
+	expr_Free(addrMode->expression);
+	addrMode->expression = NULL;
+}
+
 typedef struct Parser {
 	uint8_t baseOpcode;
 	EConditionType condition;
@@ -139,7 +145,7 @@ handle_Op_Reg_Imm(uint8_t baseOpcode, int lowerBound, int upperBound, SAddressin
 	        ranged,       //
 	        expr_Const(0xFF));
 
-	if (!expression) {
+	if (masked == NULL) {
 		return false;
 	}
 
@@ -374,16 +380,32 @@ handle_ADD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 			return err_Error(ERROR_OPERAND);
 		return handle_OpcodeRegister(0xF4, source);
 	}
-	else if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM))
-		return handle_Op_Reg_SignedOrUnsignedImm(0xA0, destination, source->expression);
+	else if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM)) {
+		bool r = handle_Op_Reg_SignedOrUnsignedImm(0xA0, destination, source->expression);
+		source->expression = NULL;
+		return r;
+	}
 	else if ((destination->mode & MODE_REG_16BIT) && (source->mode & MODE_IMM)) {
-		SExpression* expr = expr_Asr(expr_Asl(expr_CheckRange(source->expression, -32768, 65535), expr_Const(16)), expr_Const(16));
-		if (expr_IsConstant(source->expression) && expr->value.integer >= -128 && expr->value.integer <= 127) {
+		SExpression* ranged = expr_CheckRange(source->expression, -32768, 65535);
+		source->expression = NULL;
+		if (ranged == NULL) {
+			return err_Error(ERROR_OPERAND_RANGE);
+		}
+
+		if (expr_IsConstant(ranged) && ranged->value.integer >= -128 && ranged->value.integer <= 127) {
+			return handle_Op_Reg_SignedImm(0xBC, destination, ranged);
+		}
+
+		SExpression* expr = expr_Asr(expr_Asl(ranged, expr_Const(16)), expr_Const(16));
+
+		if (expr_IsConstant(expr) && expr->value.integer >= -128 && expr->value.integer <= 127) {
 			return handle_Op_Reg_SignedImm(0xBC, destination, expr);
 		}
 
-		if (!opt_Current->machineOptions->enableSynthInstructions)
+		if (!opt_Current->machineOptions->enableSynthInstructions) {
+			expr_Free(expr);
 			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+		}
 
 		SAddressingMode highAddr, lowAddr;
 		registerPair(&highAddr, &lowAddr, destination);
@@ -391,12 +413,17 @@ handle_ADD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 		SExpression* low = expr_Asr(expr_Asl(expr_Clone(expr), expr_Const(24)), expr_Const(24));
 		SExpression* highAdjust = expr_Asr(expr_Clone(low), expr_Const(8));
 		SExpression* high = expr_Sub(expr_Asr(expr_Clone(expr), expr_Const(8)), highAdjust);
+		expr_Free(expr);
 
 		if (!expr_IsConstant(low) || low->value.integer != 0) {
 			handle_Op_Reg_SignedImm(0xBC, destination, low);
+		} else {
+			expr_Free(low);
 		}
 		if (!expr_IsConstant(high) || high->value.integer != 0) {
 			handle_Op_Reg_SignedImm(0xA0, &highAddr, high);
+		} else {
+			expr_Free(high);
 		}
 
 		return true;
@@ -419,7 +446,9 @@ handle_Bitwise(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destinati
 				err_Warn(MERROR_BITWISE_ZERO_NOOP);
 		}
 		baseOpcode = 0xB0 + ((baseOpcode >> 3) & 0x03);
-		return handle_Op_Reg_SignedOrUnsignedImm(baseOpcode, NULL, source->expression);
+		bool r = handle_Op_Reg_SignedOrUnsignedImm(baseOpcode, NULL, source->expression);
+		source->expression = NULL;
+		return r;
 	}
 
 	return false;
@@ -479,13 +508,18 @@ handle_JumpRelativeCC(EConditionCode cc, SExpression* destination) {
 
 static bool
 handle_DJ(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	return handle_JumpRelative(baseOpcode + destination->registerIndex, source->expression);
+	bool r = handle_JumpRelative(baseOpcode + destination->registerIndex, source->expression);
+	source->expression = NULL;
+	return r;
 }
 
 static bool
 handle_J(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	if (destination->mode == MODE_ADDR && source->mode == MODE_NONE)
-		return handle_JumpRelativeCC(cc, destination->expression);
+	if (destination->mode == MODE_ADDR && source->mode == MODE_NONE) {
+		bool r = handle_JumpRelativeCC(cc, destination->expression);
+		destination->expression = NULL;
+		return r;
+	}
 
 	if ((destination->mode & MODE_IND_16BIT) && source->mode == MODE_NONE) {
 		if (cc != CC_ALWAYS) {
@@ -579,8 +613,11 @@ handle_LD_R16_imm(SAddressingMode* dest, SExpression* expression) {
 	SExpression* high = expr_Asr(expr_Clone(masked), expr_Const(8));
 	SExpression* low = expr_And(masked, expr_Const(0xFF));
 
-	if (high == NULL || low == NULL)
+	if (high == NULL || low == NULL) {
+		expr_Free(high);
+		expr_Free(low);
 		return false;
+	}
 
 	if (!handle_Op_Reg_UnsignedImm(0x80, &registerHigh, high))
 		return false;
@@ -590,10 +627,14 @@ handle_LD_R16_imm(SAddressingMode* dest, SExpression* expression) {
 static bool
 handle_LD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	if ((destination->mode & MODE_REG_8BIT) && source->mode == MODE_IMM) {
-		return handle_Op_Reg_SignedOrUnsignedImm(0x80, destination, source->expression);
+		bool r = handle_Op_Reg_SignedOrUnsignedImm(0x80, destination, source->expression);
+		source->expression = NULL;
+		return r;
 	} else if ((destination->mode & MODE_REG_16BIT) && source->mode == MODE_IMM &&
 	           opt_Current->machineOptions->enableSynthInstructions) {
-		return handle_LD_R16_imm(destination, source->expression);
+		bool r = handle_LD_R16_imm(destination, source->expression);
+		source->expression = NULL;
+		return r;
 	} else if ((destination->mode & MODE_IND_16BIT_BCDEHL) && source->mode == MODE_REG_T) {
 		return handle_OpcodeRegister(0x00, destination);
 	} else if ((destination->mode == MODE_IND_FT) && (source->mode & MODE_REG_8BIT_BCDEHL)) {
@@ -621,6 +662,7 @@ handle_JAL(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 		SAddressingMode mode = {MODE_REG_HL, 3, NULL};
 		if (!handle_LD_R16_imm(&mode, destination->expression))
 			return false;
+		destination->expression = NULL;
 		sect_OutputConst8(baseOpcode + 3);
 		return true;
 	} else if (destination->mode & MODE_IND_16BIT) {
@@ -709,6 +751,7 @@ static bool
 handle_PICK(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	if (source->mode == MODE_IMM) {
 		SExpression* masked = expr_CheckRange(source->expression, 0, 255);
+		source->expression = NULL;
 
 		SAddressingMode high, low;
 		registerPair(&high, &low, destination);
@@ -727,9 +770,12 @@ handle_Shift(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination
 	if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_8BIT_BCDEHL))
 		return handle_OpcodeRegister(baseOpcode, source);
 	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_IMM)) {
-		if (expr_IsConstant(source->expression) && (source->expression->value.integer < 0 || source->expression->value.integer > 15))
+		if (expr_IsConstant(source->expression) && (source->expression->value.integer < 0 || source->expression->value.integer > 15)) {
+			source->expression = NULL;
 			return err_Error(MERROR_SHIFT_COUNT_RANGE);
+		}
 		SExpression* ranged = expr_CheckRange(source->expression, 0, 15);
+		source->expression = NULL;
 		if (ranged == NULL)
 			return false;
 		baseOpcode = 0xB8 + ((baseOpcode >> 3) & 0x03);
@@ -748,6 +794,7 @@ handle_CMP(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, 
 	if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM)) {
 		handle_OpcodeRegister(0xA8, destination);
 		sect_OutputExpr8(source->expression);
+		source->expression = NULL;
 		return true;
 	} else if ((destination->mode & (MODE_REG_T | MODE_NONE)) && (source->mode & MODE_REG_8BIT_FBCDEHL)) {
 		return handle_OpcodeRegister(0x48, source);
@@ -799,6 +846,7 @@ static bool
 handle_SYS(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	sect_OutputConst8(baseOpcode);
 	sect_OutputExpr8(destination->expression);
+	destination->expression = NULL;
 	return true;
 }
 
@@ -1009,60 +1057,77 @@ parseAddressingMode(SAddressingMode* addrMode, int allowedModes) {
 	return false;
 }
 
+static bool
+rc8_ParseInstructionBody(SParser* parser, SAddressingMode* addrMode1, SAddressingMode* addrMode2) {
+	EConditionCode cc = CC_ALWAYS;
+
+	parse_GetToken();
+
+	if (lex_Context->token.id == T_OP_DIVIDE) {
+		parse_GetToken();
+
+		if (lex_Context->token.id == T_RC8_REG_C) {
+			cc = CC_LTU;
+		} else if (lex_Context->token.id >= T_RC8_CC_LE && lex_Context->token.id <= T_RC8_CC_NE) {
+			cc = lex_Context->token.id - T_RC8_CC_LE;
+		} else {
+			err_Error(MERROR_EXPECTED_CONDITION_CODE);
+			return false;
+		}
+		parse_GetToken();
+	}
+
+	if (!parseAddressingMode(addrMode1, parser->firstModes)) {
+		err_Error(ERROR_OPERAND);
+		return false;
+	}
+
+	string* jumpTarget = NULL;
+
+	if (lex_Context->token.id == ',') {
+		parse_GetToken();
+		if (!parseAddressingMode(addrMode2, parser->secondModes)) {
+			err_Error(MERROR_ILLEGAL_ADDRMODE);
+			return false;
+		}
+	} else if ((parser->secondModes & MODE_NONE) || (parser->secondModes == 0)) {
+		addrMode2->mode = MODE_NONE;
+		addrMode2->expression = NULL;
+	} else {
+		err_Error(MERROR_ILLEGAL_ADDRMODE);
+		return false;
+	}
+
+	if (parser->condition == CONDITION_AUTO && cc != CC_ALWAYS) {
+		jumpTarget = createUniqueLabel();
+		handle_JumpRelativeCC(invertCondition(cc), expr_SymbolByName(jumpTarget));
+	}
+
+	if (!parser->parser(parser->baseOpcode, cc, addrMode1, addrMode2)) {
+		err_Error(ERROR_OPERAND);
+		return false;
+	}
+
+	if (jumpTarget != NULL) {
+		sym_CreateLabel(jumpTarget);
+		str_Free(jumpTarget);
+	}
+
+	return true;
+}
+
 bool
 rc8_ParseIntegerInstruction(void) {
 	if (T_RC8_ADD <= lex_Context->token.id && lex_Context->token.id <= T_RC8_XOR) {
-		SAddressingMode addrMode1;
-		SAddressingMode addrMode2;
-		ETargetToken token = lex_Context->token.id;
-		SParser* parser = &g_Parsers[token - T_RC8_ADD];
-		EConditionCode cc = CC_ALWAYS;
+		SAddressingMode addrMode1 = {0};
+		SAddressingMode addrMode2 = {0};
+		SParser* parser = &g_Parsers[lex_Context->token.id - T_RC8_ADD];
 
-		parse_GetToken();
+		bool result = rc8_ParseInstructionBody(parser, &addrMode1, &addrMode2);
 
-		if (lex_Context->token.id == T_OP_DIVIDE) {
-			parse_GetToken();
-
-			if (lex_Context->token.id == T_RC8_REG_C) {
-				cc = CC_LTU;
-			} else if (lex_Context->token.id >= T_RC8_CC_LE && lex_Context->token.id <= T_RC8_CC_NE) {
-				cc = lex_Context->token.id - T_RC8_CC_LE;
-			} else {
-				err_Error(MERROR_EXPECTED_CONDITION_CODE);
-				return false;
-			}
-			parse_GetToken();
-		}
-
-		if (parseAddressingMode(&addrMode1, parser->firstModes)) {
-			string* jumpTarget = NULL;
-
-			if (lex_Context->token.id == ',') {
-				parse_GetToken();
-				if (!parseAddressingMode(&addrMode2, parser->secondModes))
-					return err_Error(MERROR_ILLEGAL_ADDRMODE);
-			} else if ((parser->secondModes & MODE_NONE) || (parser->secondModes == 0)) {
-				addrMode2.mode = MODE_NONE;
-				addrMode2.expression = NULL;
-			} else {
-				return err_Error(MERROR_ILLEGAL_ADDRMODE);
-			}
-
-			if (parser->condition == CONDITION_AUTO && cc != CC_ALWAYS) {
-				jumpTarget = createUniqueLabel();
-				handle_JumpRelativeCC(invertCondition(cc), expr_SymbolByName(jumpTarget));
-			}
-
-			if (!parser->parser(parser->baseOpcode, cc, &addrMode1, &addrMode2))
-				return err_Error(ERROR_OPERAND);
-
-			if (jumpTarget != NULL) {
-				sym_CreateLabel(jumpTarget);
-				str_Free(jumpTarget);
-			}
-		} else {
-			return err_Error(ERROR_OPERAND);
-		}
+		addrMode_FreeAll(&addrMode1);
+		addrMode_FreeAll(&addrMode2);
+		return result;
 	}
 
 	return false;

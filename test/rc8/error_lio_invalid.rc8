@@ -1,0 +1,2 @@
+	SECTION "Test",CODE
+	lio	bc,de

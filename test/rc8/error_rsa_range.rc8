@@ -1,0 +1,2 @@
+	SECTION "Test",CODE
+	rsa	$10

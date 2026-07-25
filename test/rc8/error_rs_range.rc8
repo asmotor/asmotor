@@ -1,0 +1,2 @@
+	SECTION "Test",CODE
+	rs	$10

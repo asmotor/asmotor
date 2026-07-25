@@ -1,0 +1,2 @@
+	SECTION "Test",CODE
+	cmp	t,t

@@ -42,3 +42,167 @@
 	lio	(bc+),ft
 	lio	(bc+),t
 	lio	(-bc),t
+
+; LIO with post-inc / pre-dec (all register variants)
+	lio	(bc+),t
+	lio	(-bc),t
+	lio	(de+),t
+	lio	(-de),t
+	lio	(hl+),t
+	lio	(-hl),t
+	lio	t,(bc+)
+	lio	t,(-bc)
+	lio	t,(de+)
+	lio	t,(-de)
+	lio	t,(hl+)
+	lio	t,(-hl)
+	lio	(bc+),ft
+	lio	(-bc),ft
+	lio	(de+),ft
+	lio	(-de),ft
+	lio	(hl+),ft
+	lio	(-hl),ft
+	lio	ft,(bc+)
+	lio	ft,(-bc)
+	lio	ft,(de+)
+	lio	ft,(-de)
+	lio	ft,(hl+)
+	lio	ft,(-hl)
+
+; LCO with FT destination
+	lco	ft,(bc+)
+	lco	ft,(-bc)
+
+; LD with (FT) indirect + inc/dec
+	ld	bc,(ft)
+	ld	bc,(ft+)
+	ld	bc,(-ft)
+	ld	(ft),bc
+	ld	(ft+),bc
+	ld	(-ft),bc
+	ld	de,(ft)
+	ld	de,(ft+)
+	ld	de,(-ft)
+	ld	(ft),de
+	ld	(ft+),de
+	ld	(-ft),de
+	ld	hl,(ft)
+	ld	hl,(ft+)
+	ld	hl,(-ft)
+	ld	(ft),hl
+	ld	(ft+),hl
+	ld	(-ft),hl
+	ld	b,(ft+)
+	ld	b,(-ft)
+	ld	(ft+),b
+	ld	(-ft),b
+
+; LD FT,(BC/DE/HL) and LD (BC/DE/HL),FT
+	ld	ft,(bc)
+	ld	ft,(bc+)
+	ld	ft,(-bc)
+	ld	(bc),ft
+	ld	(bc+),ft
+	ld	(-bc),ft
+	ld	ft,(de)
+	ld	ft,(de+)
+	ld	ft,(-de)
+	ld	(de),ft
+	ld	(de+),ft
+	ld	(-de),ft
+	ld	ft,(hl)
+	ld	ft,(hl+)
+	ld	ft,(-hl)
+	ld	(hl),ft
+	ld	(hl+),ft
+	ld	(-hl),ft
+	ld	t,(bc+)
+	ld	t,(-bc)
+	ld	(bc+),t
+	ld	(-bc),t
+	ld	t,(de+)
+	ld	t,(-de)
+	ld	(de+),t
+	ld	(-de),t
+	ld	t,(hl+)
+	ld	t,(-hl)
+	ld	(hl+),t
+	ld	(-hl),t
+
+; J/CC with (reg) indirect (conditional computed jump)
+	j/le	(ft)
+	j/gt	(bc)
+	j/lt	(de)
+	j/ge	(hl)
+	j/leu	(ft)
+	j/gtu	(bc)
+	j/ltu	(de)
+	j/geu	(hl)
+	j/eq	(ft)
+	j/ne	(bc)
+	j/z	(de)
+	j/nz	(hl)
+	j/nc	(ft)
+
+; PICK with immediate
+	pick	ft,$00
+	pick	bc,$01
+	pick	de,$02
+	pick	hl,$03
+
+; PUSH / POP multi-register with / separator
+	push	bc/de
+	push	de/hl
+	pop	bc/de
+	pop	de/hl
+
+; JAL / SYS with $ (current address)
+	jal	$
+	sys	$
+
+; Conditional execution (INST/CC)
+	add/c	hl,1
+	sub/c	bc,$1234
+	ld/c	bc,$1234
+	ld/c	t,(bc)
+	ld/c	(bc),t
+	ld/c	ft,(bc+)
+	ld/c	(bc+),ft
+	cmp/c	bc
+	cmp/c	t,b
+	cmp/c	b,$01
+	cmp/c	ft,de
+	add/c	bc
+	add/c	ft,de
+	sub/c	bc
+	sub/c	ft,de
+	neg/c	t
+	neg/c	ft
+	tst/c	ft
+	tst/c	bc
+	exg/c	bc
+	exg/c	f
+	ls/c	b
+	rs/c	b
+	rsa/c	b
+	ls/c	$01
+	rs/c	$01
+	rsa/c	$01
+	or/c	$01
+	and/c	$01
+	xor/c	$01
+	pick/c	bc,$01
+	push/c	bc
+	pop/c	bc
+	swap/c	bc
+	lio/c	(bc),t
+	lio/c	t,(bc)
+	lco/c	t,(bc)
+	not/c	f
+	not/c	t
+	not/c	ft
+	dj/c	b,.condend
+	j/c	.condend
+	jal/c	(hl)
+	sys/c	$01
+.condend

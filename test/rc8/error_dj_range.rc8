@@ -1,0 +1,6 @@
+	SECTION "Test",CODE
+	dj	b,.far
+	REPT	200
+		DB	$00
+	ENDR
+.far

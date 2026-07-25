@@ -1,0 +1,2 @@
+	SECTION "Test",CODE
+	pick	bc,$100

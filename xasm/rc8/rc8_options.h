@@ -23,7 +23,6 @@
 
 typedef struct MachineOptions {
 	bool enableSynthInstructions;
-	bool enableSideeffectingSynthInstructions;
 } SMachineOptions;
 
 extern SMachineOptions*

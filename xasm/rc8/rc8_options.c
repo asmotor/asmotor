@@ -39,7 +39,6 @@ rc8_CopyOptions(struct MachineOptions* destination, struct MachineOptions* sourc
 void
 rc8_SetDefaultOptions(SMachineOptions* options) {
 	options->enableSynthInstructions = true;
-	options->enableSideeffectingSynthInstructions = false;
 }
 
 void
@@ -50,9 +49,18 @@ rc8_ParseOption(const char* s) {
 	if (s == NULL || strlen(s) == 0)
 		return false;
 
+	if (s[0] == 's' && strlen(&s[1]) == 1) {
+		opt_Current->machineOptions->enableSynthInstructions = s[1] == '1';
+		return true;
+	}
+
 	err_Warn(WARN_MACHINE_UNKNOWN_OPTION, s);
 	return false;
 }
 
 void
-rc8_PrintOptions(void) {}
+rc8_PrintOptions(void) {
+	printf("    -ms<x>    Synthesized instructions:\n"
+	       "                  0 - Disabled\n"
+	       "                  1 - Enabled (default)\n");
+}

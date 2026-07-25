@@ -1,0 +1,2 @@
+error_rsa_range.rc8:2: E0107 Invalid operand
+error_rsa_range.rc8:2: E1004 Shift count must be in range 0..15

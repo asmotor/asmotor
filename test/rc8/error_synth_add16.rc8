@@ -1,0 +1,3 @@
+	SECTION "Test",CODE
+	opt <ms0>
+	add	bc,$1234
