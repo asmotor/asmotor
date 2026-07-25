@@ -243,7 +243,8 @@ handle_LDQImm(SAddressingMode* addrMode) {
 			sect_OutputConst8(0xA3); // LDZ
 			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(24)), expr_Const(0xFF)));
 		}
-		addrMode_FreeAll(addrMode);
+		expr_Free(addrMode->expr);
+		addrMode->expr = NULL;
 	} else {
 		err_Error(MERROR_SYNTHESIZED);
 	}

@@ -47,4 +47,7 @@ parse_ExpectComma(void) {
 	return parse_ExpectChar(',');
 }
 
+extern void
+parse_Exit(void);
+
 #endif /* XASM_MOTOR_PARSE_H_INCLUDED_ */

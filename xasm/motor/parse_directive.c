@@ -43,6 +43,14 @@
 
 static set_t* includeOnceFilenames = NULL;
 
+extern void
+parse_Exit(void) {
+	if (includeOnceFilenames != NULL) {
+		strset_Free(includeOnceFilenames);
+		includeOnceFilenames = NULL;
+	}
+}
+
 static bool
 mayIncludeFile(string* filename) {
 	if (includeOnceFilenames == NULL) {
@@ -506,6 +514,7 @@ getFilename(string** dest) {
 	}
 
 	inc_FindFile(dest, filename);
+	str_Free(filename);
 }
 
 static void

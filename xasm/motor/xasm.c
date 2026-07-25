@@ -55,6 +55,7 @@
 #include "xasm.h"
 
 #include "amitime.h"
+#include "mem.h"
 #include "util.h"
 
 uint32_t xasm_TotalLines = 0;
@@ -290,8 +291,9 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 	sym_Exit();
 	lex_Exit();
 	sect_Exit();
+	parse_Exit();
 
-	//	mem_ShowLeaks();
+	mem_ShowLeaks();
 
 	return rcode;
 }

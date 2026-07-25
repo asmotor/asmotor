@@ -706,16 +706,9 @@ check68080ModesAllowed(SAddressingMode* addr) {
 	}
 }
 
-bool
-m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat) {
+static bool
+m68k_ParseCommonCpuFpuBody(SInstruction* instruction, ETargetToken token, bool allowFloat, SAddressingMode* src, SAddressingMode* dest) {
 	ESize insSz;
-	SAddressingMode src = {0};
-	SAddressingMode dest = {0};
-
-	if ((sect_CurrentSize() & 1) != 0) {
-		err_Error(MERROR_WORD_ALIGN);
-		return true;
-	}
 
 	if (instruction->allowedSizes == SIZE_DEFAULT) {
 		if (m68k_GetSizeSpecifier(SIZE_DEFAULT) != SIZE_DEFAULT) {
@@ -726,25 +719,23 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
 	} else
 		insSz = m68k_GetSizeSpecifier(instruction->defaultSize);
 
-	src.mode = AM_EMPTY;
-	dest.mode = AM_EMPTY;
+	src->mode = AM_EMPTY;
+	dest->mode = AM_EMPTY;
 
 	if (instruction->allowedSourceModes != 0 && instruction->allowedSourceModes != AM_EMPTY) {
-		if (m68k_GetAddressingMode(&src, allowFloat)) {
+		if (m68k_GetAddressingMode(src, allowFloat)) {
 			if (instruction->allowedSourceModes & AM_BITFIELD) {
-				if (!getBitfield(&src)) {
+				if (!getBitfield(src)) {
 					err_Error(MERROR_EXPECT_BITFIELD);
-					addrMode_FreeAll(&src);
 					return false;
 				}
 			}
 
-			if (src.mode == AM_IMM)
-				src.immediateSize = insSz;
+			if (src->mode == AM_IMM)
+				src->immediateSize = insSz;
 
-			if (!check68080ModesAllowed(&src)) {
+			if (!check68080ModesAllowed(src)) {
 				err_Error(MERROR_NOT_68080_MODE);
-				addrMode_FreeAll(&src);
 				return true;
 			}
 		} else {
@@ -758,24 +749,19 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
 	if (instruction->allowedDestModes != 0 && instruction->allowedDestModes != AM_EMPTY) {
 		if (lex_Context->token.id == ',') {
 			parse_GetToken();
-			if (!m68k_GetAddressingMode(&dest, allowFloat)) {
-				addrMode_FreeAll(&src);
+			if (!m68k_GetAddressingMode(dest, allowFloat)) {
 				return false;
 			}
 
 			if (instruction->allowedDestModes & AM_BITFIELD) {
-				if (!getBitfield(&dest)) {
+				if (!getBitfield(dest)) {
 					err_Error(MERROR_EXPECT_BITFIELD);
-					addrMode_FreeAll(&src);
-					addrMode_FreeAll(&dest);
 					return false;
 				}
 			}
 
-			if (!check68080ModesAllowed(&dest)) {
+			if (!check68080ModesAllowed(dest)) {
 				err_Error(MERROR_NOT_68080_MODE);
-				addrMode_FreeAll(&src);
-				addrMode_FreeAll(&dest);
 				return true;
 			}
 		}
@@ -786,11 +772,24 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
 	}
 
 	bool disablePrefix = false;
-	ETargetToken targetToken = (ETargetToken) token;
-	disablePrefix |= m68k_CanUseShortMOVEfromA(targetToken, &src, &dest, insSz);
-	disablePrefix |= m68k_CanUseShortMOVEA(targetToken, &src, &dest, insSz);
+	disablePrefix |= m68k_CanUseShortMOVEfromA(token, src, dest, insSz);
+	disablePrefix |= m68k_CanUseShortMOVEA(token, src, dest, insSz);
 
-	bool result = m68k_ParseOpCore(instruction, insSz, &src, &dest, disablePrefix);
+	return m68k_ParseOpCore(instruction, insSz, src, dest, disablePrefix);
+}
+
+bool
+m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat) {
+	SAddressingMode src = {0};
+	SAddressingMode dest = {0};
+
+	if ((sect_CurrentSize() & 1) != 0) {
+		err_Error(MERROR_WORD_ALIGN);
+		return true;
+	}
+
+	bool result = m68k_ParseCommonCpuFpuBody(instruction, (ETargetToken) token, allowFloat, &src, &dest);
+
 	addrMode_FreeAll(&src);
 	addrMode_FreeAll(&dest);
 	return result;

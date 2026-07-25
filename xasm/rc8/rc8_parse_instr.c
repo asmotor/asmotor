@@ -771,6 +771,7 @@ handle_Shift(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination
 		return handle_OpcodeRegister(baseOpcode, source);
 	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_IMM)) {
 		if (expr_IsConstant(source->expression) && (source->expression->value.integer < 0 || source->expression->value.integer > 15)) {
+			expr_Free(source->expression);
 			source->expression = NULL;
 			return err_Error(MERROR_SHIFT_COUNT_RANGE);
 		}

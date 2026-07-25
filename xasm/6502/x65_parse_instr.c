@@ -51,8 +51,10 @@ typedef struct Parser {
 extern void
 x65_OutputSU16Expression(SExpression* expr) {
 	expr = expr_CheckRange(expr, -32768, 65535);
-	if (expr == NULL)
+	if (expr == NULL) {
 		err_Error(ERROR_OPERAND_RANGE);
+		return;
+	}
 	expr = expr_And(expr, expr_Const(0xFFFF));
 
 	sect_OutputExpr16(expr);
@@ -61,8 +63,10 @@ x65_OutputSU16Expression(SExpression* expr) {
 extern void
 x65_OutputU16Expression(SExpression* expr) {
 	expr = expr_CheckRange(expr, 0, 65535);
-	if (expr == NULL)
+	if (expr == NULL) {
 		err_Error(ERROR_OPERAND_RANGE);
+		return;
+	}
 	expr = expr_And(expr, expr_Const(0xFFFF));
 
 	sect_OutputExpr16(expr);
@@ -71,8 +75,10 @@ x65_OutputU16Expression(SExpression* expr) {
 extern void
 x65_OutputSU8Expression(SExpression* expr) {
 	expr = expr_CheckRange(expr, -128, 255);
-	if (expr == NULL)
+	if (expr == NULL) {
 		err_Error(ERROR_OPERAND_RANGE);
+		return;
+	}
 	expr = expr_And(expr, expr_Const(0xFF));
 
 	sect_OutputExpr8(expr);
@@ -81,8 +87,10 @@ x65_OutputSU8Expression(SExpression* expr) {
 extern void
 x65_OutputU8Expression(SExpression* expr) {
 	expr = expr_CheckRange(expr, 0, 255);
-	if (expr == NULL)
+	if (expr == NULL) {
 		err_Error(ERROR_OPERAND_RANGE);
+		return;
+	}
 
 	sect_OutputExpr8(expr);
 }
@@ -284,7 +292,7 @@ handleStandardImm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
 	}
 }
 
-	static bool
+		static bool
 	handleStandardRotate(uint8_t baseOpcode, SAddressingMode* addrMode) {
 		switch (addrMode->mode) {
 			case MODE_IMM: {
@@ -298,7 +306,8 @@ handleStandardImm0(uint8_t baseOpcode, SAddressingMode* addrMode) {
 				} else {
 					err_Error(MERROR_SYNTHESIZED);
 				}
-				addrMode_FreeAll(addrMode);
+				expr_Free(addrMode->expr);
+				addrMode->expr = NULL;
 				return true;
 			}
 			case MODE_A:
@@ -429,13 +438,11 @@ handleJMP(uint8_t baseOpcode, SAddressingMode* addrMode) {
 				baseOpcode = 0x23;
 			} else {
 				err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
-				addrMode_FreeAll(addrMode);
 				return false;
 			}
 		} else if (addrMode->mode == MODE_IND_ABS) {
 			if ((opt_Current->machineOptions->cpu & CPU_4510) == 0) {
 				err_Error(MERROR_INSTRUCTION_NOT_SUPPORTED);
-				addrMode_FreeAll(addrMode);
 				return false;
 			}
 			baseOpcode = 0x22;

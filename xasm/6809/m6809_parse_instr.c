@@ -92,7 +92,7 @@ emitOpcode(uint8_t baseOpcode, SAddressingMode* addrMode, uint8_t directCode, ui
 		sect_OutputConst8(baseOpcode | indexedCode);
 		return emitIndexed(addrMode);
 	}
-	addrMode_FreeAll(addrMode);
+
 	return false;
 }
 
@@ -408,30 +408,36 @@ static SParser g_instructionHandlers[T_6809_NOP - T_6809_ABX + 1] = {
     {0x12, MODE_NONE,                                                     handleImplied       }, /* NOP */
 };
 
+static bool
+m6809_ParseIntegerInstructionBody(SParser* handler, SAddressingMode* addrMode) {
+	parse_GetToken();
+	if (!m6809_ParseAddressingMode(addrMode, handler->allowedModes)) {
+		err_Error(MERROR_ILLEGAL_ADDRMODE);
+		return false;
+	}
+
+	if (addrMode->mode == MODE_ADDRESS) {
+		if (g_dp_base != DP_BASE_UNKNOWN && expr_IsConstant(addrMode->expr) &&
+		    (addrMode->expr->value.integer & 0xFF00) == g_dp_base) {
+			addrMode->mode = MODE_DIRECT;
+		} else {
+			addrMode->mode = MODE_EXTENDED;
+		}
+	}
+
+	return handler->handler(handler->baseOpcode, addrMode);
+}
+
 bool
 m6809_ParseIntegerInstruction(void) {
 	if (T_6809_ABX <= lex_Context->token.id && lex_Context->token.id <= T_6809_NOP) {
 		SAddressingMode addrMode = {0};
-		ETargetToken token = (ETargetToken) lex_Context->token.id;
-		SParser* handler = &g_instructionHandlers[token - T_6809_ABX];
+		SParser* handler = &g_instructionHandlers[lex_Context->token.id - T_6809_ABX];
 
-		parse_GetToken();
-		if (m6809_ParseAddressingMode(&addrMode, handler->allowedModes)) {
-			if (addrMode.mode == MODE_ADDRESS) {
-				if (g_dp_base != DP_BASE_UNKNOWN && expr_IsConstant(addrMode.expr) &&
-				    (addrMode.expr->value.integer & 0xFF00) == g_dp_base) {
-					addrMode.mode = MODE_DIRECT;
-				} else {
-					addrMode.mode = MODE_EXTENDED;
-				}
-			}
-			bool result = handler->handler(handler->baseOpcode, &addrMode);
-			addrMode_FreeAll(&addrMode);
-			return result;
-		} else {
-			addrMode_FreeAll(&addrMode);
-			err_Error(MERROR_ILLEGAL_ADDRMODE);
-		}
+		bool result = m6809_ParseIntegerInstructionBody(handler, &addrMode);
+
+		addrMode_FreeAll(&addrMode);
+		return result;
 	}
 
 	return false;
