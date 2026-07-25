@@ -178,8 +178,10 @@ singleModePart(SModeRegisters* outMode) {
 
 	expr = parse_Expression(4);
 	if (expr != NULL) {
-		if (outMode->displacement != NULL)
+		if (outMode->displacement != NULL) {
+			expr_Free(expr);
 			return false;
+		}
 
 		outMode->displacement = expr;
 		outMode->displacementSize = m68k_GetSizeSpecifier(SIZE_DEFAULT);
@@ -607,8 +609,12 @@ m68k_GetAddressingMode(SAddressingMode* addrMode, bool allowFloat) {
 			if (hasDisplacement && addrMode->outer.baseRegister != REG_NONE && addrMode->outer.displacementSize == SIZE_DEFAULT) {
 				addrMode->outer.displacementSize = SIZE_BYTE;
 			}
-			return optimizeMode(addrMode);
+			if (optimizeMode(addrMode))
+				return true;
+			addrMode_FreeAll(addrMode);
+			return false;
 		}
+		addrMode_FreeAll(addrMode);
 		return false;
 	}
 

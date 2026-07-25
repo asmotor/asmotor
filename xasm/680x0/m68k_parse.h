@@ -130,6 +130,24 @@ typedef struct {
 
 } SAddressingMode;
 
+static inline void
+addrMode_FreeAll(SAddressingMode* addrMode) {
+	expr_Free(addrMode->immediateInteger);
+	addrMode->immediateInteger = NULL;
+	expr_Free(addrMode->inner.indexScale);
+	addrMode->inner.indexScale = NULL;
+	expr_Free(addrMode->inner.displacement);
+	addrMode->inner.displacement = NULL;
+	expr_Free(addrMode->outer.indexScale);
+	addrMode->outer.indexScale = NULL;
+	expr_Free(addrMode->outer.displacement);
+	addrMode->outer.displacement = NULL;
+	expr_Free(addrMode->bitfieldOffsetExpression);
+	addrMode->bitfieldOffsetExpression = NULL;
+	expr_Free(addrMode->bitfieldWidthExpression);
+	addrMode->bitfieldWidthExpression = NULL;
+}
+
 typedef struct {
 	uint8_t cpu;
 	uint8_t allowedSizes;

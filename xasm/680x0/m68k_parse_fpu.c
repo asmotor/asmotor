@@ -177,6 +177,7 @@ unaryInstruction(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t
 static bool
 handleFBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
 	SExpression* offset = expr_PcRelative(src->outer.displacement, -2);
+	src->outer.displacement = NULL;
 
 	if (sz == SIZE_DEFAULT) {
 		if (offset->isConstant && offset->value.integer >= -32768 && offset->value.integer <= 32767) {
@@ -211,6 +212,7 @@ handleFBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
 static bool
 handleFDBcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
 	SExpression* expr = expr_CheckRange(expr_PcRelative(dest->outer.displacement, -4), -32768, 32767);
+	dest->outer.displacement = NULL;
 
 	if (expr != NULL) {
 		sect_OutputConst16(FPU_INS | 0x0048 | src->directRegister);
@@ -294,6 +296,7 @@ handleMOVE(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmod
 static bool
 handleFMOVECR(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t opmode) {
 	SExpression* expr = expr_Or(expr_Const((dest->directRegister << 7) | 0x5C00), expr_CheckRange(src->immediateInteger, 0, 127));
+	src->immediateInteger = NULL;
 
 	sect_OutputConst16(FPU_INS);
 	sect_OutputExpr16(expr);
@@ -609,6 +612,7 @@ handleFTRAPcc(ESize sz, SAddressingMode* src, SAddressingMode* dest, uint16_t op
 	} else if (outputLong) {
 		sect_OutputExpr32(src->immediateInteger);
 	}
+	src->immediateInteger = NULL;
 
 	return true;
 }

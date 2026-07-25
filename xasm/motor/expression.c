@@ -361,10 +361,12 @@ expr_CheckRange(SExpression* expression, int32_t low, int32_t high) {
 		expression = expr_HighLimit(expression, expr_Const(high));
 		if (expression != NULL)
 			return expression;
+		// expression freed by expr_HighLimit on constant error
 	}
+	// expression freed by expr_LowLimit on constant error, or was NULL
 
 	err_Error(ERROR_OPERAND_RANGE);
-	return expr_Const(0);
+	return NULL;
 }
 
 SExpression*
@@ -373,9 +375,12 @@ expr_Assert(SExpression* expression, SExpression* assertion) {
 		return NULL;
 
 	if (expr_IsConstant(assertion)) {
-		if (assertion->value.integer != 0)
+		if (assertion->value.integer != 0) {
+			expr_Free(assertion);
 			return expression;
+		}
 
+		expr_Free(expression);
 		err_Error(ERROR_OPERAND_RANGE);
 		return NULL;
 	}

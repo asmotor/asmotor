@@ -100,6 +100,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 					mode->immediateInteger = m68k_ExpressionCheck8Bit(mode->immediateInteger);
 					if (mode->immediateInteger) {
 						sect_OutputExpr16(mode->immediateInteger);
+						mode->immediateInteger = NULL;
 						return true;
 					}
 					return false;
@@ -109,6 +110,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 					mode->immediateInteger = m68k_ExpressionCheck16Bit(mode->immediateInteger);
 					if (mode->immediateInteger) {
 						sect_OutputExpr16(mode->immediateInteger);
+						mode->immediateInteger = NULL;
 						return true;
 					}
 					return false;
@@ -116,6 +118,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 				case SIZE_LONG: {
 					if (mode->immediateInteger) {
 						sect_OutputExpr32(mode->immediateInteger);
+						mode->immediateInteger = NULL;
 						return true;
 					}
 					return false;
@@ -137,6 +140,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 		case AM_WORD: {
 			if (mode->outer.displacement) {
 				sect_OutputExpr16(mode->outer.displacement);
+				mode->outer.displacement = NULL;
 				return true;
 			}
 			internalerror("no word");
@@ -145,6 +149,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 		case AM_LONG: {
 			if (mode->outer.displacement) {
 				sect_OutputExpr32(mode->outer.displacement);
+				mode->outer.displacement = NULL;
 				return true;
 			}
 			internalerror("no long");
@@ -159,6 +164,7 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 			if (mode->outer.displacement) {
 				if (mode->outer.displacementSize == SIZE_WORD || mode->outer.displacementSize == SIZE_DEFAULT) {
 					sect_OutputExpr16(mode->outer.displacement);
+					mode->outer.displacement = NULL;
 					return true;
 				}
 				err_Error(MERROR_DISP_SIZE);
@@ -182,12 +188,14 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 				expr = m68k_ExpressionCheck8Bit(mode->outer.displacement);
 			else
 				expr = expr_Const(0);
+			mode->outer.displacement = NULL;
 
 			expr = expr_And(expr, expr_Const(0xFF));
 			if (expr != NULL) {
 				expr = expr_Or(expr, expr_Const(ins));
 				if (mode->outer.indexScale != NULL) {
 					expr = expr_Or(expr, expr_Asl(mode->outer.indexScale, expr_Const(9)));
+					mode->outer.indexScale = NULL;
 				}
 				sect_OutputExpr16(expr);
 				return true;
@@ -260,6 +268,8 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 					}
 				}
 
+				mode->outer.displacement = NULL;
+				mode->outer.indexScale = NULL;
 				return true;
 			}
 			return false;
@@ -351,6 +361,9 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 					}
 				}
 
+				mode->inner.displacement = NULL;
+				mode->inner.indexScale = NULL;
+				mode->outer.displacement = NULL;
 				return true;
 			}
 			return false;
@@ -442,6 +455,9 @@ m68k_OutputExtensionWords(SAddressingMode* mode) {
 					}
 				}
 
+				mode->inner.displacement = NULL;
+				mode->outer.displacement = NULL;
+				mode->outer.indexScale = NULL;
 				return true;
 			}
 			return false;
@@ -693,8 +709,8 @@ check68080ModesAllowed(SAddressingMode* addr) {
 bool
 m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat) {
 	ESize insSz;
-	SAddressingMode src;
-	SAddressingMode dest;
+	SAddressingMode src = {0};
+	SAddressingMode dest = {0};
 
 	if ((sect_CurrentSize() & 1) != 0) {
 		err_Error(MERROR_WORD_ALIGN);
@@ -718,6 +734,7 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
 			if (instruction->allowedSourceModes & AM_BITFIELD) {
 				if (!getBitfield(&src)) {
 					err_Error(MERROR_EXPECT_BITFIELD);
+					addrMode_FreeAll(&src);
 					return false;
 				}
 			}
@@ -727,6 +744,7 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
 
 			if (!check68080ModesAllowed(&src)) {
 				err_Error(MERROR_NOT_68080_MODE);
+				addrMode_FreeAll(&src);
 				return true;
 			}
 		} else {
@@ -740,18 +758,24 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
 	if (instruction->allowedDestModes != 0 && instruction->allowedDestModes != AM_EMPTY) {
 		if (lex_Context->token.id == ',') {
 			parse_GetToken();
-			if (!m68k_GetAddressingMode(&dest, allowFloat))
+			if (!m68k_GetAddressingMode(&dest, allowFloat)) {
+				addrMode_FreeAll(&src);
 				return false;
+			}
 
 			if (instruction->allowedDestModes & AM_BITFIELD) {
 				if (!getBitfield(&dest)) {
 					err_Error(MERROR_EXPECT_BITFIELD);
+					addrMode_FreeAll(&src);
+					addrMode_FreeAll(&dest);
 					return false;
 				}
 			}
 
 			if (!check68080ModesAllowed(&dest)) {
 				err_Error(MERROR_NOT_68080_MODE);
+				addrMode_FreeAll(&src);
+				addrMode_FreeAll(&dest);
 				return true;
 			}
 		}
@@ -766,7 +790,10 @@ m68k_ParseCommonCpuFpu(SInstruction* instruction, EToken token, bool allowFloat)
 	disablePrefix |= m68k_CanUseShortMOVEfromA(targetToken, &src, &dest, insSz);
 	disablePrefix |= m68k_CanUseShortMOVEA(targetToken, &src, &dest, insSz);
 
-	return m68k_ParseOpCore(instruction, insSz, &src, &dest, disablePrefix);
+	bool result = m68k_ParseOpCore(instruction, insSz, &src, &dest, disablePrefix);
+	addrMode_FreeAll(&src);
+	addrMode_FreeAll(&dest);
+	return result;
 }
 
 SExpression*
