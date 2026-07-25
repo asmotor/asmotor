@@ -146,7 +146,7 @@ reduceBinary(const SPatch* patch, SExpression* expression, int32_t* result, bina
 	int32_t rhs;
 
 	if (reduceExpression(patch, expression->left, &lhs) && reduceExpression(patch, expression->right, &rhs)) {
-		expr_Clear(expression);
+		expr_Reset(expression);
 		expr_SetConst(expression, *result = operation(lhs, rhs));
 		return true;
 	}
@@ -177,7 +177,7 @@ reducePcRelative(const SPatch* patch, SExpression* expression, int32_t* result) 
 	if (expr_GetSectionOffset(expression->right, patch->section, &offset)) {
 		int32_t adjustment;
 		if (reduceExpression(patch, expression->left, &adjustment)) {
-			expr_Clear(expression);
+			expr_Reset(expression);
 			expr_SetConst(expression, *result = offset + adjustment - patch->offset);
 			return true;
 		}
@@ -216,7 +216,7 @@ reduceSubtract(const SPatch* patch, SExpression* expression, int32_t* result) {
 	SSection* pRightSect = expr_GetSectionAndOffset(expression->right, &r);
 
 	if (pLeftSect && pRightSect && pLeftSect == pRightSect) {
-		expr_Clear(expression);
+		expr_Reset(expression);
 		expr_SetConst(expression, *result = l - r);
 		return true;
 	}
@@ -230,7 +230,7 @@ reduceLowLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
 
 	if (reduceExpression(patch, expression->right, &rhs) && reduceExpression(patch, expression->left, &lhs)) {
 		if (lhs >= rhs) {
-			expr_Clear(expression);
+			expr_Reset(expression);
 			expr_SetConst(expression, *result = lhs);
 
 			return true;
@@ -246,7 +246,7 @@ reduceHighLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
 
 	if (reduceExpression(patch, expression->right, &rhs) && reduceExpression(patch, expression->left, &lhs)) {
 		if (lhs <= rhs) {
-			expr_Clear(expression);
+			expr_Reset(expression);
 			expr_SetConst(expression, *result = lhs);
 			return true;
 		}
@@ -261,7 +261,7 @@ reduceAssert(const SPatch* patch, SExpression* expression, int32_t* result) {
 
 	if (reduceExpression(patch, expression->right, &rhs) && reduceExpression(patch, expression->left, &lhs)) {
 		if (rhs != 0) {
-			expr_Clear(expression);
+			expr_Reset(expression);
 			expr_SetConst(expression, *result = lhs);
 
 			return true;

@@ -700,7 +700,7 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		                               ? expr_Const(1)
 		                               : createExpression8S(                       //
 		                                     expr_Add(                             //
-		                                         expr_Copy(addrMode2->expression), //
+		                                         expr_Clone(addrMode2->expression), //
 		                                         expr_Const(1)));
 		if (!handleLd(instruction, &g_addressModes[destTokens[1] - T_MODE_B], addrMode2))
 			return false;
@@ -718,7 +718,7 @@ handleLd(SInstruction* instruction, SAddressingMode* addrMode1, SAddressingMode*
 		                               ? expr_Const(1)
 		                               : createExpression8S(                       //
 		                                     expr_Add(                             //
-		                                         expr_Copy(addrMode1->expression), //
+		                                         expr_Clone(addrMode1->expression), //
 		                                         expr_Const(1)));
 		if (!handleLd(instruction, addrMode1, &g_addressModes[destTokens[1] - T_MODE_B]))
 			return false;

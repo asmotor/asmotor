@@ -259,9 +259,10 @@ expr_PcRelative(SExpression* expression, int adjustment) {
 		return NULL;
 
 	if (expr_IsConstant(expression) && sect_Current != NULL && (sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED))) {
-		expression->value.integer -=
+		int32_t value = expression->value.integer -
 		    (sect_Current->cpuProgramCounter + sect_Current->cpuOrigin + sect_Current->cpuAdjust - adjustment);
-		return expression;
+		expr_Free(expression);
+		return expr_Const(value);
 	} else if (sect_Current != NULL && sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) {
 		return expr_Add(                                                                                                     //
 		    expression,                                                                                                      //
@@ -440,7 +441,7 @@ expr_SetConst(SExpression* expression, int32_t nValue) {
 }
 
 void
-expr_Clear(SExpression* expression) {
+expr_Reset(SExpression* expression) {
 	if (expression != NULL) {
 		expr_Free(expression->left);
 		expression->left = NULL;
@@ -462,14 +463,14 @@ expr_Free(SExpression* expression) {
 }
 
 SExpression*
-expr_Copy(SExpression* expression) {
+expr_Clone(const SExpression* expression) {
 	if (expression == NULL)
 		return NULL;
 
 	SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 	r->isConstant = expression->isConstant;
-	r->left = expr_Copy(expression->left);
-	r->right = expr_Copy(expression->right);
+	r->left = expr_Clone(expression->left);
+	r->right = expr_Clone(expression->right);
 	r->operation = expression->operation;
 	r->type = expression->type;
 	r->value = expression->value;
@@ -478,7 +479,7 @@ expr_Copy(SExpression* expression) {
 }
 
 bool
-expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resultOffset) {
+expr_GetSectionOffset(const SExpression* expression, const SSection* section, uint32_t* resultOffset) {
 	if (expression == NULL)
 		return false;
 
@@ -522,13 +523,13 @@ expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resu
 }
 
 bool
-expr_IsRelativeToSection(SExpression* expression, SSection* section) {
+expr_IsRelativeToSection(const SExpression* expression, const SSection* section) {
 	uint32_t throwAway;
 	return expr_GetSectionOffset(expression, section, &throwAway);
 }
 
 SSection*
-expr_GetSectionAndOffset(SExpression* expression, uint32_t* resultOffset) {
+expr_GetSectionAndOffset(const SExpression* expression, uint32_t* resultOffset) {
 	for (SSection* section = sect_Sections; section != NULL; section = list_GetNext(section)) {
 		if (expr_GetSectionOffset(expression, section, resultOffset))
 			return section;
@@ -538,21 +539,6 @@ expr_GetSectionAndOffset(SExpression* expression, uint32_t* resultOffset) {
 	return NULL;
 }
 
-SExpression*
-expr_Clone(SExpression* expression) {
-	if (expression == NULL)
-		return NULL;
-
-	SExpression* result = (SExpression*) mem_Alloc(sizeof(SExpression));
-	result->isConstant = expression->isConstant;
-	result->operation = expression->operation;
-	result->type = expression->type;
-	result->value = expression->value;
-
-	result->left = expr_Clone(expression->left);
-	result->right = expr_Clone(expression->right);
-	return result;
-}
 
 void
 expr_Optimize(SExpression* expression) {
@@ -596,7 +582,7 @@ isSymbolic(const SSymbol* symbol) {
 }
 
 static bool
-getSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression, bool (*predicate)(const SSymbol*)) {
+getSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, const SExpression* expression, bool (*predicate)(const SSymbol*)) {
 	if (expression == NULL)
 		return false;
 
@@ -636,13 +622,13 @@ getSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* exp
 }
 
 extern bool
-expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
+expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, const SExpression* expression) {
 	*resultSymbol = NULL;
 	return getSymbolOffset(resultOffset, resultSymbol, expression, isImport);
 }
 
 extern bool
-expr_GetSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression) {
+expr_GetSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, const SExpression* expression) {
 	*resultSymbol = NULL;
 	return getSymbolOffset(resultOffset, resultSymbol, expression, isSymbolic);
 }

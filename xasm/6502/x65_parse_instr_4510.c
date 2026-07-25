@@ -235,13 +235,13 @@ handle_LDQImm(SAddressingMode* addrMode) {
 			}
 		} else {
 			sect_OutputConst8(0xA9); // LDA
-			sect_OutputExpr8(expr_And(expr_Copy(addrMode->expr), expr_Const(0xFF)));
+			sect_OutputExpr8(expr_And(expr_Clone(addrMode->expr), expr_Const(0xFF)));
 			sect_OutputConst8(0xA2); // LDX
-			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(8)), expr_Const(0xFF)));
+			sect_OutputExpr8(expr_And(expr_Asr(expr_Clone(addrMode->expr), expr_Const(8)), expr_Const(0xFF)));
 			sect_OutputConst8(0xA0); // LDY
-			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(16)), expr_Const(0xFF)));
+			sect_OutputExpr8(expr_And(expr_Asr(expr_Clone(addrMode->expr), expr_Const(16)), expr_Const(0xFF)));
 			sect_OutputConst8(0xA3); // LDZ
-			sect_OutputExpr8(expr_And(expr_Asr(expr_Copy(addrMode->expr), expr_Const(24)), expr_Const(0xFF)));
+			sect_OutputExpr8(expr_And(expr_Asr(expr_Clone(addrMode->expr), expr_Const(24)), expr_Const(0xFF)));
 		}
 		expr_Free(addrMode->expr);
 		addrMode->expr = NULL;

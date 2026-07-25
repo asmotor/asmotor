@@ -47,7 +47,7 @@ parseImmExpression(bool imm16bit) {
 			parse_GetToken();
 
 			expr = parse_Expression(2);
-			SExpression* high = expr_And(expr_Copy(expr), expr_Const(0xFF00));
+			SExpression* high = expr_And(expr_Clone(expr), expr_Const(0xFF00));
 			SExpression* low = expr;
 			expr = expr_Or(                   //
 			    expr_Asl(low, expr_Const(8)), //

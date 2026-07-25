@@ -30,6 +30,34 @@
 
 struct Symbol;
 
+/*
+ * EXPRESSION OWNERSHIP CONTRACT
+ *
+ * Every SExpression* has exactly one owner responsible for expr_Free().
+ * Expressions are NOT reference-counted — each allocation has one owner.
+ *
+ * PARAMETER CONVENTIONS:
+ *   - const SExpression* — borrowed, function does NOT take ownership.
+ *                          caller retains ownership and must free.
+ *   - SExpression* — consumed, function takes ownership.
+ *                    caller must NOT use the pointer after the call.
+ *
+ * RETURN VALUES:
+ *   - SExpression* — caller owns the result; must eventually free via expr_Free().
+ *   - NULL on error — inputs are already freed internally.
+ *
+ * OWNERSHIP HELPERS:
+ *   - expr_Move(&dest, &src) — transfer ownership, sets src to NULL.
+ *   - expr_Clear(&dest) — free *dest and set to NULL.
+ *
+ * NESTED CALLS: expr_Add(expr_Const(1), expr_Sub(a, b)) — each sub-call
+ *   produces an owned expression consumed by the outer call. The caller
+ *   owns the final result.
+ *
+ * CLONING: expr_Clone(const SExpression*) creates a deep copy. Use when
+ *   an expression must be consumed by multiple callers.
+ */
+
 typedef enum {
 	EXPR_OPERATION,
 	EXPR_PC_RELATIVE,
@@ -52,13 +80,35 @@ typedef struct Expression {
 	} value;
 } SExpression;
 
+/* Free — consumes input (forward declaration for inline helpers) */
+
+extern void
+expr_Free(SExpression* expression);
+
+/* Ownership helpers */
+
+INLINE void
+expr_Move(SExpression** dest, SExpression** src) {
+	expr_Free(*dest);
+	*dest = *src;
+	*src = NULL;
+}
+
+INLINE void
+expr_Clear(SExpression** dest) {
+	expr_Free(*dest);
+	*dest = NULL;
+}
+
+/* Accessors — borrow inputs */
+
 INLINE EExpressionType
 expr_Type(const SExpression* expression) {
 	return expression->type;
 }
 
 INLINE bool
-expr_IsOperator(SExpression* expression, EToken operation) {
+expr_IsOperator(const SExpression* expression, EToken operation) {
 	return expression != NULL && expression->type == EXPR_OPERATION && expression->operation == operation;
 }
 
@@ -67,11 +117,54 @@ expr_IsConstant(const SExpression* expression) {
 	return expression != NULL && expression->isConstant;
 }
 
-extern SExpression*
-expr_CheckRange(SExpression* expression, int32_t low, int32_t high);
+/* Leaf constructors — produce owned result, no consumed inputs */
 
 extern SExpression*
-expr_Assert(SExpression* expression, SExpression* assertion);
+expr_Const(int32_t value);
+
+extern SExpression*
+expr_Pc(void);
+
+extern SExpression*
+expr_Symbol(SSymbol* symbol);
+
+extern SExpression*
+expr_SymbolByName(string* symbolName);
+
+extern SExpression*
+expr_Bank(SSymbol* symbol);
+
+/* Binary operators — consume both inputs, produce owned result */
+
+extern SExpression*
+expr_Add(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Sub(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Mul(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Div(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Mod(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_And(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Or(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Xor(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Asl(SExpression* left, SExpression* right);
+
+extern SExpression*
+expr_Asr(SExpression* left, SExpression* right);
 
 extern SExpression*
 expr_Equal(SExpression* left, SExpression* right);
@@ -92,46 +185,27 @@ extern SExpression*
 expr_LessEqual(SExpression* left, SExpression* right);
 
 extern SExpression*
-expr_BooleanNot(SExpression* expr);
-
-extern SExpression*
 expr_BooleanOr(SExpression* left, SExpression* right);
 
 extern SExpression*
 expr_BooleanAnd(SExpression* left, SExpression* right);
 
 extern SExpression*
-expr_Or(SExpression* left, SExpression* right);
+expr_Atan2(SExpression* left, SExpression* right);
 
 extern SExpression*
-expr_And(SExpression* left, SExpression* right);
+expr_FixedMultiplication(SExpression* left, SExpression* right);
 
 extern SExpression*
-expr_Xor(SExpression* left, SExpression* right);
+expr_FixedDivision(SExpression* left, SExpression* right);
+
+/* Unary operators — consume input, produce owned result */
 
 extern SExpression*
-expr_Add(SExpression* left, SExpression* right);
-
-extern SExpression*
-expr_Sub(SExpression* left, SExpression* right);
-
-extern SExpression*
-expr_Mul(SExpression* left, SExpression* right);
-
-extern SExpression*
-expr_Div(SExpression* left, SExpression* right);
-
-extern SExpression*
-expr_Mod(SExpression* left, SExpression* right);
+expr_BooleanNot(SExpression* expr);
 
 extern SExpression*
 expr_Bit(SExpression* expr);
-
-extern SExpression*
-expr_Asl(SExpression* left, SExpression* right);
-
-extern SExpression*
-expr_Asr(SExpression* left, SExpression* right);
 
 extern SExpression*
 expr_Sin(SExpression* expr);
@@ -152,66 +226,50 @@ extern SExpression*
 expr_Atan(SExpression* expr);
 
 extern SExpression*
-expr_Atan2(SExpression* left, SExpression* right);
-
-extern SExpression*
-expr_FixedMultiplication(SExpression* left, SExpression* right);
-
-extern SExpression*
-expr_FixedDivision(SExpression* left, SExpression* right);
-
-extern SExpression*
 expr_Parens(SExpression* expression);
 
-extern SExpression*
-expr_PcRelative(SExpression* expr, int adjustment);
+/* Special functions — consume input, produce owned result */
 
 extern SExpression*
-expr_Pc(void);
+expr_CheckRange(SExpression* expression, int32_t low, int32_t high);
 
 extern SExpression*
-expr_Const(int32_t value);
+expr_Assert(SExpression* expression, SExpression* assertion);
+
+extern SExpression*
+expr_PcRelative(SExpression* expression, int adjustment);
+
+/* Mutation — borrow input, modify in place */
 
 extern void
 expr_SetConst(SExpression* expression, int32_t value);
 
-extern SExpression*
-expr_Symbol(SSymbol* symbol);
-
-extern SExpression*
-expr_SymbolByName(string* symbolName);
-
-extern SExpression*
-expr_Bank(SSymbol* symbol);
-
 extern void
-expr_Free(SExpression* expression);
-
-extern SExpression*
-expr_Copy(SExpression* expression);
-
-extern void
-expr_Clear(SExpression* expression);
-
-extern SExpression*
-expr_Clone(SExpression* expression);
-
-extern bool
-expr_GetSectionOffset(SExpression* expression, SSection* section, uint32_t* resultOffset);
-
-extern bool
-expr_IsRelativeToSection(SExpression* expression, SSection* section);
-
-extern SSection*
-expr_GetSectionAndOffset(SExpression* expression, uint32_t* resultOffset);
+expr_Reset(SExpression* expression);
 
 extern void
 expr_Optimize(SExpression* expression);
 
-extern bool
-expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression);
+/* Clone — borrows input, produces owned deep copy */
+
+extern SExpression*
+expr_Clone(const SExpression* expression);
+
+/* Queries — borrow inputs */
 
 extern bool
-expr_GetSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, SExpression* expression);
+expr_GetSectionOffset(const SExpression* expression, const SSection* section, uint32_t* resultOffset);
+
+extern bool
+expr_IsRelativeToSection(const SExpression* expression, const SSection* section);
+
+extern SSection*
+expr_GetSectionAndOffset(const SExpression* expression, uint32_t* resultOffset);
+
+extern bool
+expr_GetImportOffset(uint32_t* resultOffset, SSymbol** resultSymbol, const SExpression* expression);
+
+extern bool
+expr_GetSymbolOffset(uint32_t* resultOffset, SSymbol** resultSymbol, const SExpression* expression);
 
 #endif /* XASM_MOTOR_EXPRESSION_H_INCLUDED_ */
