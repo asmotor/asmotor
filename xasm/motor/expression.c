@@ -107,6 +107,8 @@ getSymbolSectionOffset(const SExpression* expression, const SSection* section, u
 			return NULL;                                              \
 		if (right->value.integer == 0) {                              \
 			err_Error(ERROR_ZERO_DIVIDE);                             \
+			expr_Free(left);                                          \
+			expr_Free(right);                                         \
 			return NULL;                                              \
 		}                                                             \
 		int32_t value = left->value.integer OP right->value.integer;  \
@@ -240,6 +242,7 @@ expr_Bit(SExpression* right) {
 
 	if (expr_IsConstant(right) && !isPowerOfTwo(v)) {
 		err_Error(ERROR_EXPR_TWO_POWER);
+		expr_Free(right);
 		return NULL;
 	}
 
@@ -352,6 +355,8 @@ expr_FixedDivision(SExpression* left, SExpression* right) {
 	}
 
 	err_Error(ERROR_ZERO_DIVIDE);
+	expr_Free(left);
+	expr_Free(right);
 	return NULL;
 }
 
@@ -442,15 +447,10 @@ expr_SetConst(SExpression* expression, int32_t nValue) {
 
 void
 expr_Reset(SExpression* expression) {
-	if (expression != NULL) {
-		expr_Free(expression->left);
-		expression->left = NULL;
-
-		expr_Free(expression->right);
-		expression->right = NULL;
-
-		expression->isConstant = true;
-	}
+	expr_Free(expression->left);
+	expression->left = NULL;
+	expr_Free(expression->right);
+	expression->right = NULL;
 }
 
 void

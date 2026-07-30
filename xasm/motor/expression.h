@@ -244,9 +244,17 @@ expr_PcRelative(SExpression* expression, int adjustment);
 extern void
 expr_SetConst(SExpression* expression, int32_t value);
 
+/* expr_Reset: frees children of the expression and nullifies them.
+ * Used before expr_SetConst to avoid leaking child nodes. */
 extern void
 expr_Reset(SExpression* expression);
 
+/*
+ * expr_Optimize: mutates the owned expression tree in place.
+ * The caller must own the expression (e.g., patch owns its expression).
+ * Converts constant symbols to integer constants and prunes subtrees
+ * of constant expressions. Used once per patch before backpatching.
+ */
 extern void
 expr_Optimize(SExpression* expression);
 

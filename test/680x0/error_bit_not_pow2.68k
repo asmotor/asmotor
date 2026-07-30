@@ -1,0 +1,7 @@
+; Test: BIT operator with non-power-of-2 scale leaks operand
+	SECTION	"Test",CODE[0]
+
+	OPT	mc8,mf8
+
+Begin:
+	move.l	(a0, d7.w*3),a1

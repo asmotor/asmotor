@@ -28,3 +28,6 @@ add_subdirectory (util)
 add_subdirectory (xasm)
 add_subdirectory (xlib)
 add_subdirectory (xlink)
+
+include(CTest)
+add_test (NAME test_expr_ownership COMMAND test_expr_ownership WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/xasm/test)

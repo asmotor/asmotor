@@ -43,7 +43,7 @@ typedef int32_t (*binaryOperation)(int32_t nLeft, int32_t nRight);
 typedef int32_t (*unaryOperation)(int32_t nValue);
 
 static bool
-reduceExpression(const SPatch* patch, SExpression* expression, int32_t* result);
+evaluateExpression(const SPatch* patch, SExpression* expression, int32_t* result);
 
 static int32_t
 subtract(int32_t lhs, int32_t rhs) {
@@ -141,44 +141,59 @@ booleanNot(int32_t value) {
 }
 
 static bool
-reduceBinary(const SPatch* patch, SExpression* expression, int32_t* result, binaryOperation operation) {
+evaluateBinary(const SPatch* patch, SExpression* expression, int32_t* result, binaryOperation operation) {
 	int32_t lhs;
 	int32_t rhs;
+	bool leftEvaluated = false;
+	bool rightEvaluated = false;
 
-	if (reduceExpression(patch, expression->left, &lhs) && reduceExpression(patch, expression->right, &rhs)) {
+	if (evaluateExpression(patch, expression->left, &lhs)) {
+		SExpression* old = expression->left;
+		expression->left = expr_Const(lhs);
+		expr_Free(old);
+		leftEvaluated = true;
+	}
+	if (evaluateExpression(patch, expression->right, &rhs)) {
+		SExpression* old = expression->right;
+		expression->right = expr_Const(rhs);
+		expr_Free(old);
+		rightEvaluated = true;
+	}
+
+	if (leftEvaluated && rightEvaluated) {
+		*result = operation(lhs, rhs);
 		expr_Reset(expression);
-		expr_SetConst(expression, *result = operation(lhs, rhs));
+		expr_SetConst(expression, *result);
 		return true;
 	}
 	return false;
 }
 
 static bool
-reduceUnary(const SPatch* patch, SExpression* expression, int32_t* result, unaryOperation operation) {
+evaluateUnary(const SPatch* patch, SExpression* expression, int32_t* result, unaryOperation operation) {
 	int32_t value;
 
-	if (reduceExpression(patch, expression->right, &value)) {
+	if (evaluateExpression(patch, expression->right, &value)) {
+		*result = operation(value);
 		expr_Free(expression->right);
 		expression->right = NULL;
-
 		expression->type = EXPR_INTEGER_CONSTANT;
 		expression->isConstant = true;
-
-		*result = expression->value.integer = operation(value);
+		expression->value.integer = *result;
 		return true;
 	}
-
 	return false;
 }
 
 static bool
-reducePcRelative(const SPatch* patch, SExpression* expression, int32_t* result) {
+evaluatePcRelative(const SPatch* patch, SExpression* expression, int32_t* result) {
 	uint32_t offset;
 	if (expr_GetSectionOffset(expression->right, patch->section, &offset)) {
 		int32_t adjustment;
-		if (reduceExpression(patch, expression->left, &adjustment)) {
+		if (evaluateExpression(patch, expression->left, &adjustment)) {
+			*result = offset + adjustment - patch->offset;
 			expr_Reset(expression);
-			expr_SetConst(expression, *result = offset + adjustment - patch->offset);
+			expr_SetConst(expression, *result);
 			return true;
 		}
 	}
@@ -186,20 +201,17 @@ reducePcRelative(const SPatch* patch, SExpression* expression, int32_t* result) 
 }
 
 static bool
-reduceBit(const SPatch* patch, SExpression* expression, int32_t* result) {
+evaluateBit(const SPatch* patch, SExpression* expression, int32_t* result) {
 	int32_t value;
-	if (!reduceExpression(patch, expression->right, &value))
+	if (!evaluateExpression(patch, expression->right, &value))
 		return false;
 
 	if (isPowerOfTwo(value)) {
 		int32_t bit = log2n((size_t) value);
-
 		expr_Free(expression->right);
 		expression->right = NULL;
-
 		expression->type = EXPR_INTEGER_CONSTANT;
 		expression->isConstant = true;
-
 		expression->value.integer = *result = bit;
 		return true;
 	}
@@ -209,135 +221,140 @@ reduceBit(const SPatch* patch, SExpression* expression, int32_t* result) {
 }
 
 static bool
-reduceSubtract(const SPatch* patch, SExpression* expression, int32_t* result) {
+evaluateSubtract(const SPatch* patch, SExpression* expression, int32_t* result) {
 	uint32_t l, r;
 
 	SSection* pLeftSect = expr_GetSectionAndOffset(expression->left, &l);
 	SSection* pRightSect = expr_GetSectionAndOffset(expression->right, &r);
 
 	if (pLeftSect && pRightSect && pLeftSect == pRightSect) {
+		*result = l - r;
 		expr_Reset(expression);
-		expr_SetConst(expression, *result = l - r);
+		expr_SetConst(expression, *result);
 		return true;
 	}
 
-	return reduceBinary(patch, expression, result, subtract);
+	return evaluateBinary(patch, expression, result, subtract);
 }
 
-static bool
-reduceLowLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
+	static bool
+evaluateLowLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
 	int32_t lhs, rhs;
 
-	if (reduceExpression(patch, expression->right, &rhs) && reduceExpression(patch, expression->left, &lhs)) {
+	if (evaluateExpression(patch, expression->right, &rhs) && evaluateExpression(patch, expression->left, &lhs)) {
 		if (lhs >= rhs) {
+			*result = lhs;
 			expr_Reset(expression);
-			expr_SetConst(expression, *result = lhs);
-
+			expr_SetConst(expression, *result);
 			return true;
 		}
+		expr_Reset(expression);
 		err_PatchFail(patch, ERROR_OPERAND_RANGE);
 	}
 	return false;
 }
 
 static bool
-reduceHighLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
+evaluateHighLimit(const SPatch* patch, SExpression* expression, int32_t* result) {
 	int32_t lhs, rhs;
 
-	if (reduceExpression(patch, expression->right, &rhs) && reduceExpression(patch, expression->left, &lhs)) {
+	if (evaluateExpression(patch, expression->right, &rhs) && evaluateExpression(patch, expression->left, &lhs)) {
 		if (lhs <= rhs) {
+			*result = lhs;
 			expr_Reset(expression);
-			expr_SetConst(expression, *result = lhs);
+			expr_SetConst(expression, *result);
 			return true;
 		}
+		expr_Reset(expression);
 		err_PatchFail(patch, ERROR_OPERAND_RANGE);
 	}
 	return false;
 }
 
 static bool
-reduceAssert(const SPatch* patch, SExpression* expression, int32_t* result) {
+evaluateAssert(const SPatch* patch, SExpression* expression, int32_t* result) {
 	int32_t lhs, rhs;
 
-	if (reduceExpression(patch, expression->right, &rhs) && reduceExpression(patch, expression->left, &lhs)) {
+	if (evaluateExpression(patch, expression->right, &rhs) && evaluateExpression(patch, expression->left, &lhs)) {
 		if (rhs != 0) {
+			*result = lhs;
 			expr_Reset(expression);
-			expr_SetConst(expression, *result = lhs);
-
+			expr_SetConst(expression, *result);
 			return true;
 		}
+		expr_Reset(expression);
 		err_PatchFail(patch, ERROR_OPERAND_RANGE);
 	}
 	return false;
 }
 
 static bool
-reduceOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
+evaluateOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
 	switch (expression->operation) {
 		case T_OP_SUBTRACT:
-			return reduceSubtract(patch, expression, result);
+			return evaluateSubtract(patch, expression, result);
 		case T_OP_ADD:
-			return reduceBinary(patch, expression, result, add);
+			return evaluateBinary(patch, expression, result, add);
 		case T_OP_BITWISE_XOR:
-			return reduceBinary(patch, expression, result, bitwiseXor);
+			return evaluateBinary(patch, expression, result, bitwiseXor);
 		case T_OP_BITWISE_OR:
-			return reduceBinary(patch, expression, result, bitwiseOr);
+			return evaluateBinary(patch, expression, result, bitwiseOr);
 		case T_OP_BITWISE_AND:
-			return reduceBinary(patch, expression, result, bitwiseAnd);
+			return evaluateBinary(patch, expression, result, bitwiseAnd);
 		case T_OP_BITWISE_ASL:
-			return reduceBinary(patch, expression, result, arithmeticLeftShift);
+			return evaluateBinary(patch, expression, result, arithmeticLeftShift);
 		case T_OP_BITWISE_ASR:
-			return reduceBinary(patch, expression, result, arithmeticRightShift);
+			return evaluateBinary(patch, expression, result, arithmeticRightShift);
 		case T_OP_MULTIPLY:
-			return reduceBinary(patch, expression, result, multiply);
+			return evaluateBinary(patch, expression, result, multiply);
 		case T_OP_DIVIDE:
-			return reduceBinary(patch, expression, result, divide);
+			return evaluateBinary(patch, expression, result, divide);
 		case T_OP_MODULO:
-			return reduceBinary(patch, expression, result, modulo);
+			return evaluateBinary(patch, expression, result, modulo);
 		case T_OP_BOOLEAN_OR:
-			return reduceBinary(patch, expression, result, booleanOr);
+			return evaluateBinary(patch, expression, result, booleanOr);
 		case T_OP_BOOLEAN_AND:
-			return reduceBinary(patch, expression, result, booleanAnd);
+			return evaluateBinary(patch, expression, result, booleanAnd);
 		case T_OP_BOOLEAN_NOT:
-			return reduceUnary(patch, expression, result, booleanNot);
+			return evaluateUnary(patch, expression, result, booleanNot);
 		case T_OP_GREATER_OR_EQUAL:
-			return reduceBinary(patch, expression, result, greaterOrEqual);
+			return evaluateBinary(patch, expression, result, greaterOrEqual);
 		case T_OP_GREATER_THAN:
-			return reduceBinary(patch, expression, result, greaterThan);
+			return evaluateBinary(patch, expression, result, greaterThan);
 		case T_OP_LESS_OR_EQUAL:
-			return reduceBinary(patch, expression, result, lessOrEqual);
+			return evaluateBinary(patch, expression, result, lessOrEqual);
 		case T_OP_LESS_THAN:
-			return reduceBinary(patch, expression, result, lessThan);
+			return evaluateBinary(patch, expression, result, lessThan);
 		case T_OP_EQUAL:
-			return reduceBinary(patch, expression, result, equals);
+			return evaluateBinary(patch, expression, result, equals);
 		case T_OP_NOT_EQUAL:
-			return reduceBinary(patch, expression, result, notEquals);
+			return evaluateBinary(patch, expression, result, notEquals);
 		case T_OP_FDIV:
-			return reduceBinary(patch, expression, result, fdiv);
+			return evaluateBinary(patch, expression, result, fdiv);
 		case T_OP_FMUL:
-			return reduceBinary(patch, expression, result, fmul);
+			return evaluateBinary(patch, expression, result, fmul);
 		case T_FUNC_ATAN2:
-			return reduceBinary(patch, expression, result, fatan2);
+			return evaluateBinary(patch, expression, result, fatan2);
 		case T_FUNC_SIN:
-			return reduceUnary(patch, expression, result, fsin);
+			return evaluateUnary(patch, expression, result, fsin);
 		case T_FUNC_COS:
-			return reduceUnary(patch, expression, result, fcos);
+			return evaluateUnary(patch, expression, result, fcos);
 		case T_FUNC_TAN:
-			return reduceUnary(patch, expression, result, ftan);
+			return evaluateUnary(patch, expression, result, ftan);
 		case T_FUNC_ASIN:
-			return reduceUnary(patch, expression, result, fasin);
+			return evaluateUnary(patch, expression, result, fasin);
 		case T_FUNC_ACOS:
-			return reduceUnary(patch, expression, result, facos);
+			return evaluateUnary(patch, expression, result, facos);
 		case T_FUNC_ATAN:
-			return reduceUnary(patch, expression, result, fatan);
+			return evaluateUnary(patch, expression, result, fatan);
 		case T_OP_BIT:
-			return reduceBit(patch, expression, result);
+			return evaluateBit(patch, expression, result);
 		case T_FUNC_LOWLIMIT:
-			return reduceLowLimit(patch, expression, result);
+			return evaluateLowLimit(patch, expression, result);
 		case T_FUNC_HIGHLIMIT:
-			return reduceHighLimit(patch, expression, result);
+			return evaluateHighLimit(patch, expression, result);
 		case T_FUNC_ASSERT:
-			return reduceAssert(patch, expression, result);
+			return evaluateAssert(patch, expression, result);
 
 		case T_FUNC_BANK: {
 			if (!xasm_Configuration->supportBanks)
@@ -358,36 +375,35 @@ reduceOperation(const SPatch* patch, SExpression* expression, int32_t* result) {
 }
 
 static bool
-reduceExpression(const SPatch* patch, SExpression* expression, int32_t* result) {
+evaluateExpression(const SPatch* patch, SExpression* expression, int32_t* result) {
 	if (expression == NULL)
 		return false;
 
 	if (expr_IsConstant(expression)) {
 		expr_Free(expression->left);
 		expression->left = NULL;
-
 		expr_Free(expression->right);
 		expression->right = NULL;
-
 		expression->type = EXPR_INTEGER_CONSTANT;
 		*result = expression->value.integer;
-
 		return true;
 	}
 
 	switch (expr_Type(expression)) {
 		case EXPR_PARENS:
-			return reduceExpression(patch, expression->right, result);
+			return evaluateExpression(patch, expression->right, result);
 		case EXPR_PC_RELATIVE:
-			return reducePcRelative(patch, expression, result);
+			return evaluatePcRelative(patch, expression, result);
 		case EXPR_OPERATION:
-			return reduceOperation(patch, expression, result);
+			return evaluateOperation(patch, expression, result);
 		case EXPR_INTEGER_CONSTANT:
 			*result = expression->value.integer;
 			return true;
 		case EXPR_SYMBOL:
 			if (expression->value.symbol->flags & SYMF_CONSTANT) {
 				*result = expression->value.symbol->value.integer;
+				expression->type = EXPR_INTEGER_CONSTANT;
+				expression->isConstant = true;
 				return true;
 			} else if (expression->value.symbol->type == SYM_UNDEFINED) {
 				err_PatchError(patch, ERROR_SYMBOL_UNDEFINED, str_String(expression->value.symbol->name));
@@ -485,7 +501,7 @@ patch_BackPatch(void) {
 			SPatch* next = list_GetNext(patch);
 			int32_t value;
 
-			if (reduceExpression(patch, patch->expression, &value)) {
+			if (evaluateExpression(patch, patch->expression, &value)) {
 				list_Remove(section->patches, patch);
 				g_patchFunctions[patch->type](section, patch, value);
 				patch_Free(patch);
