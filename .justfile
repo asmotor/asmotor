@@ -204,13 +204,7 @@ deb: source
 
 # Run all integration tests
 test: build
-	#!/bin/sh
-	cd test
-	for i in *; do
-		cd $i
-		./run.sh
-		cd ..
-	done
+	cd build/cmake/debug && ctest --output-on-failure
 
 
 @_copy_dir_to_src +DIRS:

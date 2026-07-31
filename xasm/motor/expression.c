@@ -451,6 +451,7 @@ expr_Reset(SExpression* expression) {
 	expression->left = NULL;
 	expr_Free(expression->right);
 	expression->right = NULL;
+	expression->isConstant = true;
 }
 
 void

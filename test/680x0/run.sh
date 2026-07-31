@@ -1,5 +1,7 @@
 #!/bin/bash
 
+FAILURES=0
+
 test() {
 	echo Test assembling $1
 	echo EMPTY >$1.bin
@@ -7,9 +9,11 @@ test() {
 	od -t x1 $1.bin | sed 's/  */ /g' | sed -e '$a\' >$1.r
 	cat $1.r $1.out $1.err >$1.obj.output 2>/dev/null
 	rm $1.bin $1.r $1.out $1.err 2>/dev/null
-	diff -b $1.obj.output $1.obj.answer
-	if [ $? -eq 0 ]; then
-		rm $1.obj.output
+	if ! diff -b $1.obj.output $1.obj.answer >/dev/null 2>&1; then
+		echo "FAIL: $1"
+		FAILURES=$((FAILURES + 1))
+	else
+		rm -f $1.obj.output
 	fi
 }
 
@@ -20,10 +24,12 @@ testlink() {
 	../../build/cmake/debug/xlink/xlink -t$2 -o$1.bin $1.obj >>$1.out 2>>$1.err
 	od -t x1 $1.bin | sed 's/  */ /g' | sed -e '$a\' >$1.r
 	cat $1.r $1.out $1.err >$1.bin.output 2>/dev/null
-	rm $.bin $1.r $1.out $1.err 2>/dev/null
-	diff -b $1.bin.output $1.bin.answer
-	if [ $? -eq 0 ]; then
-		rm $1.bin.output
+	rm -f $1.bin $1.r $1.out $1.err 2>/dev/null
+	if ! diff -b $1.bin.output $1.bin.answer >/dev/null 2>&1; then
+		echo "FAIL: $1"
+		FAILURES=$((FAILURES + 1))
+	else
+		rm -f $1.bin.output
 	fi
 }
 
@@ -39,4 +45,6 @@ test 68040.68k b
 
 testlink amigaexe.68k a
 testlink amigaobj.68k b
+
+exit $FAILURES
 

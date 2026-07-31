@@ -30,4 +30,34 @@ add_subdirectory (xlib)
 add_subdirectory (xlink)
 
 include(CTest)
-add_test (NAME test_expr_ownership COMMAND test_expr_ownership WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/xasm/test)
+add_test (NAME test_patch_error_paths COMMAND test_patch_error_paths WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/xasm/test)
+
+# Integration tests for each backend
+# Note: gameboy uses z80 assembler with -mcg flag
+set (GAMEBOY_BUILD_DIR ${CMAKE_BINARY_DIR}/xasm/z80)
+foreach (backend 6502 6809 dcpu-16 mips rc8 schip z80)
+    add_test (NAME test_integration_${backend}
+              COMMAND test_runner
+                      --test-dir ${PROJECT_SOURCE_DIR}/test
+                      --build-dir ${CMAKE_BINARY_DIR}/xasm/${backend}
+                      --suite ${backend}
+              WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/xasm/test)
+    set_tests_properties (test_integration_${backend} PROPERTIES TIMEOUT 30)
+endforeach ()
+add_test (NAME test_integration_gameboy
+          COMMAND test_runner
+                  --test-dir ${PROJECT_SOURCE_DIR}/test
+                  --build-dir ${GAMEBOY_BUILD_DIR}
+                  --suite gameboy
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/xasm/test)
+set_tests_properties (test_integration_gameboy PROPERTIES TIMEOUT 30)
+# 680x0 and common use original shell scripts (special formats)
+add_test (NAME test_integration_680x0
+          COMMAND sh run.sh
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test/680x0)
+set_tests_properties (test_integration_680x0 PROPERTIES TIMEOUT 30)
+
+add_test (NAME test_integration_common
+          COMMAND sh run.sh
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test/common)
+set_tests_properties (test_integration_common PROPERTIES TIMEOUT 60)
