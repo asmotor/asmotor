@@ -13,8 +13,4 @@ add_executable (motor6809
 
 target_link_libraries (motor6809 motor util)
 
-if(NOT MSVC)
-    target_link_libraries (motor6809 m)
-endif(NOT MSVC)
-
 install (TARGETS motor6809 CONFIGURATIONS Release RUNTIME DESTINATION bin)

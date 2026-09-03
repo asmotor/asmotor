@@ -9,8 +9,4 @@ add_executable (motordcpu16
 
 target_link_libraries (motordcpu16 motor util)
 
-if(NOT MSVC)
-    target_link_libraries (motordcpu16 m)
-endif(NOT MSVC)
-
 install (TARGETS motordcpu16 CONFIGURATIONS Release RUNTIME DESTINATION bin)

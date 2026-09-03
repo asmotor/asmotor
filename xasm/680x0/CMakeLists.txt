@@ -14,8 +14,4 @@ add_executable (motor68k
 
 target_link_libraries (motor68k motor util)
 
-if(NOT MSVC)
-    target_link_libraries (motor68k m)
-endif(NOT MSVC)
-
 install (TARGETS motor68k CONFIGURATIONS Release RUNTIME DESTINATION bin)

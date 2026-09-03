@@ -11,8 +11,4 @@ add_executable (motorschip
 
 target_link_libraries (motorschip motor util)
 
-if(NOT MSVC)
-    target_link_libraries (motorschip m)
-endif(NOT MSVC)
-
 install (TARGETS motorschip CONFIGURATIONS Release RUNTIME DESTINATION bin)

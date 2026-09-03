@@ -6,8 +6,4 @@ add_executable (xlib
 
 target_link_libraries (xlib util)
 
-if(NOT MSVC)
-    target_link_libraries (xlib m)
-endif(NOT MSVC)
-
 install (TARGETS xlib CONFIGURATIONS Release RUNTIME DESTINATION bin)
