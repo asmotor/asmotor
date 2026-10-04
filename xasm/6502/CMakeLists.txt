@@ -14,8 +14,4 @@ add_executable (motor6502
 
 target_link_libraries (motor6502 motor util)
 
-if(NOT MSVC)
-    target_link_libraries (motor6502 m)
-endif(NOT MSVC)
-
 install (TARGETS motor6502 CONFIGURATIONS Release RUNTIME DESTINATION bin)

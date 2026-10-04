@@ -11,8 +11,4 @@ add_executable (motormips
 
 target_link_libraries (motormips motor util)
 
-if(NOT MSVC)
-    target_link_libraries (motormips m)
-endif(NOT MSVC)
-
 install (TARGETS motormips CONFIGURATIONS Release RUNTIME DESTINATION bin)

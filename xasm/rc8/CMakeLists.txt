@@ -11,8 +11,4 @@ add_executable (motorrc8
 
 target_link_libraries (motorrc8 motor util)
 
-if(NOT MSVC)
-    target_link_libraries (motorrc8 m)
-endif(NOT MSVC)
-
 install (TARGETS motorrc8 CONFIGURATIONS Release RUNTIME DESTINATION bin)
