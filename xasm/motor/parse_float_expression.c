@@ -52,18 +52,20 @@ expressionPriority3(size_t maxStringConstLength, long double* result) {
 			string* str = lex_TokenString();
 			SSymbol* sym = sym_GetSymbol(str);
 
-			str_Free(str);
 			parse_GetToken();
 
 			if (sym != NULL) {
 				if (sym->type == SYM_EQUF) {
 					*result = sym->value.floating;
+					str_Free(str);
 					return true;
 				} else {
+					str_Free(str);
 					err_Error(ERROR_SYMBOL_EQUF);
 				}
 			} else {
-				err_Error(ERROR_SYMBOL_UNDEFINED, str_String(sym->name));
+				err_Error(ERROR_SYMBOL_UNDEFINED, str_String(str));
+				str_Free(str);
 			}
 
 			return false;

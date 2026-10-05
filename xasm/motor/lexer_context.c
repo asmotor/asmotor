@@ -71,19 +71,23 @@ static SFileInfo*
 createFileInfo(string* fileName) {
 	static uint32_t nextFileId = 0;
 
+	// Key the map on the absolute form so the same file reached via different
+	// spellings (relative vs include-path) shares one fileInfo / fileId.
+	string* key = fabsolutePath(fileName);
 	intptr_t value;
-	if (strmap_Value(g_fileNameMap, fileName, &value)) {
-		return (SFileInfo*) value;
+	SFileInfo* entry;
+	if (strmap_Value(g_fileNameMap, key, &value)) {
+		entry = (SFileInfo*) value;
 	} else {
-		SFileInfo* entry = mem_Alloc(sizeof(SFileInfo));
+		entry = (SFileInfo*) mem_Alloc(sizeof(SFileInfo));
 		entry->fileName = NULL;
 		str_Assign(&entry->fileName, fileName);
 		entry->fileId = nextFileId++;
 		entry->crc32 = 0;
-		strmap_Insert(g_fileNameMap, fileName, (intptr_t) entry);
-
-		return entry;
+		strmap_Insert(g_fileNameMap, key, (intptr_t) entry);
 	}
+	str_Free(key);
+	return entry;
 }
 
 static void
@@ -314,7 +318,6 @@ lexctx_CreateFileContext(FILE* fileHandle, string* name) {
 	size_t size = fsize(fileHandle);
 	string* fileContent = str_ReadFile(fileHandle, size);
 	string* canonicalizedContent = str_CanonicalizeLineEndings(fileContent);
-	str_Free(fileContent);
 
 	lexbuf_Init(&ctx->buffer, name, canonicalizedContent, strvec_Create());
 	ctx->type = CONTEXT_FILE;
@@ -326,6 +329,7 @@ lexctx_CreateFileContext(FILE* fileHandle, string* name) {
 	if (opt_Current->enableDebugInfo)
 		ctx->fileInfo->crc32 = crc32((const uint8_t*) str_String(fileContent), size);
 
+	str_Free(fileContent);
 	str_Free(canonicalizedContent);
 
 	return ctx;

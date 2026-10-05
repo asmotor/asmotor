@@ -31,6 +31,8 @@ add_subdirectory (xlink)
 
 include(CTest)
 add_test (NAME test_patch_error_paths COMMAND test_patch_error_paths WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/xasm/test)
+add_test (NAME test_include_paths COMMAND test_include_paths WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/xasm/test)
+add_test (NAME test_dependency_paths COMMAND test_dependency_paths WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/xasm/test)
 
 # Integration tests for each backend
 # Note: gameboy uses z80 assembler with -mcg flag

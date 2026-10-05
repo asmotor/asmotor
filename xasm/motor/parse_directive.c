@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "file.h"
 #include "fmath.h"
 #include "section.h"
 #include "set.h"
@@ -58,7 +59,9 @@ mayIncludeFile(string* filename) {
 		return true;
 	}
 
-	bool included = strset_Exists(includeOnceFilenames, filename);
+	string* abs = fabsolutePath(filename);
+	bool included = strset_Exists(includeOnceFilenames, abs);
+	str_Free(abs);
 	return !included;
 }
 
@@ -552,7 +555,9 @@ handleInclude(intptr_t intProcess) {
 
 	if (lex_Context->token.id == T_INCLUDE_ONCE) {
 		parse_GetToken();
-		strset_Insert(includeOnceFilenames, lex_Context->fileInfo->fileName);
+		string* abs = fabsolutePath(lex_Context->fileInfo->fileName);
+		strset_Insert(includeOnceFilenames, abs);
+		str_Free(abs);
 		return true;
 	} else {
 		return handleFileCore(intProcess);

@@ -35,7 +35,7 @@ static vec_t* g_includePaths;
 static void
 buildFilename(string** dest, const string* workingName, const string* fileName) {
 	if (workingName == NULL) {
-		string* r = fcanonicalizePath(fileName);
+		string* r = fnormalizePath(fileName);
 		str_Move(dest, &r);
 		return;
 	}
@@ -46,13 +46,13 @@ buildFilename(string** dest, const string* workingName, const string* fileName) 
 static void
 appendFilename(string** dest, const string* directory, const string* fileName) {
 	if (directory == NULL) {
-		string* r = fcanonicalizePath(fileName);
+		string* r = fnormalizePath(fileName);
 		str_Move(dest, &r);
 		return;
 	}
 
 	string* n = str_Concat(directory, fileName);
-	string* r = fcanonicalizePath(n);
+	string* r = fnormalizePath(n);
 	str_Free(n);
 	str_Move(dest, &r);
 }
@@ -72,10 +72,14 @@ inc_FindFile(string** dest, const string* fileName) {
 	buildFilename(&candidate, workingName, fileName);
 	if (candidate != NULL) {
 		if (fexists(str_String(candidate))) {
-			str_Move(dest, &candidate);
+			string* r = fnormalizePath(candidate);
+			str_Free(candidate);
+			candidate = NULL;
+			str_Move(dest, &r);
 			return;
 		}
 		str_Free(candidate);
+		candidate = NULL;
 	}
 
 	if (g_includePaths != NULL) {
@@ -87,12 +91,13 @@ inc_FindFile(string** dest, const string* fileName) {
 				return;
 			}
 			str_Free(candidate);
+			candidate = NULL;
 		}
 	}
 
 	if (workingName == NULL) {
 		if (fexists(str_String(fileName))) {
-			string* r = fcanonicalizePath(fileName);
+			string* r = fnormalizePath(fileName);
 			str_Move(dest, &r);
 			return;
 		}
