@@ -1,9 +1,9 @@
 	SECTION "Test",CODE
 
 	ld	ft,514
-	swap	bc-hl
+	swap	bc/de/hl
 	push	bc/de
-	pop	bc-hl
+	pop	bc/de/hl
 	add/c	hl,1
 	exg	bc,de
 	exg	f,h
@@ -16,7 +16,7 @@
 	not	t
 	sub	bc,4
 	sub	t,6
-	push	bc-hl
+	push	bc/de/hl
 	push	ft
 	pop	ft/hl
 	jal	$1234

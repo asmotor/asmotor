@@ -750,6 +750,9 @@ handle_RegisterStack(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* des
 static bool
 handle_PICK(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	if (source->mode == MODE_IMM) {
+		if (!opt_Current->machineOptions->enableSynthInstructions)
+			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+
 		SExpression* masked = expr_CheckRange(source->expression, 0, 255);
 		source->expression = NULL;
 
@@ -957,30 +960,10 @@ parseAddressingMode(SAddressingMode* addrMode, int allowedModes) {
 		uint8_t registers = 0;
 
 		while (lex_Context->token.id >= T_RC8_REG_FT && lex_Context->token.id <= T_RC8_REG_HL) {
-			uint32_t firstToken = lex_Context->token.id;
-
-			mask |= 1 << (firstToken - T_RC8_REG_FT);
+			mask |= 1 << (lex_Context->token.id - T_RC8_REG_FT);
 			registers += 1;
 
 			parse_GetToken();
-
-			if (lex_Context->token.id == T_OP_SUBTRACT) {
-				parse_GetToken();
-				if (lex_Context->token.id > firstToken && lex_Context->token.id <= T_RC8_REG_HL) {
-					uint32_t lastToken = lex_Context->token.id;
-
-					firstToken += 1;
-					while (firstToken <= lastToken) {
-						mask |= 1 << (firstToken - T_RC8_REG_FT);
-						firstToken += 1;
-						registers += 1;
-					}
-
-					parse_GetToken();
-				} else {
-					break;
-				}
-			}
 
 			if (lex_Context->token.id == T_OP_DIVIDE) {
 				parse_GetToken();

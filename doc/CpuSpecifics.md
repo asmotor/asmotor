@@ -11,6 +11,7 @@ Please refer to the following sections for information on a particular CPU famil
 * [DCPU-16](CpuDCPU.md)
 * [MIPS](CpuMIPS.md)
 * [Zilog Z80 and Game Boy](CpuZ80.md)
+* [RC800](CpuRC800.md)
 
 
 # Further reading

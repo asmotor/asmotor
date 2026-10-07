@@ -2,6 +2,9 @@
 
 ## Assembler
 
+* Several leaks fixed for reduced memory pressure.
+* Improved include path deduplication for `INCLUDE ONCE`
+
 ### 680x0
 
 * Fixed PC relative >=68020 addressing wrong offset.
