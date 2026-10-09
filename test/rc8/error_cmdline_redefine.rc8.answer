@@ -1,0 +1,1 @@
+error_cmdline_redefine.rc8:2: E0167 Cannot modify symbol _CMDLINE_TEST defined on command line

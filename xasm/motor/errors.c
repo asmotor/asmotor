@@ -116,6 +116,7 @@ static char* g_errors[] = {
     "Invalid outside structure scope",
     "Cannot modify internal symbol %s",
     "Section %s size exceeds page size",
+    "Cannot modify symbol %s defined on command line",
 };
 
 static const char*

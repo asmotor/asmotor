@@ -16,15 +16,15 @@
 
 /* Backend configurations */
 static const suite_config_t backends[] = {
-	{ "6502", "motor6502", NULL, ".asm", ".asm.answer", -1 },
-	{ "6809", "motor6809", NULL, ".asm", ".asm.answer", -1 },
-	{ "680x0", "motor68k", "-mga -fv", ".68k", ".68k.obj.answer", -1 },
-	{ "dcpu-16", "motordcpu16", NULL, ".asm", ".asm.answer", -1 },
-	{ "gameboy", "motorz80", "-mcg -fv", ".asm", ".asm.answer", -1 },
-	{ "mips", "motormips", NULL, ".asm", ".asm.answer", -1 },
-	{ "rc8", "motorrc8", NULL, ".rc8", ".rc8.answer", -1 },
-	{ "schip", "motorschip", NULL, ".asm", ".asm.answer", -1 },
-	{ "z80", "motorz80", "-mcz -fv", ".asm", ".asm.answer", -1 },
+	{ "6502", "motor6502", "-fv -D_CMDLINE_TEST", ".asm", ".asm.answer", -1 },
+	{ "6809", "motor6809", "-fv -D_CMDLINE_TEST", ".asm", ".asm.answer", -1 },
+	{ "680x0", "motor68k", "-mga -fv -D_CMDLINE_TEST", ".68k", ".68k.obj.answer", -1 },
+	{ "dcpu-16", "motordcpu16", "-fv -D_CMDLINE_TEST", ".asm", ".asm.answer", -1 },
+	{ "gameboy", "motorz80", "-mcg -fv -D_CMDLINE_TEST", ".asm", ".asm.answer", -1 },
+	{ "mips", "motormips", "-fv -D_CMDLINE_TEST", ".asm", ".asm.answer", -1 },
+	{ "rc8", "motorrc8", "-fv -D_CMDLINE_TEST", ".rc8", ".rc8.answer", -1 },
+	{ "schip", "motorschip", "-fv -D_CMDLINE_TEST", ".asm", ".asm.answer", -1 },
+	{ "z80", "motorz80", "-mcz -fv -D_CMDLINE_TEST", ".asm", ".asm.answer", -1 },
 };
 
 static const int32_t backend_count = sizeof(backends) / sizeof(backends[0]);

@@ -411,7 +411,11 @@ sym_CreateEqu(const string* name, int32_t value) {
 		return symbol;
 	}
 
-	err_Error(ERROR_MODIFY_SYMBOL, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+	if (symbol->fileInfo == NULL) {
+		err_Error(ERROR_CMDLINE_SYMBOL_REDEFINED, str_String(name));
+	} else {
+		err_Error(ERROR_MODIFY_SYMBOL, str_String(symbol->fileInfo->fileName), symbol->lineNumber);
+	}
 	return NULL;
 }
 

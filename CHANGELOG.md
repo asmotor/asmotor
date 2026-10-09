@@ -4,6 +4,7 @@
 
 * Several leaks fixed for reduced memory pressure.
 * Improved include path deduplication for `INCLUDE ONCE`
+* Fixed crash when redefining a symbol defined via `-D` on the command line. Now produces a specific error message.
 
 ### 680x0
 
