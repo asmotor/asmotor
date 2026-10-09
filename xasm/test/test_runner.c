@@ -278,7 +278,8 @@ run_Test(const test_case_t* testcase,
 	/* Build arguments */
 	char output_name[1024];
 	snprintf(output_name, sizeof(output_name), "%s.r", str_String(testcase->name));
-	char full_output_path[1024];
+	/* Room for both components plus the separator, so the result cannot truncate. */
+	char full_output_path[2 * sizeof(output_name)];
 	snprintf(full_output_path, sizeof(full_output_path), "%s/%s", test_dir, output_name);
 
 	string** args = build_Args(abs_assembler, str_String(testcase->source_file), output_name,
