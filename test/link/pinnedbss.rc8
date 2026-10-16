@@ -1,0 +1,7 @@
+	SECTION	"Pin",BSS[0]
+freeSectors	DS	2
+	SECTION	"Rest",BSS
+sda		DS	4
+	SECTION	"Code",CODE
+Start::		ld		ft,freeSectors
+		ld		ft,sda

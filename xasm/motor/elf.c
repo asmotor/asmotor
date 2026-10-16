@@ -271,7 +271,7 @@ writeLocalSymbols(FILE* fileHandle, uint32_t symbolIndex) {
 		for (SSymbol* symbol = sym_hashedSymbols[i]; symbol != NULL; symbol = list_GetNext(symbol)) {
 			if ((symbol->id == 0) &&                                                    //
 			    (symbol->type == SYM_LABEL || symbol->type == SYM_EQU)                  //
-			    && ((symbol->flags & (SYMF_RELOC | SYMF_USED | SYMF_FILE_EXPORT)) != 0) //
+			    && ((symbol->flags & (SYMF_RELOC | SYMF_USED | SYMF_UNIT_EXPORT)) != 0) //
 			    && ((symbol->flags & SYMF_EXPORT) == 0)) {
 
 				e_half_t sectionIndex = symbol->flags & SYMF_CONSTANT ? SHN_ABS : symbol->section->id;

@@ -28,6 +28,7 @@ struct Expression;
 struct LineMapSection;
 struct Patch;
 struct Symbol;
+struct ExtRef;
 
 struct Section {
 	list_Data(struct Section);
@@ -55,10 +56,19 @@ struct Section {
 
 	struct Patch* patches;
 
+	struct ExtRef* externalRefs;
+
 	uint8_t* data;
 };
 
 typedef struct Section SSection;
+
+struct ExtRef {
+	struct Symbol* symbol;
+	struct ExtRef* next;
+};
+
+typedef struct ExtRef SExtRef;
 
 #define SECTF_LOADFIXED 0x01u
 #define SECTF_BANKFIXED 0x02u

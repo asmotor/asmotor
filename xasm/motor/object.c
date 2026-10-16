@@ -125,9 +125,9 @@ writeSymbols(SSection* section, FILE* fileHandle, SExpression* expression, uint3
 				symbol->id = nextId++;
 				fputsz(str_String(symbol->name), fileHandle);
 				if (symbol->section == section) {
-					if (symbol->flags & SYMF_FILE_EXPORT) {
-						fputll(3, fileHandle); //	LOCALEXPORT
-						fputll((uint32_t) symbol->value.integer, fileHandle);
+					if (symbol->flags & SYMF_UNIT_EXPORT) {
+					 fputll(3, fileHandle); //	LOCALEXPORT
+					 fputll((uint32_t) (symbol->value.integer - (int32_t) section->cpuOrigin), fileHandle);
 					} else if (symbol->flags & SYMF_EXPORT) {
 						fputll(0, fileHandle); //	EXPORT
 						fputll((uint32_t) symbol->value.integer, fileHandle);
@@ -165,16 +165,18 @@ writeSymbolsWithFlags(FILE* fileHandle, SSection* section, uint32_t symbolId, ui
 				sym->id = symbolId++;
 
 				fputsz(str_String(sym->name), fileHandle);
-				if (sym->flags & SYMF_EXPORT)
-					fputll(0, fileHandle); //	EXPORT
-				else if (sym->flags & SYMF_FILE_EXPORT)
-					fputll(3, fileHandle); //	LOCALEXPORT
-				else if (sym->flags & SYMF_RELOC)
-					fputll(2, fileHandle); //	LOCAL
-				else
-					assert(false);
-
-				fputll((uint32_t) sym->value.integer, fileHandle);
+			 if (sym->flags & SYMF_EXPORT) {
+				 fputll(0, fileHandle); //	EXPORT
+				 fputll((uint32_t) sym->value.integer, fileHandle);
+			 } else if (sym->flags & SYMF_UNIT_EXPORT) {
+				 fputll(3, fileHandle); //	LOCALEXPORT
+				 fputll((uint32_t) (sym->value.integer - (int32_t) section->cpuOrigin), fileHandle);
+			 } else if (sym->flags & SYMF_RELOC) {
+				 fputll(2, fileHandle); //	LOCAL
+				 fputll((uint32_t) sym->value.integer, fileHandle);
+			 } else {
+				 assert(false);
+			 }
 
 				if (opt_Current->enableDebugInfo) {
 					fputll(sym->fileInfo->fileId, fileHandle);
@@ -199,7 +201,7 @@ markLocalExportsInExpression(SSection* section, SExpression* expression) {
 		if ((expr_Type(expression) == EXPR_SYMBOL ||
 		     (xasm_Configuration->supportBanks && expr_IsOperator(expression, T_FUNC_BANK))) &&
 		    (expression->value.symbol->flags & SYMF_EXPORTABLE) && expression->value.symbol->section != section) {
-			expression->value.symbol->flags |= SYMF_FILE_EXPORT;
+			expression->value.symbol->flags |= SYMF_UNIT_EXPORT;
 		}
 	}
 }
@@ -442,7 +444,7 @@ writeSectionSymbols(FILE* fileHandle, SSection* section) {
 	off_t symbolCountPosition = ftello(fileHandle);
 	fputll(0, fileHandle);
 
-	uint32_t symbolTypes = SYMF_EXPORT | SYMF_FILE_EXPORT;
+	uint32_t symbolTypes = SYMF_EXPORT | SYMF_UNIT_EXPORT;
 	if (opt_Current->enableDebugInfo)
 		symbolTypes |= SYMF_RELOC;
 
@@ -450,8 +452,28 @@ writeSectionSymbols(FILE* fileHandle, SSection* section) {
 
 	// Calculate and export symbols IDs by going through patches
 	for (SPatch* patch = section->patches; patch; patch = list_GetNext(patch)) {
-		if (patch->section == section) {
-			symbolId = writeSymbols(section, fileHandle, patch->expression, symbolId);
+	 if (patch->section == section) {
+		 symbolId = writeSymbols(section, fileHandle, patch->expression, symbolId);
+	 }
+	}
+
+	// Cross-section references to symbols that were folded to constants produce
+	// no patch, so they are invisible to the pass above. Emit them as LOCALIMPORT
+	// entries so the linker keeps the defining section when this one is linked.
+	for (SExtRef* ref = section->externalRefs; ref != NULL; ref = ref->next) {
+		SSymbol* symbol = ref->symbol;
+		// symbol->section != section here, so it is an import within this file.
+		 if (symbol->id == UINT32_MAX) {
+		 symbol->id = symbolId++;
+		 fputsz(str_String(symbol->name), fileHandle);
+		 fputll(4, fileHandle); //	LOCALIMPORT
+		 if (opt_Current->enableDebugInfo) {
+			 fputll(symbol->fileInfo->fileId, fileHandle);
+			 fputll(symbol->lineNumber, fileHandle);
+		 } else {
+			 fputll(UINT32_MAX, fileHandle);
+			 fputll(0, fileHandle);
+		 }
 		}
 	}
 

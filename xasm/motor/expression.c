@@ -413,7 +413,22 @@ SExpression*
 expr_Symbol(SSymbol* symbol) {
 	if (symbol->flags & SYMF_EXPRESSION) {
 		if (symbol->flags & SYMF_CONSTANT) {
-			return expr_Const(sym_GetValue(symbol));
+			// A constant reference to a symbol defined in another section of this
+			// object unit folds to a value and thus creates no patch, so xlink
+			// would never learn that the defining section is referenced. Record the
+			// cross-section dependency explicitly so the linker keeps it.
+		 if (sect_Current != NULL && symbol->section != NULL && symbol->section != sect_Current) {
+			 SExtRef** slot = &sect_Current->externalRefs;
+			 while (*slot != NULL && (*slot)->symbol != symbol)
+				 slot = &(*slot)->next;
+			 if (*slot == NULL) {
+				 SExtRef* ref = (SExtRef*) mem_Alloc(sizeof(SExtRef));
+				 ref->symbol = symbol;
+				 ref->next = NULL;
+				 *slot = ref;
+			 }
+		 }
+		 return expr_Const(sym_GetValue(symbol));
 		} else {
 			SExpression* r = (SExpression*) mem_Alloc(sizeof(SExpression));
 

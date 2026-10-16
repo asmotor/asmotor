@@ -63,3 +63,9 @@ add_test (NAME test_integration_common
           COMMAND sh run.sh
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test/common)
 set_tests_properties (test_integration_common PROPERTIES TIMEOUT 60)
+
+# Linker regression test: pinned fixed-origin BSS section must be retained.
+add_test (NAME test_integration_link
+          COMMAND sh run.sh
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test/link)
+set_tests_properties (test_integration_link PROPERTIES TIMEOUT 30)

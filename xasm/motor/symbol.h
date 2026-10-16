@@ -55,7 +55,7 @@ typedef enum {
 #define SYMF_EXPRESSION  0x020u // symbol can be used in expressions
 #define SYMF_MODIFIABLE  0x040u // symbol can be redefined
 #define SYMF_HAS_DATA    0x080u // symbol has data attached (Macro.pData)
-#define SYMF_FILE_EXPORT 0x100u // symbol should be exported to sections local to this file
+#define SYMF_UNIT_EXPORT 0x100u // symbol should be exported to sections local to this file
 #define SYMF_STRUCTURE   0x200u // symbol is a structure definition
 #define SYMF_DATA        0x40000000u
 #define SYMF_SHARED      0x20000000u // Means CHIP on Amiga

@@ -65,6 +65,16 @@ freeSection(SSection* section) {
 
 	str_Free(section->name);
 	mem_Free(section->data);
+
+	SExtRef* extRef = section->externalRefs;
+	while (extRef != NULL) {
+		SExtRef* next = extRef->next;
+		// The referenced symbols are owned by the symbol table, only free the
+		// list nodes here.
+	 mem_Free(extRef);
+	 extRef = next;
+	}
+
 	mem_Free(section);
 }
 

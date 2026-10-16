@@ -468,8 +468,15 @@ sym_CreateLabel(const string* name) {
 				sym_CurrentScope = symbol;
 
 			if ((sect_Current->flags & (SECTF_LOADFIXED | SECTF_ORGFIXED)) != 0 && (sect_Current->flags & SECTF_BANKFIXED) == 0) {
-				SET_TYPE_AND_FLAGS(symbol, SYM_EQU);
-				symbol->value.integer = sect_Current->cpuProgramCounter + sect_Current->cpuAdjust + sect_Current->cpuOrigin;
+				// Keep the constant value (so it can be used in expressions and folds
+				// to an immediate) but still associate the symbol with its section and
+				// export it locally, so xlink knows this pinned section is referenced.
+				// The written value is made section-relative (see writeSectionSymbols)
+				// to avoid xlink adding the origin twice.
+			 SET_TYPE_AND_FLAGS(symbol, SYM_EQU);
+			 symbol->section = sect_Current;
+			 symbol->flags |= SYMF_UNIT_EXPORT;
+			 symbol->value.integer = sect_Current->cpuProgramCounter + sect_Current->cpuAdjust + sect_Current->cpuOrigin;
 			} else {
 				SET_TYPE_AND_FLAGS(symbol, SYM_LABEL);
 				symbol->section = sect_Current;
