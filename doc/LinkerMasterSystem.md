@@ -3,10 +3,10 @@
 ## Supported file formats
 | Format | Option name |
 |---|---|
-| Binary | -fbin |
-| Sega Master System | -fsms |
+| Binary | -f bin |
+| Sega Master System | -f sms |
 
-### Sega Master System file format (-fsms)
+### Sega Master System file format (-f sms)
 
 This is a binary format. A Master System image must contain a particular header, which the linker will produce automatically.
 
@@ -24,10 +24,10 @@ The banked definition has a number of CODE/DATA pools, the first is from $0400 t
 
 | Switch | Kind |
 |---|---|
-| -csms8 | Small mode 8 KiB |
-| -csms16 | Small mode 16 KiB |
-| -csms32 | Small mode 32 KiB |
-| -csmsb | Banked mode 64+ KiB |
+| -c sms8 | Small mode 8 KiB |
+| -c sms16 | Small mode 16 KiB |
+| -c sms32 | Small mode 32 KiB |
+| -c smsb | Banked mode 64+ KiB |
 
 ## Header
 The header will be filled automatically by the linker.

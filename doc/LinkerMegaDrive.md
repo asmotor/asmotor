@@ -3,8 +3,8 @@
 ## Supported file formats
 | Format | Option name |
 |---|---|
-| Binary | -fbin |
-| Sega Mega Drive/Genesis ROM | -fsmd |
+| Binary | -f bin |
+| Sega Mega Drive/Genesis ROM | -f smd |
 
 ### Sega Mega Drive/Genesis file format (-smd)
 

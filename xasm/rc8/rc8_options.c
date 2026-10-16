@@ -60,7 +60,7 @@ rc8_ParseOption(const char* s) {
 
 void
 rc8_PrintOptions(void) {
-	printf("    -ms<x>    Synthesized instructions:\n"
-	       "                  0 - Disabled\n"
-	       "                  1 - Enabled (default)\n");
+	printf("    -m s<x>    Synthesized instructions:\n"
+	       "                   0 - Disabled\n"
+	       "                   1 - Enabled (default)\n");
 }

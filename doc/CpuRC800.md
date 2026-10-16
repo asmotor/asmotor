@@ -10,7 +10,7 @@ Multi-byte values are emitted least significant byte first by default.
 
 ## Command line
 
-### -ms\<x> option
+### -m s\<x> option
 This option enables certain synthesized instructions.
 
 | x | Synthesized instructions |

@@ -62,6 +62,10 @@ extern void
 opt_Parse(char* s);
 
 extern void
+opt_ParseLetter(char letter, const char* argument, const char* display);
+
+
+extern void
 opt_Open(void);
 
 extern void

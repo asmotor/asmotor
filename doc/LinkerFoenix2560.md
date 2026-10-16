@@ -3,10 +3,10 @@
 ## Supported file formats
 | Format | Option name |
 |---|---|
-| Binary | -fbin |
-| Foenix .PGZ | -ffxpgz |
+| Binary | -f bin |
+| Foenix .PGZ | -f fxpgz |
 
-### Foenix executable (-ffxpgz)
+### Foenix executable (-f fxpgz)
 
 This is an executable format which can be loaded and executed by the FoenixMCP kernel.
 

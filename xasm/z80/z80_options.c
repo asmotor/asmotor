@@ -105,15 +105,15 @@ z80_ParseOption(const char* s) {
 
 void
 z80_PrintOptions(void) {
-	printf("    -mg<ASCI> Change the four characters used for Gameboy graphics\n"
-	       "              constants (default is 0123)\n"
-	       "    -mc<x>    Change CPU type:\n"
-	       "                  g - Gameboy\n"
-	       "                  z - Z80\n"
-	       "    -ms<x>    Synthesized instructions:\n"
-	       "                  0 - Disabled (default)\n"
-	       "                  1 - Enabled\n"
-	       "    -mu<x>    Undocumented instructions:\n"
-	       "                  0 - Disabled (default)\n"
-	       "                  1 - Enabled\n");
+	printf("    -m g<ASCI> Change the four characters used for Gameboy graphics\n"
+	       "               constants (default is 0123)\n"
+	       "    -m c<x>    Change CPU type:\n"
+	       "                   g - Gameboy\n"
+	       "                   z - Z80\n"
+	       "    -m s<x>    Synthesized instructions:\n"
+	       "                   0 - Disabled (default)\n"
+	       "                   1 - Enabled\n"
+	       "    -m u<x>    Undocumented instructions:\n"
+	       "                   0 - Disabled (default)\n"
+	       "                   1 - Enabled\n");
 }

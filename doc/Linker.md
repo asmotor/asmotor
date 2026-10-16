@@ -68,7 +68,7 @@ Several machine definitions are built-in. This option selects a particular targe
 This option selects the target image format.
 
 ```
--f<target>  Output file format
+-f <target>  Output file format
 ```
 
 | Target | Description |
@@ -94,7 +94,7 @@ A binary file's contents is all the sections concatenated. The first byte of the
 If not specified, no map file will be produced.
 
 ```
--m<output>  Write map file to file <output>
+-m <output>  Write map file to file <output>
 ```
 
 The map file will include symbol definition location, when debug information is emitted by the assembler (assembler option `-g`)
@@ -104,13 +104,13 @@ The map file will include symbol definition location, when debug information is 
 If not specified, no output will be produced.
 
 ```
--o<output>  Write output to file <output>
+-o <output>  Write output to file <output>
 ```
 
 ### Strip unused sections (-s)
 
 ```
--s<symbol>  Strip unused sections, rooting the section containing <symbol>
+-s <symbol>  Strip unused sections, rooting the section containing <symbol>
 ```
 
 The section containing `<symbol>` will be considered in use, as will any sections it references. Sections may also have been marked as `ROOT` by the assembler, these will also be considered in use. Any section not in use will not be output to the final file.

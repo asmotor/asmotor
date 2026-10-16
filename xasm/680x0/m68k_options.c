@@ -168,12 +168,12 @@ m68k_ParseOption(const char* option) {
 
 void
 m68k_PrintOptions(void) {
-	printf("    -mc<X>  Enable CPU 680x0\n"
-	       "    -mf<X>  Enable FPU 6888x (1, 2), 68040 (4), 68060 (6), 68080 (8)\n"
-	       "    -mg<X>  Enable platform specific groups\n"
-	       "                a - Amiga\n"
-	       "                f - Foenix A2560K/X\n"
-	       "                g - Generic (default)\n"
-	       "                s - Sega Genesis/Mega Drive\n"
-	       "    -mm<X>  MOVEM updates regmask, <X> is y(es) or n(o) (default)\n");
+	printf("    -m c<X>  Enable CPU 680x0\n"
+	       "    -m f<X>  Enable FPU 6888x (1, 2), 68040 (4), 68060 (6), 68080 (8)\n"
+	       "    -m g<X>  Enable platform specific groups\n"
+	       "                 a - Amiga\n"
+	       "                 f - Foenix A2560K/X\n"
+	       "                 g - Generic (default)\n"
+	       "                 s - Sega Genesis/Mega Drive\n"
+	       "    -m m<X>  MOVEM updates regmask, <X> is y(es) or n(o) (default)\n");
 }

@@ -99,62 +99,62 @@ printUsage(void) {
 	       "\n"
 	       "    -h  This text\n"
 	       "\n"
-	       "    -a<file>  Machine definition file\n"
+	       "    -a <file>  Machine definition file\n"
 	       "\n"
-	       "    -c<config>  Machine definition\n"
-	       "          -camiga     Amiga\n"
-	       "          -ccbm64     Commodore 64\n"
-	       "          -ccbm128    Commodore 128 unbanked\n"
-	       "          -ccbm128f   Commodore 128 Function ROM (32 KiB)\n"
-	       "          -ccbm128fl  Commodore 128 Function ROM Low (16 KiB)\n"
-	       "          -ccbm128fh  Commodore 128 Function ROM High (16 KiB)\n"
-	       "          -ccbm264    Commodore 264/TED series\n"
-	       "          -cngb       Game Boy ROM image\n"
-	       "          -cngbs      Game Boy small mode (32 KiB)\n"
-	       "          -csmd       Sega Mega Drive\n"
-	       "          -csms       Sega Master System (32 KiB)\n"
-	       "          -csmsb      Sega Master System banked (64+ KiB)\n"
-	       "          -chc8b      HC800 16 KiB ROM\n"
-	       "          -chc8s      HC800 small mode (64 KiB text + data + bss)\n"
-	       "          -chc8sh     HC800 small Harvard mode (64 KiB text + data, 64 KiB data + bss)\n"
-	       "          -chc8m      HC800 medium mode (32 KiB text + data + bss, 32 KiB sized\n"
-	       "                      banks text)\n"
-	       "          -chc8mh     HC800 medium Harvard executable (32 KiB text + 32 KiB\n"
-	       "                      sized text banks, 64 KiB data + bss)\n"
-	       "          -chc8l      HC800 large mode (32 KiB text + data + bss, 32 KiB sized\n"
-	       "                      banks text + data + bss)\n"
-	       "          -cfxa2560x  Foenix A2560X/K\n"
-	       "          -cfxf256jrs Foenix F256 Jr. small mode (64 KiB, I/O hole)\n"
-	       "          -ccoco      Tandy TRS-80 Color Computer\n"
-	       "          -cmega65    MEGA65 unbanked\n"
+	       "    -c <config>  Machine definition\n"
+	       "          -c amiga     Amiga\n"
+	       "          -c cbm64     Commodore 64\n"
+	       "          -c cbm128    Commodore 128 unbanked\n"
+	       "          -c cbm128f   Commodore 128 Function ROM (32 KiB)\n"
+	       "          -c cbm128fl  Commodore 128 Function ROM Low (16 KiB)\n"
+	       "          -c cbm128fh  Commodore 128 Function ROM High (16 KiB)\n"
+	       "          -c cbm264    Commodore 264/TED series\n"
+	       "          -c ngb       Game Boy ROM image\n"
+	       "          -c ngbs      Game Boy small mode (32 KiB)\n"
+	       "          -c smd       Sega Mega Drive\n"
+	       "          -c sms       Sega Master System (32 KiB)\n"
+	       "          -c smsb      Sega Master System banked (64+ KiB)\n"
+	       "          -c hc8b      HC800 16 KiB ROM\n"
+	       "          -c hc8s      HC800 small mode (64 KiB text + data + bss)\n"
+	       "          -c hc8sh     HC800 small Harvard mode (64 KiB text + data, 64 KiB data + bss)\n"
+	       "          -c hc8m      HC800 medium mode (32 KiB text + data + bss, 32 KiB sized\n"
+	       "                       banks text)\n"
+	       "          -c hc8mh     HC800 medium Harvard executable (32 KiB text + 32 KiB\n"
+	       "                       sized text banks, 64 KiB data + bss)\n"
+	       "          -c hc8l      HC800 large mode (32 KiB text + data + bss, 32 KiB sized\n"
+	       "                       banks text + data + bss)\n"
+	       "          -c fxa2560x  Foenix A2560X/K\n"
+	       "          -c fxf256jrs Foenix F256 Jr. small mode (64 KiB, I/O hole)\n"
+	       "          -c coco      Tandy TRS-80 Color Computer\n"
+	       "          -c mega65    MEGA65 unbanked\n"
 	       "\n"
-	       "    -e<symbol>  Code entry point when supported by output format.\n"
-	       "                Will override \"-s\" option\n"
+	       "    -e <symbol>  Code entry point when supported by output format.\n"
+	       "                 Will override \"-s\" option\n"
 	       "\n"
-	       "    -f<format>  File format\n"
-	       "          -famigaexe  Amiga executable\n"
-	       "          -famigalink Amiga link object\n"
-	       "          -fbin       Binary\n"
-	       "          -fcbm       Commodore .PRG\n"
-	       "          -fngb       Game Boy ROM\n"
-	       "          -fsmd       Sega Mega Drive/Genesis ROM\n"
-	       "          -fsms       Sega Master System ROM\n"
-	       "          -fhc800     HC800 executable\n"
-	       "          -fhc800k    HC800 kernel\n"
-	       "          -ffxpgz     Foenix PGZ\n"
-	       "          -ffxkup     Foenix F256 Kernel User Program\n"
-	       "          -ffxkupp    Foenix F256 Kernel User Program, slot padding\n"
-	       "          -fcocobin   TRS-80 Color Computer .bin\n"
-	       "          -fmega65    MEGA65 .PRG\n"
+	       "    -f <format>  File format\n"
+	       "          -f amigaexe  Amiga executable\n"
+	       "          -f amigalink Amiga link object\n"
+	       "          -f bin       Binary\n"
+	       "          -f cbm       Commodore .PRG\n"
+	       "          -f ngb       Game Boy ROM\n"
+	       "          -f smd       Sega Mega Drive/Genesis ROM\n"
+	       "          -f sms       Sega Master System ROM\n"
+	       "          -f hc800     HC800 executable\n"
+	       "          -f hc800k    HC800 kernel\n"
+	       "          -f fxpgz     Foenix PGZ\n"
+	       "          -f fxkup     Foenix F256 Kernel User Program\n"
+	       "          -f fxkupp    Foenix F256 Kernel User Program, slot padding\n"
+	       "          -f cocobin   TRS-80 Color Computer .bin\n"
+	       "          -f mega65    MEGA65 .PRG\n"
 	       "\n"
-	       "    -l<listfile> Write a listfile to <listfile>\n"
+	       "    -l <listfile> Write a listfile to <listfile>\n"
 	       "\n"
-	       "    -m<mapfile>  Write a mapfile to <mapfile>\n"
+	       "    -m <mapfile>  Write a mapfile to <mapfile>\n"
 	       "\n"
-	       "    -o<output>   Write output to file <output>\n"
+	       "    -o <output>   Write output to file <output>\n"
 	       "\n"
-	       "    -s<symbol>   Strip unused sections, rooting the section containing <symbol>\n"
-	       "                 <symbol> is used as entry point when support by output format\n");
+	       "    -s <symbol>   Strip unused sections, rooting the section containing <symbol>\n"
+	       "                  <symbol> is used as entry point when support by output format\n");
 	exit(EXIT_SUCCESS);
 }
 
@@ -466,8 +466,11 @@ writeOutput(void) {
 	}
 }
 
-static bool
-handleOption(const char* option) {
+static int
+handleOption(const char* option, const char* nextArg) {
+	/* Returns the number of command-line tokens consumed, 0 for unknown options. */
+	const bool spaced = option[1] == 0;
+	const char* argument = spaced ? nextArg : &option[1];
 	switch (tolower(option[0])) {
 		case '?':
 		case 'h':
@@ -479,12 +482,14 @@ handleOption(const char* option) {
 
 			g_targetDefined = true;
 			{
-				string* filename = str_Create(&option[1]);
+				if (argument == NULL || argument[0] == 0)
+					error("option \"%c\" needs an argument", (char)tolower(option[0]));
+				string* filename = str_Create(argument);
 				str_ToLowerReplace(&filename);
 				mdef_Read(filename);
 				str_Free(filename);
 			}
-			return true;
+			return spaced ? 2 : 1;
 		}
 		case 'c': { /* Memory configuration */
 			if (g_targetDefined)
@@ -492,55 +497,59 @@ handleOption(const char* option) {
 
 			g_targetDefined = true;
 			{
-				string* target = str_Create(&option[1]);
+				if (argument == NULL || argument[0] == 0)
+					error("option \"%c\" needs an argument", (char)tolower(option[0]));
+				string* target = str_Create(argument);
 				str_ToLowerReplace(&target);
 				handleMemoryConfigurationOption(target);
 				str_Free(target);
 			}
-			return true;
+			return spaced ? 2 : 1;
 		}
 		case 'e': /* Entry point */
-			if (option[1] == 0)
+			if (argument == NULL || argument[0] == 0)
 				error("option \"e\" needs an argument");
-			g_entry = &option[1];
+			g_entry = argument;
 
-			return true;
+			return spaced ? 2 : 1;
 		case 'f': { /* File format */
 			{
-				string* target = str_Create(&option[1]);
+				if (argument == NULL || argument[0] == 0)
+					error("option \"%c\" needs an argument", (char)tolower(option[0]));
+				string* target = str_Create(argument);
 				str_ToLowerReplace(&target);
 				handleFileFormatOption(target);
 				str_Free(target);
 			}
-			return true;
+			return spaced ? 2 : 1;
 		}
 		case 'l': /* Map file */
-			if (option[1] == 0)
+			if (argument == NULL || argument[0] == 0)
 				error("option \"l\" needs an argument");
 
-			g_listFilename = &option[1];
-			return true;
+			g_listFilename = argument;
+			return spaced ? 2 : 1;
 		case 'm': /* Map file */
-			if (option[1] == 0)
+			if (argument == NULL || argument[0] == 0)
 				error("option \"m\" needs an argument");
 
-			g_mapFilename = &option[1];
-			return true;
+			g_mapFilename = argument;
+			return spaced ? 2 : 1;
 		case 'o': /* Output filename */
-			if (option[1] == 0)
+			if (argument == NULL || argument[0] == 0)
 				error("option \"o\" needs an argument");
 
-			g_outputFilename = &option[1];
-			return true;
+			g_outputFilename = argument;
+			return spaced ? 2 : 1;
 		case 's': /* Smart linking */
-			if (option[1] == 0)
+			if (argument == NULL || argument[0] == 0)
 				error("option \"s\" needs an argument");
 
-			g_smartlink = &option[1];
+			g_smartlink = argument;
 			if (g_entry == NULL)
 				g_entry = g_smartlink;
 
-			return true;
+			return spaced ? 2 : 1;
 		case 't': { /* Target */
 			if (g_targetDefined)
 				error("more than one target (option \"a\", \"t\", \"c\") defined");
@@ -549,17 +558,19 @@ handleOption(const char* option) {
 			g_targetDefined = true;
 
 			{
-				string* target = str_Create(&option[1]);
+				if (argument == NULL || argument[0] == 0)
+					error("option \"%c\" needs an argument", (char)tolower(option[0]));
+				string* target = str_Create(argument);
 				str_ToLowerReplace(&target);
 				handleLegacyTargetOption(target);
 				str_Free(target);
 			}
-			return true;
+			return spaced ? 2 : 1;
 		}
 		default:
 			break;
 	}
-	return false;
+	return 0;
 }
 
 int
@@ -571,9 +582,10 @@ main(int argc, char* argv[]) {
 	}
 
 	while (argn < argc && (argv[argn][0] == '-' || argv[argn][0] == '/')) {
-		if (!handleOption(&argv[argn][1]))
+		int consumed = handleOption(&argv[argn][1], argn + 1 < argc ? argv[argn + 1] : NULL);
+		if (consumed == 0)
 			error("Unknown option \"%s\"", argv[argn]);
-		++argn;
+		argn += consumed;
 	}
 
 	if (!g_targetDefined) {

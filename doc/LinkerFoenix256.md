@@ -3,16 +3,16 @@
 ## Supported file formats
 | Format | Option name |
 |---|---|
-| Binary | -fbin |
-| Foenix .PGZ | -ffxpgz |
-| Foenix F256 Kernel User Program | -ffxkup |
-| Foenix F256 Kernel User Program, slot padding | -ffxkupp |
+| Binary | -f bin |
+| Foenix .PGZ | -f fxpgz |
+| Foenix F256 Kernel User Program | -f fxkup |
+| Foenix F256 Kernel User Program, slot padding | -f fxkupp |
 
-### Foenix executable (-ffxpgz)
+### Foenix executable (-f fxpgz)
 
 This is an executable format which can be loaded and executed by the F256 `pexec` mechanism.
 
-### Foenix F256 Kernel User Program (-fxkup, -fxkupp)
+### Foenix F256 Kernel User Program (-f xkup, -f xkupp)
 
 A Kernel User Program may be flashed and run from a slot in flash memory. It can also be executed by the F256 DOS. The padded version is mostly useful for flash, as it is padded up to an 8 KiB slot size. The unpadded one is mostly useful for executing the program from DOS, as it will only take up the space it needs on disk.
 

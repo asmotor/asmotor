@@ -61,7 +61,7 @@ The registers are named ```V0``` to ```VF```. ```VA``` to ```VF``` may also be r
 
 
 ## Command line
-### -mc\<x> option
+### -m c\<x> option
 This option is used to select the CPU type. The default is SCHIP.
 
 | x | CPU type |

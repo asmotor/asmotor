@@ -12,10 +12,10 @@ The Z80 backend supports an additional numeric literal format. The first charact
 The values are pixel values. The values are converted from chunky data format to the planar format used by the Game Boy.
 
 ## Command line
-### -mg\<ASCI> option
-The ```-mg``` option can be used to change the four characters used for Game Boy graphic literals.
+### -m g\<ASCI> option
+The ```-m g``` option can be used to change the four characters used for Game Boy graphic literals.
 
-### -mc\<x> option
+### -m c\<x> option
 This option is used to select the CPU type. The default is Z80.
 
 | x | CPU type |
@@ -23,7 +23,7 @@ This option is used to select the CPU type. The default is Z80.
 | g | Gameboy |
 | z | Z80 (default) |
 
-### -ms<x> option
+### -m s<x> option
 This option enables certain synthesized instructions.
 
 | x | Synthesized instructions |

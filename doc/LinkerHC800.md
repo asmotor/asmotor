@@ -3,15 +3,15 @@
 ## Supported file formats
 | Format | Option name |
 |---|---|
-| Binary | -fbin |
-| HC800 kernel | -fhc800k |
-| HC800 executable | -fhc800 |
+| Binary | -f bin |
+| HC800 kernel | -f hc800k |
+| HC800 executable | -f hc800 |
 
-### HC800 kernel file format (-fhc800k)
+### HC800 kernel file format (-f hc800k)
 
 This is a binary format, which is used for the HC800 kernel system software.
 
-### HC800 executable (-fhc800)
+### HC800 executable (-f hc800)
 
 This is an executable format which can be loaded and executed by the HC800 kernel. It includes information about the MMU and banking scheme used by the contained code.
 
@@ -40,9 +40,9 @@ An empty cell in the following table indicates there's no separate BSS configura
 
 | Configuration | Description | HOME ($0000-) size | BSS ($0000-) size | CODE_S ($4000-) size | BSS_S ($4000-) size | Bank area | Banked |
 |---|---|---|---|---|---|---|---|
-| -chc800b | 16 KiB kernel ROM | $4000 | $4000 | | | | |
-| -chc800s | Small | $10000 | | $C000 | | | |
-| -chc800sh | Small Harvard (64 KiB text, 64 KiB data + bss) | $10000 | $10000 | $C000 | $C000 | | |
-| -chc800m | Medium mode (32 KiB text + data + bss, 32 KiB sized banks text) | $8000 | | $4000 | | $8000-$FFFF | CODE/DATA |
-| -chc800mh | Medium Harvard (32 KiB text + 32 KiB sized text banks, 64 KiB data + bss) | $8000 | $10000 | $4000 | $4000 |  $8000-$FFFF | CODE/DATA |
-| -chc800l | Large mode (32 KiB text + data + bss, 32 KiB sized banks text + data + bss) | $8000 | | $4000 | | $8000-$FFFF | CODE/DATA/BSS |
+| -c hc800b | 16 KiB kernel ROM | $4000 | $4000 | | | | |
+| -c hc800s | Small | $10000 | | $C000 | | | |
+| -c hc800sh | Small Harvard (64 KiB text, 64 KiB data + bss) | $10000 | $10000 | $C000 | $C000 | | |
+| -c hc800m | Medium mode (32 KiB text + data + bss, 32 KiB sized banks text) | $8000 | | $4000 | | $8000-$FFFF | CODE/DATA |
+| -c hc800mh | Medium Harvard (32 KiB text + 32 KiB sized text banks, 64 KiB data + bss) | $8000 | $10000 | $4000 | $4000 |  $8000-$FFFF | CODE/DATA |
+| -c hc800l | Large mode (32 KiB text + data + bss, 32 KiB sized banks text + data + bss) | $8000 | | $4000 | | $8000-$FFFF | CODE/DATA/BSS |

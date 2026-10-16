@@ -3,17 +3,17 @@
 ## Supported file formats
 | Format | Option name |
 |---|---|
-| Binary | -fbin |
-| Hunk executable | -famigaexe |
-| Hunk linkable object | -famigaobj |
+| Binary | -f bin |
+| Hunk executable | -f amigaexe |
+| Hunk linkable object | -f amigaobj |
 
-### Amiga executable format (-famigaexe)
+### Amiga executable format (-f amigaexe)
 
 An Amiga executable's entry point is the first section. AmigaOS will simply JSR to the first address. The first object file's first section will thus be used. The order of objects therefore matters.
 
 The Amiga format does not support placement of sections, nor does it support banks.
 
-### Amiga link object (-famigaobj)
+### Amiga link object (-f amigaobj)
 
 This output format produces an Amiga link object that can be processed by an Amiga linker. This way it's possible to use ASMotor's advanced object format and linking expressions for assembly code, and then later link with C code, for instance.
 
@@ -30,7 +30,7 @@ There are two pools - `CHIP` and `FAST` memory. `CHIP` is 2 MiB in size, `FAST` 
 ## Machine definitions
 One predefined machine definition is available.
 
-### Machine definition `-camiga`
+### Machine definition `-c amiga`
 | Pool | Start address | Size | Binary offset |
 |------|---------------|------|---------------|
 | CHIP | $00000000     | $200000 | 0 |

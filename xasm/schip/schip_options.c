@@ -75,7 +75,7 @@ schip_ParseOption(const char* s) {
 
 void
 schip_PrintOptions(void) {
-	printf("    -mc<X>  Enable CPU:\n");
-	printf("            0 = CHIP-8\n");
-	printf("            1 = SuperCHIP (default)\n");
+	printf("    -m c<X>  Enable CPU:\n");
+	printf("             0 = CHIP-8\n");
+	printf("             1 = SuperCHIP (default)\n");
 }

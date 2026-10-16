@@ -10,7 +10,7 @@ This CPU is a little different in that its native word size is 16 bit and it's u
 Sections are aligned to native 16 bit words.
 
 ## Command line
-### -mo\<x>
+### -m o\<x>
 This option controls the level of optimization. 0 means no optimization, while 1 will optimize addressing modes to use shorter forms when possible.
 
 ## __DCB, __RS, __DSB

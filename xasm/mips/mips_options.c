@@ -77,7 +77,7 @@ mips_ParseOption(const char* s) {
 
 void
 mips_PrintOptions(void) {
-	printf("    -mc<X>  Enable CPU:\n");
-	printf("            0 = MIPS32 R1\n");
-	printf("            1 = MIPS32 R2 (default)\n");
+	printf("    -m c<X>  Enable CPU:\n");
+	printf("             0 = MIPS32 R1\n");
+	printf("             1 = MIPS32 R2 (default)\n");
 }

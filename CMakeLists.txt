@@ -69,3 +69,9 @@ add_test (NAME test_integration_link
           COMMAND sh run.sh
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test/link)
 set_tests_properties (test_integration_link PROPERTIES TIMEOUT 30)
+
+# CLI parsing regression test: space-separated option arguments.
+add_test (NAME test_integration_cli
+          COMMAND sh run.sh
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test/cli)
+set_tests_properties (test_integration_cli PROPERTIES TIMEOUT 30)

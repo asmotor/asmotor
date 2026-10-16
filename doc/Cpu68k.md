@@ -16,7 +16,7 @@ The `MOVEM` instruction may receive a bitmask literal instead of a register list
 Sections are aligned to a multiple of 8 bytes. 
 
 ## Command line
-### -mc\<x> option
+### -m c\<x> option
 This option is used to select the CPU type. The default is 68000.
 
 | x | CPU type |

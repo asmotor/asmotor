@@ -68,33 +68,33 @@ static void
 printUsage(void) {
 	printf("%s v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
 	       "Options:\n"
-	       "    -a<n>    Section alignment when writing binary file (default is %d bytes)\n"
-	       "    -b<AS>   Change the two characters used for binary constants\n"
-	       "             (default is 01)\n"
-	       "    -d<FILE> Output dependency file for GNU Make\n"
-	       "    -D<NAME> Define EQU symbol with the value 1\n"
-	       "    -e(l|b)  Change endianness\n"
-	       "    -f<F>    Output format, one of\n"
-	       "                 x - xobj (default)\n"
-	       "                 e - ELF object file\n"
-	       "                 b - binary file\n"
-	       "                 v - verilog readmemh file\n",
+	       "    -a <n>    Section alignment when writing binary file (default is %d bytes)\n"
+	       "    -b <AS>   Change the two characters used for binary constants\n"
+	       "              (default is 01)\n"
+	       "    -d <FILE> Output dependency file for GNU Make\n"
+	       "    -D <NAME> Define EQU symbol with the value 1\n"
+	       "    -e (l|b)  Change endianness\n"
+	       "    -f <F>    Output format, one of\n"
+	       "                  x - xobj (default)\n"
+	       "                  e - ELF object file\n"
+	       "                  b - binary file\n"
+	       "                  v - verilog readmemh file\n",
 	       xasm_Configuration->executableName, xasm_Configuration->executableName, xasm_Configuration->sectionAlignment);
 
 	if (xasm_Configuration->supportAmiga) {
-		printf("                 g - Amiga executable file\n"
-		       "                 h - Amiga object file\n");
+		printf("                  g - Amiga executable file\n"
+		       "                  h - Amiga object file\n");
 	}
 
-	printf("    -g       Include debug information\n"
-	       "    -h       This text\n"
-	       "    -i<dir>  Extra include path (can appear more than once)\n"
-	       "    -o<f>    Write assembly output to <file>\n"
-	       "    -s<file> Use section types from machine definition file\n"
-	       "    -v       Verbose text output\n"
-	       "    -w<d>    Disable warning <d> (four digits)\n"
-	       "    -z<XX>   Set the byte value (hex format) used for uninitialised\n"
-	       "             data (default is FF)\n"
+	printf("    -g        Include debug information\n"
+	       "    -h        This text\n"
+	       "    -i <dir>  Extra include path (can appear more than once)\n"
+	       "    -o <f>    Write assembly output to <file>\n"
+	       "    -s <file> Use section types from machine definition file\n"
+	       "    -v        Verbose text output\n"
+	       "    -w <d>    Disable warning <d> (four digits)\n"
+	       "    -z <XX>   Set the byte value (hex format) used for uninitialised\n"
+	       "              data (default is FF)\n"
 	       "\n"
 	       "Machine specific options:\n");
 	xasm_Configuration->printOptionUsage();
@@ -149,26 +149,46 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 	string* outputFilename = NULL;
 	bool verbose = false;
 	while (argc && argv[argn][0] == '-') {
-		switch (argv[argn][1]) {
+		const char* option = argv[argn];
+		const char* optArg = option[1] != 0 ? &option[2] : "";
+		int consumed = 1;
+
+		if (optArg[0] == 0 && argc > 1 && strchr("dDfoseabimwz", option[1]) != NULL) {
+			optArg = argv[argn + 1];
+			consumed = 2;
+		}
+
+		switch (option[1]) {
+
 			case '?':
 			case 'h':
 				printUsage();
 				break;
 			case 'd':
-				dep_Initialize(&argv[argn][2]);
+				if (optArg[0] == 0) {
+					err_Warn(WARN_OPTION, option);
+				} else {
+					dep_Initialize(optArg);
+				}
 				break;
 			case 'D': {
-				string* name = str_Create(&argv[argn][2]);
-				sym_CreateEqu(name, 1);
-				str_Free(name);
+				if (optArg[0] == 0) {
+					err_Warn(WARN_OPTION, option);
+				} else {
+					string* name = str_Create(optArg);
+					sym_CreateEqu(name, 1);
+					str_Free(name);
+				}
 				break;
 			}
 			case 'f':
-				if (strlen(argv[argn]) > 2) {
-					switch (argv[argn][2]) {
+				if (optArg[0] == 0) {
+					err_Warn(WARN_OPTION, option);
+				} else {
+					switch (optArg[0]) {
 						case 'e':
 							if (xasm_Configuration->supportELF) {
-								format = argv[argn][2];
+								format = optArg[0];
 								break;
 							}
 							err_Warn(WARN_OPTION, argv[argn]);
@@ -176,12 +196,12 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 						case 'x':
 						case 'b':
 						case 'v':
-							format = argv[argn][2];
+							format = optArg[0];
 							break;
 						case 'g':
 						case 'h':
 							if (xasm_Configuration->supportAmiga) {
-								format = argv[argn][2];
+								format = optArg[0];
 								break;
 							}
 							err_Warn(WARN_OPTION, argv[argn]);
@@ -193,10 +213,16 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 				}
 				break;
 			case 'o':
-				outputFilename = str_Create(&argv[argn][2]);
+				if (optArg[0] == 0) {
+					err_Warn(WARN_OPTION, option);
+				} else {
+					outputFilename = str_Create(optArg);
+				}
 				break;
 			case 's':
-				if (sym_ReadMachineDefinitionFile(&argv[argn][2])) {
+				if (optArg[0] == 0) {
+					err_Warn(WARN_OPTION, option);
+				} else if (sym_ReadMachineDefinitionFile(optArg)) {
 					opt_Current->createGroups = false;
 				}
 				break;
@@ -211,14 +237,14 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 			case 'm':
 			case 'w':
 			case 'z':
-				opt_Parse(&argv[argn][1]);
+				opt_ParseLetter(option[1], optArg, consumed == 2 ? option : &option[1]);
 				break;
 			default:
 				err_Warn(WARN_OPTION, argv[argn]);
 				break;
 		}
-		++argn;
-		--argc;
+		argn += consumed;
+		argc -= consumed;
 	}
 
 	if (xasm_TotalErrors == 0) {

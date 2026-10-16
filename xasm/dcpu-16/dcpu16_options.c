@@ -76,5 +76,5 @@ x10c_ParseOption(const char* option) {
 
 void
 x10c_PrintOptions(void) {
-	printf("    -mo<X>  Optimization level, 0 or 1\n");
+	printf("    -m o<X>  Optimization level, 0 or 1\n");
 }

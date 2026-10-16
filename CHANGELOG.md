@@ -2,9 +2,11 @@
 
 ## Assembler
 
+* Option arguments are now written as a separate command-line argument, e.g. `-o file.obj`. This is the default and recommended syntax; the old attached form, e.g. `-ofile.obj`, is still supported for compatibility.
 * Several leaks fixed for reduced memory pressure.
 * Improved include path deduplication for `INCLUDE ONCE`
 * Fixed crash when redefining a symbol defined via `-D` on the command line. Now produces a specific error message.
+* Fixed `[UNDEFINED]` being printed instead of the value of `SET` and `EQUS` symbols.
 
 ### 680x0
 
@@ -15,11 +17,14 @@
 * `ADD FT,FT` is now rejected as it is redundant with `LS FT,1`.
 * `LS`/`RS`/`RSA` now produce a specific error message when shift count is out of range.
 * `XOR`/`OR` with 0 and `AND` with $FF now warn as they are no-ops.
+* The `-` register range notation in register lists (e.g. `bc-de`) is gone; register lists now use `/`.
 
 
 ## Linker
 
+* Option arguments are now written as a separate command-line argument, e.g. `-o file`. This is the default and recommended syntax; the old attached form, e.g. `-ofile`, is still supported for compatibility.
 * It is now possible to export symbols in the machine definition files, for instance for communicating the size of a BSS section.
+* Fixed pinned (fixed-origin) sections that are referenced only through constants folded by the assembler being discarded, which let following sections overlap them.
 * Improved ELF support.
 
 # 1.3.4

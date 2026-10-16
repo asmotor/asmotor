@@ -3,7 +3,7 @@
 Sections are aligned to a multiple of 8 bytes.
 
 ## Command line
-### -mc\<x>  option
+### -m c\<x>  option
 This option is used to select the CPU type. The default is MIPS32 R2
 
 | x | CPU type |

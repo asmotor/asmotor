@@ -137,21 +137,21 @@ opt_Pop(void) {
 }
 
 void
-opt_Parse(char* option) {
-	switch (option[0]) {
+opt_ParseLetter(char letter, const char* argument, const char* display) {
+	switch (letter) {
 		case 'a': {
-			if (!decimalToInt(&option[1], &opt_Current->sectionAlignment))
-				err_Warn(WARN_OPTION, option);
+			if (!decimalToInt(argument, &opt_Current->sectionAlignment))
+				err_Warn(WARN_OPTION, display);
 			break;
 		}
 		case 'b': {
-			if (!handleBinaryLiteralChars(&option[1]))
-				err_Warn(WARN_OPTION, option);
+			if (!handleBinaryLiteralChars(argument))
+				err_Warn(WARN_OPTION, display);
 			break;
 		}
 		case 'e': {
-			if (!handleEndianness(option[1]))
-				err_Warn(WARN_OPTION, option);
+			if (!handleEndianness(argument[0]))
+				err_Warn(WARN_OPTION, display);
 			break;
 		}
 		case 'g': {
@@ -159,30 +159,35 @@ opt_Parse(char* option) {
 			break;
 		}
 		case 'i': {
-			handleAddIncludePath(&option[1]);
+			handleAddIncludePath(argument);
 			break;
 		}
 		case 'm': {
-			xasm_Configuration->parseOption(&option[1]);
+			xasm_Configuration->parseOption(argument);
 			break;
 		}
 		case 'w': {
-			if (!handleDisableWarning(&option[1]))
-				err_Warn(WARN_OPTION, option);
+			if (!handleDisableWarning(argument))
+				err_Warn(WARN_OPTION, display);
 			break;
 		}
 		case 'z': {
-			if (!handleUnitializedFill(&option[1]))
-				err_Warn(WARN_OPTION, option);
+			if (!handleUnitializedFill(argument))
+				err_Warn(WARN_OPTION, display);
 			break;
 		}
 		default: {
-			err_Warn(WARN_OPTION, option);
+			err_Warn(WARN_OPTION, display);
 			break;
 		}
 	}
 }
 
+
+void
+opt_Parse(char* option) {
+	opt_ParseLetter(option[0], &option[1], option);
+}
 void
 opt_Open(void) {
 	opt_Current = allocOptions();

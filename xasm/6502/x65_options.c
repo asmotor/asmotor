@@ -143,15 +143,15 @@ x65_ParseOption(const char* s) {
 
 void
 x65_PrintOptions(void) {
-	printf("    -mu<x>  Enable undocumented instructions, name set x (0, 1 or 2)\n"
-	       "    -mc<x>  Enable 6502 instruction set level\n"
-	       "              0 - 6502\n"
-	       "              1 - 65C02\n"
-	       "              2 - 65C02S\n"
-	       "              3 - 65C816\n"
-	       "              4 - 4510\n"
-	       "              5 - 45GS02\n"
-	       "    -ms<x>  Synthesized instructions:\n"
-	       "              0 - Disabled (default)\n"
-	       "              1 - Enabled\n");
+	printf("    -m u<x>  Enable undocumented instructions, name set x (0, 1 or 2)\n"
+	       "    -m c<x>  Enable 6502 instruction set level\n"
+	       "               0 - 6502\n"
+	       "               1 - 65C02\n"
+	       "               2 - 65C02S\n"
+	       "               3 - 65C816\n"
+	       "               4 - 4510\n"
+	       "               5 - 45GS02\n"
+	       "    -m s<x>  Synthesized instructions:\n"
+	       "               0 - Disabled (default)\n"
+	       "               1 - Enabled\n");
 }
