@@ -5,6 +5,8 @@ add_library (motor
     binaryobject.h
 	charstack.c
 	charstack.h
+    cli.c
+    cli.h
     dependency.c
     dependency.h
     elf.c

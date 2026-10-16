@@ -37,6 +37,7 @@
 #include <crtdbg.h>
 #endif
 
+#include "cli.h"
 #include "str.h"
 
 #include "amigaobject.h"
@@ -64,43 +65,6 @@ uint32_t xasm_TotalWarnings = 0;
 
 const SConfiguration* xasm_Configuration = NULL;
 
-static void
-printUsage(void) {
-	printf("%s v" ASMOTOR_VERSION "\n\nUsage: %s [options] asmfile\n"
-	       "Options:\n"
-	       "    -a <n>    Section alignment when writing binary file (default is %d bytes)\n"
-	       "    -b <AS>   Change the two characters used for binary constants\n"
-	       "              (default is 01)\n"
-	       "    -d <FILE> Output dependency file for GNU Make\n"
-	       "    -D <NAME> Define EQU symbol with the value 1\n"
-	       "    -e (l|b)  Change endianness\n"
-	       "    -f <F>    Output format, one of\n"
-	       "                  x - xobj (default)\n"
-	       "                  e - ELF object file\n"
-	       "                  b - binary file\n"
-	       "                  v - verilog readmemh file\n",
-	       xasm_Configuration->executableName, xasm_Configuration->executableName, xasm_Configuration->sectionAlignment);
-
-	if (xasm_Configuration->supportAmiga) {
-		printf("                  g - Amiga executable file\n"
-		       "                  h - Amiga object file\n");
-	}
-
-	printf("    -g        Include debug information\n"
-	       "    -h        This text\n"
-	       "    -i <dir>  Extra include path (can appear more than once)\n"
-	       "    -o <f>    Write assembly output to <file>\n"
-	       "    -s <file> Use section types from machine definition file\n"
-	       "    -v        Verbose text output\n"
-	       "    -w <d>    Disable warning <d> (four digits)\n"
-	       "    -z <XX>   Set the byte value (hex format) used for uninitialised\n"
-	       "              data (default is FF)\n"
-	       "\n"
-	       "Machine specific options:\n");
-	xasm_Configuration->printOptionUsage();
-	exit(EXIT_SUCCESS);
-}
-
 static bool
 writeOutput(char format, string* outputFilename, string* sourceFilename) {
 	switch (format) {
@@ -121,6 +85,38 @@ writeOutput(char format, string* outputFilename, string* sourceFilename) {
 	}
 }
 
+/* Command-line state, shared by the option handlers and the teardown. */
+static void
+reportSuccess(clock_t startClock, bool verbose) {
+	if (!verbose)
+		return;
+
+	clock_t endClock = clock();
+	float timespent = ((float) (endClock - startClock)) / CLOCKS_PER_SEC;
+	printf("Success! %u lines in %.02f seconds ", xasm_TotalLines, timespent);
+	if (timespent == 0) {
+		printf("\n");
+	} else {
+		printf("(%d lines/minute)\n", (int) (60 / timespent * xasm_TotalLines));
+	}
+	if (xasm_TotalWarnings != 0) {
+		printf("Encountered %u warnings\n", xasm_TotalWarnings);
+	}
+}
+
+/* Tear down the assembler subsystems in reverse order of init. */
+static void
+cleanupSession(void) {
+	opt_Close();
+
+	dep_Exit();
+	sym_Exit();
+	lex_Exit();
+	sect_Exit();
+	parse_Exit();
+
+	mem_ShowLeaks();
+}
 extern int
 xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 	xasm_Configuration = configuration;
@@ -138,114 +134,17 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 
 	argc -= 1;
 	if (argc == 0)
-		printUsage();
+		cli_PrintUsage();
 
 	err_Init();
 	sect_Init();
 	sym_Init();
 	opt_Open();
 
-	char format = 'x';
-	string* outputFilename = NULL;
-	bool verbose = false;
-	while (argc && argv[argn][0] == '-') {
-		const char* option = argv[argn];
-		const char* optArg = option[1] != 0 ? &option[2] : "";
-		int consumed = 1;
+	SCLiState cliState;
+	cli_Init(&cliState);
 
-		if (optArg[0] == 0 && argc > 1 && strchr("dDfoseabimwz", option[1]) != NULL) {
-			optArg = argv[argn + 1];
-			consumed = 2;
-		}
-
-		switch (option[1]) {
-
-			case '?':
-			case 'h':
-				printUsage();
-				break;
-			case 'd':
-				if (optArg[0] == 0) {
-					err_Warn(WARN_OPTION, option);
-				} else {
-					dep_Initialize(optArg);
-				}
-				break;
-			case 'D': {
-				if (optArg[0] == 0) {
-					err_Warn(WARN_OPTION, option);
-				} else {
-					string* name = str_Create(optArg);
-					sym_CreateEqu(name, 1);
-					str_Free(name);
-				}
-				break;
-			}
-			case 'f':
-				if (optArg[0] == 0) {
-					err_Warn(WARN_OPTION, option);
-				} else {
-					switch (optArg[0]) {
-						case 'e':
-							if (xasm_Configuration->supportELF) {
-								format = optArg[0];
-								break;
-							}
-							err_Warn(WARN_OPTION, argv[argn]);
-							break;
-						case 'x':
-						case 'b':
-						case 'v':
-							format = optArg[0];
-							break;
-						case 'g':
-						case 'h':
-							if (xasm_Configuration->supportAmiga) {
-								format = optArg[0];
-								break;
-							}
-							err_Warn(WARN_OPTION, argv[argn]);
-							break;
-						default:
-							err_Warn(WARN_OPTION, argv[argn]);
-							break;
-					}
-				}
-				break;
-			case 'o':
-				if (optArg[0] == 0) {
-					err_Warn(WARN_OPTION, option);
-				} else {
-					outputFilename = str_Create(optArg);
-				}
-				break;
-			case 's':
-				if (optArg[0] == 0) {
-					err_Warn(WARN_OPTION, option);
-				} else if (sym_ReadMachineDefinitionFile(optArg)) {
-					opt_Current->createGroups = false;
-				}
-				break;
-			case 'v':
-				verbose = true;
-				break;
-			case 'a':
-			case 'b':
-			case 'e':
-			case 'g':
-			case 'i':
-			case 'm':
-			case 'w':
-			case 'z':
-				opt_ParseLetter(option[1], optArg, consumed == 2 ? option : &option[1]);
-				break;
-			default:
-				err_Warn(WARN_OPTION, argv[argn]);
-				break;
-		}
-		argn += consumed;
-		argc -= consumed;
-	}
+	cli_ParseOptions(&cliState, &argc, &argn, argv);
 
 	if (xasm_TotalErrors == 0) {
 		xasm_Configuration->defineSymbols();
@@ -263,6 +162,7 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 				}
 				xasm_Configuration->defineTokens();
 				opt_Updated();
+				cli_EvaluateDefines(cliState.cliDefines);
 
 				bool parseResult = parse_Do();
 
@@ -274,27 +174,14 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 				}
 
 				if (parseResult && xasm_TotalErrors == 0) {
-					if (verbose) {
-						clock_t endClock = clock();
+					reportSuccess(startClock, cliState.verbose);
 
-						float timespent = ((float) (endClock - startClock)) / CLOCKS_PER_SEC;
-						printf("Success! %u lines in %.02f seconds ", xasm_TotalLines, timespent);
-						if (timespent == 0) {
-							printf("\n");
-						} else {
-							printf("(%d lines/minute)\n", (int) (60 / timespent * xasm_TotalLines));
-						}
-						if (xasm_TotalWarnings != 0) {
-							printf("Encountered %u warnings\n", xasm_TotalWarnings);
-						}
-					}
-
-					if (outputFilename != NULL) {
-						dep_SetMainOutput(outputFilename);
+					if (cliState.outputFilename != NULL) {
+						dep_SetMainOutput(cliState.outputFilename);
 						dep_WriteDependencyFile();
-						if (!writeOutput(format, outputFilename, sourcePath)) {
+						if (!writeOutput(cliState.format, cliState.outputFilename, sourcePath)) {
 							dep_RemoveDependencyfile();
-							remove(str_String(outputFilename));
+							remove(str_String(cliState.outputFilename));
 						}
 					}
 				}
@@ -310,16 +197,8 @@ xasm_Main(const SConfiguration* configuration, int argc, char* argv[]) {
 		rcode = EXIT_FAILURE;
 	}
 
-	str_Free(outputFilename);
-	opt_Close();
-
-	dep_Exit();
-	sym_Exit();
-	lex_Exit();
-	sect_Exit();
-	parse_Exit();
-
-	mem_ShowLeaks();
+	cli_Free(&cliState);
+	cleanupSession();
 
 	return rcode;
 }

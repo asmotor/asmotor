@@ -1,3 +1,11 @@
+	IF	CLITEST==42
+	ELSE
+	FAIL	"CLITEST not 42"
+	ENDC
+	IF	FLAGDEF
+	ELSE
+	FAIL	"FLAGDEF not set"
+	ENDC
 	SECTION	"Pin",BSS[0]
 freeSectors	DS	2
 	SECTION	"Rest",BSS

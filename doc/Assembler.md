@@ -7,7 +7,8 @@ Depending on the target ISA, the executable to invoke will be named motor, follo
 -b <AS>   Change the two characters used for binary constants
           (default is 01)
 -d <FILE> Output dependency file for GNU Make
--D <NAME> Define EQU symbol with the value 1
+-D <NAME> Define EQU symbol with the value 1, or NAME=VALUE
+          (VALUE is a constant expression, e.g. 42, $2A, %101010)
 -e (l|b)  Change endianness
 -f <f>    Output format, one of
               x - xobj (default)
@@ -19,11 +20,29 @@ Depending on the target ISA, the executable to invoke will be named motor, follo
 -i <dir>  Extra include path (can appear more than once)
 -o <f>    Write assembly output to <file>
 -s <file> Use section types from machine definition file      
--v       Verbose text output
--w<d>    Disable warning <d> (four digits)
+-v        Verbose text output
+-w <d>    Disable warning <d> (four digits)
 -z <XX>   Set the byte value (hex format) used for uninitialised
-          data (default is FF) 
+          data (default is FF)
 ```
+
+### Defining symbols from the command line
+
+`-D <NAME>` defines an `EQU` symbol with value `1`; `-D <NAME>=<VALUE>` gives it
+`VALUE`, which works just as it would in an assembly file — same number
+formats, operators and symbol references (`42`, `$2A`, `%101010`):
+
+```
+motorrc8 -D PAGE=1 -D 'PAGE_SIZE=$400' -D 'DOUBLE=PAGE_SIZE*2' file.asm
+```
+
+`VALUE` may reference built-in and machine-defined symbols, and names defined by
+earlier `-D` options — but not symbols from the assembly file, which has not
+been read yet, nor a later `-D`. Such references fail with
+`Expression must be constant`.
+
+A command-line symbol cannot be redefined, neither by another `-D` nor by
+`EQU`/`SET` in the source; the source can only use it.
 
 An assembler for a particular ISA may support additional options relevant for the target architecture. Please consult the [CPU specific documentation](CpuSpecifics.md) for ISA specific options.
 

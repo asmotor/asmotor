@@ -3,6 +3,7 @@
 ## Assembler
 
 * Option arguments are now written as a separate command-line argument, e.g. `-o file.obj`. This is the default and recommended syntax; the old attached form, e.g. `-ofile.obj`, is still supported for compatibility.
+* The `-D` option now accepts a value, e.g. `-D FOO=42`, `-D FOO=$2A` or `-D FOO=%101010`. The value works exactly as a constant expression would in an assembly file: number formats, operators, built-in symbols and earlier `-D` names. Without `=value` the symbol is still defined as 1.
 * Several leaks fixed for reduced memory pressure.
 * Improved include path deduplication for `INCLUDE ONCE`
 * Fixed crash when redefining a symbol defined via `-D` on the command line. Now produces a specific error message.
