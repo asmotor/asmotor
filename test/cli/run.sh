@@ -85,6 +85,18 @@ fi
 "$LNK" /c hc800b /f hc800k /e Start /s Start /l slash.lst /m slash.map /o slash.bin spaced.obj >/dev/null || { echo "FAIL: slash-prefixed options rejected"; exit 1; }
 cmp -s slash.bin spaced.bin || { echo "FAIL: slash-prefixed options differ"; exit 1; }
 
+# Line records: a braced expression macro must not shift the source line
+# recorded for later statements, and the bytes it emits are attributed to the
+# statement that uses it. Statements are on source lines 7..10; a one-per-use
+# drift would record the last statement on line 11.
+printf '\tSECTION "Code",CODE\nV\tMACRO\n.value\\@\tDB\t5\n\tENDM\n\tORG\t$00\nStart::\n\tld\tft,$00\n\tld\tde,{V}\n\tld\tft,$01\n\tld\tft,$02\n' > brace.rc8
+"$ASM" -g -o brace.obj brace.rc8 >/dev/null || { echo "FAIL: brace macro assemble"; exit 1; }
+"$LNK" -c hc800b -f hc800k -s Start -l brace.lst -o brace.bin brace.obj >/dev/null || { echo "FAIL: brace macro link"; exit 1; }
+grep -q "brace.rc8:8" brace.lst || { echo "FAIL: brace macro statement not recorded"; exit 1; }
+grep -q "brace.rc8:9" brace.lst || { echo "FAIL: statement after brace macro recorded at the wrong line"; exit 1; }
+grep -q "brace.rc8:10" brace.lst || { echo "FAIL: last statement after brace macro recorded at the wrong line"; exit 1; }
+if grep -q "brace.rc8:11" brace.lst; then echo "FAIL: line records drifted past the last source line"; exit 1; fi
+
 "$LNK" -Z -c hc800b -f hc800k -s Start -m unknown.map -o unknown.bin spaced.obj >/dev/null 2>&1 && { echo "FAIL: unknown linker option accepted"; exit 1; }
 
 # Help text is provided by the shared command-line layer.
@@ -92,5 +104,5 @@ cmp -s slash.bin spaced.bin || { echo "FAIL: slash-prefixed options differ"; exi
 "$LNK" -h 2>/dev/null | grep -q "Usage:" || { echo "FAIL: linker help missing"; exit 1; }
 
 rm -f spaced.obj spaced.bin spaced.map attached.obj attached.bin attached.map missing.map
-rm -f p1.obj p2.obj chain.obj dup.obj srcsym.rc8 srcsym.obj usecmd.rc8 usecmd.obj redefcmd.rc8 redef1.obj setcmd.rc8 redef2.obj exprchk.rc8 expr.obj bad.obj slash.lst slash.map slash.bin unknown.map unknown.bin
+rm -f p1.obj p2.obj chain.obj dup.obj srcsym.rc8 srcsym.obj usecmd.rc8 redefcmd.rc8 redef1.obj setcmd.rc8 redef2.obj exprchk.rc8 expr.obj bad.obj slash.lst slash.map slash.bin unknown.map unknown.bin brace.rc8 brace.obj brace.bin brace.lst
 exit 0
