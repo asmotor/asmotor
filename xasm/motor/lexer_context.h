@@ -72,6 +72,7 @@ typedef struct LexerContext {
 
 	SFileInfo* fileInfo;
 	uint32_t lineNumber;
+	bool braceRegion;
 
 	union {
 		struct {

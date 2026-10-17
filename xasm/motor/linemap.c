@@ -23,6 +23,15 @@
 
 #define INITIAL_ALLOCATION 32
 
+/* The line map is anchored to the start of the statement that emitted the
+   bytes rather than to the lexer position at the moment of emission: the
+   assembler captures the current position once per top-level statement and the
+   emitters record that captured position. This keeps the map tied to the
+   statement's own line even when parsing an operand moves the lexer forward
+   (parenthesised sub-expressions, braced macro splices). */
+static SFileInfo* g_stmtFileInfo = NULL;
+static uint32_t g_stmtLineNumber = 0;
+
 /* Internal functions */
 
 static SLineMapSection*
@@ -84,8 +93,14 @@ linemap_Add(SFileInfo* fileInfo, uint32_t lineNumber, SSection* section, uint32_
 }
 
 extern void
+linemap_SetStatementPosition(void) {
+	g_stmtFileInfo = lexctx_TokenFileInfo();
+	g_stmtLineNumber = lexctx_TokenLineNumber();
+}
+
+extern void
 linemap_AddCurrent(void) {
-	linemap_Add(lexctx_TokenFileInfo(), lexctx_TokenLineNumber(), sect_Current, sect_Current->cpuProgramCounter);
+	linemap_Add(g_stmtFileInfo, g_stmtLineNumber, sect_Current, sect_Current->cpuProgramCounter);
 }
 
 extern void

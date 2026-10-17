@@ -57,6 +57,7 @@ static SLexerContext*
 createContext(void) {
 	SLexerContext* ctx = (SLexerContext*) mem_Alloc(sizeof(SLexerContext));
 	list_Init(ctx);
+	ctx->braceRegion = false;
 	return ctx;
 }
 
@@ -239,6 +240,7 @@ continueFrom(SLexerContext* ctx) {
 	lex_Context->atLineStart = ctx->atLineStart;
 	lex_Context->fileInfo = ctx->fileInfo;
 	lex_Context->lineNumber = ctx->lineNumber;
+	lex_Context->braceRegion = ctx->braceRegion;
 	lexbuf_ContinueFrom(&lex_Context->buffer, &ctx->buffer);
 }
 
@@ -464,6 +466,7 @@ lexctx_Copy(SLexerContext* dest, const SLexerContext* source) {
 	dest->atLineStart = source->atLineStart;
 	dest->fileInfo = source->fileInfo;
 	dest->lineNumber = source->lineNumber;
+	dest->braceRegion = source->braceRegion;
 	dest->block = source->block;
 }
 

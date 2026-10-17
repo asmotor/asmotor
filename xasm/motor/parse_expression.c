@@ -141,6 +141,12 @@ expressionPriority9(size_t maxStringConstLength) {
 		}
 		case '{': {
 			parse_GetToken();
+			/* A brace region must not move the enclosing context's line counter:
+			   mark the owner so handleLineBreak stops counting its newlines. Nested
+			   regions restore the previous mark on exit. */
+			SLexerContext* braceOwner = lex_Context;
+			bool outerBrace = braceOwner->braceRegion;
+			braceOwner->braceRegion = true;
 
 			sect_Push();
 			switchToLiteralSection();
@@ -152,6 +158,8 @@ expressionPriority9(size_t maxStringConstLength) {
 
 			SExpression* expression = expr_SymbolByName(symbolName);
 			str_Free(symbolName);
+			if (lex_Context == braceOwner)
+				braceOwner->braceRegion = outerBrace;
 			return expression;
 		}
 		case T_LEFT_PARENS: {

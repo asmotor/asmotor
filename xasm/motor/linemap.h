@@ -44,6 +44,9 @@ extern void
 linemap_AddCurrent(void);
 
 extern void
+linemap_SetStatementPosition(void);
+
+extern void
 linemap_Free(SLineMapSection* linemap);
 
 #endif

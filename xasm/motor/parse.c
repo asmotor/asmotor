@@ -24,6 +24,7 @@
 #include "errors.h"
 #include "lexer.h"
 #include "lexer_context.h"
+#include "linemap.h"
 #include "parse.h"
 #include "parse_directive.h"
 #include "parse_symbol.h"
@@ -94,8 +95,10 @@ static bool
 handleLineBreak(void) {
 	if (lex_Context->token.id == '\n') {
 		parse_GetToken();
-		lex_Context->lineNumber += 1;
-		xasm_TotalLines += 1;
+		if (!lex_Context->braceRegion) {
+			lex_Context->lineNumber += 1;
+			xasm_TotalLines += 1;
+		}
 		return true;
 	}
 	return false;
@@ -155,6 +158,10 @@ parse_GetToken(void) {
 bool
 parse_Until(EToken endToken) {
 	while (lex_Context->token.id) {
+		if (endToken == T_POP_END) {
+			linemap_SetStatementPosition();
+		}
+
 		if (xasm_Configuration->parseInstruction())
 			continue;
 

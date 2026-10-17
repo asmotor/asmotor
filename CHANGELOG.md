@@ -8,6 +8,8 @@
 * Improved include path deduplication for `INCLUDE ONCE`
 * Fixed crash when redefining a symbol defined via `-D` on the command line. Now produces a specific error message.
 * Fixed `[UNDEFINED]` being printed instead of the value of `SET` and `EQUS` symbols.
+* Fixed line records and error positions drifting when a statement uses a braced expression macro (`{ NAME }`).
+* Line records in list/map files are now anchored to the line where a statement begins, so bytes a braced expression macro emits into a literal section (e.g. `{ DC_STR ... }`) are attributed to the statement that uses the macro rather than to a line inside the macro definition.
 
 ### 680x0
 
