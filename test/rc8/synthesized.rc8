@@ -142,7 +142,8 @@
 	j/ne	(bc)
 	j/z	(de)
 	j/nz	(hl)
-	j/nc	(ft)
+	j/cc	(ft)
+	j/cs	(bc)
 
 ; PICK with immediate
 	pick	ft,$00

@@ -88,7 +88,7 @@ Any instruction may be made conditional by appending `/CC`:
     j/z     (bc)
 ```
 
-The condition codes are `EQ`, `NE`, `LE`, `GT`, `LT`, `GE`, `LEU`, `GTU`, `LTU`, `GEU`, with the aliases `Z` (= `EQ`), `NZ` (= `NE`) and `NC` (= `GEU`). Conditional `J` with an address operand is native; conditional `J` with an indirect operand and all other instructions are synthesized as shown above.
+The condition codes are `EQ`, `NE`, `LE`, `GT`, `LT`, `GE`, `LEU`, `GTU`, `LTU`, `GEU`, with the aliases `Z` (= `EQ`), `NZ` (= `NE`), `CC` (= `GEU`, carry clear) and `CS` (= `LTU`, carry set). Conditional `J` with an address operand is native; conditional `J` with an indirect operand and all other instructions are synthesized as shown above.
 
 ## Warnings
 

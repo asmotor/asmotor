@@ -1,0 +1,7 @@
+		SECTION "Test",CODE
+		j/cc	target
+		j/cs	target
+		j/geu	target
+		j/ltu	target
+target
+		nop

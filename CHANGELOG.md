@@ -21,6 +21,7 @@
 * `LS`/`RS`/`RSA` now produce a specific error message when shift count is out of range.
 * `XOR`/`OR` with 0 and `AND` with $FF now warn as they are no-ops.
 * The `-` register range notation in register lists (e.g. `bc-de`) is gone; register lists now use `/`.
+* `CC` and `CS` are now accepted as condition codes, synonyms for `/GEU` (carry clear) and `/LTU` (carry set). The `NC` condition-code alias has been removed.
 
 
 ## Linker

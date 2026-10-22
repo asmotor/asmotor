@@ -96,7 +96,8 @@ static SLexConstantsWord g_tokens[] = {
     {"Z",     T_RC8_CC_EQ              },
     {"NZ",    T_RC8_CC_NE              },
 
-    {"NC",    T_RC8_CC_GEU             },
+    {"CC",    T_RC8_CC_GEU             },	/* carry clear == unsigned >= */
+    {"CS",    T_RC8_CC_LTU             },	/* carry set   == unsigned <  */
 
     {NULL,    0                        }
 };
