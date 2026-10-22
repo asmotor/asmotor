@@ -143,7 +143,7 @@ writeEndHunk(FILE* fileHandle) {
 
 static void
 writeHeader(FILE* fileHandle) {
-	fwrite("UC", 1, 2, fileHandle);
+	fwrite("NP", 1, 2, fileHandle);
 }
 
 extern void
