@@ -30,6 +30,7 @@
 * It is now possible to export symbols in the machine definition files, for instance for communicating the size of a BSS section.
 * Fixed pinned (fixed-origin) sections that are referenced only through constants folded by the assembler being discarded, which let following sections overlap them.
 * Improved ELF support.
+* Fixed binary literals (%) in machine definition files.
 
 # 1.3.4
 

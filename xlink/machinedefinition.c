@@ -155,7 +155,7 @@ parseInteger(const char** line, string_buffer* expr) {
 	if (tokenIs("$")) {
 		nextToken(line);
 		base = 16;
-	} else if (tokenIs("%%")) {
+	} else if (tokenIs("%")) {
 		nextToken(line);
 		base = 2;
 	}
