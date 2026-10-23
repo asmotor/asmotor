@@ -10,8 +10,8 @@
 		ld	t,(de)
 		ld	t,(hl)
 
-		DB	$08
-		DB	$09
+		ei
+		di
 		lcr	(c),t
 		lcr	t,(c)
 		lco	t,(ft)
@@ -28,10 +28,10 @@
 		exg	h
 		exg	l
 
-		not	f
+		DB	$18
 		DB	$19
-		ei
-		di
+		DB	$1A
+		DB	$1B
 		pick	ft
 		pick	bc
 		pick	de
@@ -55,7 +55,7 @@
 		ld	h,(ft)
 		ld	l,(ft)
 
-		DB	$30
+		not	f
 		lio	(bc),t
 		lio	(de),t
 		lio	(hl),t

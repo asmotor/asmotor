@@ -892,9 +892,9 @@ static SParser g_Parsers[T_RC8_XOR - T_RC8_ADD + 1] = {
     {0x68, CONDITION_AUTO, MODE_REG_8BIT | MODE_IMM,                                                  MODE_NONE | MODE_REG_8BIT | MODE_IMM,                                 handle_Bitwise      }, /* AND */
     {0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT,                                            MODE_IMM | MODE_REG_8BIT_FBCDEHL | MODE_REG_16BIT_BCDEHL | MODE_NONE,
      handle_CMP                                                                                                                                                                                 }, /* CMP */
-    {0x1B, CONDITION_AUTO, MODE_NONE,                                                                 MODE_NONE,                                                            handle_Implicit     }, /* DI */
+    {0x09, CONDITION_AUTO, MODE_NONE,                                                                 MODE_NONE,                                                            handle_Implicit     }, /* DI */
     {0x88, CONDITION_AUTO, MODE_REG_8BIT,                                                             MODE_ADDR,                                                            handle_DJ           }, /* DJ */
-    {0x1A, CONDITION_AUTO, MODE_NONE,                                                                 MODE_NONE,                                                            handle_Implicit     }, /* EI */
+    {0x08, CONDITION_AUTO, MODE_NONE,                                                                 MODE_NONE,                                                            handle_Implicit     }, /* EI */
     {0x10, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT,                                            MODE_NONE | MODE_REG_8BIT | MODE_REG_16BIT,                           handle_EXG          }, /* EXG */
     {0x49, CONDITION_AUTO, MODE_NONE,                                                                 MODE_NONE,                                                            handle_Implicit     }, /* EXT */
     {0x3C, CONDITION_PASS, MODE_IND_16BIT | MODE_ADDR,                                                MODE_NONE,                                                            handle_J            }, /* J */
@@ -909,7 +909,7 @@ static SParser g_Parsers[T_RC8_XOR - T_RC8_ADD + 1] = {
      handle_Shift                                                                                                                                                                               }, /* LS */
     {0x51, CONDITION_AUTO, MODE_REG_T | MODE_REG_FT,                                                  MODE_NONE,                                                            handle_NEG          }, /* NEG */
     {0x00, CONDITION_AUTO, MODE_NONE,                                                                 MODE_NONE,                                                            handle_Implicit     }, /* NOP */
-    {0x18, CONDITION_AUTO, MODE_REG_F | MODE_REG_T | MODE_REG_FT,                                     MODE_NONE,                                                            handle_NOT          }, /* NOT */
+    {0x30, CONDITION_AUTO, MODE_REG_F | MODE_REG_T | MODE_REG_FT,                                     MODE_NONE,                                                            handle_NOT          }, /* NOT */
     {0x60, CONDITION_AUTO, MODE_REG_8BIT | MODE_IMM,                                                  MODE_NONE | MODE_REG_8BIT | MODE_IMM,                                 handle_Bitwise      }, /* OR */
     {0x1C, CONDITION_AUTO, MODE_REG_16BIT,                                                            MODE_NONE | MODE_IMM,                                                 handle_PICK         }, /* PICK */
     {0xC4, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK,                                       MODE_NONE,                                                            handle_RegisterStack}, /* POP */
