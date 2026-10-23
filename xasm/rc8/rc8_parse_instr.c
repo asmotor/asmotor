@@ -370,14 +370,45 @@ handle_LongLoad(uint8_t ld_t_hl, uint8_t ld_hl_t, uint8_t ld_r_ft, uint8_t ld_ft
 }
 
 static bool
+handle_Shift(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
+	ensureSource(&destination, &source);
+
+	if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_8BIT_BCDEHL))
+		return handle_OpcodeRegister(baseOpcode, source);
+	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_IMM)) {
+		if (expr_IsConstant(source->expression) && (source->expression->value.integer < 0 || source->expression->value.integer > 15)) {
+			expr_Free(source->expression);
+			source->expression = NULL;
+			return err_Error(MERROR_SHIFT_COUNT_RANGE);
+		}
+		SExpression* ranged = expr_CheckRange(source->expression, 0, 15);
+		source->expression = NULL;
+		if (ranged == NULL)
+			return false;
+		baseOpcode = 0xB8 + ((baseOpcode >> 3) & 0x03);
+		sect_OutputConst8(baseOpcode);
+		sect_OutputExpr8(ranged);
+		return true;
+	}
+
+	return false;
+}
+
+static bool
 handle_ADD(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	ensureSource(&destination, &source);
 
 	if ((destination->mode & (MODE_REG_T | MODE_NONE)) && (source->mode & MODE_REG_8BIT))
 		return handle_OpcodeRegister(0x40, source);
 	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_16BIT)) {
-		if (destination->mode == MODE_REG_FT && source->mode == MODE_REG_FT)
-			return err_Error(ERROR_OPERAND);
+		if (source->mode == MODE_REG_FT) {
+			// ADD FT,FT (or the implicit ADD FT) doubles FT. Emit the
+			// equivalent LS FT,1 instead of the redundant native form.
+			if (!opt_Current->machineOptions->enableSynthInstructions)
+				return err_Error(MERROR_REQUIRES_SYNTHESIZED);
+			SAddressingMode one = {MODE_IMM, 0, expr_Const(1)};
+			return handle_Shift(0xE0, cc, destination, &one);
+		}
 		return handle_OpcodeRegister(0xF4, source);
 	}
 	else if ((destination->mode & MODE_REG_8BIT) && (source->mode & MODE_IMM)) {
@@ -764,31 +795,6 @@ handle_PICK(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination,
 
 	handle_OpcodeRegister(baseOpcode, destination);
 	return true;
-}
-
-static bool
-handle_Shift(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
-	ensureSource(&destination, &source);
-
-	if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_REG_8BIT_BCDEHL))
-		return handle_OpcodeRegister(baseOpcode, source);
-	else if ((destination->mode & (MODE_REG_FT | MODE_NONE)) && (source->mode & MODE_IMM)) {
-		if (expr_IsConstant(source->expression) && (source->expression->value.integer < 0 || source->expression->value.integer > 15)) {
-			expr_Free(source->expression);
-			source->expression = NULL;
-			return err_Error(MERROR_SHIFT_COUNT_RANGE);
-		}
-		SExpression* ranged = expr_CheckRange(source->expression, 0, 15);
-		source->expression = NULL;
-		if (ranged == NULL)
-			return false;
-		baseOpcode = 0xB8 + ((baseOpcode >> 3) & 0x03);
-		sect_OutputConst8(baseOpcode);
-		sect_OutputExpr8(ranged);
-		return true;
-	}
-
-	return false;
 }
 
 static bool

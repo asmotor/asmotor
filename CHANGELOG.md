@@ -17,7 +17,7 @@
 
 ### RC800
 
-* `ADD FT,FT` is now rejected as it is redundant with `LS FT,1`.
+* `ADD FT,FT` (and the implicit `ADD FT`) is accepted as a synthesized instruction, expanding to `LS FT,1`. It requires synthesized instructions; `-m s0` disables it.
 * `LS`/`RS`/`RSA` now produce a specific error message when shift count is out of range.
 * `XOR`/`OR` with 0 and `AND` with $FF now warn as they are no-ops.
 * The `-` register range notation in register lists (e.g. `bc-de`) is gone; register lists now use `/`.

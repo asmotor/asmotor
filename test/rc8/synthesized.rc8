@@ -12,6 +12,8 @@
 	add	bc,$1234
 	add	bc,$8000
 	add	bc,$FFFF
+	add	ft,ft
+	add	ft
 	not	ft
 	not	t
 	sub	bc,4

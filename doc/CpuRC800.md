@@ -25,6 +25,7 @@ Synthesized instructions are safe sequences with no unintended side effects. The
 | Mnemonic | Expansion |
 |---|---|
 | ADD R16,imm | `ADD R16,n8` if the value fits in -128..127, otherwise `ADD R16,low` / `ADD F,high` (omitting zero parts) |
+| ADD FT,FT (or `ADD FT`) | `LS FT,1` |
 | SUB R,imm | `ADD R,-imm` |
 | LD R16,imm | Two 8 bit loads, with a 3 byte optimization: `EXT` if the value is sign-extendable, `LD F,T` if both bytes are equal |
 | LD FT,(R16) | `LD T,(R16)` / `ADD R16,1` / `EXG F,T` / `LD T,(R16)` / `ADD R16,-1` / `EXG F,T` |
