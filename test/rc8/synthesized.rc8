@@ -34,7 +34,7 @@
 	ld	(ft+),hl
 	ld	t,(bc+)
 	ld	t,(-bc)
-	pick	bc,4
+	pick	ft,4
 	lco	ft,(bc+)
 	lco	t,(bc+)
 	lco	t,(-bc)
@@ -147,11 +147,9 @@
 	j/cc	(ft)
 	j/cs	(bc)
 
-; PICK with immediate
+; PICK with immediate (only FT has a synthesized immediate form)
 	pick	ft,$00
-	pick	bc,$01
-	pick	de,$02
-	pick	hl,$03
+	pick	ft,$FF
 
 ; PUSH / POP multi-register with / separator
 	push	bc/de
@@ -194,7 +192,7 @@
 	or/c	$01
 	and/c	$01
 	xor/c	$01
-	pick/c	bc,$01
+	pick/c	ft,$01
 	push/c	bc
 	pop/c	bc
 	swap/c	bc

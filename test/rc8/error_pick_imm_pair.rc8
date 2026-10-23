@@ -1,0 +1,4 @@
+	SECTION "Test",CODE
+	pick	bc,4
+	pick	de,$02
+	pick	hl,3

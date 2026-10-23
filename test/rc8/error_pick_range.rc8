@@ -1,2 +1,2 @@
 	SECTION "Test",CODE
-	pick	bc,$100
+	pick	ft,$100

@@ -781,15 +781,23 @@ handle_RegisterStack(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* des
 static bool
 handle_PICK(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	if (source->mode == MODE_IMM) {
+		// The index is read from T, so only FT can pick up an immediate index
+		// without clobbering another register pair. The other pairs require an
+		// explicit "ld t,index" followed by a native PICK.
+		if (!(destination->mode & MODE_REG_FT))
+			return false;
+
 		if (!opt_Current->machineOptions->enableSynthInstructions)
 			return err_Error(MERROR_REQUIRES_SYNTHESIZED);
 
 		SExpression* masked = expr_CheckRange(source->expression, 0, 255);
 		source->expression = NULL;
 
-		SAddressingMode high, low;
-		registerPair(&high, &low, destination);
-		handle_OpcodeRegister(0x80, &low); // LD l,
+		SAddressingMode low;
+		low.mode = MODE_REG_T;
+		low.registerIndex = 1;
+		low.expression = NULL;
+		handle_OpcodeRegister(0x80, &low); // LD t,
 		sect_OutputExpr8(masked);          //      x
 	}
 

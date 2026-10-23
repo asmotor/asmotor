@@ -53,7 +53,7 @@ Synthesized instructions are safe sequences with no unintended side effects. The
 | INST/CC | `J/CC' skip` / `INST` / `skip:`, where CC' is the inverted condition and `skip` is an auto-generated label |
 | NOT T | `XOR T,$FF` |
 | NOT FT | `XOR T,$FF` / `NOT F` |
-| PICK R16,imm | `LD l,imm` / `PICK R16`, where `l` is the low byte of `R16` |
+| PICK FT,imm | `LD T,imm` / `PICK FT` |
 | PUSH R16/R16 | See [register lists](#register-lists) |
 | POP R16/R16 | See [register lists](#register-lists) |
 | SWAP R16/R16 | See [register lists](#register-lists) |
