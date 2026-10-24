@@ -779,6 +779,11 @@ handle_RegisterStack(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* des
 }
 
 static bool
+handle_STOW(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
+	return handle_OpcodeRegister(baseOpcode, destination);
+}
+
+static bool
 handle_PICK(uint8_t baseOpcode, EConditionCode cc, SAddressingMode* destination, SAddressingMode* source) {
 	if (source->mode == MODE_IMM) {
 		// The index is read from T, so only FT can pick up an immediate index
@@ -921,6 +926,7 @@ static SParser g_Parsers[T_RC8_XOR - T_RC8_ADD + 1] = {
      handle_Shift                                                                                                                                                                               }, /* RS */
     {0xF8, CONDITION_AUTO, MODE_REG_FT | MODE_REG_8BIT_BCDEHL | MODE_IMM,                             MODE_REG_8BIT_BCDEHL | MODE_IMM | MODE_NONE,
      handle_Shift                                                                                                                                                                               }, /* RSA */
+    {0x18, CONDITION_AUTO, MODE_REG_16BIT_BCDEHL,                                                     MODE_NONE,                                                            handle_STOW         }, /* STOW */
     {0x00, CONDITION_AUTO, MODE_REG_8BIT | MODE_REG_16BIT,                                            MODE_NONE | MODE_REG_8BIT | MODE_REG_16BIT | MODE_IMM,
      handle_SUB                                                                                                                                                                                 }, /* SUB */
     {0xDC, CONDITION_AUTO, MODE_REG_16BIT | MODE_REGISTER_MASK,                                       MODE_NONE,                                                            handle_RegisterStack}, /* SWAP */

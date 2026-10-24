@@ -58,7 +58,9 @@ Synthesized instructions are safe sequences with no unintended side effects. The
 | POP R16/R16 | See [register lists](#register-lists) |
 | SWAP R16/R16 | See [register lists](#register-lists) |
 
-The following are native instructions, not synthesized: `LD T,(R16)`, `LD (R16),T`, `LD T,(FT)`, `LD (FT),T`, `LD R8,T`, `LD T,R8`, `LD R16,FT`, `LD FT,R16`, `EXG R8,T`, `EXG R16,FT`, `J addr`, `J/CC addr`, `J (R16)`, `JAL (R16)`, `DJ R8,addr`, `LS/RS/RSA R,imm`, `PICK R16`, `SYS imm`, `NEG R`, `NOT F`.
+`JAL addr` also serves as the long-jump form when a `J addr` target is outside the signed 8-bit range (−128 to +127 bytes). It has the same code size and execution time as `LD HL,addr` / `J (HL)`, but leaves HL holding the return address; use it only where HL is dead across the jump. With the usual `/CC` suffix (`JAL/NE addr`) it becomes a conditional absolute jump; HL is clobbered only when the branch is taken.
+
+The following are native instructions, not synthesized: `LD T,(R16)`, `LD (R16),T`, `LD T,(FT)`, `LD (FT),T`, `LD R8,T`, `LD T,R8`, `LD R16,FT`, `LD FT,R16`, `EXG R8,T`, `EXG R16,FT`, `J addr`, `J/CC addr`, `J (R16)`, `JAL (R16)`, `DJ R8,addr`, `LS/RS/RSA R,imm`, `PICK R16`, `STOW R16` (BC/DE/HL), `SYS imm`, `NEG R`, `NOT F`.
 
 ## Register lists
 

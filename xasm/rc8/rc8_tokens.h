@@ -47,6 +47,7 @@ typedef enum {
 	T_RC8_RETI,
 	T_RC8_RS,
 	T_RC8_RSA,
+	T_RC8_STOW,
 	T_RC8_SUB,
 	T_RC8_SWAP,
 	T_RC8_SWAPA,

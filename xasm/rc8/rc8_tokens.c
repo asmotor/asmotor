@@ -49,6 +49,7 @@ static SLexConstantsWord g_tokens[] = {
     {"RETI",  T_RC8_RETI               },
     {"RS",    T_RC8_RS                 },
     {"RSA",   T_RC8_RSA                },
+    {"STOW",  T_RC8_STOW               },
     {"SUB",   T_RC8_SUB                },
     {"SWAP",  T_RC8_SWAP               },
     {"SWAPA", T_RC8_SWAPA              },
