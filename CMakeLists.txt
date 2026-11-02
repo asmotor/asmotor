@@ -70,6 +70,12 @@ add_test (NAME test_integration_link
           WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test/link)
 set_tests_properties (test_integration_link PROPERTIES TIMEOUT 30)
 
+# SDCC/sdas RREL (.rel) reader: byte-exact against sdld oracle output.
+add_test (NAME test_integration_sdrel
+          COMMAND sh run.sh
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test/sdrel)
+set_tests_properties (test_integration_sdrel PROPERTIES TIMEOUT 60)
+
 # CLI parsing regression test: space-separated option arguments.
 add_test (NAME test_integration_cli
           COMMAND sh run.sh

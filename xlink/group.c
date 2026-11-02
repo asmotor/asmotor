@@ -137,7 +137,11 @@ pool_AllocateAbsolute(MemoryPool* pool, uint32_t size, uint32_t cpuByteLocation)
 		}
 	}
 
-	return false;
+	/* An empty section consumes no memory, so it may sit outside the
+	 * remaining free chunks - for example right behind an already
+	 * allocated range. */
+	return size == 0 && cpuByteLocation >= pool->cpuByteLocation &&
+	       cpuByteLocation < pool->cpuByteLocation + pool->size;
 }
 
 static bool

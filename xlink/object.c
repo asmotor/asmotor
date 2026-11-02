@@ -100,6 +100,7 @@
 #include "elf.h"
 #include "object.h"
 #include "patch.h"
+#include "sdrel.h"
 #include "section.h"
 #include "symbol.h"
 #include "xlink.h"
@@ -394,6 +395,13 @@ readXOBn(FILE* fileHandle, int32_t version, uint32_t fileId) {
 static bool
 readChunk(FILE* fileHandle, const char* filename);
 
+static bool
+isSdrelMagic(uint32_t magic) {
+	return ((magic & 0xff) == 'X' || (magic & 0xff) == 'D' || (magic & 0xff) == 'Q') &&
+	       (((magic >> 8) & 0xff) == 'H' || ((magic >> 8) & 0xff) == 'L') &&
+	       ((magic >> 16) & 0xff) >= '0' && ((magic >> 16) & 0xff) <= '9';
+}
+
 static void
 readXLB0(FILE* fileHandle, const char* filename) {
 	uint32_t count = fgetll(fileHandle);
@@ -458,6 +466,11 @@ readChunk(FILE* fileHandle, const char* filename) {
 		}
 
 		default: {
+			if (isSdrelMagic(id)) { // SDCC/sdas RREL text object, e.g. "XL2H80".
+				fseek(fileHandle, 0, SEEK_SET);
+				sdrel_Read(fileHandle, filename, g_fileId++);
+				return false;
+			}
 			error("Unknown file type");
 		}
 	}

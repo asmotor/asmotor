@@ -115,6 +115,38 @@ If not specified, no output will be produced.
 
 The section containing `<symbol>` will be considered in use, as will any sections it references. Sections may also have been marked as `ROOT` by the assembler, these will also be considered in use. Any section not in use will not be output to the final file.
 
+## Input object formats
+
+Besides native object files, the linker reads SDCC/sdas `RREL` text object
+files (`.rel`) directly. A file whose first line starts with `[XDQ][HL]<n>`
+is treated as `RREL`; everything else follows the native binary path.
+
+Support is deliberately narrow and refuses loudly what it does not
+implement — an unrecognised construct is an error, never a guess:
+
+* Only the magic `XL2` is accepted: hexadecimal values, little-endian
+  16-bit indices and offsets, two digits per stored byte. Other radixes,
+  endiannesses and digit widths are refused.
+* Areas are merged across modules by name, mirroring `sdld`: each module's
+  contribution is appended at the base recorded in its own `A` records, and
+  the linker exports the synthesised area-label globals `s_<AREA>` (area
+  start) and `l_<AREA>` (area length) that `sdld` also provides, because
+  sdas-generated C glue references them.
+* Reserved space (bytes an area declares with its `A` size but never writes
+  with a `T` record) is emitted as zero padding; `sdld`'s Intel-hex output
+  simply omits those bytes.
+* Relocation modes are accepted from a fixed whitelist — for the RC800
+  (sdcc `-mrc8` objects, linked with the HC800 machine definition) these are
+  the modes sdas actually emits: absolute word, word symbol reference, and
+  the two-byte-stored-byte forms (low or high byte of the object, optionally
+  PC-relative, optionally symbol-relative). Every other mode, `P`
+  (bit-positioning) and `G`/`B` (bank) records, overlay or paged areas, and
+  text records whose offsets wrap are refused.
+* `RREL` archives (`.relf`) are not yet supported.
+
+The reader is exercised by the `test_integration_sdrel` suite against
+byte-exact `sdldrc8` oracle output.
+
 
 # Further reading
 * [Introduction](Introduction.md), goals and background

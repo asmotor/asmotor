@@ -17,6 +17,7 @@ add_executable (xlink
     object.c
     patch.c
     section.c
+    sdrel.c
     sega.c
     smart.c)
 

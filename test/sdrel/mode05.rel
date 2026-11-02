@@ -1,0 +1,6 @@
+XL2
+H C areas 1 global symbols
+M mode05
+A CODE size 2 flags C00 addr 0
+T 00 00 00 00
+R 00 00 00 00 05 02 00 00
