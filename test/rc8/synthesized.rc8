@@ -6,7 +6,7 @@
 	pop	bc/de/hl
 	add/c	hl,1
 	exg	bc,de
-	exg	f,h
+	exg	f,t
 	sub	bc,$1234
 	add	bc,$12AB
 	add	bc,$1234
@@ -34,7 +34,6 @@
 	ld	(ft+),hl
 	ld	t,(bc+)
 	ld	t,(-bc)
-	pick	ft,4
 	lco	ft,(bc+)
 	lco	t,(bc+)
 	lco	t,(-bc)
@@ -146,10 +145,6 @@
 	j/nz	(hl)
 	j/cc	(ft)
 	j/cs	(bc)
-
-; PICK with immediate (only FT has a synthesized immediate form)
-	pick	ft,$00
-	pick	ft,$FF
 
 ; PUSH / POP multi-register with / separator
 	push	bc/de

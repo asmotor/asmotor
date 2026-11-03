@@ -1,0 +1,57 @@
+; Stepped-width goldens: every 16-bit indirect/stepped form.
+; A stepped access advances its pointer by the access width (16-bit -> +/-2);
+; plain = 0, post-increment = +2, pre-decrement = -2.  Little-endian: the low
+; byte is always accessed first.  r16 = BC/DE/HL; FT is handled separately.
+
+	SECTION "FamilyB",CODE
+; Family B: FT is the pointer, data is a pair.
+	ld	bc,(ft)
+	ld	bc,(ft+)
+	ld	bc,(-ft)
+	ld	(ft),bc
+	ld	(ft+),bc
+	ld	(-ft),bc
+	ld	hl,(ft)
+	ld	hl,(ft+)
+	ld	hl,(-ft)
+	ld	(ft),hl
+	ld	(ft+),hl
+	ld	(-ft),hl
+
+	SECTION "FamilyA",CODE
+; Family A: a pair is the pointer, FT is the data.
+	ld	ft,(bc)
+	ld	ft,(bc+)
+	ld	ft,(-bc)
+	ld	(bc),ft
+	ld	(bc+),ft
+	ld	(-bc),ft
+	ld	ft,(hl)
+	ld	ft,(hl+)
+	ld	ft,(-hl)
+	ld	(hl),ft
+	ld	(hl+),ft
+	ld	(-hl),ft
+
+	SECTION "ByteFT",CODE
+; Byte stepped through FT: step = width (1).  B-L use the native stepped-byte
+; opcode.  Pre-decrement has no native opcode.  F is rejected here: writing F
+; clobbers the FT pointer being stepped (plain ld f,(ft) is still valid).
+	ld	b,(ft+)
+	ld	l,(ft+)
+	ld	(ft+),b
+	ld	(ft+),l
+	ld	b,(-ft)
+	ld	(-ft),b
+
+	SECTION "IO",CODE
+; LIO/LCO step by width too, but have no native stepped opcode -> synthesized.
+	lio	ft,(bc)
+	lio	ft,(bc+)
+	lio	ft,(-bc)
+	lio	(bc),ft
+	lio	(bc+),ft
+	lio	(-bc),ft
+	lco	ft,(bc)
+	lco	ft,(bc+)
+	lco	ft,(-bc)

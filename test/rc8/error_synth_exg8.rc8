@@ -1,3 +1,0 @@
-	SECTION "Test",CODE
-	opt <ms0>
-	exg	f,b

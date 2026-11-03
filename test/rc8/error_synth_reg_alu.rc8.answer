@@ -1,0 +1,27 @@
+error_synth_reg_alu.rc8:3: E0107 Invalid operand
+error_synth_reg_alu.rc8:4: E0107 Invalid operand
+error_synth_reg_alu.rc8:4: E1002 Requires synthesized instructions
+error_synth_reg_alu.rc8:5: E0107 Invalid operand
+error_synth_reg_alu.rc8:6: E0107 Invalid operand
+error_synth_reg_alu.rc8:6: E1002 Requires synthesized instructions
+error_synth_reg_alu.rc8:7: E0107 Invalid operand
+error_synth_reg_alu.rc8:8: E0107 Invalid operand
+error_synth_reg_alu.rc8:9: E0107 Invalid operand
+error_synth_reg_alu.rc8:10: E0107 Invalid operand
+error_synth_reg_alu.rc8:11: E0107 Invalid operand
+error_synth_reg_alu.rc8:12: E0107 Invalid operand
+error_synth_reg_alu.rc8:12: E1002 Requires synthesized instructions
+error_synth_reg_alu.rc8:13: E0107 Invalid operand
+error_synth_reg_alu.rc8:13: E1002 Requires synthesized instructions
+error_synth_reg_alu.rc8:14: E0107 Invalid operand
+error_synth_reg_alu.rc8:15: E0107 Invalid operand
+error_synth_reg_alu.rc8:15: E1002 Requires synthesized instructions
+error_synth_reg_alu.rc8:16: E0107 Invalid operand
+error_synth_reg_alu.rc8:16: E1002 Requires synthesized instructions
+error_synth_reg_alu.rc8:17: E0107 Invalid operand
+error_synth_reg_alu.rc8:17: E1002 Requires synthesized instructions
+error_synth_reg_alu.rc8:18: E0107 Invalid operand
+error_synth_reg_alu.rc8:18: E1002 Requires synthesized instructions
+error_synth_reg_alu.rc8:19: E0107 Invalid operand
+error_synth_reg_alu.rc8:19: E1002 Requires synthesized instructions
+error_synth_reg_alu.rc8:20: E0107 Invalid operand

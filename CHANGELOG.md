@@ -22,6 +22,9 @@
 * `XOR`/`OR` with 0 and `AND` with $FF now warn as they are no-ops.
 * The `-` register range notation in register lists (e.g. `bc-de`) is gone; register lists now use `/`.
 * `CC` and `CS` are now accepted as condition codes, synonyms for `/GEU` (carry clear) and `/LTU` (carry set). The `NC` condition-code alias has been removed.
+* Synthesized register-to-register ALU forms: `ADD`/`SUB` (8 and 16 bit), `AND`/`OR`/`XOR` (8 bit) and `CMP` (8 bit) now accept a destination other than the T/FT hub, expanding to an `EXG` thunk through the hub; `CMP R16,R16` expands to a five-instruction `PUSH`/`EXG`/`CMP`/`EXG`/`POP` form.
+* `NEG` now accepts every register and `NOT` every 8-bit register, previously only the hub registers (and `F` for `NOT`).
+* Self-operations `OP X,X` collapse to direct expansions: `ADD X,X` doubles via the hub, `SUB X,X` and `XOR X,X` zero the register, `AND X,X` and `OR X,X` warn and emit nothing, and `CMP X,X` warns and emits `LD F,$02` since the comparison is statically equal. `SUB T,T` now zeroes instead of encoding as `NEG T`.
 
 
 ## Linker

@@ -24,6 +24,8 @@ static char* g_errors[] = {
     "Requires synthesized instructions",
     "Bitwise operation with 0 is a no-op",
     "Shift count must be in range 0..15",
+    "Bitwise operation of a register with itself is a no-op",
+    "Comparison of a register with itself is always equal",
 };
 
 const char*

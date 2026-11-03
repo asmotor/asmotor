@@ -1,2 +1,2 @@
 	SECTION "Test",CODE
-	cmp	t,t
+	pick	bc

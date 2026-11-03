@@ -21,21 +21,21 @@
 
 		exg	f
 		DB	$11
-		exg	b
-		exg	c
-		exg	d
-		exg	e
-		exg	h
-		exg	l
+		DB	$12
+		DB	$13
+		DB	$14
+		DB	$15
+		DB	$16
+		DB	$17
 
 		DB	$18
-		stow	bc
-		stow	de
-		stow	hl
-		pick	ft
-		pick	bc
-		pick	de
-		pick	hl
+		DB	$19
+		DB	$1A
+		DB	$1B
+		DB	$1C
+		DB	$1D
+		DB	$1E
+		DB	$1F
 
 		DB	$20
 		DB	$21
@@ -177,10 +177,10 @@
 		j/ne	.end
 		j	.end
 		sys	$
-		DB	$9C
-		DB	$9D
-		DB	$9E
-		DB	$9F
+		add	ft,$01
+		add	bc,$02
+		add	de,$03
+		add	hl,$04
 .end		
 		add	f,$A0
 		add	t,$A1
@@ -204,19 +204,19 @@
 		and	t,$B1
 		xor	$B2
 		DB	$B3
-		DB	$B4
-		DB	$B5
-		DB	$B6
-		DB	$B7
+		stow	ft,$01
+		stow	bc,$02
+		stow	de,$03
+		stow	hl,$04
 
-		ls	$0F
 		rs	ft,$0F
-		DB	$BA
 		rsa	$01
-		DB	$BC
-		DB	$BD
-		DB	$BE
-		DB	$BF
+		ls	$0F
+		DB	$BB
+		pick	ft,$01
+		pick	bc,$02
+		pick	de,$03
+		pick	hl,$04
 
 		push	ft
 		push	bc
@@ -256,30 +256,12 @@
 
 		DB	$E0
 		DB	$E1
-		ls	ft,b
-		ls	c
-		ls	ft,d
-		ls	ft,e
-		ls	ft,h
-		ls	ft,l
-
-		DB	$E8
-		DB	$E9
 		rs	ft,b
 		rs	c
 		rs	ft,d
 		rs	ft,e
 		rs	ft,h
 		rs	ft,l
-
-		neg	ft
-		sub	bc
-		sub	ft,de
-		sub	ft,hl
-		DB	$F4
-		add	bc
-		add	ft,de
-		add	ft,hl
 
 		pusha
 		popa
@@ -289,6 +271,24 @@
 		rsa	ft,e
 		rsa	ft,h
 		rsa	ft,l
+
+		DB	$F0
+		DB	$F1
+		ls	ft,b
+		ls	c
+		ls	ft,d
+		ls	ft,e
+		ls	ft,h
+		ls	ft,l
+
+		neg	ft
+		sub	bc
+		sub	ft,de
+		sub	ft,hl
+		DB	$FC
+		add	bc
+		add	ft,de
+		add	ft,hl
 
 	IF	0
 		DB	$0A
@@ -435,14 +435,14 @@
 		ls	ft,h
 		ls	ft,l
 
-		DB	$E8
-		DB	$E9
+		DB	$F0
+		DB	$F1
 
-		rs	ft,b
-		rs	c
-		rs	ft,d
-		rs	ft,e
-		rs	ft,h
-		rs	ft,l
+		ls	ft,b
+		ls	c
+		ls	ft,d
+		ls	ft,e
+		ls	ft,h
+		ls	ft,l
 
 	ENDC

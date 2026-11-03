@@ -1,0 +1,182 @@
+	SECTION "Test",CODE
+
+	; Synthesized register-to-register ALU forms routed through the T/FT hub.
+	; Byte destinations other than F are absent by design: they exchanged
+	; through `EXG T,r8` ($12-$17), which is out of the ISA, and now refuse
+	; as plain operand errors (see error_byte_exchange.rc8).
+
+	; ---- ADD 8-bit, destination F ----$
+	add	f,b
+	add	f,c
+	add	f,d
+	add	f,e
+	add	f,h
+	add	f,l
+	add	f,t
+
+	; ---- ADD 16-bit, destination != FT ----
+	add	bc,de
+	add	bc,hl
+	add	bc,ft
+	add	de,bc
+	add	de,hl
+	add	de,ft
+	add	hl,bc
+	add	hl,de
+	add	hl,ft
+
+	; ---- SUB 8-bit, destination F ----$
+	sub	f,b
+	sub	f,c
+	sub	f,d
+	sub	f,e
+	sub	f,h
+	sub	f,l
+	sub	f,t
+
+	; ---- SUB 16-bit, destination != FT ----
+	sub	bc,de
+	sub	bc,hl
+	sub	bc,ft
+	sub	de,bc
+	sub	de,hl
+	sub	de,ft
+	sub	hl,bc
+	sub	hl,de
+	sub	hl,ft
+
+	; ---- AND 8-bit ----
+	and	f,b
+	and	f,c
+	and	f,d
+	and	f,e
+	and	f,h
+	and	f,l
+	and	f,t
+
+	; ---- OR 8-bit ----
+	or	f,b
+	or	f,c
+	or	f,d
+	or	f,e
+	or	f,h
+	or	f,l
+	or	f,t
+
+	; ---- XOR 8-bit ----
+	xor	f,b
+	xor	f,c
+	xor	f,d
+	xor	f,e
+	xor	f,h
+	xor	f,l
+	xor	f,t
+
+	; ---- CMP 8-bit, destination F ----$
+	cmp	f,b
+	cmp	f,c
+	cmp	f,d
+	cmp	f,e
+	cmp	f,h
+	cmp	f,l
+	cmp	f,t
+
+	; ---- CMP 16-bit, destination != FT ----
+	cmp	bc,de
+	cmp	bc,hl
+	cmp	bc,ft
+	cmp	de,bc
+	cmp	de,hl
+	cmp	de,ft
+	cmp	hl,bc
+	cmp	hl,de
+	cmp	hl,ft
+
+	; ---- Self forms: add doubles, sub zeroes ----
+	add	f,f
+	add	t,t
+	add	ft,ft
+	add	bc,bc
+	add	de,de
+	add	hl,hl
+	sub	f,f
+	sub	b,b
+	sub	c,c
+	sub	d,d
+	sub	e,e
+	sub	h,h
+	sub	l,l
+	sub	t,t
+	sub	ft,ft
+	sub	bc,bc
+	sub	de,de
+	sub	hl,hl
+
+	; ---- Self forms: xor zeroes, and/or warn and emit nothing (8-bit only) ----
+	xor	f,f
+	xor	b,b
+	xor	c,c
+	xor	d,d
+	xor	e,e
+	xor	h,h
+	xor	l,l
+	xor	t,t
+	and	f,f
+	and	b,b
+	and	c,c
+	and	d,d
+	and	e,e
+	and	h,h
+	and	l,l
+	and	t,t
+	or	f,f
+	or	b,b
+	or	c,c
+	or	d,d
+	or	e,e
+	or	h,h
+	or	l,l
+	or	t,t
+
+	; ---- Self forms: cmp warns and writes FLAGS_EQ ----
+	cmp	f,f
+	cmp	b,b
+	cmp	c,c
+	cmp	d,d
+	cmp	e,e
+	cmp	h,h
+	cmp	l,l
+	cmp	t,t
+	cmp	ft,ft
+	cmp	bc,bc
+	cmp	de,de
+	cmp	hl,hl
+
+	; ---- NEG on every register ----
+	neg	f
+	neg	t
+	neg	ft
+	neg	bc
+	neg	de
+	neg	hl
+
+	; ---- NOT on every 8-bit register ----
+	not	f
+	not	t
+	not	ft
+
+	; ---- Conditional variants wrap the whole expansion ----
+	add/eq	f,c
+	sub/gt	f,e
+	and/leu	f,d
+	or/ltu	f,l
+	xor/lt	f,t
+	cmp/ne	f,h
+	add/lt	bc,ft
+	sub/geu	de,hl
+	neg/eq	bc
+	not/gt	f
+	add/eq	f,f
+	cmp/geu	f,t
+	cmp/gt	bc,de
+	cmp/ne	hl,ft
