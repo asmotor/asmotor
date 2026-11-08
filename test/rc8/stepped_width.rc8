@@ -34,9 +34,11 @@
 	ld	(-hl),ft
 
 	SECTION "ByteFT",CODE
-; Byte stepped through FT: step = width (1).  B-L use the native stepped-byte
-; opcode.  Pre-decrement has no native opcode.  F is rejected here: writing F
-; clobbers the FT pointer being stepped (plain ld f,(ft) is still valid).
+; Byte stepped through FT: step = width (1), always synthesized - the native
+; stepped block steps the general pairs, so B-L are the plain access plus
+; ADD FT,1 (or ADD FT,-1 first).  The hub bytes are rejected here: a load
+; writes the half of the pointer it steps, and a hub-byte store has no plain
+; form to step from (plain ld f,(ft) is still valid).
 	ld	b,(ft+)
 	ld	l,(ft+)
 	ld	(ft+),b

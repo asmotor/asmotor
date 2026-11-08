@@ -28,22 +28,24 @@ Synthesized instructions are safe sequences with no unintended side effects. The
 | ADD FT,FT (or `ADD FT`) | `LS FT,1` |
 | SUB R,imm | `ADD R,-imm` |
 | LD R16,imm | Two 8 bit loads, with a 3 byte optimization: `EXT` if the value is sign-extendable, `LD F,T` if both bytes are equal |
-| LD FT,(R16) | `EXG FT,R16` / `LD R16.lo,(FT+)` / `LD R16.hi,(FT)` / `ADD FT,-1` / `EXG FT,R16` |
-| LD (R16),FT | `EXG FT,R16` / `LD (FT+),R16.lo` / `LD (FT),R16.hi` / `ADD FT,-1` / `EXG FT,R16` |
-| LD FT,(R16+) | `EXG FT,R16` / `LD R16.lo,(FT+)` / `LD R16.hi,(FT+)` / `EXG FT,R16` |
-| LD (R16+),FT | `EXG FT,R16` / `LD (FT+),R16.lo` / `LD (FT+),R16.hi` / `EXG FT,R16` |
-| LD FT,(-R16) | `ADD R16,-2` / `EXG FT,R16` / `LD R16.lo,(FT+)` / `LD R16.hi,(FT)` / `ADD FT,-1` / `EXG FT,R16` |
-| LD (-R16),FT | `ADD R16,-2` / `EXG FT,R16` / `LD (FT+),R16.lo` / `LD (FT),R16.hi` / `ADD FT,-1` / `EXG FT,R16` |
-| LD T,(R16+) | `LD T,(R16)` / `ADD R16,1` |
-| LD (R16+),T | `LD (R16),T` / `ADD R16,1` |
+| LD FT,(R16) | `LD T,(R16+)` / `LD F,(R16+)` / `ADD R16,-2` |
+| LD (R16),FT | `LD (R16+),T` / `LD (R16+),F` / `ADD R16,-2` |
+| LD FT,(R16+) | `LD T,(R16+)` / `LD F,(R16+)` |
+| LD (R16+),FT | `LD (R16+),T` / `LD (R16+),F` |
+| LD FT,(-R16) | `ADD R16,-2` / `LD T,(R16+)` / `LD F,(R16+)` / `ADD R16,-2` |
+| LD (-R16),FT | `ADD R16,-2` / `LD (R16+),T` / `LD (R16+),F` / `ADD R16,-2` |
 | LD T,(-R16) | `ADD R16,-1` / `LD T,(R16)` |
 | LD (-R16),T | `ADD R16,-1` / `LD (R16),T` |
-| LD R16,(FT) | `LD R16.lo,(FT+)` / `LD R16.hi,(FT)` / `ADD FT,-1` |
-| LD (FT),R16 | `LD (FT+),R16.lo` / `LD (FT),R16.hi` / `ADD FT,-1` |
-| LD R16,(FT+) | `LD R16.lo,(FT+)` / `LD R16.hi,(FT+)` |
-| LD (FT+),R16 | `LD (FT+),R16.lo` / `LD (FT+),R16.hi` |
-| LD R16,(-FT) | `ADD FT,-2` / `LD R16.lo,(FT+)` / `LD R16.hi,(FT)` / `ADD FT,-1` |
-| LD (-FT),R16 | `ADD FT,-2` / `LD (FT+),R16.lo` / `LD (FT),R16.hi` / `ADD FT,-1` |
+| LD R16,(FT) | `EXG FT,R16` / `LD T,(R16+)` / `LD F,(R16+)` / `EXG FT,R16` / `ADD FT,-2` |
+| LD (FT),R16 | `EXG FT,R16` / `LD (R16+),T` / `LD (R16+),F` / `EXG FT,R16` / `ADD FT,-2` |
+| LD R16,(FT+) | `EXG FT,R16` / `LD T,(R16+)` / `LD F,(R16+)` / `EXG FT,R16` |
+| LD (FT+),R16 | `EXG FT,R16` / `LD (R16+),T` / `LD (R16+),F` / `EXG FT,R16` |
+| LD R16,(-FT) | `ADD FT,-2` / `EXG FT,R16` / `LD T,(R16+)` / `LD F,(R16+)` / `EXG FT,R16` / `ADD FT,-2` |
+| LD (-FT),R16 | `ADD FT,-2` / `EXG FT,R16` / `LD (R16+),T` / `LD (R16+),F` / `EXG FT,R16` / `ADD FT,-2` |
+| LD R8,(FT+) | `LD R8,(FT)` / `ADD FT,1` (`R8` = `B`/`C`/`D`/`E`/`H`/`L`) |
+| LD (FT+),R8 | `LD (FT),R8` / `ADD FT,1` (`R8` as above) |
+| LD R8,(-FT) | `ADD FT,-1` / `LD R8,(FT)` (`R8` as above) |
+| LD (-FT),R8 | `ADD FT,-1` / `LD (FT),R8` (`R8` as above) |
 | LIO FT,(R16) | `LIO T,(R16)` / `ADD R16,1` / `EXG F,T` / `LIO T,(R16)` / `ADD R16,-1` / `EXG F,T` |
 | LIO (R16),FT | `LIO (R16),T` / `ADD R16,1` / `EXG F,T` / `LIO (R16),T` / `ADD R16,-1` / `EXG F,T` |
 | LIO FT,(R16+) | `LIO T,(R16)` / `ADD R16,1` / `EXG F,T` / `LIO T,(R16)` / `ADD R16,1` / `EXG F,T` |
@@ -71,13 +73,13 @@ Synthesized instructions are safe sequences with no unintended side effects. The
 | POP R16/R16 | See [register lists](#register-lists) |
 | SWAP R16/R16 | See [register lists](#register-lists) |
 
-**Stepped access advances by the access width.** A post-increment or pre-decrement access moves its pointer by the number of bytes it touches: an 8-bit access (`LD T,(R16+)`, `LD R8,(FT+)`, …) by 1, a 16-bit access (`LD FT,(R16+)`, `LD R16,(FT+)`, …) by 2. Plain `(R16)` / `(FT)` forms do not move the pointer. The 16-bit forms above therefore step by 2, and `R16.lo` / `R16.hi` are the pointer pair's own byte halves (little-endian, low byte first). Because `LD R8,(FT+)` / `LD (FT+),R8` and `EXG FT,R16` are native, these expansions use no ALU op and leave the condition flags untouched (only `CMP` writes them); the FT-as-data forms borrow the pointer through `EXG FT,R16`, and a store preserves its FT value across the swap.
+**Stepped access advances by the access width.** A post-increment or pre-decrement access moves its pointer by the number of bytes it touches: an 8-bit access (`LD T,(R16+)`, `LD R8,(FT+)`, …) by 1, a 16-bit access (`LD FT,(R16+)`, `LD R16,(FT+)`, …) by 2. Plain `(R16)` / `(FT)` forms do not move the pointer. The 16-bit forms above therefore step by 2, and little-endian order makes the low byte the first access. Two native steps always leave the pointer two above where they started, so every form except the post-increment walks it back with `ADD R16,-2` / `ADD FT,-2`, and the pre-decrement walks it down by 2 first. Only `CMP` writes the condition flags, so these `ADD`s and the native stepped accesses leave them untouched; the FT-as-data forms borrow the pointer through `EXG FT,R16`, and a store keeps its value in the borrowed pair across the swap.
 
 `JAL addr` also serves as the long-jump form when a `J addr` target is outside the signed 8-bit range (−128 to +127 bytes). It has the same code size and execution time as `LD HL,addr` / `J (HL)`, but leaves HL holding the return address; use it only where HL is dead across the jump. With the usual `/CC` suffix (`JAL/NE addr`) it becomes a conditional absolute jump; HL is clobbered only when the branch is taken.
 
-The following are native instructions, not synthesized: `LD T,(R16)`, `LD (R16),T`, `LD T,(FT)`, `LD (FT),T`, `LD R8,(FT+)`, `LD (FT+),R8` (the stepped-byte block `$1A-$1F` / `$12-$17`, `R8` = `B`/`C`/`D`/`E`/`H`/`L`), `LD R8,T`, `LD T,R8`, `LD R16,FT`, `LD FT,R16`, `EXG F,T`, `EXG R16,FT`, `J addr`, `J/CC addr`, `J (R16)`, `JAL (R16)`, `DJ R8,addr`, `LS/RS/RSA R,imm`, `PICK R16,imm`, `STOW R16,imm` (all four pairs), `SYS imm`, `NEG T`, `NEG FT`, `NOT F`.
+The following are native instructions, not synthesized: `LD T,(R16)`, `LD (R16),T`, `LD T,(FT)`, `LD (FT),T`, `LD R8,(FT)`, `LD (FT),R8`, `LD T,(R16+)`, `LD (R16+),T`, `LD F,(R16+)`, `LD (R16+),F` (the stepped-byte block `$11-$13` / `$15-$17` / `$19-$1B` / `$1D-$1F`: the data byte is always a hub byte — `T` or `F` — and the stepped pointer is always `BC`, `DE` or `HL`; `FT` there is illegal, the byte would land inside the pointer being stepped), `LD R8,T`, `LD T,R8`, `LD R16,FT`, `LD FT,R16`, `EXG F,T`, `EXG R16,FT`, `J addr`, `J/CC addr`, `J (R16)`, `JAL (R16)`, `DJ R8,addr`, `LS/RS/RSA R,imm`, `PICK R16,imm`, `STOW R16,imm` (all four pairs), `SYS imm`, `NEG T`, `NEG FT`, `NOT F`.
 
-There is no byte exchange through `T`: `EXG T,R8` is not part of the instruction set (its old opcodes `$12-$17` now form the stepped-byte `LD (FT+),R8` block), so `exg b`, `exg t,b` and `exg b,c` are operand errors. Swap bytes with `LD` through the hub, or exchange a whole pair with `EXG FT,R16`.
+A hub byte through a *stepped FT* pointer is neither native nor synthesizable: `LD F,(FT+)` / `LD T,(FT+)` would write the half of the pointer they step, and `LD (FT+),F` / `LD (FT+),T` have no plain form to step from (`LD (FT),F` / `LD (FT),T` are not native), so all four — and the same four with `(-FT)` — are operand errors. Take the native step through a general pair instead. There is likewise no byte exchange through `T`: `EXG T,R8` is not part of the instruction set (its old opcodes now sit in the stepped-byte `LD` block), so `exg b`, `exg t,b` and `exg b,c` are operand errors. Swap bytes with `LD` through the hub, or exchange a whole pair with `EXG FT,R16`.
 
 ### Expansion cost and ranking
 
@@ -85,18 +87,18 @@ Every native instruction costs 4 cycles. Ranked by how many native instructions 
 
 | Rank | Form | Instr | Cycles | Notes |
 |---|------|-------|--------|-------|
-| 1 | `LD R16,(FT+)` / `LD (FT+),R16` | 2 | 8 | Two native stepped bytes — the cheapest 16-bit access |
-| 2 | `LD R16,(FT)` / `LD (FT),R16` | 3 | 12 | FT-pointer plain (adds `ADD FT,-1` to restore the pointer) |
-| 3 | `LD FT,(R16+)` / `LD (R16+),FT` | 4 | 16 | Pair-pointer post-increment |
-| 3 | `LD R16,(-FT)` / `LD (-FT),R16` | 4 | 16 | FT-pointer pre-decrement |
-| 5 | `LD FT,(R16)` / `LD (R16),FT` | 5 | 20 | Pair-pointer plain |
-| 6 | `LD FT,(-R16)` / `LD (-R16),FT` | 6 | 24 | Pair-pointer pre-decrement |
+| 1 | `LD FT,(R16+)` / `LD (R16+),FT` | 2 | 8 | Two native stepped bytes — the cheapest 16-bit access |
+| 2 | `LD FT,(R16)` / `LD (R16),FT` | 3 | 12 | Pair-pointer plain (walks the pointer back with `ADD R16,-2`) |
+| 3 | `LD FT,(-R16)` / `LD (-R16),FT` | 4 | 16 | Pair-pointer pre-decrement (walk down, then back) |
+| 3 | `LD R16,(FT+)` / `LD (FT+),R16` | 4 | 16 | FT pointer via the `EXG FT,R16` borrow dance |
+| 5 | `LD R16,(FT)` / `LD (FT),R16` | 5 | 20 | Borrow dance plus pointer restore |
+| 6 | `LD R16,(-FT)` / `LD (-FT),R16` | 6 | 24 | Borrow dance plus two pointer walks |
 | 7 | `LIO` / `LCO` word, plain or post-inc `(R16)`/`(R16+)` | 6 | 24 | No native stepped I/O opcode; word through a pair only |
 | 8 | `LIO` / `LCO` word, pre-dec `(-R16)` | 7 | 28 | |
-| — | byte: `LD T,(R16)` / `LD R8,(FT)` / `LD R8,(FT+)` … | 1 | 4 | `LD R8,(FT+)` / `LD (FT+),R8` are native stepped bytes |
-| — | byte: `LD T,(R16+)` / `LD R8,(-FT)` … | 2 | 8 | |
+| — | byte: `LD T,(R16)` / `LD (R16),T` / `LD R8,(FT)` / `LD (FT),R8` / `LD T,(R16+)` / `LD (R16+),T` / `LD F,(R16+)` / `LD (R16+),F` | 1 | 4 | native |
+| — | byte: `LD R8,(FT+)` / `LD (FT+),R8` / `LD T,(-R16)` / `LD R8,(-FT)` … | 2 | 8 | the synthesized steppers |
 
-Surprises worth knowing: **post-increment is cheaper than plain** for the same pointer (`LD FT,(R16+)` = 4 < `LD FT,(R16)` = 5; `LD R16,(FT+)` = 2 < `LD R16,(FT)` = 3) because the plain form must walk the borrowed pointer back with `ADD FT,-1` — so when the pointer's end value is dead or compensable, `(R16+)` is both shorter and faster; **a word through `FT` (2–3) is far cheaper than through `BC`/`DE`/`HL` (4–6)**, since FT has native stepped-byte opcodes while a general pair is borrowed via `EXG FT,R16`; **pre-decrement is the costliest** stepping mode; and **`LIO`/`LCO` word accesses cost more than `LD`** because there is no native stepped I/O opcode.
+Surprises worth knowing: **post-increment is cheaper than plain** for the same pointer (`LD FT,(R16+)` = 2 < `LD FT,(R16)` = 3) because the plain form must walk the pointer back — so when the pointer's end value is dead or compensable, `(R16+)` is both shorter and faster; **`BC`/`DE`/`HL` are the cheap pointers and `FT` is the expensive one** (a stepped word costs 2 through a pair, 4 through `FT`, because the native stepped-byte block steps general pairs and `FT` has to be borrowed through `EXG FT,R16`), though plain byte access through `FT` is still a single instruction; **pre-decrement is the costliest** stepping mode, since it adds a walk on top of the access; and **`LIO`/`LCO` word accesses cost more than `LD`** because there is no native stepped I/O opcode.
 
 ### Register-to-register ALU
 

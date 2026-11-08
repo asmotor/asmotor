@@ -1,0 +1,21 @@
+; The stepped byte block ($10-$1F) is native: a hub byte (T or F) through a
+; BC/DE/HL pointer, which steps it by one.  Native encodings assemble even
+; with synthesized instructions switched off.
+
+	SECTION "SteppedNative",CODE
+
+	opt <ms0>
+
+	ld	(bc+),t
+	ld	(de+),t
+	ld	(hl+),t
+	ld	t,(bc+)
+	ld	t,(de+)
+	ld	t,(hl+)
+	ld	(bc+),f
+	ld	(de+),f
+	ld	(hl+),f
+	ld	f,(bc+)
+	ld	f,(de+)
+	ld	f,(hl+)
+	exg	f,t

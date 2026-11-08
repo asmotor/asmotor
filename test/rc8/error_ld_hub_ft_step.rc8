@@ -1,0 +1,15 @@
+; A hub byte through a stepped FT pointer is not synthesizable: the load would
+; write the half of the pointer it steps, and the store has no plain form to
+; step from (LD (FT),F / LD (FT),T are not native).  Reach the byte through a
+; general pair, where the step is a single native instruction.
+
+	SECTION "HubStep",CODE
+
+	ld	f,(ft+)
+	ld	t,(ft+)
+	ld	(ft+),f
+	ld	(ft+),t
+	ld	f,(-ft)
+	ld	t,(-ft)
+	ld	(-ft),f
+	ld	(-ft),t

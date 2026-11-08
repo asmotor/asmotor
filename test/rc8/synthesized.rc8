@@ -34,6 +34,11 @@
 	ld	(ft+),hl
 	ld	t,(bc+)
 	ld	t,(-bc)
+	ld	f,(bc+)
+	ld	(bc+),f
+	ld	f,(hl+)
+	ld	(hl+),f
+	ld	(de+),t
 	lco	ft,(bc+)
 	lco	t,(bc+)
 	lco	t,(-bc)

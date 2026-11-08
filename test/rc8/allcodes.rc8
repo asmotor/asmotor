@@ -20,22 +20,22 @@
 		lco	t,(hl)
 
 		exg	f
-		DB	$11
-		DB	$12
-		DB	$13
-		DB	$14
-		DB	$15
-		DB	$16
-		DB	$17
+		ld	(bc+),t
+		ld	(de+),t
+		ld	(hl+),t
+		DB	$14	; illegal: FT is the stepped pointer, T is inside it
+		ld	t,(bc+)
+		ld	t,(de+)
+		ld	t,(hl+)
 
-		DB	$18
-		DB	$19
-		DB	$1A
-		DB	$1B
-		DB	$1C
-		DB	$1D
-		DB	$1E
-		DB	$1F
+		DB	$18	; illegal: FT is the stepped pointer, F is inside it
+		ld	(bc+),f
+		ld	(de+),f
+		ld	(hl+),f
+		DB	$1C	; illegal: FT is the stepped pointer, F is inside it
+		ld	f,(bc+)
+		ld	f,(de+)
+		ld	f,(hl+)
 
 		DB	$20
 		DB	$21
